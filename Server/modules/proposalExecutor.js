@@ -25,6 +25,7 @@ const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 var queryPhoneLocation = require('query-mobile-phone-area');
 var rsaCrypto = require("../modules/rsaCrypto");
 const constPlayerTopUpType = require("../const/constPlayerTopUpType");
+const constClientQnA = require("../const/constClientQnA");
 var dbRewardType = require("../db_modules/dbRewardType.js");
 var dbRewardEvent = require("../db_modules/dbRewardEvent.js");
 var dbRewardLog = require("../db_modules/dbRewardLog.js");
@@ -674,11 +675,13 @@ var proposalExecutor = {
              */
             executeUpdatePlayerInfo: function (proposalData, deferred) {
                 //valid data
+                let playerObj;
                 if (proposalData && proposalData.data && proposalData.data._id) {
                     var curPartnerId = null;
                     dbconfig.collection_players.findOne({_id: proposalData.data._id}).then(
                         function (data) {
                             if (data) {
+                                playerObj = data;
                                 curPartnerId = data.partner;
                                 var proms = [];
                                 if (proposalData.data.hasOwnProperty("partner") && !proposalData.data.partner) {
@@ -729,6 +732,8 @@ var proposalExecutor = {
                         }
                     ).then(
                         function (data) {
+                            //reset client QnA security question wrong count
+                            dbconfig.collection_clientQnA.findOneAndUpdate({type: constClientQnA.FORGOT_PASSWORD, playerObjId: playerObj._id}, {totalWrongCount: 0}).catch(errorUtils.reportError);
                             deferred.resolve(data);
                         },
                         function (error) {

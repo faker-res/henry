@@ -1,4 +1,5 @@
-.row(mouse-capture ng-keydown="vm.keyDown($event)" ng-keyup="vm.keyUp($event)")
+//- .row(mouse-capture ng-keydown="vm.keyDown($event)" ng-keyup="vm.keyUp($event)")
+.row
     .text-center
         p(ng-if="!vm.curPlatformText")
             label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}

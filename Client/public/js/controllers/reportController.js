@@ -204,7 +204,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
                     proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
                     proposalDetail["OnlineTopUpType"] = $translate($scope.merchantTopupTypeJson[vm.selectedProposal.data.topupType]) || " ";
-                    proposalDetail["3rdPartyPlatform"] = vm.getMerchantName(vm.selectedProposal.data.merchantNo) || " ";
+                    proposalDetail["3rdPartyPlatform"] = vm.getMerchantName(vm.selectedProposal.data.merchantNo, vm.selectedProposal.inputDevice) || " ";
                     proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                     proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                     proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
@@ -1568,7 +1568,7 @@ define(['js/app'], function (myApp) {
                     data.data.data.map(item => {
                         item.amount$ = parseFloat(item.data.amount).toFixed(2);
                         item.status$ = $translate(item.status);
-                        item.merchantName = vm.getMerchantName(item.data.merchantNo);
+                        item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
                         item.merchantNoDisplay = item.data.merchantNo != null ? item.data.merchantNo
                             : item.data.bankCardNo != null ? item.data.bankCardNo
                             : item.data.wechatAccount != null ? item.data.wechatAccount
@@ -1602,21 +1602,8 @@ define(['js/app'], function (myApp) {
             }, true);
         };
 
-        vm.getMerchantName = function (merchantNo) {
-            let result = '';
-            if (merchantNo && vm.merchantNoList) {
-                let merchant = vm.merchantNoList.filter(item => {
-                    return item.merchantNo == merchantNo
-                })
-                if (merchant.length > 0) {
-                    let merchantName = vm.merchantTypes.filter(item => {
-                        return item.merchantTypeId == merchant[0].merchantTypeId;
-                    })
-                    if (merchantName[0]) {
-                        result = merchantName[0].name;
-                    }
-                }
-            }
+        vm.getMerchantName = function (merchantNo, inputDevice) {
+            let result = commonService.getMerchantName(merchantNo, vm.merchantNoList, vm.merchantTypes, inputDevice);
             return result;
         }
         vm.getOnlineMerchantId = function (merchantNo, targetDevices) {
@@ -6908,7 +6895,7 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'getGameDetailByProvider', sendData, function (data) {
                     $scope.$evalAsync(() => {
-                        
+
                         if (data && data.data){
                            vm.gameDetails = data.data.map(item => {
                                item.totalAmount = $roundToTwoDecimalPlacesString(item.totalAmount || 0);
@@ -6923,7 +6910,7 @@ define(['js/app'], function (myApp) {
                 })
             }
         }
-        
+
         vm.drawSpecificRewardProposalTable = function (data, size, summary, newSearch) {
             var tableOptions = $.extend(true, {}, vm.commonTableOption, {
                 data: data,
@@ -7999,7 +7986,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
                     proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
                     proposalDetail["OnlineTopUpType"] = $translate($scope.merchantTopupTypeJson[vm.selectedProposal.data.topupType]) || " ";
-                    proposalDetail["3rdPartyPlatform"] = vm.getMerchantName(vm.selectedProposal.data.merchantNo) || " ";
+                    proposalDetail["3rdPartyPlatform"] = vm.getMerchantName(vm.selectedProposal.data.merchantNo, vm.selectedProposal.inputDevice) || " ";
                     proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                     proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                     proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
@@ -8386,7 +8373,7 @@ define(['js/app'], function (myApp) {
             vm.merchantGroupObj = [];
             let merGroupName = {};
             let merGroupList = {};
-            
+
             socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
                 $scope.$evalAsync(() => {
                     if (data && data.data && data.data.data) {
@@ -8587,7 +8574,7 @@ define(['js/app'], function (myApp) {
                             $($multiReward).find('span').text(upText)
                         });
                         $("select#selectFinancialPointsType").multipleSelect("checkAll");
-                        
+
                         vm.financialQuery.pageObj = utilService.createPageForPagingTable("#financialPointsTablePage", {}, $translate,  function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "financialQuery", vm.searchFinancialPointsRecord)
                         });

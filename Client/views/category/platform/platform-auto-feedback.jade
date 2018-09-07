@@ -2,7 +2,7 @@
     .col-md-12
         button.btn.btn-primary.common-button(ng-click='vm.selectedAutoFeedbackTab="create";vm.initAutoFeedbackCreate();')
             span {{"Create Feedback Mission" | translate}}
-        button.btn.btn-primary.common-button(ng-click='vm.selectedAutoFeedbackTab="overview";vm.initAutoFeedbackSearch();')
+        button.btn.btn-primary.common-button(ng-click='vm.selectedAutoFeedbackTab="overview";vm.initAutoFeedbackSearch();vm.initAutoFeedbackSearchDetail();')
             span {{"Feedback Mission Overview" | translate}}
 
     .col-md-12
@@ -20,13 +20,13 @@
                         input.form-control(type="text" ng-model="vm.autoFeedbackMission.remarks")
                 .full-width-input-block
                     label.control-label {{'Feedback Mission Start Time' | translate}}
-                    #autoFeedbackMissionStartTimePicker.datetimepicker.form-control
+                    #autoFeedbackMissionStartTimePicker.datetimepicker(style="display:inline-block;")
                         input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                 .full-width-input-block
                     label.control-label {{'Feedback Mission End Time' | translate}}
-                    #autoFeedbackMissionEndTimePicker.datetimepicker.form-control
+                    #autoFeedbackMissionEndTimePicker.datetimepicker(style="display:inline-block;")
                         input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
@@ -162,13 +162,13 @@
                         option(value='old') {{'OLD_SYSTEM'|translate}}
                 .full-width-input-block
                     label.control-label {{'REGISTRATION_TIME_START' | translate}}
-                    #autoFeedbackMissionRegisterStartTimePicker.datetimepicker.form-control
+                    #autoFeedbackMissionRegisterStartTimePicker.datetimepicker(style="display:inline-block;")
                         input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                 .full-width-input-block
                     label.control-label {{'REGISTRATION_TIME_END' | translate}}
-                    #autoFeedbackMissionRegisterEndTimePicker.datetimepicker.form-control
+                    #autoFeedbackMissionRegisterEndTimePicker.datetimepicker(style="display:inline-block;")
                         input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
@@ -312,13 +312,13 @@
                         option(ng-repeat='(i,v) in vm.autoFeedbackMissions', value='{{v.name}}') {{v.name}}
                 .inlineBlk
                     label.control-label {{'Mission Create Start Time' | translate}}
-                    #autoFeedbackOverviewCreateTimeStartPicker.datetimepicker.form-control
+                    #autoFeedbackOverviewCreateTimeStartPicker.datetimepicker
                         input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                 .inlineBlk
                     label.control-label {{'Mission Create End Time' | translate}}
-                    #autoFeedbackOverviewCreateTimeEndPicker.datetimepicker.form-control
+                    #autoFeedbackOverviewCreateTimeEndPicker.datetimepicker
                         input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
@@ -336,11 +336,128 @@
                     i.fa.fa-spinner.fa-spin
 
                 br
-                table#autoFeedbackOverviewTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                table#autoFeedbackOverviewTable.display(style="min-width:100%;")
                 #autoFeedbackOverviewTablePage
 
         .panel.panel-primary(ng-if='vm.selectedAutoFeedbackTab === "overview"')
             .panel-heading.panel-heading-sm
                 label {{"Feedback Mission Daily Detail" | translate}}
             .panel-body(style='margin:5px;')
+                .inlineBlk
+                    label {{"Feedback Mission Name"|translate}}
+                    select.form-control(style='max-width:300px', ng-model="vm.autoFeedbackMissionSearchDetail.name")
+                        option(ng-repeat='(i,v) in vm.autoFeedbackMissions', value='{{v.name}}') {{v.name}}
+                .inlineBlk
+                    label.control-label {{'Start date' | translate}}
+                    #autoFeedbackListStartTimePicker.datetimepicker
+                        input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                        span.add-on
+                            i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                .inlineBlk
+                    label.control-label {{'End date' | translate}}
+                    #autoFeedbackListEndTimePicker.datetimepicker
+                        input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                        span.add-on
+                            i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                .inlineBlk
+                    button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','overview')" ng-click='vm.autoFeedbackSearchMissionDetail()') {{"SEARCH" | translate}}
+                span#autoFeedbackDetailSpin.collapse
+                    i.fa.fa-spinner.fa-spin
+
                 br
+                br
+                table#autoFeedbackDetailTableFirst.simple-table.display(style="min-width:100%;" ng-show="vm.autoFeedbackSearchDetailResult[1]")
+                    thead
+                        th {{"date"|translate}}
+                        th {{"First Schedule Send Count"|translate}}
+                        th {{"First Schedule Claimed Count"|translate}}
+                        th {{"Login Count Before Second Schedule"|translate}}
+                        th {{"Top Up Count Before Second Schedule"|translate}}
+                    tbody
+                        tr(ng-repeat='(i,v) in vm.autoFeedbackSearchDetailResult[1]')
+                            td {{i}}
+                            td
+                                a(ng-click="vm.autoFeedbackShowPromoCodeDetail(vm.autoFeedbackSearchDetailResult[1][i].data)" data-toggle="modal" data-target="#modalAutoFeedbackPromoCodeDetail") {{v.data.length}}
+                            td {{v.acceptedCount}}
+                            td {{v.accessCount}}
+                            td {{v.topUpCount}}
+                br
+                table#autoFeedbackDetailTableSecond.simple-table.display(style="min-width:100%;" ng-show="vm.autoFeedbackSearchDetailResult[2]")
+                    thead
+                        th {{"date"|translate}}
+                        th {{"Second Schedule Send Count"|translate}}
+                        th {{"Second Schedule Claimed Count"|translate}}
+                        th {{"Login Count Before Third Schedule"|translate}}
+                        th {{"Top Up Count Before Third Schedule"|translate}}
+                    tbody
+                        tr(ng-repeat='(i,v) in vm.autoFeedbackSearchDetailResult[2]')
+                            td {{i}}
+                            td
+                                a(ng-click="vm.autoFeedbackShowPromoCodeDetail(vm.autoFeedbackSearchDetailResult[2][i].data)" data-toggle="modal" data-target="#modalAutoFeedbackPromoCodeDetail") {{v.data.length}}
+                            td {{v.acceptedCount}}
+                            td {{v.accessCount}}
+                            td {{v.topUpCount}}
+                br
+                table#autoFeedbackDetailTableThird.simple-table.display(style="min-width:100%;" ng-show="vm.autoFeedbackSearchDetailResult[3]")
+                    thead
+                        th {{"date"|translate}}
+                        th {{"Third Schedule Send Count"|translate}}
+                        th {{"Third Schedule Claimed Count"|translate}}
+                        th {{"Login Count To Date"|translate}}
+                        th {{"Top Up Count To Date"|translate}}
+                    tbody
+                        tr(ng-repeat='(i,v) in vm.autoFeedbackSearchDetailResult[3]')
+                            td {{i}}
+                            td
+                                a(ng-click="vm.autoFeedbackShowPromoCodeDetail(vm.autoFeedbackSearchDetailResult[3][i].data)" data-toggle="modal" data-target="#modalAutoFeedbackPromoCodeDetail") {{v.data.length}}
+                            td {{v.acceptedCount}}
+                            td {{v.accessCount}}
+                            td {{v.topUpCount}}
+
+#modalAutoFeedbackPromoCodeDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style="width:95%;")
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button' data-dismiss='modal')
+                h4.modal-title {{'AUTO_FEEDBACK' | translate}} {{'PROMO_CODE_HISTORY' | translate}}
+            .modal-body
+                table.simple-table
+                    thead
+                        tr
+                            th {{'ACCOUNT' | translate}}
+                            th {{'PROMO_CODE_TYPE' | translate}}
+                            th {{'PROMO_REWARD_AMOUNT' | translate}}
+                            th {{'PROMO_minTopUpAmount' | translate}}
+                            th {{'PROMO_maxTopUpAmount' | translate}}
+                            th {{'PROMO_CONSUMPTION' | translate}}
+                            th {{'SHARE_WITH_XIMA' | translate}}
+                            th {{'FORBID_WITHDRAW' | translate}}
+                            th {{'PROMO_DUE_DATE' | translate}}
+                            th {{'ALLOWED_PROVIDER' | translate}}
+                            th {{'BANNER_TEXT' | translate}}
+                            th {{'PROMO_CODE' | translate}}
+                            th {{'CREATETIME' | translate}}
+                            th {{'ACCEPTTIME' | translate}}
+                            th {{'proposalId' | translate}}
+                            th {{'CREATED_BY' | translate}}
+                            th {{'REMARK' | translate}}
+                    tbody(style='')
+                        tr(ng-repeat='(i,v) in vm.autoFeedbackPromoCodeDetail')
+                            td {{v.playerName}}
+                            td {{v.name}}
+                            td {{v.amount$}}
+                            td {{v.minTopUpAmount}}
+                            td {{v.maxRewardAmount}}
+                            td {{v.requiredConsumption$}}
+                            td {{v.isSharedWithXIMA$}}
+                            td {{v.isForbidWithdraw$}}
+                            td {{v.expirationTime$}}
+                            td
+                                span(ng-repeat='provider in v.allowedProviders$') {{provider}}
+                            td {{v.bannerText}}
+                            td {{v.code}}
+                            td {{v.createTime$}}
+                            td {{v.acceptedTime$}}
+                            td {{v.proposalId}}
+                            td {{v.adminName$}}
+                            td {{v.remark}}
