@@ -411,6 +411,113 @@ define(['js/app'], function (myApp) {
                     $scope.$digest();
                 });
             }
+
+            vm.showDepartmentUpdateTreeView = function() {
+                vm.oriDepartmentList = [];
+                vm.checkedDepartmentList = [];
+
+                //load department tree view
+                $('#departmentTreeForUpdate').treeview(
+                    {
+                        data: vm.departmentTree,
+                        levels: 3,
+                        highlightSearchResults: false,
+                        showCheckbox: true
+                    }
+                );
+
+                //if no user is selected, or more than 1 users are selected, return false
+                if (!vm.selectedUsersCount || vm.selectedUsersCount == 0 || vm.selectedUsersCount > 1) return false;
+
+                //get selected user's departments and check the checkbox in tree view
+                let userDetails  = vm.selectedUsers[Object.keys(vm.selectedUsers)[0]];
+                if(userDetails && userDetails.departments && userDetails.departments.length > 0){
+                    userDetails.departments.forEach(department => {
+                        if(department && department.departmentName && department._id){
+                            let searchText = department.departmentName.replace(/\(|\)/g, '\\$&');
+                            vm.oriDepartmentList.push(department._id);
+                            vm.checkedDepartmentList.push(department._id);
+
+                            var parentFindNode = $('#departmentTreeForUpdate').treeview('search', [searchText, {
+                                exactMatch: true,
+                                revealResults: false
+                            }]);
+
+                            $('#departmentTreeForUpdate').treeview('checkNode', [parentFindNode[0], {silent: true}]);
+                        }
+                    })
+                }
+
+                // get deparmentObjId when checked
+                $('#departmentTreeForUpdate').on('nodeChecked', function (event, data) {
+                    if(data && data.id){
+                        let indexNo = vm.checkedDepartmentList.findIndex(d => d == data.id);
+                        if(indexNo == -1){
+                            vm.checkedDepartmentList.push(data.id);
+                        }
+                    }
+
+                });
+
+                // remove deparmentObjId when unchecked
+                $('#departmentTreeForUpdate').on('nodeUnchecked', function (event, data) {
+                    if(data && data.id){
+                        let indexNo = vm.checkedDepartmentList.findIndex(d => d == data.id);
+                        if(indexNo != -1){
+                            vm.checkedDepartmentList.splice(indexNo, 1);
+                        }
+                    }
+                });
+            };
+
+            vm.submitUserDepartmentUpdate = function() {
+                //if no user is selected, or more than 1 users are selected, return false
+                if (!vm.selectedUsersCount || vm.selectedUsersCount == 0 || vm.selectedUsersCount > 1) return false;
+
+                let userDetails  = vm.selectedUsers[Object.keys(vm.selectedUsers)[0]];
+                let data = {};
+                let departmentToBeDeleted = [];
+                departmentToBeDeleted = vm.oriDepartmentList.slice();
+                if(userDetails){
+                    data.adminId = userDetails._id || null;
+                    data.adminName = userDetails.adminName || null;
+                }
+
+                vm.oriDepartmentList.forEach(department => {
+                    if(department){
+                        let indexNo = vm.checkedDepartmentList.findIndex(d => d == department);
+                        if(indexNo != -1){
+                            let removeIndex = departmentToBeDeleted.findIndex(d => d == department);
+                            if(indexNo != -1){
+                                departmentToBeDeleted.splice(removeIndex, 1);
+                            }
+                        }
+                    }
+                });
+
+                data.toBeDeletedDepartmentList = departmentToBeDeleted;
+                data.newDepartmentList = vm.checkedDepartmentList;
+
+                console.log(data);
+
+                socketService.$socket($scope.AppSocket, 'updateAdminDepartment', data, success, fail);
+                function success(data) {
+                    vm.selectedUsers = {};
+                    vm.userTableRowSelected = {};
+                    console.log(data);
+                    vm.getAllDepartmentData();
+                    vm.getDepartmentUsersData();
+                }
+
+                function fail(data) {
+                    console.log(data);
+                }
+            };
+
+            vm.clearAllCheckedDepartment = function() {
+                $('#departmentTreeForUpdate').treeview('uncheckAll', { silent: true });
+            };
+
             vm.submitMoveDepartment = function (sendData) {
                 var data = sendData || {
                         departmentId: vm.SelectedDepartmentNode.id,
@@ -1005,7 +1112,14 @@ define(['js/app'], function (myApp) {
                                 "data": "departments",
                                 "render": function (data, type) {
                                     if (data && data.length > 0) {
-                                        return data[0].departmentName;
+                                        let departmentName =  "";
+                                        for(let i = 0; i < data.length; i ++){
+                                            departmentName += data[i].departmentName + ",";
+                                        }
+
+                                        departmentName = departmentName.slice(0, -1);
+                                        return departmentName;
+                                        //return data[0].departmentName;
                                     }
                                     else {
                                         return "";
@@ -1129,23 +1243,6 @@ define(['js/app'], function (myApp) {
                 return false;
             };
 
-            vm.canMoveUser = function () {
-                var prevDepart = '';
-                if (!vm.selectedUsersCount || vm.selectedUsersCount == 0) return false;
-                $.each(vm.selectedUsers, function (i, v) {
-                    $.each(v, function (a, val) {
-                        if (a == "departments") {
-                            if (!prevDepart) {
-                                prevDepart = val[0].departmentName;
-                            } else if (prevDepart != val[0].departmentName) {
-                                vm.curCommonDepartmentText = '';
-                                return false;
-                            }
-                        }
-                    })
-                })
-                vm.curCommonDepartmentText = prevDepart;
-            }
             vm.submitMoveUser = function () {
                 var adminIDList = [];
                 var adminNameList = [];
