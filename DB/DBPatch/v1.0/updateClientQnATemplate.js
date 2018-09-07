@@ -185,7 +185,7 @@ db.clientQnATemplate.update(
 
 db.clientQnATemplate.update(
     {
-        processNo: "3_1",
+        processNo: "3_2",
         type: type2
     },
     {

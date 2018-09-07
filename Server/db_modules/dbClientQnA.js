@@ -267,7 +267,7 @@ var dbClientQnA = {
         return dbconfig.collection_players.findOne({
             platform: platformObjId,
             phoneNumber: rsaCrypto.encrypt(inputDataObj.phoneNumber)
-        }, '_id platform playerId').populate({
+        }, '_id platform playerId name').populate({
             path: "platform",
             model: dbconfig.collection_platform,
             select: {platformId: 1}
@@ -280,6 +280,7 @@ var dbClientQnA = {
                         QnAData: {
                             playerObjId: playerData._id,
                             playerId: playerData.playerId,
+                            playerName: playerData.name,
                             phoneNumber: inputDataObj.phoneNumber,
                         }
                     };
@@ -327,39 +328,27 @@ var dbClientQnA = {
     },
 
     forgotUserID2_1: function (platformObjId, inputDataObj = {}, qnaObjId) {
-        let qnaObj;
+        let qnaObj, templateObj;
 
         return dbconfig.collection_clientQnA.findById(qnaObjId).lean().then(
             qnaData => {
-                qnaObj = qnaData;
-
-                if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCode && qnaObj.QnAData.smsCode == inputDataObj.smsCode) {
+                if (qnaData && qnaData.QnAData && qnaData.QnAData.smsCode && qnaData.QnAData.smsCode == inputDataObj.smsCode) {
+                    qnaObj = qnaData;
                     return dbClientQnA.getClientQnATemplateConfig(qnaObj.type, platformObjId)
                 }
             }
         ).then(
-            templateObj => {
-                if (templateObj && templateObj.defaultPassword && qnaObj && qnaObj.QnAData && qnaObj.QnAData.playerObjId) {
+            templateData => {
+                if (templateData && templateData.defaultPassword && qnaObj && qnaObj.QnAData && qnaObj.QnAData.playerObjId) {
+                    templateObj = templateData;
                     return dbPlayerInfo.resetPlayerPassword(qnaObj.playerObjId, templateObj.defaultPassword, platformObjId, false);
                 }
             }
         ).then(
             data => {
                 if (data) {
-                    let processNo = '3_1';
-
-                    return dbconfig.collection_clientQnATemplate.findOne({
-                        type: constClientQnA.FORGOT_USER_ID,
-                        processNo: processNo
-                    }).lean();
+                    return dbClientQnA.successChangePassword(qnaObj, templateObj)
                 }
-            }
-        ).then(
-            QnATemplate => {
-                if (QnATemplate) {
-                    QnATemplate.qnaObjId = qnaObj._id;
-                }
-                return QnATemplate;
             }
         )
     },
@@ -375,6 +364,14 @@ var dbClientQnA = {
                 }
             }
         );
+    },
+
+    successChangePassword: (qnaObj, templateObj) => {
+        let endTitle = "Account found. (Password reset)";
+        let endDes = localization.localization.translate("The binded account is: ") + qnaObj.QnAData.playerName
+            + ", " + localization.localization.translate("Password has reset to: ") + templateObj.defaultPassword
+            + ", " + localization.localization.translate("Please login to change password immediately.");
+        return dbClientQnA.qnaEndMessage(endTitle, endDes, true)
     },
     //endregion
 
