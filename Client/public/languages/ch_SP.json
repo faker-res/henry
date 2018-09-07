@@ -990,6 +990,9 @@
   "Create Consumption Test Record": "创建玩家投注记录测试",
   "Create Top Up Test Record": "创建玩家充值记录测试",
   "Are you sure to delete department": "您确定要删除部门",
+  "The binded account is: ": "您该手机号码绑定的游戏帐号为：",
+  "Password has reset to: ": "密码已重新设置为: ",
+  "Please login to change password immediately.": "请尽速登入修改密码。",
   "Player with Top-ups": "充值玩家",
   "Player with Top-ups Multiple Times": "多次充值玩家",
   "Player with Domain": "有开户来源的玩家",
@@ -3977,6 +3980,7 @@
   "Player's Name (PMS Group Search)": "会员账号（PMS 分组查询）",
   "Delete Provider Group": "删除锁大厅组",
   "This will release all rewards amount binded with this group to player.": "这将会解锁所有此大厅的锁定额度，释放成自由额度。",
+  "Account found. (Password reset)": "找回帐号成功（同时重置密码）",
 
   "DOMAIN_VISIT_AMOUNT": "域名瀏覽次數",
   "DOMAIN_VISIT_AMOUNT_ANALYSIS_IP_REPEAT": "域名瀏覽次數分析（IP重复）",
