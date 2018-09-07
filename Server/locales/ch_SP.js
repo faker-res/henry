@@ -44,6 +44,12 @@ var simplifiedChinese = {
     "Attention! This player does not bind phone number (or inconvenient to receive sms code), cannot verify bank card. Please contact customer service to reset password manually": "提示！此玩家无绑定电话（或不方便短信验证）、银行卡，无法进行核对，请客服人工进行其他方式核对后手动修改密码。",
     "Security question exceed maximum wrong count, this account has been banned from being modified automatically, please contact customer service": "此账号因密保问题超容错上限，已禁自动修改。请联系客服经理",
     "Operation failed": "操作失败",
+    "Reset password success": "找回密码成功",
+    "Your user ID": "您该游戏帐号",
+    "password has been reset to": "的密码已经修改为",
+    ", password will be send to your bound phone number, please enjoy your game!": "，同时也发送至您的绑定手机号，祝您游戏愉快！",
+    "Attention! this player": "提示！此玩家多次",
+    "times failed security question, please contact customer service to verify this account.": "回答错误的银行卡内容，请客服人工进行其他人工方式核对，仔细确认是否为本人。",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",
