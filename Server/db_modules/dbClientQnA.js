@@ -22,7 +22,6 @@ const errorUtils = require('../modules/errorUtils');
 const localization = require("../modules/localization");
 const pmsAPI = require('../externalAPI/pmsAPI');
 const Q = require("q");
-const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const rsaCrypto = require("../modules/rsaCrypto");
 
 var dbClientQnA = {
