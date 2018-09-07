@@ -106,7 +106,7 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{ merchantTopupTypeJson[vm.selectedProposal.data.topupType] }}
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerTopUp" && !vm.selectedProposal.from_old_system')
                     td {{'3rdPartyPlatform' | translate}}
-                    td {{ vm.getMerchantName(vm.selectedProposal.data.merchantNo) || '' }}
+                    td {{ vm.getMerchantName(vm.selectedProposal.data.merchantNo, vm.selectedProposal.inputDevice) || '' }}
                 tr(ng-if='vm.selectedProposal.type.name=="PlayerTopUp" && vm.selectedProposal.from_old_system')
                     td {{'3rdPartyPlatform' | translate}}
                     td {{ vm.selectedProposal.data.msg }}

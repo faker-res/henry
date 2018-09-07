@@ -2273,7 +2273,7 @@ let dbPlayerInfo = {
      * @param {objectId} platform - player's platform
      * @param {boolean} resetPartnerPassword - reset partner password also if true
      */
-    resetPlayerPassword: function (playerId, newPassword, platform, resetPartnerPassword, dontReturnPassword, creator) {
+    resetPlayerPassword: function (playerId, newPassword, platform, resetPartnerPassword, dontReturnPassword, creator, isClientQnA) {
         let deferred = Q.defer();
         let playerObj;
 
@@ -2341,6 +2341,9 @@ let dbPlayerInfo = {
                             entryType: creator ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                             userType: constProposalUserType.PLAYERS,
                         };
+                        if (isClientQnA) {
+                            proposalData.data.remark += "（自动）"
+                        }
                         dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.UPDATE_PLAYER_INFO, proposalData).then(
                             () => {
                                 SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);

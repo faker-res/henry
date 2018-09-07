@@ -564,10 +564,7 @@ define(['js/app'], function (myApp) {
                             item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                             item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
                             item.status$ = $translate(item.status);
-                            item.merchantName = vm.getMerchantName(item.data.merchantNo);
-
-
-                            //vm.merchantNumbers[item.data.merchantNo];
+                            item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
 
                             if (item.data.msg && item.data.msg.indexOf(" 单号:") !== -1) {
                                 let msgSplit = item.data.msg.split(" 单号:");
@@ -600,22 +597,8 @@ define(['js/app'], function (myApp) {
             }, true);
 
         };
-        vm.getMerchantName = function (merchantNo) {
-            let merchantName = '';
-            let result = '';
-            if (merchantNo && vm.merchants) {
-                let merchant = vm.merchants.filter(item => {
-                    return item.merchantNo == merchantNo;
-                });
-                if (merchant.length > 0) {
-                    let merchantName = vm.merchantTypes.filter(item => {
-                        return item.merchantTypeId == merchant[0].merchantTypeId;
-                    })
-                    if (merchantName[0]) {
-                        result = merchantName[0].name;
-                    }
-                }
-            }
+        vm.getMerchantName = function (merchantNo, inputDevice) {
+            let result = commonService.getMerchantName(merchantNo, vm.merchants, vm.merchantTypes, inputDevice);
             return result;
         }
         vm.getOnlineMerchantId = function (merchantNo, devices, topupType) {
@@ -655,35 +638,33 @@ define(['js/app'], function (myApp) {
                 platformId: vm.selectedPlatform._id,
                 proposalId: proposalId
             }, function (data) {
-                vm.selectedProposal = data.data;
-                let playerName = vm.selectedProposal.data.playerName;
-                let typeId = vm.selectedProposal.type._id;
-                let typeName = [vm.selectedProposal.type.name];
-                let playerId = vm.selectedProposal.data.playerId;
+                $scope.$evalAsync(() => {
+                    vm.selectedProposal = data.data;
+                    let playerName = vm.selectedProposal.data.playerName;
+                    let typeId = vm.selectedProposal.type._id;
+                    let typeName = [vm.selectedProposal.type.name];
+                    let playerId = vm.selectedProposal.data.playerId;
 
-                if (vm.selectedProposal.data.inputData) {
-                    if (vm.selectedProposal.data.inputData.provinceId) {
-                        vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
-                    }
-                    if (vm.selectedProposal.data.inputData.cityId) {
-                        vm.getCityName(vm.selectedProposal.data.inputData.cityId)
-                    }
-                }
-                vm.wechatNameConvert();
-                // vm.selectedProposal.data.cityId;
-                $('#modalProposal').modal('show');
-                $('#modalProposal').on('shown.bs.modal', function (e) {
-                    $scope.safeApply();
-                })
-                let cardField = vm.topUpField[typeName].filter(fieldName => {
-                        if (vm.selectedProposal.data[fieldName]) {
-                            return fieldName
+                    if (vm.selectedProposal.data.inputData) {
+                        if (vm.selectedProposal.data.inputData.provinceId) {
+                            vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
                         }
-                    })[0] || '';
-                let cardNo = vm.selectedProposal.data[cardField];
-                vm.loadTodayTopupQuota(typeId, typeName, cardField, cardNo);
-                vm.getUserCardGroup(vm.selectedProposal.type.name, vm.selectedPlatform._id, playerId)
-                vm.getCardLimit(vm.selectedProposal.type.name);
+                        if (vm.selectedProposal.data.inputData.cityId) {
+                            vm.getCityName(vm.selectedProposal.data.inputData.cityId)
+                        }
+                    }
+                    vm.wechatNameConvert();
+                    // vm.selectedProposal.data.cityId;
+                    $('#modalProposal').modal('show');
+                    $('#modalProposal').on('shown.bs.modal', function (e) {
+                    })
+
+                    let cardField = vm.topUpField[typeName] ? vm.topUpField[typeName] : ''
+                    let cardNo = vm.selectedProposal.data[cardField];
+                    vm.loadTodayTopupQuota(typeId, typeName, cardField, cardNo);
+                    vm.getUserCardGroup(vm.selectedProposal.type.name, vm.selectedPlatform._id, playerId)
+                    vm.getCardLimit(vm.selectedProposal.type.name);
+                });
             })
         }
         vm.drawPaymentRecordTable = function (data, size, summary, newSearch) {
