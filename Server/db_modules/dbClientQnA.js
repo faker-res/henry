@@ -8,6 +8,8 @@ const dbutility = require('./../modules/dbutility');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const dbconfig = require('./../modules/dbproperties');
+
+const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const dbPlayerMail = require('./../db_modules/dbPlayerMail');
 const dbProposal = require('./../db_modules/dbProposal');
 const constClientQnA = require('./../const/constClientQnA');
@@ -24,10 +26,14 @@ const rsaCrypto = require("../modules/rsaCrypto");
 
 var dbClientQnA = {
     //region common function
+    getClientQnATemplateConfig: function (type, platformObjId) {
+        return dbconfig.collection_clientQnATemplateConfig.findOne({type: type, platform: platformObjId}).lean();
+    },
+
     getClientQnASecurityQuesConfig: function (type, platformObjId) {
         platformObjId = ObjectId(platformObjId);
         let securityQuesProm = dbconfig.collection_clientQnATemplate.findOne({type: type, isSecurityQuestion: true}).lean();
-        let templateConfigProm = dbconfig.collection_clientQnATemplateConfig.findOne({type: type, platform: platformObjId}).lean();
+        let templateConfigProm = dbClientQnA.getClientQnATemplateConfig(type, platformObjId);
         return Promise.all([securityQuesProm,templateConfigProm])
 
     },
@@ -272,6 +278,7 @@ var dbClientQnA = {
 
                     let updateObj = {
                         QnAData: {
+                            playerObjId: playerData._id,
                             playerId: playerData.playerId,
                             phoneNumber: inputDataObj.phoneNumber,
                         }
@@ -319,8 +326,42 @@ var dbClientQnA = {
         )
     },
 
-    forgotUserID2_1: function (platformObjId, inputDataObj) {
+    forgotUserID2_1: function (platformObjId, inputDataObj = {}, qnaObjId) {
+        let qnaObj;
 
+        return dbconfig.collection_clientQnA.findById(qnaObjId).lean().then(
+            qnaData => {
+                qnaObj = qnaData;
+
+                if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCode && qnaObj.QnAData.smsCode == inputDataObj.smsCode) {
+                    return dbClientQnA.getClientQnATemplateConfig(qnaObj.type, platformObjId)
+                }
+            }
+        ).then(
+            templateObj => {
+                if (templateObj && templateObj.defaultPassword && qnaObj && qnaObj.QnAData && qnaObj.QnAData.playerObjId) {
+                    return dbPlayerInfo.resetPlayerPassword(qnaObj.playerObjId, templateObj.defaultPassword, platformObjId, false);
+                }
+            }
+        ).then(
+            data => {
+                if (data) {
+                    let processNo = '3_1';
+
+                    return dbconfig.collection_clientQnATemplate.findOne({
+                        type: constClientQnA.FORGOT_USER_ID,
+                        processNo: processNo
+                    }).lean();
+                }
+            }
+        ).then(
+            QnATemplate => {
+                if (QnATemplate) {
+                    QnATemplate.qnaObjId = qnaObj._id;
+                }
+                return QnATemplate;
+            }
+        )
     },
 
     resendSMSVerificationCode: function (platformObjId, inputDataObj, qnaObjId) {
