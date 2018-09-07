@@ -1109,23 +1109,6 @@ define(['js/app'], function (myApp) {
                 return false;
             };
 
-            vm.canMoveUser = function () {
-                var prevDepart = '';
-                if (!vm.selectedUsersCount || vm.selectedUsersCount == 0) return false;
-                $.each(vm.selectedUsers, function (i, v) {
-                    $.each(v, function (a, val) {
-                        if (a == "departments") {
-                            if (!prevDepart) {
-                                prevDepart = val[0].departmentName;
-                            } else if (prevDepart != val[0].departmentName) {
-                                vm.curCommonDepartmentText = '';
-                                return false;
-                            }
-                        }
-                    })
-                })
-                vm.curCommonDepartmentText = prevDepart;
-            }
             vm.submitMoveUser = function () {
                 var adminIDList = [];
                 var adminNameList = [];

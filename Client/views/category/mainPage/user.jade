@@ -40,9 +40,6 @@
         a.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'Delete')" ng-disabled="!vm.isUserSelected()", data-toggle="{{vm.isUserSelected() ? 'modal' : ''}}", data-target='#modalDeleteUser')
             text {{'DELETE' | translate}}
             img.img-delete
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'Move')" ng-disabled="vm.selectedUsersCount!=1", data-toggle="modal",  data-target='#modalMoveDepartment', ng-click="vm.canMoveUser();vm.moveDepartmentDialog('user');vm.moveUser=true")
-            text {{'MOVE' | translate}}
-            img.img-move
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'Update')" ng-disabled="vm.selectedUsersCount!=1",data-toggle="modal",  data-target='#modalEditUser', ng-click="vm.editUserDialog()")
             text {{'UPDATE' | translate}}
             img.img-edit
