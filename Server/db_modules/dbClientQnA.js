@@ -8,9 +8,11 @@ const dbutility = require('./../modules/dbutility');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const dbconfig = require('./../modules/dbproperties');
+const dbPlayerMail = require('./../db_modules/dbPlayerMail');
 const dbProposal = require('./../db_modules/dbProposal');
 const constClientQnA = require('./../const/constClientQnA');
 const constServerCode = require('./../const/constServerCode');
+const constSMSPurpose = require('./../const/constSMSPurpose');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalUserType = require('../const/constProposalUserType');
 const constProposalType = require('../const/constProposalType');
@@ -18,9 +20,10 @@ const errorUtils = require('../modules/errorUtils');
 const localization = require("../modules/localization");
 const pmsAPI = require('../externalAPI/pmsAPI');
 const Q = require("q");
+const rsaCrypto = require('../modules/rsaCrypto');
 
 var dbClientQnA = {
-    //region forgot password
+    //region common function
     getClientQnASecurityQuesConfig: function (type, platformObjId) {
         platformObjId = ObjectId(platformObjId);
         let securityQuesProm = dbconfig.collection_clientQnATemplate.findOne({type: type, isSecurityQuestion: true}).lean();
@@ -106,9 +109,7 @@ var dbClientQnA = {
         }
         return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).then(
             clientQnAData => {
-                if (clientQnAData) {
-                    returnObj.totalWrongCount = clientQnAData.totalWrongCount
-                }
+                returnObj.totalWrongCount = clientQnAData && clientQnAData.totalWrongCount? clientQnAData.totalWrongCount: 0;
                 return Promise.reject(returnObj)
             });
     },
@@ -123,6 +124,33 @@ var dbClientQnA = {
         })
     },
 
+    sendSMSVerificationCode: function (clientQnAData, purpose) {
+        let smsCode = dbutility.generateRandomPositiveNumber(1000, 9999);
+
+        if (clientQnAData && clientQnAData.QnAData && clientQnAData.QnAData.playerId && clientQnAData.QnAData.platformId) {
+            return dbPlayerMail.sendVerificationCodeToPlayer(
+                clientQnAData.QnAData.playerId, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0)
+        }
+
+        return Promise.resolve(false);
+    },
+
+    // return reject security question when show for the first time
+    rejectSecurityQuestionFirstTime: function () {
+        let endTitle = "Operation failed";
+        let endDes = "Security question exceed maximum wrong count, this account has been banned from being modified automatically, please contact customer service";
+        return dbClientQnA.qnaEndMessage(endTitle, endDes)
+    },
+
+    // return reject can't find user account
+    rejectFailedRetrieveAccount: function () {
+        let endTitle = "Failed to retrieve account.";
+        let endDes = "Attention: Player has no binded phone number or not able to receive SMS code. Please open a new account if necessary.";
+        return dbClientQnA.qnaEndMessage(endTitle, endDes)
+    },
+    //endregion
+
+    //region forgot password
     forgotPassword1_2: function () {
         let QnAQuery = {
             type: constClientQnA.FORGOT_PASSWORD,
@@ -166,6 +194,19 @@ var dbClientQnA = {
                                     if (QnATemplate) {
                                         QnATemplate.qnaObjId = clientQnAData._id;
                                     }
+                                    if (QnATemplate && QnATemplate.isSecurityQuestion) {
+                                        return dbconfig.collection_clientQnATemplateConfig.findOne({
+                                            type: constClientQnA.FORGOT_PASSWORD,
+                                            platform: platformObjId}).lean().then(
+                                            configData=> {
+                                                if (configData && configData.hasOwnProperty("wrongCount") && clientQnAData.hasOwnProperty("totalWrongCount") &&  clientQnAData.totalWrongCount > configData.wrongCount) {
+                                                    return dbClientQnA.rejectSecurityQuestionFirstTime()
+                                                } else {
+                                                    return QnATemplate;
+                                                }
+                                            }
+                                        )
+                                    }
                                     return QnATemplate;
                                 }
                             );
@@ -179,16 +220,87 @@ var dbClientQnA = {
         )
     },
 
+    forgotPassword2_1: function (platformObjId, inputDataObj, qnaObjId) {
+
+    },
+
     forgotPassword2_2: function (platformObjId, inputDataObj, qnaObjId) {
         if (!qnaObjId) {
             return Promise.reject({name: "DBError", message: "qnaObjId undefined"})
         }
 
        return dbClientQnA.securityQuestionReject(qnaObjId, [1,2],[3,4]);//test only - incomplete
-    }
+    },
     //endregion
 
     //region forgotUserID
+    forgotUserID1_1: function (platformObjId, inputDataObj) {
+        let playerData, clientQnAData;
+
+        if (!(inputDataObj && inputDataObj.phoneNumber)) {
+            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        }
+
+        return dbconfig.collection_players.findOne({
+            platform: platformObjId,
+            phoneNumber: rsaCrypto.encrypt(inputDataObj.phoneNumber)
+        }, '_id platform playerId').populate({
+            path: "platform",
+            model: dbconfig.collection_platform,
+            select: {platformId: 1}
+        }).lean().then(
+            player => {
+                if (player && player._id) {
+                    playerData = player;
+
+                    let updateObj = {
+                        QnAData: {
+                            playerId: playerData.playerId,
+                            phoneNumber: inputDataObj.phoneNumber,
+                        }
+                    };
+
+                    if (playerData.platform && playerData.platform.platformId) {
+                        updateObj.QnAData.platformId = playerData.platform.platformId;
+                    }
+
+                    return dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.FORGOT_USER_ID, updateObj)
+                } else {
+                    return dbClientQnA.rejectFailedRetrieveAccount();
+                }
+            }
+        ).then(
+            clientQnA => {
+                if (!clientQnA) {
+                    return Promise.reject({name: "DBError", message: "update QnA data failed"})
+                }
+
+                clientQnAData = clientQnA;
+
+                // Send verification code
+                dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.AUTOQA_FORGOT_USER_ID)
+                    .catch(errorUtils.reportError);
+
+                let processNo = '2_1';
+
+                return dbconfig.collection_clientQnATemplate.findOne({
+                    type: constClientQnA.FORGOT_USER_ID,
+                    processNo: processNo
+                }).lean();
+            }
+        ).then(
+            QnATemplate => {
+                if (QnATemplate) {
+                    QnATemplate.qnaObjId = clientQnAData._id;
+                }
+                return QnATemplate;
+            }
+        )
+    },
+
+    forgotUserID2_1: function (platformObjId, inputDataObj) {
+
+    },
     //endregion
 
     //region updatePhoneNumber

@@ -113,8 +113,7 @@ var dbPlatformGameGroup = {
                             return dbconfig.collection_platformGameGroup.findOne({
                                 platform: platformObjId,
                                 code: query.code
-                            })
-                                .populate({path: "games.game", model: dbconfig.collection_game}).lean();
+                            }).populate({path: "games.game", model: dbconfig.collection_game}).lean();
                         }
                     );
                 }
@@ -306,7 +305,7 @@ var dbPlatformGameGroup = {
             groupProm = dbconfig.collection_platform.findOne({platformId: platformId}).then(
                 platformData => {
                     routeSetting = platformData && platformData.playerRouteSetting ? platformData.playerRouteSetting : null;
-                    return dbconfig.collection_platformGameGroup.find({platform: platformData._id}).then(
+                    return dbconfig.collection_platformGameGroup.find({platform: platformData._id}).lean().then(
                         groups => {
                             if (groups && groups.length > 0) {
                                 var proms = groups.map(

@@ -8334,7 +8334,7 @@ define(['js/app'], function (myApp) {
                 editingObj.partner = vm.parterSelectedforPlayer ? vm.parterSelectedforPlayer._id : null;
                 $scope.safeApply();
             });
-            vm.showPartners = vm.partners.map(item => {
+            vm.showPartners = vm.partners ? vm.partners.map(item => {
                 item.parent$ = item.partnerName ? item.partnerName : '';
                 item.children$ = item.children.length;
                 item.registrationTime$ = vm.dateReformat(item.registrationTime);
@@ -8343,7 +8343,7 @@ define(['js/app'], function (myApp) {
                 item.validPlayers$ = vm.partnerPlayerObj[item._id] ? vm.partnerPlayerObj[item._id].validPlayers : 0;
                 item.activePlayers$ = vm.partnerPlayerObj[item._id] ? vm.partnerPlayerObj[item._id].activePlayers : 0;
                 return item;
-            });
+            }) : [];
 
             vm.drawSelectPartnerTable(vm.showPartners, editingObj);
             $scope.safeApply();

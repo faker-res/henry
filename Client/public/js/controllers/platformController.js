@@ -23344,11 +23344,12 @@ define(['js/app'], function (myApp) {
                         format: 'yyyy/MM/dd hh:mm:ss',
                         startDate: utilService.setLocalDayStartTime(new Date())
                     });
-                    collection[index].expirationTime.data('datetimepicker').setDate(date);
+                    if(collection[index].expirationTime.data('datetimepicker')){
+                        collection[index].expirationTime.data('datetimepicker').setDate(date);
+                    }
                     vm.checkPlayerName(collection[index], tableId, index);
                     return collection;
-                }, 0);
-
+                }, 10);
             };
             vm.cancelPromoCode = function (col, index) {
                 col[index].cancel = true;
@@ -28850,6 +28851,9 @@ define(['js/app'], function (myApp) {
                         // vm.clientQnAData = {}; //reset template
                         vm.clientQnADataErr = err.error && err.error.message? $translate(err.error.message): "";
                         if (err && err.error) {
+                            if (err.error.correctAns && err.error.hasOwnProperty("totalWrongCount")) {
+                                vm.clientQnAInputCheck.totalWrongCount = err.error.totalWrongCount;
+                            }
                             if (err.error.correctAns && err.error.correctAns.length) {
                                 vm.clientQnAInputCheck.correctAns = err.error.correctAns;
                             }
@@ -28978,6 +28982,9 @@ define(['js/app'], function (myApp) {
                             if (ques.des) {
                                 if (copiedText) {
                                     copiedText += " \n";
+                                }
+                                if (vm.clientQnAData.isSecurityQuestion) {
+                                    copiedText += (ques.questionNo + ". ");
                                 }
                                 copiedText += $translate(ques.des);
                             }
