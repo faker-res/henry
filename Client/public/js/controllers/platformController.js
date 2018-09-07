@@ -28761,6 +28761,7 @@ define(['js/app'], function (myApp) {
                 });
 //}
                 $('#clientQnATypeTree').on('nodeSelected', function (event, data) {
+                    vm.questionLabelStyle = "text-align:center;display:block";
                     vm.clientQnAData = {};
                     vm.playerClientQnAObjId = ""; // ObjectID from clientQnA.js
                     $scope.$evalAsync(() => {
@@ -28785,6 +28786,7 @@ define(['js/app'], function (myApp) {
                 vm.clientQnADataErr = ""; //reset error text
                 vm.clientQnAInputCheck = {}; //reset error text
                 let sendData = {
+                    creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                     type: vm.selectedClientQnAType.data,
                     platformObjId: vm.selectedPlatform.id,
                     inputDataObj: vm.clientQnAInput,
@@ -28795,7 +28797,13 @@ define(['js/app'], function (myApp) {
                 }
                 if (vm.clientQnAData && vm.clientQnAData.processNo) {
                     sendData.processNo = vm.clientQnAData.processNo;
+                    //special handle forgor use ID
+                    if (isAlternative && vm.clientQnAData.processNo == "1" && sendData.type == vm.constClientQnA.FORGOT_PASSWORD) {
+                        $('#clientQnATypeTree li[data-nodeid="1"]').trigger("click");
+                        return;
+                    }
                 }
+
                 socketService.$socket($scope.AppSocket, 'getClientQnAProcessStep', sendData,  function (data) {
                     if (data && data.data) {
                         $scope.$evalAsync(() => {
@@ -28952,6 +28960,8 @@ define(['js/app'], function (myApp) {
                                 copiedText += $translate(ques.des);
                             }
                         })
+                    } else if (vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.des) {
+                        copiedText = $translate(vm.clientQnAData.clientQnAEnd.des);
                     }
                 }
                 //add on here

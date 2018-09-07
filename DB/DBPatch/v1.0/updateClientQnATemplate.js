@@ -10,7 +10,7 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
-            alternativeQuestion: {des: "forgot user ID?", action: "forgotPassword1_2"},
+            alternativeQuestion: {des: "forgot user ID?"},
             question: [{questionNo: 1, des: "Please enter your user ID:"}],
             answerInput: [{type: "text", objKey: "name", questionNo: 1, placeHolder: "Please enter player ID"}],
             action: "forgotPassword1"
@@ -25,7 +25,7 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
-            alternativeQuestion: {des: "Inconvenient to accept?", action: "forgotPassword2_1"},
+            alternativeQuestion: {des: "Inconvenient to accept?", action: "forgotPassword2"},
             question: [{questionNo: 1, des: "Please enter phone number of the account, a sms verification code will be sent"}],
             answerInput: [{type: "text", objKey: "phoneNumber", questionNo: 1, placeHolder: "Please enter phone number"}],
             action: "forgotPassword2_1"
@@ -59,20 +59,20 @@ db.clientQnATemplate.update(
     },
     {upsert: true});
 
-db.clientQnATemplate.update(
-    {
-        processNo: "2",
-        type: type1
-    },
-    {
-        $set: {
-            alternativeQuestion: {des: "forgot user ID?", action: "forgotPassword1_2"},
-            question: [{questionNo: 1, des: "Please enter your user ID222222222:"}],
-            answerInput: [{type: "text", objKey: "name", questionNo: 1, placeHolder: "Please enter player ID2222222"}],
-            action: "forgotPassword1"
-        }
-    },
-    {upsert: true});
+// db.clientQnATemplate.update(
+//     {
+//         processNo: "2",
+//         type: type1
+//     },
+//     {
+//         $set: {
+//             alternativeQuestion: {des: "forgot user ID?", action: "forgotPassword1_2"},
+//             question: [{questionNo: 1, des: "Please enter your user ID222222222:"}],
+//             answerInput: [{type: "text", objKey: "name", questionNo: 1, placeHolder: "Please enter player ID2222222"}],
+//             action: "forgotPassword1"
+//         }
+//     },
+//     {upsert: true});
 
 // endregion
 
