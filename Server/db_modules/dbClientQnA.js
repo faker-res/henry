@@ -153,6 +153,11 @@ var dbClientQnA = {
         return Promise.resolve(false);
     },
 
+    verifyPhoneNumberBySMSCode:function(clientQnAData, code){
+
+
+    },
+
     // return reject security question when show for the first time
     rejectSecurityQuestionFirstTime: function () {
         let endTitle = "Operation failed";
@@ -541,11 +546,10 @@ var dbClientQnA = {
     },
 
     updatePhoneNumber2_1: function (platformObjId, inputDataObj, qnaObjId) {
-      
+
         if (!(inputDataObj && inputDataObj.phoneNumber)) {
             return Promise.reject({name: "DBError", message: "Invalid Data"})
         }
-
 
         return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).lean().then(
         clientQnA=>{
@@ -587,8 +591,48 @@ var dbClientQnA = {
         })
     },
     updatePhoneNumber3_1: function (platformObjId, inputDataObj, qnaObjId) {
+        if (!(inputDataObj && inputDataObj.smsCode)) {
+            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        }
+        return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).lean().then(
+        clientQnA=>{
 
+            if (!clientQnA) {
+                return Promise.reject({name: "DBError", message: "update QnA data failed"})
+            }
+            let clientQnAData = clientQnA;
+            // Send verification code
+            dbClientQnA.verifyPhoneNumberBySMSCode(clientQnAData, constSMSPurpose.OLD_PHONE_NUMBER)
+                .catch(errorUtils.reportError);
 
+            let processNo = '4_1';
+            //
+            return dbconfig.collection_clientQnATemplate.findOne({
+                type: constClientQnA.UPDATE_PHONE,
+                processNo: processNo
+            }).lean().then(
+                QnATemplate => {
+                    if (QnATemplate) {
+                        QnATemplate.qnaObjId = clientQnAData._id;
+                    }
+                    if (QnATemplate && QnATemplate.isSecurityQuestion) {
+                        return dbconfig.collection_clientQnATemplateConfig.findOne({
+                            type: constClientQnA.UPDATE_PHONE,
+                            platform: platformObjId}).lean().then(
+                            configData=> {
+                                if (configData && configData.hasOwnProperty("wrongCount") && clientQnAData.hasOwnProperty("totalWrongCount") &&  clientQnAData.totalWrongCount > configData.wrongCount) {
+                                    return dbClientQnA.rejectSecurityQuestionFirstTime()
+                                } else {
+                                    return QnATemplate;
+                                }
+                            }
+                        )
+                    }
+                    return QnATemplate;
+                }
+            );
+        })
+        //
     },
     //endregion
 
