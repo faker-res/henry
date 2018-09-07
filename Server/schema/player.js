@@ -312,9 +312,9 @@ var playerSchema = new Schema({
         showInfoState: {type: Boolean, default: 1}
     },
     // admin name who opened this account from backstage
-    accAdmin: {type: String},
-    csOfficer: {type: Schema.ObjectId, ref: 'admin'},
-    promoteWay: {type: String},
+    accAdmin: {type: String, index: true},
+    csOfficer: {type: Schema.ObjectId, ref: 'admin', index: true},
+    promoteWay: {type: String, index: true},
     // reward point object
     rewardPointsObjId: {type: Schema.ObjectId, ref: 'rewardPoints'},
     // is tracked for deposit tracking report
