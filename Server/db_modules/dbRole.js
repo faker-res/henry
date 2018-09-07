@@ -229,6 +229,32 @@ var dbRole = {
         return dbUtil.updateManyToManyCollections(dbconfig.collection_admin, ops1, adminUserObjIds, dbconfig.collection_role, ops2, roleObjIds);
     },
 
+    attachDetachRolesFromUsersById: function (adminUserObjIds, attachRoleObjIds, detachRoleObjIds) {
+        let proms = [];
+        let detachRolesOps1 = {
+            $pull: {roles: {$in: detachRoleObjIds}}
+        };
+        let detachRolesOps2 = {
+            $pull: {users: {$in: adminUserObjIds}}
+        };
+        let attachRolesOps1 = {
+            $addToSet: {roles: {$each: attachRoleObjIds}}
+        };
+        let attachRolesOps2 = {
+            $addToSet: {users: {$each: adminUserObjIds}}
+        };
+
+        if (attachRoleObjIds && attachRoleObjIds.length > 0) {
+            proms.push(dbUtil.updateManyToManyCollections(dbconfig.collection_admin, attachRolesOps1, adminUserObjIds, dbconfig.collection_role, attachRolesOps2, attachRoleObjIds));
+        }
+
+        if (detachRoleObjIds && detachRoleObjIds.length > 0) {
+            proms.push(dbUtil.updateManyToManyCollections(dbconfig.collection_admin, detachRolesOps1, adminUserObjIds, dbconfig.collection_role, detachRolesOps2, detachRoleObjIds));
+        }
+
+        return Promise.all(proms);
+    },
+
 
 };
 
