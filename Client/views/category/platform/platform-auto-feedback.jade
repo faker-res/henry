@@ -33,8 +33,8 @@
                 .full-width-input-block
                     label {{"Feedback Mission Default Status"|translate}}
                     select.form-control(style='max-width:300px', ng-model="vm.autoFeedbackMission.defaultStatus" ng-disabled="vm.autoFeedbackEditStatus")
-                        option(value='Manual') {{'Manual' | translate}}
-                        option(value='Active') {{'active' | translate}}
+                        option(value='Manual') {{'Manually Cancelled' | translate}}
+                        option(value='Active') {{'ENABLE' | translate}}
                 .full-width-input-block
                     label {{"USER_TYPE"|translate}}
                     select.form-control(style='max-width:300px', ng-model="vm.autoFeedbackMission.playerType")
