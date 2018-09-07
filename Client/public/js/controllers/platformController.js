@@ -33642,6 +33642,15 @@ define(['js/app'], function (myApp) {
                                 vm.autoFeedbackSearchDetailResult[scheduleNumber][date].data.push(item);
                             }
                         });
+                        for (let scheduleNumber in vm.autoFeedbackSearchDetailResult) {
+                            if (vm.autoFeedbackSearchDetailResult.hasOwnProperty(scheduleNumber)) {
+                                let scheduleSorted = {};
+                                Object.keys(vm.autoFeedbackSearchDetailResult[scheduleNumber]).sort().reverse().forEach(function (date) {
+                                    scheduleSorted[date] = vm.autoFeedbackSearchDetailResult[scheduleNumber][date];
+                                });
+                                vm.autoFeedbackSearchDetailResult[scheduleNumber] = scheduleSorted;
+                            }
+                        }
                     });
                     $('#autoFeedbackDetailSpin').hide();
                 });
