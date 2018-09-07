@@ -40,9 +40,6 @@
         a.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'Delete')" ng-disabled="!vm.isUserSelected()", data-toggle="{{vm.isUserSelected() ? 'modal' : ''}}", data-target='#modalDeleteUser')
             text {{'DELETE' | translate}}
             img.img-delete
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'Move')" ng-disabled="vm.selectedUsersCount!=1", data-toggle="modal",  data-target='#modalMoveDepartment', ng-click="vm.canMoveUser();vm.moveDepartmentDialog('user');vm.moveUser=true")
-            text {{'MOVE' | translate}}
-            img.img-move
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'Update')" ng-disabled="vm.selectedUsersCount!=1",data-toggle="modal",  data-target='#modalEditUser', ng-click="vm.editUserDialog()")
             text {{'UPDATE' | translate}}
             img.img-edit
@@ -60,6 +57,9 @@
             img.img-edit
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'ResetPassword')" ng-disabled="vm.selectedUsersCount!=1",data-toggle="{{vm.selectedUsersCount===1 ? 'modal' : ''}}",  data-target='#modalResetAdminPassword', ng-click="")
             text {{'RESET_PASSWORD' | translate}}
+            .fa.fa-pencil-square-o
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'UpdateUserDepartment')" ng-disabled="vm.selectedUsersCount!=1",data-toggle="{{vm.selectedUsersCount===1 ? 'modal' : ''}}",  data-target='#modalUpdatePlayerDepartment', ng-click="vm.showDepartmentUpdateTreeView();")
+            text {{'UPDATE_PLAYER_DEPARTMENT' | translate}}
             .fa.fa-pencil-square-o
 
 #modalResetAdminPassword.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
@@ -87,6 +87,29 @@
                 button.common-button.margin-right-5.btn.btn-success(ng-if='!vm.newAdminPassword', ng-click='vm.submitResetAdminPassword()') {{'RESET_PASSWORD' | translate}}
                 button.common-button.margin-right-5.btn.btn-success(ng-if='vm.newAdminPassword', data-dismiss='modal') {{'OK' | translate}}
                 button.common-button.margin-right-5.btn.btn-warning(ng-if='!vm.newAdminPassword', data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalUpdatePlayerDepartment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby = 'myModalLabel', aria-hidden = 'true')
+    .modal-dialog(style='widthL 60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'UPDATE_PLAYER_DEPARTMENT' | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    .form-group
+                                        text.control-label {{'Please select the departments below to add/remove department(s) to FPMS account' | translate}}
+                                        span.text-success {{vm.curUser.adminName}}
+                        .row
+                            .col-md-12
+                                div#departmentTreeForUpdate(style="height: 300px; overflow-y: scroll;")
+            .modal-footer
+                button.common-button.margin-right-5.btn.btn-danger(ng-click='vm.clearAllCheckedDepartment()') {{'CLEAR_ALL_CHECKED' | translate}}
+                button.common-button.margin-right-5.btn.btn-primary(ng-click='vm.submitUserDepartmentUpdate()', data-dismiss='modal') {{'CONFIRM' | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{'CANCEL' | translate}}
 
 
 
