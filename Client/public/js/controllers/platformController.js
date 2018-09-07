@@ -33323,7 +33323,7 @@ define(['js/app'], function (myApp) {
                 vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
-                console.log(vm.autoFeedbackMission);
+                console.log("vm.autoFeedbackMission",vm.autoFeedbackMission);
 
                 socketService.$socket($scope.AppSocket, 'createAutoFeedback', vm.autoFeedbackMission, function (data) {
                     console.log("createAutoFeedback ret",data);
@@ -33379,7 +33379,7 @@ define(['js/app'], function (myApp) {
                 vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
-                console.log(vm.autoFeedbackMission);
+                console.log("vm.autoFeedbackMission",vm.autoFeedbackMission);
                 let sendData = {
                     autoFeedbackObjId: vm.autoFeedbackMission._id,
                     updateData: vm.autoFeedbackMission
