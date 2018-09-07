@@ -33290,12 +33290,21 @@ define(['js/app'], function (myApp) {
                     registerStartTime: null,
                     registerEndTime: null,
                     missionStartTime: null,
-                    missionEndTime: null
+                    missionEndTime: null,
+                    defaultStatus: 'Manual',
+                    playerType: 'Real Player (all)',
+                    playerLevel: 'all',
+                    callPermission: 'all',
+                    schedule: []
                 };
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionStartTime', '#autoFeedbackMissionStartTimePicker', utilService.setLocalDayStartTime(new Date()), true);
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionEndTime', '#autoFeedbackMissionEndTimePicker', utilService.setLocalDayStartTime(new Date()), true);
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerStartTime', '#autoFeedbackMissionRegisterStartTimePicker', utilService.setLocalDayStartTime(new Date()), true);
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerEndTime', '#autoFeedbackMissionRegisterEndTimePicker', utilService.setLocalDayStartTime(new Date()), true);
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionStartTime', '#autoFeedbackMissionStartTimePicker',
+                    utilService.setLocalDayStartTime(new Date()), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionEndTime', '#autoFeedbackMissionEndTimePicker',
+                    utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(1)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerStartTime', '#autoFeedbackMissionRegisterStartTimePicker',
+                    utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(90)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerEndTime', '#autoFeedbackMissionRegisterEndTimePicker',
+                    utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(1)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
                 utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
                     vm.setupRemarksMultiInputFeedback();
                     vm.setupRemarksMultiInputFeedbackFilter();
@@ -33335,17 +33344,24 @@ define(['js/app'], function (myApp) {
                 vm.selectedAutoFeedbackTab = "create";
                 vm.autoFeedbackEditStatus = true;
                 vm.autoFeedbackUpdateMissionStatus = '';
-                vm.autoFeedbackMission = data;
-
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionStartTime', '#autoFeedbackMissionStartTimePicker', vm.autoFeedbackMission.missionStartTime, true);
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionEndTime', '#autoFeedbackMissionEndTimePicker', vm.autoFeedbackMission.missionEndTime, true);
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerStartTime', '#autoFeedbackMissionRegisterStartTimePicker', vm.autoFeedbackMission.registerStartTime, true);
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerEndTime', '#autoFeedbackMissionRegisterEndTimePicker', vm.autoFeedbackMission.registerEndTime, true);
                 utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
                     vm.setupRemarksMultiInputFeedback();
                     vm.setupRemarksMultiInputFeedbackFilter();
                     vm.setupMultiInputFeedbackTopicFilter();
                     vm.setupGameProviderMultiInputFeedback();
+                    vm.autoFeedbackMission = data;
+                    if(!vm.autoFeedbackMission.schedule) {
+                        vm.autoFeedbackMission.schedule = [];
+                    }
+
+                    commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionStartTime', '#autoFeedbackMissionStartTimePicker',
+                        vm.autoFeedbackMission.missionStartTime, true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                    commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionEndTime', '#autoFeedbackMissionEndTimePicker',
+                        vm.autoFeedbackMission.missionEndTime, true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                    commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerStartTime', '#autoFeedbackMissionRegisterStartTimePicker',
+                        vm.autoFeedbackMission.registerStartTime, true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                    commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerEndTime', '#autoFeedbackMissionRegisterEndTimePicker',
+                        vm.autoFeedbackMission.registerEndTime, true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
 
                     vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
@@ -33386,6 +33402,7 @@ define(['js/app'], function (myApp) {
                 if(vm.autoFeedbackEditStatus) {
                     vm.selectedAutoFeedbackTab = "overview";
                     vm.initAutoFeedbackSearch();
+                    vm.initAutoFeedbackSearchDetail();
                 } else {
                     vm.initAutoFeedbackCreate();
                 }
@@ -33419,8 +33436,10 @@ define(['js/app'], function (myApp) {
                     createTimeStart: null,
                     createTimeEnd: null
                 };
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearch', 'createTimeStart', '#autoFeedbackOverviewCreateTimeStartPicker', utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(30)), true);
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearch', 'createTimeEnd', '#autoFeedbackOverviewCreateTimeEndPicker', utilService.setLocalDayEndTime(new Date()), true);
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearch', 'createTimeStart', '#autoFeedbackOverviewCreateTimeStartPicker',
+                    utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(30)), true);
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearch', 'createTimeEnd', '#autoFeedbackOverviewCreateTimeEndPicker',
+                    utilService.setLocalDayEndTime(new Date()), true);
                 utilService.actionAfterLoaded("#autoFeedbackOverviewTablePage", function () {
                     vm.autoFeedbackMissionSearch.createTimeStart = $('#autoFeedbackOverviewCreateTimeStartPicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMissionSearch.createTimeEnd = $('#autoFeedbackOverviewCreateTimeEndPicker').data('datetimepicker').getDate();
