@@ -696,6 +696,10 @@ var proposalExecutor = {
                                 if(playerUpdate.updateGamePassword || playerUpdate.updatePassword)
                                     delete playerUpdate.remark;
 
+                                if(playerUpdate.updatePassword) {
+                                    playerUpdate["qnaWrongCount.forgotPassword"] = 0;
+                                }
+
                                 proms.push(
                                     dbconfig.collection_players.findOneAndUpdate(
                                         {_id: data._id, platform: data.platform},
@@ -733,7 +737,7 @@ var proposalExecutor = {
                     ).then(
                         function (data) {
                             //reset client QnA security question wrong count
-                            dbconfig.collection_clientQnA.findOneAndUpdate({type: constClientQnA.FORGOT_PASSWORD, playerObjId: playerObj._id}, {totalWrongCount: 0}).catch(errorUtils.reportError);
+                            // dbconfig.collection_clientQnA.findOneAndUpdate({type: constClientQnA.FORGOT_PASSWORD, playerObjId: playerObj._id}, {totalWrongCount: 0}).catch(errorUtils.reportError);
                             deferred.resolve(data);
                         },
                         function (error) {

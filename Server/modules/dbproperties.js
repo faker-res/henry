@@ -139,9 +139,6 @@ var platformGameGroupModel = db_admin.model('platformGameGroup', platformGameGro
 var platformBankCardGroupSchema = require('./../schema/platformBankCardGroup');
 var platformBankCardGroupModel = db_admin.model('platformBankCardGroup', platformBankCardGroupSchema, 'platformBankCardGroup');
 
-var clientQnASchema = require('../schema/clientQnA');
-var clientQnAModel = db_admin.model('clientQnA', clientQnASchema, 'clientQnA');
-
 var clientQnATemplateSchema = require('../schema/clientQnATemplate');
 var clientQnATemplateModel = db_admin.model('clientQnATemplate', clientQnATemplateSchema, 'clientQnATemplate');
 
@@ -350,6 +347,9 @@ let callOutMissionModel = dbLogs2.model('callOutMission', callOutMissionSchema, 
 
 let callOutMissionCalleeSchema = require('./../schema/logs2/callOutMissionCallee');
 let callOutMissionCalleeModel = dbLogs2.model('callOutMissionCallee', callOutMissionCalleeSchema, 'callOutMissionCallee');
+
+let clientQnASchema = require('./../schema/logs2/clientQnA');
+let clientQnAModel = dbLogs2.model('clientQnA', clientQnASchema, 'clientQnA');
 
 let smsLogSchema = require('./../schema/logs/smsLog');
 let smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
