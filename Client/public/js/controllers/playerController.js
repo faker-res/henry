@@ -11146,7 +11146,8 @@ define(['js/app'], function (myApp) {
                 groupBankcardList: vm.playerManualTopUp.groupBankcardList,
                 bonusCode: vm.playerManualTopUp.bonusCode,
                 realName: vm.playerManualTopUp.realName,
-                topUpReturnCode: vm.playerManualTopUp.topUpReturnCode
+                topUpReturnCode: vm.playerManualTopUp.topUpReturnCode,
+                orderNo: vm.playerManualTopUp.orderNo
             };
             vm.playerManualTopUp.submitted = true;
             $scope.safeApply();
@@ -13881,7 +13882,8 @@ define(['js/app'], function (myApp) {
                 remark: vm.playerAlipayTopUp.remark,
                 realName: vm.playerAlipayTopUp.realName,
                 createTime: vm.playerAlipayTopUp.createTime.data('datetimepicker').getLocalDate(),
-                topUpReturnCode: vm.playerAlipayTopUp.topUpReturnCode
+                topUpReturnCode: vm.playerAlipayTopUp.topUpReturnCode,
+                orderNo: vm.playerAlipayTopUp.orderNo
             };
             vm.playerAlipayTopUp.submitted = true;
             $scope.safeApply();
@@ -13952,7 +13954,8 @@ define(['js/app'], function (myApp) {
                 remark: vm.playerWechatPayTopUp.remark,
                 createTime: vm.playerWechatPayTopUp.createTime.data('datetimepicker').getLocalDate(),
                 notUseQR: !!vm.playerWechatPayTopUp.notUseQR,
-                topUpReturnCode: vm.playerWechatPayTopUp.topUpReturnCode
+                topUpReturnCode: vm.playerWechatPayTopUp.topUpReturnCode,
+                orderNo: vm.playerWechatPayTopUp.orderNo
             };
             console.log("applyPlayerWechatPayTopUp", sendData);
             vm.playerWechatPayTopUp.submitted = true;
