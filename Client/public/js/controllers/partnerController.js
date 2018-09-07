@@ -1958,7 +1958,7 @@ define(['js/app'], function (myApp) {
                     editingObj.partner = vm.parterSelectedforPlayer ? vm.parterSelectedforPlayer._id : null;
                     $scope.safeApply();
                 });
-                vm.showPartners = vm.partners.map(item => {
+                vm.showPartners = vm.partners ? vm.partners.map(item => {
                     item.parent$ = item.partnerName ? item.partnerName : '';
                     item.children$ = item.children.length;
                     item.registrationTime$ = vm.dateReformat(item.registrationTime);
@@ -1967,7 +1967,7 @@ define(['js/app'], function (myApp) {
                     item.validPlayers$ = vm.partnerPlayerObj[item._id] ? vm.partnerPlayerObj[item._id].validPlayers : 0;
                     item.activePlayers$ = vm.partnerPlayerObj[item._id] ? vm.partnerPlayerObj[item._id].activePlayers : 0;
                     return item;
-                });
+                }) : [];
 
                 vm.drawSelectPartnerTable(vm.showPartners, editingObj);
                 $scope.safeApply();
@@ -15632,7 +15632,7 @@ define(['js/app'], function (myApp) {
                         sum += el.amount;
                     }
                 });
-                vm.sumTotalTransferAmount = sum;
+                vm.sumTotalTransferAmount = $noRoundTwoDecimalPlaces(sum);
             };
 
             vm.editTransferPartnerCreditToPlayer = function () {
@@ -15641,9 +15641,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.disableTransferPartnerCreditToPlayer = function (value) {
-                if (vm.sumTotalTransferAmount == 0 || value < 0 || (value && value.toString == 'undefined')) {
+                if ($noRoundTwoDecimalPlaces(vm.sumTotalTransferAmount) == 0 || value < 0 || (value && value.toString == 'undefined')) {
                     vm.isTransferPartnerCreditToPlayer = true;
-                } else if (vm.sumTotalTransferAmount <= vm.selectedSinglePartner.credits) {
+                } else if ($noRoundTwoDecimalPlaces(vm.sumTotalTransferAmount) <= vm.selectedSinglePartner.credits) {
                     vm.isTransferPartnerCreditToPlayer = false;
                 } else {
                     vm.isTransferPartnerCreditToPlayer = true;
@@ -15707,8 +15707,8 @@ define(['js/app'], function (myApp) {
                     platformId: vm.selectedPlatform.id,
                     partnerObjId: vm.selectedPartnerObjId || vm.selectedSinglePartner._id,
                     currentCredit: vm.selectedSinglePartner.credits || 0,
-                    updateCredit: vm.sumTotalTransferAmount > 0 ? vm.selectedSinglePartner.credits - vm.sumTotalTransferAmount : 0 || 0,
-                    totalTransferAmount: vm.sumTotalTransferAmount,
+                    updateCredit: $noRoundTwoDecimalPlaces(vm.sumTotalTransferAmount) > 0 ? vm.selectedSinglePartner.credits - $noRoundTwoDecimalPlaces(vm.sumTotalTransferAmount) : 0 || 0,
+                    totalTransferAmount: $noRoundTwoDecimalPlaces(vm.sumTotalTransferAmount) || 0,
                     transferToPlayers: playerArr
                 };
                 console.log('sendData', sendData);
