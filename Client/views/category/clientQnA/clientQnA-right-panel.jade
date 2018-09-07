@@ -4,13 +4,13 @@
     .panel-body.common-left-sub-panel-body
         .row
             br
-            div(style='width:90%;margin:auto' ng-if='vm.clientQnASecurityQuesConfig && checkViewPermission("Platform", "ClientAutoQnA", "Update")')
+            div(style='width:90%;margin:auto' ng-if='vm.clientQnASecurityQuesConfig')
                 div(ng-repeat='(i,v) in vm.clientQnASecurityQuesConfig.question')
                     label {{v.questionNo + "."}} {{v.des | translate}}
                 br
                 br
                 br
-                button.common-button.btn.btn-primary(ng-click="vm.showClientQnAConfigModal()") {{'QNA_CONFIG' | translate}}
+                button.common-button.btn.btn-primary(ng-if='checkViewPermission("Platform", "ClientAutoQnA", "Update")' ng-click="vm.showClientQnAConfigModal()") {{'QNA_CONFIG' | translate}}
 
 #modalClientQnAConfig.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

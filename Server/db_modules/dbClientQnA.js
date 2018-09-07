@@ -108,14 +108,14 @@ var dbClientQnA = {
     },
 
     // determine which answer is wrong (return this function if security question does not pass)
-    securityQuestionReject: function (qnaObjId, correctQuesArr, incorrectQuesArr) {
+    securityQuestionReject: function (playerObjId, correctQuesArr, incorrectQuesArr, wrongCountKey) {
         let returnObj = {
             correctAns: correctQuesArr,
             incorrectAns: incorrectQuesArr
         }
-        return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).lean().then(
-            clientQnAData => {
-                returnObj.totalWrongCount = clientQnAData && clientQnAData.totalWrongCount? clientQnAData.totalWrongCount: 0;
+        return dbconfig.collection_players.findOne({_id: ObjectId(playerObjId)}).lean().then(
+            playerData => {
+                returnObj.totalWrongCount = playerData && playerData.qnaWrongCount[wrongCountKey]? playerData.qnaWrongCount[wrongCountKey]: 0;
                 return Promise.reject(returnObj)
             });
     },
@@ -182,6 +182,10 @@ var dbClientQnA = {
         return dbconfig.collection_clientQnATemplate.findOne(QnAQuery).lean();
     },
 
+    forgotPassword2_1: function () {
+
+    },
+
     forgotPassword1: function (platformObjId, inputDataObj) {
         if (!(inputDataObj && inputDataObj.name)) {
             return Promise.reject({name: "DBError", message: "Invalid Data"})
@@ -194,9 +198,13 @@ var dbClientQnA = {
                 }
 
                 let updateObj = {
+                    type: constClientQnA.FORGOT_PASSWORD,
+                    platformObjId: platformObjId,
+                    playerObjId: playerData._id,
                     QnAData: {name: inputDataObj.name}
                 };
-                return dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.FORGOT_PASSWORD, updateObj).then(
+
+                return dbconfig.collection_clientQnA(updateObj).save().then(
                     clientQnAData => {
                         if (!clientQnAData) {
                             return Promise.reject({name: "DBError", message: "update QnA data failed"})
@@ -222,7 +230,7 @@ var dbClientQnA = {
                                             type: constClientQnA.FORGOT_PASSWORD,
                                             platform: platformObjId}).lean().then(
                                             configData=> {
-                                                if (configData && configData.hasOwnProperty("wrongCount") && clientQnAData.hasOwnProperty("totalWrongCount") &&  clientQnAData.totalWrongCount > configData.wrongCount) {
+                                                if (configData && configData.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("forgotPassword") &&  playerData.qnaWrongCount.forgotPassword > configData.wrongCount) {
                                                     return dbClientQnA.rejectSecurityQuestionFirstTime();
                                                 } else {
                                                     return QnATemplate;
@@ -261,7 +269,7 @@ var dbClientQnA = {
                                 type: constClientQnA.FORGOT_PASSWORD,
                                 platform: platformObjId}).lean().then(
                                     configData => {
-                                        if (configData && configData.hasOwnProperty("wrongCount") && clientQnAData.hasOwnProperty("totalWrongCount") && clientQnAData.totalWrongCount > configData.wrongCount) {
+                                        if (configData && configData.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("forgotPassword") && playerData.qnaWrongCount.forgotPassword > configData.wrongCount) {
                                             return dbClientQnA.rejectSecurityQuestionFirstTime();
                                         } else {
                                             return dbconfig.collection_clientQnATemplate.findOne({
@@ -289,6 +297,7 @@ var dbClientQnA = {
         }
 
         let playerObj;
+        let isPass = false; // is security question pass
         let correctQues = [];
         let inCorrectQues = [];
         let updateObj = {};
@@ -353,45 +362,45 @@ var dbClientQnA = {
 
                 let endTitle;
                 let endDes;
-                let isPass = false;
 
-                if (correctQues && correctQues.length && configData.hasOwnProperty("minQuestionPass") &&
-                    correctQues.length >= configData.minQuestionPass && correctQues.indexOf(questionNo.bankAccount) != -1) {
+                
+                if (correctQues && correctQues.length && correctQues.indexOf(questionNo.bankAccount) != -1) {
                     if (!configData.defaultPassword) {
                         return Promise.reject({name: "DBError", message: "Default password not found"});
                     }
-                    let text1 =  localization.localization.translate("Your user ID");
-                    let text2 =  localization.localization.translate("password has been reset to");
-                    let text3 =  localization.localization.translate(", password will be send to your bound phone number, please enjoy your game!");
-                    endTitle = "Reset password success";
-                    endDes = text1 +" (" + playerObj.name + ") " + text2 + " {" + configData.defaultPassword + "} " + text3;
-                    isPass = true;
-                } else {
-                    updateObj["$inc"] = {totalWrongCount: 1};
+                    if (!configData.hasOwnProperty("minQuestionPass")) {
+                        return Promise.reject({name: "DBError", message: "Minimum correct answer has not config"});
+                    }
+                    if (correctQues.length >= configData.minQuestionPass ) {
+                        let text1 = localization.localization.translate("Your user ID");
+                        let text2 = localization.localization.translate("password has been reset to");
+                        let text3 = localization.localization.translate(", password will be send to your bound phone number, please enjoy your game!");
+                        endTitle = "Reset password success";
+                        endDes = text1 + " (" + playerObj.name + ") " + text2 + " {" + configData.defaultPassword + "} " + text3;
+                        isPass = true;
+                    }
                 }
 
-                return dbClientQnA.updateClientQnAData(null, constClientQnA.FORGOT_PASSWORD, updateObj, qnaObjId).then(
-                    updatedClientQnA => {
-                        if (!updatedClientQnA) {
-                            return Promise.reject({name: "DBError", message: "Update QnA data failed"})
-                        }
-
-                        if (!isPass && ((configData.wrongCount && updatedClientQnA.totalWrongCount <= configData.wrongCount) || !configData.wrongCount)) {
-                            return dbClientQnA.securityQuestionReject(qnaObjId, correctQues, inCorrectQues);
-                        }
-
-                        if (isPass) {
-                            dbPlayerInfo.resetPlayerPassword(clientQnAObj.playerObjId, configData.defaultPassword, platformObjId, false, null, creator, true).catch(errorUtils.reportError);
-                        } else {
+                if (isPass) {
+                    dbPlayerInfo.resetPlayerPassword(clientQnAObj.playerObjId, configData.defaultPassword, platformObjId, false, null, creator, true).catch(errorUtils.reportError);
+                    return dbClientQnA.qnaEndMessage(endTitle, endDes, isPass);
+                } else {
+                    return dbconfig.collection_players.findOneAndUpdate({_id: clientQnAObj.playerObjId},{$inc: {"qnaWrongCount.forgotPassword": 1}},{new:true}).lean().then(
+                        updatedPlayerData => {
+                            if (!updatedPlayerData) {
+                                return Promise.reject({name: "DBError", message: "Update player QnA wrong count  failed"})
+                            }
+                            if ((configData.wrongCount && updatedPlayerData.qnaWrongCount.forgotPassword <= configData.wrongCount) || !configData.wrongCount) {
+                                return dbClientQnA.securityQuestionReject(clientQnAObj.playerObjId, correctQues, inCorrectQues, "forgotPassword");
+                            }
                             let text1 = localization.localization.translate("Attention! this player");
                             let text2 = localization.localization.translate("times failed security question, please contact customer service to verify this account.");
                             endTitle = "Reset password failed";
-                            endDes = text1 + " (" + updatedClientQnA.totalWrongCount + ") " + text2;
+                            endDes = text1 + " (" + updatedPlayerData.qnaWrongCount.forgotPassword + ") " + text2;
+                            return dbClientQnA.qnaEndMessage(endTitle, endDes, isPass);
                         }
-
-                        return dbClientQnA.qnaEndMessage(endTitle, endDes, isPass);
-                    });
-
+                    );
+                }
             }
         );
     },
