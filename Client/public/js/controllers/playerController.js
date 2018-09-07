@@ -18405,6 +18405,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["SINGLE_LIMIT"] = " ";
                     proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
                     proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                    proposalDetail["orderNo"] = vm.selectedProposal.data.orderNo || " ";
                     vm.selectedProposal.data = proposalDetail;
                 }
 
@@ -18462,6 +18463,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
                     proposalDetail["ALIPAY_QR_CODE"] = vm.selectedProposal.data.weChatQRCode || " ";
                     proposalDetail["cancelBy"] = vm.selectedProposal.data.cancelBy || " ";
+                    proposalDetail["orderNo"] = vm.selectedProposal.data.orderNo || " ";
                     vm.selectedProposal.data = proposalDetail;
                 }
 
@@ -18497,6 +18499,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["alipayer"] = vm.selectedProposal.data.alipayer || " ";
                     proposalDetail["alipayerAccount"] = vm.selectedProposal.data.alipayerAccount || " ";
                     proposalDetail["alipayerNickName"] = vm.selectedProposal.data.alipayerNickName || " ";
+                    proposalDetail["orderNo"] = vm.selectedProposal.data.orderNo || " ";
                     vm.selectedProposal.data = proposalDetail;
                 }
 
