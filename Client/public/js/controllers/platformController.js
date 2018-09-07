@@ -969,7 +969,7 @@ define(['js/app'], function (myApp) {
                  vm.allProviders, vm.allRewardEvent, vm.rewardPointsAllEvent, vm.allPartnerCommSettPreview,
                  vm.playerFeedbackTopic, vm.partnerFeedbackTopic, vm.allPlayerFeedbackResults,vm.allPartnerFeedbackResults,
                  [vm.allGameTypesList, vm.allGameTypes], vm.allRewardTypes,[vm.allGameProviders, vm.gameProvidersList],
-                    [vm.gameProviderGroup, vm.gameProviderGroupNames]
+                    [vm.gameProviderGroup, vm.gameProviderGroupNames], vm.autoFeedbackMissions
                 ] = await Promise.all([
                     commonService.getRewardList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                     commonService.getPromotionTypeList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -987,7 +987,8 @@ define(['js/app'], function (myApp) {
                     commonService.getAllGameTypes($scope).catch(err => Promise.resolve([[], []])),
                     commonService.getAllRewardTypes($scope).catch(err => Promise.resolve([])),
                     commonService.getAllGameProviders($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([[], []])),
-                    commonService.getPlatformProviderGroup($scope, vm.selectedPlatform.data._id).catch(err => Promise.resolve([[], []]))
+                    commonService.getPlatformProviderGroup($scope, vm.selectedPlatform.data._id).catch(err => Promise.resolve([[], []])),
+                    commonService.getAllAutoFeedback($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([]))
                 ]);
 
                 // 1st dependencies variable
@@ -1079,7 +1080,6 @@ define(['js/app'], function (myApp) {
                             vm.phoneNumFilterClicked();
                             vm.rewardPointsTabClicked();
                             loadPromoCodeTemplate();
-                            vm.getAllAutoFeedback();
                             vm.onGoingLoadPlatformData = false;
                         })
                     },
@@ -33276,6 +33276,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initAutoFeedbackCreate = function() {
+                vm.autoFeedbackCreateMissionStatus = '';
                 vm.autoFeedbackEditStatus = false;
                 vm.autoFeedbackMission = {
                     registerStartTime: null,
@@ -33283,40 +33284,15 @@ define(['js/app'], function (myApp) {
                     missionStartTime: null,
                     missionEndTime: null
                 };
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionStartTime', '#autoFeedbackMissionStartTimePicker', utilService.setLocalDayStartTime(new Date()), true);
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionEndTime', '#autoFeedbackMissionEndTimePicker', utilService.setLocalDayStartTime(new Date()), true);
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerStartTime', '#autoFeedbackMissionRegisterStartTimePicker', utilService.setLocalDayStartTime(new Date()), true);
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerEndTime', '#autoFeedbackMissionRegisterEndTimePicker', utilService.setLocalDayStartTime(new Date()), true);
                 utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
                     vm.setupRemarksMultiInputFeedback();
                     vm.setupRemarksMultiInputFeedbackFilter();
                     vm.setupMultiInputFeedbackTopicFilter();
                     vm.setupGameProviderMultiInputFeedback();
-
-                    $('#autoFeedbackMissionStartTimePicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true,
-                        pickTime: true,
-                    });
-                    $('#autoFeedbackMissionEndTimePicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true,
-                        pickTime: true,
-                    });
-                    $('#autoFeedbackMissionRegisterStartTimePicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true,
-                        pickTime: true,
-                    });
-                    $('#autoFeedbackMissionRegisterEndTimePicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true,
-                        pickTime: true,
-                    });
-                    $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
-                    $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
-                    $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
-                    $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
 
                     vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
@@ -33350,42 +33326,18 @@ define(['js/app'], function (myApp) {
                 console.log('initAutoFeedbackEdit',data);
                 vm.selectedAutoFeedbackTab = "create";
                 vm.autoFeedbackEditStatus = true;
+                vm.autoFeedbackUpdateMissionStatus = '';
+                vm.autoFeedbackMission = data;
 
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionStartTime', '#autoFeedbackMissionStartTimePicker', vm.autoFeedbackMission.missionStartTime, true);
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionEndTime', '#autoFeedbackMissionEndTimePicker', vm.autoFeedbackMission.missionEndTime, true);
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerStartTime', '#autoFeedbackMissionRegisterStartTimePicker', vm.autoFeedbackMission.registerStartTime, true);
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerEndTime', '#autoFeedbackMissionRegisterEndTimePicker', vm.autoFeedbackMission.registerEndTime, true);
                 utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
                     vm.setupRemarksMultiInputFeedback();
                     vm.setupRemarksMultiInputFeedbackFilter();
                     vm.setupMultiInputFeedbackTopicFilter();
                     vm.setupGameProviderMultiInputFeedback();
-                    $('#autoFeedbackMissionStartTimePicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true,
-                        pickTime: true,
-                    });
-                    $('#autoFeedbackMissionEndTimePicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true,
-                        pickTime: true,
-                    });
-                    $('#autoFeedbackMissionRegisterStartTimePicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true,
-                        pickTime: true,
-                    });
-                    $('#autoFeedbackMissionRegisterEndTimePicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true,
-                        pickTime: true,
-                    });
-
-                    vm.autoFeedbackMission = data;
-                    $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').setDate(new Date(vm.autoFeedbackMission.missionStartTime));
-                    $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').setDate(new Date(vm.autoFeedbackMission.missionEndTime));
-                    $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').setDate(new Date(vm.autoFeedbackMission.registerStartTime));
-                    $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').setDate(new Date(vm.autoFeedbackMission.registerEndTime));
 
                     vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
@@ -33459,22 +33411,9 @@ define(['js/app'], function (myApp) {
                     createTimeStart: null,
                     createTimeEnd: null
                 };
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearch', 'createTimeStart', '#autoFeedbackOverviewCreateTimeStartPicker', utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(30)), true);
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearch', 'createTimeEnd', '#autoFeedbackOverviewCreateTimeEndPicker', utilService.setLocalDayEndTime(new Date()), true);
                 utilService.actionAfterLoaded("#autoFeedbackOverviewTablePage", function () {
-                    $('#autoFeedbackOverviewCreateTimeStartPicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true,
-                        pickTime: true,
-                    });
-                    $('#autoFeedbackOverviewCreateTimeEndPicker').datetimepicker({
-                        language: 'en',
-                        format: 'dd/MM/yyyy hh:mm:ss',
-                        pick12HourFormat: true,
-                        pickTime: true,
-                    });
-                    $('#autoFeedbackOverviewCreateTimeStartPicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(30)));
-                    $('#autoFeedbackOverviewCreateTimeEndPicker').data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
-
                     vm.autoFeedbackMissionSearch.createTimeStart = $('#autoFeedbackOverviewCreateTimeStartPicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMissionSearch.createTimeEnd = $('#autoFeedbackOverviewCreateTimeEndPicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMissionSearch.pageObj = utilService.createPageForPagingTable("#autoFeedbackOverviewTablePage", {}, $translate, function (curP, pageSize) {
@@ -33574,7 +33513,9 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('ACTION_BUTTON'),
                             render: function(data, type, row) {
-                                let div = $('<div>', {});
+                                let div = $('<div>', {
+                                    'style': 'text-align:center;'
+                                });
                                 let buttonToggle = $('<button>', {
                                     'class': 'btn btn-primary common-button',
                                     'ng-click': 'vm.autoFeedbackToggleActive('+(index-1)+');'
@@ -33605,17 +33546,14 @@ define(['js/app'], function (myApp) {
                         {
                             title: $translate('Mission First Run Total Count'),
                             data: "firstRunCount",
-                            sClass: "sumInt alignRight",
                         },
                         {
                             title: $translate('Mission Second Run Total Count'),
                             data: "secondRunCount",
-                            sClass: "sumInt alignRight",
                         },
                         {
                             title: $translate('Mission Third Run Total Count'),
                             data: "thirdRunCount",
-                            sClass: "sumInt alignRight",
                         }
                     ],
                     "paging": false,
@@ -33635,6 +33573,95 @@ define(['js/app'], function (myApp) {
                 $('#autoFeedbackOverviewTable').resize();
             };
 
+            vm.initAutoFeedbackSearchDetail = function() {
+                vm.autoFeedbackMissionSearchDetail = {
+                    startTime: null,
+                    endTime: null
+                };
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearchDetail', 'startTime', '#autoFeedbackListStartTimePicker', utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(7)), true);
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearchDetail', 'endTime', '#autoFeedbackListEndTimePicker', utilService.setLocalDayEndTime(new Date()), true);
+                utilService.actionAfterLoaded("#autoFeedbackDetailSpin", function () {
+                    vm.autoFeedbackMissionSearchDetail.startTime = $('#autoFeedbackListStartTimePicker').data('datetimepicker').getDate();
+                    vm.autoFeedbackMissionSearchDetail.endTime = $('#autoFeedbackListEndTimePicker').data('datetimepicker').getDate();
+                    $scope.$evalAsync(() => {
+                        vm.autoFeedbackMissionSearchDetail.name = vm.autoFeedbackMissions[0].name;
+                    });
+                });
+            };
+            vm.autoFeedbackSearchMissionDetail = function () {
+                $('#autoFeedbackDetailSpin').show();
+                vm.autoFeedbackMissionSearchDetail.platformObjId = vm.selectedPlatform.id;
+                vm.autoFeedbackMissionSearchDetail.startTime = $('#autoFeedbackListStartTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMissionSearchDetail.endTime = $('#autoFeedbackListEndTimePicker').data('datetimepicker').getDate();
+                vm.autoFeedbackMissionSearchDetail.name = !vm.autoFeedbackMissionSearchDetail.name ? vm.autoFeedbackMissions[0].name : vm.autoFeedbackMissionSearchDetail.name;
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    name: vm.autoFeedbackMissionSearchDetail.name,
+                    startTime: vm.autoFeedbackMissionSearchDetail.startTime,
+                    endTime: vm.autoFeedbackMissionSearchDetail.endTime
+                };
+                console.log("getAutoFeedbackDetail sendData",sendData);
+                socketService.$socket($scope.AppSocket, 'getAutoFeedbackDetail', sendData, function (data) {
+                    console.log("getAutoFeedbackDetail ret",data);
+                    let result = data.data;
+                    vm.autoFeedbackSearchDetailResult = {1:{},2:{},3:{}};
+                    let createDateSegment = (date, scheduleNumber) => {
+                        if(vm.autoFeedbackSearchDetailResult[scheduleNumber]) {
+                            vm.autoFeedbackSearchDetailResult[scheduleNumber][date] = {};
+                            vm.autoFeedbackSearchDetailResult[scheduleNumber][date].acceptedCount = 0;
+                            vm.autoFeedbackSearchDetailResult[scheduleNumber][date].accessCount = 0;
+                            vm.autoFeedbackSearchDetailResult[scheduleNumber][date].topUpCount = 0;
+                            vm.autoFeedbackSearchDetailResult[scheduleNumber][date].data = [];
+                        }
+                    };
+                    $scope.$evalAsync(() => {
+                        result.forEach(item => {
+                            let promoCodeTime = new Date(item.createTime);
+                            let accessTime = new Date(item.lastAccessTime);
+                            let topUpTime = new Date(item.lastTopUpTime);
+                            let date = new Date(promoCodeTime).toLocaleString('en-US', {
+                                year: 'numeric',
+                                month: '2-digit',
+                                day: '2-digit'
+                            }).replace(/(\d+)\/(\d+)\/(\d+)/, '$3-$1-$2');
+
+                            if(item.autoFeedbackMissionScheduleNumber && !isNaN(parseInt(item.autoFeedbackMissionScheduleNumber))) {
+                                let scheduleNumber = item.autoFeedbackMissionScheduleNumber;
+                                if(!vm.autoFeedbackSearchDetailResult[scheduleNumber].hasOwnProperty(date)) {
+                                    createDateSegment(date, scheduleNumber);
+                                }
+                                if(item.status == vm.constPromoCodeStatus.ACCEPTED) {
+                                    vm.autoFeedbackSearchDetailResult[scheduleNumber][date].acceptedCount++;
+                                }
+                                if(promoCodeTime.getTime() < accessTime.getTime()) {
+                                    vm.autoFeedbackSearchDetailResult[scheduleNumber][date].accessCount++;
+                                }
+                                if(promoCodeTime.getTime() < topUpTime.getTime()) {
+                                    vm.autoFeedbackSearchDetailResult[scheduleNumber][date].topUpCount++;
+                                }
+                                vm.autoFeedbackSearchDetailResult[scheduleNumber][date].data.push(item);
+                            }
+                        });
+                    });
+                    $('#autoFeedbackDetailSpin').hide();
+                });
+            };
+            vm.autoFeedbackShowPromoCodeDetail = function(data) {
+                console.log(data);
+                vm.autoFeedbackPromoCodeDetail = data;
+                vm.autoFeedbackPromoCodeDetail.map(item => {
+                    item.amount$ = item.type == 3 ? item.amount + "%" : item.amount;
+                    item.requiredConsumption$ = item.type == 3 ? "*"+item.requiredConsumption : item.requiredConsumption;
+                    item.isSharedWithXIMA$ = item.isSharedWithXIMA ? $translate("true") : $translate("false");
+                    item.isForbidWithdraw$ = item.disableWithdraw ? $translate("true") : $translate("false");
+                    item.expirationTime$ = item.expirationTime ? utilService.$getTimeFromStdTimeFormat(item.expirationTime) : "-";
+                    item.allowedProviders$ = item.allowedProviders && item.allowedProviders.length == 0 ?
+                        $translate("ALL_PROVIDERS") : item.allowedProviders.map(e => item.isProviderGroup ? e.name : e.code);
+                    item.createTime$ = item.createTime ? utilService.$getTimeFromStdTimeFormat(item.createTime) : "-";
+                    item.acceptedTime$ = item.acceptedTime ? utilService.$getTimeFromStdTimeFormat(item.acceptedTime) : "-";
+                    item.adminName$ = item.adminName ? item.adminName : $translate("Backstage");
+                })
+            };
             vm.getAllAutoFeedback = function() {
                 socketService.$socket($scope.AppSocket, 'getAllAutoFeedback', {platformObjId: vm.selectedPlatform.id}, function (data) {
                     console.log("getAllAutoFeedbackMissions ret",data);

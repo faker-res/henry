@@ -245,6 +245,11 @@ define([], () => {
             )
         };
 
+        self.getAllAutoFeedback = function($scope, platformObjId) {
+            return $scope.$socketPromise('getAllAutoFeedback', {platformObjId: platformObjId})
+                .then(data => data.data.data);
+        };
+
         self.getPMSDevices = function(num){
             // PMS definition of device type
             // Web: 1, H5: 2, Both: 3, App:4
@@ -470,12 +475,16 @@ define([], () => {
             };
         };
 
-        this.commonInitTime = (utilService, vm, model, field, queryId, defTime) => {
+        this.commonInitTime = (utilService, vm, model, field, queryId, defTime, defTimeAsIs) => {
             vm[model] = vm[model] || {};
 
             utilService.actionAfterLoaded(queryId, () => {
                 vm[model][field] = utilService.createDatePicker(queryId);
-                $(queryId).data('datetimepicker').setLocalDate(new Date(defTime));
+                if(defTimeAsIs) {
+                    $(queryId).data('datetimepicker').setDate(new Date(defTime));
+                } else {
+                    $(queryId).data('datetimepicker').setLocalDate(new Date(defTime));
+                }
             })
         };
     };

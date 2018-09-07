@@ -138,6 +138,90 @@ let dbPlatformAutoFeedback = {
         }
     },
 
+    getAutoFeedbackDetail: function (platformObjId, name, startTime, endTime) {
+        let useProviderGroup;
+        let autoFeedbackObjId, autoFeedbackName;
+        let autoFeedbackDetail = [];
+        let autoFeedbackQuery = {};
+        autoFeedbackQuery.platformObjId = platformObjId;
+        autoFeedbackQuery.name = name;
+        return dbconfig.collection_platform.findOne({_id:platformObjId}).lean().then(platform => {
+            useProviderGroup = platform.useProviderGroup
+        }).then(() => {
+            return dbconfig.collection_autoFeedback.findOne(autoFeedbackQuery).lean();
+        }).then(autoFeedback => {
+                if(autoFeedback) {
+                    autoFeedbackObjId = autoFeedback._id;
+                    autoFeedbackName = autoFeedback.name;
+                    return autoFeedback;
+                } else {
+                    return Promise.reject();
+                }
+        }).then(() => {
+            let promoCodeQuery = {};
+            promoCodeQuery.autoFeedbackMissionObjId = autoFeedbackObjId;
+            promoCodeQuery.createTime = {$gte: startTime, $lte:endTime};
+            return dbconfig.collection_promoCode.find(promoCodeQuery).populate({
+                path: "allowedProviders",
+                model: useProviderGroup ? dbconfig.collection_gameProviderGroup : dbconfig.collection_gameProvider
+            }).populate({
+                path: "promoCodeTemplateObjId",
+                model: dbconfig.collection_promoCodeTemplate
+            }).lean();
+        }).then(promoCodes => {
+            if(promoCodes && promoCodes.length > 0) {
+                autoFeedbackDetail = promoCodes;
+                let playerObjIds = [];
+                let lastTopUpProm, lastAccessProm;
+                promoCodes.filter(promoCode => {
+                    if (playerObjIds.indexOf(promoCode.playerObjId) < 0) {
+                        playerObjIds.push(promoCode.playerObjId);
+                    }
+                });
+                lastTopUpProm = dbconfig.collection_playerTopUpRecord.aggregate([
+                    {$match: {playerId: {$in: playerObjIds}}},
+                    {$sort: {createTime: -1}},
+                    {
+                        $group: {
+                            _id: "$playerId",
+                            lastTopUpTime: {$first: "$createTime"}
+                        }
+                    }
+                ]);
+                lastAccessProm = dbconfig.collection_players.find({_id: {$in: playerObjIds}}, {
+                    _id: 1,
+                    name: 1,
+                    lastAccessTime: 1
+                }).lean();
+                return Promise.all([lastTopUpProm, lastAccessProm]);
+            }
+        }).then(data => {
+            if(data && data.length > 0) {
+                let topUpArr = [], accessTimeArr = [], playerNameArr = [];
+                let lastTopUps = data[0];
+                let players = data[1];
+                lastTopUps.forEach(item => {
+                    topUpArr[item._id] = item.lastTopUpTime;
+                });
+                players.forEach(item => {
+                    accessTimeArr[item._id] = item.lastAccessTime;
+                });
+                players.forEach(item => {
+                    playerNameArr[item._id] = item.name;
+                });
+
+                autoFeedbackDetail.forEach(item => {
+                    item.lastTopUpTime = topUpArr[item.playerObjId];
+                    item.lastAccessTime = accessTimeArr[item.playerObjId];
+                    item.playerName = playerNameArr[item.playerObjId];
+                    item.name = autoFeedbackName;
+                    item.type = item.promoCodeTemplateObjId.type;
+                });
+            }
+            return autoFeedbackDetail;
+        });
+    },
+
     removeAutoFeedbackByObjId: function (objId) {
         return dbconfig.collection_autoFeedback.remove({_id: objId}).exec();
     },
