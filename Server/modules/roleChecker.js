@@ -454,8 +454,8 @@ var roleChecker = {
                 Delete: ['deleteProposalTypes', 'deleteProposalTypeProcessStepById', 'deleteProposalProcessByIds']
             },
             "ClientAutoQnA": {
-                Read: [],
-                Update: []
+                Read: ['getClientQnAProcessStep', 'getClientQnASecurityQuesConfig'],
+                Update: ['editClientQnAConfig']
             },
             "Config": {
                 Read: ['getPlayerLevelByPlatformId', 'getPlayerTrustLevelByPlatformId', 'getPartnerLevelConfig', 'getPlatformAnnouncements'],

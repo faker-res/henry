@@ -328,7 +328,14 @@ var playerSchema = new Schema({
     //client data
     clientData: {type: String},
     //device id
-    deviceId: {type: String}
+    deviceId: {type: String},
+    // QnA security question total wrong count - reset when success
+    qnaWrongCount: {
+        forgotPassword: {type: Number, default: 0},
+        updatePhoneNumber: {type: Number, default: 0},
+        editBankCard: {type: Number, default: 0},
+        editName: {type: Number, default: 0}
+    }
 });
 
 //record is unique by name and platform
