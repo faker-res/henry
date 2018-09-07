@@ -33594,6 +33594,15 @@ define(['js/app'], function (myApp) {
                 };
                 tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
                 vm.autoFeedbackOverviewTable = $('#autoFeedbackOverviewTable').DataTable(tableOptions);
+                let headers = Array.from($(vm.autoFeedbackOverviewTable.table().header())[0].getElementsByTagName('th'));
+                headers.forEach(v => {
+                    if(v.innerText == $translate('Mission First Run Total Count') ||
+                        v.innerText == $translate('Mission Second Run Total Count') ||
+                        v.innerText == $translate('Mission Third Run Total Count')) {
+                        v.title = $translate('Calculated According to Promo Code Sent (Promo code sent to a same player ' +
+                            'twice will be calculated as 2) Eg. Send(1st) --> login --> send(2nd) = total count of 2');
+                    }
+                });
                 vm.autoFeedbackMissionSearch.pageObj.init({maxCount: vm.autoFeedbackSearchResultTotal}, newSearch);
                 utilService.setDataTablePageInput('autoFeedbackOverviewTable', vm.autoFeedbackOverviewTable, $translate);
 
