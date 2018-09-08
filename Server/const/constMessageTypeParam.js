@@ -86,7 +86,9 @@ const constMessageTypeParam = {
     UPDATE_PASSWORD: {
         name:"updatePassword",
         params:[
-            {parameterName:'executeTime' , description:'executeTime'}
+            {parameterName:'executeTime' , description:'executeTime'},
+            {parameterName:'playerName' , description:'playerName'},
+            {parameterName:'newPassword' , description:'newPassword'}
         ]
     },
     SMS_VERIFICATION: {

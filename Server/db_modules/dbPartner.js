@@ -9050,16 +9050,31 @@ let dbPartner = {
         });
     },
 
-    getDownPartnerInfo: (platformId, partnerId, startIndex, count) => {
+    getDownPartnerInfo: (platformId, partnerId, requestPage, count) => {
         let platformObj;
         let partnerObj;
         let childPartnerObj;
         let proposalTypeObj;
-        let index = startIndex || 0;
+        let index = 0;
+        let currentPage = requestPage || 1;
+        let pageNo = null;
         let limit = count || 10;
         let statsObj;
         let totalCount = 0;
         let totalPage = 1;
+
+        if (typeof currentPage != 'number' || typeof limit != 'number') {
+            return Promise.reject({name: "DataError", message: "Incorrect parameter type"});
+        }
+
+        if (currentPage <= 0) {
+            pageNo = 0;
+        } else {
+            pageNo = currentPage;
+        }
+
+        index = ((pageNo - 1) * limit);
+        currentPage = pageNo;
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
@@ -9194,7 +9209,7 @@ let dbPartner = {
             statsObj.downstreamTotal = totalCount;
             statsObj.totalCount = totalCount;
             statsObj.totalPage = totalPage;
-            statsObj.startIndex = index;
+            statsObj.currentPage = currentPage;
 
             return {stats: statsObj, list: finalChildPartnerData ? finalChildPartnerData : []};
         })
@@ -9265,18 +9280,33 @@ let dbPartner = {
         })
     },
 
-    getDownPartnerContribution: (platformId, partnerId, startIndex, count, startTime, endTime) => {
+    getDownPartnerContribution: (platformId, partnerId, requestPage, count, startTime, endTime) => {
         let platformObj;
         let partnerObj;
         let downlineProposalObj;
         let parentProposalObj;
-        let index = startIndex || 0;
+        let index = 0;
+        let currentPage = requestPage || 1;
+        let pageNo = null;
         let limit = count || 10;
         let statsObj;
         let totalCount = 0;
         let totalPage = 1;
         let sortCol = {createTime: 1};
         let totalAmount = 0;
+
+        if (typeof currentPage != 'number' || typeof limit != 'number') {
+            return Promise.reject({name: "DataError", message: "Incorrect parameter type"});
+        }
+
+        if (currentPage <= 0) {
+            pageNo = 0;
+        } else {
+            pageNo = currentPage;
+        }
+
+        index = ((pageNo - 1) * limit);
+        currentPage = pageNo;
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
@@ -9394,7 +9424,7 @@ let dbPartner = {
             statsObj.totalAmount = totalAmount;
             statsObj.totalCount = totalCount;
             statsObj.totalPage = totalPage;
-            statsObj.startIndex = index;
+            statsObj.currentPage = currentPage;
 
             return {stats: statsObj, list: finaldownlineProposalData ? finaldownlineProposalData : []};
         })

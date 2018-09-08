@@ -312,13 +312,13 @@ var playerSchema = new Schema({
         showInfoState: {type: Boolean, default: 1}
     },
     // admin name who opened this account from backstage
-    accAdmin: {type: String},
-    csOfficer: {type: Schema.ObjectId, ref: 'admin'},
-    promoteWay: {type: String},
+    accAdmin: {type: String, index: true},
+    csOfficer: {type: Schema.ObjectId, ref: 'admin', index: true},
+    promoteWay: {type: String, index: true},
     // reward point object
     rewardPointsObjId: {type: Schema.ObjectId, ref: 'rewardPoints'},
     // is tracked for deposit tracking report
-    isDepositTracked: {type: Boolean},
+    isDepositTracked: {type: Boolean, index: true},
     // deposit tracking group object
     depositTrackingGroup: {type: Schema.ObjectId, ref: 'depositTrackingGroup'},
     // xima withdrawal check bypass
@@ -328,7 +328,14 @@ var playerSchema = new Schema({
     //client data
     clientData: {type: String},
     //device id
-    deviceId: {type: String}
+    deviceId: {type: String},
+    // QnA security question total wrong count - reset when success
+    qnaWrongCount: {
+        forgotPassword: {type: Number, default: 0},
+        updatePhoneNumber: {type: Number, default: 0},
+        editBankCard: {type: Number, default: 0},
+        editName: {type: Number, default: 0}
+    }
 });
 
 //record is unique by name and platform

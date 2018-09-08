@@ -192,7 +192,7 @@ db.clientQnATemplate.update(
         $set: {
             alternativeQuestion: {des: "Didn't receive? Send again", action: "resendSMSVerificationCode"},
             question: [{questionNo: 1, des: "Please enter the verification code"}],
-            answerInput: [{type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "Verification code"}],
+            answerInput: [{type: "checkbox", objKey: "smsCode", questionNo: 1, placeHolder: "Verification code"}],
             action: "forgotUserID2_1"
         }
     },
