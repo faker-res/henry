@@ -74,8 +74,50 @@ db.clientQnATemplate.update(
 //     },
 //     {upsert: true});
 
+// endregion
 
-// region edit name - type 5
+//region forgotUserID
+var type2 = "forgotUserID";
+db.clientQnATemplate.update(
+    {
+        processNo: "1_1",
+        type: type2
+    },
+    {
+        $set: {
+            alternativeQuestion: {des: "Cannot receive SMS?", action: "rejectFailedRetrieveAccount"},
+            question: [{questionNo: 1, des: "Please enter phone number of the account, a sms verification code will be sent"}],
+            answerInput: [{type: "text", objKey: "phoneNumber", questionNo: 1, placeHolder: "Please enter phone number"}],
+            action: "forgotUserID1_1"
+        }
+    },
+    {upsert: true});
+
+db.clientQnATemplate.update(
+    {
+        processNo: "2_1",
+        type: type2
+    },
+    {
+        $set: {
+            alternativeQuestion: {des: "Didn't receive? Send again", action: "forgotUserID1_2"},
+            question: [{questionNo: 1, des: "Please enter the verification code"}],
+            answerInput: [{type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "Verification code"}],
+            action: "forgotUserID2_1"
+        }
+    },
+    {upsert: true});
+//endregion
+
+//region updatePhoneNumber
+var type3 = "updatePhoneNumber";
+//endregion
+
+//region editBankCard
+var type4 = "editBankCard";
+//endregion
+
+//region editName
 var type5 = "editName";
 db.clientQnATemplate.update(
     {
@@ -98,7 +140,7 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
-            alternativeQuestion: {des: "Inconvenient to accept?", action: "editName4_2"},
+            alternativeQuestion: {des: "Inconvenient to accept?", action: "editName4"},
             question: [{questionNo: 1, des: "Please enter phone number of the account, a sms verification code will be sent"}],
             answerInput: [{type: "text", objKey: "phoneNumber", questionNo: 1, placeHolder: "Please enter phone number"}],
             action: "editName2"
@@ -135,38 +177,35 @@ db.clientQnATemplate.update(
             question: [
                 {questionNo: 1, des: "Please enter your phone number"},
                 {questionNo: 2, des: "Please enter your bank account"},
-                {questionNo: 3, des: "Please enter the balance of your bank account"},
+                {questionNo: 3, des: "Please enter your last withdrawal amount"},
             ],
             answerInput: [
                 {type: "number", objKey: "phoneNumber", questionNo: 1},
                 {type: "text", objKey: "bankAccount", questionNo: 2},
-                {type: "number", objKey: "bankAccountBalance", questionNo: 3},
+                {type: "number", objKey: "lastWithdrawalAmount", questionNo: 3},
             ],
             action: "editName4_2"
         }
     },
     {upsert: true});
 
-
-
-// endregion
-
-//region forgotUserID
-var type2 = "forgotUserID";
 db.clientQnATemplate.update(
     {
-        processNo: "1_1",
-        type: type2
+        processNo: "5_2",
+        type: type5
     },
     {
         $set: {
-            alternativeQuestion: {des: "Cannot receive SMS?", action: "rejectFailedRetrieveAccount"},
-            question: [{questionNo: 1, des: "Please enter phone number of the account, a sms verification code will be sent"}],
-            answerInput: [{type: "text", objKey: "phoneNumber", questionNo: 1, placeHolder: "Please enter phone number"}],
-            action: "forgotUserID1_1"
+            questionTitle: "Please answer the question below to validate your identity:",
+            question: [
+                {questionNo: 3, des: "Please enter the balance of your bank account"},
+            ],
+            answerInput: [
+                {type: "number", objKey: "phoneNumber", questionNo: 1},
+            ],
+            action: "editName5_2"
         }
-    },
-    {upsert: true});
+    },{upsert: true});
 
 db.clientQnATemplate.update(
     {
@@ -199,14 +238,3 @@ db.clientQnATemplate.update(
     {upsert: true});
 //endregion
 
-//region updatePhoneNumber
-var type3 = "updatePhoneNumber";
-//endregion
-
-//region editBankCard
-var type4 = "editBankCard";
-//endregion
-
-//region editName
-var type5 = "editName";
-//endregion
