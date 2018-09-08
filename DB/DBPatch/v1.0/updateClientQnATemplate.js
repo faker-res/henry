@@ -245,6 +245,48 @@ db.clientQnATemplate.update(
         }
     },
     {upsert: true});
+
+db.clientQnATemplate.update(
+    {
+        processNo: "4_1",
+        type: type3
+    },
+    {
+        $set: {
+            question: [{questionNo: 1, des: "Please enter new phone number for sms verification code"}],
+            answerInput: [{type: "text", objKey: "newPhoneNumber", questionNo: 1, placeHolder: "New phone number"}],
+            action: "updatePhoneNumber4_1"
+        }
+    },
+    {upsert: true});
+
+db.clientQnATemplate.update(
+    {
+        processNo: "5_1",
+        type: type3
+    },
+    {
+        $set: {
+            question: [{questionNo: 1, des: "Please enter sms verification code"}],
+            answerInput: [{type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "SMS Verification code"}],
+            action: "updatePhoneNumber5_1"
+        }
+    },
+    {upsert: true});
+
+db.clientQnATemplate.update(
+    {
+        processNo: "6_1",
+        type: type3
+    },
+    {
+        $set: {
+            question: [{questionNo: 1, des: "Update phone number success"}],
+            // answerInput: [{type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "SMS Verification code"}],
+            action: "updatePhoneNumber5_1"
+        }
+    },
+    {upsert: true});
 //region editBankCard
 var type4 = "editBankCard";
 //endregion
