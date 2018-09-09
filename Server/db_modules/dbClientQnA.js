@@ -152,8 +152,7 @@ var dbClientQnA = {
                 return dbClientQnA.updateClientQnAData(null, clientQnAData.type, updObj, clientQnAData._id).then(
                   ()=>{
                     if(isGetSmsCode){
-                        //sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, playerName, inputData = {}, isPartner, partnerObjId) {
-                        console.log(clientQnAData)
+                        // based on getSMSCode api
                         dbPlayerMail.sendVerificationCodeToNumber(clientQnAData.QnAData.phoneNumber, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0)
                     }else{
                         dbPlayerMail.sendVerificationCodeToPlayer(clientQnAData.QnAData.playerId, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0)
