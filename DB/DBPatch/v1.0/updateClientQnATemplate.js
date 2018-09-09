@@ -224,7 +224,7 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
-            alternativeQuestion: {des: "Inconvenient to accept?", action: "updatePhoneNumber3_2"},
+            alternativeQuestion: {des: "Inconvenient to accept?", action: "updatePhoneNumber3"},
             question: [{questionNo: 1, des: "Please enter current phone number for sms verification"}],
             answerInput: [{type: "text", objKey: "phoneNumber", questionNo: 1, placeHolder: "Phone number"}],
             action: "updatePhoneNumber2_1"
@@ -242,6 +242,31 @@ db.clientQnATemplate.update(
             question: [{questionNo: 1, des: "Please enter sms verification code"}],
             answerInput: [{type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "SMS Verification code"}],
             action: "updatePhoneNumber3_1"
+        }
+    },
+    {upsert: true});
+
+
+db.clientQnATemplate.update(
+    {
+        processNo: "3_2",
+        type: type3
+    },
+    {
+        $set: {
+            isSecurityQuestion: true,
+            questionTitle: "Please answer the question below",
+            question: [
+                {questionNo: 1, des: "Please enter current phone number"},
+                {questionNo: 2, des: "Please enter binding bank account (If you dont fill it before, let it blank)?"},
+                {questionNo: 3, des: "Please enter last withdraw amount?"}
+                ],
+            answerInput: [
+                {type: "text", objKey: "phoneNumber", questionNo: 1},
+                {type: "text", objKey: "bankAccount", questionNo: 2},
+                {type: "text", objKey: "amount", questionNo: 3}
+                ],
+            action: "updatePhoneNumber3_2"
         }
     },
     {upsert: true});
