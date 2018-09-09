@@ -11,6 +11,7 @@ const dbconfig = require('./../modules/dbproperties');
 
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const dbPlayerMail = require('./../db_modules/dbPlayerMail');
+const dbPlayerPartner = require('./../db_modules/dbPlayerPartner');
 const dbProposal = require('./../db_modules/dbProposal');
 const constClientQnA = require('./../const/constClientQnA');
 const constServerCode = require('./../const/constServerCode');
@@ -131,9 +132,8 @@ var dbClientQnA = {
         })
     },
 
-    sendSMSVerificationCode: function (clientQnAData, purpose) {
+    sendSMSVerificationCode: function (clientQnAData, purpose, isGetSmsCode) {
         let smsCode = dbutility.generateRandomPositiveNumber(1000, 9999);
-
         if (clientQnAData && clientQnAData.QnAData && clientQnAData.QnAData.playerId && clientQnAData.QnAData.platformId) {
             if (clientQnAData.type) {
                 let updObj = {
@@ -150,8 +150,16 @@ var dbClientQnA = {
                 }
 
                 return dbClientQnA.updateClientQnAData(null, clientQnAData.type, updObj, clientQnAData._id).then(
-                    dbPlayerMail.sendVerificationCodeToPlayer(clientQnAData.QnAData.playerId, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0)
-                );
+                  ()=>{
+                    if(isGetSmsCode){
+                        //sendVerificationCodeToNumber: function (telNum, code, platformId, captchaValidation, purpose, inputDevice, playerName, inputData = {}, isPartner, partnerObjId) {
+                        console.log(clientQnAData)
+                        dbPlayerMail.sendVerificationCodeToNumber(clientQnAData.QnAData.phoneNumber, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0)
+                    }else{
+                        dbPlayerMail.sendVerificationCodeToPlayer(clientQnAData.QnAData.playerId, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0)
+                    }
+
+                });
             }
         }
 
@@ -160,6 +168,7 @@ var dbClientQnA = {
 
     verifyPhoneNumberBySMSCode:function(clientQnAData, code){
         console.log(clientQnAData.QnAData)
+        code = code.toString()
         return dbPlayerMail.verifyPhoneNumberBySMSCode(clientQnAData.QnAData.playerId, code)
         .then(data=>{
             return Promise.resolve();
@@ -608,7 +617,8 @@ var dbClientQnA = {
                     QnAData: {
                         name: inputDataObj.name,
                         platformId: platformData.platformId,
-                        playerId: playerData.playerId || ''
+                        playerId: playerData.playerId || '',
+                        phoneNumber: ''
 
                     }
                 };
@@ -716,7 +726,7 @@ var dbClientQnA = {
                     return Promise.reject({name: "DBError", message: "update QnA data failed"})
                 }
                 clientQnAData = clientQnA;
-                return dbClientQnA.verifyPhoneNumberBySMSCode(clientQnAData, constSMSPurpose.OLD_PHONE_NUMBER)
+                return dbClientQnA.verifyPhoneNumberBySMSCode(clientQnAData, inputDataObj.smsCode)
 
             }).then(() => {
 
@@ -725,6 +735,7 @@ var dbClientQnA = {
                     type: constClientQnA.UPDATE_PHONE,
                     processNo: processNo
                 }).lean()
+
             }).then(
                 QnATemplate => {
                     if (QnATemplate) {
@@ -748,28 +759,37 @@ var dbClientQnA = {
             });
     },
     updatePhoneNumber4_1: function (platformObjId, inputDataObj, qnaObjId, creator) {
+
         let clientQnAData = null;
         if (!(inputDataObj && inputDataObj.newPhoneNumber)) {
             return Promise.reject({name: "DBError", message: "Invalid Data"})
         }
-        return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).lean()
-
+        let updObj = {
+            $set: {
+                'QnAData.phoneNumber':  inputDataObj.newPhoneNumber
+            }
+        };
+        return dbClientQnA.updateClientQnAData(null, constClientQnA.UPDATE_PHONE, {$set:{'QnAData.phoneNumber':  inputDataObj.newPhoneNumber}}, qnaObjId)
             .then(
                 clientQnA => {
-
                     if (!clientQnA) {
                         return Promise.reject({name: "DBError", message: "update QnA data failed"})
                     }
                     clientQnAData = clientQnA;
-                    return dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.NEW_PHONE_NUMBER)
+                    return dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.NEW_PHONE_NUMBER, true)
                 })
-            .then(() => {
-                let processNo = '5_1';
+            .then(smsData => {
 
-                return dbconfig.collection_clientQnATemplate.findOne({
-                    type: constClientQnA.UPDATE_PHONE,
-                    processNo: processNo
-                }).lean()
+                    let processNo = '5_1';
+                    return dbconfig.collection_clientQnATemplate.findOne({
+                        type: constClientQnA.UPDATE_PHONE,
+                        processNo: processNo
+                    }).lean()
+                },err=>{
+                    if(err){
+                        return Promise.reject({name: "DBError", message: err.errMsg})
+                    }
+            })
             .then(
                 QnATemplate => {
                     if (QnATemplate) {
@@ -790,8 +810,6 @@ var dbClientQnA = {
                         )
                     }
                     return QnATemplate;
-                }
-                );
             })
     },
     updatePhoneNumber5_1: function (platformObjId, inputDataObj, qnaObjId, creator) {
@@ -805,13 +823,10 @@ var dbClientQnA = {
                 if (!clientQnA) {
                     return Promise.reject({name: "DBError", message: "update QnA data failed"})
                 }
+
                 clientQnAData = clientQnA;
                 let code = inputDataObj.smsCode ? inputDataObj.smsCode : '';
-                return dbClientQnA.updatePhoneNumberWithSMS({
-                    platformId: clientQnAData.QnAData.platformId,
-                    playerId: clientQnAData.QnAData.playerId,
-                    smsCode: code
-                })
+                return dbPlayerPartner.updatePhoneNumberWithSMS(null, clientQnAData.QnAData.platformId, clientQnAData.QnAData.playerId, clientQnAData.QnAData.phoneNumber ,code, 0)
 
             }).then(() => {
 
