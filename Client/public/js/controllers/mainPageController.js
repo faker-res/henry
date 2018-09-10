@@ -411,6 +411,113 @@ define(['js/app'], function (myApp) {
                     $scope.$digest();
                 });
             }
+
+            vm.showDepartmentUpdateTreeView = function() {
+                vm.oriDepartmentList = [];
+                vm.checkedDepartmentList = [];
+
+                //load department tree view
+                $('#departmentTreeForUpdate').treeview(
+                    {
+                        data: vm.departmentTree,
+                        levels: 3,
+                        highlightSearchResults: false,
+                        showCheckbox: true
+                    }
+                );
+
+                //if no user is selected, or more than 1 users are selected, return false
+                if (!vm.selectedUsersCount || vm.selectedUsersCount == 0 || vm.selectedUsersCount > 1) return false;
+
+                //get selected user's departments and check the checkbox in tree view
+                let userDetails  = vm.selectedUsers[Object.keys(vm.selectedUsers)[0]];
+                if(userDetails && userDetails.departments && userDetails.departments.length > 0){
+                    userDetails.departments.forEach(department => {
+                        if(department && department.departmentName && department._id){
+                            let searchText = department.departmentName.replace(/\(|\)/g, '\\$&');
+                            vm.oriDepartmentList.push(department._id);
+                            vm.checkedDepartmentList.push(department._id);
+
+                            var parentFindNode = $('#departmentTreeForUpdate').treeview('search', [searchText, {
+                                exactMatch: true,
+                                revealResults: false
+                            }]);
+
+                            $('#departmentTreeForUpdate').treeview('checkNode', [parentFindNode[0], {silent: true}]);
+                        }
+                    })
+                }
+
+                // get deparmentObjId when checked
+                $('#departmentTreeForUpdate').on('nodeChecked', function (event, data) {
+                    if(data && data.id){
+                        let indexNo = vm.checkedDepartmentList.findIndex(d => d == data.id);
+                        if(indexNo == -1){
+                            vm.checkedDepartmentList.push(data.id);
+                        }
+                    }
+
+                });
+
+                // remove deparmentObjId when unchecked
+                $('#departmentTreeForUpdate').on('nodeUnchecked', function (event, data) {
+                    if(data && data.id){
+                        let indexNo = vm.checkedDepartmentList.findIndex(d => d == data.id);
+                        if(indexNo != -1){
+                            vm.checkedDepartmentList.splice(indexNo, 1);
+                        }
+                    }
+                });
+            };
+
+            vm.submitUserDepartmentUpdate = function() {
+                //if no user is selected, or more than 1 users are selected, return false
+                if (!vm.selectedUsersCount || vm.selectedUsersCount == 0 || vm.selectedUsersCount > 1) return false;
+
+                let userDetails  = vm.selectedUsers[Object.keys(vm.selectedUsers)[0]];
+                let data = {};
+                let departmentToBeDeleted = [];
+                departmentToBeDeleted = vm.oriDepartmentList.slice();
+                if(userDetails){
+                    data.adminId = userDetails._id || null;
+                    data.adminName = userDetails.adminName || null;
+                }
+
+                vm.oriDepartmentList.forEach(department => {
+                    if(department){
+                        let indexNo = vm.checkedDepartmentList.findIndex(d => d == department);
+                        if(indexNo != -1){
+                            let removeIndex = departmentToBeDeleted.findIndex(d => d == department);
+                            if(indexNo != -1){
+                                departmentToBeDeleted.splice(removeIndex, 1);
+                            }
+                        }
+                    }
+                });
+
+                data.toBeDeletedDepartmentList = departmentToBeDeleted;
+                data.newDepartmentList = vm.checkedDepartmentList;
+
+                console.log(data);
+
+                socketService.$socket($scope.AppSocket, 'updateAdminDepartment', data, success, fail);
+                function success(data) {
+                    vm.selectedUsers = {};
+                    vm.userTableRowSelected = {};
+                    console.log(data);
+                    vm.getAllDepartmentData();
+                    vm.getDepartmentUsersData();
+                }
+
+                function fail(data) {
+                    console.log(data);
+                }
+            };
+
+            vm.clearAllCheckedDepartment = function() {
+                $('#departmentTreeForUpdate').treeview('uncheckAll', { silent: true });
+            };
+
             vm.submitMoveDepartment = function (sendData) {
                 var data = sendData || {
                         departmentId: vm.SelectedDepartmentNode.id,
@@ -488,6 +595,121 @@ define(['js/app'], function (myApp) {
                     }
                 });
                 return i;
+            };
+
+            vm.iniEditAdminRole = function () {
+                vm.departmentRolelist = [];
+                vm.cloneDepartmentRolelist = [];
+                vm.attachedRoles = [];
+                vm.detachedRoles = [];
+                $scope.assertEqual(vm.selectedUsersCount, 1);
+                $scope.assertEqual(Object.keys(vm.selectedUsers).length, 1);
+
+                $.each(vm.selectedUsers, function (i, v) {
+                    vm.curUser = v;
+                });
+                $scope.assert(vm.curUser);
+
+                // Get available roles for this user
+                let sendData = {
+                    _id: vm.curUser._id,
+                };
+
+                socketService.$socket($scope.AppSocket, 'getDepartmentRolesForAdmin', sendData, success);
+                function success(data) {
+                    $scope.$evalAsync(() => {
+                        console.log("getDepartmentRolesForAdmin", data.data);
+                        if (data && data.data && data.data.length > 0) {
+                            data.data.map((result, index) => {
+                                result.orderNo = index + 1;
+                            });
+                            vm.departmentRolelist = data.data;
+                            vm.cloneDepartmentRolelist = JSON.parse(JSON.stringify((data.data)));
+                        }
+                    });
+                }
+            };
+
+            vm.removeAllRolesSelection = function () {
+                if (vm.departmentRolelist && vm.departmentRolelist.length > 0) {
+                    for (let i = 0, ilen = vm.departmentRolelist.length; i < ilen; i++) {
+                        let department = vm.departmentRolelist[i];
+
+                        if (department && department.roles && department.roles.length > 0) {
+                            for (let j = 0, jlen = department.roles.length; j < jlen; j++) {
+                                let role = department.roles[j];
+
+                                if (role && role.isAttach) {
+                                    role.isAttach = false;
+                                }
+                            }
+                        }
+                    }
+
+                    $('input[name="selectRoleCheckBox"]').each(function() {
+                        this.checked = false;
+                    });
+
+                    vm.attachedRoles = [];
+                    vm.detachedRoles = [];
+
+                    if (vm.cloneDepartmentRolelist && vm.cloneDepartmentRolelist.length > 0) {
+                        for (let x = 0, xlen = vm.cloneDepartmentRolelist.length; x < xlen; x++) {
+                            let department = vm.cloneDepartmentRolelist[x];
+                            if (department && department.roles && department.roles.length > 0) {
+                                for (let y = 0, ylen = department.roles.length; y < ylen; y++) {
+                                    let role = department.roles[y];
+                                    if (role && role.isAttach) {
+                                        vm.detachedRoles.push(role._id);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            vm.attachDetachAdminRole = function (id, isAttach) {
+                if (!isAttach) {
+                    vm.detachedRoles.push(id);
+
+                    let indexNo = vm.attachedRoles.findIndex(r => r == id)
+                    if(indexNo != -1){
+                        vm.attachedRoles.splice(indexNo, 1);
+                    }
+
+                    vm.checkCurrentAdminRoleToOriginalAdminRole(vm.detachedRoles, false);
+                } else {
+                    vm.attachedRoles.push(id);
+
+                    let indexNo = vm.detachedRoles.findIndex(r => r == id)
+                    if(indexNo != -1){
+                        vm.detachedRoles.splice(indexNo, 1);
+                    }
+                    vm.checkCurrentAdminRoleToOriginalAdminRole(vm.attachedRoles, true);
+                }
+            };
+
+            vm.checkCurrentAdminRoleToOriginalAdminRole = function (arr, flag) {
+                if (vm.cloneDepartmentRolelist && vm.cloneDepartmentRolelist.length > 0) {
+                    for (let i = 0, ilen = vm.cloneDepartmentRolelist.length; i < ilen; i++) {
+                        let department = vm.cloneDepartmentRolelist[i];
+
+                        if (department && department.roles && department.roles.length > 0) {
+                            for (let j = 0, jlen = department.roles.length; j < jlen; j++) {
+                                let role = department.roles[j];
+                                let isAttachFlag = !flag ? !role.isAttach: role.isAttach;
+
+                                if (role && isAttachFlag) {
+                                    let indexNo = arr.findIndex(r => r == role._id)
+                                    if(indexNo != -1){
+                                        arr.splice(indexNo, 1);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             };
 
             vm.attachAdminToRole = function () {
@@ -584,6 +806,25 @@ define(['js/app'], function (myApp) {
                     $scope.$apply();
                 }
             }
+
+            vm.submitDepartmentRoles = function () {
+                $('#modalEditAdminRole').one('hidden.bs.modal', function () {
+                    let data = {
+                        AdminObjIds: [vm.curUser._id],
+                        AttachRoleObjIds: vm.attachedRoles,
+                        DetachRoleObjIds: vm.detachedRoles
+                    };
+                    console.log("send data", data);
+                    socketService.$socket($scope.AppSocket, 'attachDetachRolesFromUsersById', data, success);
+                    function success(data) {
+                        $scope.$evalAsync(() => {
+                            vm.getDepartmentFullData();
+                            vm.getDepartmentUsersData();
+                        });
+                    }
+                });
+            };
+
             vm.submitDetachRoles = function () {
                 $('#modalDetachRolesFromUser').one('hidden.bs.modal', function () {
                     var userIds = [];
@@ -871,7 +1112,14 @@ define(['js/app'], function (myApp) {
                                 "data": "departments",
                                 "render": function (data, type) {
                                     if (data && data.length > 0) {
-                                        return data[0].departmentName;
+                                        let departmentName =  "";
+                                        for(let i = 0; i < data.length; i ++){
+                                            departmentName += data[i].departmentName + ",";
+                                        }
+
+                                        departmentName = departmentName.slice(0, -1);
+                                        return departmentName;
+                                        //return data[0].departmentName;
                                     }
                                     else {
                                         return "";
@@ -995,23 +1243,6 @@ define(['js/app'], function (myApp) {
                 return false;
             };
 
-            vm.canMoveUser = function () {
-                var prevDepart = '';
-                if (!vm.selectedUsersCount || vm.selectedUsersCount == 0) return false;
-                $.each(vm.selectedUsers, function (i, v) {
-                    $.each(v, function (a, val) {
-                        if (a == "departments") {
-                            if (!prevDepart) {
-                                prevDepart = val[0].departmentName;
-                            } else if (prevDepart != val[0].departmentName) {
-                                vm.curCommonDepartmentText = '';
-                                return false;
-                            }
-                        }
-                    })
-                })
-                vm.curCommonDepartmentText = prevDepart;
-            }
             vm.submitMoveUser = function () {
                 var adminIDList = [];
                 var adminNameList = [];

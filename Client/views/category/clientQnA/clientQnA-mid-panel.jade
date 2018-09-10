@@ -4,14 +4,15 @@
     .panel-body.common-left-sub-panel-body
         .row
             br
-            div(style='width:90%;margin:auto' ng-if='vm.clientQnAData && checkViewPermission("Platform", "ClientAutoQnA", "Update")')
+            div(style='width:90%;margin:auto' ng-if='vm.clientQnAData && checkViewPermission("Platform", "ClientAutoQnA", "Read")')
+                label(style="text-align:center;display:block;color:red" ng-if='vm.clientQnADataErr') {{vm.clientQnADataErr | translate}}
                 div(style="text-align:left;display:block" ng-if='vm.clientQnAData.questionTitle')
                     label {{vm.clientQnAData.questionTitle | translate}}
                     label(style='color:red' ng-if='vm.clientQnAInputCheck && vm.clientQnAInputCheck.hasOwnProperty("totalWrongCount")') {{"&nbsp("}} {{"WRONG_COUNT" | translate}}{{"&nbsp" + vm.clientQnAInputCheck.totalWrongCount + "/" + vm.clientQnASecurityQuesConfig.config.wrongCount + ")"}}                
                 label(style="text-align:center;display:block" ng-if='vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.title') {{vm.clientQnAData.clientQnAEnd.title | translate}}
                 br(ng-if='vm.clientQnAData.questionTitle || (vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.title)')
                 div(ng-repeat='(i,v) in vm.clientQnAData.question')
-                    label(style="text-align:center;display:block;color:red") {{vm.clientQnADataErr | translate}}
+                    //- label(style="text-align:center;display:block;color:red") {{vm.clientQnADataErr | translate}}
                     label(ng-if='vm.clientQnAData.isSecurityQuestion') {{v.questionNo + ".&nbsp"}}
                     label(style="{{vm.questionLabelStyle}}") {{v.des | translate}}
                     i.fa.fa-check.text-success(style='width:10px' ng-repeat='(k,o) in vm.clientQnAInputCheck.correctAns' ng-if='vm.clientQnAInputCheck && vm.clientQnAInputCheck.correctAns && o==v.questionNo')
@@ -26,7 +27,7 @@
                 br
                 br
                 .pull-right
-                    button.common-button.btn.btn-success(ng-if='!vm.clientQnAData.clientQnAEnd && vm.clientQnAData.question' ng-click="vm.copyClientQnA()") {{'COPY_TEXT' | translate}}
+                    button.common-button.btn.btn-success(ng-if='(vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.isSuccess) || vm.clientQnAData.question' ng-click="vm.copyClientQnA()") {{'COPY_TEXT' | translate}}
                     button.common-button.btn.btn-info(ng-if='!vm.clientQnAData.clientQnAEnd && vm.clientQnAData.question' ng-click="vm.getClientQnAProcess()") {{'NEXT_STEP' | translate}}
                     button.common-button.btn.btn-danger(ng-if='vm.clientQnAData.clientQnAEnd' ng-click="vm.endClientQnAProcess()") {{'END' | translate}}
                 .clearfix

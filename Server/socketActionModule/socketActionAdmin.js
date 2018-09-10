@@ -231,8 +231,8 @@ function socketActionAdmin(socketIO, socket) {
          */
         updateAdminDepartment: function updateAdminDepartment(data) {
             var actionName = arguments.callee.name;
-            var isDataValid = Boolean(data && data.adminId && data.curDepartmentId && data.newDepartmentId && (data.curDepartmentId != data.newDepartmentId));
-            socketUtil.emitter(self.socket, dbAdminInfo.updateAdminDepartment, [data.adminId, data.curDepartmentId, data.newDepartmentId, data.adminName], actionName, isDataValid);
+            var isDataValid = Boolean(data && data.adminId && data.newDepartmentList);
+            socketUtil.emitter(self.socket, dbAdminInfo.updateAdminDepartment, [data.adminId, data.toBeDeletedDepartmentList, data.newDepartmentList, data.adminName], actionName, isDataValid);
         },
 
         /**
@@ -277,6 +277,16 @@ function socketActionAdmin(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.url);
             socketUtil.emitter(self.socket, dbAdminInfo.callTell400, [data.url], actionName, isValidData);
+        },
+
+        /**
+         * Get all roles attached or detached to a current admin
+         * @param data
+         */
+        getDepartmentRolesForAdmin: function getDepartmentRolesForAdmin(data) {
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data && data._id);
+            socketUtil.emitter(self.socket, dbAdminInfo.getDepartmentRolesForAdmin, [data._id], actionName, isDataValid);
         },
 
     };

@@ -44,6 +44,12 @@ var simplifiedChinese = {
     "Attention! This player does not bind phone number (or inconvenient to receive sms code), cannot verify bank card. Please contact customer service to reset password manually": "提示！此玩家无绑定电话（或不方便短信验证）、银行卡，无法进行核对，请客服人工进行其他方式核对后手动修改密码。",
     "Security question exceed maximum wrong count, this account has been banned from being modified automatically, please contact customer service": "此账号因密保问题超容错上限，已禁自动修改。请联系客服经理",
     "Operation failed": "操作失败",
+    "Reset password success": "找回密码成功",
+    "Your user ID": "您该游戏帐号",
+    "password has been reset to": "的密码已经修改为",
+    ", password will be send to your bound phone number, please enjoy your game!": "，同时也发送至您的绑定手机号，祝您游戏愉快！",
+    "Attention! this player": "提示！此玩家多次",
+    "times failed security question, please contact customer service to verify this account.": "回答错误的银行卡内容，请客服人工进行其他人工方式核对，仔细确认是否为本人。",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",
@@ -311,6 +317,9 @@ var simplifiedChinese = {
     "Only new system user can login": "只有新系统用户可以登陆，请尝试使用其他域名登陆",
     "Bank account name is different from real name": "银行账号姓名和真实姓名不相符",
     "Please login to get packet rain reward": "请登陆再参与红包雨活动",
+    "The binded account is: ": "您该手机号码绑定的游戏帐号为：",
+    "Password has reset to: ": "密码已重新设置为: ",
+    "Please login to change password immediately.": "请尽速登入修改密码。",
     "Player has been rewarded for first time top up event!": "玩家已申请首冲奖励",
     "Top up record is not the first top up of this week": "该存款不是本周第一笔存款",
     "Player free amount is less than required top up amount": "玩家可用自由额度小于要求存款金额",
@@ -456,7 +465,7 @@ var simplifiedChinese = {
     "New phone number is already used. Please insert other phone number.": "新号码已绑定账号，不支持重复绑定。",
     "Parent Partner": "一级代理",
     "1.Partner Commission Proposal No.: ": "1.代理佣金提案号：",
-    "2.Parent Partner Commission Rate：": "2.一级代理佣金比例：",
+    "2.Parent Partner Commission Rate：": "2.一级代理佣金比例："
 
     //todo::add missing messages here
 

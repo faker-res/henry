@@ -28796,6 +28796,7 @@ define(['js/app'], function (myApp) {
                 });
 //}
                 $('#clientQnATypeTree').on('nodeSelected', function (event, data) {
+                    vm.questionLabelStyle = "text-align:center;display:block";
                     vm.clientQnAData = {};
                     vm.playerClientQnAObjId = ""; // ObjectID from clientQnA.js
                     $scope.$evalAsync(() => {
@@ -28820,6 +28821,7 @@ define(['js/app'], function (myApp) {
                 vm.clientQnADataErr = ""; //reset error text
                 vm.clientQnAInputCheck = {}; //reset error text
                 let sendData = {
+                    creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                     type: vm.selectedClientQnAType.data,
                     platformObjId: vm.selectedPlatform.id,
                     inputDataObj: vm.clientQnAInput,
@@ -28830,7 +28832,13 @@ define(['js/app'], function (myApp) {
                 }
                 if (vm.clientQnAData && vm.clientQnAData.processNo) {
                     sendData.processNo = vm.clientQnAData.processNo;
+                    //special handle forgor use ID
+                    if (isAlternative && vm.clientQnAData.processNo == "1" && sendData.type == vm.constClientQnA.FORGOT_PASSWORD) {
+                        $('#clientQnATypeTree li[data-nodeid="1"]').trigger("click");
+                        return;
+                    }
                 }
+
                 socketService.$socket($scope.AppSocket, 'getClientQnAProcessStep', sendData,  function (data) {
                     if (data && data.data) {
                         $scope.$evalAsync(() => {
@@ -28987,6 +28995,8 @@ define(['js/app'], function (myApp) {
                                 copiedText += $translate(ques.des);
                             }
                         })
+                    } else if (vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.des) {
+                        copiedText = $translate(vm.clientQnAData.clientQnAEnd.des);
                     }
                 }
                 //add on here
@@ -33280,12 +33290,21 @@ define(['js/app'], function (myApp) {
                     registerStartTime: null,
                     registerEndTime: null,
                     missionStartTime: null,
-                    missionEndTime: null
+                    missionEndTime: null,
+                    defaultStatus: 'Manual',
+                    playerType: 'Real Player (all)',
+                    playerLevel: 'all',
+                    callPermission: 'all',
+                    schedule: []
                 };
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionStartTime', '#autoFeedbackMissionStartTimePicker', utilService.setLocalDayStartTime(new Date()), true);
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionEndTime', '#autoFeedbackMissionEndTimePicker', utilService.setLocalDayStartTime(new Date()), true);
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerStartTime', '#autoFeedbackMissionRegisterStartTimePicker', utilService.setLocalDayStartTime(new Date()), true);
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerEndTime', '#autoFeedbackMissionRegisterEndTimePicker', utilService.setLocalDayStartTime(new Date()), true);
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionStartTime', '#autoFeedbackMissionStartTimePicker',
+                    utilService.setLocalDayStartTime(new Date()), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionEndTime', '#autoFeedbackMissionEndTimePicker',
+                    utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(1)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerStartTime', '#autoFeedbackMissionRegisterStartTimePicker',
+                    utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(90)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerEndTime', '#autoFeedbackMissionRegisterEndTimePicker',
+                    utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(1)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
                 utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
                     vm.setupRemarksMultiInputFeedback();
                     vm.setupRemarksMultiInputFeedbackFilter();
@@ -33325,17 +33344,24 @@ define(['js/app'], function (myApp) {
                 vm.selectedAutoFeedbackTab = "create";
                 vm.autoFeedbackEditStatus = true;
                 vm.autoFeedbackUpdateMissionStatus = '';
-                vm.autoFeedbackMission = data;
-
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionStartTime', '#autoFeedbackMissionStartTimePicker', vm.autoFeedbackMission.missionStartTime, true);
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionEndTime', '#autoFeedbackMissionEndTimePicker', vm.autoFeedbackMission.missionEndTime, true);
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerStartTime', '#autoFeedbackMissionRegisterStartTimePicker', vm.autoFeedbackMission.registerStartTime, true);
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerEndTime', '#autoFeedbackMissionRegisterEndTimePicker', vm.autoFeedbackMission.registerEndTime, true);
                 utilService.actionAfterLoaded("#autoFeedbackMissionTable", function () {
                     vm.setupRemarksMultiInputFeedback();
                     vm.setupRemarksMultiInputFeedbackFilter();
                     vm.setupMultiInputFeedbackTopicFilter();
                     vm.setupGameProviderMultiInputFeedback();
+                    vm.autoFeedbackMission = data;
+                    if(!vm.autoFeedbackMission.schedule) {
+                        vm.autoFeedbackMission.schedule = [];
+                    }
+
+                    commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionStartTime', '#autoFeedbackMissionStartTimePicker',
+                        vm.autoFeedbackMission.missionStartTime, true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                    commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'missionEndTime', '#autoFeedbackMissionEndTimePicker',
+                        vm.autoFeedbackMission.missionEndTime, true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                    commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerStartTime', '#autoFeedbackMissionRegisterStartTimePicker',
+                        vm.autoFeedbackMission.registerStartTime, true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                    commonService.commonInitTime(utilService, vm, 'autoFeedbackMission', 'registerEndTime', '#autoFeedbackMissionRegisterEndTimePicker',
+                        vm.autoFeedbackMission.registerEndTime, true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
 
                     vm.autoFeedbackMission.missionStartTime = $('#autoFeedbackMissionStartTimePicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
@@ -33376,6 +33402,7 @@ define(['js/app'], function (myApp) {
                 if(vm.autoFeedbackEditStatus) {
                     vm.selectedAutoFeedbackTab = "overview";
                     vm.initAutoFeedbackSearch();
+                    vm.initAutoFeedbackSearchDetail();
                 } else {
                     vm.initAutoFeedbackCreate();
                 }
@@ -33409,8 +33436,10 @@ define(['js/app'], function (myApp) {
                     createTimeStart: null,
                     createTimeEnd: null
                 };
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearch', 'createTimeStart', '#autoFeedbackOverviewCreateTimeStartPicker', utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(30)), true);
-                commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearch', 'createTimeEnd', '#autoFeedbackOverviewCreateTimeEndPicker', utilService.setLocalDayEndTime(new Date()), true);
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearch', 'createTimeStart', '#autoFeedbackOverviewCreateTimeStartPicker',
+                    utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(30)), true);
+                commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearch', 'createTimeEnd', '#autoFeedbackOverviewCreateTimeEndPicker',
+                    utilService.setLocalDayEndTime(new Date()), true);
                 utilService.actionAfterLoaded("#autoFeedbackOverviewTablePage", function () {
                     vm.autoFeedbackMissionSearch.createTimeStart = $('#autoFeedbackOverviewCreateTimeStartPicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMissionSearch.createTimeEnd = $('#autoFeedbackOverviewCreateTimeEndPicker').data('datetimepicker').getDate();
@@ -33640,6 +33669,15 @@ define(['js/app'], function (myApp) {
                                 vm.autoFeedbackSearchDetailResult[scheduleNumber][date].data.push(item);
                             }
                         });
+                        for (let scheduleNumber in vm.autoFeedbackSearchDetailResult) {
+                            if (vm.autoFeedbackSearchDetailResult.hasOwnProperty(scheduleNumber)) {
+                                let scheduleSorted = {};
+                                Object.keys(vm.autoFeedbackSearchDetailResult[scheduleNumber]).sort().reverse().forEach(function (date) {
+                                    scheduleSorted[date] = vm.autoFeedbackSearchDetailResult[scheduleNumber][date];
+                                });
+                                vm.autoFeedbackSearchDetailResult[scheduleNumber] = scheduleSorted;
+                            }
+                        }
                     });
                     $('#autoFeedbackDetailSpin').hide();
                 });

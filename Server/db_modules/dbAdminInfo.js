@@ -287,6 +287,100 @@ var dbAdminInfo = {
         return deferred.promise;
     },
 
+    getDepartmentRolesForAdmin: function (adminObjId) {
+        let attachedRoleIds = [];
+        let departmentRolesData;
+        let departmentPathData;
+
+        return dbconfig.collection_admin.findOne({_id: adminObjId}).populate({
+            path: 'departments',
+            model: dbconfig.collection_department,
+            select: {_id: 1, departmentName: 1, roles: 1}
+        }).then(
+            result => {
+                if (result && result.departments) {
+                    attachedRoleIds = result.roles;
+                    let proms = [];
+
+                    for (let i = 0, len = result.departments.length; i < len; i++) {
+                        if (result.departments[i] && result.departments[i].roles) {
+                            proms.push(dbconfig.collection_role.find({_id: {$in: result.departments[i].roles}}, {_id: 1, roleName: 1}).lean().then(
+                                rolesData => {
+                                    let list = [];
+                                    if (rolesData && rolesData.length > 0) {
+                                        if (attachedRoleIds && attachedRoleIds.length > 0) {
+                                            rolesData.map(roles => {
+                                                roles.isAttach = false;
+
+                                                if (attachedRoleIds.indexOf(roles._id) > -1) {
+                                                    roles.isAttach = true;
+                                                }
+                                            });
+                                        }
+                                        list = rolesData;
+                                    }
+                                    return {departmentObjId: result.departments[i]._id, departmentName: result.departments[i].departmentName, roles: list};
+                                }
+                            ));
+                        }
+                    }
+                    return Promise.all(proms);
+                } else {
+                    return Promise.reject({name: "DBError", message: "Failed to find all departments"});
+                }
+            }
+        ).then(data => {
+            departmentRolesData = data ? data : [];
+
+            let proms = [];
+            if (departmentRolesData && departmentRolesData.length > 0) {
+                departmentRolesData.forEach(department => {
+                    if (department && department.departmentObjId) {
+                        let parentPath = "";
+
+                        function getParentName(departmentId) {
+                            return dbconfig.collection_department.findOne({_id: departmentId}).then(
+                                departmentData => {
+                                    if (departmentData){
+                                        parentPath = "/" + departmentData.departmentName + parentPath;
+                                        if(departmentData.parent){
+                                            return getParentName(departmentData.parent);
+                                        }
+                                        return parentPath;
+                                    }
+                                }
+                            )
+                        }
+
+                        proms.push(getParentName(department.departmentObjId).then(data => {
+                            if (data) {
+                                data = data.replace(data.substring(0,1),'').trim();
+                            }
+                            return {_id: department.departmentObjId, path: data};
+                        }));
+                    }
+                })
+            }
+            return Promise.all(proms);
+        }).then(data => {
+            departmentPathData = data ? data : [];
+
+            if (departmentRolesData && departmentRolesData.length > 0) {
+                departmentRolesData.map(department => {
+                    if(department && department.departmentObjId && departmentPathData && departmentPathData.length > 0) {
+                        departmentPathData.forEach(departmentPath => {
+                            if (departmentPath && departmentPath._id && department.departmentObjId.toString() == departmentPath._id.toString()) {
+                                department.departmentPath = departmentPath.path;
+                            }
+                        });
+                    }
+                });
+            }
+
+            return departmentRolesData;
+        });
+    },
+
     /**
      * Get all the roles which are attached to current admin user and admin user's departments
      * @param {String} adminUserObjId - The _id of the admin user
@@ -323,55 +417,106 @@ var dbAdminInfo = {
     /**
      * Update admin user's department
      * @param {objectId} userId - objectId for admin user
-     * @param {objectId} curDepartmentId - current department id
-     * @param {objectId} newDepartmentId - new department id
+     * @param {objectId} toBeDeletedDepartmentList - department id list to be deleted
+     * @param {objectId} newDepartmentList - new department id list
      */
-    updateAdminDepartment: function (userId, curDepartmentId, newDepartmentId) {
-        var deferred = Q.defer();
-        var departProm = dbconfig.collection_department.update(
-            {
-                _id: curDepartmentId
+    updateAdminDepartment: function (userId, toBeDeletedDepartmentList, newDepartmentList) {
+        let departRemoveUserPromList = [];
+        let departAddUserPromList = [];
+        let departmentDataObj;
+
+        if(toBeDeletedDepartmentList && toBeDeletedDepartmentList.length > 0){
+            toBeDeletedDepartmentList.forEach(toBeDeletedDepartmentId => {
+                if(toBeDeletedDepartmentId){
+                    let departRemoveUserProm = dbconfig.collection_department.findOneAndUpdate(
+                        {
+                            _id: toBeDeletedDepartmentId
+                        },
+                        {
+                            //Todo::have to pull from an array?...mongoose bug? need to check later
+                            $pull: {users: {$in: [userId]}}
+                        }
+                    ).then(
+                        departmentData => {
+                            departmentDataObj = departmentData;
+                            if(departmentData && departmentData.roles && departmentData.roles.length > 0){
+                                return dbconfig.collection_admin.findOneAndUpdate(
+                                    {
+                                        _id: userId
+                                    },
+                                    {
+                                        $pull: {roles: {$in: departmentData.roles}}}
+                                    )
+                            }
+                        }
+                    ).then(
+                        adminData => {
+                            if(departmentDataObj && departmentDataObj.roles && departmentDataObj.roles.length > 0){
+                                let prom = [];
+
+                                departmentDataObj.roles.forEach(
+                                    roleId => {
+                                        if(roleId){
+                                            //remove user's role when his department is changed
+                                            prom.push(dbconfig.collection_role.findOneAndUpdate(
+                                                {_id: roleId},
+                                                {$pull: {users: {$in: [userId]}}}
+                                            ));
+                                        }
+                                    }
+                                );
+
+                                return Promise.all(prom);
+                            }
+                        }
+                    );
+
+                    departRemoveUserPromList.push(departRemoveUserProm);
+                }
+            })
+        }
+
+        if(newDepartmentList && newDepartmentList.length > 0){
+            newDepartmentList.forEach(newDepartmentId => {
+                if(newDepartmentId){
+                    let departAddUserProm = dbconfig.collection_department.update(
+                        {
+                            _id: newDepartmentId
+                        },
+                        {
+                            $addToSet: {users: {$each: [userId]}}
+                        }
+                    );
+
+                    departAddUserPromList.push(departAddUserProm);
+                }
+            })
+        }
+
+        return Promise.all(departRemoveUserPromList).then(
+            () => {
+                return Promise.all(departAddUserPromList);
+            }
+        ).then(
+            () => {
+                return dbconfig.collection_admin.update(
+                    {
+                        _id: userId
+                    },
+                    {
+                        departments: newDepartmentList,
+                    }
+                );
+            }
+        ).then(
+            () => {
+                return;
             },
-            {
-                //Todo::have to pull from an array?...mongoose bug? need to check later
-                $pull: {users: {$in: [userId]}}
+            error => {
+                return Promise.reject({message: "Failed to update user department!", error: error});
             }
-        ).exec();
-        var depart1Prom = dbconfig.collection_department.update(
-            {
-                _id: newDepartmentId
-            },
-            {
-                $addToSet: {users: {$each: userId}}
-            }
-        ).exec();
+        );
 
-        var userProm = dbconfig.collection_admin.update(
-            {
-                _id: userId
-            },
-            {
-                departments: [newDepartmentId],
-                roles: []
-            }
-        ).exec();
-
-        //remove user's role when his department is changed
-        var roleProm = dbconfig.collection_role.update(
-            {},
-            {$pull: {users: {$in: [userId]}}}
-        ).exec();
-
-        Q.all([departProm, depart1Prom, userProm, roleProm]).then(
-            function (data) {
-                deferred.resolve(data);
-            }
-        ).catch(
-            function (error) {
-                deferred.reject({message: "Failed to update user department!", error: error});
-            });
-
-        return deferred.promise;
     },
 
     /**

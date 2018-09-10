@@ -1016,6 +1016,9 @@
                                 label(ng-show='vm.playerManualTopUp.depositMethod === "3"') {{'counterRemark' | translate}}
                                 input.form-control(type='text', ng-model='vm.playerManualTopUp.remark')
                             .form-group-col-md-6
+                                label {{'orderNo' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerManualTopUp.orderNo')
+                            .form-group-col-md-6
                                 label {{'DEPOSIT_TIME' | translate}}
                                 .createTime
 
@@ -1072,6 +1075,9 @@
                                 .control-label
                                 label {{'REMARK' | translate}}
                                 input.form-control(ng-model='vm.playerAlipayTopUp.remark')
+                            .form-group.col-md-12
+                                label {{'orderNo' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerAlipayTopUp.orderNo')
                             .form-group.col-md-12
                                 .inlineBlk
                                 label {{'DEPOSIT_TIME' | translate}}
@@ -1131,6 +1137,9 @@
                                 .control-label
                                 label {{'REMARK' | translate}}
                                 input.form-control(ng-model='vm.playerWechatPayTopUp.remark' ng-required="!vm.playerWechatPayTopUp.notUseQR")
+                            .form-group.col-md-12
+                                label {{'orderNo' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerWechatPayTopUp.orderNo')
                             .form-group.col-md-12
                                 .inlineBlk
                                 label {{'DEPOSIT_TIME' | translate}}

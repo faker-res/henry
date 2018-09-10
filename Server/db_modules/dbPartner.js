@@ -9200,7 +9200,7 @@ let dbPartner = {
         })
     },
 
-    partnerCreditToPlayer: (platformId, partnerId, amount, playerName, providerGroupId, withdrawConsumption, userAgent) => {
+    partnerCreditToPlayer: (platformId, partnerId, amount, playerName, providerGroupId, spendingTimes, userAgent) => {
         let platformObj;
         let partnerObj;
         let playerObj;
@@ -9231,8 +9231,8 @@ let dbPartner = {
             playerObj = playerData;
 
             if (providerGroupId) {
-                if (!withdrawConsumption) {
-                    return Promise.reject({name: "DataError", message: "Withdraw Consumption cannot be empty"});
+                if (!spendingTimes) {
+                    return Promise.reject({name: "DataError", message: "Spending Times cannot be empty"});
                 } else {
                     return dbconfig.collection_gameProviderGroup.findOne({providerGroupId: providerGroupId, platform: platformObj._id}).lean();
                 }
@@ -9242,7 +9242,7 @@ let dbPartner = {
                 playerObjId: playerObj._id,
                 playerName: playerObj.name,
                 amount: amount,
-                withdrawConsumption: withdrawConsumption ? withdrawConsumption : 0,
+                withdrawConsumption: spendingTimes ? dbUtil.noRoundTwoDecimalPlaces(amount * spendingTimes) : 0,
                 providerGroup: providerGroupData && providerGroupData._id ? providerGroupData._id : ''
             };
 

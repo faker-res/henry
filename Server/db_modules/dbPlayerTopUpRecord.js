@@ -1336,6 +1336,9 @@ var dbPlayerTopUpRecord = {
                     if( inputData.supportMode ){
                         requestData.supportMode = inputData.supportMode;
                     }
+                    if( inputData.orderNo ){
+                        requestData.orderNo = inputData.orderNo;
+                    }
                     if (fromFPMS) {
                         let cTime = inputData.createTime ? new Date(inputData.createTime) : new Date();
                         let cTimeString = moment(cTime).format("YYYY-MM-DD HH:mm:ss");
@@ -2214,7 +2217,8 @@ var dbPlayerTopUpRecord = {
      * @param adminName
      */
 
-    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName, remark, createTime, realName, limitedOfferObjId, topUpReturnCode, bPMSGroup = false, lastLoginIp, fromFPMS) {
+    requestAlipayTopup: function (userAgent, playerId, amount, alipayName, alipayAccount, bonusCode, entryType, adminId, adminName,
+                                  remark, createTime, realName, limitedOfferObjId, topUpReturnCode, bPMSGroup = false, lastLoginIp, fromFPMS, inputData) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -2425,6 +2429,9 @@ var dbPlayerTopUpRecord = {
                         }
                         else{
                             requestData.groupAlipayList = [];
+                        }
+                        if( inputData && inputData.orderNo ){
+                            requestData.orderNo = inputData.orderNo;
                         }
                         // console.log("requestData", requestData);
                         if (isFPMS) {
@@ -2791,7 +2798,8 @@ var dbPlayerTopUpRecord = {
      * @param limitedOfferObjId
      */
 
-    requestWechatTopup: function (useQR, userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName, remark, createTime, limitedOfferObjId, topUpReturnCode, bPMSGroup = false, lastLoginIp, fromFPMS) {
+    requestWechatTopup: function (useQR, userAgent, playerId, amount, wechatName, wechatAccount, bonusCode, entryType, adminId, adminName,
+                                  remark, createTime, limitedOfferObjId, topUpReturnCode, bPMSGroup = false, lastLoginIp, fromFPMS, inputData) {
         let userAgentStr = userAgent;
         let player = null;
         let proposal = null;
@@ -3007,6 +3015,9 @@ var dbPlayerTopUpRecord = {
                         }
                         else{
                             requestData.groupWechatList = [];
+                        }
+                        if( inputData && inputData.orderNo ){
+                            requestData.orderNo = inputData.orderNo;
                         }
                         //console.log("requestData", requestData);
                         if (isFPMS) {
