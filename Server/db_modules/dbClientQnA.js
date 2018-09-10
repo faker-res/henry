@@ -635,7 +635,7 @@ var dbClientQnA = {
                 if (playerData.phoneNumber) {
                     processNo = "2_1";
                 } else {
-                    let endTitle = "Update Phone failed";
+                    let endTitle = "Update phone number failed";
                     let endDes = "Attention! This player does not bind phone number (or inconvenient to receive sms code), cannot verify bank card. Please contact customer service to reset password manually";
                     return dbClientQnA.qnaEndMessage(endTitle, endDes)
                 }
@@ -744,7 +744,7 @@ var dbClientQnA = {
                                     })
                         } else {
                             let endTitle = "Update phone failed";
-                            let endDes = "Attention! This player does not bind phone number (or inconvenient to receive sms code). Please contact customer service to reset password manually";
+                            let endDes = "Attention! This player does not bind phone number (or inconvenient to receive sms code), cannot verify bank card. Please contact customer service to reset password manually";
                             return dbClientQnA.qnaEndMessage(endTitle, endDes)
                         }
                     }
@@ -892,7 +892,7 @@ var dbClientQnA = {
                         if (correctQues.length >= configData.minQuestionPass ) {
                             let text1 = localization.localization.translate("Your Phone Number");
                             let text2 = localization.localization.translate("has been reset to");
-                            endTitle = "Reset password success";
+                            endTitle = "Update phone number success";
                             endDes = text1 + text2 + " {" + playerObj.phoneNumber + "} ";
                             isPass = true;
                         }
@@ -910,7 +910,7 @@ var dbClientQnA = {
                                 }
                                 let text1 = localization.localization.translate("Attention! this player");
                                 let text2 = localization.localization.translate("times failed security question, please contact customer service to verify this account.");
-                                endTitle = "Change phone number failed";
+                                endTitle = "Update phone number failed";
                                 endDes = text1 + " (" + updatedPlayerData.qnaWrongCount.updatePhoneNumber + ") " + text2;
                                 return dbClientQnA.qnaEndMessage(endTitle, endDes, isPass);
                             }
