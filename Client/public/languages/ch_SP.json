@@ -4383,5 +4383,6 @@
   "UPDATE_PLAYER_DEPARTMENT": "编辑用户部门",
   "Please select the departments below to add/remove department(s) to FPMS account": "请勾选下列部门（复选），该部门将『添加/移除』至此后台帐号",
   "CLEAR_ALL_CHECKED": "清空勾选",
-  "orderNo": "存款单号（PMS 结算只匹配存款单号、收款帐号、金额后强制自动执行）"
+  "orderNoInfo": "存款单号（PMS 结算只匹配存款单号、收款帐号、金额后强制自动执行）",
+  "orderNo": "存款单号"
 }
