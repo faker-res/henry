@@ -828,18 +828,14 @@ var dbClientQnA = {
                 proposalTypeData =>{
                     let playerObjId = clientQnAData.playerObjId || '';
                     return dbconfig.collection_proposal.findOne({
-                        'data.playerObjId': ObjectId(playerObjId),
+                        'data.playerObjId': playerObjId,
                         type: ObjectId(proposalTypeData._id),
                         $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}]
                     }).sort({createTime : -1});
                 }).then(
                     withdraw=>{
-                        console.log(withdraw);
-                        if(!withdraw){
-                            return Promise.reject({name: "DBError", message: "Cannot Found Withdraw"});
-                        }
-                        lastWithdraw = (withdraw && withdraw.data) ? withdraw.data : null;
-                        return dbconfig.collection_players.findOne({_id: clientQnAData.playerObjId}).lean();
+                        lastWithdraw = (withdraw && withdraw.data) ? withdraw.data : { amount : 0};
+                        return dbconfig.collection_players.findOne({_id: clientQnAData.playerObjId, platform: platformObjId}).lean();
                 }).then(
                 playerData => {
                     if (!playerData) {
@@ -872,10 +868,11 @@ var dbClientQnA = {
 
                     return dbconfig.collection_clientQnATemplateConfig.findOne({
                         type: constClientQnA.UPDATE_PHONE,
-                        platform: Object(platformObjId)
+                        platform: platformObjId
                     }).lean();
                 }).then(
                 configData => {
+                    console.log(configData)
                     if (!configData) {
                         return Promise.reject({name: "DBError", message: "Cannot find QnA template config"});
                     }
@@ -900,13 +897,13 @@ var dbClientQnA = {
 
                     if (!isPass) {
 
-                        return dbconfig.collection_players.findOneAndUpdate({_id: clientQnAData.playerObjId},{$inc: {"qnaWrongCount.updatePhoneNumber": 1}},{new:true}).lean().then(
+                        return dbconfig.collection_players.findOneAndUpdate({_id: clientQnAData.playerObjId, platform:platformObjId},{$inc: {"qnaWrongCount.updatePhoneNumber": 1}},{new:true}).lean().then(
                             updatedPlayerData => {
                                 if (!updatedPlayerData) {
                                     return Promise.reject({name: "DBError", message: "Update player QnA wrong count  failed"})
                                 }
                                 if ((configData.wrongCount && updatedPlayerData.qnaWrongCount.updatePhoneNumber <= configData.wrongCount) || !configData.wrongCount) {
-                                    return dbClientQnA.securityQuestionReject(clientQnAObj.playerObjId, correctQues, inCorrectQues, "updatePhoneNumber");
+                                    return dbClientQnA.securityQuestionReject(clientQnAData.playerObjId, correctQues, inCorrectQues, "updatePhoneNumber");
                                 }
                                 let text1 = localization.localization.translate("Attention! this player");
                                 let text2 = localization.localization.translate("times failed security question, please contact customer service to verify this account.");
