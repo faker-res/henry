@@ -2485,7 +2485,8 @@ let dbPlayerInfo = {
                                     }
                                     dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.UPDATE_PLAYER_INFO, proposalData).then(
                                         () => {
-                                            SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
+                                            proposalData.newPassword = newPassword;
+                                            SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD, proposalData);
                                             let messageData = {
                                                 data: {platformId: playerObj.platform, playerObjId: playerObj._id}
                                             };
