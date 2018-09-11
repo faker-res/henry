@@ -16,7 +16,8 @@ const constSMSPurpose = {
     PARTNER_UPDATE_BANK_INFO_FIRST: 'Partner_updateBankInfoFirst',
     PARTNER_UPDATE_BANK_INFO: 'Partner_updateBankInfo',
 
-    AUTOQA_FORGOT_USER_ID: 'AutoQA_forgotUserID'
+    AUTOQA_FORGOT_USER_ID: 'AutoQA_forgotUserID',
+    AUTOQA_EDIT_NAME: 'AutoQA_editName',
 };
 
 module.exports = constSMSPurpose;

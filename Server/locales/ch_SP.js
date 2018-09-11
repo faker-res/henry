@@ -50,6 +50,7 @@ var simplifiedChinese = {
     ", password will be send to your bound phone number, please enjoy your game!": "，同时也发送至您的绑定手机号，祝您游戏愉快！",
     "Attention! this player": "提示！此玩家多次",
     "times failed security question, please contact customer service to verify this account.": "回答错误的银行卡内容，请客服人工进行其他人工方式核对，仔细确认是否为本人。",
+    "Phone number does not match": "电话号码不匹配",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",
@@ -310,6 +311,7 @@ var simplifiedChinese = {
     "Player does not have valid merchant data": "玩家没有有效的商户信息",
     "Please login and try again": "请登陆账号后再试",
     "Invalid SMS Validation Code": "验证码已过期，请重新获取验证码",
+    "Please transfer out from correct provider": "请选择正确的提供商转出",
     "Verification SMS already sent within last minute": "验证码已发送，请稍后再试",
     "Invalid referral": "推荐人不存在",
     "Player does not have enough top up or consumption amount": "玩家没有达到奖励要求",
@@ -465,7 +467,8 @@ var simplifiedChinese = {
     "New phone number is already used. Please insert other phone number.": "新号码已绑定账号，不支持重复绑定。",
     "Parent Partner": "一级代理",
     "1.Partner Commission Proposal No.: ": "1.代理佣金提案号：",
-    "2.Parent Partner Commission Rate：": "2.一级代理佣金比例："
+    "2.Parent Partner Commission Rate：": "2.一级代理佣金比例：",
+    "Incorrect parameter type": "参数类型错误"
 
     //todo::add missing messages here
 

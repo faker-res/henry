@@ -2346,7 +2346,8 @@ let dbPlayerInfo = {
                         }
                         dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.UPDATE_PLAYER_INFO, proposalData).then(
                             () => {
-                                SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD);
+                                proposalData.newPassword = newPassword;
+                                SMSSender.sendByPlayerId(playerObj.playerId, constPlayerSMSSetting.UPDATE_PASSWORD, proposalData);
                                 let messageData = {
                                     data: {platformId: playerObj.platform, playerObjId: playerObj._id}
                                 };
@@ -5954,24 +5955,6 @@ let dbPlayerInfo = {
      * @param {Number} amount
      */
     transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
-        // isBatch = isBatch === true;
-        // let updateBatchStatus = function (isBatch) {    //uses platform parameter to pass in platformObjId
-        //     if (isBatch) {
-        //         let incrementObj = {};
-        //         if (playerObj) {
-        //             incrementObj["batchCreditTransferOutStatus." + playerObj.platform._id + ".processedAmount"] = 1;
-        //         } else {
-        //             incrementObj["batchCreditTransferOutStatus." + platform + ".processedAmount"] = 1;
-        //         }
-        //         if (gameProvider) {
-        //             dbconfig.collection_gameProvider.findOneAndUpdate({_id: gameProvider._id}, {$inc: incrementObj}).exec();
-        //         } else {
-        //             dbconfig.collection_gameProvider.findOneAndUpdate({providerId: providerId}, {$inc: incrementObj}).exec();
-        //         }
-        //     }
-        // };
-
-
         var deferred = Q.defer();
         let playerObj;
         let gameProvider;
@@ -5979,8 +5962,10 @@ let dbPlayerInfo = {
             ? dbconfig.collection_players.findOne({name: playerId})
                 .populate({path: "platform", model: dbconfig.collection_platform})
             : dbconfig.collection_players.findOne({playerId: playerId})
-                .populate({path: "platform", model: dbconfig.collection_platform});
+                .populate({path: "platform", model: dbconfig.collection_platform})
+                .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider});
         var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
+
         Q.all([prom0, prom1]).then(
             function (data) {
                 if (data && data[0] && data[0].isTestPlayer) {
@@ -5989,6 +5974,15 @@ let dbPlayerInfo = {
                         message: "Unable to transfer credit for demo player"
                     })
                 }
+
+                // Enforce player to transfer out from correct last played provider
+                if (data && data[0] && data[0].lastPlayedProvider && data[0].lastPlayedProvider.providerId != providerId) {
+                    deferred.reject({
+                        name: "DataError",
+                        message: "Please transfer out from correct provider"
+                    })
+                }
+
                 if (data && data[0] && data[1]) {
                     playerObj = data[0];
                     gameProvider = data[1];
