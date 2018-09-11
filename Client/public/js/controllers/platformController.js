@@ -23571,6 +23571,9 @@ define(['js/app'], function (myApp) {
                             else if (item.data && item.data.PROMO_CODE_TYPE){
                                 item.name = item.data.PROMO_CODE_TYPE;
                             }
+                            else if (item.promoCodeTemplateObjId && item.promoCodeTemplateObjId.name){
+                                item.name = item.promoCodeTemplateObjId.name;
+                            }
 
                             if(item.playerObjId){
                                 item.playerName$ = item.playerObjId.name;
@@ -28829,6 +28832,20 @@ define(['js/app'], function (myApp) {
                 }
                 if (isAlternative) {
                     sendData.isAlternative = true;
+
+                    if (vm.clientQnAData.alternativeQuestion && vm.clientQnAData.alternativeQuestion.isResendSMS) {
+                        if (vm.clientQnABlockIsResend) {
+                            return;
+                        }
+
+                        let alternativeQuestionLabel = $('.alternative-question-label');
+                        alternativeQuestionLabel.css('color', 'grey');
+                        vm.clientQnABlockIsResend = true;
+                        setTimeout(function () {
+                            alternativeQuestionLabel.css('color', 'red');
+                            vm.clientQnABlockIsResend = false;
+                        }, 60000);
+                    }
                 }
                 if (vm.clientQnAData && vm.clientQnAData.processNo) {
                     sendData.processNo = vm.clientQnAData.processNo;
@@ -28837,6 +28854,11 @@ define(['js/app'], function (myApp) {
                         $('#clientQnATypeTree li[data-nodeid="1"]').trigger("click");
                         return;
                     }
+                }
+
+                if (vm.clientQnAData && vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.linkage == 'editBankCard'){
+                    $('#clientQnATypeTree li[data-nodeid="3"]').trigger("click");
+                    return;
                 }
 
                 socketService.$socket($scope.AppSocket, 'getClientQnAProcessStep', sendData,  function (data) {
@@ -28930,6 +28952,16 @@ define(['js/app'], function (myApp) {
 
             vm.getQnaAllBankTypeList = function () {
                 vm.qnaAllBankTypeList = [];
+
+                vm.qnaAllBankAccountTypeList = [
+                    {id: "1", name: $translate('Credit Card')},
+                    {id: "2", name: $translate('Debit Card')},
+                    {id: "3", name: "储存卡"},
+                    {id: "4", name: "储蓄卡"},
+                    {id: "5", name: "商务理财卡"},
+                    {id: "6", name: "工商银行一卡通"},
+                ];
+
                 socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform.data.platformId}, function (data) {
                     if (data && data.data && data.data.data) {
                         let allBankTypeList = {};
@@ -33323,7 +33355,7 @@ define(['js/app'], function (myApp) {
                 vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
-                console.log(vm.autoFeedbackMission);
+                console.log("vm.autoFeedbackMission",vm.autoFeedbackMission);
 
                 socketService.$socket($scope.AppSocket, 'createAutoFeedback', vm.autoFeedbackMission, function (data) {
                     console.log("createAutoFeedback ret",data);
@@ -33372,6 +33404,7 @@ define(['js/app'], function (myApp) {
                     $('select#selectCredibilityRemarkFeedbackFilter').multipleSelect('refresh');
                     $('select#selectFeedbackTopicFilter').multipleSelect('refresh');
                     $('select#selectGameProvider').multipleSelect('refresh');
+                    vm.refreshSPicker();
                 });
             };
             vm.autoFeedbackUpdateMission = function() {
@@ -33379,7 +33412,7 @@ define(['js/app'], function (myApp) {
                 vm.autoFeedbackMission.missionEndTime = $('#autoFeedbackMissionEndTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMission.registerStartTime = $('#autoFeedbackMissionRegisterStartTimePicker').data('datetimepicker').getDate();
                 vm.autoFeedbackMission.registerEndTime = $('#autoFeedbackMissionRegisterEndTimePicker').data('datetimepicker').getDate();
-                console.log(vm.autoFeedbackMission);
+                console.log("vm.autoFeedbackMission",vm.autoFeedbackMission);
                 let sendData = {
                     autoFeedbackObjId: vm.autoFeedbackMission._id,
                     updateData: vm.autoFeedbackMission
@@ -33594,6 +33627,15 @@ define(['js/app'], function (myApp) {
                 };
                 tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
                 vm.autoFeedbackOverviewTable = $('#autoFeedbackOverviewTable').DataTable(tableOptions);
+                let headers = Array.from($(vm.autoFeedbackOverviewTable.table().header())[0].getElementsByTagName('th'));
+                headers.forEach(v => {
+                    if(v.innerText == $translate('Mission First Run Total Count') ||
+                        v.innerText == $translate('Mission Second Run Total Count') ||
+                        v.innerText == $translate('Mission Third Run Total Count')) {
+                        v.title = $translate('Calculated According to Promo Code Sent (Promo code sent to a same player ' +
+                            'twice will be calculated as 2) Eg. Send(1st) --> login --> send(2nd) = total count of 2');
+                    }
+                });
                 vm.autoFeedbackMissionSearch.pageObj.init({maxCount: vm.autoFeedbackSearchResultTotal}, newSearch);
                 utilService.setDataTablePageInput('autoFeedbackOverviewTable', vm.autoFeedbackOverviewTable, $translate);
 
@@ -33601,6 +33643,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initAutoFeedbackSearchDetail = function() {
+                vm.autoFeedbackSearchDetailResult = {};
                 vm.autoFeedbackMissionSearchDetail = {
                     startTime: null,
                     endTime: null

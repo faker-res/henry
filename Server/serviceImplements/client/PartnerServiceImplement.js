@@ -494,7 +494,7 @@ var PartnerServiceImplement = function () {
 
     this.getDownPartnerInfo.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId && data.partnerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getDownPartnerInfo, [data.platformId, data.partnerId, data.startIndex, data.count], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getDownPartnerInfo, [data.platformId, data.partnerId, data.requestPage, data.count], isValidData, false, false, true);
     };
 
     this.partnerCreditToPlayer.onRequest = function (wsFunc, conn, data) {
@@ -505,7 +505,7 @@ var PartnerServiceImplement = function () {
 
     this.getDownPartnerContribution.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.platformId && data.partnerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getDownPartnerContribution, [data.platformId, data.partnerId, data.startIndex, data.count, data.startTime, data.endTime], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getDownPartnerContribution, [data.platformId, data.partnerId, data.requestPage, data.count, data.startTime, data.endTime], isValidData, false, false, true);
     };
 
     this.notifyNewMail.addListener(

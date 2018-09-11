@@ -618,7 +618,7 @@ let dbPlatformAutoFeedback = {
                         return players;
                     }
                 }).then(filteredPlayers => {
-                    console.log("filteredPlayers", filteredPlayers);
+                    // console.log("filteredPlayers", filteredPlayers);
                     feedback.schedule.forEach((item, index) => {
                         let curScheduleNumber = index + 1;
                         if(item.triggerHour == curHour && item.triggerMinute == curMinute) {
@@ -627,11 +627,12 @@ let dbPlatformAutoFeedback = {
                                 return dbconfig.collection_promoCode.find({
                                     playerObjId: player._id,
                                     autoFeedbackMissionObjId: feedback._id
-                                }).sort({autoFeedbackMissionScheduleNumber: -1}).limit(1).lean().then(promoCode => {
+                                }).sort({createTime: -1}).limit(1).lean().then(promoCode => {
+                                    console.log("promoCode",promoCode);
                                     if(promoCode && promoCode.length > 0) {
                                         promoCode = promoCode[0];
                                         let curTime = new Date().getTime();
-                                        let timeAfterLastMission = dbutility.getNdaylaterFromSpecificStartTime(new Date(promoCode.createTime), item.dayAfterLastMission).getTime();
+                                        let timeAfterLastMission = dbutility.getNdaylaterFromSpecificStartTime(item.dayAfterLastMission, new Date(promoCode.createTime)).getTime();
                                         let promoCodeCreateTime = new Date(promoCode.createTime).getTime();
                                         let playerLastAccessTime = new Date(player.lastAccessTime).getTime();
                                         if(curScheduleNumber-1 == promoCode.autoFeedbackMissionScheduleNumber &&
@@ -647,6 +648,7 @@ let dbPlatformAutoFeedback = {
                                     }
                                     return null;
                                 }).then(template => {
+                                    console.log("template",template);
                                     if(template) {
                                         newPromoCodeEntry = JSON.parse(JSON.stringify(template));
                                         delete newPromoCodeEntry._id;
@@ -656,6 +658,7 @@ let dbPlatformAutoFeedback = {
                                         newPromoCodeEntry.expirationTime = dbutility.getNdaylaterFromSpecificStartTime(template.expiredInDay, new Date());
                                         newPromoCodeEntry.autoFeedbackMissionObjId = feedback._id;
                                         newPromoCodeEntry.autoFeedbackMissionScheduleNumber = curScheduleNumber;
+                                        newPromoCodeEntry.allowedSendSms = true;
                                         return dbPlayerReward.generatePromoCode(player.platform, newPromoCodeEntry, null, null);
                                     } else {
                                         return null;
