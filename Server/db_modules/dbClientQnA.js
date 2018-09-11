@@ -572,7 +572,7 @@ var dbClientQnA = {
                 clientQnAData = clientQnA;
 
                 // Send verification code
-                dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.AUTOQA_FORGOT_USER_ID)
+                dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.UPDATE_PASSWORD)
                     .catch(errorUtils.reportError);
 
                 let processNo = '2_1';
@@ -658,7 +658,7 @@ var dbClientQnA = {
                     // Update clientQnAData
                     // Send verification code
                     dbClientQnA.updateClientQnAData(null, clientQnAData.type, updObj, clientQnAData._id)
-                        .then(updatedData => dbClientQnA.sendSMSVerificationCode(updatedData, constSMSPurpose.AUTOQA_FORGOT_USER_ID))
+                        .then(updatedData => dbClientQnA.sendSMSVerificationCode(updatedData, constSMSPurpose.UPDATE_PASSWORD))
                         .catch(errorUtils.reportError);
 
                     let processNo = '2_1';
@@ -708,7 +708,7 @@ var dbClientQnA = {
                 if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 5) {
                     return dbClientQnA.rejectFailedRetrieveAccount();
                 } else {
-                    dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.AUTOQA_FORGOT_USER_ID);
+                    dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.UPDATE_PASSWORD);
                 }
             }
         );
