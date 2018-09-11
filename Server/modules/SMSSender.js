@@ -59,6 +59,11 @@ const SMSSender = {
                                         template.content = template.content.replace('{{proposalData.data.amount}}', proposalData.data.amount.toFixed(2));
                                     if(proposalData.data.lastSettleTime)
                                         template.content = template.content.replace('{{proposalData.data.lastSettleTime}}', moment(proposalData.data.lastSettleTime).format("YYYY/MM/DD HH:mm:ss"));
+                                    if(proposalData.data.playerName)
+                                        template.content = template.content.replace('{{playerName}}', proposalData.data.playerName);
+                                    if(proposalData.newPassword)
+                                        template.content = template.content.replace('{{newPassword}}', proposalData.newPassword);
+
                                     template.content = renderTemplate(template.content, metaData);
                                 }
 

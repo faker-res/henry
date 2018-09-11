@@ -1592,7 +1592,10 @@ define(['js/app'], function (myApp) {
                             let fouthRow = [];
                             let fifthRow = [];
                             let sixthRow = [];
-                            for(let day = 1; day <= endDate.getDate(); day ++){
+                            let lastDateOfMonth = new Date(endDate);
+                            lastDateOfMonth.setDate(endDate.getDate() - 1);
+
+                            for(let day = 1; day <= lastDateOfMonth.getDate(); day ++){
                                 if(day == 1){
                                     for(let i = 0; i < startDate.getDay(); i++){
                                         firstRow.push({day: "-", isCompleted: false});

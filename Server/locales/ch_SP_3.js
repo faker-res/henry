@@ -51,6 +51,7 @@ var simplifiedChinese = {
     ", password will be send to your bound phone number, please enjoy your game!": "，同时也发送至您的绑定手机号，祝您游戏愉快！",
     "Attention! this player": "提示！此玩家多次",
     "times failed security question, please contact customer service to verify this account.": "回答错误的银行卡内容，请客服人工进行其他人工方式核对，仔细确认是否为本人。",
+    "Phone number does not match": "电话号码不匹配",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",
@@ -268,6 +269,9 @@ var simplifiedChinese = {
     "Cannot find top up return event data for platform": "无法找到奖励活动",
     "You have reached the max reward amount today": "已达到当天奖励额度上限",
     "Some top up records have been used": "充值记录已被使用",
+    "The binded account is: ": "您该手机号码绑定的游戏帐号为：",
+    "Password has reset to: ": "密码已重新设置为: ",
+    "Please login to change password immediately.": "请尽速登入修改密码。",
     "Top up count has not met period condition": "未达到周期内存款笔数条件",
     "Error calculating player consumption return": "结算返点失败",
     "Platform is not ready for settlement": "平台正在结算",
@@ -454,6 +458,7 @@ var simplifiedChinese = {
     "Parent Partner": "一级代理",
     "1.Partner Commission Proposal No.: ": "1.代理佣金提案号：",
     "2.Parent Partner Commission Rate：": "2.一级代理佣金比例：",
+    "Incorrect parameter type": "参数类型错误"
 
     //todo::add missing messages here
 

@@ -51,6 +51,7 @@ var simplifiedChinese = {
     ", password will be send to your bound phone number, please enjoy your game!": "，同时也发送至您的绑定手机号，祝您游戏愉快！",
     "Attention! this player": "提示！此玩家多次",
     "times failed security question, please contact customer service to verify this account.": "回答错误的银行卡内容，请客服人工进行其他人工方式核对，仔细确认是否为本人。",
+    "Phone number does not match": "电话号码不匹配",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",
@@ -228,6 +229,9 @@ var simplifiedChinese = {
     "Player is forbidden to login": "玩家被禁止登录",
     "Partner is forbidden to login": "代理被禁止登录",
     "Partner is forbidden to apply bonus": "您暂时被禁止提款，请联系代理经理",
+    "The binded account is: ": "您该手机号码绑定的游戏帐号为：",
+    "Password has reset to: ": "密码已重新设置为: ",
+    "Please login to change password immediately.": "请尽速登入修改密码。",
     "Player does not have enough credit.": "玩家额度不够",
     "Partner does not have enough credit.": "代理额度不够",
     "Player does not have valid payment information": "玩家支付信息无效",
@@ -454,6 +458,7 @@ var simplifiedChinese = {
     "Parent Partner": "一级代理",
     "1.Partner Commission Proposal No.: ": "1.代理佣金提案号：",
     "2.Parent Partner Commission Rate：": "2.一级代理佣金比例：",
+    "Incorrect parameter type": "参数类型错误"
 
     //todo::add missing messages here
 

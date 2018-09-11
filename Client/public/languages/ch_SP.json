@@ -990,6 +990,9 @@
   "Create Consumption Test Record": "创建玩家投注记录测试",
   "Create Top Up Test Record": "创建玩家充值记录测试",
   "Are you sure to delete department": "您确定要删除部门",
+  "The binded account is: ": "您该手机号码绑定的游戏帐号为：",
+  "Password has reset to: ": "密码已重新设置为: ",
+  "Please login to change password immediately.": "请尽速登入修改密码。",
   "Player with Top-ups": "充值玩家",
   "Player with Top-ups Multiple Times": "多次充值玩家",
   "Player with Domain": "有开户来源的玩家",
@@ -1757,6 +1760,7 @@
   "Phone number is not available": "请输入电话号码",
   "Please enter the verification code": "请输入您绑定手机接收到的短息验证码",
   "Failed to retrieve account.": "找回账号失败",
+  "Phone number does not match": "电话号码不匹配",
   "forgot user ID?": "忘记帐号？",
   "Please enter player ID": "请输入玩家帐号",
   "NEXT_STEP": "下一步",
@@ -3977,6 +3981,7 @@
   "Player's Name (PMS Group Search)": "会员账号（PMS 分组查询）",
   "Delete Provider Group": "删除锁大厅组",
   "This will release all rewards amount binded with this group to player.": "这将会解锁所有此大厅的锁定额度，释放成自由额度。",
+  "Account found. (Password reset)": "找回帐号成功（同时重置密码）",
 
   "DOMAIN_VISIT_AMOUNT": "域名瀏覽次數",
   "DOMAIN_VISIT_AMOUNT_ANALYSIS_IP_REPEAT": "域名瀏覽次數分析（IP重复）",
@@ -4271,6 +4276,8 @@
   "Mission First Run Total Count": "第一次任务发送总次数",
   "Mission Second Run Total Count": "第二次任务发送总次数",
   "Mission Third Run Total Count": "第三次任务发送总次数",
+  "Calculated According to Promo Code Sent (Promo code sent to a same player twice will be calculated as 2) Eg. Send(1st) --> login --> send(2nd) = total count of 2":
+  "根据发送优惠代码的数量计算（同一人在不同轮回发两次＝2）如：（发）第一次 ——＞ 登入 ——＞（发）第一次 = 共计2个第一次",
   "Mission Create Start Time": "任务创建（开始时间）",
   "Mission Create End Time": "任务创建（结束时间）",
   "Delete Mission": "删除任务",
@@ -4363,11 +4370,20 @@
   "alipayerNickName": "PMS收录玩家支付宝腻称",
   "alipayerRemark": "PMS收录玩家支付宝备注",
   "getLockedLobbyConfig": "获取平台锁大厅配置",
+
+  "Please enter player account":"请输入玩家账号",
+  "Please enter current phone number for sms verification": "请输入您原绑定电话号码，将发送短信验证码",
+  "Please enter sms verification code": "请输入您接收到的短信验证码",
   "EditAdminRole": "编辑用户角色",
   "Please tick the following": "请勾选下列",
   "roles": "角色",
   "the role will be added or removed to this backstage account": "该角色将『添加/移除』至此后台帐号",
   "Departments": "部门位子",
   "List of Roles": "角色列表",
-  "Remove All Selection": "清空勾选"
+  "Remove All Selection": "清空勾选",
+  "UPDATE_PLAYER_DEPARTMENT": "编辑用户部门",
+  "Please select the departments below to add/remove department(s) to FPMS account": "请勾选下列部门（复选），该部门将『添加/移除』至此后台帐号",
+  "CLEAR_ALL_CHECKED": "清空勾选",
+  "orderNoInfo": "存款单号（PMS 结算只匹配存款单号、收款帐号、金额后强制自动执行）",
+  "orderNo": "存款单号"
 }

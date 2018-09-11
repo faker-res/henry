@@ -7,8 +7,8 @@ var clientQnASchema = new Schema({
     type: {type: String, required: true, index: true},
     //player object Id
     playerObjId: {type: Schema.ObjectId, ref: 'player'},
-    // security question total wrong count - reset when success
-    totalWrongCount: {type: Number, default: 0},
+    // platform
+    platformObjId: {type: Schema.ObjectId, ref: 'platform', required: true, index: true},
     // data for each step
     QnAData: {type: JSON, default: {}}
 });

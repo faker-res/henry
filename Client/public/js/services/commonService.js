@@ -505,11 +505,12 @@ define([], () => {
             };
         };
 
-        this.commonInitTime = (utilService, vm, model, field, queryId, defTime, defTimeAsIs) => {
+        this.commonInitTime = (utilService, vm, model, field, queryId, defTime, defTimeAsIs, options) => {
             vm[model] = vm[model] || {};
+            options = options || null;
 
             utilService.actionAfterLoaded(queryId, () => {
-                vm[model][field] = utilService.createDatePicker(queryId);
+                vm[model][field] = utilService.createDatePicker(queryId, options);
                 if(defTimeAsIs) {
                     $(queryId).data('datetimepicker').setDate(new Date(defTime));
                 } else {

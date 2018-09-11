@@ -50,6 +50,7 @@ var simplifiedChinese = {
     ", password will be send to your bound phone number, please enjoy your game!": "，同时也发送至您的绑定手机号，祝您游戏愉快！",
     "Attention! this player": "提示！此玩家多次",
     "times failed security question, please contact customer service to verify this account.": "回答错误的银行卡内容，请客服人工进行其他人工方式核对，仔细确认是否为本人。",
+    "Phone number does not match": "电话号码不匹配",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",
@@ -317,6 +318,9 @@ var simplifiedChinese = {
     "Only new system user can login": "只有新系统用户可以登陆，请尝试使用其他域名登陆",
     "Bank account name is different from real name": "银行账号姓名和真实姓名不相符",
     "Please login to get packet rain reward": "请登陆再参与红包雨活动",
+    "The binded account is: ": "您该手机号码绑定的游戏帐号为：",
+    "Password has reset to: ": "密码已重新设置为: ",
+    "Please login to change password immediately.": "请尽速登入修改密码。",
     "Player has been rewarded for first time top up event!": "玩家已申请首冲奖励",
     "Top up record is not the first top up of this week": "该存款不是本周第一笔存款",
     "Player free amount is less than required top up amount": "玩家可用自由额度小于要求存款金额",
@@ -463,6 +467,7 @@ var simplifiedChinese = {
     "Parent Partner": "一级代理",
     "1.Partner Commission Proposal No.: ": "1.代理佣金提案号：",
     "2.Parent Partner Commission Rate：": "2.一级代理佣金比例：",
+    "Incorrect parameter type": "参数类型错误"
 
     //todo::add missing messages here
 

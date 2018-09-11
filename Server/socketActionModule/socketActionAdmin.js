@@ -231,8 +231,8 @@ function socketActionAdmin(socketIO, socket) {
          */
         updateAdminDepartment: function updateAdminDepartment(data) {
             var actionName = arguments.callee.name;
-            var isDataValid = Boolean(data && data.adminId && data.curDepartmentId && data.newDepartmentId && (data.curDepartmentId != data.newDepartmentId));
-            socketUtil.emitter(self.socket, dbAdminInfo.updateAdminDepartment, [data.adminId, data.curDepartmentId, data.newDepartmentId, data.adminName], actionName, isDataValid);
+            var isDataValid = Boolean(data && data.adminId && data.newDepartmentList);
+            socketUtil.emitter(self.socket, dbAdminInfo.updateAdminDepartment, [data.adminId, data.toBeDeletedDepartmentList, data.newDepartmentList, data.adminName], actionName, isDataValid);
         },
 
         /**

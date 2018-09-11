@@ -454,8 +454,8 @@ var roleChecker = {
                 Delete: ['deleteProposalTypes', 'deleteProposalTypeProcessStepById', 'deleteProposalProcessByIds']
             },
             "ClientAutoQnA": {
-                Read: [],
-                Update: []
+                Read: ['getClientQnAProcessStep', 'getClientQnASecurityQuesConfig'],
+                Update: ['editClientQnAConfig']
             },
             "Config": {
                 Read: ['getPlayerLevelByPlatformId', 'getPlayerTrustLevelByPlatformId', 'getPartnerLevelConfig', 'getPlatformAnnouncements'],
@@ -772,7 +772,8 @@ var roleChecker = {
                 AttachRole: ['getUnAttachedDepartmentsforAdmin', 'getUnAttachedDepartmentRolesForAdmin', 'attachRolesToUsersById', 'getUnAttachUsers', 'attachRoleToUserByName'],
                 DetachRole: ['getAttachedDepartmentRolesforAdmin', 'detachRolesFromDepartmentsById', 'detachRolesFromUsersById', 'detachRoleFromUserByName'],
                 EditAdminRole: ['getDepartmentRolesForAdmin', 'attachDetachRolesFromUsersById'],
-                ViewLog: ['getAdminActionLog']
+                ViewLog: ['getAdminActionLog'],
+                UpdateUserDepartment: ['updateAdminDepartment']
             },
             Role: {
                 Read: ['getAttachedRolesforAdmin', 'getAllViews', 'getUnAttachedRolesforAdmin', 'getAllRolesForAdmin', 'getRole', 'getAllRole', 'getAttachedRolesForDepartment', 'getUnAttachedRolesForDepartment'],
