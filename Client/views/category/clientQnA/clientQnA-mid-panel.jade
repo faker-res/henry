@@ -25,7 +25,7 @@
                     select.form-control(ng-repeat='(k,o) in vm.clientQnAData.answerInput' ng-if='o.questionNo == v.questionNo && o.type == "select"' ng-model="vm.clientQnAInput[o.objKey]" ng-options="va.id as va.name | translate for (in,va) in vm[o.options]" ng-change='vm[o.options + "Change"]()')
                     br
                 .pull-right
-                    label(style="color:red" ng-if='vm.clientQnAData.alternativeQuestion && vm.clientQnAData.alternativeQuestion.des' ng-click='vm.getClientQnAProcess(true)') {{vm.clientQnAData.alternativeQuestion.des | translate}}
+                    label.alternative-question-label(style="color:red" ng-if='vm.clientQnAData.alternativeQuestion && vm.clientQnAData.alternativeQuestion.des' ng-click='vm.getClientQnAProcess(true)') {{vm.clientQnAData.alternativeQuestion.des | translate}}
                 text(ng-if='vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.des') {{vm.clientQnAData.clientQnAEnd.des | translate}}
                 br
                 br

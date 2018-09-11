@@ -9,7 +9,6 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const constPlayerRegistrationInterface = require('./../const/constPlayerRegistrationInterface');
 const constProposalMainType = require('./../const/constProposalMainType');
-const constProposalStatus = require('./../const/constProposalStatus');
 const dbconfig = require('./../modules/dbproperties');
 
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
@@ -517,6 +516,7 @@ var dbClientQnA = {
 
         // Create a QnA object at first
         return new dbconfig.collection_clientQnA({
+            platformObjId: platformObjId,
             type: constClientQnA.FORGOT_USER_ID,
             QnAData: {
                 phoneNumber: inputDataObj.phoneNumber
@@ -572,7 +572,7 @@ var dbClientQnA = {
                 clientQnAData = clientQnA;
 
                 // Send verification code
-                dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.AUTOQA_FORGOT_USER_ID)
+                dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.UPDATE_PASSWORD)
                     .catch(errorUtils.reportError);
 
                 let processNo = '2_1';
@@ -658,7 +658,7 @@ var dbClientQnA = {
                     // Update clientQnAData
                     // Send verification code
                     dbClientQnA.updateClientQnAData(null, clientQnAData.type, updObj, clientQnAData._id)
-                        .then(updatedData => dbClientQnA.sendSMSVerificationCode(updatedData, constSMSPurpose.AUTOQA_FORGOT_USER_ID))
+                        .then(updatedData => dbClientQnA.sendSMSVerificationCode(updatedData, constSMSPurpose.UPDATE_PASSWORD))
                         .catch(errorUtils.reportError);
 
                     let processNo = '2_1';
@@ -708,7 +708,7 @@ var dbClientQnA = {
                 if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 5) {
                     return dbClientQnA.rejectFailedRetrieveAccount();
                 } else {
-                    dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.AUTOQA_FORGOT_USER_ID);
+                    dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.UPDATE_PASSWORD);
                 }
             }
         );
@@ -877,7 +877,7 @@ var dbClientQnA = {
                                 type: constClientQnA.UPDATE_PHONE,
                                 platform: platformObjId}).lean().then(
                                     configData => {
-                                        if (configData && configData.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("updatePhoneNumber") && playerData.qnaWrongCount.forgotPassword > configData.wrongCount) {
+                                        if (configData && configData.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("updatePhoneNumber") && playerData.qnaWrongCount.updatePhoneNumber > configData.wrongCount) {
                                             return dbClientQnA.rejectSecurityQuestionFirstTime();
                                         } else {
                                             return dbconfig.collection_clientQnATemplate.findOne({
@@ -1051,7 +1051,7 @@ var dbClientQnA = {
                         return dbconfig.collection_players.findOneAndUpdate({_id: clientQnAData.playerObjId, platform:platformObjId},{$inc: {"qnaWrongCount.updatePhoneNumber": 1}},{new:true}).lean().then(
                             updatedPlayerData => {
                                 if (!updatedPlayerData) {
-                                    return Promise.reject({name: "DBError", message: "Update player QnA wrong count  failed"})
+                                    return Promise.reject({name: "DBError", message: "Update player QnA wrong count failed"})
                                 }
                                 if ((configData.wrongCount && updatedPlayerData.qnaWrongCount.updatePhoneNumber <= configData.wrongCount) || !configData.wrongCount) {
                                     return dbClientQnA.securityQuestionReject(clientQnAData.playerObjId, correctQues, inCorrectQues, "updatePhoneNumber");
@@ -1443,6 +1443,19 @@ var dbClientQnA = {
                 }
 
                 return template;
+            }
+        );
+    },
+
+    editBankCardResendSMSCode: (platformObjId, inputDataObj, qnaObjId) => {
+        return dbconfig.collection_clientQnA.findById(qnaObjId).lean().then(
+            qnaObj => {
+                // Check player send count
+                if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 5) {
+                    return dbClientQnA.editBankCard2_2(platformObjId, inputDataObj, qnaObjId);
+                } else {
+                    dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.UPDATE_BANK_INFO);
+                }
             }
         );
     },

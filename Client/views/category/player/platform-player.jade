@@ -996,6 +996,10 @@ include modalGameCreditLog
                         div(id="{{key}}")
         .textareaDetail.margin-top-bottom-small
             textarea.permissionRemark(placeholder='{{"Please add remark." | translate}}')
+        .inlineBlk
+            label.control-label {{'PERMISSION' | translate}}
+            select.form-control.selectedMainPermission
+                option(ng-repeat="(i,v) in vm.playerPermissionTypes track by $index", value='{{i}}') {{i | translate}}
         .text-left(style="position:relative;")
             button.btn.btn-primary.submit {{'CONFIRM' | translate}}
             button#permissionRecordButtonByPlayerTab.btn.btn-primary.common-button(style="right:0;position:absolute",ng-if="checkViewPermission('Player', 'Player', 'PermissionHistory')", data-toggle="modal", ng-click='vm.getPlayerPermissionChangeByPlayerTab("new")', data-target='#modalPlayerPermissionChangeLog', ng-show="vm.platformPageName!='batchPermit'")
