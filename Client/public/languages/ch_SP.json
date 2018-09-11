@@ -1002,6 +1002,7 @@
   "department": "部门",
   "curData": "更改前",
   "Please choose an account to reset:": "该手机绑定多个启用帐号，请选择：",
+  "Please transfer out from correct provider": "请选择正确的提供商转出",
   "updateData": "更改后",
   "MOVE_USER": "移动用户",
   "DELETE_USER": "删除用户",
