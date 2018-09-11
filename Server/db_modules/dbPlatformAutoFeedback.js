@@ -656,6 +656,7 @@ let dbPlatformAutoFeedback = {
                                         newPromoCodeEntry.expirationTime = dbutility.getNdaylaterFromSpecificStartTime(template.expiredInDay, new Date());
                                         newPromoCodeEntry.autoFeedbackMissionObjId = feedback._id;
                                         newPromoCodeEntry.autoFeedbackMissionScheduleNumber = curScheduleNumber;
+                                        newPromoCodeEntry.allowedSendSms = true;
                                         return dbPlayerReward.generatePromoCode(player.platform, newPromoCodeEntry, null, null);
                                     } else {
                                         return null;
