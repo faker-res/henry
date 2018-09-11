@@ -9,7 +9,6 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const constPlayerRegistrationInterface = require('./../const/constPlayerRegistrationInterface');
 const constProposalMainType = require('./../const/constProposalMainType');
-const constProposalStatus = require('./../const/constProposalStatus');
 const dbconfig = require('./../modules/dbproperties');
 
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
