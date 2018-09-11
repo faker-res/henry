@@ -33611,6 +33611,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initAutoFeedbackSearchDetail = function() {
+                vm.autoFeedbackSearchDetailResult = {};
                 vm.autoFeedbackMissionSearchDetail = {
                     startTime: null,
                     endTime: null
