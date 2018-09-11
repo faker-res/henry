@@ -116,10 +116,8 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
-            alternativeQuestion: {des: "Didn't receive? Send again", action: "resendSMSVerificationCode"},
-            question: [{questionNo: 1, des: "Please enter the verification code"}],
-            answerInput: [{type: "checkbox", objKey: "smsCode", questionNo: 1, placeHolder: "Verification code"}],
-            action: "forgotUserID2_1"
+            question: [{questionNo: 1, des: "Please choose an account to reset:"}],
+            action: "forgotUserId3_2"
         }
     },
     {upsert: true});
@@ -140,7 +138,7 @@ db.clientQnATemplate.update(
     {
         $set: {
             question: [{questionNo: 1, des: "Please enter player account"}],
-            answerInput: [{type: "text", objKey: "name", questionNo: 1, placeHolder: "Please enter player account"}],
+            answerInput: [{type: "text", objKey: "name", questionNo: 1, placeHolder: "Please enter player ID"}],
             action: "updatePhoneNumber1"
         }
     },
@@ -153,9 +151,9 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
-            alternativeQuestion: {des: "Inconvenient to accept?", action: "updatePhoneNumber3_2"},
+            alternativeQuestion: {des: "Inconvenient to accept?", action: "updatePhoneNumber3"},
             question: [{questionNo: 1, des: "Please enter current phone number for sms verification"}],
-            answerInput: [{type: "text", objKey: "phoneNumber", questionNo: 1, placeHolder: "Phone number"}],
+            answerInput: [{type: "text", objKey: "phoneNumber", questionNo: 1, placeHolder: "Please enter previous phone number"}],
             action: "updatePhoneNumber2_1"
         }
     },
@@ -169,8 +167,33 @@ db.clientQnATemplate.update(
     {
         $set: {
             question: [{questionNo: 1, des: "Please enter sms verification code"}],
-            answerInput: [{type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "SMS Verification code"}],
+            answerInput: [{type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "Please enter the sms verification code"}],
             action: "updatePhoneNumber3_1"
+        }
+    },
+    {upsert: true});
+
+
+db.clientQnATemplate.update(
+    {
+        processNo: "3_2",
+        type: type3
+    },
+    {
+        $set: {
+            isSecurityQuestion: true,
+            questionTitle: "Please answer the question below",
+            question: [
+                {questionNo: 1, des: "Please enter current phone number"},
+                {questionNo: 2, des: "Please enter binding bank account (If you dont fill it before, let it blank)?"},
+                {questionNo: 3, des: "Please enter last withdraw amount?"}
+                ],
+            answerInput: [
+                {type: "text", objKey: "phoneNumber", questionNo: 1, placeHolder: "Need match phone number"},
+                {type: "text", objKey: "bankAccount", questionNo: 2, placeHolder: "The length is limit to 16, 19  , or if none then not need to input"},
+                {type: "text", objKey: "amount", questionNo: 3, placeHolder: "Enter a round number, if none any withdraw made, just type 0"}
+                ],
+            action: "updatePhoneNumber3_2"
         }
     },
     {upsert: true});
@@ -183,7 +206,7 @@ db.clientQnATemplate.update(
     {
         $set: {
             question: [{questionNo: 1, des: "Please enter new phone number for sms verification code"}],
-            answerInput: [{type: "text", objKey: "newPhoneNumber", questionNo: 1, placeHolder: "New phone number"}],
+            answerInput: [{type: "text", objKey: "newPhoneNumber", questionNo: 1, placeHolder: "Please enter new phone number"}],
             action: "updatePhoneNumber4_1"
         }
     },
@@ -197,7 +220,7 @@ db.clientQnATemplate.update(
     {
         $set: {
             question: [{questionNo: 1, des: "Please enter sms verification code"}],
-            answerInput: [{type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "SMS Verification code"}],
+            answerInput: [{type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "Please enter the sms verification code"}],
             action: "updatePhoneNumber5_1"
         }
     },
@@ -211,12 +234,11 @@ db.clientQnATemplate.update(
     {
         $set: {
             question: [{questionNo: 1, des: "Update phone number success"}],
-            // answerInput: [{type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "SMS Verification code"}],
-            action: "updatePhoneNumber5_1"
+            action: "updatePhoneNumber6_1"
         }
     },
     {upsert: true});
-    
+
 //region editBankCard
 var type4 = "editBankCard";
 //endregion
