@@ -516,6 +516,7 @@ var dbClientQnA = {
 
         // Create a QnA object at first
         return new dbconfig.collection_clientQnA({
+            platformObjId: platformObjId,
             type: constClientQnA.FORGOT_USER_ID,
             QnAData: {
                 phoneNumber: inputDataObj.phoneNumber
