@@ -4030,6 +4030,16 @@
   "IP_DOMAIN_UNIQUE_ANALYSIS_EXPLAIN": "*該訪問的IP此次瀏覽網站次數+1，本次切換頁面、刷新都不重複計算。",
   "UpdateCardGroupType": "派卡逻辑修改",
 
+  "Please enter the player name that you wanted to update bank info:": "请输入您需要银行资料修改的玩家帐号：",
+  "Please enter your account's phone number, note that you wil receive SMS verification code afterward.": "请输入该帐号绑定电话号码，将发送短信验证码",
+  "Inconvenient on receiving code?": "不方便接收？",
+  "Please insert SMS code that just received by player.": "请输入玩家绑定手机接收到的短信验证码",
+  "Please enter your last withdrawal amount": "请填写最后一次提款金额",
+  "Please fill in new bank account detail": "请输入新银行资料信息",
+  "Bank Account Type": "账户性质",
+  "Bank Registration Address": "开户网点",
+  "Update Bank Detail Succeed": "银行资料修改成功",
+
   "Please Enter Task Name": "请输入该任务 名称",
   "Please Enter Task Description": "请输入该任务 备注",
   "Please Enter Account Prefix": "请输入帐号组合 前坠",

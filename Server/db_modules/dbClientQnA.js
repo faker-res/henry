@@ -7,6 +7,9 @@ module.exports = new dbClientQnAFunc();
 const dbutility = require('./../modules/dbutility');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
+const constPlayerRegistrationInterface = require('./../const/constPlayerRegistrationInterface');
+const constProposalMainType = require('./../const/constProposalMainType');
+const constProposalStatus = require('./../const/constProposalStatus');
 const dbconfig = require('./../modules/dbproperties');
 
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
@@ -1173,6 +1176,357 @@ var dbClientQnA = {
     //endregion
 
     //region editBankCard
+    editBankCard1: (platformObjId, inputDataObj) => {
+        let clientQnA = {};
+        // pre edit
+        if (!inputDataObj || !inputDataObj.name) {
+            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        }
+
+        return dbconfig.collection_players.findOne({platform: platformObjId, name: inputDataObj.name}).populate({
+            path: "platform",
+            model: dbconfig.collection_platform,
+            select: {platformId: 1}
+        }).lean().then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DBError", message: "Cannot find player"})
+                }
+
+                let updateObj = {
+                    QnAData: {
+                        name: inputDataObj.name,
+                        platformId: playerData.platform && playerData.platform.platformId,
+                        playerId: playerData.playerId
+                    }
+                };
+                return dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.EDIT_BANK_CARD, updateObj).catch(errorUtils.reportError);
+            }
+        ).then(
+            clientQnAData => {
+                clientQnA = clientQnAData || clientQnA;
+
+                return dbconfig.collection_clientQnATemplate.findOne({
+                    type: constClientQnA.EDIT_BANK_CARD,
+                    processNo: "2_1"
+                }).lean();
+            }
+        ).then(
+            template => {
+                if (template) {
+                    template.qnaObjId = clientQnA._id;
+                }
+
+                return template;
+            }
+        );
+    },
+
+    editBankCard2_1: (platformObjId, inputDataObj, qnaObjId) => {
+        let clientQnA, player, platform;
+
+        if (!inputDataObj || !inputDataObj.phoneNumber) {
+            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        }
+
+        return dbconfig.collection_clientQnA.findOne({_id: qnaObjId}).lean().then(
+            qnaObj => {
+                if (!qnaObj) {
+                    return Promise.reject({message: "QnA object not found."});
+                }
+
+                clientQnA = qnaObj;
+
+                let playerProm = dbconfig.collection_players.findOne({_id: clientQnA.playerObjId}).lean();
+                let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+
+                return Promise.all([playerProm, platformProm]);
+            }
+        ).then(
+            data => {
+                if (!data || !data[0]) {
+                    return Promise.reject({message: "Player not found."});
+                }
+
+                if (!data[1]){
+                    return Promise.reject({message: "Platform not found."});
+                }
+
+                player = data[0];
+                platform = data[1];
+
+                if (player.phoneNumber != inputDataObj.phoneNumber) {
+                    return Promise.reject({message: "Phone number does not match"});
+                }
+
+                // return dbPlayerMail.sendVerificationCodeToPlayer(player.playerId, parseInt(Math.random() * 9000 + 1000), platform.platformId, "", constSMSPurpose.UPDATE_BANK_INFO, constPlayerRegistrationInterface.BACKSTAGE);
+                return dbClientQnA.sendSMSVerificationCode(clientQnA, constSMSPurpose.UPDATE_BANK_INFO);
+            }
+        ).then(
+            () => {
+                return dbconfig.collection_clientQnATemplate.findOne({
+                    type: constClientQnA.EDIT_BANK_CARD,
+                    processNo: "3_1"
+                }).lean();
+            }
+        ).then(
+            template => {
+                if (template) {
+                    template.qnaObjId = clientQnA._id;
+                }
+
+                return template;
+            }
+        );
+    },
+
+    editBankCard2_2: (platformObjId, inputDataObj, qnaObjId) => {
+        let clientQnA;
+        return dbconfig.collection_clientQnA.findOne({_id: qnaObjId}).lean().then(
+            qnaObj => {
+                if (!qnaObj) {
+                    return Promise.reject({message: "QnA object not found."});
+                }
+
+                clientQnA = qnaObj;
+
+                return dbconfig.collection_clientQnATemplate.findOne({
+                    type: constClientQnA.EDIT_BANK_CARD,
+                    processNo: "3_2"
+                }).lean();
+            }
+        ).then(
+            template => {
+                if (template) {
+                    template.qnaObjId = clientQnA._id;
+                }
+
+                return template;
+            }
+        );
+    },
+
+    editBankCard3_1: (platformObjId, inputDataObj, qnaObjId) => {
+        let clientQnA, player, platform;
+
+        if (!inputDataObj || !inputDataObj.code) {
+            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        }
+
+        return dbconfig.collection_clientQnA.findOne({_id: qnaObjId}).lean().then(
+            qnaObj => {
+                if (!qnaObj) {
+                    return Promise.reject({message: "QnA object not found."});
+                }
+
+                clientQnA = qnaObj;
+
+                let playerProm = dbconfig.collection_players.findOne({_id: clientQnA.playerObjId}).lean();
+                let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+
+                return Promise.all([playerProm, platformProm]);
+            }
+        ).then(
+            data => {
+                if (!data || !data[0]) {
+                    return Promise.reject({message: "Player not found."});
+                }
+
+                if (!data[1]){
+                    return Promise.reject({message: "Platform not found."});
+                }
+
+                player = data[0];
+                platform = data[1];
+
+                return dbPlayerMail.verifySMSValidationCode(player.phoneNumber, platform, inputDataObj.code);
+            }
+        ).then(
+            () => {
+                return dbconfig.collection_clientQnATemplate.findOne({
+                    type: constClientQnA.EDIT_BANK_CARD,
+                    processNo: "4_1"
+                }).lean();
+            }
+        ).then(
+            template => {
+                if (template) {
+                    template.qnaObjId = clientQnA._id;
+                }
+
+                return template;
+            }
+        );
+    },
+
+    editBankCard3_2: (platformObjId, inputDataObj, qnaObjId) => {
+        let clientQnA, player, platform;
+        let correctAnswer = [];
+        let wrongAnswer = [];
+
+        if (!inputDataObj || !inputDataObj.phoneNumber || !dbutility.isNumeric(inputDataObj.lastWithdrawalAmount)) {
+            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        }
+
+        return dbconfig.collection_clientQnA.findOne({_id: qnaObjId}).lean().then(
+            qnaObj => {
+                if (!qnaObj) {
+                    return Promise.reject({message: "QnA object not found."});
+                }
+
+                clientQnA = qnaObj;
+
+                let playerProm = dbconfig.collection_players.findOne({_id: clientQnA.playerObjId}).lean();
+                let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+
+                return Promise.all([playerProm, platformProm]);
+            }
+        ).then(
+            data => {
+                if (!data || !data[0]) {
+                    return Promise.reject({message: "Player not found."});
+                }
+
+                if (!data[1]){
+                    return Promise.reject({message: "Platform not found."});
+                }
+
+                player = data[0];
+                platform = data[1];
+
+                return dbconfig.collection_proposal.find({
+                    mainType: constProposalMainType["PlayerBonus"],
+                    "data.playerObjId": player._id,
+                    status: constProposalStatus.SUCCESS
+                }).sort({createTime: -1}).limit(1);
+            }
+        ).then(
+            bonusProposalArray => {
+                let lastWithdrawalAmount = 0;
+                if (bonusProposalArray && bonusProposalArray[0] && bonusProposalArray[0].data && bonusProposalArray[0].data.amount) {
+                    lastWithdrawalAmount = bonusProposalArray[0].data.amount;
+                }
+                console.log('lastWithdrawalAmount', lastWithdrawalAmount)
+
+                if (inputDataObj.phoneNumber == player.phoneNumber) {
+                    correctAnswer.push(1);
+                } else {
+                    wrongAnswer.push(1);
+                }
+
+                if ((!inputDataObj.bankAccount && !player.bankAccount) || inputDataObj.bankAccount == player.bankAccount) {
+                    correctAnswer.push(2);
+                } else {
+                    wrongAnswer.push(2);
+                }
+
+
+                if (inputDataObj.lastWithdrawalAmount < (lastWithdrawalAmount + 0.99) && inputDataObj.lastWithdrawalAmount > (lastWithdrawalAmount - 0.99)) {
+                    correctAnswer.push(3);
+                } else {
+                    wrongAnswer.push(3);
+                }
+
+                if (wrongAnswer.length > 0) {
+                    return dbClientQnA.securityQuestionReject(qnaObjId, correctAnswer, wrongAnswer);
+                }
+
+                return dbconfig.collection_clientQnATemplate.findOne({
+                    type: constClientQnA.EDIT_BANK_CARD,
+                    processNo: "4_1"
+                }).lean();
+            }
+        ).then(
+            template => {
+                if (template) {
+                    template.qnaObjId = clientQnA._id;
+                }
+
+                return template;
+            }
+        );
+    },
+
+    editBankCard4_1: (platformObjId, inputDataObj, qnaObjId, creator) => {
+        let clientQnA, player, platform;
+
+        if (!inputDataObj || !inputDataObj.bankAccount || !(inputDataObj.bankAccount.length === 16 || inputDataObj.bankAccount.length === 19) || !inputDataObj.bankType || !inputDataObj.bankAccountType || !inputDataObj.bankCardProvince || !inputDataObj.bankAccountCity || !inputDataObj.bankAddress) {
+            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        }
+
+        return dbconfig.collection_clientQnA.findOne({_id: qnaObjId}).lean().then(
+            qnaObj => {
+                if (!qnaObj) {
+                    return Promise.reject({message: "QnA object not found."});
+                }
+
+                clientQnA = qnaObj;
+
+                let playerProm = dbconfig.collection_players.findOne({_id: clientQnA.playerObjId}).lean();
+                let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+
+                return Promise.all([playerProm, platformProm]);
+            }
+        ).then(
+            data => {
+                if (!data || !data[0]) {
+                    return Promise.reject({message: "Player not found."});
+                }
+
+                if (!data[1]){
+                    return Promise.reject({message: "Platform not found."});
+                }
+
+                player = data[0];
+                platform = data[1];
+
+                // APPROACH 3
+                let proposalData = {
+                    creator: creator,
+                    platformId: String(platform._id),
+                    data: {
+                        _id: String(player._id),
+                        playerName: player.name,
+                        playerId: player.playerId,
+                        bankAccount: inputDataObj.bankAccount,
+                        bankName: String(inputDataObj.bankType),
+                        bankAccountType: inputDataObj.bankAccountType,
+                        bankAccountProvince: inputDataObj.bankCardProvince,
+                        bankAccountCity: inputDataObj.bankAccountCity,
+                        bankAddress: inputDataObj.bankAddress,
+                    }
+                };
+                return dbProposal.createProposalWithTypeNameWithProcessInfo(platform._id, constProposalType.UPDATE_PLAYER_BANK_INFO, proposalData);
+
+                // APPROACH 2
+                // return dbPlayerInfo.updatePlayerPayment(0, {playerId: player.playerId}, {
+                //     bankAccount: inputDataObj.bankAccount,
+                //     bankType: inputDataObj.bankType,
+                //     bankAccountType: inputDataObj.bankAccountType,
+                //     bankAccountProvince: inputDataObj.bankCardProvince,
+                //     bankAccountCity: inputDataObj.bankAccountCity,
+                //     bankAddress: inputDataObj.bankAddress,
+                // }, true);
+
+                // APPROACH 1
+                // return dbconfig.collection_players.findOneAndUpdate({_id: player._id, platform: player.platform}, {
+                //     bankAccount: inputDataObj.bankAccount,
+                //     bankType: inputDataObj.bankType,
+                //     bankAccountType: inputDataObj.bankAccountType,
+                //     bankAccountProvince: inputDataObj.bankCardProvince,
+                //     bankAccountCity: inputDataObj.bankAccountCity,
+                //     bankAddress: inputDataObj.bankAddress,
+                // }, {new: true}).lean();
+            }
+        ).then(
+            () => {
+                let endTitle = "Update Bank Detail Succeed";
+                let endDes = "";
+                return dbClientQnA.qnaEndMessage(endTitle, endDes)
+            }
+        );
+    },
+
     //endregion
 
     //region editName
