@@ -28839,6 +28839,11 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (vm.clientQnAData && vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.linkage == 'editBankCard'){
+                    $('#clientQnATypeTree li[data-nodeid="3"]').trigger("click");
+                    return;
+                }
+
                 socketService.$socket($scope.AppSocket, 'getClientQnAProcessStep', sendData,  function (data) {
                     if (data && data.data) {
                         $scope.$evalAsync(() => {
@@ -33372,6 +33377,7 @@ define(['js/app'], function (myApp) {
                     $('select#selectCredibilityRemarkFeedbackFilter').multipleSelect('refresh');
                     $('select#selectFeedbackTopicFilter').multipleSelect('refresh');
                     $('select#selectGameProvider').multipleSelect('refresh');
+                    vm.refreshSPicker();
                 });
             };
             vm.autoFeedbackUpdateMission = function() {

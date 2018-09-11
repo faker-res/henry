@@ -667,7 +667,9 @@
   "Pending": "待审核",
   "Approved": "成功",
   "Name Editing": "姓名修改",
-  "For security issue, please complete the bank information to faciliate withdrawal": "为了账号安全，请尽快完善银行资料以便随时提款。",
+  "Editing name is approved": "姓名修改成功",
+  "For security issue, please complete the bank information to facilitate withdrawing process": "为了账号安全，请尽快完善银行资料以便随时提款。",
+  "Complete bank account detail": "完善银行资料",
   "Rejected": "失败",
   "System": "系统",
   "approved": "已审核",
@@ -1760,6 +1762,7 @@
   "Phone number is not available": "请输入电话号码",
   "Please enter the verification code": "请输入您绑定手机接收到的短息验证码",
   "Failed to retrieve account.": "找回账号失败",
+  "Phone number does not match": "电话号码不匹配",
   "forgot user ID?": "忘记帐号？",
   "Please enter player ID": "请输入玩家帐号",
   "NEXT_STEP": "下一步",
@@ -1776,7 +1779,6 @@
   "Default password for reset password": "密码重新设置的预设值",
   "Please enter last 4 digits of bank account (must answer correctly)": "填写银行账号后4位（必需回答正确）",
   "Please enter your bank account": "请填写原绑定银行账号",
-  "Please enter the balance of your bank account": "请填写账户余额",
   "Please enter your phone number": "请填写绑定电话号码",
   "Please enter bank card name?": "银行卡姓名",
   "Please enter bank card registration city?": "开户城市",
@@ -4397,5 +4399,6 @@
   "UPDATE_PLAYER_DEPARTMENT": "编辑用户部门",
   "Please select the departments below to add/remove department(s) to FPMS account": "请勾选下列部门（复选），该部门将『添加/移除』至此后台帐号",
   "CLEAR_ALL_CHECKED": "清空勾选",
-  "orderNo": "流水单号"
+  "orderNoInfo": "存款单号（PMS 结算只匹配存款单号、收款帐号、金额后强制自动执行）",
+  "orderNo": "存款单号"
 }
