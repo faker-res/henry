@@ -66,7 +66,7 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
-            alternativeQuestion: {des: "Didn't receive? Send again", action: "forgotPasswordResendSMSCode"},
+            alternativeQuestion: {des: "Didn't receive? Send again", isResendSMS: true, action: "forgotPasswordResendSMSCode"},
             question: [{questionNo: 1, des: "Please enter the verification code"}],
             answerInput: [{type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "Verification code"}],
             action: "forgotPassword3_1"
@@ -101,7 +101,7 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
-            alternativeQuestion: {des: "Didn't receive? Send again", action: "resendSMSVerificationCode"},
+            alternativeQuestion: {des: "Didn't receive? Send again", isResendSMS: true, action: "resendSMSVerificationCode"},
             question: [{questionNo: 1, des: "Please enter the verification code"}],
             answerInput: [{type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "Verification code"}],
             action: "forgotUserID2_1"
@@ -269,7 +269,8 @@ db.clientQnATemplate.update(
         $set: {
             question: [{questionNo: 1, des: "Please insert SMS code that just received by player."}],
             answerInput: [{type: "text", objKey: "code", questionNo: 1, placeHolder: "Please enter the sms verification code"}],
-            action: "editBankCard3_1"
+            action: "editBankCard3_1",
+            alternativeQuestion: {des: "Didn't receive? Send again", isResendSMS: true, action: "editBankCardResendSMSCode"},
         }
     },
     {upsert: true}
