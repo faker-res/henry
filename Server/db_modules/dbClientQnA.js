@@ -1446,6 +1446,19 @@ var dbClientQnA = {
         );
     },
 
+    editBankCardResendSMSCode: (platformObjId, inputDataObj, qnaObjId) => {
+        return dbconfig.collection_clientQnA.findById(qnaObjId).lean().then(
+            qnaObj => {
+                // Check player send count
+                if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 5) {
+                    return dbClientQnA.editBankCard2_2(platformObjId, inputDataObj, qnaObjId);
+                } else {
+                    dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.UPDATE_BANK_INFO);
+                }
+            }
+        );
+    },
+
     editBankCard4_1: (platformObjId, inputDataObj, qnaObjId, creator) => {
         let clientQnA, player, platform;
 

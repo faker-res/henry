@@ -28829,6 +28829,20 @@ define(['js/app'], function (myApp) {
                 }
                 if (isAlternative) {
                     sendData.isAlternative = true;
+
+                    if (vm.clientQnAData.alternativeQuestion && vm.clientQnAData.alternativeQuestion.isResendSMS) {
+                        if (vm.clientQnABlockIsResend) {
+                            return;
+                        }
+
+                        let alternativeQuestionLabel = $('.alternative-question-label');
+                        alternativeQuestionLabel.css('color', 'grey');
+                        vm.clientQnABlockIsResend = true;
+                        setTimeout(function () {
+                            alternativeQuestionLabel.css('color', 'red');
+                            vm.clientQnABlockIsResend = false;
+                        }, 60000);
+                    }
                 }
                 if (vm.clientQnAData && vm.clientQnAData.processNo) {
                     sendData.processNo = vm.clientQnAData.processNo;
