@@ -1389,6 +1389,8 @@ let dbPlayerReward = {
                 let topUpRecords = data[0];
                 let consumptionData = data[1];
 
+                console.log('riccoDebug - 1223', topUpRecords, consumptionData);
+
                 let consumptionAmount = (consumptionData && consumptionData[0] && consumptionData[0].total) ? consumptionData[0].total : 0;
                 let requiredConsumptionMet = false;
                 let requiredTopUpMet = false;

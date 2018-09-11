@@ -51,6 +51,7 @@ var simplifiedChinese = {
     ", password will be send to your bound phone number, please enjoy your game!": "，同时也发送至您的绑定手机号，祝您游戏愉快！",
     "Attention! this player": "提示！此玩家多次",
     "times failed security question, please contact customer service to verify this account.": "回答错误的银行卡内容，请客服人工进行其他人工方式核对，仔细确认是否为本人。",
+    "Phone number does not match": "电话号码不匹配",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",
@@ -217,6 +218,7 @@ var simplifiedChinese = {
     "Game is not available": "游戏正在维护中",
     "Provider is not available": "游戏提供商正在维护中",
     "Incorrect player data": "玩家数据错误",
+    "Please transfer out from correct provider": "请选择正确的提供商转出",
     "Error finding player": "无法找到玩家",
     "Error getting platform reward data": "无法找到奖励数据",
     "Error creating proposal": "无法创建提案",
