@@ -2369,6 +2369,10 @@ let dbPlayerInfo = {
 
         return deferred.promise;
     },
+
+    resetPassword: function (platformId, name, smsCode, answer, phoneNumber, code) {
+
+    },
     /**
      *  Update password
      */

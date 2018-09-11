@@ -769,6 +769,11 @@ let PlayerServiceImplement = function () {
         ).catch(WebSocketUtil.errorHandler).done();
     };
 
+    this.resetPassword.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && ((data.name && data.smsCode && data.phoneNumber) || (data.name && data.answer && data.answer.length) || (data.name && data.code)));
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.resetPassword, [data.platformId, data.name, data.smsCode, data.answer, data.phoneNumber, data.code], isValidData, false, false, true);
+    };
+
     this.updatePasswordPlayerPartner.expectsData = 'playerId: String, partnerId: String, oldPassword: String, newPassword: String';
     this.updatePasswordPlayerPartner.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.playerId && data.partnerId && data.oldPassword && data.newPassword && (data.playerId == conn.playerId) && data.partnerId == conn.partnerId);

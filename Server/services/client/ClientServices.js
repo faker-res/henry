@@ -58,6 +58,7 @@
                 "updatePlayerPartnerPaymentInfo",
                 "updateSmsSetting",
                 "updatePassword",
+                "resetPassword",
                 "updatePasswordPlayerPartner",
                 "updateSMSSetting",
                 "getSmsStatus",
