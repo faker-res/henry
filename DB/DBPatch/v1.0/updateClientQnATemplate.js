@@ -226,18 +226,6 @@ db.clientQnATemplate.update(
     },
     {upsert: true});
 
-db.clientQnATemplate.update(
-    {
-        processNo: "6_1",
-        type: type3
-    },
-    {
-        $set: {
-            question: [{questionNo: 1, des: "Update phone number success"}],
-            action: "updatePhoneNumber6_1"
-        }
-    },
-    {upsert: true});
 
 //region editBankCard
 var type4 = "editBankCard";
