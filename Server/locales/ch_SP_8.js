@@ -286,6 +286,7 @@ var simplifiedChinese = {
     "Player has too much valid credit": "玩家额度过多",
     "The binded account is: ": "您该手机号码绑定的游戏帐号为：",
     "Password has reset to: ": "密码已重新设置为: ",
+    "Please transfer out from correct provider": "请选择正确的提供商转出",
     "Please login to change password immediately.": "请尽速登入修改密码。",
     "Player has applied for this reward": "玩家已申请过该奖励",
     "Amount is not enough": "提款金额必须大于100元",

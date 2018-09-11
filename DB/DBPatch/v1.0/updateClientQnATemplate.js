@@ -116,10 +116,8 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
-            alternativeQuestion: {des: "Didn't receive? Send again", action: "resendSMSVerificationCode"},
-            question: [{questionNo: 1, des: "Please enter the verification code"}],
-            answerInput: [{type: "checkbox", objKey: "smsCode", questionNo: 1, placeHolder: "Verification code"}],
-            action: "forgotUserID2_1"
+            question: [{questionNo: 1, des: "Please choose an account to reset:"}],
+            action: "forgotUserId3_2"
         }
     },
     {upsert: true});
@@ -227,6 +225,7 @@ db.clientQnATemplate.update(
         }
     },
     {upsert: true});
+
 
 //region editBankCard
 var type4 = "editBankCard";
