@@ -271,6 +271,7 @@ var simplifiedChinese = {
     "Some top up records have been used": "充值记录已被使用",
     "The binded account is: ": "您该手机号码绑定的游戏帐号为：",
     "Password has reset to: ": "密码已重新设置为: ",
+    "Please transfer out from correct provider": "请选择正确的提供商转出",
     "Please login to change password immediately.": "请尽速登入修改密码。",
     "Top up count has not met period condition": "未达到周期内存款笔数条件",
     "Error calculating player consumption return": "结算返点失败",

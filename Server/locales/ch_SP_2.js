@@ -218,6 +218,7 @@ var simplifiedChinese = {
     "Game is not available": "游戏正在维护中",
     "Provider is not available": "游戏提供商正在维护中",
     "Incorrect player data": "玩家数据错误",
+    "Please transfer out from correct provider": "请选择正确的提供商转出",
     "Error finding player": "无法找到玩家",
     "Error getting platform reward data": "无法找到奖励数据",
     "Error creating proposal": "无法创建提案",

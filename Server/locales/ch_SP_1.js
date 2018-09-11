@@ -225,6 +225,7 @@ var simplifiedChinese = {
     "This top up record has been used": "该充值记录已被使用",
     "The binded account is: ": "您该手机号码绑定的游戏帐号为：",
     "Password has reset to: ": "密码已重新设置为: ",
+    "Please transfer out from correct provider": "请选择正确的提供商转出",
     "Please login to change password immediately.": "请尽速登入修改密码。",
     "Player is not enable": "用户没有发现或无效密码",
     "Player is forbidden to login": "玩家被禁止登录",

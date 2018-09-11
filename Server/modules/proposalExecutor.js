@@ -53,6 +53,7 @@ var cpmsAPI = require("../externalAPI/cpmsAPI");
 
 const moment = require('moment-timezone');
 const ObjectId = mongoose.Types.ObjectId;
+const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 
 /**
  * Proposal executor
@@ -2562,6 +2563,16 @@ var proposalExecutor = {
                                 {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
                                 updateData
                             ).then(
+                                playerData => {
+                                    if(proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply){
+                                        let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
+                                        let newPermissionObj = {applyBonus: false};
+                                        let remark = "优惠提案：" + proposalData.proposalId +  "(领取优惠后禁用提款)";
+                                        dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj);
+                                    }
+                                    return playerData;
+                                }
+                            ).then(
                                 () => {
                                     deferred.resolve(data);
                                 },
@@ -2608,6 +2619,16 @@ var proposalExecutor = {
                                 {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
                                 updateData
                             ).then(
+                                playerData => {
+                                    if(proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply){
+                                        let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
+                                        let newPermissionObj = {applyBonus: false};
+                                        let remark = "优惠提案：" + proposalData.proposalId +  "(领取优惠后禁用提款)";
+                                        dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj);
+                                    }
+                                    return playerData;
+                                }
+                            ).then(
                                 () => {
                                     deferred.resolve(data);
                                 },
@@ -2651,6 +2672,16 @@ var proposalExecutor = {
                             dbconfig.collection_players.findOneAndUpdate(
                                 {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
                                 updateData
+                            ).then(
+                                playerData => {
+                                    if(proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply){
+                                        let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
+                                        let newPermissionObj = {applyBonus: false};
+                                        let remark = "优惠提案：" + proposalData.proposalId +  "(领取优惠后禁用提款)";
+                                        dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj);
+                                    }
+                                    return playerData;
+                                }
                             ).then(
                                 () => {
                                     deferred.resolve(data);
@@ -2696,6 +2727,16 @@ var proposalExecutor = {
                                 {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
                                 updateData
                             ).then(
+                                playerData => {
+                                    if(proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply){
+                                        let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
+                                        let newPermissionObj = {applyBonus: false};
+                                        let remark = "优惠提案：" + proposalData.proposalId +  "(领取优惠后禁用提款)";
+                                        dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj);
+                                    }
+                                    return playerData;
+                                }
+                            ).then(
                                 () => {
                                     deferred.resolve(data);
                                 },
@@ -2739,6 +2780,16 @@ var proposalExecutor = {
                             dbconfig.collection_players.findOneAndUpdate(
                                 {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
                                 updateData
+                            ).then(
+                                playerData => {
+                                    if(proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply){
+                                        let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
+                                        let newPermissionObj = {applyBonus: false};
+                                        let remark = "优惠提案：" + proposalData.proposalId +  "(领取优惠后禁用提款)";
+                                        dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj);
+                                    }
+                                    return playerData;
+                                }
                             ).then(
                                 () => {
                                     deferred.resolve(data);
@@ -2787,6 +2838,16 @@ var proposalExecutor = {
                             dbconfig.collection_players.findOneAndUpdate(
                                 {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
                                 updateData
+                            ).then(
+                                playerData => {
+                                    if(proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply){
+                                        let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
+                                        let newPermissionObj = {applyBonus: false};
+                                        let remark = "优惠提案：" + proposalData.proposalId +  "(领取优惠后禁用提款)";
+                                        dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj);
+                                    }
+                                    return playerData;
+                                }
                             ).then(
                                 () => {
                                     deferred.resolve(data);

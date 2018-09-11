@@ -885,8 +885,9 @@ let dbPlayerReward = {
         let requiredBet = 0;
         let requireBoth = false;
         let isSharedWithXIMA = false;
+        let forbidWithdrawIfBalanceAfterUnlock = 0;
 
-        function insertOutputList(status, step, bonus, requestedTimes, targetDate, forbidWithdrawAfterApply, remark, isSharedWithXIMA, meetRequirement, requiredConsumptionMet, requiredTopUpMet, usedTopUpRecord, spendingAmount) {
+        function insertOutputList(status, step, bonus, requestedTimes, targetDate, forbidWithdrawAfterApply, remark, isSharedWithXIMA, meetRequirement, requiredConsumptionMet, requiredTopUpMet, usedTopUpRecord, forbidWithdrawIfBalanceAfterUnlock, spendingAmount) {
             let listItem = {
                 status, // 0 - unavailable, 1 - available, 2 - applied
                 step,
@@ -904,6 +905,7 @@ let dbPlayerReward = {
                 listItem.requiredConsumptionMet = requiredConsumptionMet;
                 listItem.requiredTopUpMet = requiredTopUpMet;
                 listItem.usedTopUpRecord = usedTopUpRecord;
+                listItem.forbidWithdrawIfBalanceAfterUnlock = forbidWithdrawIfBalanceAfterUnlock;
                 if (spendingAmount){
                     listItem.spendingAmount = spendingAmount;
                 }
@@ -968,6 +970,14 @@ let dbPlayerReward = {
             } else {
                 rewardProposalQuery.settleTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
                 similarRewardProposalProm = dbConfig.collection_proposal.find(rewardProposalQuery).sort({"data.consecutiveNumber": -1, createTime: -1}).lean();
+            }
+
+            if(player.playerLevel && player.playerLevel._id && event && event.param && event.param.rewardParam && event.param.rewardParam.length > 0 ){
+                event.param.rewardParam.forEach(param => {
+                    if(param && param.levelId == player.playerLevel._id && param.value && param.value.length > 0){
+                        forbidWithdrawIfBalanceAfterUnlock = param.value[0].forbidWithdrawIfBalanceAfterUnlock || 0;
+                    }
+                })
             }
 
             return similarRewardProposalProm;
@@ -1112,7 +1122,7 @@ let dbPlayerReward = {
                                 let spendingAmount = (bonus + result.topUpDayAmount) * requestedTimes;
                                 insertOutputList(1, consecutiveNumber, bonus, requestedTimes, result.targetDate,
                                     selectedParam.forbidWithdrawAfterApply, selectedParam.remark, isSharedWithXIMA,
-                                    result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, spendingAmount);
+                                    result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, forbidWithdrawIfBalanceAfterUnlock, spendingAmount);
                             }
 
                         }
@@ -1123,7 +1133,7 @@ let dbPlayerReward = {
 
                             insertOutputList(1, consecutiveNumber, bonus, requestedTimes, result.targetDate,
                                 selectedParam.forbidWithdrawAfterApply, selectedParam.remark, isSharedWithXIMA,
-                                result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
+                                result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, forbidWithdrawIfBalanceAfterUnlock);
                         }
                     }
                 } else if (checkResults.length > 1) {
@@ -1171,7 +1181,7 @@ let dbPlayerReward = {
 
                                     insertOutputList(1, step, bonus, requestedTimes, targetDate,
                                         currentParam.forbidWithdrawAfterApply, currentParam.remark, isSharedWithXIMA,
-                                        result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, spendingAmount);
+                                        result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, forbidWithdrawIfBalanceAfterUnlock, spendingAmount);
                                 }
                             }
                         }else {
@@ -1186,7 +1196,7 @@ let dbPlayerReward = {
 
                                 insertOutputList(1, step, bonus, requestedTimes, targetDate,
                                     currentParam.forbidWithdrawAfterApply, currentParam.remark, isSharedWithXIMA,
-                                    result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
+                                    result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, forbidWithdrawIfBalanceAfterUnlock);
                             }
                         }
                     } else if (event.condition.requireNonBreakingCombo) {
@@ -1217,7 +1227,7 @@ let dbPlayerReward = {
                                 let spendingAmount = (bonus + totalTopUpAmount) * requestedTimes;
                                 insertOutputList(1, consecutiveNumber, bonus, requestedTimes, targetDate,
                                     currentParam.forbidWithdrawAfterApply, currentParam.remark, isSharedWithXIMA,
-                                   result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, spendingAmount);
+                                   result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, forbidWithdrawIfBalanceAfterUnlock, spendingAmount);
                             }
                         }
                         else{                    
@@ -1227,7 +1237,7 @@ let dbPlayerReward = {
 
                                insertOutputList(1, consecutiveNumber, bonus, requestedTimes, targetDate,
                                    selectedParam.forbidWithdrawAfterApply, selectedParam.remark, isSharedWithXIMA,
-                                   result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
+                                   result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, forbidWithdrawIfBalanceAfterUnlock);
                            }
                         }
 
@@ -1250,7 +1260,7 @@ let dbPlayerReward = {
 
                                         insertOutputList(1, currentStreak + 1, bonus, requestedTimes, result.targetDate,
                                             currentParam.forbidWithdrawAfterApply, currentParam.remark, isSharedWithXIMA,
-                                            result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, spendingAmount);
+                                            result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, forbidWithdrawIfBalanceAfterUnlock, spendingAmount);
                                         currentStreak++;
                                     }
                                 }
@@ -1267,7 +1277,7 @@ let dbPlayerReward = {
 
                                     insertOutputList(1, currentStreak + 1, bonus, requestedTimes, result.targetDate,
                                         currentParam.forbidWithdrawAfterApply, currentParam.remark, isSharedWithXIMA,
-                                        result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
+                                        result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, forbidWithdrawIfBalanceAfterUnlock);
                                     currentStreak++;
                                 }
                             }
@@ -1286,7 +1296,7 @@ let dbPlayerReward = {
 
                                     insertOutputList(1, consecutiveNumber, bonus, requestedTimes, result.targetDate,
                                         selectedParam.forbidWithdrawAfterApply, selectedParam.remark, isSharedWithXIMA,
-                                        result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, spendingAmount);
+                                        result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, forbidWithdrawIfBalanceAfterUnlock, spendingAmount);
                                 }
                             }
                             else{
@@ -1295,7 +1305,7 @@ let dbPlayerReward = {
 
                                 insertOutputList(1, consecutiveNumber, bonus, requestedTimes, result.targetDate,
                                     selectedParam.forbidWithdrawAfterApply, selectedParam.remark, isSharedWithXIMA,
-                                    result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord);
+                                    result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, forbidWithdrawIfBalanceAfterUnlock);
                             }
 
                         }
@@ -1388,6 +1398,8 @@ let dbPlayerReward = {
             return Promise.all([topUpProm, consumptionProm]).then(data => {
                 let topUpRecords = data[0];
                 let consumptionData = data[1];
+
+                console.log('riccoDebug - 1223', topUpRecords, consumptionData);
 
                 let consumptionAmount = (consumptionData && consumptionData[0] && consumptionData[0].total) ? consumptionData[0].total : 0;
                 let requiredConsumptionMet = false;
@@ -5537,6 +5549,7 @@ let dbPlayerReward = {
                                 let isSharedWithXIMA = listItem.isSharedWithXIMA;
                                 let requiredConsumptionMet = listItem.requiredConsumptionMet;
                                 let requiredTopUpMet = listItem.requiredTopUpMet;
+                                let forbidWithdrawIfBalanceAfterUnlock = listItem.forbidWithdrawIfBalanceAfterUnlock;
 
                                 applicationDetails.push({
                                     rewardAmount,
@@ -5547,7 +5560,8 @@ let dbPlayerReward = {
                                     remark,
                                     isSharedWithXIMA,
                                     requiredConsumptionMet,
-                                    requiredTopUpMet
+                                    requiredTopUpMet,
+                                    forbidWithdrawIfBalanceAfterUnlock
                                 });
                             }
                         }
@@ -5944,7 +5958,8 @@ let dbPlayerReward = {
                                     forbidWithdrawAfterApply: Boolean(applyDetail.forbidWithdrawAfterApply && applyDetail.forbidWithdrawAfterApply === true),
                                     remark: applyDetail.remark,
                                     useConsumption: Boolean(!applyDetail.isSharedWithXIMA),
-                                    providerGroup: eventData.condition.providerGroup
+                                    providerGroup: eventData.condition.providerGroup,
+                                    forbidWithdrawIfBalanceAfterUnlock: applyDetail.forbidWithdrawIfBalanceAfterUnlock ? applyDetail.forbidWithdrawIfBalanceAfterUnlock : 0,
                                 },
                                 entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                 userType: constProposalUserType.PLAYERS

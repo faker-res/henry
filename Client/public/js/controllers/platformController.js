@@ -28839,6 +28839,11 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (vm.clientQnAData && vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.linkage == 'editBankCard'){
+                    $('#clientQnATypeTree li[data-nodeid="3"]').trigger("click");
+                    return;
+                }
+
                 socketService.$socket($scope.AppSocket, 'getClientQnAProcessStep', sendData,  function (data) {
                     if (data && data.data) {
                         $scope.$evalAsync(() => {
@@ -33621,6 +33626,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initAutoFeedbackSearchDetail = function() {
+                vm.autoFeedbackSearchDetailResult = {};
                 vm.autoFeedbackMissionSearchDetail = {
                     startTime: null,
                     endTime: null
