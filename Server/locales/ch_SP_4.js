@@ -261,6 +261,7 @@ var simplifiedChinese = {
     "Invalid player top up reward event data for platform": "无效奖励活动",
     "The binded account is: ": "您该手机号码绑定的游戏帐号为：",
     "Password has reset to: ": "密码已重新设置为: ",
+    "Please transfer out from correct provider": "请选择正确的提供商转出",
     "Please login to change password immediately.": "请尽速登入修改密码。",
     "Topup amount is less than minimum topup requirement": "充值额度不够",
     "Wrong promo code has entered": "您输入了错误的优惠代码，请确认您的短信内容。",
