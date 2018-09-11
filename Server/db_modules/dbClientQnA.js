@@ -874,7 +874,7 @@ var dbClientQnA = {
                                 type: constClientQnA.UPDATE_PHONE,
                                 platform: platformObjId}).lean().then(
                                     configData => {
-                                        if (configData && configData.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("updatePhoneNumber") && playerData.qnaWrongCount.forgotPassword > configData.wrongCount) {
+                                        if (configData && configData.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("updatePhoneNumber") && playerData.qnaWrongCount.updatePhoneNumber > configData.wrongCount) {
                                             return dbClientQnA.rejectSecurityQuestionFirstTime();
                                         } else {
                                             return dbconfig.collection_clientQnATemplate.findOne({
@@ -1048,7 +1048,7 @@ var dbClientQnA = {
                         return dbconfig.collection_players.findOneAndUpdate({_id: clientQnAData.playerObjId, platform:platformObjId},{$inc: {"qnaWrongCount.updatePhoneNumber": 1}},{new:true}).lean().then(
                             updatedPlayerData => {
                                 if (!updatedPlayerData) {
-                                    return Promise.reject({name: "DBError", message: "Update player QnA wrong count  failed"})
+                                    return Promise.reject({name: "DBError", message: "Update player QnA wrong count failed"})
                                 }
                                 if ((configData.wrongCount && updatedPlayerData.qnaWrongCount.updatePhoneNumber <= configData.wrongCount) || !configData.wrongCount) {
                                     return dbClientQnA.securityQuestionReject(clientQnAData.playerObjId, correctQues, inCorrectQues, "updatePhoneNumber");
