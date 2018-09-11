@@ -2182,7 +2182,11 @@ let dbPlayerInfo = {
     },
 
 
-    updatePlayerPermission: function (query, admin, permission, remark) {
+    updatePlayerPermission: function (query, admin, permission, remark, selected) {
+        if (selected && selected.mainPermission) {
+            permission = {};
+            permission[selected.mainPermission] = selected.status;
+        }
         var updateObj = {};
         for (var key in permission) {
             updateObj["permission." + key] = permission[key];
@@ -2191,11 +2195,12 @@ let dbPlayerInfo = {
             function (suc) {
                 var oldData = {};
                 for (var i in permission) {
-                    if (suc.permission[i] != permission[i]) {
-                        oldData[i] = suc.permission[i];
-                    } else {
-                        delete permission[i];
-                    }
+                    // if (suc.permission[i] != permission[i]) {
+                    //     oldData[i] = suc.permission[i];
+                    // } else {
+                    //     delete permission[i];
+                    // }
+                    oldData[i] = suc && suc.permission ? suc.permission[i] : "";
                 }
                 // if (Object.keys(oldData).length !== 0) {
                 var newLog = new dbconfig.collection_playerPermissionLog({
