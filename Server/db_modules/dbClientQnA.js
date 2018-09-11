@@ -166,15 +166,12 @@ var dbClientQnA = {
         return Promise.resolve(false);
     },
 
-    verifyPhoneNumberBySMSCode:function(clientQnAData, code){
-        console.log(clientQnAData.QnAData)
-        code = code.toString()
-        return dbPlayerMail.verifyPhoneNumberBySMSCode(clientQnAData.QnAData.playerId, code)
-        .then(data=>{
-            return Promise.resolve();
-        },err=>{
-            return Promise.reject({name: "DBError", message: err.message})
-        })
+    verifyPhoneNumberBySMSCode: function(clientQnAData, code){
+        let result = false;
+        if(clientQnAData.QnAData.smsCode == code){
+            result = true;
+        }
+        return result;
     },
 
     // return reject security question when show for the first time
@@ -682,6 +679,15 @@ var dbClientQnA = {
                         return Promise.reject({name: "DBError", message: "update QnA data failed"})
                     }
                     clientQnAData = clientQnA;
+                    return clientQnAData
+            }).then(
+                () => {
+                    return dbconfig.collection_players.findOne({_id: clientQnAData.playerObjId}).lean()
+            }).then(
+                (playerData) => {
+                    if(playerData.phoneNumber != inputDataObj.phoneNumber){
+                        return Promise.reject({name: "DBError", message: "Thats not same phone you are using"})
+                    }
                     return dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.OLD_PHONE_NUMBER)
 
             }).then(
@@ -763,9 +769,10 @@ var dbClientQnA = {
                     return Promise.reject({name: "DBError", message: "update QnA data failed"})
                 }
                 clientQnAData = clientQnA;
-                return dbClientQnA.verifyPhoneNumberBySMSCode(clientQnAData, inputDataObj.smsCode)
-
-            }).then(() => {
+                let validateResult = dbClientQnA.verifyPhoneNumberBySMSCode(clientQnAData, inputDataObj.smsCode)
+                if(!validateResult){
+                    return Promise.reject({name: "DBError", message: "SMS not match"})
+                }
 
                 let processNo = '4_1';
                 return dbconfig.collection_clientQnATemplate.findOne({
