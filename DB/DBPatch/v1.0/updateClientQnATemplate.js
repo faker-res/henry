@@ -262,9 +262,9 @@ db.clientQnATemplate.update(
                 {questionNo: 3, des: "Please enter last withdraw amount?"}
                 ],
             answerInput: [
-                {type: "text", objKey: "phoneNumber", questionNo: 1},
-                {type: "text", objKey: "bankAccount", questionNo: 2},
-                {type: "text", objKey: "amount", questionNo: 3}
+                {type: "text", objKey: "phoneNumber", questionNo: 1, placeHolder: "Need match phone number"},
+                {type: "text", objKey: "bankAccount", questionNo: 2, placeHolder: "The length is limit to 16, 19  , or if none then not need to input"},
+                {type: "text", objKey: "amount", questionNo: 3, placeHolder: "Enter a round number, if none any withdraw made, just type 0"}
                 ],
             action: "updatePhoneNumber3_2"
         }
