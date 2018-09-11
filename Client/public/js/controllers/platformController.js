@@ -28872,6 +28872,17 @@ define(['js/app'], function (myApp) {
                             if (vm.clientQnAData && vm.clientQnAData.questionTitle && vm.clientQnAData.isSecurityQuestion) {
                                 vm.questionLabelStyle = "text-align:left;display:inline-block";
                             }
+
+                            if (vm.clientQnAData.updateAnswer){
+
+                                vm.clientQnAInput = {};
+                                vm.clientQnAData.updateAnswer.forEach(
+                                    item => {
+                                        vm.clientQnAInput[item.objKey] = item[item.objKey]
+                                    }
+                                )
+                                vm.getCityListQnA();
+                            }
                         });
                     }
                 }, function (err) {

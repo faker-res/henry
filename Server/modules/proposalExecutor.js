@@ -755,6 +755,7 @@ var proposalExecutor = {
              * execution function for update player real name proposal type
              */
             executeUpdatePlayerRealName: function (proposalData, deferred) {
+                console.log("checking----executeUpdatePlayerRealName", proposalData)
                 //valid data
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.realNameAfterEdit) {
 
