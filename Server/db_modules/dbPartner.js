@@ -6549,6 +6549,8 @@ let dbPartner = {
                         ? providerGroupConsumptionData[groupRate.groupName].validAmount
                         : -providerGroupConsumptionData[groupRate.groupName].bonusAmount;
 
+                    let totalBonusAmount = -providerGroupConsumptionData[groupRate.groupName].bonusAmount;
+
                     commissionRates[groupRate.groupName] = getCommissionRate(groupRate.rateTable, totalConsumption, activeDownLines);
 
                     let platformFeeRateData = {};
@@ -6571,7 +6573,7 @@ let dbPartner = {
 
                     let rawCommission = calculateRawCommission(totalConsumption, commissionRates[groupRate.groupName].commissionRate);
 
-                    let platformFee =  platformFeeRate * totalConsumption / 100;
+                    let platformFee =  platformFeeRate * totalBonusAmount / 100;
                     platformFee = platformFee >= 0 ? platformFee : 0;
                     totalPlatformFee += platformFee;
 
