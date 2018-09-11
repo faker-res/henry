@@ -23571,6 +23571,9 @@ define(['js/app'], function (myApp) {
                             else if (item.data && item.data.PROMO_CODE_TYPE){
                                 item.name = item.data.PROMO_CODE_TYPE;
                             }
+                            else if (item.promoCodeTemplateObjId && item.promoCodeTemplateObjId.name){
+                                item.name = item.promoCodeTemplateObjId.name;
+                            }
 
                             if(item.playerObjId){
                                 item.playerName$ = item.playerObjId.name;

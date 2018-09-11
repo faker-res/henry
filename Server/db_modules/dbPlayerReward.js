@@ -2328,6 +2328,7 @@ let dbPlayerReward = {
 
                         let promoCodesProm = dbConfig.collection_promoCode.find(query)
                             .populate({path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType})
+                            .populate({path: "promoCodeTemplateObjId", model: dbConfig.collection_promoCodeTemplate})
                             .populate(populateCond).lean();
 
                         let bonusUrlProm = Promise.resolve();
@@ -2349,6 +2350,9 @@ let dbPlayerReward = {
                                     let bonusListArr = [];
 
                                     promocodes.forEach(promocode => {
+                                        if(promocode.promoCodeTemplateObjId) {
+                                            promocode.promoCodeTypeObjId = promocode.promoCodeTemplateObjId;
+                                        }
                                         if (promocode.promoCodeTypeObjId == null) {
                                             return;
                                         }
@@ -2615,6 +2619,10 @@ let dbPlayerReward = {
                         model: dbConfig.collection_promoCodeType
                     })
                     .populate({
+                        path: "promoCodeTemplateObjId",
+                        model: dbConfig.collection_promoCodeTemplate
+                    })
+                    .populate({
                         path: "allowedProviders",
                         model: searchQuery.isProviderGroup ? dbConfig.collection_gameProviderGroup : dbConfig.collection_gameProvider
                     })
@@ -2632,7 +2640,7 @@ let dbPlayerReward = {
                                     'data.eventCode': 'KFSYHDM',
                                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                                     createTime: openQuery.createTime
-                                }
+                                };
 
                                 if (playerObjId){
                                     findQuery['data.playerObjId'] = playerObjId;
@@ -2657,6 +2665,9 @@ let dbPlayerReward = {
         ).then(
             res => {
                 if (res && res.length == 2){
+                    if(res[0].promoCodeTemplateObjId) {
+                        res[0].promoCodeTypeObjId = res[0].promoCodeTemplateObjId;
+                    }
 
                     let f1 = searchQuery.promoCodeType ? res[0].filter(e => e.promoCodeTypeObjId.type == searchQuery.promoCodeType) : res[0];
                     let f2 = searchQuery.promoCodeSubType ? f1.filter(e => e.promoCodeTypeObjId.name == searchQuery.promoCodeSubType) : f1;
@@ -3160,6 +3171,8 @@ let dbPlayerReward = {
                         status: constPromoCodeStatus.AVAILABLE
                     }).populate({
                         path: "promoCodeTypeObjId", model: dbConfig.collection_promoCodeType
+                    }).populate({
+                        path: "promoCodeTemplateObjId", model: dbConfig.collection_promoCodeTemplate
                     }).lean();
                 } else {
                     return Promise.reject({
@@ -3174,6 +3187,9 @@ let dbPlayerReward = {
                 if (promoCodeObjs && promoCodeObjs.length > 0) {
                     promoCodeObjs.some(e => {
                         if (e.code == promoCode) {
+                            if(e.promoCodeTemplateObjId) {
+                                e.promoCodeTypeObjId = e.promoCodeTemplateObjId;
+                            }
                             return promoCodeObj = e;
                         }
                     });
