@@ -765,6 +765,7 @@ var dbClientQnA = {
                     return dbconfig.collection_players.findOne({_id: clientQnAData.playerObjId}).lean()
             }).then(
                 (playerData) => {
+                    console.log(playerData.phoneNumber);
                     if(playerData.phoneNumber != inputDataObj.phoneNumber){
                         return Promise.reject({name: "DBError", message: "Thats not same phone you are using"})
                     }
@@ -922,6 +923,10 @@ var dbClientQnA = {
                 }).then(
                     withdraw=>{
                         lastWithdraw = (withdraw && withdraw.data) ? withdraw.data : { amount : 0};
+                        if(lastWithdraw.amount != 0){
+                            lastWithdraw.amount = parseInt(lastWithdraw.amount);
+                        }
+                        console.log(lastWithdraw.amount)
                         return dbconfig.collection_players.findOne({_id: clientQnAData.playerObjId, platform: platformObjId}).lean();
                 }).then(
                 playerData => {
@@ -937,8 +942,10 @@ var dbClientQnA = {
                         inCorrectQues.push(questionNo.phoneNumber);
                     }
 
-
-                    if (playerData.bankAccount && playerData.bankAccount.slice(-4) == inputDataObj.bankAccount) {
+                    if (!playerData.bankAccount){
+                        correctQues.push(questionNo.bankAccount);
+                        updateObj["QnAData.bankAccount"] = '';
+                    }else if (playerData.bankAccount == inputDataObj.bankAccount) {
                         correctQues.push(questionNo.bankAccount);
                         updateObj["QnAData.bankAccount"] = inputDataObj.bankAccount;
                     } else {
@@ -946,7 +953,7 @@ var dbClientQnA = {
                     }
 
 
-                    if (lastWithdraw.amount && lastWithdraw.amount == inputDataObj.amount) {
+                    if (lastWithdraw.amount == inputDataObj.amount) {
                         correctQues.push(questionNo.amount);
                         updateObj["QnAData.amount"] = inputDataObj.amount;
                     } else {
@@ -1094,44 +1101,20 @@ var dbClientQnA = {
                 if (!clientQnA) {
                     return Promise.reject({name: "DBError", message: "update QnA data failed"})
                 }
-
                 clientQnAData = clientQnA;
                 let code = inputDataObj.smsCode ? inputDataObj.smsCode : '';
                 return dbPlayerPartner.updatePhoneNumberWithSMS(null, clientQnAData.QnAData.platformId, clientQnAData.QnAData.playerId, clientQnAData.QnAData.phoneNumber ,code, 0)
 
-            }).then(() => {
+            }).then((data) => {
 
-                let processNo = '6_1';
-                return dbconfig.collection_clientQnATemplate.findOne({
-                    type: constClientQnA.UPDATE_PHONE,
-                    processNo: processNo
-                }).lean()
+                let endTitle = "Update phone number success";
+                let endDes = "Update phone number success";
+                return dbClientQnA.qnaEndMessage(endTitle, endDes);
+            },err=>{
 
-            }).then(
-                QnATemplate => {
-                    if (QnATemplate) {
-                        QnATemplate.qnaObjId = clientQnAData._id;
-                    }
-                    if (QnATemplate && QnATemplate.isSecurityQuestion) {
-                        return dbconfig.collection_clientQnATemplateConfig.findOne({
-                            type: constClientQnA.UPDATE_PHONE,
-                            platform: platformObjId
-                        }).lean().then(
-                            configData => {
-                                if (configData && configData.hasOwnProperty("wrongCount") && clientQnAData.hasOwnProperty("totalWrongCount") && clientQnAData.totalWrongCount > configData.wrongCount) {
-                                    return dbClientQnA.rejectSecurityQuestionFirstTime()
-                                } else {
-                                    return QnATemplate;
-                                }
-                            }
-                        )
-                    }
-                    return QnATemplate;
+                let errorMessage = err.message ? err.message : '';
+                return Promise.reject({name: "DBError", message: errorMessage})
             });
-    },
-    updatePhoneNumber6_1: function (platformObjId, inputDataObj, qnaObjId, creator) {
-        let clientQnAData = null;
-        return clientQnAData;
     },
     //endregion
 
