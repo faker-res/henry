@@ -187,16 +187,81 @@ var dbClientQnA = {
     //endregion
 
     //region forgot password
-    forgotPassword1_2: function () {
-        let QnAQuery = {
-            type: constClientQnA.FORGOT_PASSWORD,
-            processNo: "2"
-        }
-        return dbconfig.collection_clientQnATemplate.findOne(QnAQuery).lean();
+    forgotPasswordResendSMSCode: function (platformObjId, inputDataObj, qnaObjId) {
+        return dbconfig.collection_clientQnA.findById(qnaObjId).lean().then(
+            qnaObj => {
+                // Check player send count
+                if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 5) {
+                    return dbClientQnA.forgotPassword2(platformObjId, inputDataObj, qnaObjId);
+                } else {
+                    dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.UPDATE_PASSWORD);
+                }
+            }
+        );
     },
 
-    forgotPassword2_1: function () {
+    forgotPassword2_1: function (platformObjId, inputDataObj, qnaObjId) {
+        if (!(inputDataObj && inputDataObj.phoneNumber)) {
+            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        }
+        if (!qnaObjId) {
+            return Promise.reject({name: "DBError", message: "qnaObjId undefined"})
+        }
+        return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).lean().then(
+            clientQnAData => {
+                if (!(clientQnAData && clientQnAData.playerObjId)) {
+                    return Promise.reject({name: "DBError", message: "Cannot find clientQnA"})
+                }
+                return dbconfig.collection_players.findOne({_id: clientQnAData.playerObjId, phoneNumber: rsaCrypto.encrypt(inputDataObj.phoneNumber)}).lean().then(
+                    playerData => {
+                        if (!playerData) {
+                            return Promise.reject({name: "DBError", message: "Phone number does not match"})
+                        }
 
+                        dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.UPDATE_PASSWORD).catch(errorUtils.reportError);
+                        return dbconfig.collection_clientQnATemplate.findOne({
+                            processNo: "3_1",
+                            type: constClientQnA.FORGOT_PASSWORD
+                        }).lean();
+                    });
+            });
+
+    },
+
+    forgotPassword3_1: function (platformObjId, inputDataObj, qnaObjId, creator) {
+        return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).lean().then(
+            clientQnAData => {
+                if (!(clientQnAData && clientQnAData.playerObjId)) {
+                    return Promise.reject({name: "DBError", message: "Cannot find clientQnA"})
+                }
+                if (!(clientQnAData.QnAData && clientQnAData.QnAData.smsCode == inputDataObj.smsCode)) {
+                    return Promise.reject({name: "DBError", message: "Incorrect SMS Validation Code"});
+                }
+
+                return dbconfig.collection_clientQnATemplateConfig.findOne({
+                    type: constClientQnA.FORGOT_PASSWORD,
+                    platform: platformObjId
+                }).lean().then(
+                    configData => {
+                        if (!configData) {
+                            return Promise.reject({name: "DBError", message: "Cannot find QnA template config"});
+                        }
+                        if (!configData.defaultPassword) {
+                            return Promise.reject({name: "DBError", message: "Default password not found"});
+                        }
+
+                        return dbPlayerInfo.resetPlayerPassword(clientQnAData.playerObjId, configData.defaultPassword, platformObjId, false, null, creator, true).then(
+                            () => {
+                                let text1 = localization.localization.translate("Your user ID");
+                                let text2 = localization.localization.translate("password has been reset to");
+                                let text3 = localization.localization.translate(", password will be send to your bound phone number, please enjoy your game!");
+                                let endTitle = "Reset password success";
+                                let endDes = text1 + " (" + clientQnAData.QnAData.name + ") " + text2 + " {" + configData.defaultPassword + "} " + text3;
+                                return dbClientQnA.qnaEndMessage(endTitle, endDes, true);
+                            });
+                    });
+
+            });
     },
 
     forgotPassword1: function (platformObjId, inputDataObj) {
@@ -204,7 +269,11 @@ var dbClientQnA = {
             return Promise.reject({name: "DBError", message: "Invalid Data"})
         }
 
-        return dbconfig.collection_players.findOne({platform: platformObjId, name: inputDataObj.name}).lean().then(
+        return dbconfig.collection_players.findOne({platform: platformObjId, name: inputDataObj.name}).populate({
+            path: "platform",
+            model: dbconfig.collection_platform,
+            select: {platformId: 1}
+        }).lean().then(
             playerData => {
                 if (!playerData) {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
@@ -214,8 +283,15 @@ var dbClientQnA = {
                     type: constClientQnA.FORGOT_PASSWORD,
                     platformObjId: platformObjId,
                     playerObjId: playerData._id,
-                    QnAData: {name: inputDataObj.name}
+                    QnAData: {
+                        name: inputDataObj.name,
+                        playerId: playerData.playerId
+                    }
                 };
+
+                if (playerData.platform && playerData.platform.platformId) {
+                    updateObj.QnAData.platformId = playerData.platform.platformId;
+                }
 
                 return dbconfig.collection_clientQnA(updateObj).save().then(
                     clientQnAData => {
@@ -395,8 +471,10 @@ var dbClientQnA = {
                 }
 
                 if (isPass) {
-                    dbPlayerInfo.resetPlayerPassword(clientQnAObj.playerObjId, configData.defaultPassword, platformObjId, false, null, creator, true).catch(errorUtils.reportError);
-                    return dbClientQnA.qnaEndMessage(endTitle, endDes, isPass);
+                    return dbPlayerInfo.resetPlayerPassword(clientQnAObj.playerObjId, configData.defaultPassword, platformObjId, false, null, creator, true).then(
+                        () => {
+                            return dbClientQnA.qnaEndMessage(endTitle, endDes, isPass);
+                        });
                 } else {
                     return dbconfig.collection_players.findOneAndUpdate({_id: clientQnAObj.playerObjId},{$inc: {"qnaWrongCount.forgotPassword": 1}},{new:true}).lean().then(
                         updatedPlayerData => {

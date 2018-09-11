@@ -33377,6 +33377,7 @@ define(['js/app'], function (myApp) {
                     $('select#selectCredibilityRemarkFeedbackFilter').multipleSelect('refresh');
                     $('select#selectFeedbackTopicFilter').multipleSelect('refresh');
                     $('select#selectGameProvider').multipleSelect('refresh');
+                    vm.refreshSPicker();
                 });
             };
             vm.autoFeedbackUpdateMission = function() {

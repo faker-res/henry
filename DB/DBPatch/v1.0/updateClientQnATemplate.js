@@ -59,20 +59,21 @@ db.clientQnATemplate.update(
     },
     {upsert: true});
 
-// db.clientQnATemplate.update(
-//     {
-//         processNo: "2",
-//         type: type1
-//     },
-//     {
-//         $set: {
-//             alternativeQuestion: {des: "forgot user ID?", action: "forgotPassword1_2"},
-//             question: [{questionNo: 1, des: "Please enter your user ID222222222:"}],
-//             answerInput: [{type: "text", objKey: "name", questionNo: 1, placeHolder: "Please enter player ID2222222"}],
-//             action: "forgotPassword1"
-//         }
-//     },
-//     {upsert: true});
+db.clientQnATemplate.update(
+    {
+        processNo: "3_1",
+        type: type1
+    },
+    {
+        $set: {
+            alternativeQuestion: {des: "Didn't receive? Send again", action: "forgotPasswordResendSMSCode"},
+            question: [{questionNo: 1, des: "Please enter the verification code"}],
+            answerInput: [{type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "Verification code"}],
+            action: "forgotPassword3_1"
+        }
+    },
+    {upsert: true});
+
 
 // endregion
 
