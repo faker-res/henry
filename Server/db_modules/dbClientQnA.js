@@ -581,17 +581,15 @@ var dbClientQnA = {
                 }
                 return QnATemplate;
             }
-        ).catch(
-            error => {
-                if (error.message === 'Player not found') {
-                    return dbClientQnA.rejectFailedRetrieveAccount();
-                }
-
-                if (error.message === "Multiple players found") {
-                    return dbClientQnA.chooseFromMultipleAccount(clientQnAData, playersArr);
-                }
+        ).catch(error => {
+            if (error.message === 'Player not found') {
+                return dbClientQnA.rejectFailedRetrieveAccount();
             }
-        )
+
+            if (error.message === "Multiple players found") {
+                return dbClientQnA.chooseFromMultipleAccount(clientQnAData, playersArr);
+            }
+        })
     },
 
     forgotUserID2_1: function (platformObjId, inputDataObj = {}, qnaObjId) {
@@ -608,7 +606,7 @@ var dbClientQnA = {
             templateData => {
                 if (templateData && templateData.defaultPassword && qnaObj && qnaObj.QnAData && qnaObj.QnAData.playerObjId) {
                     templateObj = templateData;
-                    return dbPlayerInfo.resetPlayerPassword(qnaObj.playerObjId, templateObj.defaultPassword, platformObjId, false, false, null, true);
+                    return dbPlayerInfo.resetPlayerPassword(qnaObj.QnAData.playerObjId, templateObj.defaultPassword, platformObjId, false, false, null, true);
                 }
             }
         ).then(
@@ -620,8 +618,64 @@ var dbClientQnA = {
         )
     },
 
+    forgotUserId3_2: function (platformObjId, inputDataObj = {}, qnaObjId) {
+        let clientQnAData;
+
+        return dbconfig.collection_clientQnA.findById(qnaObjId).lean().then(
+            qnaData => {
+                clientQnAData = qnaData;
+
+                if (inputDataObj && inputDataObj.playerObjId) {
+                    return dbconfig.collection_players.findById(inputDataObj.playerObjId).populate({
+                        path: "platform",
+                        model: dbconfig.collection_platform,
+                        select: {platformId: 1}
+                    }).lean();
+                }
+
+                throw new Error('Player not found');
+            }
+        ).then(
+            playerData => {
+                if (playerData && playerData.playerId && playerData.platform.platformId) {
+                    let updObj = {
+                        $set: {
+                            'QnAData.playerObjId': playerData._id,
+                            'QnAData.playerId': playerData.playerId,
+                            'QnAData.playerName': playerData.name,
+                            'QnAData.platformId': playerData.platform.platformId,
+                        }
+                    };
+
+                    // Update clientQnAData
+                    // Send verification code
+                    dbClientQnA.updateClientQnAData(null, clientQnAData.type, updObj, clientQnAData._id)
+                        .then(updatedData => dbClientQnA.sendSMSVerificationCode(updatedData, constSMSPurpose.AUTOQA_FORGOT_USER_ID))
+                        .catch(errorUtils.reportError);
+
+                    let processNo = '2_1';
+
+                    return dbconfig.collection_clientQnATemplate.findOne({
+                        type: constClientQnA.FORGOT_USER_ID,
+                        processNo: processNo
+                    }).lean();
+                }
+            }
+        ).then(
+            QnATemplate => {
+                if (QnATemplate) {
+                    QnATemplate.qnaObjId = clientQnAData._id;
+                }
+                return QnATemplate;
+            }
+        ).catch(error => {
+            if (error.message === 'Player not found') {
+                return dbClientQnA.rejectFailedRetrieveAccount();
+            }
+        });
+    },
+
     chooseFromMultipleAccount: function (clientQnAData, playersArr) {
-        console.log('chooseFromMultipleAccount', playersArr);
         let processNo = '3_2';
 
         return dbconfig.collection_clientQnATemplate.findOne({

@@ -1001,6 +1001,7 @@
   "Player with Partner": "代理玩家",
   "department": "部门",
   "curData": "更改前",
+  "Please choose an account to reset:": "该手机绑定多个启用帐号，请选择：",
   "updateData": "更改后",
   "MOVE_USER": "移动用户",
   "DELETE_USER": "删除用户",
