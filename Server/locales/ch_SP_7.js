@@ -281,6 +281,7 @@ var simplifiedChinese = {
     "Proposal not found or not in expired status.": "未找到提案或未过期.",
     "The binded account is: ": "您该手机号码绑定的游戏帐号为：",
     "Password has reset to: ": "密码已重新设置为: ",
+    "Please transfer out from correct provider": "请选择正确的提供商转出",
     "Please login to change password immediately.": "请尽速登入修改密码。",
     "Referral player is expired for this reward": "推荐玩家已过期",
     "Invalid reward amount": "奖励数值无效",
