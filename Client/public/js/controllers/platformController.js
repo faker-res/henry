@@ -28938,6 +28938,16 @@ define(['js/app'], function (myApp) {
 
             vm.getQnaAllBankTypeList = function () {
                 vm.qnaAllBankTypeList = [];
+
+                vm.qnaAllBankAccountTypeList = [
+                    {id: "1", name: $translate('Credit Card')},
+                    {id: "2", name: $translate('Debit Card')},
+                    {id: "3", name: "储存卡"},
+                    {id: "4", name: "储蓄卡"},
+                    {id: "5", name: "商务理财卡"},
+                    {id: "6", name: "工商银行一卡通"},
+                ];
+
                 socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform.data.platformId}, function (data) {
                     if (data && data.data && data.data.data) {
                         let allBankTypeList = {};

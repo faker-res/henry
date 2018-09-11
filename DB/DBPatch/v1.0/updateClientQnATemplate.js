@@ -226,21 +226,112 @@ db.clientQnATemplate.update(
     },
     {upsert: true});
 
-db.clientQnATemplate.update(
-    {
-        processNo: "6_1",
-        type: type3
-    },
-    {
-        $set: {
-            question: [{questionNo: 1, des: "Update phone number success"}],
-            action: "updatePhoneNumber6_1"
-        }
-    },
-    {upsert: true});
 
 //region editBankCard
 var type4 = "editBankCard";
+db.clientQnATemplate.update(
+    {
+        processNo: "1",
+        type: type4
+    },
+    {
+        $set: {
+            question: [{questionNo: 1, des: "Please enter the player name that you wanted to update bank info:"}],
+            answerInput: [{type: "text", objKey: "name", questionNo: 1, placeHolder: "Please enter player ID"}],
+            action: "editBankCard1"
+        }
+    },
+    {upsert: true}
+);
+
+db.clientQnATemplate.update(
+    {
+        processNo: "2_1",
+        type: type4
+    },
+    {
+        $set: {
+            question: [{questionNo: 1, des: "Please enter your account's phone number, note that you wil receive SMS verification code afterward."}],
+            answerInput: [{type: "text", objKey: "phoneNumber", questionNo: 1, placeHolder: "Please enter phone number"}],
+            action: "editBankCard2_1",
+            alternativeQuestion: {des: "Inconvenient on receiving code?", action: "editBankCard2_2"},
+        }
+    },
+    {upsert: true}
+);
+
+db.clientQnATemplate.update(
+    {
+        processNo: "3_1",
+        type: type4
+    },
+    {
+        $set: {
+            question: [{questionNo: 1, des: "Please insert SMS code that just received by player."}],
+            answerInput: [{type: "text", objKey: "code", questionNo: 1, placeHolder: "Please enter the sms verification code"}],
+            action: "editBankCard3_1"
+        }
+    },
+    {upsert: true}
+);
+
+db.clientQnATemplate.update(
+    {
+        processNo: "3_2",
+        type: type4
+    },
+    {
+        $set: {
+            isSecurityQuestion: true,
+            questionTitle: "Please answer the question below to validate your identity:",
+            question: [
+                {questionNo: 1, des: "Please enter your phone number"},
+                {questionNo: 2, des: "Please enter your bank account"},
+                {questionNo: 3, des: "Please enter your last withdrawal amount"},
+            ],
+            answerInput: [
+                {type: "text", objKey: "phoneNumber", questionNo: 1},
+                {type: "text", objKey: "bankAccount", questionNo: 2},
+                {type: "number", objKey: "lastWithdrawalAmount", questionNo: 3}
+            ],
+            action: "editBankCard3_2"
+        }
+    },
+    {upsert: true}
+);
+
+db.clientQnATemplate.update(
+    {
+        processNo: "4_1",
+        type: type4
+    },
+    {
+        $set: {
+            questionTitle: "Please fill in new bank account detail",
+            question: [
+                {questionNo: 1, des: "BankCardNo"},
+                {questionNo: 2, des: "BANK_TYPE"},
+                {questionNo: 3, des: "Bank Account Type"},
+                {questionNo: 4, des: "BANK_ACCOUNT_CITY"},
+                {questionNo: 5, des: "Bank Registration Address"},
+            ],
+            answerInput: [
+                {type: "text", objKey: "bankAccount", questionNo: 1, placeHolder: ""},
+                {type: "select", objKey: "bankType", questionNo: 2, options: "qnaAllBankTypeList"},
+                {type: "select", objKey: "bankAccountType", questionNo: 3, options: "qnaAllBankAccountTypeList"},
+                {type: "select", objKey: "bankCardProvince", questionNo: 4, options: "qnaProvinceList"},
+                {type: "select", objKey: "bankAccountCity", questionNo: 4, options: "qnaCityList"},
+                {type: "text", objKey: "bankAddress", questionNo: 5, placeHolder: ""}
+            ],
+            action: "editBankCard4_1"
+        }
+    },
+    {upsert: true}
+);
+
+
+
+
 //endregion
 
 //region editName
