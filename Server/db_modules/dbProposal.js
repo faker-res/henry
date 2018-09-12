@@ -3231,7 +3231,7 @@ var proposal = {
                     total += summary[0].totalNegativeProfitAmount;
                     total += summary[0].totalCommissionAmount;
                 }
-                total = dbUtil.decimalAdjust("floor", total, -2);
+                total = dbutility.decimalAdjust("floor", total, -2);
                 deferred.resolve({
                     size: totalSize,
                     data: resultArray,
