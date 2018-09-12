@@ -6096,7 +6096,7 @@ let dbPlayerInfo = {
                 .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider});
         let providerProm = dbconfig.collection_gameProvider.findOne({providerId: providerId});
 
-        console.log('transferPlayerCreditFromProvider', playerId);
+        console.log('transferPlayerCreditFromProvider', playerId, providerId);
 
         return Promise.all([playerProm, providerProm]).then(
             function (data) {
@@ -6112,7 +6112,8 @@ let dbPlayerInfo = {
                 if (data && data[0] && data[0].lastPlayedProvider && data[0].lastPlayedProvider.providerId != providerId) {
                     return Promise.reject({
                         name: "DataError",
-                        message: "Please transfer out from correct provider"
+                        message: "Please transfer out from correct provider",
+                        dontLogTransfer: true
                     })
                 }
 
