@@ -2183,6 +2183,7 @@
   "Invalid Data": "数据无效",
   "This transaction does not have valid transfer ID": "此转账含有无效转入/出ID",
   "Attention: Player has no binded phone number or not able to receive SMS code. Please open a new account if necessary.": "提示！此玩家帐号无绑定电话（或无法短信验证），请通过其他人工方式尝试找回帐号，或是重新为客户开户。",
+  "Attention: this number is over the excess the limit of sent sms. Please contact cs or open a new account if necessary.": "提示！此号码已达短信发送上限，请通过其他人工方式尝试找回帐号，或是为玩家重新开户。",
   "Duplicate Platform ID.": "错误创建平台，平台ID已重复。",
   "Authentication Fails": "验证失败, 请先登录",
   "Verification code invalid": "无效验证码",

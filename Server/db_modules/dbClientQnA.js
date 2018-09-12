@@ -1178,19 +1178,23 @@ var dbClientQnA = {
     getOldNumberSMS: function (platformObjId, inputDataObj, qnaObjId) {
         let purpose = constSMSPurpose.OLD_PHONE_NUMBER;
         let isGetSmsCode = false;
-        return dbClientQnA.getSMSVerificationCodeAgain(platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode);
+        let endTitle = 'Update phone number failed';
+        let endDes = 'Attention: this number is over the excess the limit of sent sms. Please contact cs or open a new account if necessary.';
+        return dbClientQnA.getSMSVerificationCodeAgain(platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode, endTitle, endDes);
     },
     getNewNumberSMS: function (platformObjId, inputDataObj, qnaObjId) {
         let purpose = constSMSPurpose.NEW_PHONE_NUMBER;
         let isGetSmsCode = true;
-        return dbClientQnA.getSMSVerificationCodeAgain(platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode);
+        let endTitle = 'Update phone number failed';
+        let endDes = 'Attention: this number is over the excess the limit of sent sms. Please contact cs or open a new account if necessary.';
+        return dbClientQnA.getSMSVerificationCodeAgain(platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode, endTitle, endDes);
     },
-    getSMSVerificationCodeAgain: function (platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode) {
+    getSMSVerificationCodeAgain: function (platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode, endTitle, endDes) {
         return dbconfig.collection_clientQnA.findById(qnaObjId).lean().then(
             qnaObj => {
                 // Check player send count
                 if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 5) {
-                    return dbClientQnA.rejectFailedRetrieveAccount();
+                    return dbClientQnA.qnaEndMessage(endTitle, endDes);
                 } else {
                     return dbClientQnA.sendSMSVerificationCode(qnaObj, purpose, isGetSmsCode).catch(errorUtils.reportError);
                 }
