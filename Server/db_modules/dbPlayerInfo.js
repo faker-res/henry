@@ -5991,7 +5991,7 @@ let dbPlayerInfo = {
 
                 // Enforce player to transfer out from correct last played provider
                 if (data && data[0] && data[0].lastPlayedProvider && data[0].lastPlayedProvider.providerId != providerId) {
-                    deferred.reject({
+                    return Promise.reject({
                         name: "DataError",
                         message: "Please transfer out from correct provider"
                     })
