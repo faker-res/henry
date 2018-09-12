@@ -166,6 +166,7 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
+            alternativeQuestion: {des: "Didn't receive? Send again", action: "getOldNumberSMS"},
             question: [{questionNo: 1, des: "Please enter sms verification code"}],
             answerInput: [{type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "Please enter the sms verification code"}],
             action: "updatePhoneNumber3_1"
@@ -219,6 +220,7 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
+            alternativeQuestion: {des: "Didn't receive? Send again", action: "getNewNumberSMS"},
             question: [{questionNo: 1, des: "Please enter sms verification code"}],
             answerInput: [{type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "Please enter the sms verification code"}],
             action: "updatePhoneNumber5_1"

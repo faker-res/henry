@@ -875,7 +875,12 @@ var dbClientQnA = {
                                 platform: platformObjId}).lean().then(
                                     configData => {
                                         if (configData && configData.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("updatePhoneNumber") && playerData.qnaWrongCount.updatePhoneNumber > configData.wrongCount) {
-                                            return dbClientQnA.rejectSecurityQuestionFirstTime();
+
+                                              let text1 = localization.localization.translate("Attention! this player");
+                                              let text2 = localization.localization.translate("times failed security question, please contact customer service to verify this account.");
+                                              let endTitle = "Update phone number failed";
+                                              let endDes = text1 + " (" + playerData.qnaWrongCount.updatePhoneNumber + ") " + text2;
+                                              return dbClientQnA.qnaEndMessage(endTitle, endDes);
                                         } else {
                                             return dbconfig.collection_clientQnATemplate.findOne({
                                                 type: constClientQnA.UPDATE_PHONE,
@@ -1170,6 +1175,29 @@ var dbClientQnA = {
                 return Promise.reject({name: "DBError", message: errorMessage})
             });
     },
+    getOldNumberSMS: function (platformObjId, inputDataObj, qnaObjId) {
+        let purpose = constSMSPurpose.OLD_PHONE_NUMBER;
+        let isGetSmsCode = false;
+        return dbClientQnA.getSMSVerificationCodeAgain(platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode);
+    },
+    getNewNumberSMS: function (platformObjId, inputDataObj, qnaObjId) {
+        let purpose = constSMSPurpose.NEW_PHONE_NUMBER;
+        let isGetSmsCode = true;
+        return dbClientQnA.getSMSVerificationCodeAgain(platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode);
+    },
+    getSMSVerificationCodeAgain: function (platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode) {
+        return dbconfig.collection_clientQnA.findById(qnaObjId).lean().then(
+            qnaObj => {
+                // Check player send count
+                if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 5) {
+                    return dbClientQnA.rejectFailedRetrieveAccount();
+                } else {
+                    return dbClientQnA.sendSMSVerificationCode(qnaObj, purpose, isGetSmsCode).catch(errorUtils.reportError);
+                }
+            }
+        );
+    },
+
     //endregion
 
     //region editBankCard
