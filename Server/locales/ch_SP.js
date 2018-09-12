@@ -54,6 +54,7 @@ var simplifiedChinese = {
     "Attention! this player": "提示！此玩家多次",
     "times failed security question, please contact customer service to verify this account.": "回答错误的银行卡内容，请客服人工进行其他人工方式核对，仔细确认是否为本人。",
     "Phone number does not match": "电话号码不匹配",
+    "Answer correct count does not meet minimum requirement.": "问题答对数量不符合要求。",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",
