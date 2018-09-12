@@ -2038,9 +2038,7 @@ var dbClientQnA = {
                                     let bankAccountCity = updatedPlayerData.bankAccountCity || null;
                                     let bankAddress = updatedPlayerData.bankAddress || null;
                                     let bankAccountProvince = updatedPlayerData.bankAccountProvince || null;
-
-                                    console.log("checking-----clientQnAData.QnAData ", clientQnAData.QnAData )
-                                    console.log("checking-----clientQnAData.newRealName ", newRealName )
+                                    
                                     return dbconfig.collection_clientQnATemplate.findOne({
                                         type: constClientQnA.EDIT_NAME,
                                         processNo: "5_2"
