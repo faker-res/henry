@@ -1415,6 +1415,11 @@ var dbUtility = {
 
         return timeFrames;
     },
+
+    isNumeric: function (value) {
+        return !isNaN( parseFloat(value) ) && isFinite( value );
+    },
+
     convertIpToInt: function (ipAdd) {
         return ipAdd.split('.').reduce(function(ipInt, octet) { return (ipInt<<8) + parseInt(octet, 10)}, 0) >>> 0;
     },

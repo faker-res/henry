@@ -23571,6 +23571,9 @@ define(['js/app'], function (myApp) {
                             else if (item.data && item.data.PROMO_CODE_TYPE){
                                 item.name = item.data.PROMO_CODE_TYPE;
                             }
+                            else if (item.promoCodeTemplateObjId && item.promoCodeTemplateObjId.name){
+                                item.name = item.promoCodeTemplateObjId.name;
+                            }
 
                             if(item.playerObjId){
                                 item.playerName$ = item.playerObjId.name;
@@ -28829,6 +28832,20 @@ define(['js/app'], function (myApp) {
                 }
                 if (isAlternative) {
                     sendData.isAlternative = true;
+
+                    if (vm.clientQnAData.alternativeQuestion && vm.clientQnAData.alternativeQuestion.isResendSMS) {
+                        if (vm.clientQnABlockIsResend) {
+                            return;
+                        }
+
+                        let alternativeQuestionLabel = $('.alternative-question-label');
+                        alternativeQuestionLabel.css('color', 'grey');
+                        vm.clientQnABlockIsResend = true;
+                        setTimeout(function () {
+                            alternativeQuestionLabel.css('color', 'red');
+                            vm.clientQnABlockIsResend = false;
+                        }, 60000);
+                    }
                 }
                 if (vm.clientQnAData && vm.clientQnAData.processNo) {
                     sendData.processNo = vm.clientQnAData.processNo;
@@ -28854,6 +28871,17 @@ define(['js/app'], function (myApp) {
                             }
                             if (vm.clientQnAData && vm.clientQnAData.questionTitle && vm.clientQnAData.isSecurityQuestion) {
                                 vm.questionLabelStyle = "text-align:left;display:inline-block";
+                            }
+
+                            if (vm.clientQnAData.updateAnswer){
+
+                                vm.clientQnAInput = {};
+                                vm.clientQnAData.updateAnswer.forEach(
+                                    item => {
+                                        vm.clientQnAInput[item.objKey] = item[item.objKey]
+                                    }
+                                )
+                                vm.getCityListQnA();
                             }
                         });
                     }
@@ -28935,6 +28963,16 @@ define(['js/app'], function (myApp) {
 
             vm.getQnaAllBankTypeList = function () {
                 vm.qnaAllBankTypeList = [];
+
+                vm.qnaAllBankAccountTypeList = [
+                    {id: "1", name: $translate('Credit Card')},
+                    {id: "2", name: $translate('Debit Card')},
+                    {id: "3", name: "储存卡"},
+                    {id: "4", name: "储蓄卡"},
+                    {id: "5", name: "商务理财卡"},
+                    {id: "6", name: "工商银行一卡通"},
+                ];
+
                 socketService.$socket($scope.AppSocket, 'getBankTypeList', {platform: vm.selectedPlatform.data.platformId}, function (data) {
                     if (data && data.data && data.data.data) {
                         let allBankTypeList = {};

@@ -6399,13 +6399,17 @@ define(['js/app'], function (myApp) {
                             var thisPopover = utilService.$getPopoverID(this);
                             var $remark = $(thisPopover + ' .permissionRemark');
                             var $submit = $(thisPopover + ' .submit');
+                            var $selectedMainPermission = $(thisPopover + ' .selectedMainPermission');
                             $submit.prop('disabled', true);
+                            $selectedMainPermission.prop('disabled', false);
+
                             $(thisPopover + " .togglePlayer").on('click', function () {
                                 var key = $(this).data("which");
                                 var select = $(this).data("on");
                                 changeObj[key] = !select;
                                 $(thisPopover + ' .' + key).toggleClass('hide');
                                 $submit.prop('disabled', $remark.val() == '');
+                                $selectedMainPermission.prop('disabled', true);
                             })
 
                             $remark.on('input selectionchange propertychange', function () {
@@ -6441,6 +6445,14 @@ define(['js/app'], function (myApp) {
                                     changeObj.forbidPlayerFromEnteringGame = !changeObj.forbidPlayerFromEnteringGame;
                                 }
 
+                                let selectedMainPermission = $selectedMainPermission.val() ? $selectedMainPermission.val() : "";
+                                let status = selectedMainPermission && vm.permissionPlayer.permission ? vm.permissionPlayer.permission[selectedMainPermission] : "";
+
+                                // if permission has any changes
+                                if (!$.isEmptyObject(changeObj)) {
+                                    selectedMainPermission = "";
+                                }
+
                                 socketService.$socket($scope.AppSocket, 'updatePlayerPermission', {
                                     query: {
                                         platform: vm.permissionPlayer.platform,
@@ -6448,7 +6460,11 @@ define(['js/app'], function (myApp) {
                                     },
                                     admin: authService.adminId,
                                     permission: changeObj,
-                                    remark: $remark.val()
+                                    remark: $remark.val(),
+                                    selected: {
+                                        mainPermission: selectedMainPermission || "",
+                                        status: status
+                                    }
                                 }, function (data) {
                                     vm.getPlatformPlayersData();
                                 }, null, true);
