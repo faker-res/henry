@@ -28921,15 +28921,22 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getClientQnASecurityQuesConfig', sendData,  function (data) {
                     if (data.data) {
                         $scope.$evalAsync(() => {
+                            let totalQuestion = 0;
                             if (data.data[0] && data.data[0].question && data.data[0].question.length) {
                                 vm.clientQnASecurityQuesConfig.question = data.data[0].question;
                                 vm.clientQnASecurityQuesCount.totalQues = data.data[0].question.length;
+                                totalQuestion = data.data[0].question.length;
                             }
                             if (data.data[1]) {
+
                                 vm.clientQnASecurityQuesConfig.config = data.data[1];
+
                                 if (data.data[1].minQuestionPass) {
                                     vm.clientQnASecurityQuesCount.minQuestionPass = data.data[1].minQuestionPass;
                                 }
+                            }
+                            if(vm.clientQnASecurityQuesConfig.config && data.data[0] && data.data[0].question && data.data[0].question.length){
+                                vm.clientQnASecurityQuesConfig.config.minQuestionPass = data.data[0].question.length;
                             }
                         });
                     }

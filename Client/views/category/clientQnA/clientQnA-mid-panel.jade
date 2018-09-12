@@ -30,11 +30,13 @@
                 text(ng-if='vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.des') {{vm.clientQnAData.clientQnAEnd.des | translate}}
                 text(ng-if='vm.clientQnAData && vm.clientQnAData.updateDes') {{vm.clientQnAData.updateDes | translate}}
                 br(ng-if='vm.clientQnAData && vm.clientQnAData.updateQuestion')
+                br(ng-if='vm.clientQnAData && vm.clientQnAData.updateQuestion')
                 div(ng-if="vm.clientQnAData && vm.clientQnAData.updateQuestion" ng-repeat='(i,v) in vm.clientQnAData.updateQuestion')
 
                     label(style="{{vm.questionLabelStyle}}") {{v.des | translate}}
                     input.form-control(ng-repeat='(k,o) in vm.clientQnAData.updateAnswer' ng-if='o.questionNo == v.questionNo && o.type!="select" && o.type!="checkbox"' type='{{o.type}}' ng-model='vm.clientQnAInput[o.objKey]' placeholder='{{o.placeHolder | translate}}')
                     select.form-control(ng-repeat='(k,o) in vm.clientQnAData.updateAnswer' ng-if='o.questionNo == v.questionNo && o.type == "select"' ng-model="vm.clientQnAInput[o.objKey]" ng-options="va.id as va.name | translate for (in,va) in vm[o.options]" ng-change='vm[o.options + "Change"]()')
+                    br
                 br
                 br
                 .pull-right
