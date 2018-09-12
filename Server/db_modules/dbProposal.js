@@ -3222,7 +3222,7 @@ var proposal = {
                         resultArray[i].data.playerShortId = playerData[i].playerId
                     }
                 }
-                var total = 0;
+                let total = 0;
                 if (summary[0]) {
                     total += summary[0].totalAmount;
                     total += summary[0].totalRewardAmount;
@@ -3231,10 +3231,11 @@ var proposal = {
                     total += summary[0].totalNegativeProfitAmount;
                     total += summary[0].totalCommissionAmount;
                 }
+                total = dbUtil.decimalAdjust("floor", total, -2);
                 deferred.resolve({
                     size: totalSize,
                     data: resultArray,
-                    summary: {amount: parseFloat(total).toFixed(2)},
+                    summary: {amount: total}, //parseFloat(total).toFixed(2)
                 });
             },
             function (error) {
