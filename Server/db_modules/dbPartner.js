@@ -9242,14 +9242,20 @@ let dbPartner = {
 
         }).then(playerData => {
             if (!playerData || !playerData._id) {
-                return Promise.reject({name: "DataError", message: "Invalid player data"});
+                return Promise.reject({
+                    status: constServerCode.PLAYER_NAME_INVALID,
+                    name: "DataError",
+                    message: "Invalid player data"});
             }
 
             playerObj = playerData;
 
             if (providerGroupId) {
                 if (!spendingTimes) {
-                    return Promise.reject({name: "DataError", message: "Spending Times cannot be empty"});
+                    return Promise.reject({
+                        status: constServerCode.SPENDING_TIMES_REQUIRED,
+                        name: "DataError",
+                        message: "Spending Times cannot be empty"});
                 } else {
                     return dbconfig.collection_gameProviderGroup.findOne({providerGroupId: providerGroupId, platform: platformObj._id}).lean();
                 }
@@ -9265,7 +9271,10 @@ let dbPartner = {
 
             if (partnerObj.credits) {
                 if(partnerObj.credits <= 0 || partnerObj.credits < amount) {
-                    return Promise.reject({name: "DataError", message: "Partner does not have enough credit."});
+                    return Promise.reject({
+                        status: constServerCode.PARTNER_NOT_ENOUGH_CREDIT,
+                        name: "DataError",
+                        message: "Partner does not have enough credit."});
                 } else {
                     let currentCredit = partnerObj.credits;
                     let updateCredit = partnerObj.credits - amount;
@@ -9273,7 +9282,10 @@ let dbPartner = {
                     return applyTransferPartnerCreditToPlayer(platformObj._id, partnerObj, currentCredit, updateCredit, amount, [transferDetail], null, userAgent);
                 }
             } else {
-                return Promise.reject({name: "DataError", message: "Partner does not have enough credit."});
+                return Promise.reject({
+                    status: constServerCode.PARTNER_NOT_ENOUGH_CREDIT,
+                    name: "DataError",
+                    message: "Partner does not have enough credit."});
             }
         }).then(proposalData => {
             if (proposalData && proposalData.data && proposalData.data.amount) {

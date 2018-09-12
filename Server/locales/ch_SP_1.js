@@ -18,6 +18,7 @@ var simplifiedChinese = {
     "Player ip doesn't match!": "玩家IP不匹配",
     "top up or consumption summary does not match record": "玩家累计存款或投注与实时记录不匹配",
     "To facilitate withdrawing process, please complete your bank information else the previous amendment will not be processed": "为确保正常提款，请同时完善您的银行资料修改，名字修改才可完成",
+    "SUBMIT": "提交",
     "transfer credit fail, please try again later": "转账失败，请稍后重试",
     "Attention! Contact CS for further instruction": "提示！请客服其他方式核实或引导重新开户",
     "Authentification Failed": "身份验证失败",
@@ -56,6 +57,7 @@ var simplifiedChinese = {
     "Attention! this player": "提示！此玩家多次",
     "times failed security question, please contact customer service to verify this account.": "回答错误的银行卡内容，请客服人工进行其他人工方式核对，仔细确认是否为本人。",
     "Phone number does not match": "电话号码不匹配",
+    "Answer correct count does not meet minimum requirement.": "问题答对数量不符合要求。",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",
