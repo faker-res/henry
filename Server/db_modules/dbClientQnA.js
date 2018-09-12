@@ -1675,7 +1675,6 @@ var dbClientQnA = {
 
                 let updateObj = {};
 
-                console.log("checking---yH---phoneNumber", playerData.phoneNumber)
                 if (inputDataObj.phoneNumber == playerData.phoneNumber){
                     clientQnAData.QnAData.phoneNumber = rsaCrypto.encrypt(playerData.phoneNumber);
 
@@ -2026,12 +2025,13 @@ var dbClientQnA = {
                     }
                     else{
                         // checking if there is waiting-approve UPDATE_PLAYER_INFO proposal
-                        return dbconfig.collection_proposal.find({mainType: constProposalMainType["PlayerBonus"], 'data.playerName': updatedPlayerData.name, 'data.platformId': platformObjId, status: {$nin: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]} }).count().then(
+                        return dbconfig.collection_proposal.find({mainType: constProposalMainType["UpdatePlayer"], 'data.playerName': updatedPlayerData.name, 'data.platformId': platformObjId, status: {$nin: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]} }).count().then(
                             retProposalLength => {
                                 // cant find related proposal --> go to next step
                                 if (retProposalLength == 0){
 
                                     // get the bank information
+                                    let newRealName = clientQnAData.QnAData && clientQnAData.QnAData.newRealName ? clientQnAData.QnAData.newRealName : null;
                                     let bankAccount = updatedPlayerData.bankAccount || null;
                                     let bankName = updatedPlayerData.bankName || null;
                                     let bankAccountType = updatedPlayerData.bankAccountType || null;
@@ -2039,6 +2039,8 @@ var dbClientQnA = {
                                     let bankAddress = updatedPlayerData.bankAddress || null;
                                     let bankAccountProvince = updatedPlayerData.bankAccountProvince || null;
 
+                                    console.log("checking-----clientQnAData.QnAData ", clientQnAData.QnAData )
+                                    console.log("checking-----clientQnAData.newRealName ", newRealName )
                                     return dbconfig.collection_clientQnATemplate.findOne({
                                         type: constClientQnA.EDIT_NAME,
                                         processNo: "5_2"
@@ -2048,17 +2050,18 @@ var dbClientQnA = {
                                         }
 
                                         if (QnATemplate.updateAnswer){
-                                            QnATemplate.updateAnswer[0].bankAccount = bankAccount;
-                                            QnATemplate.updateAnswer[1].bankType = bankName;
-                                            QnATemplate.updateAnswer[2].bankAccountType = bankAccountType;
-                                            QnATemplate.updateAnswer[3].bankCardProvince = bankAccountProvince;
-                                            QnATemplate.updateAnswer[4].bankAccountCity = bankAccountCity;
-                                            QnATemplate.updateAnswer[5].bankAddress = bankAddress;
+                                            QnATemplate.updateAnswer[0].newRealName = newRealName;
+                                            QnATemplate.updateAnswer[1].bankAccount = bankAccount;
+                                            QnATemplate.updateAnswer[2].bankType = bankName;
+                                            QnATemplate.updateAnswer[3].bankAccountType = bankAccountType;
+                                            QnATemplate.updateAnswer[4].bankCardProvince = bankAccountProvince;
+                                            QnATemplate.updateAnswer[5].bankAccountCity = bankAccountCity;
+                                            QnATemplate.updateAnswer[6].bankAddress = bankAddress;
                                             
                                             QnATemplate.updateTitle = localization.localization.translate("Authentification Passed");
                                             QnATemplate.updateDes = localization.localization.translate("To facilitate withdrawing process, please complete your bank information else the previous amendment will not be processed");
 
-                                            QnATemplate.updateLinkageTitle = "FINISH"
+                                            QnATemplate.updateLinkageTitle = localization.localization.translate("SUBMIT");
                                         }
 
                                         return QnATemplate;
@@ -2089,7 +2092,7 @@ var dbClientQnA = {
 
         let clientQnA, player, platform;
 
-        if (!inputDataObj || !inputDataObj.bankAccount || !(inputDataObj.bankAccount.length === 16 || inputDataObj.bankAccount.length === 19) || !inputDataObj.bankType || !inputDataObj.bankAccountType || !inputDataObj.bankCardProvince || !inputDataObj.bankAccountCity || !inputDataObj.bankAddress) {
+        if (!inputDataObj || !inputDataObj.bankAccount || !inputDataObj.newRealName || !(inputDataObj.bankAccount.length === 16 || inputDataObj.bankAccount.length === 19) || !inputDataObj.bankType || !inputDataObj.bankAccountType || !inputDataObj.bankCardProvince || !inputDataObj.bankAccountCity || !inputDataObj.bankAddress) {
             return Promise.reject({name: "DBError", message: "Invalid Data"})
         }
 
@@ -2126,6 +2129,7 @@ var dbClientQnA = {
                         _id: String(player._id),
                         playerName: player.name,
                         playerId: player.playerId,
+                        bankAccountName: inputDataObj.newRealName,
                         bankAccount: inputDataObj.bankAccount,
                         bankName: String(inputDataObj.bankType),
                         bankAccountType: inputDataObj.bankAccountType,
@@ -2142,7 +2146,7 @@ var dbClientQnA = {
                 let realNameObj = {
                     playerName: player.name,
                     playerObjId: player._id,
-                    realName: clientQnA.QnAData && clientQnA.QnAData.newRealName || null,
+                    realName: clientQnA.QnAData && clientQnA.QnAData.newRealName ?  clientQnA.QnAData.newRealName :  inputDataObj.newRealName,
                     remark: localization.localization.translate("Editing name (Auto)")
                 };
 
@@ -2150,7 +2154,7 @@ var dbClientQnA = {
                     creator: creator,
                     data: realNameObj,
                     platformId: platformObjId,
-                }
+                };
 
                 return dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_REAL_NAME, data)
 
@@ -2169,7 +2173,7 @@ var dbClientQnA = {
         return dbconfig.collection_clientQnA.findById(qnaObjId).lean().then(
             qnaObj => {
                 // Check player send count
-                if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 2) {
+                if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 5) {
                     return dbClientQnA.editName4(platformObjId, inputDataObj, qnaObjId);
                 } else {
                     dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.AUTOQA_EDIT_NAME);
