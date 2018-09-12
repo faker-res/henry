@@ -1764,6 +1764,7 @@
   "The phone number is not matched with the registered phone number": "输入的电话号码与绑定的电话号码不符合",
   "Please enter the sms verification code and the new name.": "请输入玩家绑定手机接收到的短信验证码，以及预修改的（新）姓名。",
   "Please enter the new name": "请输入新姓名",
+  "New Name": "新姓名",
   "Please enter the sms verification code": "请输入验证码",
   "Phone number is not available": "请输入电话号码",
   "Please enter the verification code": "请输入您绑定手机接收到的短息验证码",

@@ -7,6 +7,7 @@ var simplifiedChinese = {
     "Verification code invalid": "无效验证码",
     "User not found OR Invalid Password": "用户没有发现或无效密码",
     "Captcha code invalid": "图形验证码无效",
+    "SUBMIT": "提交",
     "Phone number already exists": "手机号码已存在",
     "Username is Valid": "用户名有效",
     "Username already exists": "此用户名已存在",
