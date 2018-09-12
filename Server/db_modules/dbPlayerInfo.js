@@ -5969,21 +5969,20 @@ let dbPlayerInfo = {
      * @param {Number} amount
      */
     transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
-        var deferred = Q.defer();
         let playerObj;
         let gameProvider;
-        var prom0 = forSync
+        let playerProm = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
                 .populate({path: "platform", model: dbconfig.collection_platform})
             : dbconfig.collection_players.findOne({playerId: playerId})
                 .populate({path: "platform", model: dbconfig.collection_platform})
                 .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider});
-        var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
+        let providerProm = dbconfig.collection_gameProvider.findOne({providerId: providerId});
 
-        Q.all([prom0, prom1]).then(
+        return Promise.all([playerProm, providerProm]).then(
             function (data) {
                 if (data && data[0] && data[0].isTestPlayer) {
-                    deferred.reject({
+                    return Promise.reject({
                         name: "DataError",
                         message: "Unable to transfer credit for demo player"
                     })
@@ -5998,16 +5997,10 @@ let dbPlayerInfo = {
                 }
 
                 if (data && data[0] && data[1]) {
-                    playerObj = data[0];
-                    gameProvider = data[1];
+                    [playerObj, gameProvider] = data;
                     let platformData = playerObj.platform;
 
                     if (dbUtility.getPlatformSpecificProviderStatus(gameProvider, platformData.platformId) != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(gameProvider._id)] && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false) {
-                        deferred.reject({
-                            name: "DataError",
-                            message: "Provider is not available"
-                        });
-
                         return Promise.reject({
                             name: "DataError",
                             message: "Provider is not available"
@@ -6049,16 +6042,16 @@ let dbPlayerInfo = {
                         });
 
                 } else {
-                    deferred.reject({name: "DataError", message: "Cant find player or provider"});
+                    return Promise.reject({name: "DataError", message: "Cant find player or provider"});
                 }
             },
             function (err) {
-                deferred.reject({name: "DataError", message: "Cant find player or provider" + err.message, error: err})
+                return Promise.reject({name: "DataError", message: "Cant find player or provider" + err.message, error: err})
             }
         ).then(
             function (data) {
                 // updateBatchStatus(isBatch);
-                deferred.resolve(data);
+                return Promise.resolve(data);
             },
             function (err) {
                 if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer && err.code !== constServerCode.PLAYER_NOT_ENOUGH_CREDIT)) {
@@ -6069,10 +6062,9 @@ let dbPlayerInfo = {
                         providerId, amount, 0, adminName, err, constPlayerCreditTransferStatus.FAIL);
                 }
                 // updateBatchStatus(isBatch);
-                deferred.reject(err);
+                return Promise.reject(err);
             }
         );
-        return deferred.promise;
     },
 
     transferPlayerCreditFromProviderSettlement: function (playerId, platformObjId, providerId, credit, adminName) {
