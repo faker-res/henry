@@ -5997,7 +5997,8 @@ let dbPlayerInfo = {
                 }
 
                 if (data && data[0] && data[1]) {
-                    [playerObj, gameProvider] = data;
+                    let playerObj = data[0];
+                    let gameProvider = data[1];
                     let platformData = playerObj.platform;
 
                     if (dbUtility.getPlatformSpecificProviderStatus(gameProvider, platformData.platformId) != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(gameProvider._id)] && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false) {
@@ -6025,11 +6026,8 @@ let dbPlayerInfo = {
                                         return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
                                             data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
                                     }
-                                } else if (playerObj.platform.canMultiReward) {
-                                    // Platform supporting multiple rewards will use new function first
-                                    return dbPlayerCreditTransfer.playerCreditTransferFromProvider(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
-                                }
-                                else {
+                                } else {
+                                    // Deprecated - should not go this path
                                     return dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
                                 }
                             } else {
