@@ -15358,6 +15358,10 @@ let dbPlayerInfo = {
             topUpAmount: 0,
             bonusAmount: 0,
         };
+        console.log('platformObjId===', platformObjId);
+        console.log('playerObjId===', playerObjId);
+        console.log('startDate===', startDate);
+        console.log('today===', today);
 
         // adjust the timezone
         let timezoneOffset = new Date().getTimezoneOffset() * 60 * 1000;
@@ -15388,6 +15392,11 @@ let dbPlayerInfo = {
                 month: {$month: {$add: ['$createTime', positiveTimeOffset]}},
             }
         }
+        console.log('positiveTimeOffset===', positiveTimeOffset);
+        console.log('timezoneAdjust.year===', timezoneAdjust.year);
+        console.log('timezoneAdjust.month===', timezoneAdjust.month);
+        console.log('timezoneAdjust2.year===', timezoneAdjust2.year);
+        console.log('timezoneAdjust2.month===', timezoneAdjust2.month);
 
         consumptionProm.push(dbconfig.collection_playerConsumptionRecord.aggregate([
             {
@@ -15482,6 +15491,11 @@ let dbPlayerInfo = {
             bonusRecord = [].concat(...bonusRecord);
             consumptionRecord = [].concat(...consumptionRecord);
 
+            console.log('topUpRecord.length===', topUpRecord.length);
+            console.log('bonusRecord.length===', bonusRecord.length);
+            console.log('consumptionRecord.length===', consumptionRecord.length);
+            console.log('playerData===', playerData);
+
             let outputData = [];
             for (let x = 0; x < topUpRecord.length; x++) {
                 outputData.push({
@@ -15507,6 +15521,7 @@ let dbPlayerInfo = {
                     }
                 });
             });
+            console.log('outputData===1', outputData);
 
             // for scenario when that month doesn't have top up record
             bonusRecord.forEach(bonus => {
@@ -15536,6 +15551,7 @@ let dbPlayerInfo = {
                     }
                 });
             });
+            console.log('outputData===2', outputData);
 
             // for scenario when that month doesn't have top up and bonus record
             consumptionRecord.forEach(consumption => {
@@ -15562,6 +15578,7 @@ let dbPlayerInfo = {
             outputData.sort(function (a, b) {
                 return b.date - a.date
             });
+            console.log('outputData===3', outputData);
 
             //handle sum of field here
             for (let z = 0; z < outputData.length; z++) {
@@ -15569,6 +15586,7 @@ let dbPlayerInfo = {
                 outputDataSum.topUpAmount += outputData[z].topUpAmount;
                 outputDataSum.bonusAmount += outputData[z].bonusAmount;
             }
+            console.log('outputDataSum===', outputDataSum);
 
             return {
                 total: outputDataSum,
