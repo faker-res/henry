@@ -81,7 +81,8 @@
                 "updatePlayerLevel",
                 "updatePlayer",
                 "importBIPlayer",
-                "loginBIPlayer"
+                "loginBIPlayer",
+                "addBonusPermissionRecord"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

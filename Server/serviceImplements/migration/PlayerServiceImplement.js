@@ -181,6 +181,11 @@ var PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.loginBIPlayer, [data.platformId, data.name, data.password, data.loginIp, uaString, data], isValidData);
     };
 
+    this.addBonusPermissionRecord.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.userName && data.platformId && data.adminName && data.createTime && data.remark);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbMigration.addBonusPermissionRecord, [data.userName, data.platformId, data.adminName, data.createTime, data.remark], isValidData);
+    };
+
 };
 
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
