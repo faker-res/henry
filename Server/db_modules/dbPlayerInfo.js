@@ -61,6 +61,7 @@ var messageDispatcher = require('../modules/messageDispatcher');
 var constPlayerSMSSetting = require('../const/constPlayerSMSSetting');
 var constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
 const constSMSPurpose = require("../const/constSMSPurpose");
+const constClientQnA = require("../const/constClientQnA");
 const constFinancialPointsType = require("../const/constFinancialPointsType");
 
 // constants
@@ -2370,8 +2371,116 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
-    resetPassword: function (platformId, name, smsCode, answer, phoneNumber, code) {
+    resetPassword: function (platformId, name, smsCode, answerArr, phoneNumber, code) {
+        let platformObj;
+        let playerObj;
+        let isCheckByPhone = false;
+        let isCheckByCode = false;
+        let correctQues = [];
+        let incorrectQues = [];
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+                platformObj = platformData;
+                return dbconfig.collection_players.findOne({name: name}).lean();
+            }).then(
+            playerData => {
+                if (!playerData) {
+                    return Q.reject({name: "DataError", message: "Cannot find player"});
+                }
+                playerObj = playerData;
+                let returnProm = Promise.resolve();
+                if (phoneNumber && code) {
+                    if (phoneNumber != playerData.phoneNumber) {
+                        return Q.reject({name: "DataError", message: "Phone number does not match"});
+                    }
+                    isCheckByCode = true;
+                    returnProm = Promise.resolve();//todo incomplete
+                }
+                if (smsCode) {
+                    isCheckByPhone = true;
+                    returnProm = dbPlayerMail.verifySMSValidationCode(playerData.phoneNumber, platformObj, smsCode);
+                }
 
+                return returnProm;
+            }
+        ).then(
+            data => {
+                if (isCheckByCode && !data) {
+                    return Q.reject({name: "DataError", message: "Code does not match"});
+                }
+
+                answerArr.forEach(answer=> {
+                    if (answer.quesNo && answer.ans) {
+                        if (answer.quesNo == 1 && playerObj.bankAccount) {
+                            if (playerObj.bankAccount.slice(-4) == answer.ans) {
+                                correctQues.push(String(answer.quesNo));
+                            } else {
+                                incorrectQues.push(String(answer.quesNo));
+                            }
+                        }
+
+                        if (answer.quesNo == 2 && playerObj.bankAccountName) {
+                            if (playerObj.bankAccountName == answer.ans) {
+                                correctQues.push(String(answer.quesNo));
+                            } else {
+                                incorrectQues.push(String(answer.quesNo));
+                            }
+                        }
+
+                        if (answer.quesNo == 3 && playerObj.bankAccountCity) {
+                            if (playerObj.bankAccountCity == answer.ans) {
+                                correctQues.push(String(answer.quesNo));
+                            } else {
+                                incorrectQues.push(String(answer.quesNo));
+                            }
+                        }
+
+                        if (answer.quesNo == 4 && playerObj.bankName) {
+                            if (playerObj.bankName == answer.ans) {
+                                correctQues.push(String(answer.quesNo));
+                            } else {
+                                incorrectQues.push(String(answer.quesNo));
+                            }
+                        }
+                    }
+                });
+
+                return dbconfig.collection_clientQnATemplateConfig.findOne({type: constClientQnA.FORGOT_PASSWORD, platform: platformObj._id}).lean();
+            }
+        ).then(
+            configData => {
+                if (!configData) {
+                    return Promise.reject({name: "DBError", message: "Cannot find QnA template config"});
+                }
+
+                let returnData = {
+                    name: playerObj.name,
+                    playerId: playerObj.playerId,
+                    createTime: playerObj.registrationTime
+                }
+
+                if (playerObj.realName) {
+                    returnData.realName = playerObj.realName;
+                }
+
+                if (correctQues && correctQues.length && correctQues.indexOf("1") != -1) {
+                    if (!configData.defaultPassword) {
+                        return Promise.reject({name: "DBError", message: "Default password not found"});
+                    }
+                    if (!configData.hasOwnProperty("minQuestionPass")) {
+                        return Promise.reject({name: "DBError", message: "Minimum correct answer has not config"});
+                    }
+                    if (correctQues.length >= configData.minQuestionPass ) {
+                        return returnData;
+                    }
+                }
+
+                return Promise.reject({name: "DBError", message: "Answer correct count does not meet minimum requirement."});
+            }
+        )
     },
     /**
      *  Update password
