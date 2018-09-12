@@ -15,8 +15,7 @@ const constSMSPurpose = {
     PARTNER_UPDATE_PASSWORD: 'Partner_updatePassword',
     PARTNER_UPDATE_BANK_INFO_FIRST: 'Partner_updateBankInfoFirst',
     PARTNER_UPDATE_BANK_INFO: 'Partner_updateBankInfo',
-
-    AUTOQA_EDIT_NAME: 'AutoQA_editName',
+    UPDATE_PLAYER_INFO: 'updatePlayerInfo',
 };
 
 module.exports = constSMSPurpose;

@@ -1686,7 +1686,7 @@ var dbClientQnA = {
                                 return Promise.reject({name: "DBError", message: "update QnA data failed"})
                             }
 
-                            dbClientQnA.sendSMSVerificationCode(clientQnARecord, constSMSPurpose.AUTOQA_EDIT_NAME)
+                            dbClientQnA.sendSMSVerificationCode(clientQnARecord, constSMSPurpose.UPDATE_PLAYER_INFO)
                                 .catch(errorUtils.reportError);
 
                             return dbconfig.collection_clientQnATemplate.findOne({
@@ -2038,7 +2038,7 @@ var dbClientQnA = {
                                     let bankAccountCity = updatedPlayerData.bankAccountCity || null;
                                     let bankAddress = updatedPlayerData.bankAddress || null;
                                     let bankAccountProvince = updatedPlayerData.bankAccountProvince || null;
-                                    
+
                                     return dbconfig.collection_clientQnATemplate.findOne({
                                         type: constClientQnA.EDIT_NAME,
                                         processNo: "5_2"
@@ -2174,7 +2174,7 @@ var dbClientQnA = {
                 if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 5) {
                     return dbClientQnA.editName4(platformObjId, inputDataObj, qnaObjId);
                 } else {
-                    dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.AUTOQA_EDIT_NAME);
+                    dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.UPDATE_PLAYER_INFO);
                 }
             }
         );

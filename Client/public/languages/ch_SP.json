@@ -672,6 +672,7 @@
   "For security issue, please complete the bank information to facilitate withdrawing process": "为了账号安全，请尽快完善银行资料以便随时提款。",
   "There is still proposal of updating player information has not been approved yet, please contact CS": "发现之前已提交的玩家资料修改提案还未处理， 请联络客服",
   "Complete bank account detail": "完善银行资料",
+  "updatePlayerInfo": "编辑玩家基本资料",
   "Rejected": "失败",
   "System": "系统",
   "approved": "已审核",
