@@ -373,6 +373,7 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
+            alternativeQuestion: {des: "Didn't receive? Send again", action: "editNameResendSMSCode"},
             question: [{questionNo: 1, des: "Please enter the sms verification code and the new name."}],
             answerInput: [
                 {type: "text", objKey: "newName", questionNo: 1, placeHolder: "Please enter the new name"},
@@ -414,12 +415,22 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
-            questionTitle: "Please answer the question below to validate your identity:",
-            question: [
-                {questionNo: 3, des: "Please enter the balance of your bank account"},
+            updateQuestion: [
+                {questionNo: 1, des: "BankCardNo"},
+                {questionNo: 2, des: "BANK_TYPE"},
+                {questionNo: 3, des: "Bank Account Type"},
+                {questionNo: 4, des: "BANK_ACCOUNT_PROVINCE"},
+                {questionNo: 5, des: "BANK_ACCOUNT_CITY"},
+                {questionNo: 6, des: "Bank Registration Address"},
             ],
-            answerInput: [
-                {type: "number", objKey: "phoneNumber", questionNo: 1},
+            updateAnswer: [
+                {type: "text", objKey: "bankAccount", questionNo: 1, placeHolder: ""},
+                {type: "select", objKey: "bankType", questionNo: 2, options: "qnaAllBankTypeList"},
+                {type: "select", objKey: "bankAccountType", questionNo: 3, options: "qnaAllBankAccountTypeList"},
+                {type: "select", objKey: "bankCardProvince", questionNo: 4, options: "qnaProvinceList"},
+                {type: "select", objKey: "bankAccountCity", questionNo: 5, options: "qnaCityList"},
+                {type: "text", objKey: "bankAddress", questionNo: 6, placeHolder: ""},
+
             ],
             action: "editName5_2"
         }
