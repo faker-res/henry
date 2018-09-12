@@ -2412,6 +2412,10 @@ let dbPlayerInfo = {
                     return Q.reject({name: "DataError", message: "Code does not match"});
                 }
 
+                if (isCheckByPhone && !data) {
+                    return Q.reject({name: "DataError", message: "Incorrect SMS Validation Code"});
+                }
+
                 answerArr.forEach(answer=> {
                     if (answer.quesNo && answer.ans) {
                         if (answer.quesNo == 1 && playerObj.bankAccount) {
