@@ -6096,8 +6096,11 @@ let dbPlayerInfo = {
                 .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider});
         let providerProm = dbconfig.collection_gameProvider.findOne({providerId: providerId});
 
+        console.log('transferPlayerCreditFromProvider', playerId);
+
         return Promise.all([playerProm, providerProm]).then(
             function (data) {
+                console.log('data', data);
                 if (data && data[0] && data[0].isTestPlayer) {
                     return Promise.reject({
                         name: "DataError",
@@ -6114,8 +6117,7 @@ let dbPlayerInfo = {
                 }
 
                 if (data && data[0] && data[1]) {
-                    let playerObj = data[0];
-                    let gameProvider = data[1];
+                    [playerObj, gameProvider] = data;
                     let platformData = playerObj.platform;
 
                     if (dbUtility.getPlatformSpecificProviderStatus(gameProvider, platformData.platformId) != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(gameProvider._id)] && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false) {
