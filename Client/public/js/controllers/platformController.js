@@ -15929,6 +15929,10 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0) {
+                    sendQueryOr.push({lastFeedbackTopic: {$nin: vm.playerFeedbackQuery.filterFeedbackTopic}});
+                }
+
                 if (vm.playerFeedbackQuery.filterFeedback) {
                     let lastFeedbackTimeExist = {
                         lastFeedbackTime: null
@@ -15938,10 +15942,11 @@ define(['js/app'], function (myApp) {
                             $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
                         }
                     };
-
                     sendQueryOr.push(lastFeedbackTimeExist);
                     sendQueryOr.push(lastFeedbackTime);
+                }
 
+                if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0 || vm.playerFeedbackQuery.filterFeedback) {
                     if (sendQuery.hasOwnProperty("$or")) {
                         if (sendQuery.$and) {
                             sendQuery.$and.push({$or: sendQuery.$or});
@@ -16723,6 +16728,7 @@ define(['js/app'], function (myApp) {
                         vm.setupRemarksMultiInputFeedback();
                         vm.setupRemarksMultiInputFeedbackFilter();
                         vm.setupGameProviderMultiInputFeedback();
+                        vm.setupMultiInputFeedbackTopicFilter();
                     });
                 utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
                     $('#registerStartTimePicker').datetimepicker({

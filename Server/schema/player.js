@@ -66,6 +66,8 @@ var playerSchema = new Schema({
     isRealPlayer: {type: Boolean, default: true, index: true},
     //last feedback time
     lastFeedbackTime: {type: Date, default: "", index: true},
+    //last feedback topic
+    lastFeedbackTopic: {type: String, index: true},
     //feedback times
     feedbackTimes: {type: Number, min: 0, default: 0},
     //no more feedback
