@@ -357,6 +357,9 @@ let callOutMissionCalleeModel = dbLogs2.model('callOutMissionCallee', callOutMis
 let clientQnASchema = require('./../schema/logs2/clientQnA');
 let clientQnAModel = dbLogs2.model('clientQnA', clientQnASchema, 'clientQnA');
 
+let resetPasswordVerificationSchema = require('./../schema/logs2/resetPasswordVerification');
+let resetPasswordVerificationModel = dbLogs2.model('resetPasswordVerification', resetPasswordVerificationSchema, 'resetPasswordVerification');
+
 let smsLogSchema = require('./../schema/logs/smsLog');
 let smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
 let smsVerificationLogSchema = require('./../schema/logs/smsVerificationLog');
@@ -507,6 +510,7 @@ var dbProperties = {
     collection_clientQnA: clientQnAModel,
     collection_clientQnATemplate: clientQnATemplateModel,
     collection_clientQnATemplateConfig: clientQnATemplateConfigModel,
+    collection_resetPasswordVerification: resetPasswordVerificationModel,
     collection_platformBankCardList: platformBankCardListModel,
     collection_platformMerchantGroup: platformMerchantGroupModel,
     collection_platformMerchantList: platformMerchantListModel,

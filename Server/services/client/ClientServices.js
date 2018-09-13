@@ -59,6 +59,7 @@
                 "updateSmsSetting",
                 "updatePassword",
                 "resetPassword",
+                "inquireAccountByPhoneNumber",
                 "updatePasswordPlayerPartner",
                 "updateSMSSetting",
                 "getSmsStatus",
