@@ -10243,11 +10243,11 @@ let dbPlayerInfo = {
                                             'data.platformId': platform._id,
                                             'data.playerObjId': player._id,
                                             mainType: constProposalType.PLAYER_BONUS,
-                                            status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                            status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                            'data.remark': '禁用提款: '+ lastBonusRemark
                                         }).sort({createTime: -1}).limit(1).then(proposalData => {
                                             if (proposalData && proposalData.length > 0) {
                                                 lastBonusRemark = manualPermissionSetting.remark;
-
                                             }
                                         });
                                     }
