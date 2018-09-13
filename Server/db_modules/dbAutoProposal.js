@@ -11,7 +11,7 @@ const constPlayerCreditTransferStatus = require('../const/constPlayerCreditTrans
 
 const dbconfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
-
+const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbRewardTaskGroup = require("./../db_modules/dbRewardTaskGroup");
 
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
@@ -835,6 +835,7 @@ function checkProposalConsumption(proposal, platformObj) {
 
 function sendToApprove(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg) {
     processRemark = processRemark ? processRemark : "";
+    let proposalObj;
 
     dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
         path: "type",
@@ -865,6 +866,56 @@ function sendToApprove(proposalObjId, createTime, remark, remarkChinese, process
                     }
                 );
             }
+        }
+    ).then(
+        data => {
+            proposalObj = data;
+
+            let prom = Promise.resolve(true);
+
+            if (proposalObj && proposalObj.mainType === constProposalType.PLAYER_BONUS && proposalObj.data && proposalObj.data.playerObjId && proposalObj.data.platformId) {
+                prom = dbconfig.collection_players.findOne({_id: data.data.playerObjId, platform: data.data.platformId}, {permission: 1, _id: 1, platform: 1})
+                    .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+                    playerData => {
+                        if (playerData && playerData.permission && !playerData.permission.applyBonus && playerData.platform && playerData.platform.playerForbidApplyBonusNeedCsApproval
+                            && proposalObj.status == constProposalStatus.APPROVED && proposalObj.data.needCsApproved) {
+
+                            return dbconfig.collection_playerPermissionLog.findOne({
+                                player: playerData._id,
+                                platform: data.data.platformId,
+                                isSystem: false
+                            }).sort({createTime: -1}).lean().then(
+                                manualPermissionSetting => {
+
+                                    let platformObjId = proposalObj.data.platformId;
+                                    let playerObjId = proposalObj.data.playerObjId;
+                                    let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
+                                    let newPermissionObj = {applyBonus: true};
+                                    let remark = "";
+
+                                    if (manualPermissionSetting) {
+                                        if(manualPermissionSetting.newData && manualPermissionSetting.newData.hasOwnProperty('applyBonus')
+                                            && manualPermissionSetting.newData.applyBonus.toString() == 'true') {
+
+                                            remark = "提款提案号：" + proposalObj.proposalId;
+                                            autoEnableBonusPermission(proposalObj, platformObjId, playerObjId, remark, oldPermissionObj, newPermissionObj);
+
+                                        }
+                                    } else {
+                                        remark = "提款提案号：" + proposalObj.proposalId;
+                                        autoEnableBonusPermission(proposalObj, platformObjId, playerObjId, remark, oldPermissionObj, newPermissionObj);
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                );
+            }
+
+            return prom.then(() => {
+                return proposalObj;
+            });
         }
     );
 }
@@ -1174,6 +1225,24 @@ function isFirstWithdrawalAfterPaymentInfoUpdated(proposals) {
         }
     }
     return false;
+}
+
+function autoEnableBonusPermission(proposalObj, platformObjId, playerObjId, remark, oldPermissionObj, newPermissionObj) {
+    return dbconfig.collection_proposal.findOneAndUpdate({
+        _id: proposalObj._id,
+        createTime: proposalObj.createTime
+    }, {
+        'data.remark': proposalObj.data.remark + "／执行后自动解禁"
+    }).then(proposalData => {
+        return dbconfig.collection_players.findOneAndUpdate({
+            _id: playerObjId,
+            platform: platformObjId
+        }, {
+            $set: {"permission.applyBonus": true}
+        });
+    }).then(playerData => {
+        return dbPlayerUtil.addPlayerPermissionLog(null, platformObjId, playerObjId, remark, oldPermissionObj, newPermissionObj);
+    });
 }
 
 module.exports = dbAutoProposal;
