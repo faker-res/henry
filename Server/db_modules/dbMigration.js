@@ -2133,8 +2133,8 @@ var dbMigration = {
                                         {
                                             platform: playerData.platform,
                                             player: playerData._id,
-                                            "oldData.applyBonus": false,
-                                            "newData.applyBonus": false,
+                                            oldData: {applyBonus: false},
+                                            newData: {applyBonus: false},
                                             remark: remarks,
                                             isSystem: true,
                                             createTime: new Date(createTime)
