@@ -740,6 +740,46 @@ let dbPlayerInfo = {
         )
     },
 
+    checkPlayerIsBlacklistIp: (platformObjId, playerObjId, playerLoginIps) => {
+        return dbPlatform.getBlacklistIpConfig(platformObjId).then(
+            blackListIpConfig => {
+                let blacklistIpList = [];
+                let matchBlacklistIpList = [];
+                if (blackListIpConfig && blackListIpConfig.length > 0) {
+                    for (let x = 0; x < blackListIpConfig.length; x++) {
+                        if (blackListIpConfig[x].ip && blackListIpConfig[x].isEffective) {
+                            blacklistIpList.push(blackListIpConfig[x].ip);
+                        }
+                    }
+                    if (playerLoginIps && blackListIpConfig && playerLoginIps.length > 0 && blackListIpConfig.length > 0) {
+                        playerLoginIps.forEach(IP => {
+                            blackListIpConfig.forEach(bIP => {
+                                if (IP === bIP.ip && bIP.isEffective) {
+                                    matchBlacklistIpList.push(bIP._id);
+                                    return dbPlayerCredibility.addFixedCredibilityRemarkToPlayer(platformObjId, playerObjId, '黑名单IP')
+                                }
+                            })
+                        })
+                    }
+                    return matchBlacklistIpList;
+                }
+            }
+        ).then(
+            matchBlacklistIpList => {
+                if (matchBlacklistIpList && matchBlacklistIpList.length > 0) {
+                    return dbconfig.collection_players.findOneAndUpdate({
+                        platform: platformObjId,
+                        _id: playerObjId
+                    }, {
+                        $set:{
+                            blacklistIp: matchBlacklistIpList
+                        }
+                    }).lean().exec();
+                }
+            }
+        )
+    },
+
     createPlayerFromTel: (inputData) => {
         let platformObj, adminObjId;
         let fbResult = {};
@@ -4831,6 +4871,7 @@ let dbPlayerInfo = {
                                     let registrationIp = playerData[ind].loginIps[0] || "";
                                     let adminName = 'System';
                                     delete playerData[ind].fullPhoneNumber;
+                                    let playerLoginIps = playerData[ind].loginIps;
 
                                     // add fixed credibility remarks
                                     let skippedIP = ['localhost', '127.0.0.1'];
@@ -4845,6 +4886,10 @@ let dbPlayerInfo = {
                                         dbPlayerInfo.getPagedSimilarIpForPlayers(
                                             playerId, platformId, registrationIp, true, index, limit, sortObj,
                                             adminName).catch(errorUtils.reportError);
+                                    }
+
+                                    if (playerLoginIps && playerLoginIps.length > 0 && !skippedIP.includes(registrationIp)) {
+                                        dbPlayerInfo.checkPlayerIsBlacklistIp(platformId, playerId, playerLoginIps);
                                     }
                                 }
                             }
