@@ -28657,6 +28657,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getAdminNameByDepartment = function (departmentId) {
+                if (!departmentId) {
+                    vm.adminList = [];
+                    return;
+                }
                 socketService.$socket($scope.AppSocket, 'getAdminNameByDepartment', {departmentId}, function (data) {
                     vm.adminList = data.data;
                 });
@@ -29147,7 +29151,7 @@ define(['js/app'], function (myApp) {
                             });
 
                             if (!vm.platformDepartmentObjId) {
-                                vm.platformDepartmentObjId = vm.currentPlatformDepartment[0]._id;
+                                vm.platformDepartmentObjId = "";
                             }
 
                             if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read')) {
