@@ -769,7 +769,13 @@ let PlayerServiceImplement = function () {
         ).catch(WebSocketUtil.errorHandler).done();
     };
 
+    this.inquireAccountByPhoneNumber.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.platformId && data.smsCode && data.phoneNumber);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.inquireAccountByPhoneNumber, [data.platformId, data.phoneNumber, data.smsCode], isValidData, false, false, true);
+    };
+
     this.resetPassword.onRequest = function (wsFunc, conn, data) {
+        data.answer = [{questNo: 1, ans: "1111"}, {questNo:2, ans: "haha"}, {questNo: 4, ans: "1"}]
         var isValidData = Boolean(data && data.platformId && data.name && ((data.smsCode && data.phoneNumber) || (data.answer && data.answer.length) || (data.code)));
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.resetPassword, [data.platformId, data.name, data.smsCode, data.answer, data.phoneNumber, data.code], isValidData, false, false, true);
     };
