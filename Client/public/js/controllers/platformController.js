@@ -27064,7 +27064,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.newRowBlacklistIpConfig = (newBlacklistIpConfig) => {
-                newBlacklistIpConfig.push({ip: "", remark: "", admin: "", isEffective: ""});
+                newBlacklistIpConfig.push({ip: "", remark: "", adminName: "", isEffective: ""});
             };
 
             vm.deleteBlacklistIpConfig = (blacklistIpID) => {
