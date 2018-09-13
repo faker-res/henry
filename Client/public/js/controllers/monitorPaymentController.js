@@ -45,6 +45,7 @@ define(['js/app'], function (myApp) {
             "PlayerTopUp": 'merchantNo'
         }
         vm.seleDataType = {};
+        vm.platformByAdminId= [];
 
         $scope.$on('setPlatform', function () {
             vm.setPlatform();
@@ -63,7 +64,7 @@ define(['js/app'], function (myApp) {
             vm.getRewardList();
             $cookies.put("platform", vm.selectedPlatform.name);
             console.log('vm.selectedPlatform', vm.selectedPlatform);
-            vm.loadPage(vm.showPageName); // 5
+            vm.loadPage("PAYMENT_MONITOR"); // 5
             $scope.safeApply();
         };
 
@@ -76,6 +77,18 @@ define(['js/app'], function (myApp) {
             }, function (data) {
                 console.log("create not", data);
             });
+        };
+
+        vm.getPlatformByAdminId = function() {
+            if(authService && authService.adminId){
+                socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.platformByAdminId = data.data;
+                    })
+                }, function (error){
+                    console.error(error);
+                });
+            }
         };
 
         vm.getProposalTypeByPlatformId = function (allPlatformId) {
@@ -150,6 +163,7 @@ define(['js/app'], function (myApp) {
                     vm.merchantNumbers = getMerchantNumbers(vm.merchants);
                     vm.getPaymentMonitorRecord();
                     vm.merchantGroupCloneList = vm.merchantGroups;
+                    vm.getPlatformByAdminId();
                 }
             );
 

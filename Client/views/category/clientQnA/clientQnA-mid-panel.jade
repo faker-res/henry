@@ -10,6 +10,7 @@
                     label {{vm.clientQnAData.questionTitle | translate}}
                     label(style='color:red' ng-if='vm.clientQnAInputCheck && vm.clientQnAInputCheck.hasOwnProperty("totalWrongCount")') {{"&nbsp("}} {{"WRONG_COUNT" | translate}}{{"&nbsp" + vm.clientQnAInputCheck.totalWrongCount + "/" + vm.clientQnASecurityQuesConfig.config.wrongCount + ")"}}                
                 label(style="text-align:center;display:block" ng-if='vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.title') {{vm.clientQnAData.clientQnAEnd.title | translate}}
+                label(style="text-align:center;display:block" ng-if='vm.clientQnAData && vm.clientQnAData.updateTitle') {{vm.clientQnAData.updateTitle | translate}}
                 br(ng-if='vm.clientQnAData.questionTitle || (vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.title)')
                 div(ng-repeat='(i,v) in vm.clientQnAData.question')
                     //- label(style="text-align:center;display:block;color:red") {{vm.clientQnADataErr | translate}}
@@ -25,12 +26,22 @@
                     select.form-control(ng-repeat='(k,o) in vm.clientQnAData.answerInput' ng-if='o.questionNo == v.questionNo && o.type == "select"' ng-model="vm.clientQnAInput[o.objKey]" ng-options="va.id as va.name | translate for (in,va) in vm[o.options]" ng-change='vm[o.options + "Change"]()')
                     br
                 .pull-right
-                    label(style="color:red" ng-if='vm.clientQnAData.alternativeQuestion && vm.clientQnAData.alternativeQuestion.des' ng-click='vm.getClientQnAProcess(true)') {{vm.clientQnAData.alternativeQuestion.des | translate}}
+                    label.alternative-question-label(style="color:red" ng-if='vm.clientQnAData.alternativeQuestion && vm.clientQnAData.alternativeQuestion.des' ng-click='vm.getClientQnAProcess(true)') {{vm.clientQnAData.alternativeQuestion.des | translate}}
                 text(ng-if='vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.des') {{vm.clientQnAData.clientQnAEnd.des | translate}}
+                text(ng-if='vm.clientQnAData && vm.clientQnAData.updateDes') {{vm.clientQnAData.updateDes | translate}}
+                br(ng-if='vm.clientQnAData && vm.clientQnAData.updateQuestion')
+                br(ng-if='vm.clientQnAData && vm.clientQnAData.updateQuestion')
+                div(ng-if="vm.clientQnAData && vm.clientQnAData.updateQuestion" ng-repeat='(i,v) in vm.clientQnAData.updateQuestion')
+
+                    label(style="{{vm.questionLabelStyle}}") {{v.des | translate}}
+                    input.form-control(ng-repeat='(k,o) in vm.clientQnAData.updateAnswer' ng-if='o.questionNo == v.questionNo && o.type!="select" && o.type!="checkbox"' type='{{o.type}}' ng-model='vm.clientQnAInput[o.objKey]' placeholder='{{o.placeHolder | translate}}')
+                    select.form-control(ng-repeat='(k,o) in vm.clientQnAData.updateAnswer' ng-if='o.questionNo == v.questionNo && o.type == "select"' ng-model="vm.clientQnAInput[o.objKey]" ng-options="va.id as va.name | translate for (in,va) in vm[o.options]" ng-change='vm[o.options + "Change"]()')
+                    br
                 br
                 br
                 .pull-right
                     button.common-button.btn.btn-success(ng-if='(vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.isSuccess && !vm.clientQnAData.clientQnAEnd.linkage) || vm.clientQnAData.question' ng-click="vm.copyClientQnA()") {{'COPY_TEXT' | translate}}
+                    button.common-button.btn.btn-success(ng-if='(vm.clientQnAData.updateLinkageTitle)' ng-click="vm.getClientQnAProcess()") {{vm.clientQnAData.updateLinkageTitle | translate}}
                     button.common-button.btn.btn-success(ng-if='(vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.linkage)' ng-click="vm.getClientQnAProcess()") {{vm.clientQnAData.clientQnAEnd.linkageTitle | translate}}
                     button.common-button.btn.btn-info(ng-if='!vm.clientQnAData.clientQnAEnd && vm.clientQnAData.question' ng-click="vm.getClientQnAProcess()") {{'NEXT_STEP' | translate}}
                     button.common-button.btn.btn-danger(ng-if='vm.clientQnAData.clientQnAEnd' ng-click="vm.endClientQnAProcess()") {{'END' | translate}}

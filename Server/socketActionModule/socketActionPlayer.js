@@ -213,7 +213,7 @@ function socketActionPlayer(socketIO, socket) {
         updatePlayerPermission: function updatePlayerPermission(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.query.platform && data.query._id && data.admin && data.permission && data.remark);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerPermission, [data.query, data.admin, data.permission, data.remark], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerPermission, [data.query, data.admin, data.permission, data.remark, data.selected], actionName, isValidData);
         },
         /**
          * Update player info by query with playerId or _id and updateData
