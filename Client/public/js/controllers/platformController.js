@@ -27268,7 +27268,11 @@ define(['js/app'], function (myApp) {
                     {
                         name: '机房IP',
                         score: 0
-                    }
+                    },
+                    {
+                        name: '黑名单IP',
+                        score: 0
+                    },
                 ];
 
                 let sendData = {
