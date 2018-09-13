@@ -1,14 +1,106 @@
-.row.padding-left-right-5(ng-show="checkViewPermission('ThemeControl')")
+.row.margin-left-5.margin-right-5(ng-show="checkViewPermission('ThemeControl')")
     #themeControlContent(style="padding-left:0;", ng-class='vm.rightPanelClass')
         .padding-all-5
             .panel.panel-primary
                 .panel-heading.common-left-panel-heading
-                    ul.nav.nav-tabs.common-nav-tabs.padding-left-5
+                    //ul.nav.nav-tabs.common-nav-tabs.padding-left-5
+                    ul.nav.nav-tabs.common-nav-tabs
                         li.active
-                            a.common-tab(ng-if="checkViewPermission('ThemeControl', 'playerTheme', 'Read')", data-toggle="tab", href="#playerTheme", ng-click="vm.playerThemeTabClicked();vm.themeControlPageName='playerTheme';vm.updatePageTile();")
-                                .fa.fa-user.margin-right-5
+                            a.common-tab(style="margin-left: 20px;", ng-if="checkViewPermission('ThemeControl', 'playerTheme', 'Read')", data-toggle="tab", href="#playerTheme", ng-click="vm.playerThemeTabClicked(); vm.reloadThemeSetting(); vm.themeControlPageName='playerTheme';vm.updatePageTile();")
+                                .fa.fa-wrench.margin-right-5
                                 text.span {{"playerTheme" | translate}}
                         li
-                            a.common-tab(ng-if="checkViewPermission('ThemeControl', 'partnerTheme', 'Read')", data-toggle="tab", href="#partnerTheme", ng-click="vm.partnerThemeTabClicked();vm.themeControlPageName='partnerTheme';vm.updatePageTile();")
-                                .fa.fa-share-alt.margin-right-5
+                            a.common-tab(ng-if="checkViewPermission('ThemeControl', 'partnerTheme', 'Read')", data-toggle="tab", href="#partnerTheme", ng-click="vm.partnerThemeTabClicked();vm.reloadThemeSetting(); vm.themeControlPageName='partnerTheme';vm.updatePageTile();")
+                                .fa.fa-wrench.margin-right-5
                                 text.span {{"partnerTheme" | translate}}
+                .panel-body.common-right-panel-body
+                    div.tab-content
+                        #playerTheme.tab-pane.fade.in.active
+                            div.col-md-6(ng-repeat= '(i,v) in vm.playerThemeData', style="float:none; display: inline-block; vertical-align: top; margin-bottom: 40px; margin-top: 30px")
+                                button(ng-if='vm.themeSettingEdit' style= 'width:20px; height:20px; background-color:#337ab7;', class='fa fa-times close', ng-click="vm.editThemeSetting('delete', v._id, 'player')")
+                                table.simple-table
+                                    thead
+                                        tr
+                                            th(colspan = 3) {{"Theme Style" | translate}} : {{v.themeStyle}}
+                                        tr(ng-if="vm.themeSettingEdit")
+                                            th(colspan = 3) {{"Theme Style" | translate}}
+                                                input.form-control(type='text', value='{{v.themeStyle}}', ng-model='v.themeStyle')
+                                        tr
+                                            th(style="width: 40%;") {{"Theme" | translate}} {{" "}} ID
+                                            th(style="width: 40%;") {{"REMARK" | translate}}
+                                            th(style="width: 20%") {{"ACTION_BUTTON" | translate}}
+                                    tbody
+                                        tr(ng-repeat= 'item in v.content')
+                                            td(ng-if="vm.themeSettingEdit")
+                                                input.form-control(type='text', value='{{item.themeId}}', ng-model='item.themeId')
+                                            td(ng-if="vm.themeSettingEdit")
+                                                input.form-control(type='text', value='{{item.remark}}', ng-model='item.remark')
+                                            td(ng-if="vm.themeSettingEdit")
+                                                i(ng-click='vm.updateCollectionInEdit("remove", v.content, $index)', style="font-style: normal;") (-) {{"DELETE"|  translate}}
+
+
+                                            td(ng-if="!vm.themeSettingEdit", ) {{ item.themeId ? item.themeId : ''}}
+                                            td(ng-if="!vm.themeSettingEdit", ) {{ item.remark ? item.remark : ''}}
+                                            td(ng-if="!vm.themeSettingEdit", style="width: 20%; background: lightgray;")
+
+
+                                        tr(ng-if='vm.themeSettingEdit')
+                                            td(colspan=3) {{'Adding In' | translate}}
+                                        tr(ng-if='vm.themeSettingEdit')
+
+                                            td
+                                                input.form-control(type="text", ng-model="vm.newThemeId[i]")
+                                            td
+                                                input.form-control(type="text", ng-model="vm.newRemark[i]")
+                                            td
+                                                i(style="font-style: normal;", ng-click='vm.updateCollectionInEdit("add", v.content, {themeId: vm.newThemeId[i], remark: vm.newRemark[i]}); vm.newThemeId[i]=""; vm.newRemark[i]="";') (+) {{"ADD" | translate}}
+
+
+                            .well(style="margin-top: 50px; background-color: white;", ng-if="vm.addNewPlayerTheme" )
+                                .row(style="text-align: center; margin-bottom: 10px;" ng-if="vm.addNewPlayerTheme")
+                                    label {{"Add New Player Theme" | translate}}
+                                .row(ng-if="vm.addNewPlayerTheme")
+                                    div.col-md-12(style="float:none; display: inline-block; vertical-align: top; margin-bottom: 40px;")
+                                        //button(style= 'width:20px; height:20px;background-color:#337ab7;', class='fa fa-times close', ng-click='vm.removeModule("aaa", $index)')
+                                        table.simple-table
+                                            thead
+                                                tr
+                                                    th(colspan = 3) {{"Theme Style" | translate}} :
+                                                        input.form-control(type='text', value='{{vm.newPlayerThemeSetting.themeStyle}}', ng-model='vm.newPlayerThemeSetting.themeStyle')
+                                                tr
+                                                    th(style="width: 40%;") {{"THEME ID" | translate}}
+                                                    th(style="width: 40%;") {{"REMARK" | translate}}
+                                                    th(style="width: 20%") {{"ACTION_BUTTON" | translate}}
+                                            tbody
+                                                tr(ng-if="vm.addNewPlayerTheme && vm.newPlayerThemeSetting.content && vm.newPlayerThemeSetting.content.length > 0", ng-repeat="item in vm.newPlayerThemeSetting.content")
+                                                    td
+                                                        input.form-control(type='text', value='{{item.themeId}}', ng-model='item.themeId')
+                                                    td
+                                                        input.form-control(type='text', value='{{item.remark}}', ng-model='item.remark')
+                                                    td
+                                                        i(ng-click='vm.updateCollectionInEdit("remove", vm.newPlayerThemeSetting.content, $index)', style="font-style: normal;") (-) {{"DELETE"|  translate}}
+
+
+                                                tr(ng-if='!vm.newPlayerThemeSetting.content || vm.newPlayerThemeSetting.content.length == 0 || vm.addNewPlayerTheme')
+                                                    td(colspan=3) {{'Adding In' | translate}}
+                                                tr(ng-if='!vm.newPlayerThemeSetting.content || vm.newPlayerThemeSetting.content.length == 0 || vm.addNewPlayerTheme')
+                                                    td
+                                                        input.form-control(type="text", ng-model="vm.refThemeId")
+                                                    td
+                                                        input.form-control(type="text", ng-model="vm.redRemark")
+                                                    td
+                                                        i(style="font-style: normal;", ng-click='vm.updateCollectionInEdit("add", vm.newPlayerThemeSetting.content, {themeId: vm.refThemeId, remark: vm.redRemark}); vm.refThemeId=""; vm.redRemark="";') (+) {{"ADD" | translate}}
+                                .row(style="text-align: right; margin-bottom: 10px;" ng-if="true")
+                                    button.common-button.btn.btn-info(ng-if="vm.addNewPlayerTheme", ng-click="vm.addNewPlayerTheme=false; vm.reloadThemeSetting(); vm.addNewPlayerTheme=false; vm.setThemeFooter(null);" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
+                                    button.common-button.btn.btn-info(ng-if="vm.addNewPlayerTheme", ng-click="vm.editThemeSetting('save', vm.newPlayerThemeSetting, 'player');vm.addNewPlayerTheme=false; vm.reloadThemeSetting(); vm.setThemeFooter(null);" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
+
+
+                        #partnerTheme.tab-pane.fade
+
+                .modal-footer
+                    button.btn.btn-primary.common-button(ng-if="!vm.themeAction", ng-click="vm.addNewPlayerTheme = true; vm.setThemeFooter('new theme')") {{ 'Add New Player Theme' | translate}}
+                    button.btn.btn-primary.common-button(ng-disabled="vm.playerThemeData.length == 0", ng-if="!vm.themeAction", ng-click="vm.setThemeFooter('edit'); vm.themeSettingEdit = true; vm.initPlatform(true); ") {{"EDIT" | translate}}
+
+                    button.btn.btn-primary.common-button(ng-show="vm.themeAction=='edit'", ng-click="vm.editThemeSetting('update', vm.playerThemeData, 'player'); vm.setThemeFooter(null); vm.themeSettingEdit = false;") {{"CONFIRM" | translate}}
+                    button.btn.btn-warning.common-button(ng-show="vm.themeAction && vm.themeAction != 'new theme'", ng-click="vm.setThemeFooter(null); vm.themeSettingEdit = false" ) {{"CANCEL" | translate}}
+

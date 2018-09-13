@@ -25,6 +25,7 @@ let dbLogs2 = dbConnections.logs2db;
 var adminInfoSchema = require('./../schema/admin');
 var departmentSchema = require('./../schema/department');
 var platformSchema = require('./../schema/platform');
+var themeSettingSchema = require('./../schema/themeSetting');
 var platformGameStatusSchema = require('./../schema/platformGameStatus');
 var playerSchema = require('./../schema/player');
 
@@ -110,6 +111,7 @@ let rewardPointsLvlConfigModel = db_admin.model('rewardPointsLvlConfig', rewardP
 
 var apiUserModel = db_admin.model('apiUser', apiUserSchema, 'apiUser');
 var platformModel = db_admin.model('platform', platformSchema, 'platform');
+var themeSettingModel = db_admin.model('themeSetting', themeSettingSchema, 'themeSetting');
 var platformGameStatusModel = db_admin.model('platformGameStatus', platformGameStatusSchema, 'platformGameStatus');
 
 var gameTypeModel = db_admin.model('gametype', gameTypeSchema, 'gameType');
@@ -494,6 +496,7 @@ var dbProperties = {
 
     collection_apiUser: apiUserModel,
     collection_platform: platformModel,
+    collection_themeSetting: themeSettingModel,
     collection_platformGameStatus: platformGameStatusModel,
     collection_platformGameGroup: platformGameGroupModel,
     collection_platformBankCardGroup: platformBankCardGroupModel,
