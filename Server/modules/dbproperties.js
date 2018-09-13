@@ -223,6 +223,10 @@ let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
 let platformAutoFeedbackModel = db_admin.model('platformAutoFeedback', platformAutoFeedbackSchema, 'platformAutoFeedback');
 let idcIpSchema = require('./../schema/idcIp');
 let idcIpModel = db_admin.model('idcIp', idcIpSchema, 'idcIp');
+
+let platformBlacklistIpConfigSchema = require('./../schema/platformBlacklistIpConfig');
+let platformBlacklistIpConfigModel = db_admin.model('platformBlacklistIpConfig', platformBlacklistIpConfigSchema, 'platformBlacklistIpConfig');
+
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
 var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema, 'playerFeedback');
@@ -352,6 +356,9 @@ let callOutMissionCalleeModel = dbLogs2.model('callOutMissionCallee', callOutMis
 
 let clientQnASchema = require('./../schema/logs2/clientQnA');
 let clientQnAModel = dbLogs2.model('clientQnA', clientQnASchema, 'clientQnA');
+
+let resetPasswordVerificationSchema = require('./../schema/logs2/resetPasswordVerification');
+let resetPasswordVerificationModel = dbLogs2.model('resetPasswordVerification', resetPasswordVerificationSchema, 'resetPasswordVerification');
 
 let smsLogSchema = require('./../schema/logs/smsLog');
 let smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
@@ -503,6 +510,7 @@ var dbProperties = {
     collection_clientQnA: clientQnAModel,
     collection_clientQnATemplate: clientQnATemplateModel,
     collection_clientQnATemplateConfig: clientQnATemplateConfigModel,
+    collection_resetPasswordVerification: resetPasswordVerificationModel,
     collection_platformBankCardList: platformBankCardListModel,
     collection_platformMerchantGroup: platformMerchantGroupModel,
     collection_platformMerchantList: platformMerchantListModel,
@@ -512,6 +520,8 @@ var dbProperties = {
     collection_platformWechatPayList: platformWechatPayListModel,
     collection_platformQuickPayGroup: platformQuickPayGroupModel,
     collection_autoFeedback: platformAutoFeedbackModel,
+
+    collection_platformBlacklistIpConfig: platformBlacklistIpConfigModel,
 
     collection_gameType: gameTypeModel,
     collection_game: gameModel,

@@ -2128,14 +2128,14 @@ var dbMigration = {
                         return dbconfig.collection_playerPermissionLog.findOne({platform: playerData.platform, player: playerData._id, "newData.applyBonus": false}).lean().then(
                             logData => {
                                 if(!logData){
-                                    let remark = "BI导入：" + adminName + ":" +remark;
+                                    let remarks = "BI导入：" + adminName + ":" + remark;
                                     let newLog = new dbconfig.collection_playerPermissionLog(
                                         {
                                             platform: playerData.platform,
                                             player: playerData._id,
-                                            "oldData.applyBonus": false,
-                                            "newData.applyBonus": false,
-                                            remark: remark,
+                                            oldData: {applyBonus: false},
+                                            newData: {applyBonus: false},
+                                            remark: remarks,
                                             isSystem: true,
                                             createTime: new Date(createTime)
                                         });

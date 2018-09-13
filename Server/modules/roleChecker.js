@@ -476,6 +476,7 @@ var roleChecker = {
                     'createUpdatePartnerCommissionRateConfig','createUpdatePartnerCommissionConfigWithGameProviderGroup','getPartnerCommissionConfigWithGameProviderGroup','updateParentCommissionRateConfig'],
                 platformBasic: [],
                 phoneFilterConfig: [],
+                blacklistIpConfig: [],
                 financialSettlementConfig: ['updateAllAdminInfo', 'updatePlatform', 'updatePlatformFinancialPoints', 'updatePlatformAllBankCardGroup', 'updatePlatformAllWechatPayGroup', 'updatePlatformAllAlipayGroup'],
                 bonusBasic:['bonusBasic'],
                 autoApproval: ['updateAutoApprovalConfig'],

@@ -787,7 +787,28 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime);
             socketUtil.emitter(self.socket, dbPlatform.getUniqueIpDomainsWithinTimeFrame, [data.platformObjId, data.startTime, data.endTime], actionName, isValidData);
-        }
+        },
+
+        getBlacklistIpConfig: function getBlacklistIpConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            let platformObjId = ObjectId(data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatform.getBlacklistIpConfig, [platformObjId], actionName, isValidData);
+        },
+
+        deleteBlacklistIpConfig: function deleteBlacklistIpConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id && data.platformObjId);
+            let platformObjId = ObjectId(data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatform.deleteBlacklistIpConfig, [data._id, platformObjId], actionName, isValidData);
+        },
+
+        saveBlacklistIpConfig: function saveBlacklistIpConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.insertData && data.updateData && data.adminName);
+            let platformObjId = ObjectId(data.platformObjId);
+            socketUtil.emitter(self.socket, dbPlatform.saveBlacklistIpConfig, [platformObjId, data.insertData, data.updateData, data.adminName], actionName, isValidData);
+        },
     };
     socketActionPlatform.actions = this.actions;
 }

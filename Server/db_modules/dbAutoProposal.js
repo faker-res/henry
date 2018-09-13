@@ -206,7 +206,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
             let isApprove = true, canApprove = true;
 
-            if (data && data[0] && data[0].length > 0) {
+            if (!platformObj.enableAutoApplyBonus && data && data[0] && data[0].length > 0) {
                 RTGs = data[0];
 
                 let curConsumptionAmount = 0, totalConsumptionAmout = 0;
@@ -709,7 +709,7 @@ function checkProposalConsumption(proposal, platformObj) {
                         checkMsg += "Withdrawal amount is within the ximaWithdraw amount: ximaWithdraw " + proposal.data.ximaWithdrawUsed;
                         checkMsgChinese += "提款额在洗码提款额内：洗码提款额" + proposal.data.ximaWithdrawUsed;
                     }
-                    else if ((validConsumptionAmount + lostThreshold) < spendingAmount) {
+                    else if (!platformObj.enableAutoApplyBonus && ((validConsumptionAmount + lostThreshold) < spendingAmount)) {
                         isApprove = false;
                         repeatMsg = "Insufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
                         repeatMsgChinese = "总投注额不足：流水 " + totalConsumptionAmount + " ，所需流水 " + totalSpendingAmount + "; ";
