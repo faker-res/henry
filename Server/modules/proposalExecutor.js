@@ -701,10 +701,6 @@ var proposalExecutor = {
                                     playerUpdate["qnaWrongCount.forgotPassword"] = 0;
                                 }
 
-                                if(playerUpdate.editName) {
-                                    playerUpdate["qnaWrongCount.editName"] = 0;
-                                }
-
                                 proms.push(
                                     dbconfig.collection_players.findOneAndUpdate(
                                         {_id: data._id, platform: data.platform},
@@ -767,7 +763,7 @@ var proposalExecutor = {
                             if(data && data._id && data.platform){
                                 return dbconfig.collection_players.findOneAndUpdate(
                                     {_id: data._id, platform: data.platform},
-                                    {realName: proposalData.data.realNameAfterEdit}
+                                    {realName: proposalData.data.realNameAfterEdit, "qnaWrongCount.editName": 0}
                                 );
                             }else{
                                 deferred.reject({name: "DataError", message: "Incorrect player data", error: Error()});

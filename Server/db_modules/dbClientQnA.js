@@ -1783,25 +1783,31 @@ var dbClientQnA = {
                                 return Promise.reject({name: "DBError", message: "update QnA data failed"})
                             }
 
-                            dbClientQnA.sendSMSVerificationCode(clientQnARecord, constSMSPurpose.UPDATE_PLAYER_INFO)
-                                .catch(errorUtils.reportError);
-
-                            return dbconfig.collection_clientQnATemplate.findOne({
-                                type: constClientQnA.EDIT_NAME,
-                                processNo: "3"
-                            }).lean().then(QnATemplate => {
-                                if (QnATemplate) {
-                                    QnATemplate.qnaObjId = clientQnARecord._id;
-                                }
-
-                                return QnATemplate;
-                            })
+                            return dbClientQnA.sendSMSVerificationCode(clientQnARecord, constSMSPurpose.UPDATE_PLAYER_INFO);
                         }
                     )
                 }
                 else{
-                    return Promise.reject({name: "DataError", message: "The phone number is not matched with the registered phone number"})
+                    throw new Error("The phone number is not matched with the registered phone number");
                 }
+            }
+        ).then(
+            smsRes => {
+
+                if (smsRes){
+                    return dbconfig.collection_clientQnATemplate.findOne({
+                        type: constClientQnA.EDIT_NAME,
+                        processNo: "3"
+                    }).lean().then(QnATemplate => {
+                        if (QnATemplate) {
+                            QnATemplate.qnaObjId = qnaObjId;
+                        }
+
+                        return QnATemplate;
+                    })
+                }
+
+                throw new Error("Max SMS count");
             }
         )
     },
@@ -2405,15 +2411,24 @@ var dbClientQnA = {
     editNameResendSMSCode: function (platformObjId, inputDataObj, qnaObjId) {
         return dbconfig.collection_clientQnA.findById(qnaObjId).lean().then(
             qnaObj => {
+
                 // Check player send count
                 if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 5) {
                     return dbClientQnA.editName4(platformObjId, inputDataObj, qnaObjId);
+                    // return dbClientQnA.rejectFailedRetrieveAccount();
                 } else {
-                    dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.UPDATE_PLAYER_INFO);
+                    return dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.UPDATE_PLAYER_INFO).then(
+                        smsRes => {
+                            if (!smsRes) {
+                                return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
+                            }
+                        }
+                    );
                 }
             }
         );
     },
+
     //endregion
 };
 
