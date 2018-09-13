@@ -213,6 +213,10 @@ define([], () => {
             );
         };
 
+        self.getAllThemeSetting = function ($scope, platformObjId) {
+            return $scope.$socketPromise("getAllThemeSetting", {platform: platformObjId}).then(data => data.data)
+        };
+
         self.getAllTSPhoneList = function ($scope, platformObjId) {
             return $scope.$socketPromise("getAllTSPhoneList", {platformObjId: platformObjId}).then(data => data.data)
         };

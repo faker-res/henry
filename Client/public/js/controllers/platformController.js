@@ -21710,6 +21710,8 @@ define(['js/app'], function (myApp) {
             vm.configTabClicked = function (choice) {
                 vm.selectedConfigTab = choice;
                 vm.configTableEdit = false;
+                vm.blacklistIpConfigTableEdit = false;
+                vm.newBlacklistIpConfig = [];
                 vm.delayDurationGroupProviderEdit = false;
                 switch (choice) {
                     case 'player':
@@ -21789,6 +21791,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'phoneFilterConfig':
                         vm.getPhoneFilterConfig();
+                        vm.getBlacklistIpConfig();
                         break;
                     case 'financialSettlementConfig':
                         vm.getFinancialSettlementConfig();
@@ -27053,6 +27056,34 @@ define(['js/app'], function (myApp) {
 
             };
 
+            vm.getBlacklistIpConfig = function () {
+                vm.blacklistIpConfig = vm.blacklistIpConfig || [];
+
+                socketService.$socket($scope.AppSocket, 'getBlacklistIpConfig', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.blacklistIpConfig = data.data;
+                    });
+                }, function (data) {
+                    console.log("cannot get blacklist ip config", data);
+                    vm.blacklistIpConfig = [];
+                });
+            };
+
+            vm.newRowBlacklistIpConfig = (newBlacklistIpConfig) => {
+                newBlacklistIpConfig.push({ip: "", remark: "", adminName: "", isEffective: ""});
+            };
+
+            vm.deleteBlacklistIpConfig = (blacklistIpID) => {
+                $scope.$socketPromise('deleteBlacklistIpConfig', {_id: blacklistIpID, platformObjId: vm.selectedPlatform.id}).then((data) => {
+                    $scope.$evalAsync(() => {
+                        vm.blacklistIpConfig = data.data;
+                    });
+                }, function (data) {
+                    console.log("cannot get blacklist ip config", data);
+                    vm.blacklistIpConfig = [];
+                });
+            };
+
             vm.getFinancialSettlementConfig = function () {
                 vm.financialSettlementConfig = vm.financialSettlementConfig || {};
                 vm.financialSettlementConfig.financialSettlementToggle = vm.selectedPlatform.data.financialSettlement.financialSettlementToggle;
@@ -27243,7 +27274,11 @@ define(['js/app'], function (myApp) {
                     {
                         name: '机房IP',
                         score: 0
-                    }
+                    },
+                    {
+                        name: '黑名单IP',
+                        score: 0
+                    },
                 ];
 
                 let sendData = {
@@ -27535,6 +27570,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'phoneFilterConfig':
                         updatePhoneFilter(vm.phoneFilterConfig);
+                        break;
+                    case 'blacklistIpConfig':
+                        updateBlacklistIpConfig();
                         break;
                     case 'promoCodeTemplate':
                         updatePromoCodeTemplate();
@@ -28192,6 +28230,19 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            function updateBlacklistIpConfig() {
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    insertData: vm.newBlacklistIpConfig,
+                    updateData: vm.blacklistIpConfig,
+                    adminName: authService.adminName
+                };
+
+                socketService.$socket($scope.AppSocket, 'saveBlacklistIpConfig', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
+                });
+            }
+
             function updateFinancialSettlementConfig(srcData) {
                 let financialPointsNotification = false;
                 let financialPointsDisableWithdrawal = false;
@@ -28663,6 +28714,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getAdminNameByDepartment = function (departmentId) {
+                if (!departmentId) {
+                    vm.adminList = [];
+                    return;
+                }
                 socketService.$socket($scope.AppSocket, 'getAdminNameByDepartment', {departmentId}, function (data) {
                     vm.adminList = data.data;
                 });
@@ -28862,10 +28917,6 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
-                if (vm.clientQnAData && vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.linkage == 'editBankCard'){
-                    $('#clientQnATypeTree li[data-nodeid="3"]').trigger("click");
-                    return;
-                }
 
                 socketService.$socket($scope.AppSocket, 'getClientQnAProcessStep', sendData,  function (data) {
                     if (data && data.data) {
@@ -28877,6 +28928,33 @@ define(['js/app'], function (myApp) {
                             }
                             if (vm.clientQnAData && vm.clientQnAData.questionTitle && vm.clientQnAData.isSecurityQuestion) {
                                 vm.questionLabelStyle = "text-align:left;display:inline-block";
+                            }
+
+                            if (vm.clientQnAData.autoRetrive){
+                                let objKey = Object.keys(vm.clientQnAData.autoRetrive);
+                                if (objKey.length > 0){
+                                      objKey.forEach(
+                                          key => {
+                                              if (key == 'phoneNumber') {
+                                                  vm.clientQnAInput[key] = parseInt(vm.clientQnAData.autoRetrive[key]);
+                                              }
+                                              else{
+                                                  vm.clientQnAInput[key] = vm.clientQnAData.autoRetrive[key];
+                                              }
+                                          }
+                                      )
+                                }
+                            }
+
+                            if (vm.clientQnAData.updateAnswer){
+
+                                vm.clientQnAInput = {};
+                                vm.clientQnAData.updateAnswer.forEach(
+                                    item => {
+                                        vm.clientQnAInput[item.objKey] = item[item.objKey]
+                                    }
+                                )
+                                vm.getCityListQnA();
                             }
                         });
                     }
@@ -28916,15 +28994,22 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getClientQnASecurityQuesConfig', sendData,  function (data) {
                     if (data.data) {
                         $scope.$evalAsync(() => {
+                            let totalQuestion = 0;
                             if (data.data[0] && data.data[0].question && data.data[0].question.length) {
                                 vm.clientQnASecurityQuesConfig.question = data.data[0].question;
                                 vm.clientQnASecurityQuesCount.totalQues = data.data[0].question.length;
+                                totalQuestion = data.data[0].question.length;
                             }
                             if (data.data[1]) {
+
                                 vm.clientQnASecurityQuesConfig.config = data.data[1];
+
                                 if (data.data[1].minQuestionPass) {
                                     vm.clientQnASecurityQuesCount.minQuestionPass = data.data[1].minQuestionPass;
                                 }
+                            }
+                            if(vm.clientQnASecurityQuesConfig.config && data.data[0] && data.data[0].question && data.data[0].question.length){
+                                vm.clientQnASecurityQuesConfig.config.minQuestionPass = data.data[0].question.length;
                             }
                         });
                     }
@@ -29135,7 +29220,7 @@ define(['js/app'], function (myApp) {
                             });
 
                             if (!vm.platformDepartmentObjId) {
-                                vm.platformDepartmentObjId = vm.currentPlatformDepartment[0]._id;
+                                vm.platformDepartmentObjId = "";
                             }
 
                             if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read')) {

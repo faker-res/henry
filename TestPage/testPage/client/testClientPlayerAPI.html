@@ -1718,6 +1718,77 @@
     </div>
 </div>
 
+<h3>Reset Password (客户QnA重置密码)</h3>
+<div class="test-container">
+    <!--For testing player logout API (5)-->
+    <div>
+        <label>Platform ID
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label> Name
+            <input type=text name="name">
+        </label>
+    </div>
+    <div>
+        <label>SMS code
+            <input type=text name="smsCode">
+        </label>
+    </div>
+    <div>
+        <label>Answer [{quesNo: "", ans: ""}]
+            <input type=text name="answer">
+        </label>
+    </div>
+    <div>
+        <label>Phone number
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>Code
+            <input type=text name="code">
+        </label>
+    </div>
+
+    <div>
+        <button id="getSmsCode" data-api-name="getSMSCode">Get SMS Code</button>
+    </div>
+    <div>
+        <button id="resetPassword" data-api-name="resetPassword">Reset Password</button>
+    </div>
+
+</div>
+
+<h3>Inquire Account By Phone Number (电话号码查找账号)</h3>
+<div class="test-container">
+    <!--For testing player logout API (5)-->
+    <div>
+        <label>Platform ID
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Phone number
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <div>
+        <label>SMS code
+            <input type=text name="smsCode">
+        </label>
+    </div>
+
+    <div>
+        <button id="getSmsCode" data-api-name="getSMSCode">Get SMS Code</button>
+    </div>
+    <div>
+        <button id="inquireAccountByPhoneNumber" data-api-name="inquireAccountByPhoneNumber">Get Account</button>
+    </div>
+
+</div>
+
 
 
 <script>

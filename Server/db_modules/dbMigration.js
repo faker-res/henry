@@ -2109,6 +2109,53 @@ var dbMigration = {
                 return data;
             }
         );
+    },
+
+    addBonusPermissionRecord: function(userName, platformId, adminName, createTime, remark) {
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if( platformData ){
+                    return dbconfig.collection_players.findOne({platform: platformData._id, name: userName}).lean();
+                }
+                else{
+                    return Promise.reject({message: "Invalid platform"});
+                }
+            }
+        ).then(
+            playerData => {
+                if( playerData ){
+                    if(!playerData.permission.applyBonus){
+                        return dbconfig.collection_playerPermissionLog.findOne({platform: playerData.platform, player: playerData._id, "newData.applyBonus": false}).lean().then(
+                            logData => {
+                                if(!logData){
+                                    let remarks = "BI导入：" + adminName + ":" + remark;
+                                    let newLog = new dbconfig.collection_playerPermissionLog(
+                                        {
+                                            platform: playerData.platform,
+                                            player: playerData._id,
+                                            oldData: {applyBonus: false},
+                                            newData: {applyBonus: false},
+                                            remark: remarks,
+                                            isSystem: true,
+                                            createTime: new Date(createTime)
+                                        });
+                                    return newLog.save();
+                                }
+                                else{
+                                    return Promise.reject({message: "Already got record"});
+                                }
+                            }
+                        );
+                    }
+                    else{
+                        return Promise.reject({message: "Invalid permission status"});
+                    }
+                }
+                else{
+                    return Promise.reject({message: "Invalid player"});
+                }
+            }
+        );
     }
 
 };

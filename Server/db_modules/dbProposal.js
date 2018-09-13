@@ -38,6 +38,7 @@ const constMaxDateTime = require("../const/constMaxDateTime");
 const constPlayerCreditTransferStatus = require("../const/constPlayerCreditTransferStatus");
 const constFinancialPointsType = require("../const/constFinancialPointsType");
 const localization = require("../modules/localization");
+const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 let rsaCrypto = require("../modules/rsaCrypto");
 
 var proposal = {
@@ -824,6 +825,7 @@ var proposal = {
         var deferred = Q.defer();
         var nextStepId = null;
         var proposalData = null;
+        let proposalObj;
         //find proposal
         dbconfig.collection_proposal.findOne({_id: proposalId}).populate(
             {
@@ -947,7 +949,56 @@ var proposal = {
                                         {_id: proposalData._id, createTime: proposalData.createTime},
                                         updateData,
                                         {new: true}
-                                    )
+                                    ).then(data => {
+                                        proposalObj = data;
+
+                                        let prom = Promise.resolve(true);
+
+                                        if (proposalObj && proposalObj.mainType === constProposalType.PLAYER_BONUS && proposalObj.data && proposalObj.data.playerObjId && proposalObj.data.platformId) {
+                                            prom = dbconfig.collection_players.findOne({_id: data.data.playerObjId, platform: data.data.platformId}, {permission: 1, _id: 1, platform: 1})
+                                                .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
+                                                    playerData => {
+                                                        if (playerData && playerData.permission && !playerData.permission.applyBonus && playerData.platform
+                                                            && playerData.platform.playerForbidApplyBonusNeedCsApproval && proposalObj.status == constProposalStatus.APPROVED
+                                                            && proposalObj.data.needCsApproved) {
+
+                                                            return dbconfig.collection_playerPermissionLog.findOne({
+                                                                player: playerData._id,
+                                                                platform: proposalObj.data.platformId,
+                                                                isSystem: false
+                                                            }).sort({createTime: -1}).lean().then(
+                                                                manualPermissionSetting => {
+
+                                                                    let platformObjId = proposalObj.data.platformId;
+                                                                    let playerObjId = proposalObj.data.playerObjId;
+                                                                    let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
+                                                                    let newPermissionObj = {applyBonus: true};
+                                                                    let remark = "";
+
+                                                                    if (manualPermissionSetting) {
+                                                                        if(manualPermissionSetting.newData && manualPermissionSetting.newData.hasOwnProperty('applyBonus')
+                                                                            && manualPermissionSetting.newData.applyBonus.toString() == 'true') {
+
+                                                                            remark = "提款提案号：" + proposalObj.proposalId;
+                                                                            autoEnableBonusPermission(proposalObj, platformObjId, playerObjId, remark, oldPermissionObj, newPermissionObj);
+
+                                                                        }
+                                                                    } else {
+                                                                        remark = "提款提案号：" + proposalObj.proposalId;
+                                                                        autoEnableBonusPermission(proposalObj, platformObjId, playerObjId, remark, oldPermissionObj, newPermissionObj);
+                                                                    }
+                                                                }
+                                                            )
+                                                        }
+                                                    }
+
+                                                );
+                                        }
+
+                                        return prom.then(() => {
+                                            return proposalObj;
+                                        });
+                                    })
                                 }
                             );
                     }
@@ -3167,7 +3218,7 @@ var proposal = {
                         resultArray[i].data.playerShortId = playerData[i].playerId
                     }
                 }
-                var total = 0;
+                let total = 0;
                 if (summary[0]) {
                     total += summary[0].totalAmount;
                     total += summary[0].totalRewardAmount;
@@ -3176,10 +3227,11 @@ var proposal = {
                     total += summary[0].totalNegativeProfitAmount;
                     total += summary[0].totalCommissionAmount;
                 }
+                total = dbutility.decimalAdjust("floor", total, -2);
                 deferred.resolve({
                     size: totalSize,
                     data: resultArray,
-                    summary: {amount: parseFloat(total).toFixed(2)},
+                    summary: {amount: total}, //parseFloat(total).toFixed(2)
                 });
             },
             function (error) {
@@ -7225,6 +7277,24 @@ function filterBonusData(itemArr, dayCount) {
     }
 
     return bonusRecord;
+}
+
+function autoEnableBonusPermission(proposalObj, platformObjId, playerObjId, remark, oldPermissionObj, newPermissionObj) {
+    return dbconfig.collection_proposal.findOneAndUpdate({
+        _id: proposalObj._id,
+        createTime: proposalObj.createTime
+    }, {
+        'data.remark': proposalObj.data.remark + "／执行后自动解禁"
+    }).then(proposalData => {
+        return dbconfig.collection_players.findOneAndUpdate({
+            _id: playerObjId,
+            platform: platformObjId
+        }, {
+            $set: {"permission.applyBonus": true}
+        });
+    }).then(playerData => {
+        return dbPlayerUtil.addPlayerPermissionLog(null, platformObjId, playerObjId, remark, oldPermissionObj, newPermissionObj);
+    });
 }
 
 var proto = proposalFunc.prototype;

@@ -1495,7 +1495,7 @@ const dbRewardTask = {
      * @param platformObj
      */
     checkPlayerRewardTaskGroupForConsumption: function (consumptionRecord, platformObj) {
-        let nonDirtyAmount = 0;
+        let nonDirtyAmount = consumptionRecord.validAmount ? consumptionRecord.validAmount : 0;
         let createTime = new Date(consumptionRecord.createTime);
 
         // Recursive update RTG to prevent overflow of curConsumption
@@ -2336,6 +2336,8 @@ const dbRewardTask = {
 function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) {
     // Check recursive limit
     if (retryCount == 0) {
+        // This consumption record didn't make it to RTG
+        console.log('findAndUpdateRTG retry 0', consumptionRecord);
         return false;
     }
 

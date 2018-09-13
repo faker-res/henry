@@ -1448,7 +1448,7 @@ function generateDXPlayerName (lastXDigit, platformPrefix, dxPrefix, dxPhone, tr
 function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) {
     let platform = dxPhone.platform;
     let playerPassword = dxPhone.dxMission.password || "888888";
-
+    let isNew = false;
 
     if (!dxPhone.dxMission) {
         dxPhone.dxMission = {
@@ -1466,6 +1466,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
 
     return generateDXPlayerName(dxMission.lastXDigit, platformPrefix, dxMission.playerPrefix, dxPhone).then(
         playerName => {
+            console.log('DX created player: ', playerName);
             isNew = true;
 
             let playerData = {
@@ -1491,6 +1492,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
         }
     ).then(
         function (playerData) {
+            console.log('DX created player: ', playerData.name);
             let profile = {name: playerData.name, password: playerData.password};
             let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
 

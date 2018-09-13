@@ -476,6 +476,7 @@ var roleChecker = {
                     'createUpdatePartnerCommissionRateConfig','createUpdatePartnerCommissionConfigWithGameProviderGroup','getPartnerCommissionConfigWithGameProviderGroup','updateParentCommissionRateConfig'],
                 platformBasic: [],
                 phoneFilterConfig: [],
+                blacklistIpConfig: [],
                 financialSettlementConfig: ['updateAllAdminInfo', 'updatePlatform', 'updatePlatformFinancialPoints', 'updatePlatformAllBankCardGroup', 'updatePlatformAllWechatPayGroup', 'updatePlatformAllAlipayGroup'],
                 bonusBasic:['bonusBasic'],
                 autoApproval: ['updateAutoApprovalConfig'],
@@ -665,6 +666,9 @@ var roleChecker = {
         Monitor: {
             Payment:{
                 Read: ['getPaymentMonitorResult']
+            },
+            "Payment Monitor Total":{
+                Read: ['']
             }
         },
         Payment: {
