@@ -135,7 +135,7 @@ var dbClientQnA = {
         })
     },
 
-    sendSMSVerificationCode: function (clientQnAData, purpose, isGetSmsCode) {
+    sendSMSVerificationCode: function (clientQnAData, purpose, isGetSmsCode, inputData) {
         let smsCode = dbutility.generateRandomPositiveNumber(1000, 9999);
         if (clientQnAData && clientQnAData.QnAData && clientQnAData.QnAData.playerId && clientQnAData.QnAData.platformId) {
             if (clientQnAData.type) {
@@ -156,7 +156,7 @@ var dbClientQnA = {
                   ()=>{
                     if(isGetSmsCode){
                         // based on getSMSCode api
-                        dbPlayerMail.sendVerificationCodeToNumber(clientQnAData.QnAData.phoneNumber, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0)
+                        dbPlayerMail.sendVerificationCodeToNumber(clientQnAData.QnAData.phoneNumber, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0, clientQnAData.QnAData.name, inputData)
                     }else{
                         dbPlayerMail.sendVerificationCodeToPlayer(clientQnAData.QnAData.playerId, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0)
                     }
@@ -744,16 +744,21 @@ var dbClientQnA = {
                 if (!playerData) {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
+
                 let updateObj = {
                     QnAData: {
                         name: inputDataObj.name,
                         platformId: platformData.platformId,
                         playerId: playerData.playerId || '',
                         playerObjId: playerData._id || '',
-                        phoneNumber: ''
-
+                        phoneNumber: '',
+                        oldPhoneNumber: ''
                     }
                 };
+
+                if(platformData.usePhoneNumberTwoStepsVerification){
+                    updateObj.QnAData.twoStepsVerification = true;
+                }
                 return dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.UPDATE_PHONE, updateObj)
         }).then(
             clientQnA => {
@@ -768,7 +773,7 @@ var dbClientQnA = {
                 } else {
                     let endTitle = "Update phone number failed";
                     let endDes = "Attention! This player does not bind phone number (or inconvenient to receive sms code), cannot verify bank card. Please contact customer service to reset password manually";
-                    return dbClientQnA.qnaEndMessage(endTitle, endDes)
+                    return dbClientQnA.qnaEndMessage(endTitle, endDes);
                 }
 
                 return dbconfig.collection_clientQnATemplate.findOne({
@@ -801,6 +806,7 @@ var dbClientQnA = {
 
     updatePhoneNumber2_1: function (platformObjId, inputDataObj, qnaObjId, creator) {
         let clientQnAData = null;
+        let playerData = null;
         if (!(inputDataObj && inputDataObj.phoneNumber)) {
             return Promise.reject({name: "DBError", message: "Invalid Data"})
         }
@@ -818,17 +824,32 @@ var dbClientQnA = {
                 () => {
                     return dbconfig.collection_players.findOne({_id: clientQnAData.playerObjId}).lean()
             }).then(
-                (playerData) => {
+                (player) => {
+                    playerData = player;
                     console.log(playerData.phoneNumber);
                     if(playerData.phoneNumber != inputDataObj.phoneNumber){
                         return Promise.reject({name: "DBError", message: "Thats not same phone you are using"})
                     }
-                    return dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.OLD_PHONE_NUMBER)
-
+                    if(clientQnAData.QnAData.twoStepsVerification){
+                        return dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.OLD_PHONE_NUMBER)
+                    }else{
+                        return {}
+                    }
+            }).then(()=>{
+                    let updObj = {
+                        $set: {
+                            'QnAData.oldPhoneNumber': inputDataObj.phoneNumber
+                        }
+                    };
+                    return dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.UPDATE_PHONE, updObj, qnaObjId)
             }).then(
-                smsResult => {
-
-                    let processNo = '3_1';
+                (clientQnA) => {
+                    let processNo = '';
+                    if(clientQnA.QnAData.twoStepsVerification){
+                        processNo = '3_1';
+                    }else{
+                        processNo = '4_1';
+                    }
 
                     return dbconfig.collection_clientQnATemplate.findOne({
                         type: constClientQnA.UPDATE_PHONE,
@@ -961,7 +982,12 @@ var dbClientQnA = {
             };
             let lastWithdraw;
 
-            return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).lean().then(
+            let updObj = {
+                $set: {
+                    'QnAData.oldPhoneNumber': inputDataObj.phoneNumber
+                }
+            };
+            return dbClientQnA.updateClientQnAData(null, constClientQnA.UPDATE_PHONE, updObj, qnaObjId).then(
                 clientQnAObj => {
                     clientQnAData = clientQnAObj;
                     if (!(clientQnAData && clientQnAData.playerObjId)) {
@@ -1113,16 +1139,21 @@ var dbClientQnA = {
                         return Promise.reject({name: "DBError", message: "update QnA data failed"})
                     }
                     clientQnAData = clientQnA;
-                    return dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.NEW_PHONE_NUMBER, true)
+                    let sendData = {}
+                    if(clientQnAData.QnAData && !clientQnAData.QnAData.twoStepsVerification && clientQnAData.QnAData.oldPhoneNumber){
+                        sendData.oldPhoneNumber = clientQnAData.QnAData.oldPhoneNumber;
+                        sendData.playerId = clientQnAData.QnAData.playerId;
+                    }
+                    return dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.NEW_PHONE_NUMBER, true, sendData)
                 })
             .then(smsData => {
-
                     let processNo = '5_1';
                     return dbconfig.collection_clientQnATemplate.findOne({
                         type: constClientQnA.UPDATE_PHONE,
                         processNo: processNo
                     }).lean()
                 },err=>{
+                    console.log(error);
                     if(err){
                         return Promise.reject({name: "DBError", message: err.errMsg})
                     }
@@ -1187,16 +1218,21 @@ var dbClientQnA = {
         let isGetSmsCode = true;
         let endTitle = 'Update phone number failed';
         let endDes = 'Attention: this number is over the excess the limit of sent sms. Please contact cs or open a new account if necessary.';
-        return dbClientQnA.getSMSVerificationCodeAgain(platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode, endTitle, endDes);
+        return dbClientQnA.getSMSVerificationCodeAgain(platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode, endTitle, endDes, true);
     },
-    getSMSVerificationCodeAgain: function (platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode, endTitle, endDes) {
+    getSMSVerificationCodeAgain: function (platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode, endTitle, endDes, isNewPhoneNumber) {
         return dbconfig.collection_clientQnA.findById(qnaObjId).lean().then(
             qnaObj => {
                 // Check player send count
+                let sendObj = {};
+                if(qnaObj && qnaObj.QnAData && qnaObj.QnAData.playerId && qnaObj.QnAData.oldPhoneNumber && !qnaObj.QnAData.twoStepsVerification && isNewPhoneNumber){
+                    sendObj.playerId = qnaObj.QnAData.playerId;
+                    sendObj.oldPhoneNumber = qnaObj.QnAData.oldPhoneNumber
+                }
                 if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 5) {
                     return dbClientQnA.qnaEndMessage(endTitle, endDes);
                 } else {
-                    return dbClientQnA.sendSMSVerificationCode(qnaObj, purpose, isGetSmsCode).catch(errorUtils.reportError);
+                    return dbClientQnA.sendSMSVerificationCode(qnaObj, purpose, isGetSmsCode, sendObj).catch(errorUtils.reportError);
                 }
             }
         );
