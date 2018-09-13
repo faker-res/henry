@@ -28856,10 +28856,6 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
-                if (vm.clientQnAData && vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.linkage == 'editBankCard'){
-                    $('#clientQnATypeTree li[data-nodeid="3"]').trigger("click");
-                    return;
-                }
 
                 socketService.$socket($scope.AppSocket, 'getClientQnAProcessStep', sendData,  function (data) {
                     if (data && data.data) {
@@ -28871,6 +28867,22 @@ define(['js/app'], function (myApp) {
                             }
                             if (vm.clientQnAData && vm.clientQnAData.questionTitle && vm.clientQnAData.isSecurityQuestion) {
                                 vm.questionLabelStyle = "text-align:left;display:inline-block";
+                            }
+
+                            if (vm.clientQnAData.autoRetrive){
+                                let objKey = Object.keys(vm.clientQnAData.autoRetrive);
+                                if (objKey.length > 0){
+                                      objKey.forEach(
+                                          key => {
+                                              if (key == 'phoneNumber') {
+                                                  vm.clientQnAInput[key] = parseInt(vm.clientQnAData.autoRetrive[key]);
+                                              }
+                                              else{
+                                                  vm.clientQnAInput[key] = vm.clientQnAData.autoRetrive[key];
+                                              }
+                                          }
+                                      )
+                                }
                             }
 
                             if (vm.clientQnAData.updateAnswer){

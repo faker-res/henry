@@ -701,6 +701,10 @@ var proposalExecutor = {
                                     playerUpdate["qnaWrongCount.forgotPassword"] = 0;
                                 }
 
+                                if(playerUpdate.editName) {
+                                    playerUpdate["qnaWrongCount.editName"] = 0;
+                                }
+
                                 proms.push(
                                     dbconfig.collection_players.findOneAndUpdate(
                                         {_id: data._id, platform: data.platform},

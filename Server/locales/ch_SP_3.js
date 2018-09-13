@@ -24,6 +24,7 @@ var simplifiedChinese = {
     "Edit bank card (Auto)": "修改银行卡 （自动）",
     "To facilitate withdrawing process, please complete your bank information else the previous amendment will not be processed": "为确保正常提款，请同时完善您的银行资料修改，名字修改才可完成",
     "SUBMIT": "提交",
+    "Editing bank information is successful": "银行资料绑定成功",
     "Authentification Passed": "身份验证通过",
     "CLOSED_COMMISSION": "关闭",
     "DAILY_BONUS_AMOUNT": "1天-输赢值",

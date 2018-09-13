@@ -1699,7 +1699,7 @@ var dbClientQnA = {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
 
-                if (QnAConfig.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("editName") && playerData.qnaWrongCount.editName >= QnAConfig.wrongCount){
+                if (QnAConfig.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("editName") && playerData.qnaWrongCount.editName > QnAConfig.wrongCount){
                     let endTitle = "Authentification Failed";
                     let endDes = "Attention! Contact CS for further instruction";
                     return dbClientQnA.qnaEndMessage(endTitle, endDes);
@@ -1799,12 +1799,18 @@ var dbClientQnA = {
                 }
 
                 if (playerData.bankAccount) {
+
+                    let phoneNumber = clientQnAData.QnAData && clientQnAData.QnAData.phoneNumber ? rsaCrypto.decrypt(clientQnAData.QnAData.phoneNumber) : null;
                     return dbconfig.collection_clientQnATemplate.findOne({
                         type: constClientQnA.EDIT_NAME,
                         processNo: "4_2"
                     }).lean().then(QnATemplate => {
                         if (QnATemplate) {
                             QnATemplate.qnaObjId = qnaObjId || clientQnAData._id;
+                        }
+
+                        if (phoneNumber){
+                            QnATemplate.autoRetrive = {phoneNumber: phoneNumber};
                         }
 
                         return QnATemplate;
@@ -1829,9 +1835,70 @@ var dbClientQnA = {
 
                     return dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_REAL_NAME, data).then(
                         () => {
-                            return dbClientQnA.qnaEndMessage(endTitle, endDes, null, 'editBankCard', 'Complete bank account detail');
+
+                            return dbconfig.collection_clientQnATemplate.findOne({
+                                type: constClientQnA.EDIT_NAME,
+                                processNo: "4_1"
+                            }).lean().then(QnATemplate => {
+                                if (QnATemplate) {
+                                    QnATemplate.qnaObjId = qnaObjId || clientQnAData._id;
+                                }
+
+                                QnATemplate.updateTitle = localization.localization.translate(endTitle);
+                                QnATemplate.updateDes = localization.localization.translate(endDes);
+
+                                QnATemplate.updateLinkageTitle = localization.localization.translate("Complete bank account detail");
+
+                                return QnATemplate;
+                            });
+
                         }
                     )
+                }
+            }
+        )
+    },
+
+    editName4_1: function (platformObjId, inputDataObj, qnaObjId, creator){
+        if (!qnaObjId) {
+            return Promise.reject({name: "DBError", message: "qnaObjId undefined"})
+        }
+
+        let clientQnAData = null;
+        return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).lean().then(
+            retClientQnAData => {
+                if (retClientQnAData && retClientQnAData.QnAData && retClientQnAData.QnAData.name){
+
+                    clientQnAData = retClientQnAData;
+                    let playerName = clientQnAData.QnAData.name;
+
+                    // get the bank information
+                    let newRealName = clientQnAData.QnAData && clientQnAData.QnAData.newRealName ? clientQnAData.QnAData.newRealName : null;
+
+                    return dbconfig.collection_clientQnATemplate.findOne({
+                        type: constClientQnA.EDIT_NAME,
+                        processNo: "5_1"
+                    }).lean().then(QnATemplate => {
+                        if (QnATemplate) {
+                            QnATemplate.qnaObjId = clientQnAData._id;
+                        }
+
+                        if (QnATemplate.updateAnswer){
+                            QnATemplate.updateAnswer[0].newRealName = newRealName;
+
+
+                            QnATemplate.updateTitle = "";
+                            QnATemplate.updateDes = localization.localization.translate("To facilitate withdrawing process, please complete your bank information else the previous amendment will not be processed");
+
+                            QnATemplate.updateLinkageTitle = localization.localization.translate("SUBMIT");
+                        }
+
+                        return QnATemplate;
+                    })
+                    // return dbconfig.collection_proposal.find({mainType: constProposalMainType["UpdatePlayer"], 'data.playerName': playerName, 'data.platformId': platformObjId, status: {$nin: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]} }).count();
+                }
+                else{
+                    return Promise.reject({name: "DBError", message: "clientQnAData undefined"})
                 }
             }
         )
@@ -1876,7 +1943,7 @@ var dbClientQnA = {
                     return Promise.reject({name: "DBError", message: "QnAConfig is not found"})
                 }
 
-                if (QnAConfig.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("editName") && playerData.qnaWrongCount.editName >= QnAConfig.wrongCount){
+                if (QnAConfig.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("editName") && playerData.qnaWrongCount.editName > QnAConfig.wrongCount){
                     let endTitle = "Authentification Failed";
                     let endDes = "Attention! Contact CS for further instruction";
                     return dbClientQnA.qnaEndMessage(endTitle, endDes);
@@ -1984,7 +2051,7 @@ var dbClientQnA = {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
 
-                if (QnAConfig.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("editName") && playerData.qnaWrongCount.editName >= QnAConfig.wrongCount){
+                if (QnAConfig.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("editName") && playerData.qnaWrongCount.editName > QnAConfig.wrongCount){
                     let endTitle = "Authentification Failed";
                     let endDes = "Attention! Contact CS for further instruction";
                     return dbClientQnA.qnaEndMessage(endTitle, endDes);
@@ -2046,7 +2113,7 @@ var dbClientQnA = {
                     });
                 }
 
-                if (QnAConfig.hasOwnProperty("wrongCount") && updatedPlayerData.qnaWrongCount && updatedPlayerData.qnaWrongCount.hasOwnProperty("editName") && updatedPlayerData.qnaWrongCount.editName >= QnAConfig.wrongCount){
+                if (QnAConfig.hasOwnProperty("wrongCount") && updatedPlayerData.qnaWrongCount && updatedPlayerData.qnaWrongCount.hasOwnProperty("editName") && updatedPlayerData.qnaWrongCount.editName > QnAConfig.wrongCount){
                     let endTitle = "Authentification Failed";
                     let endDes = "Attention! Contact CS for further instruction";
                     return dbClientQnA.qnaEndMessage(endTitle, endDes);
@@ -2112,6 +2179,76 @@ var dbClientQnA = {
         )
     },
 
+    editName5_1: function(platformObjId, inputDataObj, qnaObjId, creator){
+        if (!inputDataObj) {
+            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        }
+        if (!qnaObjId) {
+            return Promise.reject({name: "DBError", message: "qnaObjId undefined"})
+        }
+
+        let clientQnA, player, platform;
+
+        if (!inputDataObj || !inputDataObj.bankAccount || !inputDataObj.newRealName || !(inputDataObj.bankAccount.length === 16 || inputDataObj.bankAccount.length === 19) || !inputDataObj.bankType || !inputDataObj.bankAccountType || !inputDataObj.bankCardProvince || !inputDataObj.bankAccountCity || !inputDataObj.bankAddress) {
+            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        }
+
+        return dbconfig.collection_clientQnA.findOne({_id: qnaObjId}).lean().then(
+            qnaObj => {
+                if (!qnaObj) {
+                    return Promise.reject({message: "QnA object not found."});
+                }
+
+                clientQnA = qnaObj;
+
+                let playerProm = dbconfig.collection_players.findOne({_id: clientQnA.playerObjId}).lean();
+                let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+
+                return Promise.all([playerProm, platformProm]);
+            }
+        ).then(
+            data => {
+                if (!data || !data[0]) {
+                    return Promise.reject({message: "Player not found."});
+                }
+
+                if (!data[1]){
+                    return Promise.reject({message: "Platform not found."});
+                }
+
+                player = data[0];
+                platform = data[1];
+
+                let proposalData = {
+                    creator: creator,
+                    platformId: String(platform._id),
+                    data: {
+                        _id: String(player._id),
+                        playerName: player.name,
+                        playerId: player.playerId,
+                        bankAccountName: inputDataObj.newRealName,
+                        bankAccount: inputDataObj.bankAccount,
+                        bankName: String(inputDataObj.bankType),
+                        bankAccountType: inputDataObj.bankAccountType,
+                        bankAccountCity: inputDataObj.bankAccountCity,
+                        bankAddress: inputDataObj.bankAddress,
+                        bankAccountProvince: inputDataObj.bankCardProvince,
+                        remark: localization.localization.translate("Edit bank card (Auto)")
+                    },
+
+                };
+                return dbProposal.createProposalWithTypeNameWithProcessInfo(platform._id, constProposalType.UPDATE_PLAYER_BANK_INFO, proposalData);
+            }
+        ).then(
+            () => {
+                let endTitle = "Editing bank information is successful";
+                let endDes = "";
+                return dbClientQnA.qnaEndMessage(endTitle, endDes);
+            }
+        )
+
+    },
+
     editName5_2: function (platformObjId, inputDataObj, qnaObjId, creator) {
         if (!inputDataObj) {
             return Promise.reject({name: "DBError", message: "Invalid Data"})
@@ -2165,6 +2302,7 @@ var dbClientQnA = {
                         bankAccountType: inputDataObj.bankAccountType,
                         bankAccountCity: inputDataObj.bankAccountCity,
                         bankAddress: inputDataObj.bankAddress,
+                        bankAccountProvince: inputDataObj.bankCardProvince,
                         remark: localization.localization.translate("Edit bank card (Auto)")
                     }
                 };
@@ -2191,11 +2329,11 @@ var dbClientQnA = {
             }
         ).then(
             () => {
-                let endTitle = "Editing name and bank information are successful"
+                let endTitle = "Editing name and bank information are successful";
                 let endDes = "";
-                return dbClientQnA.qnaEndMessage(endTitle, endDes)
+                return dbClientQnA.qnaEndMessage(endTitle, endDes);
             }
-        );
+        )
 
     },
 
