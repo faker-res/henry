@@ -3348,6 +3348,78 @@ var dbPlatform = {
         );
     },
 
+    getBlacklistIpConfig: (platformId) => {
+        return dbconfig.collection_platformBlacklistIpConfig.find({platform: platformId}).lean().exec();
+    },
+
+    deleteBlacklistIpConfig: (blacklistIpID, platformId) => {
+        return dbconfig.collection_platformBlacklistIpConfig.remove({_id: blacklistIpID, platform: platformId}).lean().exec().then(
+            () => {
+                return dbPlatform.getBlacklistIpConfig(platformId);
+            }
+        );
+    },
+
+    saveBlacklistIpConfig: (platformObjId, insertData, updateData, adminName) => {
+        let insertProm = Promise.resolve(true);
+        let updateProm = Promise.resolve(true);
+        let proms1 = [];
+        let proms2 = [];
+
+        // for new data
+        if (insertData && insertData.length > 0) {
+            for (let x = 0; x < insertData.length; x++) {
+                // only insert ip that didn't exist
+                let query = {
+                    ip: insertData[x].ip,
+                    platform: platformObjId
+                };
+
+                let newData = {
+                    ip: insertData[x].ip,
+                    platform: platformObjId,
+                    remark: insertData[x].remark || "",
+                    adminName: adminName,
+                    isEffective: insertData[x].isEffective
+                };
+
+                // upsert: create new document if ip is not duplicate
+                insertProm = dbconfig.collection_platformBlacklistIpConfig.findOneAndUpdate(query, newData, {upsert: true, new: true});
+                proms1.push(insertProm);
+            }
+        }
+
+        // for existing data
+        if (updateData && updateData.length > 0) {
+            for (let z = 0; z < updateData.length; z++) {
+                let upDateQuery = {
+                    _id: updateData[z]._id,
+                    platform: platformObjId,
+                };
+
+                let oldData = {
+                    ip: updateData[z].ip,
+                    remark: updateData[z].remark || "",
+                    isEffective: updateData[z].isEffective
+                };
+
+                updateProm = dbconfig.collection_platformBlacklistIpConfig.findOneAndUpdate(upDateQuery, oldData, {new: true});
+                proms2.push(updateProm);
+            }
+        }
+
+        return Promise.all([Promise.all(proms1), Promise.all(proms2)]).then(
+            result => {
+                if (result) {
+                    let newData = result[0];
+                    let existingData = result[1];
+
+                    return {newData: newData, existingData: existingData};
+                }
+            }
+        );
+    },
+
     getPlatformPartnerSettLog: (platformObjId, modes) => {
         let promArr = [];
         let partnerSettDetail = {};
