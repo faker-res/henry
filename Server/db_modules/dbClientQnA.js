@@ -171,7 +171,6 @@ var dbClientQnA = {
                                     } else {
                                         return dbPlayerMail.sendVerificationCodeToPlayer(clientQnAData.QnAData.playerId, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0)
                                     }
-
                                 });
                         } else {
                             return Promise.resolve(false);
@@ -905,13 +904,17 @@ var dbClientQnA = {
                     }else{
                         return {}
                     }
-            }).then(()=>{
-                    let updObj = {
-                        $set: {
-                            'QnAData.oldPhoneNumber': inputDataObj.phoneNumber
-                        }
-                    };
-                    return dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.UPDATE_PHONE, updObj, qnaObjId)
+            }).then(smsRes=>{
+                    console.log(smsRes);
+                    if(smsRes) {
+                        let updObj = {
+                            $set: {
+                                'QnAData.oldPhoneNumber': inputDataObj.phoneNumber
+                            }
+                        };
+                        return dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.UPDATE_PHONE, updObj, qnaObjId)
+                    }
+                    throw new Error ("Max SMS count");
             }).then(
                 (clientQnA) => {
                     let processNo = '';
@@ -945,7 +948,14 @@ var dbClientQnA = {
                         )
                     }
                     return QnATemplate;
-          });
+          })
+          .catch(error => {
+            if (error.message === "Max SMS count") {
+                return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
+            }else{
+                return Promise.reject({name: "DBError", message: error.message ||''})
+            }
+          })
     },
     updatePhoneNumber3: function (platformObjId, inputDataObj, qnaObjId, creator) {
         return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).lean().then(
@@ -1217,16 +1227,14 @@ var dbClientQnA = {
                     return dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.NEW_PHONE_NUMBER, true, sendData)
                 })
             .then(smsData => {
-                    let processNo = '5_1';
-                    return dbconfig.collection_clientQnATemplate.findOne({
-                        type: constClientQnA.UPDATE_PHONE,
-                        processNo: processNo
-                    }).lean()
-                },err=>{
-                    console.log(error);
-                    if(err){
-                        return Promise.reject({name: "DBError", message: err.errMsg})
+                    if(smsData){
+                        let processNo = '5_1';
+                        return dbconfig.collection_clientQnATemplate.findOne({
+                            type: constClientQnA.UPDATE_PHONE,
+                            processNo: processNo
+                        }).lean();
                     }
+                    throw new Error ("Max SMS count");
             })
             .then(
                 QnATemplate => {
@@ -1248,6 +1256,13 @@ var dbClientQnA = {
                         )
                     }
                     return QnATemplate;
+            })
+            .catch(error => {
+              if (error.message === "Max SMS count") {
+                  return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
+              }else{
+                  return Promise.reject({name: "DBError", message: error.message ||''})
+              }
             })
     },
     updatePhoneNumber5_1: function (platformObjId, inputDataObj, qnaObjId, creator) {
@@ -1295,6 +1310,9 @@ var dbClientQnA = {
             qnaObj => {
                 // Check player send count
                 let sendObj = {};
+                if(!qnaObj){
+                    return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
+                }
                 if(qnaObj && qnaObj.QnAData && qnaObj.QnAData.playerId && qnaObj.QnAData.oldPhoneNumber && !qnaObj.QnAData.twoStepsVerification && isNewPhoneNumber){
                     sendObj.playerId = qnaObj.QnAData.playerId;
                     sendObj.oldPhoneNumber = qnaObj.QnAData.oldPhoneNumber
