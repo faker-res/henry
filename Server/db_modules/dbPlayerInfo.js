@@ -10212,6 +10212,7 @@ let dbPlayerInfo = {
                         }
 
                         let permissionProm = Promise.resolve(true);
+                        let disablePermissionProm = Promise.resolve(true);
                         if (!player.permission.applyBonus) {
                             permissionProm = dbconfig.collection_playerPermissionLog.find(
                                 {
@@ -10228,8 +10229,32 @@ let dbPlayerInfo = {
                                     }
                                 }
                             );
+
+                            disablePermissionProm = dbconfig.collection_playerPermissionLog.findOne({
+                                player: player._id,
+                                platform: platform._id,
+                                isSystem: false
+                            }).sort({createTime: -1}).lean().then(
+                                manualPermissionSetting => {
+
+                                    if (manualPermissionSetting && manualPermissionSetting.newData && manualPermissionSetting.newData.hasOwnProperty('applyBonus')
+                                        && manualPermissionSetting.newData.applyBonus.toString() == 'false') {
+                                        return dbconfig.collection_proposal.find({
+                                            'data.platformId': platform._id,
+                                            'data.playerObjId': player._id,
+                                            mainType: constProposalType.PLAYER_BONUS,
+                                            status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                        }).sort({createTime: -1}).limit(1).then(proposalData => {
+                                            if (proposalData && proposalData.length > 0) {
+                                                lastBonusRemark = manualPermissionSetting.remark;
+
+                                            }
+                                        });
+                                    }
+                                }
+                            )
                         }
-                        return permissionProm.then(
+                        return Promise.all([permissionProm, disablePermissionProm]).then(
                             res => {
                                 if (player.platform && player.platform.useProviderGroup) {
                                     let unlockAllGroups = Promise.resolve(true);

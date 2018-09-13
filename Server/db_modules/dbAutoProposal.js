@@ -900,10 +900,6 @@ function sendToApprove(proposalObjId, createTime, remark, remarkChinese, process
                                             remark = "提款提案号：" + proposalObj.proposalId;
                                             autoEnableBonusPermission(proposalObj, platformObjId, playerObjId, remark, oldPermissionObj, newPermissionObj);
 
-                                        } else if (manualPermissionSetting.newData && manualPermissionSetting.newData.hasOwnProperty('applyBonus')
-                                            && manualPermissionSetting.newData.applyBonus.toString() == 'false') {
-
-                                            updateProposalRemarkIfDisableBonusPermission(proposalObj, manualPermissionSetting);
                                         }
                                     } else {
                                         remark = "提款提案号：" + proposalObj.proposalId;
@@ -1246,23 +1242,6 @@ function autoEnableBonusPermission(proposalObj, platformObjId, playerObjId, rema
         });
     }).then(playerData => {
         return dbPlayerUtil.addPlayerPermissionLog(null, platformObjId, playerObjId, remark, oldPermissionObj, newPermissionObj);
-    });
-}
-
-function updateProposalRemarkIfDisableBonusPermission(proposalObj, manualPermissionSetting) {
-    return dbconfig.collection_proposal.find({
-        'data.platformId': proposalObj.data.platformId,
-        'data.playerObjId': proposalObj.data.playerObjId,
-        mainType: constProposalType.PLAYER_BONUS,
-        createTime: {$gte: new Date(manualPermissionSetting.createTime), $lt: new Date(proposalObj.createTime)},
-        status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-    }).then(proposalData => {
-        if (proposalData && proposalData.length > 0) {
-            return dbconfig.collection_proposal.findOneAndUpdate({
-                _id: proposalObj._id,
-                createTime: proposalObj.createTime
-            }, {'data.remark': "禁用提款: " + manualPermissionSetting.remark})
-        }
     });
 }
 
