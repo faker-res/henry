@@ -141,6 +141,7 @@ var dbClientQnA = {
         let smsCode = dbutility.generateRandomPositiveNumber(1000, 9999);
         if (clientQnAData && clientQnAData.QnAData && clientQnAData.QnAData.playerId && clientQnAData.QnAData.platformId) {
             if (clientQnAData.type) {
+                let smsCountProm = Promise.resolve(true);
                 let updObj = {
                     $set: {
                         'QnAData.smsCode': smsCode
@@ -154,16 +155,29 @@ var dbClientQnA = {
                     updObj.$inc = {'QnAData.smsCount': 1};
                 }
 
-                return dbClientQnA.updateClientQnAData(null, clientQnAData.type, updObj, clientQnAData._id).then(
-                  ()=>{
-                    if(isGetSmsCode){
-                        // based on getSMSCode api
-                        dbPlayerMail.sendVerificationCodeToNumber(clientQnAData.QnAData.phoneNumber, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0)
-                    }else{
-                        dbPlayerMail.sendVerificationCodeToPlayer(clientQnAData.QnAData.playerId, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0)
-                    }
+                if (clientQnAData.QnAData.phoneNumber) {
+                    smsCountProm = dbClientQnA.checkSMSSentCountInPastHour(
+                        clientQnAData.QnAData.platformId, clientQnAData.QnAData.phoneNumber, purpose)
+                }
 
-                });
+                return smsCountProm.then(
+                    smsCountRes => {
+                        if (smsCountRes) {
+                            return dbClientQnA.updateClientQnAData(null, clientQnAData.type, updObj, clientQnAData._id).then(
+                                () => {
+                                    if (isGetSmsCode) {
+                                        // based on getSMSCode api
+                                        return dbPlayerMail.sendVerificationCodeToNumber(clientQnAData.QnAData.phoneNumber, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0)
+                                    } else {
+                                        return dbPlayerMail.sendVerificationCodeToPlayer(clientQnAData.QnAData.playerId, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0)
+                                    }
+
+                                });
+                        } else {
+                            return Promise.resolve(false);
+                        }
+                    }
+                )
             }
         }
 
@@ -178,6 +192,25 @@ var dbClientQnA = {
         return result;
     },
 
+    checkSMSSentCountInPastHour: function (platformId, telNum, purpose) {
+        let pastHour = dbutility.getSGTimeOfPassHours(1);
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}, '_id').lean().then(
+            platformData => {
+                if (platformData && platformData._id) {
+                    return dbconfig.collection_smsLog.find({
+                        platform: platformData._id,
+                        tel: telNum,
+                        purpose: purpose,
+                        createTime: {$gte: pastHour.startTime, $lt: pastHour.endTime}
+                    }, {_id: 1}).count().then(smsCount => smsCount <= 5);
+                }
+
+                return true;
+            }
+        )
+    },
+
     // return reject security question when show for the first time
     rejectSecurityQuestionFirstTime: function () {
         let endTitle = "Operation failed";
@@ -189,6 +222,13 @@ var dbClientQnA = {
     rejectFailedRetrieveAccount: function () {
         let endTitle = "Failed to retrieve account.";
         let endDes = "Attention: Player has no binded phone number or not able to receive SMS code. Please open a new account if necessary.";
+        return dbClientQnA.qnaEndMessage(endTitle, endDes)
+    },
+
+    // return reject sms reached max count
+    rejectSMSCountMoreThanFiveInPastHour: function () {
+        let endTitle = "Failed to retrieve account.";
+        let endDes = "Attention: this number is over the excess the limit of sent sms. Please contact cs or open a new account if necessary.";
         return dbClientQnA.qnaEndMessage(endTitle, endDes)
     },
     //endregion
@@ -542,16 +582,13 @@ var dbClientQnA = {
                         playerData = players[0];
 
                         let updateObj = {
-                            QnAData: {
-                                playerObjId: playerData._id,
-                                playerId: playerData.playerId,
-                                playerName: playerData.name
+                            $set: {
+                                'QnAData.playerObjId': playerData._id,
+                                'QnAData.playerId': playerData.playerId,
+                                'QnAData.playerName': playerData.name,
+                                'QnAData.platformId': playerData.platform.platformId,
                             }
                         };
-
-                        if (playerData.platform && playerData.platform.platformId) {
-                            updateObj.QnAData.platformId = playerData.platform.platformId;
-                        }
 
                         return dbClientQnA.updateClientQnAData(null, constClientQnA.FORGOT_USER_ID, updateObj, clientQnAData._id)
                     }
@@ -559,9 +596,9 @@ var dbClientQnA = {
                     // Multiple players found
                     playersArr = players;
                     throw new Error ('Multiple players found');
-                } else {
-                    throw new Error('Player not found');
                 }
+
+                throw new Error('Player not found');
             }
         ).then(
             clientQnA => {
@@ -572,15 +609,20 @@ var dbClientQnA = {
                 clientQnAData = clientQnA;
 
                 // Send verification code
-                dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.UPDATE_PASSWORD)
-                    .catch(errorUtils.reportError);
+                return dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.UPDATE_PASSWORD)
+            }
+        ).then(
+            smsRes => {
+                if (smsRes) {
+                    let processNo = '2_1';
 
-                let processNo = '2_1';
+                    return dbconfig.collection_clientQnATemplate.findOne({
+                        type: constClientQnA.FORGOT_USER_ID,
+                        processNo: processNo
+                    }).lean();
+                }
 
-                return dbconfig.collection_clientQnATemplate.findOne({
-                    type: constClientQnA.FORGOT_USER_ID,
-                    processNo: processNo
-                }).lean();
+                throw new Error ("Max SMS count");
             }
         ).then(
             QnATemplate => {
@@ -596,6 +638,10 @@ var dbClientQnA = {
 
             if (error.message === "Multiple players found") {
                 return dbClientQnA.chooseFromMultipleAccount(clientQnAData, playersArr);
+            }
+
+            if (error.message === "Max SMS count") {
+                return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
             }
         })
     },
@@ -657,10 +703,16 @@ var dbClientQnA = {
 
                     // Update clientQnAData
                     // Send verification code
-                    dbClientQnA.updateClientQnAData(null, clientQnAData.type, updObj, clientQnAData._id)
-                        .then(updatedData => dbClientQnA.sendSMSVerificationCode(updatedData, constSMSPurpose.UPDATE_PASSWORD))
-                        .catch(errorUtils.reportError);
-
+                    return dbClientQnA.updateClientQnAData(null, clientQnAData.type, updObj, clientQnAData._id)
+                }
+            }
+        ).then(
+            updatedData => {
+                return dbClientQnA.sendSMSVerificationCode(updatedData, constSMSPurpose.UPDATE_PASSWORD)
+            }
+        ).then(
+            smsRes => {
+                if (smsRes) {
                     let processNo = '2_1';
 
                     return dbconfig.collection_clientQnATemplate.findOne({
@@ -668,6 +720,9 @@ var dbClientQnA = {
                         processNo: processNo
                     }).lean();
                 }
+
+                // SMS Count more than 5 times in an hour
+                throw new Error ("Max SMS count");
             }
         ).then(
             QnATemplate => {
@@ -679,6 +734,10 @@ var dbClientQnA = {
         ).catch(error => {
             if (error.message === 'Player not found') {
                 return dbClientQnA.rejectFailedRetrieveAccount();
+            }
+
+            if (error.message === "Max SMS count") {
+                return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
             }
         });
     },
@@ -708,7 +767,13 @@ var dbClientQnA = {
                 if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 5) {
                     return dbClientQnA.rejectFailedRetrieveAccount();
                 } else {
-                    dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.UPDATE_PASSWORD);
+                    return dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.UPDATE_PASSWORD).then(
+                        smsRes => {
+                            if (!smsRes) {
+                                return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
+                            }
+                        }
+                    );
                 }
             }
         );
