@@ -1942,8 +1942,7 @@ var dbClientQnA = {
 
                     clientQnAData = retClientQnAData;
                     let playerName = clientQnAData.QnAData.name;
-
-                    // get the bank information
+                    
                     let newRealName = clientQnAData.QnAData && clientQnAData.QnAData.newRealName ? clientQnAData.QnAData.newRealName : null;
 
                     return dbconfig.collection_clientQnATemplate.findOne({
