@@ -1771,12 +1771,75 @@
                                 td {{'Blacklisting Phone Number' | translate}}
                                 td
                                     textarea(ng-model='vm.phoneFilterConfig.blackListingPhoneNumbers$', ng-disabled='!vm.configTableEdit')
-                            
+
+                    br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'phoneFilterConfig')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("phoneFilterConfig")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("phoneFilterConfig")') {{"CONFIRM" | translate}}
+
+                    br
+                    br
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th(colspan='6') {{'BLACKLIST_IP_CONFIG_TITLE' | translate}}
+                            tr
+                                th(colspan='6') {{'BLACKLIST_IP_CONFIG_SUBTITLE' | translate}}
+                            tr
+                                th(width="5%") {{'SEQUENCE_NO' | translate}}
+                                th(width="30%") {{'IP' | translate}}
+                                th(width="30%") {{'REMARK' | translate}}
+                                th(width="10%") {{'Operator_Name' | translate}}
+                                th(width="5%") {{'IS_EFFECTIVE' | translate}}
+                                th(width="10%", ng-if='vm.blacklistIpConfigTableEdit') {{'ACTION_BUTTON' | translate}}
+                        tbody.well
+                            tr(ng-repeat='v in vm.blacklistIpConfig')
+                                td {{$index+1}}
+                                td(ng-if='!vm.blacklistIpConfigTableEdit') {{v.ip}}
+                                td(ng-if='!vm.blacklistIpConfigTableEdit') {{v.remark}}
+                                td(ng-if='!vm.blacklistIpConfigTableEdit') {{v.adminName}}
+                                td(ng-if='!vm.blacklistIpConfigTableEdit')
+                                    input.form-control(type="checkbox", ng-model="v.isEffective", ng-disabled='!vm.blacklistIpConfigTableEdit')
+
+                                td(ng-if='vm.blacklistIpConfigTableEdit')
+                                    input.form-control(type="text", ng-model="v.ip", required)
+                                td(ng-if='vm.blacklistIpConfigTableEdit')
+                                    input.form-control(type="text", ng-model="v.remark")
+                                td(ng-if='vm.blacklistIpConfigTableEdit') {{v.adminName}}
+                                td(ng-if='vm.blacklistIpConfigTableEdit')
+                                    input.form-control(type="checkbox", ng-model="v.isEffective")
+
+                                td(ng-if='vm.blacklistIpConfigTableEdit')
+                                    a.text-danger(ng-click='vm.deleteBlacklistIpConfig(v._id)') {{'DELETE' | translate}}
+                                        | &nbsp (
+                                        i.fa.fa-minus
+                                        | )
+
+                            tr(ng-if='vm.blacklistIpConfigTableEdit' ng-click="vm.newRowBlacklistIpConfig(vm.newBlacklistIpConfig)")
+                                td(colspan="6")
+                                    strong.text-success {{'ADD' | translate}}
+                                        | &nbsp (
+                                        i.fa.fa-plus
+                                        | )
+                            tr(ng-if='vm.blacklistIpConfigTableEdit', ng-repeat="config in vm.newBlacklistIpConfig track by $index")
+                                td {{$index+1}}
+                                td
+                                    input.form-control(type="text", ng-model="config.ip", required)
+                                td
+                                    input.form-control(type="text", ng-model="config.remark")
+                                td
+                                td
+                                    input.form-control(type="checkbox", ng-model="config.isEffective")
+                                td
+
+                    br
+                    button.btn.btn-primary.common-button(ng-if="!vm.blacklistIpConfigTableEdit && checkViewPermission('Platform', 'Config', 'blacklistIpConfig')", ng-click='vm.blacklistIpConfigTableEdit=!vm.blacklistIpConfigTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.blacklistIpConfigTableEdit', ng-click='vm.blacklistIpConfigTableEdit=!vm.blacklistIpConfigTableEdit;vm.configTabClicked("phoneFilterConfig")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.blacklistIpConfigTableEdit', ng-click='vm.blacklistIpConfigTableEdit=!vm.blacklistIpConfigTableEdit;vm.configSubmitUpdate("blacklistIpConfig")') {{"CONFIRM" | translate}}
 
                 div(ng-if='vm.selectedConfigTab=="financialSettlementConfig"')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')

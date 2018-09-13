@@ -221,6 +221,10 @@ let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
 let platformAutoFeedbackModel = db_admin.model('platformAutoFeedback', platformAutoFeedbackSchema, 'platformAutoFeedback');
 let idcIpSchema = require('./../schema/idcIp');
 let idcIpModel = db_admin.model('idcIp', idcIpSchema, 'idcIp');
+
+let platformBlacklistIpConfigSchema = require('./../schema/platformBlacklistIpConfig');
+let platformBlacklistIpConfigModel = db_admin.model('platformBlacklistIpConfig', platformBlacklistIpConfigSchema, 'platformBlacklistIpConfig');
+
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
 var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema, 'playerFeedback');
@@ -509,6 +513,8 @@ var dbProperties = {
     collection_platformWechatPayList: platformWechatPayListModel,
     collection_platformQuickPayGroup: platformQuickPayGroupModel,
     collection_autoFeedback: platformAutoFeedbackModel,
+
+    collection_platformBlacklistIpConfig: platformBlacklistIpConfigModel,
 
     collection_gameType: gameTypeModel,
     collection_game: gameModel,
