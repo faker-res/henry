@@ -18,6 +18,7 @@ const constSMSPurpose = require('../const/constSMSPurpose');
 const queryPhoneLocation = require('query-mobile-phone-area');
 const constProposalStatus = require('../const/constProposalStatus');
 const constRegistrationIntentRecordStatus = require('../const/constRegistrationIntentRecordStatus');
+const constPlayerRegistrationInterface = require('../const/constPlayerRegistrationInterface');
 
 const dbPlayerUtil = require('./../db_common/dbPlayerUtility');
 const dbUtility = require('./../modules/dbutility');
@@ -417,7 +418,7 @@ const dbPlayerMail = {
                     platform = platformData;
                     platformObjId = platform._id;
                     // verify captcha if necessary
-                    if (platform[requireCaptchaInSMS]) {
+                    if (platform[requireCaptchaInSMS] && inputDevice != constPlayerRegistrationInterface.BACKSTAGE) {
                         if (!captchaValidation) {
                             return Q.reject({
                                 status: constServerCode.INVALID_CAPTCHA,
