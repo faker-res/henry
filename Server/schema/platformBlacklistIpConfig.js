@@ -11,9 +11,9 @@ let platformBlacklistIpConfigSchema = new Schema({
     // admin name, that create this blacklist ip config
     adminName: {type: String},
     // is blacklist ip effective
-    isEffective: {type: Boolean, default: false},
+    isEffective: {type: Boolean, default: false, index: true},
 });
 
-platformBlacklistIpConfigSchema.index({ip: 1, platform: 1}, {unique: true});
+platformBlacklistIpConfigSchema.index({ip: 1, platform: 1, isEffective: 1}, {unique: true});
 
 module.exports = platformBlacklistIpConfigSchema;
