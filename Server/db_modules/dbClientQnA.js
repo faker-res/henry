@@ -768,8 +768,10 @@ var dbClientQnA = {
                 }
 
                 let processNo;
-                if (playerData.phoneNumber) {
+                if (playerData.phoneNumber && platformData.usePhoneNumberTwoStepsVerification) {
                     processNo = "2_1";
+                } else if(playerData.phoneNumber && !platformData.usePhoneNumberTwoStepsVerification) {
+                    processNo = "2_1_1";
                 } else {
                     let endTitle = "Update phone number failed";
                     let endDes = "Attention! This player does not bind phone number (or inconvenient to receive sms code), cannot verify bank card. Please contact customer service to reset password manually";
