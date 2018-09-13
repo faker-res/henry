@@ -61,6 +61,7 @@ var messageDispatcher = require('../modules/messageDispatcher');
 var constPlayerSMSSetting = require('../const/constPlayerSMSSetting');
 var constRewardPointsLogCategory = require("../const/constRewardPointsLogCategory");
 const constSMSPurpose = require("../const/constSMSPurpose");
+const constClientQnA = require("../const/constClientQnA");
 const constFinancialPointsType = require("../const/constFinancialPointsType");
 
 // constants
@@ -2373,6 +2374,122 @@ let dbPlayerInfo = {
         });
 
         return deferred.promise;
+    },
+
+    resetPassword: function (platformId, name, smsCode, answerArr, phoneNumber, code) {
+        let platformObj;
+        let playerObj;
+        let isCheckByPhone = false;
+        let isCheckByCode = false;
+        let correctQues = [];
+        let incorrectQues = [];
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+                platformObj = platformData;
+                return dbconfig.collection_players.findOne({name: name}).lean();
+            }).then(
+            playerData => {
+                if (!playerData) {
+                    return Q.reject({name: "DataError", message: "Cannot find player"});
+                }
+                playerObj = playerData;
+                let returnProm = Promise.resolve();
+                if (phoneNumber && code) {
+                    if (phoneNumber != playerData.phoneNumber) {
+                        return Q.reject({name: "DataError", message: "Phone number does not match"});
+                    }
+                    isCheckByCode = true;
+                    returnProm = Promise.resolve();//todo incomplete
+                }
+                if (smsCode) {
+                    isCheckByPhone = true;
+                    returnProm = dbPlayerMail.verifySMSValidationCode(playerData.phoneNumber, platformObj, smsCode);
+                }
+
+                return returnProm;
+            }
+        ).then(
+            data => {
+                if (isCheckByCode && !data) {
+                    return Q.reject({name: "DataError", message: "Code does not match"});
+                }
+
+                if (isCheckByPhone && !data) {
+                    return Q.reject({name: "DataError", message: "Incorrect SMS Validation Code"});
+                }
+
+                answerArr.forEach(answer=> {
+                    if (answer.quesNo && answer.ans) {
+                        if (answer.quesNo == 1 && playerObj.bankAccount) {
+                            if (playerObj.bankAccount.slice(-4) == answer.ans) {
+                                correctQues.push(String(answer.quesNo));
+                            } else {
+                                incorrectQues.push(String(answer.quesNo));
+                            }
+                        }
+
+                        if (answer.quesNo == 2 && playerObj.bankAccountName) {
+                            if (playerObj.bankAccountName == answer.ans) {
+                                correctQues.push(String(answer.quesNo));
+                            } else {
+                                incorrectQues.push(String(answer.quesNo));
+                            }
+                        }
+
+                        if (answer.quesNo == 3 && playerObj.bankAccountCity) {
+                            if (playerObj.bankAccountCity == answer.ans) {
+                                correctQues.push(String(answer.quesNo));
+                            } else {
+                                incorrectQues.push(String(answer.quesNo));
+                            }
+                        }
+
+                        if (answer.quesNo == 4 && playerObj.bankName) {
+                            if (playerObj.bankName == answer.ans) {
+                                correctQues.push(String(answer.quesNo));
+                            } else {
+                                incorrectQues.push(String(answer.quesNo));
+                            }
+                        }
+                    }
+                });
+
+                return dbconfig.collection_clientQnATemplateConfig.findOne({type: constClientQnA.FORGOT_PASSWORD, platform: platformObj._id}).lean();
+            }
+        ).then(
+            configData => {
+                if (!configData) {
+                    return Promise.reject({name: "DBError", message: "Cannot find QnA template config"});
+                }
+
+                let returnData = {
+                    name: playerObj.name,
+                    playerId: playerObj.playerId,
+                    createTime: playerObj.registrationTime
+                }
+
+                if (playerObj.realName) {
+                    returnData.realName = playerObj.realName;
+                }
+
+                if (correctQues && correctQues.length && correctQues.indexOf("1") != -1) {
+                    if (!configData.defaultPassword) {
+                        return Promise.reject({name: "DBError", message: "Default password not found"});
+                    }
+                    if (!configData.hasOwnProperty("minQuestionPass")) {
+                        return Promise.reject({name: "DBError", message: "Minimum correct answer has not config"});
+                    }
+                    if (correctQues.length >= configData.minQuestionPass ) {
+                        return returnData;
+                    }
+                }
+
+                return Promise.reject({name: "DBError", message: "Answer correct count does not meet minimum requirement."});
+            }
+        )
     },
     /**
      *  Update password
@@ -5429,35 +5546,34 @@ let dbPlayerInfo = {
      * @param forSync
      */
     transferPlayerCreditToProvider: function (playerId, platform, providerId, amount, adminName, forSync) {
-        let deferred = Q.defer();
-        let prom0 = forSync
+        let playerProm = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
                 .populate({path: "platform", model: dbconfig.collection_platform})
             : dbconfig.collection_players.findOne({playerId: playerId})
-                .populate({path: "platform", model: dbconfig.collection_platform});
-        let prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
+                .populate({path: "platform", model: dbconfig.collection_platform})
+                .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider});
+        let providerProm = dbconfig.collection_gameProvider.findOne({providerId: providerId});
         let playerData, providerData, rewardTaskGroupData;
         let transferAmount = 0;
 
-        Q.all([prom0, prom1]).then(
+        return Promise.all([playerProm, providerProm]).then(
             data => {
+                // Check is test player
                 if (data && data[0] && data[0].isTestPlayer) {
-                    deferred.reject({
+                    return Promise.reject({
                         name: "DataError",
                         message: "Unable to transfer credit for demo player"
                     })
                 }
+
                 if (data && data[0] && data[1]) {
-                    playerData = data[0];
-                    providerData = data[1];
+                    [playerData, providerData] = data;
                     let platformData = playerData.platform;
 
-                    if (providerData.status != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(providerData._id)] && platformData.gameProviderInfo[String(providerData._id)].isEnable === false) {
-                        deferred.reject({
-                            name: "DataError",
-                            message: "Provider is not available"
-                        });
-
+                    if (providerData.status != constProviderStatus.NORMAL
+                        || platformData && platformData.gameProviderInfo
+                        && platformData.gameProviderInfo[String(providerData._id)]
+                        && platformData.gameProviderInfo[String(providerData._id)].isEnable === false) {
                         return Promise.reject({
                             name: "DataError",
                             message: "Provider is not available"
@@ -5466,11 +5582,11 @@ let dbPlayerInfo = {
 
                     return dbRewardTaskGroup.getPlayerRewardTaskGroup(playerData.platform._id, providerData._id, playerData._id, new Date());
                 } else {
-                    deferred.reject({name: "DataError", message: "Cannot find player or provider"});
+                    return Promise.reject({name: "DataError", message: "Cannot find player or provider"});
                 }
             },
             err => {
-                deferred.reject({
+                return Promise.reject({
                     name: "DataError",
                     message: "Failed to retrieve player or provider" + err.message,
                     error: err
@@ -5478,78 +5594,90 @@ let dbPlayerInfo = {
             }
         ).then(
             rewardTaskGroup => {
-                rewardTaskGroupData = rewardTaskGroup;
+                if (rewardTaskGroup) { rewardTaskGroupData = rewardTaskGroup; }
 
-                return dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", true).then(
-                    playerState => {
-                        if (playerState) {
-                            transferAmount += parseFloat(playerData.validCredit.toFixed(2));
+                return dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", true)
+            }
+        ).then(
+            playerState => {
+                if (playerState) {
+                    let transferOutProm = Promise.resolve(true);
 
-                            if (playerData.platform.useLockedCredit) {
-                                transferAmount += playerData.lockedCredit;
-                            }
-
-                            if (playerData.platform.useProviderGroup && rewardTaskGroupData && rewardTaskGroupData.rewardAmt) {
-                                transferAmount += rewardTaskGroupData.rewardAmt;
-                            }
-
-                            if (providerData && providerData.status != constProviderStatus.NORMAL) {
-                                deferred.reject({
-                                    status: constServerCode.CP_NOT_AVAILABLE,
-                                    name: "DataError",
-                                    errorMessage: "Game is not available on platform"
-                                });
-                                return;
-                            }
-
-                            // Check if player has enough credit to play
-                            if (transferAmount < 1 || amount == 0) {
-                                deferred.reject({
-                                    status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                                    name: "DataError",
-                                    errorMessage: "Player does not have enough credit."
-                                });
-                                return;
-                            }
-
-                            // Enough credit to proceed
-                            let platformId = playerData.platform ? playerData.platform.platformId : null;
-                            // First log before processing
-                            dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
-                                "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
-
-                            if (playerData.platform.useProviderGroup) {
-                                // Platform supporting provider group
-                                if (playerData.platform.useEbetWallet && (providerData.name.toUpperCase() === "EBET" || providerData.name.toUpperCase() === "EBETSLOTS")) {
-                                    // if use eBet Wallet
-                                    return dbPlayerCreditTransfer.playerCreditTransferToEbetWallets(
-                                        playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
-                                } else {
-                                    return dbPlayerCreditTransfer.playerCreditTransferToProviderWithProviderGroup(
-                                        playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
-                                }
-                            } else if (playerData.platform.canMultiReward) {
-                                // Platform supporting multiple rewards will use new function first
-                                return dbPlayerCreditTransfer.playerCreditTransferToProvider(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
-                            } else {
-                                return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
-                            }
-                        } else {
-                            return Promise.reject({
-                                name: "DBError",
-                                status: constServerCode.CONCURRENT_DETECTED,
-                                dontLogTransfer: true,
-                                message: "Apply Reward Fail, please try again later"
-                            })
-                        }
+                    // Transfer out credit from other provider before transfer in
+                    if (playerData.lastPlayedProvider && playerData.lastPlayedProvider.providerId
+                        && playerData.lastPlayedProvider.providerId != providerId) {
+                        transferOutProm = dbPlayerInfo.transferPlayerCreditFromProvider(
+                            playerId, platform, playerData.lastPlayedProvider.providerId, -1)
+                            .then(() => playerProm)
+                            .then(data => playerData = data)
+                            .catch(() => Promise.resolve(true))
                     }
-                )
+
+                    return transferOutProm;
+                } else {
+                    return Promise.reject({
+                        name: "DBError",
+                        status: constServerCode.CONCURRENT_DETECTED,
+                        dontLogTransfer: true,
+                        message: "Apply Reward Fail, please try again later"
+                    })
+                }
+            }
+        ).then(
+            data => {
+                transferAmount += parseFloat(playerData.validCredit.toFixed(2));
+
+                if (playerData.platform.useLockedCredit) {
+                    transferAmount += playerData.lockedCredit;
+                }
+
+                if (playerData.platform.useProviderGroup && rewardTaskGroupData && rewardTaskGroupData.rewardAmt) {
+                    transferAmount += rewardTaskGroupData.rewardAmt;
+                }
+
+                if (providerData && providerData.status != constProviderStatus.NORMAL) {
+                    return Promise.reject({
+                        status: constServerCode.CP_NOT_AVAILABLE,
+                        name: "DataError",
+                        errorMessage: "Game is not available on platform"
+                    });
+                }
+
+                // Check if player has enough credit to play
+                if (transferAmount < 1 || amount == 0) {
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                        name: "DataError",
+                        errorMessage: "Player does not have enough credit."
+                    });
+                }
+
+                // Enough credit to proceed
+                let platformId = playerData.platform ? playerData.platform.platformId : null;
+                // First log before processing
+                dbLogger.createPlayerCreditTransferStatusLog(playerData._id, playerData.playerId, playerData.name, playerData.platform._id, platformId, "transferIn",
+                    "unknown", providerId, playerData.validCredit + playerData.lockedCredit, playerData.lockedCredit, adminName, null, constPlayerCreditTransferStatus.REQUEST);
+
+                if (playerData.platform.useProviderGroup) {
+                    // Platform supporting provider group
+                    if (playerData.platform.useEbetWallet && (providerData.name.toUpperCase() === "EBET" || providerData.name.toUpperCase() === "EBETSLOTS")) {
+                        // if use eBet Wallet
+                        return dbPlayerCreditTransfer.playerCreditTransferToEbetWallets(
+                            playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                    } else {
+                        return dbPlayerCreditTransfer.playerCreditTransferToProviderWithProviderGroup(
+                            playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                    }
+                } else {
+                    // Deprecated - should not go this path
+                    return dbPlayerInfo.transferPlayerCreditToProviderbyPlayerObjId(playerData._id, playerData.platform._id, providerData._id, amount, providerId, playerData.name, playerData.platform.platformId, adminName, providerData.name, forSync);
+                }
             }
         ).then(
             function (data) {
                 // Set BState back to false
                 dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
-                deferred.resolve(data);
+                return Promise.resolve(data);
             },
             function (err) {
                 if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer && err.code !== constServerCode.PLAYER_NOT_ENOUGH_CREDIT)) {
@@ -5563,7 +5691,7 @@ let dbPlayerInfo = {
                 }
                 // Set BState back to false
                 dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", false).catch(errorUtils.reportError);
-                deferred.reject(err);
+                return Promise.reject(err);
             }
         ).catch(
             err => {
@@ -5577,8 +5705,6 @@ let dbPlayerInfo = {
                 throw err;
             }
         );
-
-        return deferred.promise;
     },
 
     /**
@@ -5960,21 +6086,23 @@ let dbPlayerInfo = {
      * @param {Number} amount
      */
     transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
-        var deferred = Q.defer();
         let playerObj;
         let gameProvider;
-        var prom0 = forSync
+        let playerProm = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
                 .populate({path: "platform", model: dbconfig.collection_platform})
             : dbconfig.collection_players.findOne({playerId: playerId})
                 .populate({path: "platform", model: dbconfig.collection_platform})
                 .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider});
-        var prom1 = dbconfig.collection_gameProvider.findOne({providerId: providerId});
+        let providerProm = dbconfig.collection_gameProvider.findOne({providerId: providerId});
 
-        Q.all([prom0, prom1]).then(
+        console.log('transferPlayerCreditFromProvider', playerId, providerId);
+
+        return Promise.all([playerProm, providerProm]).then(
             function (data) {
+                console.log('data', data);
                 if (data && data[0] && data[0].isTestPlayer) {
-                    deferred.reject({
+                    return Promise.reject({
                         name: "DataError",
                         message: "Unable to transfer credit for demo player"
                     })
@@ -5982,23 +6110,18 @@ let dbPlayerInfo = {
 
                 // Enforce player to transfer out from correct last played provider
                 if (data && data[0] && data[0].lastPlayedProvider && data[0].lastPlayedProvider.providerId != providerId) {
-                    deferred.reject({
+                    return Promise.reject({
                         name: "DataError",
-                        message: "Please transfer out from correct provider"
+                        message: "Please transfer out from correct provider",
+                        dontLogTransfer: true
                     })
                 }
 
                 if (data && data[0] && data[1]) {
-                    playerObj = data[0];
-                    gameProvider = data[1];
+                    [playerObj, gameProvider] = data;
                     let platformData = playerObj.platform;
 
                     if (dbUtility.getPlatformSpecificProviderStatus(gameProvider, platformData.platformId) != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(gameProvider._id)] && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false) {
-                        deferred.reject({
-                            name: "DataError",
-                            message: "Provider is not available"
-                        });
-
                         return Promise.reject({
                             name: "DataError",
                             message: "Provider is not available"
@@ -6023,11 +6146,8 @@ let dbPlayerInfo = {
                                         return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
                                             data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
                                     }
-                                } else if (playerObj.platform.canMultiReward) {
-                                    // Platform supporting multiple rewards will use new function first
-                                    return dbPlayerCreditTransfer.playerCreditTransferFromProvider(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
-                                }
-                                else {
+                                } else {
+                                    // Deprecated - should not go this path
                                     return dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
                                 }
                             } else {
@@ -6040,16 +6160,16 @@ let dbPlayerInfo = {
                         });
 
                 } else {
-                    deferred.reject({name: "DataError", message: "Cant find player or provider"});
+                    return Promise.reject({name: "DataError", message: "Cant find player or provider"});
                 }
             },
             function (err) {
-                deferred.reject({name: "DataError", message: "Cant find player or provider" + err.message, error: err})
+                return Promise.reject({name: "DataError", message: "Cant find player or provider" + err.message, error: err})
             }
         ).then(
             function (data) {
                 // updateBatchStatus(isBatch);
-                deferred.resolve(data);
+                return Promise.resolve(data);
             },
             function (err) {
                 if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer && err.code !== constServerCode.PLAYER_NOT_ENOUGH_CREDIT)) {
@@ -6060,10 +6180,9 @@ let dbPlayerInfo = {
                         providerId, amount, 0, adminName, err, constPlayerCreditTransferStatus.FAIL);
                 }
                 // updateBatchStatus(isBatch);
-                deferred.reject(err);
+                return Promise.reject(err);
             }
         );
-        return deferred.promise;
     },
 
     transferPlayerCreditFromProviderSettlement: function (playerId, platformObjId, providerId, credit, adminName) {
@@ -10093,6 +10212,7 @@ let dbPlayerInfo = {
                         }
 
                         let permissionProm = Promise.resolve(true);
+                        let disablePermissionProm = Promise.resolve(true);
                         if (!player.permission.applyBonus) {
                             permissionProm = dbconfig.collection_playerPermissionLog.find(
                                 {
@@ -10109,8 +10229,32 @@ let dbPlayerInfo = {
                                     }
                                 }
                             );
+
+                            disablePermissionProm = dbconfig.collection_playerPermissionLog.findOne({
+                                player: player._id,
+                                platform: platform._id,
+                                isSystem: false
+                            }).sort({createTime: -1}).lean().then(
+                                manualPermissionSetting => {
+
+                                    if (manualPermissionSetting && manualPermissionSetting.newData && manualPermissionSetting.newData.hasOwnProperty('applyBonus')
+                                        && manualPermissionSetting.newData.applyBonus.toString() == 'false') {
+                                        return dbconfig.collection_proposal.find({
+                                            'data.platformId': platform._id,
+                                            'data.playerObjId': player._id,
+                                            mainType: constProposalType.PLAYER_BONUS,
+                                            status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                            'data.remark': '禁用提款: '+ lastBonusRemark
+                                        }).sort({createTime: -1}).limit(1).then(proposalData => {
+                                            if (proposalData && proposalData.length > 0) {
+                                                lastBonusRemark = manualPermissionSetting.remark;
+                                            }
+                                        });
+                                    }
+                                }
+                            )
                         }
-                        return permissionProm.then(
+                        return Promise.all([permissionProm, disablePermissionProm]).then(
                             res => {
                                 if (player.platform && player.platform.useProviderGroup) {
                                     let unlockAllGroups = Promise.resolve(true);

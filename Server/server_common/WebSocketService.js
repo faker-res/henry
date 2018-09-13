@@ -567,7 +567,6 @@ var rootObj = {};
         }
 
         var key = this.generateSyncKey(data);
-        console.log('WebSocketService dispatchResponse key and data', key, data, Object.keys(this._requestListenersOnceSync));
         if( key ){
             if( this._requestListenersOnceSync[key] ) {
                 for( var i = 0; i < this._requestListenersOnceSync[key].length; i++ ){

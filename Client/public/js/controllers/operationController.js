@@ -2231,7 +2231,7 @@ define(['js/app'], function (myApp) {
                 proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
                 proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
                 proposalDetail["OnlineTopUpType"] = $translate($scope.merchantTopupTypeJson[vm.selectedProposal.data.topupType]) || " ";
-                proposalDetail["3rdPartyPlatform"] = vm.getMerchantName(vm.selectedProposal.data.merchantNo) || " ";
+                proposalDetail["3rdPartyPlatform"] = vm.getMerchantName(vm.selectedProposal.data.merchantNo, vm.selectedProposal.inputDevice) || " ";
                 proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                 proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
@@ -2598,21 +2598,8 @@ define(['js/app'], function (myApp) {
             //console.log(data);
         }
 
-        vm.getMerchantName = function (merchantNo) {
-            let result = '';
-            if (merchantNo && vm.merchantNoList) {
-                let merchant = vm.merchantNoList.filter(item => {
-                    return item.merchantNo == merchantNo
-                })
-                if (merchant.length > 0) {
-                    let merchantName = vm.merchantTypes.filter(item => {
-                        return item.merchantTypeId == merchant[0].merchantTypeId;
-                    })
-                    if (merchantName[0]) {
-                        result = merchantName[0].name;
-                    }
-                }
-            }
+        vm.getMerchantName = function (merchantNo, inputDevice) {
+            let result = commonService.getMerchantName(merchantNo, vm.merchantNoList, vm.merchantTypes, inputDevice);
             return result;
         }
 

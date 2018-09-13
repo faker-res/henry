@@ -5351,7 +5351,7 @@ define(['js/app'], function (myApp) {
                 //convert decimal to 2 digits
                 data.data.forEach((partner) => {
                     if (partner.credits) {
-                        partner.credits = partner.credits.toFixed(2);
+                        partner.credits = partner.credits ? partner.credits.toFixed(2) : 0;
                     }
                     if (partner.registrationTime) {
                         partner.registrationTime = utilService.getFormatTime(partner.registrationTime);

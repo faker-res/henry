@@ -666,6 +666,9 @@ var roleChecker = {
         Monitor: {
             Payment:{
                 Read: ['getPaymentMonitorResult']
+            },
+            "Payment Monitor Total":{
+                Read: ['']
             }
         },
         Payment: {

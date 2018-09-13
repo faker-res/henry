@@ -166,6 +166,7 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
+            alternativeQuestion: {des: "Didn't receive? Send again", action: "getOldNumberSMS"},
             question: [{questionNo: 1, des: "Please enter sms verification code"}],
             answerInput: [{type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "Please enter the sms verification code"}],
             action: "updatePhoneNumber3_1"
@@ -219,6 +220,7 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
+            alternativeQuestion: {des: "Didn't receive? Send again", action: "getNewNumberSMS"},
             question: [{questionNo: 1, des: "Please enter sms verification code"}],
             answerInput: [{type: "text", objKey: "smsCode", questionNo: 1, placeHolder: "Please enter the sms verification code"}],
             action: "updatePhoneNumber5_1"
@@ -416,20 +418,22 @@ db.clientQnATemplate.update(
     {
         $set: {
             updateQuestion: [
-                {questionNo: 1, des: "BankCardNo"},
-                {questionNo: 2, des: "BANK_TYPE"},
-                {questionNo: 3, des: "Bank Account Type"},
-                {questionNo: 4, des: "BANK_ACCOUNT_PROVINCE"},
-                {questionNo: 5, des: "BANK_ACCOUNT_CITY"},
-                {questionNo: 6, des: "Bank Registration Address"},
+                {questionNo: 1, des: "New Name"},
+                {questionNo: 2, des: "BankCardNo"},
+                {questionNo: 3, des: "BANK_TYPE"},
+                {questionNo: 4, des: "Bank Account Type"},
+                {questionNo: 5, des: "BANK_ACCOUNT_PROVINCE"},
+                {questionNo: 6, des: "BANK_ACCOUNT_CITY"},
+                {questionNo: 7, des: "Bank Registration Address"},
             ],
             updateAnswer: [
-                {type: "text", objKey: "bankAccount", questionNo: 1, placeHolder: ""},
-                {type: "select", objKey: "bankType", questionNo: 2, options: "qnaAllBankTypeList"},
-                {type: "select", objKey: "bankAccountType", questionNo: 3, options: "qnaAllBankAccountTypeList"},
-                {type: "select", objKey: "bankCardProvince", questionNo: 4, options: "qnaProvinceList"},
-                {type: "select", objKey: "bankAccountCity", questionNo: 5, options: "qnaCityList"},
-                {type: "text", objKey: "bankAddress", questionNo: 6, placeHolder: ""},
+                {type: "text", objKey: "newRealName", questionNo: 1, placeHolder: ""},
+                {type: "text", objKey: "bankAccount", questionNo: 2, placeHolder: ""},
+                {type: "select", objKey: "bankType", questionNo: 3, options: "qnaAllBankTypeList"},
+                {type: "select", objKey: "bankAccountType", questionNo: 4, options: "qnaAllBankAccountTypeList"},
+                {type: "select", objKey: "bankCardProvince", questionNo: 5, options: "qnaProvinceList"},
+                {type: "select", objKey: "bankAccountCity", questionNo: 6, options: "qnaCityList"},
+                {type: "text", objKey: "bankAddress", questionNo: 7, placeHolder: ""},
 
             ],
             action: "editName5_2"

@@ -7,6 +7,7 @@ var simplifiedChinese = {
     "Verification code invalid": "无效验证码",
     "User not found OR Invalid Password": "用户没有发现或无效密码",
     "Captcha code invalid": "图形验证码无效",
+    "SUBMIT": "提交",
     "Phone number already exists": "手机号码已存在",
     "Username is Valid": "用户名有效",
     "Username already exists": "此用户名已存在",
@@ -56,6 +57,7 @@ var simplifiedChinese = {
     "Attention! this player": "提示！此玩家多次",
     "times failed security question, please contact customer service to verify this account.": "回答错误的银行卡内容，请客服人工进行其他人工方式核对，仔细确认是否为本人。",
     "Phone number does not match": "电话号码不匹配",
+    "Answer correct count does not meet minimum requirement.": "问题答对数量不符合要求。",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",

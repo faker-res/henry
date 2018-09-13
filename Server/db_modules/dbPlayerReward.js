@@ -4830,7 +4830,6 @@ let dbPlayerReward = {
      * @returns {Promise.<TResult>}
      */
     applyGroupReward: (userAgent, playerData, eventData, adminInfo, rewardData) => {
-        console.log('applyGroupReward - ricco');
         rewardData = rewardData || {};
         let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate) : dbUtility.getTodaySGTime();
         // let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate): dbUtility.getYesterdaySGTime();
