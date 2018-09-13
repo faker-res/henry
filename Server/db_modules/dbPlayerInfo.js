@@ -2069,7 +2069,7 @@ let dbPlayerInfo = {
                 if (playerData) {
 
                     if (playerData.permission && playerData.permission.phoneCallFeedback === false) {
-                        Q.reject({
+                        return Promise.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
                             name: "DataError",
                             message: "Player does not have this permission"
@@ -2087,10 +2087,10 @@ let dbPlayerInfo = {
                         }
                         return playerData.phoneNumber.trim();
                     } else {
-                        return Q.reject({name: "DataError", message: "Can not find phoneNumber"});
+                        return Promise.reject({name: "DataError", message: "Can not find phoneNumber"});
                     }
                 } else {
-                    return Q.reject({name: "DataError", message: "Can not find player"});
+                    return Promise.reject({name: "DataError", message: "Can not find player"});
                 }
             }
         );
