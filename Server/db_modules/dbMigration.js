@@ -2141,8 +2141,14 @@ var dbMigration = {
                                         });
                                     return newLog.save();
                                 }
+                                else{
+                                    return Promise.reject({message: "Already got record"});
+                                }
                             }
                         );
+                    }
+                    else{
+                        return Promise.reject({message: "Invalid permission status"});
                     }
                 }
                 else{
