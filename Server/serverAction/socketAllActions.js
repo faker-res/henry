@@ -46,7 +46,8 @@ var socketActionModules = [
     require('./../socketActionModule/socketActionQualityInspection'),
     require('./../socketActionModule/socketActionCallOutMission'),
     require('./../socketActionModule/socketActionDXMission'),
-    require('./../socketActionModule/socketActionTeleSales')
+    require('./../socketActionModule/socketActionTeleSales'),
+    require('./../socketActionModule/socketActionThemeControl'),
 ];
 
 var socketActions = [

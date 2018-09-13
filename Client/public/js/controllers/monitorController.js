@@ -9,6 +9,7 @@ define(['js/app'], function (myApp) {
         window.monitorVM = vm;
 
         vm.seleDataType = {};
+        vm.showPlatformList = true;
 
         vm.setPlatform = function (platObj) {
             vm.operSelPlatform = false;
@@ -76,9 +77,16 @@ define(['js/app'], function (myApp) {
 
 
         vm.loadPage = function (choice) {
-            socketService.clearValue();
-            vm.seleDataType[choice] = 'bg-bright';
-
+            if(choice){
+                socketService.clearValue();
+                vm.seleDataType = {};
+                vm.seleDataType[choice] = 'bg-bright';
+            }else if(Object.keys(vm.seleDataType).length === 0 && window.location.pathname != "/monitor/paymentTotal"){
+                vm.seleDataType["PAYMENT_MONITOR"] = 'bg-bright';
+            }else if(window.location.pathname == "/monitor/paymentTotal"){
+                vm.seleDataType["PAYMENT_MONITOR_TOTAL"] = 'bg-bright';
+                vm.showPlatformList = false;
+            }
         };
 
         $scope.$on("$viewContentLoaded", function (e, d) {

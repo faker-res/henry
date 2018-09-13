@@ -2069,7 +2069,7 @@ let dbPlayerInfo = {
                 if (playerData) {
 
                     if (playerData.permission && playerData.permission.phoneCallFeedback === false) {
-                        Q.reject({
+                        return Promise.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
                             name: "DataError",
                             message: "Player does not have this permission"
@@ -2087,10 +2087,10 @@ let dbPlayerInfo = {
                         }
                         return playerData.phoneNumber.trim();
                     } else {
-                        return Q.reject({name: "DataError", message: "Can not find phoneNumber"});
+                        return Promise.reject({name: "DataError", message: "Can not find phoneNumber"});
                     }
                 } else {
-                    return Q.reject({name: "DataError", message: "Can not find player"});
+                    return Promise.reject({name: "DataError", message: "Can not find player"});
                 }
             }
         );
@@ -2376,6 +2376,66 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
+    inquireAccountByPhoneNumber: function (platformId, phoneNumber, smsCode) {
+        let platformObj;
+        let playerObj;
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Q.reject({name: "DataError", message: "Cannot find platform"});
+                }
+                platformObj = platformData;
+                return dbconfig.collection_players.find({platform: platformData._id, phoneNumber: rsaCrypto.encrypt(phoneNumber)}).lean();
+            }
+        ).then(
+            playerData => {
+                if (!(playerData && playerData.length)) {
+                    return Promise.reject({name: "DBError", message: "Cannot find player"})
+                }
+
+                playerObj = playerData;
+
+                return dbPlayerMail.verifySMSValidationCode(phoneNumber, platformObj, smsCode);
+            }
+        ).then(
+            smsVerifyData => {
+                if (!smsVerifyData) {
+                    return Q.reject({name: "DataError", message: "Incorrect SMS Validation Code"});
+                }
+
+                let code = dbUtility.generateRandomPositiveNumber(1000, 9999);
+
+                let updateObj = {
+                    code: code,
+                    createTime: new Date(),
+                    platformObjId: platformObj._id,
+                    playerObjIds: playerObj.map(function (player) {
+                        return player._id;
+                    })
+                }
+
+                dbconfig.collection_resetPasswordVerification(updateObj).save().catch(errorUtils.reportError);
+
+                let returnData = {
+                    list: []
+                };
+
+                playerObj.forEach(player => {
+                    let tempObj = {
+                        code: code,
+                        name: player.name,
+                        realName: player.realName? player.realName: "",
+                        playerId: player.playerId? player.playerId: "",
+                        createTime: player.registrationTime? player.registrationTime: ""
+                    };
+                    returnData.list.push(tempObj);
+                })
+                return returnData;
+
+            }
+        )
+    },
+
     resetPassword: function (platformId, name, smsCode, answerArr, phoneNumber, code) {
         let platformObj;
         let playerObj;
@@ -2389,7 +2449,7 @@ let dbPlayerInfo = {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
                 }
                 platformObj = platformData;
-                return dbconfig.collection_players.findOne({name: name}).lean();
+                return dbconfig.collection_players.findOne({name: name, platform: platformData._id}).lean();
             }).then(
             playerData => {
                 if (!playerData) {
@@ -2397,14 +2457,22 @@ let dbPlayerInfo = {
                 }
                 playerObj = playerData;
                 let returnProm = Promise.resolve();
-                if (phoneNumber && code) {
+                if (code) {
+                    isCheckByCode = true;
+                    let currentDate = new Date();
+                    returnProm = dbconfig.collection_resetPasswordVerification.findOne({
+                        platformObjId: platformObj._id,
+                        playerObjIds: playerObj._id,
+                        code: code,
+                        isUsed: false,
+                        createTime: {$gte: currentDate.setMinutes(currentDate.getMinutes() - 10)}
+                    }).sort({createTime: -1}).lean();
+
+
+                } else if (smsCode && phoneNumber) {
                     if (phoneNumber != playerData.phoneNumber) {
                         return Q.reject({name: "DataError", message: "Phone number does not match"});
                     }
-                    isCheckByCode = true;
-                    returnProm = Promise.resolve();//todo incomplete
-                }
-                if (smsCode) {
                     isCheckByPhone = true;
                     returnProm = dbPlayerMail.verifySMSValidationCode(playerData.phoneNumber, platformObj, smsCode);
                 }
@@ -2413,49 +2481,55 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                if (isCheckByCode && !data) {
-                    return Q.reject({name: "DataError", message: "Code does not match"});
+                if (isCheckByCode) {
+                    if (!data) {
+                        return Q.reject({name: "DataError", message: "Code does not match or expired."});
+                    }
+                    // set code to used
+                    dbconfig.collection_resetPasswordVerification.findOneAndUpdate({_id: data._id}, {isUsed: true}).lean().catch(errorUtils.reportError);
                 }
 
                 if (isCheckByPhone && !data) {
                     return Q.reject({name: "DataError", message: "Incorrect SMS Validation Code"});
                 }
 
-                answerArr.forEach(answer=> {
-                    if (answer.quesNo && answer.ans) {
-                        if (answer.quesNo == 1 && playerObj.bankAccount) {
-                            if (playerObj.bankAccount.slice(-4) == answer.ans) {
-                                correctQues.push(String(answer.quesNo));
-                            } else {
-                                incorrectQues.push(String(answer.quesNo));
+                if (!isCheckByCode && !isCheckByPhone && answerArr && answerArr.length) {
+                    answerArr.forEach(answer => {
+                        if (answer.quesNo && answer.ans) {
+                            if (answer.quesNo == 1 && playerObj.bankAccount) {
+                                if (playerObj.bankAccount.slice(-4) == answer.ans) {
+                                    correctQues.push(String(answer.quesNo));
+                                } else {
+                                    incorrectQues.push(String(answer.quesNo));
+                                }
                             }
-                        }
 
-                        if (answer.quesNo == 2 && playerObj.bankAccountName) {
-                            if (playerObj.bankAccountName == answer.ans) {
-                                correctQues.push(String(answer.quesNo));
-                            } else {
-                                incorrectQues.push(String(answer.quesNo));
+                            if (answer.quesNo == 2 && playerObj.bankAccountName) {
+                                if (playerObj.bankAccountName == answer.ans) {
+                                    correctQues.push(String(answer.quesNo));
+                                } else {
+                                    incorrectQues.push(String(answer.quesNo));
+                                }
                             }
-                        }
 
-                        if (answer.quesNo == 3 && playerObj.bankAccountCity) {
-                            if (playerObj.bankAccountCity == answer.ans) {
-                                correctQues.push(String(answer.quesNo));
-                            } else {
-                                incorrectQues.push(String(answer.quesNo));
+                            if (answer.quesNo == 3 && playerObj.bankAccountCity) {
+                                if (playerObj.bankAccountCity == answer.ans) {
+                                    correctQues.push(String(answer.quesNo));
+                                } else {
+                                    incorrectQues.push(String(answer.quesNo));
+                                }
                             }
-                        }
 
-                        if (answer.quesNo == 4 && playerObj.bankName) {
-                            if (playerObj.bankName == answer.ans) {
-                                correctQues.push(String(answer.quesNo));
-                            } else {
-                                incorrectQues.push(String(answer.quesNo));
+                            if (answer.quesNo == 4 && playerObj.bankName) {
+                                if (playerObj.bankName == answer.ans) {
+                                    correctQues.push(String(answer.quesNo));
+                                } else {
+                                    incorrectQues.push(String(answer.quesNo));
+                                }
                             }
                         }
-                    }
-                });
+                    });
+                }
 
                 return dbconfig.collection_clientQnATemplateConfig.findOne({type: constClientQnA.FORGOT_PASSWORD, platform: platformObj._id}).lean();
             }
@@ -2475,19 +2549,21 @@ let dbPlayerInfo = {
                     returnData.realName = playerObj.realName;
                 }
 
-                if (correctQues && correctQues.length && correctQues.indexOf("1") != -1) {
-                    if (!configData.defaultPassword) {
-                        return Promise.reject({name: "DBError", message: "Default password not found"});
-                    }
-                    if (!configData.hasOwnProperty("minQuestionPass")) {
-                        return Promise.reject({name: "DBError", message: "Minimum correct answer has not config"});
-                    }
-                    if (correctQues.length >= configData.minQuestionPass ) {
-                        return returnData;
+                if (!isCheckByCode && !isCheckByPhone && answerArr && answerArr.length) {
+                    if (correctQues && correctQues.length && correctQues.indexOf("1") != -1) {
+                        if (!configData.defaultPassword) {
+                            return Promise.reject({name: "DBError", message: "Default password not found"});
+                        }
+                        if (!configData.hasOwnProperty("minQuestionPass")) {
+                            return Promise.reject({name: "DBError", message: "Minimum correct answer has not config"});
+                        }
+                        if (correctQues.length < configData.minQuestionPass) {
+                            return Promise.reject({name: "DBError", message: "Answer correct count does not meet minimum requirement."});
+                        }
                     }
                 }
-
-                return Promise.reject({name: "DBError", message: "Answer correct count does not meet minimum requirement."});
+                dbPlayerInfo.resetPlayerPassword(playerObj._id, configData.defaultPassword, platformObj._id, false, null).catch(errorUtils.reportError);
+                return returnData;
             }
         )
     },
@@ -10212,6 +10288,7 @@ let dbPlayerInfo = {
                         }
 
                         let permissionProm = Promise.resolve(true);
+                        let disablePermissionProm = Promise.resolve(true);
                         if (!player.permission.applyBonus) {
                             permissionProm = dbconfig.collection_playerPermissionLog.find(
                                 {
@@ -10228,8 +10305,32 @@ let dbPlayerInfo = {
                                     }
                                 }
                             );
+
+                            disablePermissionProm = dbconfig.collection_playerPermissionLog.findOne({
+                                player: player._id,
+                                platform: platform._id,
+                                isSystem: false
+                            }).sort({createTime: -1}).lean().then(
+                                manualPermissionSetting => {
+
+                                    if (manualPermissionSetting && manualPermissionSetting.newData && manualPermissionSetting.newData.hasOwnProperty('applyBonus')
+                                        && manualPermissionSetting.newData.applyBonus.toString() == 'false') {
+                                        return dbconfig.collection_proposal.find({
+                                            'data.platformId': platform._id,
+                                            'data.playerObjId': player._id,
+                                            mainType: constProposalType.PLAYER_BONUS,
+                                            status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                            'data.remark': '禁用提款: '+ lastBonusRemark
+                                        }).sort({createTime: -1}).limit(1).then(proposalData => {
+                                            if (proposalData && proposalData.length > 0) {
+                                                lastBonusRemark = manualPermissionSetting.remark;
+                                            }
+                                        });
+                                    }
+                                }
+                            )
                         }
-                        return permissionProm.then(
+                        return Promise.all([permissionProm, disablePermissionProm]).then(
                             res => {
                                 if (player.platform && player.platform.useProviderGroup) {
                                     let unlockAllGroups = Promise.resolve(true);
@@ -10274,7 +10375,7 @@ let dbPlayerInfo = {
                 }
             ).then(
                 RTGs => {
-                    if (!RTGs || isUsingXima) {
+                    if (player.platform.enableAutoApplyBonus || !RTGs || isUsingXima) {
                         if (!player.bankName || !player.bankAccountName || !player.bankAccount) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
