@@ -241,7 +241,13 @@ var dbClientQnA = {
                 if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 5) {
                     return dbClientQnA.forgotPassword2(platformObjId, inputDataObj, qnaObjId);
                 } else {
-                    dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.UPDATE_PASSWORD);
+                    return dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.UPDATE_PASSWORD).then(
+                        smsRes => {
+                            if (!smsRes) {
+                                return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
+                            }
+                        }
+                    );
                 }
             }
         );
@@ -254,24 +260,43 @@ var dbClientQnA = {
         if (!qnaObjId) {
             return Promise.reject({name: "DBError", message: "qnaObjId undefined"})
         }
+        let clientQnAObj;
         return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).lean().then(
             clientQnAData => {
                 if (!(clientQnAData && clientQnAData.playerObjId)) {
                     return Promise.reject({name: "DBError", message: "Cannot find clientQnA"})
                 }
-                return dbconfig.collection_players.findOne({_id: clientQnAData.playerObjId, phoneNumber: rsaCrypto.encrypt(inputDataObj.phoneNumber)}).lean().then(
-                    playerData => {
-                        if (!playerData) {
-                            return Promise.reject({name: "DBError", message: "Phone number does not match"})
-                        }
+                clientQnAObj = clientQnAData;
+                return dbconfig.collection_players.findOne({
+                    _id: clientQnAData.playerObjId,
+                    phoneNumber: rsaCrypto.encrypt(inputDataObj.phoneNumber)
+                }).lean();
+                
+            }
+        ).then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DBError", message: "Phone number does not match"})
+                }
+                if (!clientQnAObj.QnAData) {
+                    clientQnAObj.QnAData = {}
+                }
 
-                        dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.UPDATE_PASSWORD).catch(errorUtils.reportError);
-                        return dbconfig.collection_clientQnATemplate.findOne({
-                            processNo: "3_1",
-                            type: constClientQnA.FORGOT_PASSWORD
-                        }).lean();
-                    });
-            });
+                clientQnAObj.QnAData.phoneNumber = inputDataObj.phoneNumber;
+
+                return dbClientQnA.sendSMSVerificationCode(clientQnAObj, constSMSPurpose.UPDATE_PASSWORD);
+            }
+        ).then(
+            smsRes => {
+                if (!smsRes) {
+                    return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
+                }
+                return dbconfig.collection_clientQnATemplate.findOne({
+                    processNo: "3_1",
+                    type: constClientQnA.FORGOT_PASSWORD
+                }).lean();
+            }
+        );
 
     },
 
@@ -332,7 +357,8 @@ var dbClientQnA = {
                     playerObjId: playerData._id,
                     QnAData: {
                         name: inputDataObj.name,
-                        playerId: playerData.playerId
+                        playerId: playerData.playerId,
+                        platformId: playerData.platform.platformId
                     }
                 };
 
