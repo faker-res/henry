@@ -1766,6 +1766,8 @@
   "ClientQnA": "客户Q＆A",
   "forgotPassword": "忘记密码",
   "forgotUserID": "忘记账号",
+  "SMS failure, please retry": "短信验证码发送失败，请重新点击获取",
+  "SMS failure for more than 5 times, please contact customer service": "短信验证码连续发送失败5次，请联系客服人员",
   "updatePhoneNumber": "电话修改",
   "editBankCard": "编辑银行卡",
   "editName": "姓名修改",

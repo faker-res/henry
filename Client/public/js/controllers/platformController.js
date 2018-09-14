@@ -15929,6 +15929,10 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0) {
+                    sendQueryOr.push({lastFeedbackTopic: {$nin: vm.playerFeedbackQuery.filterFeedbackTopic}});
+                }
+
                 if (vm.playerFeedbackQuery.filterFeedback) {
                     let lastFeedbackTimeExist = {
                         lastFeedbackTime: null
@@ -15938,10 +15942,11 @@ define(['js/app'], function (myApp) {
                             $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
                         }
                     };
-
                     sendQueryOr.push(lastFeedbackTimeExist);
                     sendQueryOr.push(lastFeedbackTime);
+                }
 
+                if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0 || vm.playerFeedbackQuery.filterFeedback) {
                     if (sendQuery.hasOwnProperty("$or")) {
                         if (sendQuery.$and) {
                             sendQuery.$and.push({$or: sendQuery.$or});
@@ -16723,6 +16728,7 @@ define(['js/app'], function (myApp) {
                         vm.setupRemarksMultiInputFeedback();
                         vm.setupRemarksMultiInputFeedbackFilter();
                         vm.setupGameProviderMultiInputFeedback();
+                        vm.setupMultiInputFeedbackTopicFilter();
                     });
                 utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
                     $('#registerStartTimePicker').datetimepicker({
@@ -27268,7 +27274,11 @@ define(['js/app'], function (myApp) {
                     {
                         name: '机房IP',
                         score: 0
-                    }
+                    },
+                    {
+                        name: '黑名单IP',
+                        score: 0
+                    },
                 ];
 
                 let sendData = {
@@ -28907,10 +28917,6 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
-                if (vm.clientQnAData && vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.linkage == 'editBankCard'){
-                    $('#clientQnATypeTree li[data-nodeid="3"]').trigger("click");
-                    return;
-                }
 
                 socketService.$socket($scope.AppSocket, 'getClientQnAProcessStep', sendData,  function (data) {
                     if (data && data.data) {
@@ -28922,6 +28928,22 @@ define(['js/app'], function (myApp) {
                             }
                             if (vm.clientQnAData && vm.clientQnAData.questionTitle && vm.clientQnAData.isSecurityQuestion) {
                                 vm.questionLabelStyle = "text-align:left;display:inline-block";
+                            }
+
+                            if (vm.clientQnAData.autoRetrive){
+                                let objKey = Object.keys(vm.clientQnAData.autoRetrive);
+                                if (objKey.length > 0){
+                                      objKey.forEach(
+                                          key => {
+                                              if (key == 'phoneNumber') {
+                                                  vm.clientQnAInput[key] = parseInt(vm.clientQnAData.autoRetrive[key]);
+                                              }
+                                              else{
+                                                  vm.clientQnAInput[key] = vm.clientQnAData.autoRetrive[key];
+                                              }
+                                          }
+                                      )
+                                }
                             }
 
                             if (vm.clientQnAData.updateAnswer){
