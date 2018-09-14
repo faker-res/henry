@@ -38,8 +38,8 @@ define(['js/app'], function (myApp) {
                 if (!authService.checkViewPermission('Admin', 'Department', 'Read')) {
                     return;
                 }
-                //if admin user, get all departments data
-                //else only get current department data
+
+                // get multiple departments for current user
                 let departmentIds = authService.departmentIds();
                 if (departmentIds && departmentIds.length > 1) {
                     let departmentIdArr = [];
@@ -63,6 +63,8 @@ define(['js/app'], function (myApp) {
                     }
 
                 } else {
+                    //if admin user, get all departments data
+                    //else only get current department data
                     socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, function success(data) {
                         vm.departments = data.data;
                         console.log("vm.departments", vm.departments);
