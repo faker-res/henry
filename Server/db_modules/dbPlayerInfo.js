@@ -10375,7 +10375,7 @@ let dbPlayerInfo = {
                 }
             ).then(
                 RTGs => {
-                    if (player.platform.enableAutoApplyBonus || !RTGs || isUsingXima) {
+                    if (!RTGs || isUsingXima) {
                         if (!player.bankName || !player.bankAccountName || !player.bankAccount) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
