@@ -17,12 +17,13 @@ form(name='form_playerPaymentInfo').well
                 text.margin-left-5.small ({{'Min length 16, all digits' | translate}})
             div
                 input.form-control.inlineBlk(ng-model='playerPayment.encodedBankAccount', style='width:calc(100% - 100px)', ng-if='!isEditingPlayerPayment', disabled)
-                input.form-control.inlineBlk(ng-model='playerPayment.newBankAccount', ng-change='playerPayment.showNewAccountNo=true;', style='width:calc(100% - 100px)', ng-if='isEditingPlayerPayment && !playerPayment.showNewAccountNo')
-                input.form-control.inlineBlk(focus-me="playerPayment.showNewAccountNo" ng-model='playerPayment.newBankAccount', pattern= "[0-9]{16,19}", style='width:calc(100% - 100px)', ng-if='isEditingPlayerPayment && playerPayment.showNewAccountNo')
+                input.form-control.inlineBlk(ng-model='playerPayment.newBankAccount', ng-change='playerPayment.showNewAccountNo=true; checkDuplicatedBankAccount(playerPayment)', style='width:calc(100% - 100px)', ng-if='isEditingPlayerPayment && !playerPayment.showNewAccountNo')
+                input.form-control.inlineBlk(focus-me="playerPayment.showNewAccountNo" ng-model='playerPayment.newBankAccount', style='width:calc(100% - 100px)', ng-if='isEditingPlayerPayment && playerPayment.showNewAccountNo', ng-change="checkDuplicatedBankAccount(playerPayment)")
                 //input.form-control.inlineBlk(ng-model='playerPayment.newBankAccount', pattern="((.{0})|([0-9]{16,}))", style='width:calc(100% - 100px)', ng-if='isEditingPlayerPayment')
                 button.btn.btn-info.pull-right(style='width:80px', ng-click='isEditingPlayerPaymentShowVerify=!isEditingPlayerPaymentShowVerify')
                     text(ng-if='isEditingPlayerPaymentShowVerify') {{::'CLOSE' | translate}}
                     text(ng-if='!isEditingPlayerPaymentShowVerify') {{::'VERIFY' | translate}}
+                label(ng-if="isEditingPlayerPayment && playerPayment.showAlert" style="color: red;") {{ playerPayment.alertMsg | translate}}
         .panel.panel-default.margin-top-10(ng-if='isEditingPlayerPaymentShowVerify')
             .panel-body
                 label.control-label {{"VERIFY_BANK_ACCOUNT" | translate}}
@@ -59,5 +60,5 @@ form(name='form_playerPaymentInfo').well
             input.form-control(ng-model='playerPayment.bankAddress', ng-disabled='!isEditingPlayerPayment')
 button.common-button.margin-right-5.btn.btn-primary(ng-show='!isEditingPlayerPayment', ng-click="isEditingPlayerPayment=true") {{"EDIT" | translate}}
 button.common-button.margin-right-5.btn.btn-primary(ng-show='isEditingPlayerPayment', ng-click="prepareEditPlayerPayment()") {{"CANCEL" | translate}}
-button.common-button.margin-right-5.btn.btn-primary(data-dismiss='dialog',ng-show='isEditingPlayerPayment', ng-disabled='form_playerPaymentInfo.$invalid || form_playerPaymentInfo.$pristine', ng-click="updatePlayerPayment();") {{"UPDATE" | translate}}
+button.common-button.margin-right-5.btn.btn-primary(data-dismiss='dialog',ng-show='isEditingPlayerPayment', ng-disabled='form_playerPaymentInfo.$invalid || form_playerPaymentInfo.$pristine || playerPayment.invalid', ng-click="updatePlayerPayment();") {{"UPDATE" | translate}}
 button.common-button.margin-right-5.btn.btn-primary(data-dismiss='dialog') {{"CLOSE" | translate}}
