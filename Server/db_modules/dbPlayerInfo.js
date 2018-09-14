@@ -2890,9 +2890,6 @@ let dbPlayerInfo = {
             platformData => {
                 if (platformData) {
                     // check if the limit of using the same bank account number
-                    console.log("checking---sameBankAccountCount", sameBankAccountCount)
-                    console.log("checking---duplicatedRealNameCount", duplicatedRealNameCount)
-                    console.log("checking---platformData.sameBankAccountCount", platformData.sameBankAccountCount)
                     if (platformData.sameBankAccountCount && sameBankAccountCount > platformData.sameBankAccountCount){
                         return Q.reject({
                             name: "DataError",
