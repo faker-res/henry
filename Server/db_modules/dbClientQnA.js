@@ -1806,7 +1806,7 @@ var dbClientQnA = {
                 let updateObj = {};
 
                 if (inputDataObj.phoneNumber == playerData.phoneNumber){
-                    clientQnAData.QnAData.phoneNumber = rsaCrypto.encrypt(playerData.phoneNumber);
+                    clientQnAData.QnAData.phoneNumber = playerData.phoneNumber;
 
                     updateObj.QnAData =clientQnAData.QnAData;
 
@@ -1904,7 +1904,7 @@ var dbClientQnA = {
 
                 if (playerData.bankAccount) {
 
-                    let phoneNumber = clientQnAData.QnAData && clientQnAData.QnAData.phoneNumber ? rsaCrypto.decrypt(clientQnAData.QnAData.phoneNumber) : null;
+                    let phoneNumber = clientQnAData.QnAData && clientQnAData.QnAData.phoneNumber ? clientQnAData.QnAData.phoneNumber : null;
                     return dbconfig.collection_clientQnATemplate.findOne({
                         type: constClientQnA.EDIT_NAME,
                         processNo: "4_2"
