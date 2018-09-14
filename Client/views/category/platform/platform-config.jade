@@ -48,6 +48,8 @@
                         span {{"phoneFilterConfig" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "financialSettlementConfig"}', ng-click='vm.configTabClicked("financialSettlementConfig")')
                         span {{"financialSettlementConfig" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "largeWithdrawalSetting"}', ng-click='vm.configTabClicked("largeWithdrawalSetting")')
+                        span {{"largeWithdrawalSetting" | translate}}
 
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
