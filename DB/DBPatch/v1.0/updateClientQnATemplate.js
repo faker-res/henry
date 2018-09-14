@@ -161,6 +161,20 @@ db.clientQnATemplate.update(
 
 db.clientQnATemplate.update(
     {
+        processNo: "2_1_1",
+        type: type3
+    },
+    {
+        $set: {
+            question: [{questionNo: 1, des: "Please enter previous phone number"}],
+            answerInput: [{type: "text", objKey: "phoneNumber", questionNo: 1, placeHolder: "Please enter previous phone number"}],
+            action: "updatePhoneNumber2_1"
+        }
+    },
+    {upsert: true});
+
+db.clientQnATemplate.update(
+    {
         processNo: "3_1",
         type: type3
     },

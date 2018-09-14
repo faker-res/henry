@@ -66,6 +66,8 @@ var playerSchema = new Schema({
     isRealPlayer: {type: Boolean, default: true, index: true},
     //last feedback time
     lastFeedbackTime: {type: Date, default: "", index: true},
+    //last feedback topic
+    lastFeedbackTopic: {type: String, index: true},
     //feedback times
     feedbackTimes: {type: Number, min: 0, default: 0},
     //no more feedback
@@ -88,6 +90,8 @@ var playerSchema = new Schema({
     lastLoginIp: {type: String, default: "", index: true}, //login
     //login ip records
     loginIps: [],
+    //blacklist ip that match with player login ips
+    blacklistIp: [],
     // player trust level (trust or untrust, cheated player)
     trustLevel: {type: String, default: constPlayerTrustLevel.GOOD},
     // player trust level (trust or untrust, cheated player)
@@ -345,6 +349,7 @@ playerSchema.index({platform: 1, isRealPlayer: 1});
 playerSchema.index({loginIps: 1});
 playerSchema.index({"loginIps.0": 1});
 playerSchema.index({"loginIps.0": 1, platform: 1, isRealPlayer: 1, _id: 1});
+playerSchema.index({blacklistIp: 1});
 
 playerSchema.pre('save', counterManager.incrementCounterAndSetPropertyIfNew('playerId'));
 

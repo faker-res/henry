@@ -895,6 +895,7 @@ define(['js/app'], function (myApp) {
                         vm.loadWechatPayGroupData();
                         vm.loadQuickPayGroupData();
                         vm.getCredibilityRemarks();
+                        vm.getBlacklistIpConfig();
                         vm.onGoingLoadPlatformData = false;
                     })
                 },
@@ -19318,6 +19319,28 @@ define(['js/app'], function (myApp) {
             }
             $scope.safeApply();
         }
+
+        vm.getBlacklistIpConfig = function () {
+            vm.blacklistIpConfig = vm.blacklistIpConfig || [];
+
+            socketService.$socket($scope.AppSocket, 'getBlacklistIpConfig', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.blacklistIpConfig = data.data;
+                    vm.blacklistIpList = [];
+
+                    if (data && data.data && data.data.length > 0) {
+                        for (let x = 0; x < data.data.length; x++) {
+                            if (data.data[x].ip && data.data[x].isEffective) {
+                                vm.blacklistIpList.push(data.data[x].ip);
+                            }
+                        }
+                    }
+                });
+            }, function (data) {
+                console.log("cannot get blacklist ip config", data);
+                vm.blacklistIpConfig = [];
+            });
+        };
 
         vm.getBonusBasic = () => {
 
