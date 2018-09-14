@@ -34,6 +34,9 @@
                     div.text-center(style="width:15px;display:inline-block" ng-show="vm.playerFeedbackQuery.lastAccess === 'range'") -
                     input.form-control(type="number" ng-model="vm.playerFeedbackQuery.lastAccessLatter" style="width:80px;display:inline-block" ng-show="vm.playerFeedbackQuery.lastAccess === 'range'")
             .inlineBlk
+                label.control-label {{'FILTER_FEEDBACK_TOPIC' | translate}}
+                select.form-control#selectFeedbackTopicFilter(multiple="multiple", style='min-width:100px;height:34px;', ng-options='topic.key as topic.value for topic in vm.playerFeedbackTopic', ng-model='vm.playerFeedbackQuery.filterFeedbackTopic')
+            .inlineBlk
                 //过滤回访（天）
                 label {{"FILTER_FEEDBACK_DAY"|translate}}
                 div
