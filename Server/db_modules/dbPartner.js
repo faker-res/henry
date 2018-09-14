@@ -6338,7 +6338,7 @@ let dbPartner = {
                     let rawCommission = calculateRawCommission(totalConsumption, commissionRates[groupRate.groupName].commissionRate);
 
                     let platformFee =  platformFeeRate * totalBonusAmount / 100;
-                    platformFee = platformFee >= 0 ? platformFee : 0;
+                    // platformFee = platformFee >= 0 ? platformFee : 0;
                     totalPlatformFee += platformFee;
 
                     rawCommissions.push({
