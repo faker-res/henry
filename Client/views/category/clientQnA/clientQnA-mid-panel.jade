@@ -33,16 +33,17 @@
                 br(ng-if='vm.clientQnAData && vm.clientQnAData.updateQuestion')
                 div(ng-if="vm.clientQnAData && vm.clientQnAData.updateQuestion" ng-repeat='(i,v) in vm.clientQnAData.updateQuestion')
 
-                    label(style="{{vm.questionLabelStyle}}") {{v.des | translate}}
-                    input.form-control(ng-repeat='(k,o) in vm.clientQnAData.updateAnswer' ng-if='o.questionNo == v.questionNo && o.type!="select" && o.type!="checkbox"' type='{{o.type}}' ng-model='vm.clientQnAInput[o.objKey]' placeholder='{{o.placeHolder | translate}}')
+                    label(style="text-align:left; display:inline-block;") {{v.des | translate}}
+                    input.form-control(ng-repeat='(k,o) in vm.clientQnAData.updateAnswer' ng-if='o.questionNo == v.questionNo && o.type!="select" && o.type!="checkbox"' type='{{o.type}}' ng-disabled="{{ o.disabled || false}}", ng-model='vm.clientQnAInput[o.objKey]' placeholder='{{o.placeHolder | translate}}')
                     select.form-control(ng-repeat='(k,o) in vm.clientQnAData.updateAnswer' ng-if='o.questionNo == v.questionNo && o.type == "select"' ng-model="vm.clientQnAInput[o.objKey]" ng-options="va.id as va.name | translate for (in,va) in vm[o.options]" ng-change='vm[o.options + "Change"]()')
                     br
                 br
                 br
                 .pull-right
                     button.common-button.btn.btn-success(ng-if='(vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.isSuccess && !vm.clientQnAData.clientQnAEnd.linkage) || vm.clientQnAData.question' ng-click="vm.copyClientQnA()") {{'COPY_TEXT' | translate}}
-                    button.common-button.btn.btn-success(ng-if='(vm.clientQnAData.updateLinkageTitle)' ng-click="vm.getClientQnAProcess()") {{vm.clientQnAData.updateLinkageTitle | translate}}
-                    button.common-button.btn.btn-success(ng-if='(vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.linkage)' ng-click="vm.getClientQnAProcess()") {{vm.clientQnAData.clientQnAEnd.linkageTitle | translate}}
+                    button.common-button.btn.btn-success(ng-if='vm.clientQnAData.updateLinkageTitle' ng-click="vm.getClientQnAProcess()") {{vm.clientQnAData.updateLinkageTitle | translate}}
+                    button.common-button.btn.btn-danger(ng-if='vm.clientQnAData.updateLinkageTitle && vm.clientQnAData.updateLinkageTitle == "Complete bank account detail"', ng-click="vm.endClientQnAProcess()") {{'END' | translate}}
+                    //button.common-button.btn.btn-success(ng-if='(vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.linkage)' ng-click="vm.getClientQnAProcess()") {{vm.clientQnAData.clientQnAEnd.linkageTitle | translate}}
                     button.common-button.btn.btn-info(ng-if='!vm.clientQnAData.clientQnAEnd && vm.clientQnAData.question' ng-click="vm.getClientQnAProcess()") {{'NEXT_STEP' | translate}}
-                    button.common-button.btn.btn-danger(ng-if='vm.clientQnAData.clientQnAEnd' ng-click="vm.endClientQnAProcess()") {{'END' | translate}}
+                    button.common-button.btn.btn-danger(ng-if='vm.clientQnAData.clientQnAEnd', ng-click="vm.endClientQnAProcess()") {{'END' | translate}}
                 .clearfix
