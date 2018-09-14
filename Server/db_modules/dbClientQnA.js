@@ -1294,7 +1294,10 @@ var dbClientQnA = {
                     QnAData: {
                         name: inputDataObj.name,
                         platformId: playerData.platform && playerData.platform.platformId,
-                        playerId: playerData.playerId
+                        playerId: playerData.playerId,
+                        playerObjId: playerData._id,
+                        platformObjId: playerData._id,
+                        phoneNumber: playerData.phoneNumber
                     }
                 };
                 return dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.EDIT_BANK_CARD, updateObj).catch(errorUtils.reportError);
@@ -1360,7 +1363,11 @@ var dbClientQnA = {
                 return dbClientQnA.sendSMSVerificationCode(clientQnA, constSMSPurpose.UPDATE_BANK_INFO);
             }
         ).then(
-            () => {
+            (smsSendingResult) => {
+                if (!smsSendingResult) {
+                    return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
+                }
+
                 return dbconfig.collection_clientQnATemplate.findOne({
                     type: constClientQnA.EDIT_BANK_CARD,
                     processNo: "3_1"
