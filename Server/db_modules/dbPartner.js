@@ -7052,7 +7052,7 @@ let dbPartner = {
 
                         for (let j = 0; j < oriCommission.length ; j++) {
                             for (let k = customCommission.length - 1; k >= 0; k--) {
-                                if (customCommission[k].provider._id.toString() == oriCommission[j].provider._id.toString()) {
+                                if (customCommission[k].provider && oriCommission[j].provider && customCommission[k].provider._id.toString() == oriCommission[j].provider._id.toString()) {
                                     oriCommission[j].commissionSetting.forEach(ori => {
                                         customCommission[k].commissionSetting.forEach(cus => {
                                             if (cus.playerConsumptionAmountFrom === ori.playerConsumptionAmountFrom
