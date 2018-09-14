@@ -40,16 +40,40 @@ define(['js/app'], function (myApp) {
                 }
                 //if admin user, get all departments data
                 //else only get current department data
-                socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, function success(data) {
-                    vm.departments = data.data;
-                    console.log("vm.departments", vm.departments);
-                    vm.drawDepartmentTree();
-                    vm.getAllUserData();
-                    $scope.$digest();
-                    if (typeof(callback) == 'function') {
-                        callback(data.data);
+                let departmentIds = authService.departmentIds();
+                if (departmentIds && departmentIds.length > 1) {
+                    let departmentIdArr = [];
+                    for (let i = 0, len = departmentIds.length; i < len; i++) {
+                        if (departmentIds[i] && departmentIds[i]._id) {
+                            departmentIdArr.push(departmentIds[i]._id);
+                        }
                     }
-                });
+
+                    if (departmentIdArr && departmentIdArr.length > 0) {
+                        socketService.$socket($scope.AppSocket, 'getDepartmentTreeByIds', {departmentIds: departmentIdArr}, function success(data) {
+                            vm.departments = data.data;
+                            console.log("getDepartmentTreeByIds:: vm.departments", vm.departments);
+                            vm.drawDepartmentTree();
+                            vm.getAllUserData();
+                            $scope.$digest();
+                            if (typeof(callback) == 'function') {
+                                callback(data.data);
+                            }
+                        });
+                    }
+
+                } else {
+                    socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, function success(data) {
+                        vm.departments = data.data;
+                        console.log("vm.departments", vm.departments);
+                        vm.drawDepartmentTree();
+                        vm.getAllUserData();
+                        $scope.$digest();
+                        if (typeof(callback) == 'function') {
+                            callback(data.data);
+                        }
+                    });
+                }
             };
 
             vm.searchDepartment = function () {
@@ -196,13 +220,22 @@ define(['js/app'], function (myApp) {
                 ];
 
                 var rawNodeList = {};
+                let departments = authService.departmentIds();
                 $.each(vm.departments, function (i, v) {
                     var newNode = createDepartmentNode(v);
                     //store all sub tree nodes to map list
                     if (v.parent) {
                         //if there is only one department add it to the tree
 
-                        if (v._id == authService.departmentId()) {
+                        if (departments && departments.length > 0) {
+                            for (let i = 0, len = departments.length; i < len; i++) {
+                                if (departments[i] && departments[i]._id == v._id) {
+                                    finalNodeTree.push(newNode);
+                                } else {
+                                    rawNodeList[v._id] = newNode;
+                                }
+                            }
+                        } else if (departments && departments.length == 1 && v._id == authService.departmentId()) {
                             finalNodeTree.push(newNode);
                         }
                         else {
@@ -217,10 +250,22 @@ define(['js/app'], function (myApp) {
                 });
 
                 vm.SelectedDepartmentNode = finalNodeTree[0];
-                vm.departmentNodes["root"] = finalNodeTree[0];
-
+                //vm.departmentNodes["root"] = finalNodeTree[0];
                 let count = 0;
-                buildSubTreeForNode(finalNodeTree[0]);
+                if (departments && departments.length > 0 && finalNodeTree && finalNodeTree.length > 0) {
+                    for (let i = 0, len = finalNodeTree.length; i < len; i++) {
+                        if (finalNodeTree[i] && finalNodeTree[i].children && finalNodeTree[i].children.length > 0) {
+                            vm.departmentNodes["root"] = finalNodeTree[i];
+                        }
+                        buildSubTreeForNode(finalNodeTree[i]);
+                    }
+                }else {
+                    vm.departmentNodes["root"] = finalNodeTree[0];
+                    buildSubTreeForNode(finalNodeTree[0]);
+                }
+
+                // let count = 0;
+                // buildSubTreeForNode(finalNodeTree[0]);
 
                 //construct trees for all root node
                 //for (var i = 0; i < finalNodeTree[0].nodes.length; i++) {
