@@ -1916,7 +1916,7 @@ var dbClientQnA = {
                                 return Promise.reject({name: "DBError", message: "update QnA data failed"})
                             }
 
-                            return dbClientQnA.sendSMSVerificationCode(clientQnARecord, constSMSPurpose.UPDATE_PLAYER_INFO);
+                              return dbClientQnA.sendSMSVerificationCode(clientQnARecord, constSMSPurpose.UPDATE_PLAYER_INFO);
                         }
                     )
                 }
@@ -2350,7 +2350,7 @@ var dbClientQnA = {
                                     let newRealName = clientQnAData.QnAData && clientQnAData.QnAData.newRealName ? clientQnAData.QnAData.newRealName : null;
                                     let bankAccount = updatedPlayerData.bankAccount || null;
                                     let bankName = updatedPlayerData.bankName || null;
-                                    let bankAccountType = updatedPlayerData.bankAccountType || null;
+                                    // let bankAccountType = updatedPlayerData.bankAccountType || null;
                                     let bankAccountCity = updatedPlayerData.bankAccountCity || null;
                                     let bankAddress = updatedPlayerData.bankAddress || null;
                                     let bankAccountProvince = updatedPlayerData.bankAccountProvince || null;
@@ -2367,10 +2367,9 @@ var dbClientQnA = {
                                             QnATemplate.updateAnswer[0].newRealName = newRealName;
                                             QnATemplate.updateAnswer[1].bankAccount = bankAccount;
                                             QnATemplate.updateAnswer[2].bankType = bankName;
-                                            QnATemplate.updateAnswer[3].bankAccountType = bankAccountType;
-                                            QnATemplate.updateAnswer[4].bankCardProvince = bankAccountProvince;
-                                            QnATemplate.updateAnswer[5].bankAccountCity = bankAccountCity;
-                                            QnATemplate.updateAnswer[6].bankAddress = bankAddress;
+                                            QnATemplate.updateAnswer[3].bankCardProvince = bankAccountProvince;
+                                            QnATemplate.updateAnswer[4].bankAccountCity = bankAccountCity;
+                                            QnATemplate.updateAnswer[5].bankAddress = bankAddress;
 
                                             QnATemplate.updateTitle = localization.localization.translate("Authentification Passed");
                                             QnATemplate.updateDes = localization.localization.translate("To facilitate withdrawing process, please complete your bank information else the previous amendment will not be processed");
@@ -2404,15 +2403,27 @@ var dbClientQnA = {
             return Promise.reject({name: "DBError", message: "qnaObjId undefined"})
         }
 
-        let clientQnA, player, platform;
-
-        if (!inputDataObj || !inputDataObj.newRealName || !inputDataObj.bankType || !inputDataObj.bankAccountType || !inputDataObj.bankCardProvince || !inputDataObj.bankAccountCity) {
-            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        if (!inputDataObj.newRealName || (inputDataObj.newRealName && inputDataObj.newRealName.match(/\d+/g) !== null)) {
+            return Promise.reject({name: "DBError", message: "Invalid new real name"})
         }
 
         if (!inputDataObj.bankAccount || !(inputDataObj.bankAccount.length === 16 || inputDataObj.bankAccount.length === 19)){
             return Promise.reject({name: "DBError", message: "Invalid bank account number! Bank account number has to be in 16-digit or 19-digit"})
         }
+
+        if (!inputDataObj.bankType) {
+            return Promise.reject({name: "DBError", message: "Invalid bank type"})
+        }
+
+        if (!inputDataObj.bankCardProvince) {
+            return Promise.reject({name: "DBError", message: "Invalid bank card province"})
+        }
+
+        if (!inputDataObj.bankAccountCity) {
+            return Promise.reject({name: "DBError", message: "Invalid bank card city"})
+        }
+
+        let clientQnA, player, platform;
 
         return dbconfig.collection_clientQnA.findOne({_id: qnaObjId}).lean().then(
             qnaObj => {
@@ -2463,7 +2474,7 @@ var dbClientQnA = {
                         bankAccountName: inputDataObj.newRealName,
                         bankAccount: inputDataObj.bankAccount,
                         bankName: String(inputDataObj.bankType),
-                        bankAccountType: inputDataObj.bankAccountType,
+                        // bankAccountType: inputDataObj.bankAccountType,
                         bankAccountCity: inputDataObj.bankAccountCity,
                         bankAddress: inputDataObj.bankAddress,
                         bankAccountProvince: inputDataObj.bankCardProvince,
@@ -2491,15 +2502,27 @@ var dbClientQnA = {
             return Promise.reject({name: "DBError", message: "qnaObjId undefined"})
         }
 
-        let clientQnA, player, platform;
-
-        if (!inputDataObj || !inputDataObj.newRealName || !inputDataObj.bankType || !inputDataObj.bankAccountType || !inputDataObj.bankCardProvince || !inputDataObj.bankAccountCity) {
-            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        if (!inputDataObj.newRealName || (inputDataObj.newRealName && inputDataObj.newRealName.match(/\d+/g) !== null)) {
+            return Promise.reject({name: "DBError", message: "Invalid new real name"})
         }
 
         if (!inputDataObj.bankAccount || !(inputDataObj.bankAccount.length === 16 || inputDataObj.bankAccount.length === 19)){
             return Promise.reject({name: "DBError", message: "Invalid bank account number! Bank account number has to be in 16-digit or 19-digit"})
         }
+
+        if (!inputDataObj.bankType) {
+            return Promise.reject({name: "DBError", message: "Invalid bank type"})
+        }
+
+        if (!inputDataObj.bankCardProvince) {
+            return Promise.reject({name: "DBError", message: "Invalid bank card province"})
+        }
+
+        if (!inputDataObj.bankAccountCity) {
+            return Promise.reject({name: "DBError", message: "Invalid bank card city"})
+        }
+
+        let clientQnA, player, platform;
 
         return dbconfig.collection_clientQnA.findOne({_id: qnaObjId}).lean().then(
             qnaObj => {
@@ -2550,7 +2573,7 @@ var dbClientQnA = {
                         bankAccountName: inputDataObj.newRealName,
                         bankAccount: inputDataObj.bankAccount,
                         bankName: String(inputDataObj.bankType),
-                        bankAccountType: inputDataObj.bankAccountType,
+                        // bankAccountType: inputDataObj.bankAccountType,
                         bankAccountCity: inputDataObj.bankAccountCity,
                         bankAddress: inputDataObj.bankAddress,
                         bankAccountProvince: inputDataObj.bankCardProvince,
