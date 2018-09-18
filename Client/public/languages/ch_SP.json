@@ -4099,11 +4099,16 @@
   "Validation failed.": "验证失败",
   "Bank card number did not match.": "银行卡号对不上",
 
+  "Please insert bank account name.": "请填入银行户口姓名",
   "Please insert bank account.": "请填入银行帐号",
   "Bank account must be either 16 number or 19 number": "银行帐号必须是16个数字或19个数字",
   "Bank Type is a required field.": "请填入银行类别",
   "Bank Account Type is a required field.": "请填入账户性质",
   "Bank city is a required field": "请填入开户城市",
+
+  "Mailing Status:": "邮件状态：",
+  "Not send": "未发送",
+  "Sent": "已发送",
 
   "TOTAL_REWARD_FEE" : "需扣除的优惠",
   "TOTAL_PLATFORM_FEE" :  "需扣除的平台费",

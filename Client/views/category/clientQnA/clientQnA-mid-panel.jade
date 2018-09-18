@@ -22,7 +22,7 @@
                     div(ng-repeat='dataObj in vm.clientQnAData.data')
                         input(type='radio' ng-model='vm.clientQnAInput.playerObjId' ng-value='dataObj._id')
                         label {{ dataObj.name }}
-                    input.form-control(ng-repeat='(k,o) in vm.clientQnAData.answerInput' ng-if='o.questionNo == v.questionNo && o.type!="select" && o.type!="checkbox"' type='{{o.type}}' ng-model='vm.clientQnAInput[o.objKey]' placeholder='{{o.placeHolder | translate}}')
+                    input.form-control(ng-repeat='(k,o) in vm.clientQnAData.answerInput' ng-if='o.questionNo == v.questionNo && o.type!="select" && o.type!="checkbox"' type='{{o.type}}' ng-model='vm.clientQnAInput[o.objKey]' placeholder='{{o.placeHolder | translate}}' ng-disabled="o.disabled" ng-init="o.value ? vm.clientQnAInput[o.objKey] = o.value : null")
                     select.form-control(ng-repeat='(k,o) in vm.clientQnAData.answerInput' ng-if='o.questionNo == v.questionNo && o.type == "select"' ng-model="vm.clientQnAInput[o.objKey]" ng-options="va.id as va.name | translate for (in,va) in vm[o.options]" ng-change='vm[o.options + "Change"]()')
                     br
                 .pull-right

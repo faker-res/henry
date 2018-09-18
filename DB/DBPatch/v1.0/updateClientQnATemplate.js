@@ -326,16 +326,16 @@ db.clientQnATemplate.update(
         $set: {
             questionTitle: "Please fill in new bank account detail",
             question: [
-                {questionNo: 1, des: "BankCardNo"},
-                {questionNo: 2, des: "BANK_TYPE"},
-                {questionNo: 3, des: "Bank Account Type"},
+                {questionNo: 1, des: "Bank Card Name"},
+                {questionNo: 2, des: "BankCardNo"},
+                {questionNo: 3, des: "BANK_TYPE"},
                 {questionNo: 4, des: "BANK_ACCOUNT_CITY"},
                 {questionNo: 5, des: "Bank Registration Address"},
             ],
             answerInput: [
-                {type: "text", objKey: "bankAccount", questionNo: 1, placeHolder: ""},
-                {type: "select", objKey: "bankType", questionNo: 2, options: "qnaAllBankTypeList"},
-                {type: "select", objKey: "bankAccountType", questionNo: 3, options: "qnaAllBankAccountTypeList"},
+                {type: "text", objKey: "bankAccountName", questionNo: 1, placeHolder: ""},
+                {type: "text", objKey: "bankAccount", questionNo: 2, placeHolder: ""},
+                {type: "select", objKey: "bankType", questionNo: 3, options: "qnaAllBankTypeList"},
                 {type: "select", objKey: "bankCardProvince", questionNo: 4, options: "qnaProvinceList"},
                 {type: "select", objKey: "bankAccountCity", questionNo: 4, options: "qnaCityList"},
                 {type: "text", objKey: "bankAddress", questionNo: 5, placeHolder: ""}
