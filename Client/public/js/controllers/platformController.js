@@ -28928,9 +28928,6 @@ define(['js/app'], function (myApp) {
                             if (vm.clientQnAData && vm.clientQnAData.questionTitle && vm.clientQnAData.isSecurityQuestion) {
                                 vm.questionLabelStyle = "text-align:left;display:inline-block";
                             }
-                            if (vm.clientQnAData && vm.clientQnAData.questionTitle && vm.clientQnAData.isQuestionAlignLeft) {
-                                vm.questionLabelStyle = "text-align:left;display:inline-block";
-                            }
 
                             if (vm.clientQnAData.autoRetrive){
                                 let objKey = Object.keys(vm.clientQnAData.autoRetrive);
