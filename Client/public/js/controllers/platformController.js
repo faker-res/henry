@@ -27059,7 +27059,7 @@ define(['js/app'], function (myApp) {
             vm.getBlacklistIpConfig = function () {
                 vm.blacklistIpConfig = vm.blacklistIpConfig || [];
 
-                socketService.$socket($scope.AppSocket, 'getBlacklistIpConfig', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getBlacklistIpConfig', {}, function (data) {
                     $scope.$evalAsync(() => {
                         vm.blacklistIpConfig = data.data;
                     });
@@ -27074,7 +27074,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.deleteBlacklistIpConfig = (blacklistIpID) => {
-                $scope.$socketPromise('deleteBlacklistIpConfig', {_id: blacklistIpID, platformObjId: vm.selectedPlatform.id}).then((data) => {
+                $scope.$socketPromise('deleteBlacklistIpConfig', {_id: blacklistIpID}).then((data) => {
                     $scope.$evalAsync(() => {
                         vm.blacklistIpConfig = data.data;
                     });
@@ -28232,7 +28232,6 @@ define(['js/app'], function (myApp) {
 
             function updateBlacklistIpConfig() {
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
                     insertData: vm.newBlacklistIpConfig,
                     updateData: vm.blacklistIpConfig,
                     adminName: authService.adminName
