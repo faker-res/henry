@@ -1010,11 +1010,12 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     "http://eu.tel400.me/cti/previewcallout.action",
                     "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
                 ];
-            } /*else if (platformId == '10') {
+            }
+            else if (platformId == '2') {
                 urls = [
-                    "http://jsh.tel400.me/cti/",
+                    "http://xbet.tel400.me/cti/previewcallout.action"
                 ];
-            }*/
+            }
 
             performPhoneCall();
 
