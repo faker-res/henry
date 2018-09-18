@@ -953,7 +953,7 @@ var dbClientQnA = {
             if (error.message === "Max SMS count") {
                 return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
             }else{
-                return Promise.reject({name: "DBError", message: error.message ||''})
+                return Promise.reject({name: "DBError", message: localization.localization.translate(error.message) ||''})
             }
           })
     },
@@ -1288,7 +1288,7 @@ var dbClientQnA = {
             },err=>{
 
                 let errorMessage = err.message ? err.message : '';
-                return Promise.reject({name: "DBError", message: errorMessage})
+                return Promise.reject({name: "DBError", message: localization.localization.translate(errorMessage)})
             });
     },
     getOldNumberSMS: function (platformObjId, inputDataObj, qnaObjId) {
