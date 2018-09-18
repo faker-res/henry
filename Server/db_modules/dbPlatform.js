@@ -814,8 +814,9 @@ var dbPlatform = {
      * Sync platform providers data
      * @param platformId
      * @param providerIds
+     * @param sameLineProviders
      */
-    syncPlatformProvider: function (platformId, providerIds) {
+    syncPlatformProvider: function (platformId, providerIds, sameLineProviders) {
         return dbconfig.collection_platform.findOne({platformId}).populate(
             {path: "gameProviders", model: dbconfig.collection_gameProvider}
         ).then(
@@ -844,6 +845,23 @@ var dbPlatform = {
                             }
                         }
                     );
+
+                    // Update same line providers
+                    if (sameLineProviders && sameLineProviders.length) {
+                        sameLineProviders.forEach(provider => {
+                            let key = "sameLineProviders." + provider;
+                            let setObj = {};
+                            setObj[key] = sameLineProviders;
+
+                            proms.push(
+                                dbconfig.collection_gameProvider.findOneAndUpdate({providerId: provider}, {
+                                    $set: setObj
+                                })
+                            )
+                        })
+                    }
+
+
                     if (proms.length > 0) {
                         return Q.all(proms);
                     }
@@ -3348,19 +3366,19 @@ var dbPlatform = {
         );
     },
 
-    getBlacklistIpConfig: (platformId) => {
-        return dbconfig.collection_platformBlacklistIpConfig.find({platform: platformId}).lean().exec();
+    getBlacklistIpConfig: () => {
+        return dbconfig.collection_platformBlacklistIpConfig.find({}).lean().exec();
     },
 
-    deleteBlacklistIpConfig: (blacklistIpID, platformId) => {
-        return dbconfig.collection_platformBlacklistIpConfig.remove({_id: blacklistIpID, platform: platformId}).lean().exec().then(
+    deleteBlacklistIpConfig: (blacklistIpID) => {
+        return dbconfig.collection_platformBlacklistIpConfig.remove({_id: blacklistIpID}).lean().exec().then(
             () => {
-                return dbPlatform.getBlacklistIpConfig(platformId);
+                return dbPlatform.getBlacklistIpConfig();
             }
         );
     },
 
-    saveBlacklistIpConfig: (platformObjId, insertData, updateData, adminName) => {
+    saveBlacklistIpConfig: (insertData, updateData, adminName) => {
         let insertProm = Promise.resolve(true);
         let updateProm = Promise.resolve(true);
         let proms1 = [];
@@ -3372,12 +3390,10 @@ var dbPlatform = {
                 // only insert ip that didn't exist
                 let query = {
                     ip: insertData[x].ip,
-                    platform: platformObjId
                 };
 
                 let newData = {
                     ip: insertData[x].ip,
-                    platform: platformObjId,
                     remark: insertData[x].remark || "",
                     adminName: adminName,
                     isEffective: insertData[x].isEffective
@@ -3394,7 +3410,6 @@ var dbPlatform = {
             for (let z = 0; z < updateData.length; z++) {
                 let upDateQuery = {
                     _id: updateData[z]._id,
-                    platform: platformObjId,
                 };
 
                 let oldData = {
