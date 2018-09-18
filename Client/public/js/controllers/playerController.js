@@ -19323,7 +19323,7 @@ define(['js/app'], function (myApp) {
         vm.getBlacklistIpConfig = function () {
             vm.blacklistIpConfig = vm.blacklistIpConfig || [];
 
-            socketService.$socket($scope.AppSocket, 'getBlacklistIpConfig', {platformObjId: vm.selectedPlatform.id}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getBlacklistIpConfig', {}, function (data) {
                 $scope.$evalAsync(() => {
                     vm.blacklistIpConfig = data.data;
                     vm.blacklistIpList = [];
