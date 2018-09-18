@@ -28952,7 +28952,7 @@ define(['js/app'], function (myApp) {
                                     item => {
                                         vm.clientQnAInput[item.objKey] = item[item.objKey]
                                     }
-                                )
+                                );
                                 vm.getCityListQnA();
                             }
                         });
