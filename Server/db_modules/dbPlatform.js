@@ -814,8 +814,9 @@ var dbPlatform = {
      * Sync platform providers data
      * @param platformId
      * @param providerIds
+     * @param sameLineProviders
      */
-    syncPlatformProvider: function (platformId, providerIds) {
+    syncPlatformProvider: function (platformId, providerIds, sameLineProviders) {
         return dbconfig.collection_platform.findOne({platformId}).populate(
             {path: "gameProviders", model: dbconfig.collection_gameProvider}
         ).then(
@@ -844,6 +845,23 @@ var dbPlatform = {
                             }
                         }
                     );
+
+                    // Update same line providers
+                    if (sameLineProviders && sameLineProviders.length) {
+                        sameLineProviders.forEach(provider => {
+                            let key = "sameLineProviders." + provider;
+                            let setObj = {};
+                            setObj[key] = sameLineProviders;
+
+                            proms.push(
+                                dbconfig.collection_gameProvider.findOneAndUpdate({providerId: provider}, {
+                                    $set: setObj
+                                })
+                            )
+                        })
+                    }
+
+
                     if (proms.length > 0) {
                         return Q.all(proms);
                     }

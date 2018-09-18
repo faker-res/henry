@@ -644,6 +644,8 @@ var proposalExecutor = {
                     // for send message to player before encrypt phone number
                     let phoneNumberLast4Digit = proposalData.data.updateData.phoneNumber.substr(proposalData.data.updateData.phoneNumber.length - 4);
                     proposalData.data.updateData.phoneNumber = rsaCrypto.encrypt(proposalData.data.updateData.phoneNumber);
+                    // when the update is success, reset previous error count at Q&A page, let then able to do run though the Q&A again.
+                    proposalData.data.updateData.qnaWrongCount = {updatePhoneNumber : 0};
                     dbUtil.findOneAndUpdateForShard(
                         dbconfig.collection_players,
                         {_id: proposalData.data.playerObjId},

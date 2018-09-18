@@ -29007,7 +29007,7 @@ define(['js/app'], function (myApp) {
                                     vm.clientQnASecurityQuesCount.minQuestionPass = data.data[1].minQuestionPass;
                                 }
                             }
-                            if(vm.clientQnASecurityQuesConfig.config && data.data[0] && data.data[0].question && data.data[0].question.length){
+                            if(vm.clientQnASecurityQuesConfig.config && data.data[0] && data.data[0].question && data.data[0].question.length && vm.selectedClientQnAType && vm.selectedClientQnAType.data != "forgotPassword" ){
                                 vm.clientQnASecurityQuesConfig.config.minQuestionPass = data.data[0].question.length;
                             }
                         });
