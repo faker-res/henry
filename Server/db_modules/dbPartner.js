@@ -6338,7 +6338,7 @@ let dbPartner = {
                     let rawCommission = calculateRawCommission(totalConsumption, commissionRates[groupRate.groupName].commissionRate);
 
                     let platformFee =  platformFeeRate * totalBonusAmount / 100;
-                    platformFee = platformFee >= 0 ? platformFee : 0;
+                    // platformFee = platformFee >= 0 ? platformFee : 0;
                     totalPlatformFee += platformFee;
 
                     rawCommissions.push({
@@ -6816,7 +6816,7 @@ let dbPartner = {
 
                         for (let j = 0; j < oriCommission.length ; j++) {
                             for (let k = customCommission.length - 1; k >= 0; k--) {
-                                if (customCommission[k].provider._id.toString() == oriCommission[j].provider._id.toString()) {
+                                if (customCommission[k].provider && oriCommission[j].provider && customCommission[k].provider._id.toString() == oriCommission[j].provider._id.toString()) {
                                     oriCommission[j].commissionSetting.forEach(ori => {
                                         customCommission[k].commissionSetting.forEach(cus => {
                                             if (cus.playerConsumptionAmountFrom === ori.playerConsumptionAmountFrom

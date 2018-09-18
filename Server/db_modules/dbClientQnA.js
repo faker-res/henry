@@ -137,7 +137,7 @@ var dbClientQnA = {
         })
     },
 
-    sendSMSVerificationCode: function (clientQnAData, purpose, isGetSmsCode) {
+    sendSMSVerificationCode: function (clientQnAData, purpose, isGetSmsCode, inputData) {
         let smsCode = dbutility.generateRandomPositiveNumber(1000, 9999);
         if (clientQnAData && clientQnAData.QnAData && clientQnAData.QnAData.playerId && clientQnAData.QnAData.platformId) {
             if (clientQnAData.type) {
@@ -154,7 +154,7 @@ var dbClientQnA = {
                 } else {
                     updObj.$inc = {'QnAData.smsCount': 1};
                 }
-
+                
                 if (clientQnAData.QnAData.phoneNumber) {
                     smsCountProm = dbClientQnA.checkSMSSentCountInPastHour(
                         clientQnAData.QnAData.platformId, clientQnAData.QnAData.phoneNumber, purpose)
@@ -167,11 +167,10 @@ var dbClientQnA = {
                                 () => {
                                     if (isGetSmsCode) {
                                         // based on getSMSCode api
-                                        return dbPlayerMail.sendVerificationCodeToNumber(clientQnAData.QnAData.phoneNumber, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0)
+                                        return dbPlayerMail.sendVerificationCodeToNumber(clientQnAData.QnAData.phoneNumber, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0, clientQnAData.QnAData.name, inputData)
                                     } else {
                                         return dbPlayerMail.sendVerificationCodeToPlayer(clientQnAData.QnAData.playerId, smsCode, clientQnAData.QnAData.platformId, true, purpose, 0)
                                     }
-
                                 });
                         } else {
                             return Promise.resolve(false);
@@ -241,7 +240,13 @@ var dbClientQnA = {
                 if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 5) {
                     return dbClientQnA.forgotPassword2(platformObjId, inputDataObj, qnaObjId);
                 } else {
-                    dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.UPDATE_PASSWORD);
+                    return dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.UPDATE_PASSWORD).then(
+                        smsRes => {
+                            if (!smsRes) {
+                                return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
+                            }
+                        }
+                    );
                 }
             }
         );
@@ -254,24 +259,43 @@ var dbClientQnA = {
         if (!qnaObjId) {
             return Promise.reject({name: "DBError", message: "qnaObjId undefined"})
         }
+        let clientQnAObj;
         return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).lean().then(
             clientQnAData => {
                 if (!(clientQnAData && clientQnAData.playerObjId)) {
                     return Promise.reject({name: "DBError", message: "Cannot find clientQnA"})
                 }
-                return dbconfig.collection_players.findOne({_id: clientQnAData.playerObjId, phoneNumber: rsaCrypto.encrypt(inputDataObj.phoneNumber)}).lean().then(
-                    playerData => {
-                        if (!playerData) {
-                            return Promise.reject({name: "DBError", message: "Phone number does not match"})
-                        }
+                clientQnAObj = clientQnAData;
+                return dbconfig.collection_players.findOne({
+                    _id: clientQnAData.playerObjId,
+                    phoneNumber: rsaCrypto.encrypt(inputDataObj.phoneNumber)
+                }).lean();
+                
+            }
+        ).then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DBError", message: "Phone number does not match"})
+                }
+                if (!clientQnAObj.QnAData) {
+                    clientQnAObj.QnAData = {}
+                }
 
-                        dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.UPDATE_PASSWORD).catch(errorUtils.reportError);
-                        return dbconfig.collection_clientQnATemplate.findOne({
-                            processNo: "3_1",
-                            type: constClientQnA.FORGOT_PASSWORD
-                        }).lean();
-                    });
-            });
+                clientQnAObj.QnAData.phoneNumber = inputDataObj.phoneNumber;
+
+                return dbClientQnA.sendSMSVerificationCode(clientQnAObj, constSMSPurpose.UPDATE_PASSWORD);
+            }
+        ).then(
+            smsRes => {
+                if (!smsRes) {
+                    return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
+                }
+                return dbconfig.collection_clientQnATemplate.findOne({
+                    processNo: "3_1",
+                    type: constClientQnA.FORGOT_PASSWORD
+                }).lean();
+            }
+        );
 
     },
 
@@ -332,7 +356,8 @@ var dbClientQnA = {
                     playerObjId: playerData._id,
                     QnAData: {
                         name: inputDataObj.name,
-                        playerId: playerData.playerId
+                        playerId: playerData.playerId,
+                        platformId: playerData.platform.platformId
                     }
                 };
 
@@ -812,16 +837,21 @@ var dbClientQnA = {
                 if (!playerData) {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
+
                 let updateObj = {
                     QnAData: {
                         name: inputDataObj.name,
                         platformId: platformData.platformId,
                         playerId: playerData.playerId || '',
                         playerObjId: playerData._id || '',
-                        phoneNumber: ''
-
+                        phoneNumber: '',
+                        oldPhoneNumber: ''
                     }
                 };
+
+                if(platformData.usePhoneNumberTwoStepsVerification){
+                    updateObj.QnAData.twoStepsVerification = true;
+                }
                 return dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.UPDATE_PHONE, updateObj)
         }).then(
             clientQnA => {
@@ -831,12 +861,14 @@ var dbClientQnA = {
                 }
 
                 let processNo;
-                if (playerData.phoneNumber) {
+                if (playerData.phoneNumber && platformData.usePhoneNumberTwoStepsVerification) {
                     processNo = "2_1";
+                } else if(playerData.phoneNumber && !platformData.usePhoneNumberTwoStepsVerification) {
+                    processNo = "2_1_1";
                 } else {
                     let endTitle = "Update phone number failed";
                     let endDes = "Attention! This player does not bind phone number (or inconvenient to receive sms code), cannot verify bank card. Please contact customer service to reset password manually";
-                    return dbClientQnA.qnaEndMessage(endTitle, endDes)
+                    return dbClientQnA.qnaEndMessage(endTitle, endDes);
                 }
 
                 return dbconfig.collection_clientQnATemplate.findOne({
@@ -869,6 +901,7 @@ var dbClientQnA = {
 
     updatePhoneNumber2_1: function (platformObjId, inputDataObj, qnaObjId, creator) {
         let clientQnAData = null;
+        let playerData = null;
         if (!(inputDataObj && inputDataObj.phoneNumber)) {
             return Promise.reject({name: "DBError", message: "Invalid Data"})
         }
@@ -886,17 +919,36 @@ var dbClientQnA = {
                 () => {
                     return dbconfig.collection_players.findOne({_id: clientQnAData.playerObjId}).lean()
             }).then(
-                (playerData) => {
+                (player) => {
+                    playerData = player;
                     console.log(playerData.phoneNumber);
                     if(playerData.phoneNumber != inputDataObj.phoneNumber){
                         return Promise.reject({name: "DBError", message: "Thats not same phone you are using"})
                     }
-                    return dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.OLD_PHONE_NUMBER)
-
+                    if(clientQnAData.QnAData.twoStepsVerification){
+                        return dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.OLD_PHONE_NUMBER)
+                    }else{
+                        return {}
+                    }
+            }).then(smsRes=>{
+                    console.log(smsRes);
+                    if(smsRes) {
+                        let updObj = {
+                            $set: {
+                                'QnAData.oldPhoneNumber': inputDataObj.phoneNumber
+                            }
+                        };
+                        return dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.UPDATE_PHONE, updObj, qnaObjId)
+                    }
+                    throw new Error ("Max SMS count");
             }).then(
-                smsResult => {
-
-                    let processNo = '3_1';
+                (clientQnA) => {
+                    let processNo = '';
+                    if(clientQnA.QnAData.twoStepsVerification){
+                        processNo = '3_1';
+                    }else{
+                        processNo = '4_1';
+                    }
 
                     return dbconfig.collection_clientQnATemplate.findOne({
                         type: constClientQnA.UPDATE_PHONE,
@@ -922,7 +974,14 @@ var dbClientQnA = {
                         )
                     }
                     return QnATemplate;
-          });
+          })
+          .catch(error => {
+            if (error.message === "Max SMS count") {
+                return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
+            }else{
+                return Promise.reject({name: "DBError", message: localization.localization.translate(error.message) ||''})
+            }
+          })
     },
     updatePhoneNumber3: function (platformObjId, inputDataObj, qnaObjId, creator) {
         return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).lean().then(
@@ -1029,7 +1088,12 @@ var dbClientQnA = {
             };
             let lastWithdraw;
 
-            return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).lean().then(
+            let updObj = {
+                $set: {
+                    'QnAData.oldPhoneNumber': inputDataObj.phoneNumber
+                }
+            };
+            return dbClientQnA.updateClientQnAData(null, constClientQnA.UPDATE_PHONE, updObj, qnaObjId).then(
                 clientQnAObj => {
                     clientQnAData = clientQnAObj;
                     if (!(clientQnAData && clientQnAData.playerObjId)) {
@@ -1181,19 +1245,22 @@ var dbClientQnA = {
                         return Promise.reject({name: "DBError", message: "update QnA data failed"})
                     }
                     clientQnAData = clientQnA;
-                    return dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.NEW_PHONE_NUMBER, true)
+                    let sendData = {}
+                    if(clientQnAData.QnAData && !clientQnAData.QnAData.twoStepsVerification && clientQnAData.QnAData.oldPhoneNumber){
+                        sendData.oldPhoneNumber = clientQnAData.QnAData.oldPhoneNumber;
+                        sendData.playerId = clientQnAData.QnAData.playerId;
+                    }
+                    return dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.NEW_PHONE_NUMBER, true, sendData)
                 })
             .then(smsData => {
-
-                    let processNo = '5_1';
-                    return dbconfig.collection_clientQnATemplate.findOne({
-                        type: constClientQnA.UPDATE_PHONE,
-                        processNo: processNo
-                    }).lean()
-                },err=>{
-                    if(err){
-                        return Promise.reject({name: "DBError", message: err.errMsg})
+                    if(smsData){
+                        let processNo = '5_1';
+                        return dbconfig.collection_clientQnATemplate.findOne({
+                            type: constClientQnA.UPDATE_PHONE,
+                            processNo: processNo
+                        }).lean();
                     }
+                    throw new Error ("Max SMS count");
             })
             .then(
                 QnATemplate => {
@@ -1215,6 +1282,13 @@ var dbClientQnA = {
                         )
                     }
                     return QnATemplate;
+            })
+            .catch(error => {
+              if (error.message === "Max SMS count") {
+                  return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
+              }else{
+                  return Promise.reject({name: "DBError", message: error.message ||''})
+              }
             })
     },
     updatePhoneNumber5_1: function (platformObjId, inputDataObj, qnaObjId, creator) {
@@ -1240,7 +1314,7 @@ var dbClientQnA = {
             },err=>{
 
                 let errorMessage = err.message ? err.message : '';
-                return Promise.reject({name: "DBError", message: errorMessage})
+                return Promise.reject({name: "DBError", message: localization.localization.translate(errorMessage)})
             });
     },
     getOldNumberSMS: function (platformObjId, inputDataObj, qnaObjId) {
@@ -1255,16 +1329,24 @@ var dbClientQnA = {
         let isGetSmsCode = true;
         let endTitle = 'Update phone number failed';
         let endDes = 'Attention: this number is over the excess the limit of sent sms. Please contact cs or open a new account if necessary.';
-        return dbClientQnA.getSMSVerificationCodeAgain(platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode, endTitle, endDes);
+        return dbClientQnA.getSMSVerificationCodeAgain(platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode, endTitle, endDes, true);
     },
-    getSMSVerificationCodeAgain: function (platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode, endTitle, endDes) {
+    getSMSVerificationCodeAgain: function (platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode, endTitle, endDes, isNewPhoneNumber) {
         return dbconfig.collection_clientQnA.findById(qnaObjId).lean().then(
             qnaObj => {
                 // Check player send count
+                let sendObj = {};
+                if(!qnaObj){
+                    return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
+                }
+                if(qnaObj && qnaObj.QnAData && qnaObj.QnAData.playerId && qnaObj.QnAData.oldPhoneNumber && !qnaObj.QnAData.twoStepsVerification && isNewPhoneNumber){
+                    sendObj.playerId = qnaObj.QnAData.playerId;
+                    sendObj.oldPhoneNumber = qnaObj.QnAData.oldPhoneNumber
+                }
                 if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 5) {
                     return dbClientQnA.qnaEndMessage(endTitle, endDes);
                 } else {
-                    return dbClientQnA.sendSMSVerificationCode(qnaObj, purpose, isGetSmsCode).catch(errorUtils.reportError);
+                    return dbClientQnA.sendSMSVerificationCode(qnaObj, purpose, isGetSmsCode, sendObj);
                 }
             }
         );
@@ -1294,7 +1376,10 @@ var dbClientQnA = {
                     QnAData: {
                         name: inputDataObj.name,
                         platformId: playerData.platform && playerData.platform.platformId,
-                        playerId: playerData.playerId
+                        playerId: playerData.playerId,
+                        playerObjId: playerData._id,
+                        platformObjId: playerData._id,
+                        phoneNumber: playerData.phoneNumber
                     }
                 };
                 return dbClientQnA.updateClientQnAData(playerData._id, constClientQnA.EDIT_BANK_CARD, updateObj).catch(errorUtils.reportError);
@@ -1360,7 +1445,11 @@ var dbClientQnA = {
                 return dbClientQnA.sendSMSVerificationCode(clientQnA, constSMSPurpose.UPDATE_BANK_INFO);
             }
         ).then(
-            () => {
+            (smsSendingResult) => {
+                if (!smsSendingResult) {
+                    return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
+                }
+
                 return dbconfig.collection_clientQnATemplate.findOne({
                     type: constClientQnA.EDIT_BANK_CARD,
                     processNo: "3_1"
@@ -1539,6 +1628,11 @@ var dbClientQnA = {
                     template.qnaObjId = clientQnA._id;
                 }
 
+                if (player.bankAccountName && template.answerInput && template.answerInput[0]) {
+                    template.answerInput[0].value = player.bankAccountName;
+                    template.answerInput[0].disabled = true;
+                }
+
                 return template;
             }
         );
@@ -1560,8 +1654,32 @@ var dbClientQnA = {
     editBankCard4_1: (platformObjId, inputDataObj, qnaObjId, creator) => {
         let clientQnA, player, platform;
 
-        if (!inputDataObj || !inputDataObj.bankAccount || !(inputDataObj.bankAccount.length === 16 || inputDataObj.bankAccount.length === 19) || !inputDataObj.bankType || !inputDataObj.bankAccountType || !inputDataObj.bankCardProvince || !inputDataObj.bankAccountCity || !inputDataObj.bankAddress) {
+        if (!inputDataObj) {
             return Promise.reject({name: "DBError", message: "Invalid Data"})
+        }
+
+        if (!inputDataObj.bankAccountName) {
+            return Promise.reject({message: "Please insert bank account name."})
+        }
+
+        if (!inputDataObj.bankAccount) {
+            return Promise.reject({message: "Please insert bank account."});
+        }
+
+        if (!(inputDataObj.bankAccount.length === 16 || inputDataObj.bankAccount.length === 19)) {
+            return Promise.reject({message: "Bank account must be either 16 number or 19 number"});
+        }
+
+        if (!inputDataObj.bankType) {
+            return Promise.reject({message: "Bank Type is a required field."});
+        }
+
+        // if (!inputDataObj.bankAccountType) {
+        //     return Promise.reject({message: "Bank Account Type is a required field."});
+        // }
+
+        if (!inputDataObj.bankCardProvince || !inputDataObj.bankAccountCity) {
+            return Promise.reject({message: "Bank city is a required field"});
         }
 
         return dbconfig.collection_clientQnA.findOne({_id: qnaObjId}).lean().then(
@@ -1598,9 +1716,10 @@ var dbClientQnA = {
                         _id: String(player._id),
                         playerName: player.name,
                         playerId: player.playerId,
+                        bankAccountName: inputDataObj.bankAccountName,
                         bankAccount: inputDataObj.bankAccount,
                         bankName: String(inputDataObj.bankType),
-                        bankAccountType: inputDataObj.bankAccountType,
+                        // bankAccountType: inputDataObj.bankAccountType,
                         bankAccountProvince: inputDataObj.bankCardProvince,
                         bankAccountCity: inputDataObj.bankAccountCity,
                         bankAddress: inputDataObj.bankAddress,
@@ -1645,15 +1764,38 @@ var dbClientQnA = {
             return Promise.reject({name: "DBError", message: "Invalid Data"})
         }
 
-        return dbconfig.collection_players.findOne({platform: platformObjId, name: inputDataObj.name}).populate({
-            path: "platform",
-            model: dbconfig.collection_platform,
-            select: {platformId: 1}
-        }).lean().then(
+        let QnAConfig = null;
+
+        return dbconfig.collection_clientQnATemplateConfig.findOne({type: constClientQnA.EDIT_NAME, platform: platformObjId}).lean().then(
+            retQnAConfig => {
+
+                if (!retQnAConfig) {
+                    return Promise.reject({name: "DBError", message: "QnAConfig is not found"})
+                }
+
+                if (!retQnAConfig.hasOwnProperty("wrongCount")) {
+                    return Promise.reject({name: "DBError", message: "Maximum incorrect count is not found"});
+                }
+
+                QnAConfig =  retQnAConfig;
+
+                return dbconfig.collection_players.findOne({platform: platformObjId, name: inputDataObj.name}).populate({
+                    path: "platform",
+                    model: dbconfig.collection_platform,
+                    select: {platformId: 1}
+                }).lean();
+            }
+        ).then(
             playerData => {
                 if (!playerData) {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
+
+                // if (QnAConfig && QnAConfig.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("editName") && playerData.qnaWrongCount.editName > QnAConfig.wrongCount){
+                //     let endTitle = "Authentification Failed";
+                //     let endDes = "Attention! Contact CS for further instruction";
+                //     return dbClientQnA.qnaEndMessage(endTitle, endDes);
+                // }
 
                 let updateObj = {
                     type: constClientQnA.EDIT_NAME,
@@ -1764,16 +1906,17 @@ var dbClientQnA = {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
 
-                if (QnAConfig.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("editName") && playerData.qnaWrongCount.editName > QnAConfig.wrongCount){
-                    let endTitle = "Authentification Failed";
-                    let endDes = "Attention! Contact CS for further instruction";
-                    return dbClientQnA.qnaEndMessage(endTitle, endDes);
-                }
+                //
+                // if (QnAConfig.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("editName") && playerData.qnaWrongCount.editName > QnAConfig.wrongCount){
+                //     let endTitle = "Authentification Failed";
+                //     let endDes = "Attention! Contact CS for further instruction";
+                //     return dbClientQnA.qnaEndMessage(endTitle, endDes);
+                // }
 
                 let updateObj = {};
 
                 if (inputDataObj.phoneNumber == playerData.phoneNumber){
-                    clientQnAData.QnAData.phoneNumber = rsaCrypto.encrypt(playerData.phoneNumber);
+                    clientQnAData.QnAData.phoneNumber = playerData.phoneNumber;
 
                     updateObj.QnAData =clientQnAData.QnAData;
 
@@ -1783,12 +1926,12 @@ var dbClientQnA = {
                                 return Promise.reject({name: "DBError", message: "update QnA data failed"})
                             }
 
-                            return dbClientQnA.sendSMSVerificationCode(clientQnARecord, constSMSPurpose.UPDATE_PLAYER_INFO);
+                              return dbClientQnA.sendSMSVerificationCode(clientQnARecord, constSMSPurpose.UPDATE_PLAYER_INFO);
                         }
                     )
                 }
                 else{
-                    throw new Error("The phone number is not matched with the registered phone number");
+                    return Promise.reject({name: "DBError", message: "Phone number does not match"});
                 }
             }
         ).then(
@@ -1841,8 +1984,13 @@ var dbClientQnA = {
                                 'QnAData.newRealName': inputDataObj.newName || null
                             }
                         };
-                        return dbClientQnA.updateClientQnAData(null, constClientQnA.EDIT_NAME, updateObj, qnaObjId)
+                        let QnAProm = dbClientQnA.updateClientQnAData(null, constClientQnA.EDIT_NAME, updateObj, qnaObjId);
+                        let playerProm = dbconfig.collection_players.findOneAndUpdate({
+                            platform: platformObjId,
+                            _id: clientQnAData.playerObjId
+                        }, {$set: {"qnaWrongCount.editName": 0}}).lean();
 
+                        return Promise.all([QnAProm, playerProm]);
                     }
                     else{
                         return Promise.reject({name: "DBError", message: "The SMS code does not match with the distributed SMS code"})
@@ -1850,10 +1998,12 @@ var dbClientQnA = {
                 }
             }
         ).then(
-            retClientQnARecord => {
-                if (!retClientQnARecord) {
+            data => {
+                if (!data && !data[0]) {
                     return Promise.reject({name: "DBError", message: "update QnA data failed"})
                 }
+                
+                let retClientQnARecord = data[0];
 
                 clientQnAData = retClientQnARecord;
 
@@ -1871,7 +2021,7 @@ var dbClientQnA = {
 
                 if (playerData.bankAccount) {
 
-                    let phoneNumber = clientQnAData.QnAData && clientQnAData.QnAData.phoneNumber ? rsaCrypto.decrypt(clientQnAData.QnAData.phoneNumber) : null;
+                    let phoneNumber = clientQnAData.QnAData && clientQnAData.QnAData.phoneNumber ? clientQnAData.QnAData.phoneNumber : null;
                     return dbconfig.collection_clientQnATemplate.findOne({
                         type: constClientQnA.EDIT_NAME,
                         processNo: "4_2"
@@ -2056,7 +2206,7 @@ var dbClientQnA = {
 
         let QnAConfig = null;
         let clientQnAData = null;
-        let updateObj = {};
+        // let updateObj = {};
         let updatePlayerObj = {};
         let proposalData = null;
         let playerData = null;
@@ -2129,7 +2279,7 @@ var dbClientQnA = {
 
                 // validate the answer
                 if (inputDataObj.phoneNumber && inputDataObj.phoneNumber == playerData.phoneNumber){
-                    clientQnAData.QnAData.phoneNumber = inputDataObj.phoneNumber;
+                    clientQnAData.QnAData.phoneNumber = inputDataObj.phoneNumber.toString();
                     correctNumArr.push(questionNo.phoneNumber);
                 }
                 else{
@@ -2161,7 +2311,7 @@ var dbClientQnA = {
                     validateBoolean = false;
                 }
 
-                return dbClientQnA.updateClientQnAData(null, constClientQnA.EDIT_NAME, updateObj, qnaObjId);
+                return dbClientQnA.updateClientQnAData(null, constClientQnA.EDIT_NAME, clientQnAData, qnaObjId);
             }
         ).then(
             updateClientQnAData => {
@@ -2193,8 +2343,15 @@ var dbClientQnA = {
                         return dbClientQnA.securityQuestionReject(clientQnAData.playerObjId, correctNumArr, incorrectNumArr, 'editName');
                     }
                     else{
+                        let queryObj = {
+                            mainType: "UpdatePlayer",
+                            'data.playerName': updatedPlayerData.name,
+                            'data.platformId': platformObjId,
+                            status: {$in: [constProposalStatus.PENDING, constProposalStatus.CSPENDING]}
+                        }
+
                         // checking if there is waiting-approve UPDATE_PLAYER_INFO proposal
-                        return dbconfig.collection_proposal.find({mainType: constProposalMainType["UpdatePlayer"], 'data.playerName': updatedPlayerData.name, 'data.platformId': platformObjId, status: {$nin: [constProposalStatus.APPROVE, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]} }).count().then(
+                        return dbconfig.collection_proposal.find(queryObj).count().then(
                             retProposalLength => {
                                 // cant find related proposal --> go to next step
                                 if (retProposalLength == 0){
@@ -2203,7 +2360,7 @@ var dbClientQnA = {
                                     let newRealName = clientQnAData.QnAData && clientQnAData.QnAData.newRealName ? clientQnAData.QnAData.newRealName : null;
                                     let bankAccount = updatedPlayerData.bankAccount || null;
                                     let bankName = updatedPlayerData.bankName || null;
-                                    let bankAccountType = updatedPlayerData.bankAccountType || null;
+                                    // let bankAccountType = updatedPlayerData.bankAccountType || null;
                                     let bankAccountCity = updatedPlayerData.bankAccountCity || null;
                                     let bankAddress = updatedPlayerData.bankAddress || null;
                                     let bankAccountProvince = updatedPlayerData.bankAccountProvince || null;
@@ -2220,11 +2377,10 @@ var dbClientQnA = {
                                             QnATemplate.updateAnswer[0].newRealName = newRealName;
                                             QnATemplate.updateAnswer[1].bankAccount = bankAccount;
                                             QnATemplate.updateAnswer[2].bankType = bankName;
-                                            QnATemplate.updateAnswer[3].bankAccountType = bankAccountType;
-                                            QnATemplate.updateAnswer[4].bankCardProvince = bankAccountProvince;
-                                            QnATemplate.updateAnswer[5].bankAccountCity = bankAccountCity;
-                                            QnATemplate.updateAnswer[6].bankAddress = bankAddress;
-                                            
+                                            QnATemplate.updateAnswer[3].bankCardProvince = bankAccountProvince;
+                                            QnATemplate.updateAnswer[4].bankAccountCity = bankAccountCity;
+                                            QnATemplate.updateAnswer[5].bankAddress = bankAddress;
+
                                             QnATemplate.updateTitle = localization.localization.translate("Authentification Passed");
                                             QnATemplate.updateDes = localization.localization.translate("To facilitate withdrawing process, please complete your bank information else the previous amendment will not be processed");
 
@@ -2257,11 +2413,27 @@ var dbClientQnA = {
             return Promise.reject({name: "DBError", message: "qnaObjId undefined"})
         }
 
-        let clientQnA, player, platform;
-
-        if (!inputDataObj || !inputDataObj.bankAccount || !inputDataObj.newRealName || !(inputDataObj.bankAccount.length === 16 || inputDataObj.bankAccount.length === 19) || !inputDataObj.bankType || !inputDataObj.bankAccountType || !inputDataObj.bankCardProvince || !inputDataObj.bankAccountCity || !inputDataObj.bankAddress) {
-            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        if (!inputDataObj.newRealName || (inputDataObj.newRealName && inputDataObj.newRealName.match(/\d+/g) !== null)) {
+            return Promise.reject({name: "DBError", message: "Invalid new real name"})
         }
+
+        if (!inputDataObj.bankAccount || !(inputDataObj.bankAccount.length === 16 || inputDataObj.bankAccount.length === 19)){
+            return Promise.reject({name: "DBError", message: "Invalid bank account number! Bank account number has to be in 16-digit or 19-digit"})
+        }
+
+        if (!inputDataObj.bankType) {
+            return Promise.reject({name: "DBError", message: "Invalid bank type"})
+        }
+
+        if (!inputDataObj.bankCardProvince) {
+            return Promise.reject({name: "DBError", message: "Invalid bank card province"})
+        }
+
+        if (!inputDataObj.bankAccountCity) {
+            return Promise.reject({name: "DBError", message: "Invalid bank card city"})
+        }
+
+        let clientQnA, player, platform;
 
         return dbconfig.collection_clientQnA.findOne({_id: qnaObjId}).lean().then(
             qnaObj => {
@@ -2271,10 +2443,23 @@ var dbClientQnA = {
 
                 clientQnA = qnaObj;
 
-                let playerProm = dbconfig.collection_players.findOne({_id: clientQnA.playerObjId}).lean();
-                let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+                if (clientQnA.QnAData && clientQnA.QnAData.bankAccount == inputDataObj.bankAccount){
+                    return Promise.resolve(true);
+                }
 
-                return Promise.all([playerProm, platformProm]);
+                return dbPlayerInfo.checkDuplicatedBankAccount(inputDataObj.bankAccount, platformObjId);
+            }
+        ).then(
+            retMsg => {
+                if (retMsg){
+                    let playerProm = dbconfig.collection_players.findOne({_id: clientQnA.playerObjId}).lean();
+                    let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+
+                    return Promise.all([playerProm, platformProm]);
+                }
+                else{
+                    return Promise.reject({name: "DBError", message: "The same bank account has been registered, please change a new bank card or contact our cs."})
+                }
             }
         ).then(
             data => {
@@ -2299,7 +2484,7 @@ var dbClientQnA = {
                         bankAccountName: inputDataObj.newRealName,
                         bankAccount: inputDataObj.bankAccount,
                         bankName: String(inputDataObj.bankType),
-                        bankAccountType: inputDataObj.bankAccountType,
+                        // bankAccountType: inputDataObj.bankAccountType,
                         bankAccountCity: inputDataObj.bankAccountCity,
                         bankAddress: inputDataObj.bankAddress,
                         bankAccountProvince: inputDataObj.bankCardProvince,
@@ -2327,11 +2512,27 @@ var dbClientQnA = {
             return Promise.reject({name: "DBError", message: "qnaObjId undefined"})
         }
 
-        let clientQnA, player, platform;
-
-        if (!inputDataObj || !inputDataObj.bankAccount || !inputDataObj.newRealName || !(inputDataObj.bankAccount.length === 16 || inputDataObj.bankAccount.length === 19) || !inputDataObj.bankType || !inputDataObj.bankAccountType || !inputDataObj.bankCardProvince || !inputDataObj.bankAccountCity || !inputDataObj.bankAddress) {
-            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        if (!inputDataObj.newRealName || (inputDataObj.newRealName && inputDataObj.newRealName.match(/\d+/g) !== null)) {
+            return Promise.reject({name: "DBError", message: "Invalid new real name"})
         }
+
+        if (!inputDataObj.bankAccount || !(inputDataObj.bankAccount.length === 16 || inputDataObj.bankAccount.length === 19)){
+            return Promise.reject({name: "DBError", message: "Invalid bank account number! Bank account number has to be in 16-digit or 19-digit"})
+        }
+
+        if (!inputDataObj.bankType) {
+            return Promise.reject({name: "DBError", message: "Invalid bank type"})
+        }
+
+        if (!inputDataObj.bankCardProvince) {
+            return Promise.reject({name: "DBError", message: "Invalid bank card province"})
+        }
+
+        if (!inputDataObj.bankAccountCity) {
+            return Promise.reject({name: "DBError", message: "Invalid bank card city"})
+        }
+
+        let clientQnA, player, platform;
 
         return dbconfig.collection_clientQnA.findOne({_id: qnaObjId}).lean().then(
             qnaObj => {
@@ -2341,10 +2542,23 @@ var dbClientQnA = {
 
                 clientQnA = qnaObj;
 
-                let playerProm = dbconfig.collection_players.findOne({_id: clientQnA.playerObjId}).lean();
-                let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+                if (clientQnA.QnAData && clientQnA.QnAData.bankAccount == inputDataObj.bankAccount){
+                    return Promise.resolve(true);
+                }
 
-                return Promise.all([playerProm, platformProm]);
+                return dbPlayerInfo.checkDuplicatedBankAccount(inputDataObj.bankAccount, platformObjId);
+            }
+        ).then(
+            retMsg => {
+                if (retMsg){
+                    let playerProm = dbconfig.collection_players.findOne({_id: clientQnA.playerObjId}).lean();
+                    let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
+
+                    return Promise.all([playerProm, platformProm]);
+                }
+                else{
+                    return Promise.reject({name: "DBError", message: "The same bank account has been registered, please change a new bank card or contact our cs."})
+                }
             }
         ).then(
             data => {
@@ -2369,7 +2583,7 @@ var dbClientQnA = {
                         bankAccountName: inputDataObj.newRealName,
                         bankAccount: inputDataObj.bankAccount,
                         bankName: String(inputDataObj.bankType),
-                        bankAccountType: inputDataObj.bankAccountType,
+                        // bankAccountType: inputDataObj.bankAccountType,
                         bankAccountCity: inputDataObj.bankAccountCity,
                         bankAddress: inputDataObj.bankAddress,
                         bankAccountProvince: inputDataObj.bankCardProvince,

@@ -216,6 +216,8 @@ var platformSchema = new Schema({
     allowSamePhoneNumberToRegister: {type: Boolean, default: true},
     // same phone number to register count
     samePhoneNumberRegisterCount: {type: Number, default: 1},
+    // the limit of the same bank account number used
+    sameBankAccountCount: {type: Number, default: 1},
     // white listing phone number
     whiteListingPhoneNumbers: [{type:String}],
     // black listing phone number
