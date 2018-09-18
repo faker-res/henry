@@ -1761,11 +1761,11 @@ var dbClientQnA = {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
 
-                if (QnAConfig && QnAConfig.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("editName") && playerData.qnaWrongCount.editName > QnAConfig.wrongCount){
-                    let endTitle = "Authentification Failed";
-                    let endDes = "Attention! Contact CS for further instruction";
-                    return dbClientQnA.qnaEndMessage(endTitle, endDes);
-                }
+                // if (QnAConfig && QnAConfig.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("editName") && playerData.qnaWrongCount.editName > QnAConfig.wrongCount){
+                //     let endTitle = "Authentification Failed";
+                //     let endDes = "Attention! Contact CS for further instruction";
+                //     return dbClientQnA.qnaEndMessage(endTitle, endDes);
+                // }
 
                 let updateObj = {
                     type: constClientQnA.EDIT_NAME,
@@ -1954,8 +1954,13 @@ var dbClientQnA = {
                                 'QnAData.newRealName': inputDataObj.newName || null
                             }
                         };
-                        return dbClientQnA.updateClientQnAData(null, constClientQnA.EDIT_NAME, updateObj, qnaObjId)
+                        let QnAProm = dbClientQnA.updateClientQnAData(null, constClientQnA.EDIT_NAME, updateObj, qnaObjId);
+                        let playerProm = dbconfig.collection_players.findOneAndUpdate({
+                            platform: platformObjId,
+                            _id: clientQnAData.playerObjId
+                        }, {$set: {"qnaWrongCount.editName": 0}}).lean();
 
+                        return Promise.all([QnAProm, playerProm]);
                     }
                     else{
                         return Promise.reject({name: "DBError", message: "The SMS code does not match with the distributed SMS code"})
@@ -1963,10 +1968,12 @@ var dbClientQnA = {
                 }
             }
         ).then(
-            retClientQnARecord => {
-                if (!retClientQnARecord) {
+            data => {
+                if (!data && !data[0]) {
                     return Promise.reject({name: "DBError", message: "update QnA data failed"})
                 }
+                
+                let retClientQnARecord = data[0];
 
                 clientQnAData = retClientQnARecord;
 
