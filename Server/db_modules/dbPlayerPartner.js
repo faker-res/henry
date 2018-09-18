@@ -7,6 +7,7 @@ const constServerCode = require('../const/constServerCode');
 const constShardKeys = require('../const/constShardKeys');
 const constProposalType = require('../const/constProposalType');
 const constSMSPurpose = require('../const/constSMSPurpose');
+const constProposalStatus = require('../const/constProposalStatus');
 
 let dbConfig = require('../modules/dbproperties');
 let dbUtility = require('./../modules/dbutility');
@@ -523,6 +524,9 @@ let dbPlayerPartner = {
             result => {
                 if (result) {
                     verificationSmsDetail = result;
+                    if(verificationSmsDetail.tel && verificationSmsDetail.code){
+                        smsLogDetail = {tel: verificationSmsDetail.tel, message: verificationSmsDetail.code};
+                    }
                     let queryPlayer = {
                         platform: platformObjId,
                         playerId: playerData ? playerData.playerId : null
@@ -579,7 +583,7 @@ let dbPlayerPartner = {
 
                         };
                         // result.isPlayerInit = true;
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {
+                        return dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {
                             data: playerUpdateData,
                             inputDevice: inputDevice
                         }, smsLogDetail).catch(errorUtils.reportError);
@@ -598,7 +602,7 @@ let dbPlayerPartner = {
                         };
                         creator = {type: "partner", name: partner.partnerName, id: partner._id};
                         // result.isPlayerInit = true;
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData, inputDevice: inputDevice, creator: creator}).catch(errorUtils.reportError);
+                        return dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData, inputDevice: inputDevice, creator: creator}).catch(errorUtils.reportError);
                         break;
                     case 2:
                         let inputDevicePlayer = dbUtility.getInputDevice(userAgent,false);
@@ -625,11 +629,24 @@ let dbPlayerPartner = {
                         };
                         // result[0].isPlayerInit = true;
                         // result[1].isPlayerInit = true;
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData, inputDevice: inputDevicePlayer}).catch(errorUtils.reportError);
                         dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_PHONE, {data: partnerUpdateData, inputDevice: inputDevicePartner}).catch(errorUtils.reportError);
+                        return dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_PHONE, {data: playerUpdateData, inputDevice: inputDevicePlayer}).catch(errorUtils.reportError);
                         break;
                 }
+            }
+        ).then(
+            data=>{
+                if(data.status && data.status == constProposalStatus.APPROVED || data.status == constProposalStatus.SUCCESS){
 
+                  let queryPlayer = {
+                      platform: platformObjId,
+                      playerId: userId
+                  };
+                  let updateData = {
+                      '$set':{'qnaWrongCount.updatePhoneNumber' : 0}
+                  };
+                  dbUtility.findOneAndUpdateForShard(dbConfig.collection_players, queryPlayer, updateData, constShardKeys.collection_players);
+                }
                 return true;
             }
         )
