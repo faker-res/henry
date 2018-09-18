@@ -27004,6 +27004,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.playerPasswordMinLength = vm.selectedPlatform.data.playerPasswordMinLength;
                 vm.platformBasic.prefix = vm.selectedPlatform.data.prefix;
                 vm.platformBasic.samePhoneNumberRegisterCount = vm.selectedPlatform.data.samePhoneNumberRegisterCount;
+                vm.platformBasic.sameBankAccountCount = vm.selectedPlatform.data.sameBankAccountCount;
                 vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
                 vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
                 vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
@@ -28153,6 +28154,7 @@ define(['js/app'], function (myApp) {
                         allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
                         demoPlayerValidDays: srcData.demoPlayerValidDays,
                         samePhoneNumberRegisterCount: srcData.samePhoneNumberRegisterCount,
+                        sameBankAccountCount: srcData.sameBankAccountCount,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                         manualPlayerLevelUp: srcData.manualPlayerLevelUp,

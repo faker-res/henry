@@ -2894,7 +2894,7 @@ let dbPlayerInfo = {
                         return Q.reject({
                             name: "DataError",
                             code: constServerCode.INVALID_DATA,
-                            message: "The same bank account has been registered, please change a new bank card or contact our cs."
+                            message: "The same bank account has been registered, please change a new bank card or contact our cs, thank you!"
                         });
                     }
 
