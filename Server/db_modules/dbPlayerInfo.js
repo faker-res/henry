@@ -5150,6 +5150,36 @@ let dbPlayerInfo = {
                             var record = new dbconfig.collection_playerLoginRecord(recordData);
                             return record.save().then(
                                 function () {
+                                    dbconfig.collection_promoCode.aggregate([
+                                        {$match: {
+                                            platformObjId: record.platform,
+                                            playerObjId: record.player,
+                                            promoCodeTemplateObjId: {$exists: true},
+                                            autoFeedbackMissionObjId: {$exists: true},
+                                            autoFeedbackMissionLogin: {$exists: false}
+                                        }},
+                                        {$sort: {createTime: -1}},
+                                        {
+                                            $group: {
+                                                _id: "$autoFeedbackMissionObjId",
+                                                autoFeedbackMissionScheduleNumber: {$first: "$autoFeedbackMissionScheduleNumber"},
+                                                createTime: {$first: "$createTime"}
+                                            }
+                                        }
+                                    ]).exec().then(promoCodes => {
+                                        console.log("autofeedback promoCodes record during login",promoCodes);
+                                        promoCodes.forEach(promoCode => {
+                                            if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
+                                                dbconfig.collection_promoCode.findOneAndUpdate({
+                                                    autoFeedbackMissionObjId: promoCode._id,
+                                                    autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
+                                                    createTime: promoCode.createTime
+                                                }, {
+                                                    autoFeedbackMissionLogin: true
+                                                }).exec();
+                                            }
+                                        })
+                                    });
                                     if (bUpdateIp) {
                                         dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
                                         dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
