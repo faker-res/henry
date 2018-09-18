@@ -1734,14 +1734,37 @@ var dbClientQnA = {
             return Promise.reject({name: "DBError", message: "Invalid Data"})
         }
 
-        return dbconfig.collection_players.findOne({platform: platformObjId, name: inputDataObj.name}).populate({
-            path: "platform",
-            model: dbconfig.collection_platform,
-            select: {platformId: 1}
-        }).lean().then(
+        let QnAConfig = null;
+
+        return dbconfig.collection_clientQnATemplateConfig.findOne({type: constClientQnA.EDIT_NAME, platform: platformObjId}).lean().then(
+            retQnAConfig => {
+
+                if (!retQnAConfig) {
+                    return Promise.reject({name: "DBError", message: "QnAConfig is not found"})
+                }
+
+                if (!retQnAConfig.hasOwnProperty("wrongCount")) {
+                    return Promise.reject({name: "DBError", message: "Maximum incorrect count is not found"});
+                }
+
+                QnAConfig =  retQnAConfig;
+
+                return dbconfig.collection_players.findOne({platform: platformObjId, name: inputDataObj.name}).populate({
+                    path: "platform",
+                    model: dbconfig.collection_platform,
+                    select: {platformId: 1}
+                }).lean();
+            }
+        ).then(
             playerData => {
                 if (!playerData) {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
+                }
+
+                if (QnAConfig && QnAConfig.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("editName") && playerData.qnaWrongCount.editName > QnAConfig.wrongCount){
+                    let endTitle = "Authentification Failed";
+                    let endDes = "Attention! Contact CS for further instruction";
+                    return dbClientQnA.qnaEndMessage(endTitle, endDes);
                 }
 
                 let updateObj = {
@@ -1853,11 +1876,12 @@ var dbClientQnA = {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
 
-                if (QnAConfig.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("editName") && playerData.qnaWrongCount.editName > QnAConfig.wrongCount){
-                    let endTitle = "Authentification Failed";
-                    let endDes = "Attention! Contact CS for further instruction";
-                    return dbClientQnA.qnaEndMessage(endTitle, endDes);
-                }
+                //
+                // if (QnAConfig.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("editName") && playerData.qnaWrongCount.editName > QnAConfig.wrongCount){
+                //     let endTitle = "Authentification Failed";
+                //     let endDes = "Attention! Contact CS for further instruction";
+                //     return dbClientQnA.qnaEndMessage(endTitle, endDes);
+                // }
 
                 let updateObj = {};
 
@@ -1877,7 +1901,7 @@ var dbClientQnA = {
                     )
                 }
                 else{
-                    throw new Error("The phone number is not matched with the registered phone number");
+                    return Promise.reject({name: "DBError", message: "Phone number does not match"});
                 }
             }
         ).then(
