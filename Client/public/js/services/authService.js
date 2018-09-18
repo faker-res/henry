@@ -143,6 +143,10 @@ define([], function () {
             return this.department.length > 0 ? this.department[0]._id : null;
         };
 
+        this.departmentIds = function () {
+            return this.department && this.department.length > 0 ? this.department : null;
+        };
+
         this.logout = function ($cookies, localStorageService) {
             // remove cookies when logout
             $cookies.remove(this.cookieTokenKey);

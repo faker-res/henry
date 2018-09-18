@@ -1313,6 +1313,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.checkIPArea, [data._id], actionName, isValidData);
         },
 
+        checkDuplicatedBankAccount: function checkDuplicatedBankAccount(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.bankAccount && data.platform);
+            socketUtil.emitter(self.socket, dbPlayerInfo.checkDuplicatedBankAccount, [data.bankAccount, data.platform], actionName, isValidData);
+        },
+
         getPlayerCreditByName: function getPlayerCreditByName(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data.playerName && data.platformObjId);

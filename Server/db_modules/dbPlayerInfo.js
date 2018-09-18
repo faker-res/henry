@@ -2799,6 +2799,7 @@ let dbPlayerInfo = {
         let platformObjId;
         let smsLogData;
         let duplicatedRealNameCount = 0;
+        let sameBankAccountCount = 0;
 
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
@@ -2821,12 +2822,27 @@ let dbPlayerInfo = {
                 playerObj = playerData;
                 platformObjId = playerData.platform;
 
-                return dbconfig.collection_players.find({
+                let realNameCountProm = dbconfig.collection_players.find({
                     realName: updateData.bankAccountName,
                     platform: platformObjId
-                }).lean().count().then(
-                    count => {
-                        duplicatedRealNameCount = count || 0;
+                }).lean().count();
+
+                let sameBankAccountCountProm = dbconfig.collection_players.find({
+                    bankAccount: updateData.bankAccount,
+                    platform: platformObjId,
+                    'permission.forbidPlayerFromLogin': false
+                }).lean().count();
+
+                return Promise.all([realNameCountProm, sameBankAccountCountProm]).then(
+                    data => {
+                        if (!data){
+                            return Promise.reject({
+                                name: "DataError",
+                                message: "data is not found"})
+                        }
+
+                        duplicatedRealNameCount = data[0] || 0;
+                        sameBankAccountCount = data[1] || 0;
 
                         if (playerData.bankAccountName) {
                             delete updateData.bankAccountName;
@@ -2873,6 +2889,15 @@ let dbPlayerInfo = {
         ).then(
             platformData => {
                 if (platformData) {
+                    // check if the limit of using the same bank account number
+                    if (platformData.sameBankAccountCount && sameBankAccountCount > platformData.sameBankAccountCount){
+                        return Q.reject({
+                            name: "DataError",
+                            code: constServerCode.INVALID_DATA,
+                            message: "The same bank account has been registered, please change a new bank card or contact our cs."
+                        });
+                    }
+
                     // check if same real name can be used for registration
                     if (updateData.realName && duplicatedRealNameCount > 0 && !platformData.allowSameRealNameToRegister) {
                         return Q.reject({
@@ -10420,7 +10445,7 @@ let dbPlayerInfo = {
                 }
             ).then(
                 RTGs => {
-                    if (player.platform.enableAutoApplyBonus || !RTGs || isUsingXima) {
+                    if (!RTGs || isUsingXima) {
                         if (!player.bankName || !player.bankAccountName || !player.bankAccount) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
@@ -19533,6 +19558,45 @@ let dbPlayerInfo = {
 
                     return updateData;
                 }
+            }
+        )
+    },
+
+    checkDuplicatedBankAccount: function (bankAccount, platform) {
+
+        let sameBankAccountCountProm = dbconfig.collection_players.find({
+            bankAccount: bankAccount,
+            platform: ObjectId(platform),
+            'permission.forbidPlayerFromLogin': false
+        }).lean().count();
+
+        let platformProm =  dbconfig.collection_platform.findOne({
+            _id: ObjectId(platform)
+        });
+
+        return Promise.all([sameBankAccountCountProm, platformProm]).then(
+            data => {
+                if (!data){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "data is not found"
+                    })
+                }
+
+                if (!data[1]){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "platform data is not found"
+                    })
+                }
+
+                let sameBankAccountCount = data[0] || 0;
+                let platformData = data[1];
+
+                if (platformData.sameBankAccountCount && sameBankAccountCount > platformData.sameBankAccountCount){
+                    return Promise.resolve(false)
+                }
+                return Promise.resolve(true);
             }
         )
     },

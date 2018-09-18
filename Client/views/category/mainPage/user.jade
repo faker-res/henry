@@ -263,18 +263,19 @@
                                             tr(ng-repeat="(idx, val) in vm.departmentRolelist")
                                                 td {{val.orderNo}}
                                                 td {{val.departmentPath}}
-                                                td(colspan=2, style="padding: 0;border-bottom:0px;")
-                                                    table.simple-table
-                                                        tbody
-                                                            tr(ng-repeat="v in val.roles track by $index")
-                                                                td(style="width:251px;border:none;border-right:1px solid rgba(43, 102, 152, 0.5);border-bottom:1px solid rgba(43, 102, 152, 0.5);") {{v.roleName}}
-                                                                td(style="width:150px;border:none;border-bottom:1px solid rgba(43, 102, 152, 0.5);text-align:center;")
-                                                                    input(type='checkbox', name="selectRoleCheckBox", ng-checked="v.isAttach==true", ng-model='v.isAttach', ng-change="vm.attachDetachAdminRole(v._id,v.isAttach)")
+                                                td(colspan=2, style="padding: 0;border-bottom:0px;border-top:0px;")
+                                                    div(style='margin-bottom:-1px')
+                                                        table.simple-table
+                                                            tbody
+                                                                tr(ng-repeat="v in val.roles track by $index")
+                                                                    td(style="width:251px;border:none;border-right:1px solid rgba(43, 102, 152, 0.5);border-bottom:1px solid rgba(43, 102, 152, 0.5);") {{v.roleName}}
+                                                                    td(style="width:150px;border:none;border-bottom:1px solid rgba(43, 102, 152, 0.5);text-align:center;")
+                                                                        input(type='checkbox', name="selectRoleCheckBox", ng-checked="v.isAttach==true", ng-model='v.isAttach', ng-change="vm.attachDetachAdminRole(v._id,v.isAttach)")
 
-                .modal-footer
-                    button.btn-sm.margin-right-5.btn.btn-danger.col-md-2(ng-click="vm.removeAllRolesSelection();") {{"Remove All Selection" | translate}}
-                    button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-disabled='vm.numberOfTruthyProps(vm.attachedRoles) == 0 && vm.numberOfTruthyProps(vm.detachedRoles) == 0', ng-click="vm.submitDepartmentRoles();") {{"CONFIRM" | translate}}
-                    button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal', ng-click="vm.roleNameToBeDetached = [];") {{"CANCEL" | translate}}
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-danger.col-md-2(ng-click="vm.removeAllRolesSelection();") {{"Remove All Selection" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-disabled='vm.numberOfTruthyProps(vm.attachedRoles) == 0 && vm.numberOfTruthyProps(vm.detachedRoles) == 0', ng-click="vm.submitDepartmentRoles();") {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal', ng-click="vm.roleNameToBeDetached = [];") {{"CANCEL" | translate}}
 
 #modalThisAdminLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style="width:80%")
