@@ -1649,8 +1649,28 @@ var dbClientQnA = {
     editBankCard4_1: (platformObjId, inputDataObj, qnaObjId, creator) => {
         let clientQnA, player, platform;
 
-        if (!inputDataObj || !inputDataObj.bankAccount || !(inputDataObj.bankAccount.length === 16 || inputDataObj.bankAccount.length === 19) || !inputDataObj.bankType || !inputDataObj.bankAccountType || !inputDataObj.bankCardProvince || !inputDataObj.bankAccountCity || !inputDataObj.bankAddress) {
+        if (!inputDataObj) {
             return Promise.reject({name: "DBError", message: "Invalid Data"})
+        }
+
+        if (!inputDataObj.bankAccount) {
+            return Promise.reject({message: "Please insert bank account."});
+        }
+
+        if (!(inputDataObj.bankAccount.length === 16 || inputDataObj.bankAccount.length === 19)) {
+            return Promise.reject({message: "Bank account must be either 16 number or 19 number"});
+        }
+
+        if (!inputDataObj.bankType) {
+            return Promise.reject({message: "Bank Type is a required field."});
+        }
+
+        if (!inputDataObj.bankAccountType) {
+            return Promise.reject({message: "Bank Account Type is a required field."});
+        }
+
+        if (!inputDataObj.bankCardProvince || !inputDataObj.bankAccountCity) {
+            return Promise.reject({message: "Bank city is a required field"});
         }
 
         return dbconfig.collection_clientQnA.findOne({_id: qnaObjId}).lean().then(
