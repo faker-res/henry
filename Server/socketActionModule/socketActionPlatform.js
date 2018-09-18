@@ -78,6 +78,18 @@ function socketActionPlatform(socketIO, socket) {
             var isValidData = Boolean(data && (data.name || data._id));
             socketUtil.emitter(self.socket, dbPlatform.getOnePlatformSetting, [data], actionName, isValidData);
         },
+
+        getLargeWithdrawalSetting: function getLargeWithdrawalSetting(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPlatform.getLargeWithdrawalSetting, [data.platform], actionName, isValidData);
+        },
+
+        updateLargeWithdrawalSetting: function updateLargeWithdrawalSetting(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPlatform.updateLargeWithdrawalSetting, [data.query, data.updateData], actionName, isValidData);
+        },
         /**
          * Delete a platform
          * @param {json} data - objectId of platform
