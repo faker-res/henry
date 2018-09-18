@@ -6925,6 +6925,10 @@ let dbPlayerInfo = {
                         }).populate({
                             path: "param.providers",
                             model: dbconfig.collection_gameProvider
+                        }).populate({
+                            path: "param.rewardParam.levelId",
+                            model: dbconfig.collection_playerLevel,
+                            select: {value: 1}
                         })
                 } else {
                     return Q.reject({
@@ -6974,6 +6978,14 @@ let dbPlayerInfo = {
                             rewardEventItem.list = rewardEventItem.display;
                         }
                         delete rewardEventItem.display;
+
+                        if (rewardEventItem && rewardEventItem.param && rewardEventItem.param.rewardParam && rewardEventItem.param.rewardParam.length > 0) {
+                            rewardEventItem.param.rewardParam.forEach(el => {
+                                if (el && el.levelId && Object.keys(el.levelId).length) {
+                                    el.levelId = el.levelId.value;
+                                }
+                            })
+                        }
 
                         let isShowInRealServer = 1;
                         if (rewardEventItem && rewardEventItem.hasOwnProperty("showInRealServer") && rewardEventItem.showInRealServer == false) {
@@ -20202,7 +20214,7 @@ function getProviderCredit(providers, playerName, platformId) {
 }
 
 function checkRouteSetting(url, setting) {
-    if (url && (url.indexOf("http") == -1 || url.indexOf("https") == -1 || url.indexOf("") == -1) && setting) {
+    if (url && (url.indexOf("http") === -1) && setting) {
         url = setting.concat(url.trim());
     }
 
