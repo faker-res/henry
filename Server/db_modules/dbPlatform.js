@@ -3360,7 +3360,7 @@ var dbPlatform = {
         );
     },
 
-    saveBlacklistIpConfig: (platformObjId, insertData, updateData, adminName) => {
+    saveBlacklistIpConfig: (insertData, updateData, adminName) => {
         let insertProm = Promise.resolve(true);
         let updateProm = Promise.resolve(true);
         let proms1 = [];
