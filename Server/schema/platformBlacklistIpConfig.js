@@ -3,7 +3,7 @@ let Schema = mongoose.Schema;
 
 let platformBlacklistIpConfigSchema = new Schema({
     // blacklist ip
-    ip: {type: String, required: true, index: true},
+    ip: {type: String, required: true, unique: true, index: true},
     // remark
     remark: {type: String},
     // admin name, that create this blacklist ip config
