@@ -2011,8 +2011,8 @@
                                 text(ng-if='!vm.largeWithdrawCheckRecipient[i]') {{"-"}}
 
             .modal-footer
-                button.btn.btn-success.common-button(data-dismiss='modal' ng-click='vm.configTabClicked("largeWithdrawalSetting")') {{"CLOSE" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss='modal' ng-click='vm.updateLargeWithdrawalRecipient()') {{"CONFIRM" | translate}}
+                button.btn.btn-success.common-button(data-dismiss='modal' ng-click='vm.configTabClicked("largeWithdrawalSetting")') {{"CLOSE" | translate}}
 
 
 #modalFinancialPointsChange.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
