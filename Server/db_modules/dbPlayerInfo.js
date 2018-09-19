@@ -747,16 +747,43 @@ let dbPlayerInfo = {
         }).lean();
         let fixedCredibilityRemarksProm = dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId);
         let blacklistIpConfigProm = dbPlatform.getBlacklistIpConfig();
+        let playerActionLogProm = dbconfig.collection_actionLog.aggregate(
+            {
+                $match: {
+                    platform: platformObjId,
+                    player: playerObjId,
+                    $or: [
+                        {providerId: {$exists: true}}, // login ip to provider
+                        {action: {$in: ['login', 'player - create']}} // login ip and registration ip
+                    ]
+                }
+            },
+            {
+                $group: {
+                    _id: "$ipAddress"
+                }
+            }
+        );
 
-        return Promise.all([playerProm, fixedCredibilityRemarksProm, blacklistIpConfigProm]).then(
+        return Promise.all([playerProm, fixedCredibilityRemarksProm, blacklistIpConfigProm, playerActionLogProm]).then(
             data => {
                 let playerData = data[0];
                 let fixedCredibilityRemarks = data[1];
                 let blacklistIpData = data[2];
+                let playerActionLogData = data[3];
                 let blacklistIpID = null;
                 let blacklistIpList = [];
                 let matchBlacklistIpList = [];
                 let credibilityRemarks = [];
+                let playerUniqueLoginIP = [];
+
+                if (playerActionLogData && playerActionLogData.length > 0) {
+                    playerActionLogData.forEach(data => {
+                        if (data && data._id) {
+                            playerUniqueLoginIP.push(data._id);
+                        }
+                    });
+                }
 
                 if (blacklistIpData && blacklistIpData.length > 0) {
                     for (let x = 0; x < blacklistIpData.length; x++) {
@@ -764,8 +791,8 @@ let dbPlayerInfo = {
                             blacklistIpList.push(blacklistIpData[x].ip);
                         }
                     }
-                    if (playerLoginIps && blacklistIpData && playerLoginIps.length > 0 && blacklistIpData.length > 0) {
-                        playerLoginIps.forEach(IP => {
+                    if (playerUniqueLoginIP && blacklistIpData && playerUniqueLoginIP.length > 0 && blacklistIpData.length > 0) {
+                        playerUniqueLoginIP.forEach(IP => {
                             blacklistIpData.forEach(bIP => {
                                 if (IP === bIP.ip && bIP.isEffective) {
                                     matchBlacklistIpList.push(bIP._id);
@@ -4990,7 +5017,7 @@ let dbPlayerInfo = {
                                     }
 
                                     if (playerLoginIps && playerLoginIps.length > 0 && !skippedIP.includes(registrationIp)) {
-                                        dbPlayerInfo.checkPlayerIsBlacklistIp(platformId, playerId, playerLoginIps);
+                                        dbPlayerInfo.checkPlayerIsBlacklistIp(platformId, playerId);
                                     }
                                 }
                             }
