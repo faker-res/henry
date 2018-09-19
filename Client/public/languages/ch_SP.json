@@ -4367,6 +4367,8 @@
   "Top Up Count Till Next Three Days of Sending": "发送后成功存款人数（三天内）",
   "Multiple login after 1 issuance of promo code to be counted as 1": "同一人触发1次发送多次登入算1人。",
   "Multiple login after 2 issuance of promo code to be counted as 2": "同一人触发2次发送多次登入算2人。",
+  "Multiple top up after 1 issuance of promo code to be counted as 1": "同一人触发1次发送多笔存款算1人。",
+  "Multiple top up after 2 issuance of promo code to be counted as 2": "同一人触发2次发送多笔存款算2人。",
   "Source": "状态来源",
   "Current Game Status": "目前游戏状态",
   "Actions":"状态操作",
