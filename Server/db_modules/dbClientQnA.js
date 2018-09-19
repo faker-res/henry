@@ -1540,7 +1540,7 @@ var dbClientQnA = {
                     template.qnaObjId = clientQnA._id;
                 }
 
-                if (player.bankAccountName && template.answerInput && template.answerInput[0]) {
+                if (player.bankAccountName && template.answerInput && template.answerInput[0] && template.answerInput[2] && template.answerInput[3] && template.answerInput[4]) {
                     template.answerInput[0].value = player.bankAccountName;
                     template.answerInput[0].disabled = true;
                     template.answerInput[2].value = player.bankName;
