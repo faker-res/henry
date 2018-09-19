@@ -1546,6 +1546,7 @@ var dbClientQnA = {
                     template.answerInput[2].value = player.bankName;
                     template.answerInput[3].value = player.bankAccountProvince;
                     template.answerInput[4].value = player.bankAccountCity;
+                    template.answerInput[5].value = player.bankAddress;
                 }
 
                 return template;
@@ -1650,6 +1651,7 @@ var dbClientQnA = {
                     template.answerInput[2].value = player.bankName;
                     template.answerInput[3].value = player.bankAccountProvince;
                     template.answerInput[4].value = player.bankAccountCity;
+                    template.answerInput[5].value = player.bankAddress;
                 }
 
                 return template;
