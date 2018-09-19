@@ -741,34 +741,48 @@ let dbPlayerInfo = {
     },
 
     checkPlayerIsBlacklistIp: (platformObjId, playerObjId, playerLoginIps) => {
-        let fixedCredibilityRemarksProm = [];
-        let playerProm = [];
+        let playerProm = dbconfig.collection_players.findOne({
+            _id: playerObjId,
+            platform: platformObjId
+        }).lean();
+        let fixedCredibilityRemarksProm = dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId);
+        let blacklistIpConfigProm = dbPlatform.getBlacklistIpConfig();
 
-        return dbPlatform.getBlacklistIpConfig().then(
-            blackListIpConfig => {
+        return Promise.all([playerProm, fixedCredibilityRemarksProm, blacklistIpConfigProm]).then(
+            data => {
+                let playerData = data[0];
+                let fixedCredibilityRemarks = data[1];
+                let blacklistIpData = data[2];
+                let blacklistIpID = null;
                 let blacklistIpList = [];
                 let matchBlacklistIpList = [];
-                if (blackListIpConfig && blackListIpConfig.length > 0) {
-                    for (let x = 0; x < blackListIpConfig.length; x++) {
-                        if (blackListIpConfig[x].ip && blackListIpConfig[x].isEffective) {
-                            blacklistIpList.push(blackListIpConfig[x].ip);
+                let credibilityRemarks = [];
+
+                if (blacklistIpData && blacklistIpData.length > 0) {
+                    for (let x = 0; x < blacklistIpData.length; x++) {
+                        if (blacklistIpData[x].ip && blacklistIpData[x].isEffective) {
+                            blacklistIpList.push(blacklistIpData[x].ip);
                         }
                     }
-                    if (playerLoginIps && blackListIpConfig && playerLoginIps.length > 0 && blackListIpConfig.length > 0) {
+                    if (playerLoginIps && blacklistIpData && playerLoginIps.length > 0 && blacklistIpData.length > 0) {
                         playerLoginIps.forEach(IP => {
-                            blackListIpConfig.forEach(bIP => {
+                            blacklistIpData.forEach(bIP => {
                                 if (IP === bIP.ip && bIP.isEffective) {
                                     matchBlacklistIpList.push(bIP._id);
-                                    return dbPlayerCredibility.addFixedCredibilityRemarkToPlayer(platformObjId, playerObjId, '黑名单IP')
                                 }
                             })
                         })
                     }
-                    return matchBlacklistIpList;
                 }
-            }
-        ).then(
-            matchBlacklistIpList => {
+
+                if (fixedCredibilityRemarks && fixedCredibilityRemarks.length > 0) {
+                    fixedCredibilityRemarks.forEach(remark => {
+                        if (remark.name === '黑名单IP') {
+                            blacklistIpID = remark._id;
+                        }
+                    });
+                }
+
                 if (matchBlacklistIpList) {
                     dbconfig.collection_players.findOneAndUpdate({
                         platform: platformObjId,
@@ -778,42 +792,34 @@ let dbPlayerInfo = {
                             blacklistIp: matchBlacklistIpList
                         }
                     }).lean().exec();
-                }
 
-                // remove fixed credibility from player if no match blacklist ip
-                if (matchBlacklistIpList && matchBlacklistIpList.length === 0) {
-                    fixedCredibilityRemarksProm = dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId);
-
-                    playerProm = dbconfig.collection_players.findOne({
-                        _id: playerObjId,
-                        platform: platformObjId
-                    }).lean();
-
-                    return Promise.all([fixedCredibilityRemarksProm, playerProm]).then(
-                        data => {
-                            if (data) {
-                                let fixedCredibilityRemarks = data[0];
-                                let playerData = data[1];
-                                let blacklistIpID = null;
-
-                                if (fixedCredibilityRemarks && fixedCredibilityRemarks.length > 0) {
-                                    fixedCredibilityRemarks.forEach(remark => {
-                                        if (remark.name === '黑名单IP') {
-                                            blacklistIpID = remark._id;
-                                        }
-                                    });
-                                }
-
-                                if (playerData && playerData.credibilityRemarks && playerData.credibilityRemarks.length > 0) {
-                                    if (playerData.credibilityRemarks.some(e => e && blacklistIpID && e.toString() === blacklistIpID.toString())) {
-                                        // if blacklistIpID already exist
-                                        let credibilityRemarks = playerData.credibilityRemarks.filter(e => e && blacklistIpID && e.toString() !== blacklistIpID.toString());
-                                        dbPlayerInfo.updatePlayerCredibilityRemark('System', platformObjId, playerObjId, credibilityRemarks, '删除黑名单IP');
-                                    }
-                                }
+                    // add fixed credibility to player if found match blacklist ip
+                    if (matchBlacklistIpList.length > 0) {
+                        if (playerData && playerData.credibilityRemarks && playerData.credibilityRemarks.length > 0) {
+                            if (playerData.credibilityRemarks.some(e => e && blacklistIpID && e.toString() === blacklistIpID.toString())) {
+                                // if blacklistIpID already exist
+                                credibilityRemarks = playerData.credibilityRemarks;
+                            } else {
+                                // if blacklistIpID didn't exist
+                                playerData.credibilityRemarks.push(blacklistIpID);
+                                credibilityRemarks = playerData.credibilityRemarks;
+                                dbPlayerInfo.updatePlayerCredibilityRemark('System', platformObjId, playerObjId, credibilityRemarks, '黑名单IP');
                             }
+                        } else {
+                            // player didn't have any credibility remarks, auto add
+                            credibilityRemarks.push(blacklistIpID);
+                            dbPlayerInfo.updatePlayerCredibilityRemark('System', platformObjId, playerObjId, credibilityRemarks, '黑名单IP');
                         }
-                    );
+                    }
+
+                    // remove fixed credibility from player if no match blacklist ip
+                    if (matchBlacklistIpList.length === 0 && playerData && playerData.credibilityRemarks && playerData.credibilityRemarks.length > 0) {
+                        if (playerData.credibilityRemarks.some(e => e && blacklistIpID && e.toString() === blacklistIpID.toString())) {
+                            // if blacklistIpID already exist
+                            credibilityRemarks = playerData.credibilityRemarks.filter(e => e && blacklistIpID && e.toString() !== blacklistIpID.toString());
+                            dbPlayerInfo.updatePlayerCredibilityRemark('System', platformObjId, playerObjId, credibilityRemarks, '删除黑名单IP');
+                        }
+                    }
                 }
             }
         )
