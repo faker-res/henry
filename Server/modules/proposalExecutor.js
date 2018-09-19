@@ -644,6 +644,8 @@ var proposalExecutor = {
                     // for send message to player before encrypt phone number
                     let phoneNumberLast4Digit = proposalData.data.updateData.phoneNumber.substr(proposalData.data.updateData.phoneNumber.length - 4);
                     proposalData.data.updateData.phoneNumber = rsaCrypto.encrypt(proposalData.data.updateData.phoneNumber);
+                    // when the update is success, reset previous error count at Q&A page, let then able to do run though the Q&A again.
+                    proposalData.data.updateData.qnaWrongCount = {updatePhoneNumber : 0};
                     dbUtil.findOneAndUpdateForShard(
                         dbconfig.collection_players,
                         {_id: proposalData.data.playerObjId},
@@ -763,7 +765,7 @@ var proposalExecutor = {
                             if(data && data._id && data.platform){
                                 return dbconfig.collection_players.findOneAndUpdate(
                                     {_id: data._id, platform: data.platform},
-                                    {realName: proposalData.data.realNameAfterEdit}
+                                    {realName: proposalData.data.realNameAfterEdit, "qnaWrongCount.editName": 0}
                                 );
                             }else{
                                 deferred.reject({name: "DataError", message: "Incorrect player data", error: Error()});

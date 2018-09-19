@@ -580,7 +580,81 @@ var dbDepartment = {
                 return Q.reject({name: "DBError", message: "Failed to find all departments", error: error});
             }
         );
-    }
+    },
+
+    /**
+     * get multiple department tree by ids
+     * @param {array} departmentIds - objectId for admin department
+     */
+    getDepartmentTreeByIds: function(departmentIds){
+        let departments = [];
+        return dbconfig.collection_department.find({_id: {$in: departmentIds}}).populate({
+            path: "roles",
+            model: dbconfig.collection_role,
+            populate: {
+                path: "users",
+                model: dbconfig.collection_admin
+            }
+        }).then(
+            data => {
+                if (data && data.length > 0) {
+                    let prom = Promise.resolve(true);
+                    let parentDepartmentIds = [];
+                    departments = data;
+
+                    let departmentsTree = [];
+                    function getSubDepartment(departmentIds) {
+                        let subDepartmentIds = [];
+                        return dbconfig.collection_department.find({_id: {$in:departmentIds}}).then(
+                            departmentData => {
+                                if (departmentData && departmentData.length > 0){
+                                    departmentData.forEach(subDep => {
+                                        departmentsTree.push(subDep);
+                                        if(subDep.children && subDep.children.length > 0){
+                                            subDepartmentIds.push.apply(subDepartmentIds, subDep.children);
+                                        }
+                                    });
+
+                                    if(subDepartmentIds && subDepartmentIds.length > 0) {
+                                        return getSubDepartment(subDepartmentIds);
+                                    }
+
+                                    return departmentsTree;
+                                }
+                            }
+                        )
+                    }
+
+                    data.forEach(department => {
+                        if (department && department.children && department.children.length > 0) {
+                            parentDepartmentIds.push.apply(parentDepartmentIds, department.children);
+                        }
+                    });
+
+
+                    if (parentDepartmentIds && parentDepartmentIds.length > 0) {
+                        prom = getSubDepartment(parentDepartmentIds);
+                    }
+
+                    return prom;
+                }
+                else {
+                    return Promise.reject({name: "DataError", message: "Can't find all departments"});
+                }
+            },
+            error => {
+                return Promise.reject({name: "DBError", message: "Failed to find all departments", error: error});
+            }
+        ).then(data => {
+            let result;
+            if (data && data.length > 0) {
+                result = departments.concat(data);
+            } else {
+                result = departments;
+            }
+            return result;
+        });
+    },
 
 };
 

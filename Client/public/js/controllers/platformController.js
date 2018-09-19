@@ -15929,6 +15929,10 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0) {
+                    sendQueryOr.push({lastFeedbackTopic: {$nin: vm.playerFeedbackQuery.filterFeedbackTopic}});
+                }
+
                 if (vm.playerFeedbackQuery.filterFeedback) {
                     let lastFeedbackTimeExist = {
                         lastFeedbackTime: null
@@ -15938,10 +15942,11 @@ define(['js/app'], function (myApp) {
                             $lt: utilService.setLocalDayEndTime(utilService.setNDaysAgo(new Date(), vm.playerFeedbackQuery.filterFeedback))
                         }
                     };
-
                     sendQueryOr.push(lastFeedbackTimeExist);
                     sendQueryOr.push(lastFeedbackTime);
+                }
 
+                if (vm.playerFeedbackQuery.filterFeedbackTopic && vm.playerFeedbackQuery.filterFeedbackTopic.length > 0 || vm.playerFeedbackQuery.filterFeedback) {
                     if (sendQuery.hasOwnProperty("$or")) {
                         if (sendQuery.$and) {
                             sendQuery.$and.push({$or: sendQuery.$or});
@@ -16723,6 +16728,7 @@ define(['js/app'], function (myApp) {
                         vm.setupRemarksMultiInputFeedback();
                         vm.setupRemarksMultiInputFeedbackFilter();
                         vm.setupGameProviderMultiInputFeedback();
+                        vm.setupMultiInputFeedbackTopicFilter();
                     });
                 utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
                     $('#registerStartTimePicker').datetimepicker({
@@ -21704,6 +21710,8 @@ define(['js/app'], function (myApp) {
             vm.configTabClicked = function (choice) {
                 vm.selectedConfigTab = choice;
                 vm.configTableEdit = false;
+                vm.blacklistIpConfigTableEdit = false;
+                vm.newBlacklistIpConfig = [];
                 vm.delayDurationGroupProviderEdit = false;
                 switch (choice) {
                     case 'player':
@@ -21783,9 +21791,13 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'phoneFilterConfig':
                         vm.getPhoneFilterConfig();
+                        vm.getBlacklistIpConfig();
                         break;
                     case 'financialSettlementConfig':
                         vm.getFinancialSettlementConfig();
+                        break;
+                    case 'largeWithdrawalSetting':
+                        vm.getLargeWithdrawalSetting();
                         break;
                 }
             };
@@ -26995,6 +27007,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.playerPasswordMinLength = vm.selectedPlatform.data.playerPasswordMinLength;
                 vm.platformBasic.prefix = vm.selectedPlatform.data.prefix;
                 vm.platformBasic.samePhoneNumberRegisterCount = vm.selectedPlatform.data.samePhoneNumberRegisterCount;
+                vm.platformBasic.sameBankAccountCount = vm.selectedPlatform.data.sameBankAccountCount;
                 vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
                 vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
                 vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
@@ -27047,6 +27060,34 @@ define(['js/app'], function (myApp) {
 
             };
 
+            vm.getBlacklistIpConfig = function () {
+                vm.blacklistIpConfig = vm.blacklistIpConfig || [];
+
+                socketService.$socket($scope.AppSocket, 'getBlacklistIpConfig', {}, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.blacklistIpConfig = data.data;
+                    });
+                }, function (data) {
+                    console.log("cannot get blacklist ip config", data);
+                    vm.blacklistIpConfig = [];
+                });
+            };
+
+            vm.newRowBlacklistIpConfig = (newBlacklistIpConfig) => {
+                newBlacklistIpConfig.push({ip: "", remark: "", adminName: "", isEffective: ""});
+            };
+
+            vm.deleteBlacklistIpConfig = (blacklistIpID) => {
+                $scope.$socketPromise('deleteBlacklistIpConfig', {_id: blacklistIpID}).then((data) => {
+                    $scope.$evalAsync(() => {
+                        vm.blacklistIpConfig = data.data;
+                    });
+                }, function (data) {
+                    console.log("cannot get blacklist ip config", data);
+                    vm.blacklistIpConfig = [];
+                });
+            };
+
             vm.getFinancialSettlementConfig = function () {
                 vm.financialSettlementConfig = vm.financialSettlementConfig || {};
                 vm.financialSettlementConfig.financialSettlementToggle = vm.selectedPlatform.data.financialSettlement.financialSettlementToggle;
@@ -27055,6 +27096,27 @@ define(['js/app'], function (myApp) {
                 vm.financialSettlementConfig.minFinancialPointsDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.minFinancialPointsDisableWithdrawal;
                 vm.financialSettlementConfig.financialPointsDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.financialPointsDisableWithdrawal? "1": "0";
             }
+
+            vm.getLargeWithdrawalSetting = function () {
+                vm.largeWithdrawalSetting = vm.largeWithdrawalSetting || {};
+                let sendData = {
+                    platform: vm.selectedPlatform.id
+                }
+                socketService.$socket($scope.AppSocket, 'getLargeWithdrawalSetting', sendData, function (data) {
+                    console.log('getLargeWithdrawalSetting');
+                    vm.largeWithdrawalSetting = {}
+                    if (data && data.data) {
+                        vm.largeWithdrawalSetting = data.data;
+                    }
+                    if (!vm.largeWithdrawalSetting.recipient) {
+                        vm.largeWithdrawalSetting.recipient = [];
+                    }
+                    if (!vm.largeWithdrawalSetting.reviewer) {
+                        vm.largeWithdrawalSetting.reviewer = [];
+                    }
+                });
+
+            };
 
             vm.getPartnerBasic = function () {
                 vm.partnerBasic = vm.partnerBasic || {};
@@ -27237,7 +27299,11 @@ define(['js/app'], function (myApp) {
                     {
                         name: '机房IP',
                         score: 0
-                    }
+                    },
+                    {
+                        name: '黑名单IP',
+                        score: 0
+                    },
                 ];
 
                 let sendData = {
@@ -27530,6 +27596,9 @@ define(['js/app'], function (myApp) {
                     case 'phoneFilterConfig':
                         updatePhoneFilter(vm.phoneFilterConfig);
                         break;
+                    case 'blacklistIpConfig':
+                        updateBlacklistIpConfig();
+                        break;
                     case 'promoCodeTemplate':
                         updatePromoCodeTemplate();
                         break;
@@ -27538,6 +27607,9 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'financialSettlementConfig':
                         updateFinancialSettlementConfig(vm.financialSettlementConfig);
+                        break;
+                    case 'largeWithdrawalSetting':
+                        updateLargeWithdrawalSetting(vm.largeWithdrawalSetting);
                         break;
 
                 }
@@ -27969,6 +28041,99 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.getAdminRoleNameString = function (roleArr) {
+                if (roleArr && roleArr.length) {
+                    let roleString = "";
+                    roleArr.forEach(role => {
+                        if (roleString) {
+                            roleString += " ,";
+                        }
+                        roleString += $translate(role);
+                    })
+                    return roleString;
+                }
+            };
+
+            vm.initModalLargeWithdrawal = function () {
+               vm.largeWithdrawCheckReviewer = {};
+               vm.largeWithdrawCheckRecipient = {};
+               vm.adminList.forEach((admin, index) => {
+                   vm.largeWithdrawCheckRecipient[index] = vm.getLargeWithdrawIsRecipient(admin._id);
+                   vm.largeWithdrawCheckReviewer[index] = vm.getLargeWithdrawIsReviewer(admin._id);
+                   $('#largeWithdrawRow' + index).removeAttr('style');
+                   if (vm.largeWithdrawCheckReviewer[index]) {
+                       $('#largeWithdrawRow' + index).css('background-color', 'pink');
+                   }
+               })
+            };
+
+            vm.getLargeWithdrawIsRecipient = function (adminObjId) {
+                // largeWithdrawalSetting
+                let isRecipient = false;
+                if (adminObjId && vm.largeWithdrawalSetting && vm.largeWithdrawalSetting.recipient &&
+                    vm.largeWithdrawalSetting.recipient.length && vm.largeWithdrawalSetting.recipient.indexOf(String(adminObjId)) > -1) {
+                    isRecipient = true;
+                }
+                return isRecipient;
+            };
+
+            vm.getLargeWithdrawIsReviewer = function (adminObjId) {
+                // largeWithdrawalSetting
+                let isReviewer = false;
+                if (adminObjId && vm.largeWithdrawalSetting && vm.largeWithdrawalSetting.reviewer &&
+                    vm.largeWithdrawalSetting.reviewer && vm.largeWithdrawalSetting.reviewer.indexOf(String(adminObjId)) > -1) {
+                    isReviewer = true;
+                }
+                return isReviewer;
+            };
+
+            vm.setLargeWithdrawRecipient = function (adminObjId, isAdd, index) {
+                if (isAdd) {
+                    if (vm.largeWithdrawalSetting.recipient.indexOf(String(adminObjId)) < 0) {
+                        vm.largeWithdrawalSetting.recipient.push(String(adminObjId));
+                    }
+                } else {
+                    let indexRecipient = vm.largeWithdrawalSetting.recipient.indexOf(String(adminObjId));
+                    if (indexRecipient > -1) {
+                        vm.largeWithdrawalSetting.recipient.splice(indexRecipient, 1);
+                        let indexReviewer = vm.largeWithdrawalSetting.reviewer.indexOf(String(adminObjId));
+                        if (indexReviewer > -1) {
+                            $('#largeWithdrawRow' + index).removeAttr('style');
+                            vm.largeWithdrawalSetting.reviewer.splice(indexReviewer, 1);
+                            vm.largeWithdrawCheckReviewer[index] = false;
+                        }
+                    }
+                }
+            };
+
+            vm.setLargeWithdrawReviewer = function (adminObjId, isAdd, index) {
+                if (isAdd) {
+                    if (vm.largeWithdrawalSetting.reviewer.indexOf(String(adminObjId)) < 0) {
+                        vm.largeWithdrawalSetting.reviewer.push(String(adminObjId));
+                        $('#largeWithdrawRow' + index).css('background-color', 'pink');
+                    }
+                } else {
+                    let indexReviewer = vm.largeWithdrawalSetting.reviewer.indexOf(String(adminObjId));
+                    if (indexReviewer > -1) {
+                        vm.largeWithdrawalSetting.reviewer.splice(indexReviewer, 1);
+                        $('#largeWithdrawRow' + index).removeAttr('style');
+                    }
+                }
+            };
+
+            vm.updateLargeWithdrawalRecipient = function () {
+                let sendData = {
+                    query: {platform: vm.selectedPlatform.id},
+                    updateData: {
+                        recipient: vm.largeWithdrawalSetting.recipient,
+                        reviewer: vm.largeWithdrawalSetting.reviewer
+                    }
+                }
+                socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalSetting', sendData, function (data) {
+                    console.log("updateLargeWithdrawalRecipient complete", data)
+                });
+            }
+
             function updatePlayerLevels(arr, index, deltaValue, callback) {
                 if (index >= arr.length) {
                     done();
@@ -28109,6 +28274,7 @@ define(['js/app'], function (myApp) {
                         allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
                         demoPlayerValidDays: srcData.demoPlayerValidDays,
                         samePhoneNumberRegisterCount: srcData.samePhoneNumberRegisterCount,
+                        sameBankAccountCount: srcData.sameBankAccountCount,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                         manualPlayerLevelUp: srcData.manualPlayerLevelUp,
@@ -28183,6 +28349,30 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
                     loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updateBlacklistIpConfig() {
+                let sendData = {
+                    insertData: vm.newBlacklistIpConfig,
+                    updateData: vm.blacklistIpConfig,
+                    adminName: authService.adminName
+                };
+
+                socketService.$socket($scope.AppSocket, 'saveBlacklistIpConfig', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updateLargeWithdrawalSetting(srcData) {
+                let sendData = {
+                    query: {platform: vm.selectedPlatform.id},
+                    updateData: {
+                        emailNameExtension: srcData.emailNameExtension
+                    }
+                }
+                socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalSetting', sendData, function (data) {
+                    console.log("updateLargeWithdrawalSetting complete")
                 });
             }
 
@@ -28657,6 +28847,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getAdminNameByDepartment = function (departmentId) {
+                if (!departmentId) {
+                    vm.adminList = [];
+                    return;
+                }
                 socketService.$socket($scope.AppSocket, 'getAdminNameByDepartment', {departmentId}, function (data) {
                     vm.adminList = data.data;
                 });
@@ -28856,10 +29050,6 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
-                if (vm.clientQnAData && vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.linkage == 'editBankCard'){
-                    $('#clientQnATypeTree li[data-nodeid="3"]').trigger("click");
-                    return;
-                }
 
                 socketService.$socket($scope.AppSocket, 'getClientQnAProcessStep', sendData,  function (data) {
                     if (data && data.data) {
@@ -28872,6 +29062,25 @@ define(['js/app'], function (myApp) {
                             if (vm.clientQnAData && vm.clientQnAData.questionTitle && vm.clientQnAData.isSecurityQuestion) {
                                 vm.questionLabelStyle = "text-align:left;display:inline-block";
                             }
+                            if (vm.clientQnAData && vm.clientQnAData.questionTitle && vm.clientQnAData.isQuestionAlignLeft) {
+                                vm.questionLabelStyle = "text-align:left;display:inline-block";
+                            }
+
+                            if (vm.clientQnAData.autoRetrive){
+                                let objKey = Object.keys(vm.clientQnAData.autoRetrive);
+                                if (objKey.length > 0){
+                                      objKey.forEach(
+                                          key => {
+                                              if (key == 'phoneNumber') {
+                                                  vm.clientQnAInput[key] = parseInt(vm.clientQnAData.autoRetrive[key]);
+                                              }
+                                              else{
+                                                  vm.clientQnAInput[key] = vm.clientQnAData.autoRetrive[key];
+                                              }
+                                          }
+                                      )
+                                }
+                            }
 
                             if (vm.clientQnAData.updateAnswer){
 
@@ -28880,7 +29089,7 @@ define(['js/app'], function (myApp) {
                                     item => {
                                         vm.clientQnAInput[item.objKey] = item[item.objKey]
                                     }
-                                )
+                                );
                                 vm.getCityListQnA();
                             }
                         });
@@ -28935,7 +29144,7 @@ define(['js/app'], function (myApp) {
                                     vm.clientQnASecurityQuesCount.minQuestionPass = data.data[1].minQuestionPass;
                                 }
                             }
-                            if(vm.clientQnASecurityQuesConfig.config && data.data[0] && data.data[0].question && data.data[0].question.length){
+                            if(vm.clientQnASecurityQuesConfig.config && data.data[0] && data.data[0].question && data.data[0].question.length && vm.selectedClientQnAType && vm.selectedClientQnAType.data != "forgotPassword" ){
                                 vm.clientQnASecurityQuesConfig.config.minQuestionPass = data.data[0].question.length;
                             }
                         });
@@ -29147,7 +29356,7 @@ define(['js/app'], function (myApp) {
                             });
 
                             if (!vm.platformDepartmentObjId) {
-                                vm.platformDepartmentObjId = vm.currentPlatformDepartment[0]._id;
+                                vm.platformDepartmentObjId = "";
                             }
 
                             if (authService.checkViewPermission('Platform', 'RegistrationUrlConfig', 'Read')) {

@@ -671,6 +671,33 @@ var dbMigration = {
         //         }
         //     }
         ).then(
+            data => {
+                if (data) {
+                    if (data.children) {
+                        let childrenIds = [];
+                        return dbconfig.collection_partner.find({partnerName: {$in: data.children}, platform: data.platform}).lean().then(
+                            childrenData => {
+                                if (childrenData && childrenData.length > 0) {
+                                    for (let i = 0, len = childrenData.length; i < len; i++) {
+                                        if (childrenData[i] && childrenData[i]._id) {
+                                            childrenIds.push(childrenData[i]._id);
+                                        }
+                                    }
+
+                                    data.children = childrenIds;
+
+                                    return data;
+                                }
+                                else {
+                                    return Q.reject({name: "DataError", message: "Can not find children partner"});
+                                }
+                            }
+                        )
+                    } else {
+                        return data;
+                    }
+                }
+        }).then(
             partnerData => {
                 if (partnerData) {
                     if (partnerData.parent) {
@@ -713,6 +740,23 @@ var dbMigration = {
                             }
                         }
                     ).catch(error => {console.error(error)} );
+                }
+                return partnerData;
+            }
+        ).then(
+            partnerData => {
+                if (partnerData && partnerData._id && partnerData.children && partnerData.children.length > 0) {
+                    let promArr = [];
+
+                    for (let i = 0, len = partnerData.children.length; i < len; i++) {
+                        let children = partnerData.children[i];
+
+                        if (children) {
+                            promArr.push(dbconfig.collection_partner.findOneAndUpdate({_id: children, platform: partnerData.platform}, {parent: partnerData._id}));
+                        }
+                    };
+
+                    Promise.all(promArr);
                 }
                 return partnerData;
             }
@@ -2128,21 +2172,27 @@ var dbMigration = {
                         return dbconfig.collection_playerPermissionLog.findOne({platform: playerData.platform, player: playerData._id, "newData.applyBonus": false}).lean().then(
                             logData => {
                                 if(!logData){
-                                    let remark = "BI导入：" + adminName + ":" +remark;
+                                    let remarks = "BI导入：" + adminName + ":" + remark;
                                     let newLog = new dbconfig.collection_playerPermissionLog(
                                         {
                                             platform: playerData.platform,
                                             player: playerData._id,
-                                            "oldData.applyBonus": false,
-                                            "newData.applyBonus": false,
-                                            remark: remark,
+                                            oldData: {applyBonus: false},
+                                            newData: {applyBonus: false},
+                                            remark: remarks,
                                             isSystem: true,
                                             createTime: new Date(createTime)
                                         });
                                     return newLog.save();
                                 }
+                                else{
+                                    return Promise.reject({message: "Already got record"});
+                                }
                             }
                         );
+                    }
+                    else{
+                        return Promise.reject({message: "Invalid permission status"});
                     }
                 }
                 else{

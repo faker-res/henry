@@ -78,6 +78,18 @@ function socketActionPlatform(socketIO, socket) {
             var isValidData = Boolean(data && (data.name || data._id));
             socketUtil.emitter(self.socket, dbPlatform.getOnePlatformSetting, [data], actionName, isValidData);
         },
+
+        getLargeWithdrawalSetting: function getLargeWithdrawalSetting(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPlatform.getLargeWithdrawalSetting, [data.platform], actionName, isValidData);
+        },
+
+        updateLargeWithdrawalSetting: function updateLargeWithdrawalSetting(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPlatform.updateLargeWithdrawalSetting, [data.query, data.updateData], actionName, isValidData);
+        },
         /**
          * Delete a platform
          * @param {json} data - objectId of platform
@@ -787,7 +799,25 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime);
             socketUtil.emitter(self.socket, dbPlatform.getUniqueIpDomainsWithinTimeFrame, [data.platformObjId, data.startTime, data.endTime], actionName, isValidData);
-        }
+        },
+
+        getBlacklistIpConfig: function getBlacklistIpConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlatform.getBlacklistIpConfig, [], actionName, isValidData);
+        },
+
+        deleteBlacklistIpConfig: function deleteBlacklistIpConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id);
+            socketUtil.emitter(self.socket, dbPlatform.deleteBlacklistIpConfig, [data._id], actionName, isValidData);
+        },
+
+        saveBlacklistIpConfig: function saveBlacklistIpConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.insertData && data.updateData && data.adminName);
+            socketUtil.emitter(self.socket, dbPlatform.saveBlacklistIpConfig, [data.insertData, data.updateData, data.adminName], actionName, isValidData);
+        },
     };
     socketActionPlatform.actions = this.actions;
 }

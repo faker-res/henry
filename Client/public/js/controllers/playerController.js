@@ -895,6 +895,7 @@ define(['js/app'], function (myApp) {
                         vm.loadWechatPayGroupData();
                         vm.loadQuickPayGroupData();
                         vm.getCredibilityRemarks();
+                        vm.getBlacklistIpConfig();
                         vm.onGoingLoadPlatformData = false;
                     })
                 },
@@ -7719,6 +7720,43 @@ define(['js/app'], function (myApp) {
                         },
                         duplicateNameFound: function () {
                             return vm.duplicateNameFound;
+                        },
+                        checkDuplicatedBankAccount: function (playerPaymentData){
+                            
+                            if (playerPaymentData.newBankAccount && playerPaymentData.newBankAccount.length) {
+
+                                socketService.$socket($scope.AppSocket, 'checkDuplicatedBankAccount', {
+                                    bankAccount: playerPaymentData.newBankAccount,
+                                    platform: vm.selectedPlatform.id
+                                }, function (data) {
+                                    if (data && data.data) {
+                                        if (playerPaymentData.newBankAccount.length >= 16 && playerPaymentData.newBankAccount.length <= 19) {
+                                            playerPaymentData.invalid = false;
+                                            if (playerPaymentData.newBankAccount.match(/[a-z]/i)){
+                                                playerPaymentData.invalid = true;
+                                            }
+                                        }
+                                        else {
+                                            playerPaymentData.invalid = true;
+                                        }
+
+                                        playerPaymentData.showAlert = false;
+                                        $scope.$evalAsync();
+
+                                    }
+                                    else {
+                                        playerPaymentData.showAlert = true;
+                                        playerPaymentData.invalid = true;
+                                        playerPaymentData.alertMsg = "The same bank account has been registered";
+                                        $scope.$evalAsync();
+                                    }
+
+                                })
+                            }
+                            else{
+                                playerPaymentData.invalid = false;
+                                playerPaymentData.showAlert = false;
+                            }
                         },
                         initTopUpGroupChangeLog: function () {
                             let cvm = this;
@@ -19281,6 +19319,28 @@ define(['js/app'], function (myApp) {
             }
             $scope.safeApply();
         }
+
+        vm.getBlacklistIpConfig = function () {
+            vm.blacklistIpConfig = vm.blacklistIpConfig || [];
+
+            socketService.$socket($scope.AppSocket, 'getBlacklistIpConfig', {}, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.blacklistIpConfig = data.data;
+                    vm.blacklistIpList = [];
+
+                    if (data && data.data && data.data.length > 0) {
+                        for (let x = 0; x < data.data.length; x++) {
+                            if (data.data[x].ip && data.data[x].isEffective) {
+                                vm.blacklistIpList.push(data.data[x].ip);
+                            }
+                        }
+                    }
+                });
+            }, function (data) {
+                console.log("cannot get blacklist ip config", data);
+                vm.blacklistIpConfig = [];
+            });
+        };
 
         vm.getBonusBasic = () => {
 

@@ -5188,7 +5188,17 @@ let dbPartner = {
     getReferralsList: (partnerArr) => {
         let partnerProm = [];
         partnerArr.forEach(partner => {
-            partnerProm.push(dbconfig.collection_players.find({partner: partner._id, platform: partner.platform}).lean())
+            partnerProm.push(
+                dbconfig.collection_players.find(
+                    {
+                        partner: partner._id,
+                        platform: partner.platform
+                    },
+                    {
+                        _id: 1, platform: 1, partner: 1, valueScore: 1, name: 1, realName: 1
+                    }
+                ).lean()
+            )
         });
         return Promise.all(partnerProm).then(
             data => {
@@ -5427,146 +5437,6 @@ let dbPartner = {
                 })
             })
         }
-
-        //         return dbconfig.collection_playerTopUpRecord.aggregate(
-        //             {
-        //                 $match: {
-        //                     playerId: {$in: playerIdList},
-        //                     platformId: platformId,
-        //                     createTime: {
-        //                         $gte: new Date(activeTime.startTime),
-        //                         $lt: new Date(activeTime.endTime),
-        //                     }
-        //                 }
-        //
-        //             },
-        //             {
-        //                 $group: {
-        //                     _id: "$playerId",
-        //                     topUpAmount: {$sum: "$amount"},
-        //                     topUpCount: {$sum: 1}
-        //                 }
-        //             }).read("secondaryPreferred").then(topUpRecord => {
-        //             if (topUpRecord) {
-        //                 topUpRecord = topUpRecord.filter(player => player.topUpAmount >= activePlayerTopUpAmount && player.topUpCount >= activePlayerTopUpTimes);
-        //
-        //                 if (topUpRecord && topUpRecord.length > 0 ){
-        //
-        //                     let playerList = [];
-        //                     let topUpPlayerList = [];
-        //
-        //                     topUpRecord.forEach( record => {
-        //                         playerList.push(ObjectId(record._id));
-        //                         topUpPlayerList.push(record);
-        //                     });
-        //
-        //                     return dbconfig.collection_playerConsumptionRecord.aggregate(
-        //                         {
-        //                             $match: {
-        //                                 playerId: {$in: playerList},
-        //                                 platformId: platformId,
-        //                                 createTime: {
-        //                                     $gte: new Date(activeTime.startTime),
-        //                                     $lt: new Date(activeTime.endTime),
-        //                                 }
-        //                             }
-        //                         },
-        //                         {
-        //                             $group: {
-        //                                 _id: "$playerId",
-        //                                 consumptionAmount: {$sum: "$validAmount"},
-        //                                 consumptionCount: {$sum: 1}
-        //                             }
-        //                         }).read("secondaryPreferred").then(records => {
-        //                             if (records) {
-        //                                 records = records.filter(records => records.consumptionCount >= activePlayerConsumptionTimes && records.consumptionAmount >= activePlayerConsumptionAmount);
-        //
-        //                                 let consumptionPlayerList = [];
-        //                                 if (records && records.length > 0) {
-        //
-        //                                     records.forEach( record => {
-        //
-        //                                         let index = topUpPlayerList.findIndex(p => p._id.toString() == record._id.toString());
-        //
-        //                                         if (index != -1){
-        //
-        //                                             let playerIndex = partnerDetail.findIndex(q => q._id.toString() == record._id.toString());
-        //
-        //                                             if(playerIndex != -1){
-        //                                                 consumptionPlayerList.push({
-        //                                                     _id: record._id,
-        //                                                     topUpAmount: topUpPlayerList[index].topUpAmount,
-        //                                                     topUpCount: topUpPlayerList[index].topUpCount,
-        //                                                     consumptionAmount: record.consumptionAmount,
-        //                                                     consumptionCount: record.consumptionCount,
-        //                                                     valueScore: partnerDetail[playerIndex].valueScore,
-        //                                                     realName: partnerDetail[playerIndex].realName,
-        //                                                     name: partnerDetail[playerIndex].name
-        //                                                 })
-        //                                             }
-        //
-        //                                         }
-        //
-        //                                     })
-        //
-        //                                     switch (period) {
-        //                                         case 'day':
-        //                                             dbconfig.collection_partner.findOneAndUpdate(
-        //                                                 {
-        //                                                     _id: partnerId,
-        //                                                     platform: platformId,
-        //                                                 },
-        //                                                 {
-        //                                                     $set: {dailyActivePlayer: records.length}
-        //                                                 }
-        //                                             ).exec();
-        //                                             break;
-        //                                         case 'week':
-        //                                             dbconfig.collection_partner.findOneAndUpdate(
-        //                                                 {
-        //                                                     _id: partnerId,
-        //                                                     platform: platformId,
-        //                                                 },
-        //                                                 {
-        //                                                     $set: {weeklyActivePlayer: records.length}
-        //                                                 }
-        //                                             ).exec();
-        //                                             break;
-        //                                         case 'month':
-        //                                         default:
-        //                                             dbconfig.collection_partner.findOneAndUpdate(
-        //                                                 {
-        //                                                     _id: partnerId,
-        //                                                     platform: platformId,
-        //                                                 },
-        //                                                 {
-        //                                                     $set: {monthlyActivePlayer: records.length}
-        //                                                 }
-        //                                             ).exec();
-        //                                             break;
-        //                                     }
-        //                                     return {partnerId: partnerId, size: records.length, downLiner: consumptionPlayerList}
-        //                                 }
-        //                                 else{
-        //                                     return {partnerId: partnerId, size: 0, downLiner: consumptionPlayerList}
-        //                                 }
-        //                             }
-        //                         }
-        //                     )
-        //                 }
-        //                 else{
-        //                     return {partnerId: partnerId, size: 0, downLiner: []}
-        //                 }
-        //
-        //             }
-        //         })
-        //
-        //     });
-        // }
-        // else{
-        //     // for those partner that does not have downline
-        //     return {partnerId: partnerId, size: 0, downLiner: []}
-        // }
     },
 
     getDailyActivePlayerCount: (partnerArr)  => {
@@ -5786,112 +5656,6 @@ let dbPartner = {
                 })
             })
         }
-
-        //         return dbconfig.collection_playerTopUpRecord.aggregate(
-        //             {
-        //                 $match: {
-        //                     playerId: {$in: playerIdList},
-        //                     platformId: platformId,
-        //                 }
-        //             },
-        //             {
-        //                 $group: {
-        //                     _id: "$playerId",
-        //                     topUpAmount: {$sum: "$amount"},
-        //                     topUpCount: {$sum: 1}
-        //                 }
-        //             }).read("secondaryPreferred").then(topUpRecord => {
-        //             if (topUpRecord) {
-        //                 topUpRecord = topUpRecord.filter(player => player.topUpAmount >= validPlayerTopUpAmount && player.topUpCount >= validPlayerTopUpTimes);
-        //
-        //                 if (topUpRecord && topUpRecord.length > 0){
-        //                     let playerList = [];
-        //                     let topUpPlayerList = [];
-        //
-        //                     topUpRecord.forEach( record => {
-        //                         playerList.push(ObjectId(record._id));
-        //                         topUpPlayerList.push(record);
-        //                     });
-        //
-        //                     return dbconfig.collection_playerConsumptionRecord.aggregate(
-        //                         {
-        //                             $match: {
-        //                                 playerId: {$in: playerList},
-        //                                 platformId: platformId,
-        //                             }
-        //                         },
-        //                         {
-        //                             $group: {
-        //                                 _id: "$playerId",
-        //                                 consumptionAmount: {$sum: "$validAmount"},
-        //                                 consumptionCount: {$sum: 1}
-        //                             }
-        //                         }).read("secondaryPreferred").then(records => {
-        //                             records = records.filter(records => records.consumptionCount >= validPlayerConsumptionTimes && records.consumptionAmount >= validPlayerConsumptionAmount);
-        //
-        //                             if (records && records.length > 0){
-        //
-        //                                 let consumptionPlayerList = [];
-        //                                 records.forEach( record => {
-        //
-        //                                     let index = topUpPlayerList.findIndex(p => p._id.toString() == record._id.toString());
-        //
-        //                                     if (index != -1){
-        //
-        //                                         let playerIndex = partnerDetail.findIndex(q => q._id.toString() == record._id.toString());
-        //
-        //                                         if(playerIndex != -1){
-        //                                             if (partnerDetail[playerIndex].valueScore >= validPlayerValue){
-        //                                                 consumptionPlayerList.push({
-        //                                                     _id: record._id,
-        //                                                     topUpAmount: topUpPlayerList[index].topUpAmount,
-        //                                                     topUpCount: topUpPlayerList[index].topUpCount,
-        //                                                     consumptionAmount: record.consumptionAmount,
-        //                                                     consumptionCount: record.consumptionCount,
-        //                                                     valueScore: partnerDetail[playerIndex].valueScore,
-        //                                                     realName: partnerDetail[playerIndex].realName,
-        //                                                     name: partnerDetail[playerIndex].name
-        //                                                 })
-        //                                             }
-        //
-        //                                         }
-        //
-        //                                     }
-        //
-        //                                 })
-        //
-        //                                 dbconfig.collection_partner.findOneAndUpdate(
-        //                                     {
-        //                                         _id: partnerId,
-        //                                         platform: platformId,
-        //                                     },
-        //                                     {
-        //                                         $set: {validPlayers: consumptionPlayerList.length}
-        //                                     },
-        //                                     {new: true}
-        //                                 ).exec();
-        //
-        //                                 return {partnerId: partnerId, size: consumptionPlayerList.length, downLiner: consumptionPlayerList}
-        //                             }
-        //                             else{
-        //                                 return {partnerId: partnerId, size: 0, downLiner: []}
-        //                             }
-        //
-        //                         }
-        //                     )
-        //                 }
-        //                 else{
-        //                     return {partnerId: partnerId, size: 0, downLiner: []}
-        //                 }
-        //
-        //             }
-        //         })
-        //
-        //     });
-        // }
-        // else{
-        //     return {partnerId: partnerId, size: 0, downLiner: []}
-        // }
     },
 
     getTotalChildrenDeposit: (partnerArr)  => {
@@ -6574,7 +6338,7 @@ let dbPartner = {
                     let rawCommission = calculateRawCommission(totalConsumption, commissionRates[groupRate.groupName].commissionRate);
 
                     let platformFee =  platformFeeRate * totalBonusAmount / 100;
-                    platformFee = platformFee >= 0 ? platformFee : 0;
+                    // platformFee = platformFee >= 0 ? platformFee : 0;
                     totalPlatformFee += platformFee;
 
                     rawCommissions.push({
@@ -7052,7 +6816,7 @@ let dbPartner = {
 
                         for (let j = 0; j < oriCommission.length ; j++) {
                             for (let k = customCommission.length - 1; k >= 0; k--) {
-                                if (customCommission[k].provider._id.toString() == oriCommission[j].provider._id.toString()) {
+                                if (customCommission[k].provider && oriCommission[j].provider && customCommission[k].provider._id.toString() == oriCommission[j].provider._id.toString()) {
                                     oriCommission[j].commissionSetting.forEach(ori => {
                                         customCommission[k].commissionSetting.forEach(cus => {
                                             if (cus.playerConsumptionAmountFrom === ori.playerConsumptionAmountFrom

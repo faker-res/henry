@@ -37,6 +37,8 @@ var gameProviderSchema = new Schema({
     playTypes: [{type: String}],
     // platform specific status - { [platformId] : [status] }
     platformStatusFromCPMS: {type: JSON, default: {}},
+    //same line providers id
+    sameLineProviders: {type: JSON, default: {}}
 });
 
 //add game id before save

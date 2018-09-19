@@ -476,7 +476,9 @@ var roleChecker = {
                     'createUpdatePartnerCommissionRateConfig','createUpdatePartnerCommissionConfigWithGameProviderGroup','getPartnerCommissionConfigWithGameProviderGroup','updateParentCommissionRateConfig'],
                 platformBasic: [],
                 phoneFilterConfig: [],
+                blacklistIpConfig: [],
                 financialSettlementConfig: ['updateAllAdminInfo', 'updatePlatform', 'updatePlatformFinancialPoints', 'updatePlatformAllBankCardGroup', 'updatePlatformAllWechatPayGroup', 'updatePlatformAllAlipayGroup'],
+                largeWithdrawalSetting: [],
                 bonusBasic:['bonusBasic'],
                 autoApproval: ['updateAutoApprovalConfig'],
                 Monitor: [],
@@ -759,7 +761,7 @@ var roleChecker = {
         },
         Admin: {
             Department: {
-                Read: ['getDepartmentTreeById', 'getDepartmentTreeByIdWithUser', 'getAllDepartments', 'getAllRolesforAdmin', 'getUnAttachDepartments', 'getPotentialChildren'],
+                Read: ['getDepartmentTreeById', 'getDepartmentTreeByIdWithUser', 'getAllDepartments', 'getAllRolesforAdmin', 'getUnAttachDepartments', 'getPotentialChildren', 'getDepartmentTreeByIds'],
                 Create: ['createDepartment', 'createDepartmentWithParent'],
                 Delete: ['deleteDepartmentsById'],
                 Move: ['updateDepartmentParent', 'removeChildrenById', 'addChildrenById'],

@@ -365,17 +365,25 @@ let dbPlatformAutoFeedback = {
                         }
                     }
 
-                    if (feedback.filterFeedback) {
-                        let lastFeedbackTimeExist = {
-                            lastFeedbackTime: null
-                        };
-                        let lastFeedbackTime = {
-                            lastFeedbackTime: {
-                                $lt: dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), feedback.filterFeedback))
-                            }
-                        };
-
-                        addMultipleOr([lastFeedbackTimeExist, lastFeedbackTime]);
+                    if (feedback.filterFeedback || feedback.filterFeedbackTopic && feedback.filterFeedbackTopic.length > 0) {
+                        let arr = [];
+                        if(feedback.filterFeedback) {
+                            let lastFeedbackTimeExist = {
+                                lastFeedbackTime: null
+                            };
+                            let lastFeedbackTime = {
+                                lastFeedbackTime: {
+                                    $lt: dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), feedback.filterFeedback))
+                                }
+                            };
+                            arr.push(lastFeedbackTimeExist);
+                            arr.push(lastFeedbackTime);
+                        }
+                        if(feedback.filterFeedbackTopic && feedback.filterFeedbackTopic.length > 0) {
+                            let filterFeedbackTopic = {lastFeedbackTopic: {$nin: vm.playerFeedbackQuery.filterFeedbackTopic}};
+                            arr.push(filterFeedbackTopic);
+                        }
+                        addMultipleOr(arr);
                     }
 
                     if (feedback.callPermission == 'true') {
@@ -585,38 +593,38 @@ let dbPlatformAutoFeedback = {
                     console.log('playerQuery', playerQuery);
                     console.log('playerQueryAND', JSON.stringify(playerQuery.$and));
                     return dbconfig.collection_players.find(playerQuery).lean();
-                }).then(players => {
-                    console.log("players", players);
-                    let relatedFeedbackQuery = {};
-                    let playerObjIds = [];
-
-                    players.forEach(player => {playerObjIds.push(player._id)});
-                    if(feedback.filterFeedbackTopic && feedback.filterFeedbackTopic.length > 0) {
-                        relatedFeedbackQuery.topic = {$nin: feedback.filterFeedbackTopic};
-                        relatedFeedbackQuery.platform = feedback.platformObjId;
-                        relatedFeedbackQuery.playerId = {$in: playerObjIds};
-                        if(feedback.filterFeedback) {
-                            relatedFeedbackQuery.createTime = {$lt: dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), feedback.filterFeedback))};
-                        }
-
-                        return dbconfig.collection_playerFeedback.distinct("playerId", relatedFeedbackQuery).lean().then(feedbackPlayerObjIds => {
-                            console.log("feedbackPlayerObjIds", feedbackPlayerObjIds);
-                            players.forEach((player, index) => {
-                                let exist = false;
-                                feedbackPlayerObjIds.forEach(feedbackPlayerObjId => {
-                                    if(player._id.toString() == feedbackPlayerObjId.toString()) {
-                                        exist = true;
-                                    }
-                                });
-                                if(!exist && player.lastFeedbackTime) {
-                                    players.splice(index,1);
-                                }
-                            });
-                            return players;
-                        });
-                    } else {
-                        return players;
-                    }
+                // }).then(players => {
+                //     console.log("players", players);
+                //     let relatedFeedbackQuery = {};
+                //     let playerObjIds = [];
+                //
+                //     players.forEach(player => {playerObjIds.push(player._id)});
+                //     if(feedback.filterFeedbackTopic && feedback.filterFeedbackTopic.length > 0) {
+                //         relatedFeedbackQuery.topic = {$nin: feedback.filterFeedbackTopic};
+                //         relatedFeedbackQuery.platform = feedback.platformObjId;
+                //         relatedFeedbackQuery.playerId = {$in: playerObjIds};
+                //         if(feedback.filterFeedback) {
+                //             relatedFeedbackQuery.createTime = {$lt: dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), feedback.filterFeedback))};
+                //         }
+                //
+                //         return dbconfig.collection_playerFeedback.distinct("playerId", relatedFeedbackQuery).lean().then(feedbackPlayerObjIds => {
+                //             console.log("feedbackPlayerObjIds", feedbackPlayerObjIds);
+                //             players.forEach((player, index) => {
+                //                 let exist = false;
+                //                 feedbackPlayerObjIds.forEach(feedbackPlayerObjId => {
+                //                     if(player._id.toString() == feedbackPlayerObjId.toString()) {
+                //                         exist = true;
+                //                     }
+                //                 });
+                //                 if(!exist && player.lastFeedbackTime) {
+                //                     players.splice(index,1);
+                //                 }
+                //             });
+                //             return players;
+                //         });
+                //     } else {
+                //         return players;
+                //     }
                 }).then(filteredPlayers => {
                     // console.log("filteredPlayers", filteredPlayers);
                     feedback.schedule.forEach((item, index) => {
@@ -670,7 +678,8 @@ let dbPlatformAutoFeedback = {
                                             platform: player.platform,
                                             content: item.content,
                                             result: item.feedbackResult,
-                                            topic: item.feedbackTopic
+                                            topic: item.feedbackTopic,
+                                            createTime: new Date()
                                         };
                                         return dbPlayerFeedback.createPlayerFeedback(feedbackData);
                                     } else {

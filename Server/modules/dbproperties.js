@@ -25,6 +25,7 @@ let dbLogs2 = dbConnections.logs2db;
 var adminInfoSchema = require('./../schema/admin');
 var departmentSchema = require('./../schema/department');
 var platformSchema = require('./../schema/platform');
+var themeSettingSchema = require('./../schema/themeSetting');
 var platformGameStatusSchema = require('./../schema/platformGameStatus');
 var playerSchema = require('./../schema/player');
 
@@ -110,6 +111,7 @@ let rewardPointsLvlConfigModel = db_admin.model('rewardPointsLvlConfig', rewardP
 
 var apiUserModel = db_admin.model('apiUser', apiUserSchema, 'apiUser');
 var platformModel = db_admin.model('platform', platformSchema, 'platform');
+var themeSettingModel = db_admin.model('themeSetting', themeSettingSchema, 'themeSetting');
 var platformGameStatusModel = db_admin.model('platformGameStatus', platformGameStatusSchema, 'platformGameStatus');
 
 var gameTypeModel = db_admin.model('gametype', gameTypeSchema, 'gameType');
@@ -204,6 +206,12 @@ let promoCodeUserGroupModel = db_admin.model('promoCodeUserGroup', promoCodeUser
 let dxMissionSchema = require('../schema/dxMission');
 let dxMissionModel = db_admin.model('dxMission', dxMissionSchema, 'dxMission');
 
+let largeWithdrawalSettingSchema = require('../schema/largeWithdrawalSetting');
+let largeWithdrawalSettingModel = db_admin.model('largeWithdrawalSetting', largeWithdrawalSettingSchema, 'largeWithdrawalSetting');
+
+let largeWithdrawalLogSchema = require('../schema/largeWithdrawalLog');
+let largeWithdrawalLogModel = db_admin.model('largeWithdrawalLog', largeWithdrawalLogSchema, 'largeWithdrawalLog');
+
 let playerFeedbackResultModel = db_admin.model('playerFeedbackResult', playerFeedbackResultSchema, 'playerFeedbackResult');
 let playerFeedbackTopicModel = db_admin.model('playerFeedbackTopic', playerFeedbackTopicSchema, 'playerFeedbackTopic');
 
@@ -221,6 +229,10 @@ let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
 let platformAutoFeedbackModel = db_admin.model('platformAutoFeedback', platformAutoFeedbackSchema, 'platformAutoFeedback');
 let idcIpSchema = require('./../schema/idcIp');
 let idcIpModel = db_admin.model('idcIp', idcIpSchema, 'idcIp');
+
+let platformBlacklistIpConfigSchema = require('./../schema/platformBlacklistIpConfig');
+let platformBlacklistIpConfigModel = db_admin.model('platformBlacklistIpConfig', platformBlacklistIpConfigSchema, 'platformBlacklistIpConfig');
+
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
 var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema, 'playerFeedback');
@@ -350,6 +362,9 @@ let callOutMissionCalleeModel = dbLogs2.model('callOutMissionCallee', callOutMis
 
 let clientQnASchema = require('./../schema/logs2/clientQnA');
 let clientQnAModel = dbLogs2.model('clientQnA', clientQnASchema, 'clientQnA');
+
+let resetPasswordVerificationSchema = require('./../schema/logs2/resetPasswordVerification');
+let resetPasswordVerificationModel = dbLogs2.model('resetPasswordVerification', resetPasswordVerificationSchema, 'resetPasswordVerification');
 
 let smsLogSchema = require('./../schema/logs/smsLog');
 let smsLogModel = dbLogs.model('smsLog', smsLogSchema, 'smsLog');
@@ -494,12 +509,14 @@ var dbProperties = {
 
     collection_apiUser: apiUserModel,
     collection_platform: platformModel,
+    collection_themeSetting: themeSettingModel,
     collection_platformGameStatus: platformGameStatusModel,
     collection_platformGameGroup: platformGameGroupModel,
     collection_platformBankCardGroup: platformBankCardGroupModel,
     collection_clientQnA: clientQnAModel,
     collection_clientQnATemplate: clientQnATemplateModel,
     collection_clientQnATemplateConfig: clientQnATemplateConfigModel,
+    collection_resetPasswordVerification: resetPasswordVerificationModel,
     collection_platformBankCardList: platformBankCardListModel,
     collection_platformMerchantGroup: platformMerchantGroupModel,
     collection_platformMerchantList: platformMerchantListModel,
@@ -509,6 +526,8 @@ var dbProperties = {
     collection_platformWechatPayList: platformWechatPayListModel,
     collection_platformQuickPayGroup: platformQuickPayGroupModel,
     collection_autoFeedback: platformAutoFeedbackModel,
+
+    collection_platformBlacklistIpConfig: platformBlacklistIpConfigModel,
 
     collection_gameType: gameTypeModel,
     collection_game: gameModel,
@@ -533,6 +552,9 @@ var dbProperties = {
 
     collection_dxMission: dxMissionModel,
     collection_dxPhone: dxPhoneModel,
+
+    collection_largeWithdrawalSetting: largeWithdrawalSettingModel,
+    collection_largeWithdrawalLog: largeWithdrawalLogModel,
 
     collection_actionLog: actionLogModel,
 

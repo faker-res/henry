@@ -412,6 +412,15 @@ var dbPlatform = {
         return dbconfig.collection_platform.findOne(query).lean()
     },
 
+    getLargeWithdrawalSetting: function (platformObjId) {
+        platformObjId = ObjectId(platformObjId);
+        return dbconfig.collection_largeWithdrawalSetting.findOne({platform: platformObjId}).lean();
+    },
+
+    updateLargeWithdrawalSetting: function (query, updateData) {
+        return dbconfig.collection_largeWithdrawalSetting.findOneAndUpdate(query, updateData, {upsert: true}).lean();
+    },
+
     /**
      * Delete platform by object _id of the platform schema
      * @param {array}  platformObjIds - The object _ids of the platform
@@ -814,8 +823,9 @@ var dbPlatform = {
      * Sync platform providers data
      * @param platformId
      * @param providerIds
+     * @param sameLineProviders
      */
-    syncPlatformProvider: function (platformId, providerIds) {
+    syncPlatformProvider: function (platformId, providerIds, sameLineProviders) {
         return dbconfig.collection_platform.findOne({platformId}).populate(
             {path: "gameProviders", model: dbconfig.collection_gameProvider}
         ).then(
@@ -844,6 +854,23 @@ var dbPlatform = {
                             }
                         }
                     );
+
+                    // Update same line providers
+                    if (sameLineProviders && sameLineProviders.length) {
+                        sameLineProviders.forEach(provider => {
+                            let key = "sameLineProviders." + provider;
+                            let setObj = {};
+                            setObj[key] = sameLineProviders;
+
+                            proms.push(
+                                dbconfig.collection_gameProvider.findOneAndUpdate({providerId: provider}, {
+                                    $set: setObj
+                                })
+                            )
+                        })
+                    }
+
+
                     if (proms.length > 0) {
                         return Q.all(proms);
                     }
@@ -3344,6 +3371,75 @@ var dbPlatform = {
                         return removedTrackingGroup;
                     }
                 );
+            }
+        );
+    },
+
+    getBlacklistIpConfig: () => {
+        return dbconfig.collection_platformBlacklistIpConfig.find({}).lean().exec();
+    },
+
+    deleteBlacklistIpConfig: (blacklistIpID) => {
+        return dbconfig.collection_platformBlacklistIpConfig.remove({_id: blacklistIpID}).lean().exec().then(
+            () => {
+                return dbPlatform.getBlacklistIpConfig();
+            }
+        );
+    },
+
+    saveBlacklistIpConfig: (insertData, updateData, adminName) => {
+        let insertProm = Promise.resolve(true);
+        let updateProm = Promise.resolve(true);
+        let proms1 = [];
+        let proms2 = [];
+
+        // for new data
+        if (insertData && insertData.length > 0) {
+            for (let x = 0; x < insertData.length; x++) {
+                // only insert ip that didn't exist
+                let query = {
+                    ip: insertData[x].ip,
+                };
+
+                let newData = {
+                    ip: insertData[x].ip,
+                    remark: insertData[x].remark || "",
+                    adminName: adminName,
+                    isEffective: insertData[x].isEffective
+                };
+
+                // upsert: create new document if ip is not duplicate
+                insertProm = dbconfig.collection_platformBlacklistIpConfig.findOneAndUpdate(query, newData, {upsert: true, new: true});
+                proms1.push(insertProm);
+            }
+        }
+
+        // for existing data
+        if (updateData && updateData.length > 0) {
+            for (let z = 0; z < updateData.length; z++) {
+                let upDateQuery = {
+                    _id: updateData[z]._id,
+                };
+
+                let oldData = {
+                    ip: updateData[z].ip,
+                    remark: updateData[z].remark || "",
+                    isEffective: updateData[z].isEffective
+                };
+
+                updateProm = dbconfig.collection_platformBlacklistIpConfig.findOneAndUpdate(upDateQuery, oldData, {new: true});
+                proms2.push(updateProm);
+            }
+        }
+
+        return Promise.all([Promise.all(proms1), Promise.all(proms2)]).then(
+            result => {
+                if (result) {
+                    let newData = result[0];
+                    let existingData = result[1];
+
+                    return {newData: newData, existingData: existingData};
+                }
             }
         );
     },

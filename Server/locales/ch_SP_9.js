@@ -8,6 +8,7 @@ var simplifiedChinese = {
     "User not found OR Invalid Password": "用户没有发现或无效密码",
     "Captcha code invalid": "图形验证码无效",
     "SUBMIT": "提交",
+    "The same bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他玩家绑定，请更换卡号或联系客服，谢谢！",
     "Phone number already exists": "手机号码已存在",
     "Username is Valid": "用户名有效",
     "Username already exists": "此用户名已存在",
@@ -26,6 +27,7 @@ var simplifiedChinese = {
     "Authentification Passed": "身份验证通过",
     "To facilitate withdrawing process, please complete your bank information else the previous amendment will not be processed": "为确保正常提款，请同时完善您的银行资料修改，名字修改才可完成",
     "CLOSED_COMMISSION": "关闭",
+    "Editing bank information is successful": "银行资料绑定成功",
     "DAILY_BONUS_AMOUNT": "1天-输赢值",
     "WEEKLY_BONUS_AMOUNT": "7天-输赢值",
     "BIWEEKLY_BONUS_AMOUNT": "半月-输赢值",
@@ -58,6 +60,7 @@ var simplifiedChinese = {
     "times failed security question, please contact customer service to verify this account.": "回答错误的银行卡内容，请客服人工进行其他人工方式核对，仔细确认是否为本人。",
     "Phone number does not match": "电话号码不匹配",
     "Answer correct count does not meet minimum requirement.": "问题答对数量不符合要求。",
+    "Code does not match or expired.": "验证码错误或已过期",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",

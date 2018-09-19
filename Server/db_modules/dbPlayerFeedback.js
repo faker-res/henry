@@ -30,7 +30,7 @@ var dbPlayerFeedback = {
         let noMoreFeedback = playerFeedbackData.result == constPlayerFeedbackResult.LAST_CALL ? true : false;
         var playerProm = dbconfig.collection_players.findOneAndUpdate(
             {_id: playerFeedbackData.playerId, platform: playerFeedbackData.platform},
-            {$inc: {feedbackTimes: 1}, lastFeedbackTime: playerFeedbackData.createTime, noMoreFeedback: noMoreFeedback}
+            {$inc: {feedbackTimes: 1}, lastFeedbackTime: playerFeedbackData.createTime, lastFeedbackTopic: playerFeedbackData.topic, noMoreFeedback: noMoreFeedback}
         );
 
         Q.all([feedbackProm, playerProm]).then(
