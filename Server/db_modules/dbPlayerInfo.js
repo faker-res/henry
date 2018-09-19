@@ -2935,11 +2935,11 @@ let dbPlayerInfo = {
             platformData => {
                 if (platformData) {
                     // check if the limit of using the same bank account number
-                    if (platformData.sameBankAccountCount && sameBankAccountCount > platformData.sameBankAccountCount){
+                    if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount && playerObj.bankAccount != updateData.bankAccount){
                         return Q.reject({
                             name: "DataError",
                             code: constServerCode.INVALID_DATA,
-                            message: "The same bank account has been registered, please change a new bank card or contact our cs."
+                            message: "The same bank account has been registered, please change a new bank card or contact our cs, thank you!"
                         });
                     }
 
@@ -5265,6 +5265,36 @@ let dbPlayerInfo = {
                             var record = new dbconfig.collection_playerLoginRecord(recordData);
                             return record.save().then(
                                 function () {
+                                    dbconfig.collection_promoCode.aggregate([
+                                        {$match: {
+                                            platformObjId: record.platform,
+                                            playerObjId: record.player,
+                                            promoCodeTemplateObjId: {$exists: true},
+                                            autoFeedbackMissionObjId: {$exists: true},
+                                            autoFeedbackMissionLogin: {$exists: false}
+                                        }},
+                                        {$sort: {createTime: -1}},
+                                        {
+                                            $group: {
+                                                _id: "$autoFeedbackMissionObjId",
+                                                autoFeedbackMissionScheduleNumber: {$first: "$autoFeedbackMissionScheduleNumber"},
+                                                createTime: {$first: "$createTime"}
+                                            }
+                                        }
+                                    ]).exec().then(promoCodes => {
+                                        console.log("autofeedback promoCodes record during login",promoCodes);
+                                        promoCodes.forEach(promoCode => {
+                                            if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
+                                                dbconfig.collection_promoCode.findOneAndUpdate({
+                                                    autoFeedbackMissionObjId: promoCode._id,
+                                                    autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
+                                                    createTime: promoCode.createTime
+                                                }, {
+                                                    autoFeedbackMissionLogin: true
+                                                }).exec();
+                                            }
+                                        })
+                                    });
                                     if (bUpdateIp) {
                                         dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
                                         dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
@@ -6970,6 +7000,10 @@ let dbPlayerInfo = {
                         }).populate({
                             path: "param.providers",
                             model: dbconfig.collection_gameProvider
+                        }).populate({
+                            path: "param.rewardParam.levelId",
+                            model: dbconfig.collection_playerLevel,
+                            select: {value: 1}
                         })
                 } else {
                     return Q.reject({
@@ -7019,6 +7053,14 @@ let dbPlayerInfo = {
                             rewardEventItem.list = rewardEventItem.display;
                         }
                         delete rewardEventItem.display;
+
+                        if (rewardEventItem && rewardEventItem.param && rewardEventItem.param.rewardParam && rewardEventItem.param.rewardParam.length > 0) {
+                            rewardEventItem.param.rewardParam.forEach(el => {
+                                if (el && el.levelId && Object.keys(el.levelId).length) {
+                                    el.levelId = el.levelId.value;
+                                }
+                            })
+                        }
 
                         let isShowInRealServer = 1;
                         if (rewardEventItem && rewardEventItem.hasOwnProperty("showInRealServer") && rewardEventItem.showInRealServer == false) {
@@ -19638,7 +19680,7 @@ let dbPlayerInfo = {
                 let sameBankAccountCount = data[0] || 0;
                 let platformData = data[1];
 
-                if (platformData.sameBankAccountCount && sameBankAccountCount > platformData.sameBankAccountCount){
+                if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount){
                     return Promise.resolve(false)
                 }
                 return Promise.resolve(true);
@@ -20247,7 +20289,7 @@ function getProviderCredit(providers, playerName, platformId) {
 }
 
 function checkRouteSetting(url, setting) {
-    if (url && (url.indexOf("http") == -1 || url.indexOf("https") == -1 || url.indexOf("") == -1) && setting) {
+    if (url && (url.indexOf("http") === -1) && setting) {
         url = setting.concat(url.trim());
     }
 

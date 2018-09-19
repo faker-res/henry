@@ -39,7 +39,8 @@
             partnerLevel: requestData.partnerLevel,
             internetBanking: requestData.internetBanking,
             totalReferrals: requestData.totalReferrals,
-            parent: requestData.parent
+            parent: requestData.parent,
+            children: requestData.children
         };
         this._service.create.request(data);
         var self = this;
