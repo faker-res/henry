@@ -166,10 +166,14 @@ let dbPlatformAutoFeedback = {
             }).populate({
                 path: "promoCodeTemplateObjId",
                 model: dbconfig.collection_promoCodeTemplate
+            }).populate({
+                path: "playerObjId",
+                model: dbconfig.collection_players
             }).lean();
         }).then(promoCodes => {
             if(promoCodes && promoCodes.length > 0) {
                 promoCodes.forEach(item => {
+                    item.playerName = item.playerObjId.name;
                     item.name = autoFeedbackName;
                     item.type = item.promoCodeTemplateObjId.type;
                 });

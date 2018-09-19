@@ -548,7 +548,7 @@ var dbClientQnA = {
                             return dbClientQnA.qnaEndMessage(endTitle, endDes, isPass);
                         });
                 } else {
-                    return dbconfig.collection_players.findOneAndUpdate({_id: clientQnAObj.playerObjId},{$inc: {"qnaWrongCount.forgotPassword": 1}},{new:true}).lean().then(
+                    return dbconfig.collection_players.findOneAndUpdate({_id: clientQnAObj.playerObjId, platform: platformObjId},{$inc: {"qnaWrongCount.forgotPassword": 1}},{new:true}).lean().then(
                         updatedPlayerData => {
                             if (!updatedPlayerData) {
                                 return Promise.reject({name: "DBError", message: "Update player QnA wrong count  failed"})
