@@ -289,7 +289,8 @@ var GameServiceImplement = function () {
 
     this.modifyGamePassword.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.providerId && data.newPassword);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbGame.modifyGamePassword, [conn.playerId, data.providerId, data.newPassword], isValidData);
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbGame.modifyGamePassword, [conn.playerId, data.providerId, data.newPassword, null, inputDevice], isValidData);
     };
 
 };

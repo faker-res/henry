@@ -21796,6 +21796,9 @@ define(['js/app'], function (myApp) {
                     case 'financialSettlementConfig':
                         vm.getFinancialSettlementConfig();
                         break;
+                    case 'largeWithdrawalSetting':
+                        vm.getLargeWithdrawalSetting();
+                        break;
                 }
             };
 
@@ -27004,6 +27007,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.playerPasswordMinLength = vm.selectedPlatform.data.playerPasswordMinLength;
                 vm.platformBasic.prefix = vm.selectedPlatform.data.prefix;
                 vm.platformBasic.samePhoneNumberRegisterCount = vm.selectedPlatform.data.samePhoneNumberRegisterCount;
+                vm.platformBasic.sameBankAccountCount = vm.selectedPlatform.data.sameBankAccountCount;
                 vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
                 vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
                 vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
@@ -27092,6 +27096,27 @@ define(['js/app'], function (myApp) {
                 vm.financialSettlementConfig.minFinancialPointsDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.minFinancialPointsDisableWithdrawal;
                 vm.financialSettlementConfig.financialPointsDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.financialPointsDisableWithdrawal? "1": "0";
             }
+
+            vm.getLargeWithdrawalSetting = function () {
+                vm.largeWithdrawalSetting = vm.largeWithdrawalSetting || {};
+                let sendData = {
+                    platform: vm.selectedPlatform.id
+                }
+                socketService.$socket($scope.AppSocket, 'getLargeWithdrawalSetting', sendData, function (data) {
+                    console.log('getLargeWithdrawalSetting');
+                    vm.largeWithdrawalSetting = {}
+                    if (data && data.data) {
+                        vm.largeWithdrawalSetting = data.data;
+                    }
+                    if (!vm.largeWithdrawalSetting.recipient) {
+                        vm.largeWithdrawalSetting.recipient = [];
+                    }
+                    if (!vm.largeWithdrawalSetting.reviewer) {
+                        vm.largeWithdrawalSetting.reviewer = [];
+                    }
+                });
+
+            };
 
             vm.getPartnerBasic = function () {
                 vm.partnerBasic = vm.partnerBasic || {};
@@ -27583,6 +27608,9 @@ define(['js/app'], function (myApp) {
                     case 'financialSettlementConfig':
                         updateFinancialSettlementConfig(vm.financialSettlementConfig);
                         break;
+                    case 'largeWithdrawalSetting':
+                        updateLargeWithdrawalSetting(vm.largeWithdrawalSetting);
+                        break;
 
                 }
             };
@@ -28013,6 +28041,99 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            vm.getAdminRoleNameString = function (roleArr) {
+                if (roleArr && roleArr.length) {
+                    let roleString = "";
+                    roleArr.forEach(role => {
+                        if (roleString) {
+                            roleString += " ,";
+                        }
+                        roleString += $translate(role);
+                    })
+                    return roleString;
+                }
+            };
+
+            vm.initModalLargeWithdrawal = function () {
+               vm.largeWithdrawCheckReviewer = {};
+               vm.largeWithdrawCheckRecipient = {};
+               vm.adminList.forEach((admin, index) => {
+                   vm.largeWithdrawCheckRecipient[index] = vm.getLargeWithdrawIsRecipient(admin._id);
+                   vm.largeWithdrawCheckReviewer[index] = vm.getLargeWithdrawIsReviewer(admin._id);
+                   $('#largeWithdrawRow' + index).removeAttr('style');
+                   if (vm.largeWithdrawCheckReviewer[index]) {
+                       $('#largeWithdrawRow' + index).css('background-color', 'pink');
+                   }
+               })
+            };
+
+            vm.getLargeWithdrawIsRecipient = function (adminObjId) {
+                // largeWithdrawalSetting
+                let isRecipient = false;
+                if (adminObjId && vm.largeWithdrawalSetting && vm.largeWithdrawalSetting.recipient &&
+                    vm.largeWithdrawalSetting.recipient.length && vm.largeWithdrawalSetting.recipient.indexOf(String(adminObjId)) > -1) {
+                    isRecipient = true;
+                }
+                return isRecipient;
+            };
+
+            vm.getLargeWithdrawIsReviewer = function (adminObjId) {
+                // largeWithdrawalSetting
+                let isReviewer = false;
+                if (adminObjId && vm.largeWithdrawalSetting && vm.largeWithdrawalSetting.reviewer &&
+                    vm.largeWithdrawalSetting.reviewer && vm.largeWithdrawalSetting.reviewer.indexOf(String(adminObjId)) > -1) {
+                    isReviewer = true;
+                }
+                return isReviewer;
+            };
+
+            vm.setLargeWithdrawRecipient = function (adminObjId, isAdd, index) {
+                if (isAdd) {
+                    if (vm.largeWithdrawalSetting.recipient.indexOf(String(adminObjId)) < 0) {
+                        vm.largeWithdrawalSetting.recipient.push(String(adminObjId));
+                    }
+                } else {
+                    let indexRecipient = vm.largeWithdrawalSetting.recipient.indexOf(String(adminObjId));
+                    if (indexRecipient > -1) {
+                        vm.largeWithdrawalSetting.recipient.splice(indexRecipient, 1);
+                        let indexReviewer = vm.largeWithdrawalSetting.reviewer.indexOf(String(adminObjId));
+                        if (indexReviewer > -1) {
+                            $('#largeWithdrawRow' + index).removeAttr('style');
+                            vm.largeWithdrawalSetting.reviewer.splice(indexReviewer, 1);
+                            vm.largeWithdrawCheckReviewer[index] = false;
+                        }
+                    }
+                }
+            };
+
+            vm.setLargeWithdrawReviewer = function (adminObjId, isAdd, index) {
+                if (isAdd) {
+                    if (vm.largeWithdrawalSetting.reviewer.indexOf(String(adminObjId)) < 0) {
+                        vm.largeWithdrawalSetting.reviewer.push(String(adminObjId));
+                        $('#largeWithdrawRow' + index).css('background-color', 'pink');
+                    }
+                } else {
+                    let indexReviewer = vm.largeWithdrawalSetting.reviewer.indexOf(String(adminObjId));
+                    if (indexReviewer > -1) {
+                        vm.largeWithdrawalSetting.reviewer.splice(indexReviewer, 1);
+                        $('#largeWithdrawRow' + index).removeAttr('style');
+                    }
+                }
+            };
+
+            vm.updateLargeWithdrawalRecipient = function () {
+                let sendData = {
+                    query: {platform: vm.selectedPlatform.id},
+                    updateData: {
+                        recipient: vm.largeWithdrawalSetting.recipient,
+                        reviewer: vm.largeWithdrawalSetting.reviewer
+                    }
+                }
+                socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalSetting', sendData, function (data) {
+                    console.log("updateLargeWithdrawalRecipient complete", data)
+                });
+            }
+
             function updatePlayerLevels(arr, index, deltaValue, callback) {
                 if (index >= arr.length) {
                     done();
@@ -28153,6 +28274,7 @@ define(['js/app'], function (myApp) {
                         allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
                         demoPlayerValidDays: srcData.demoPlayerValidDays,
                         samePhoneNumberRegisterCount: srcData.samePhoneNumberRegisterCount,
+                        sameBankAccountCount: srcData.sameBankAccountCount,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                         manualPlayerLevelUp: srcData.manualPlayerLevelUp,
@@ -28239,6 +28361,18 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'saveBlacklistIpConfig', sendData, function (data) {
                     loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updateLargeWithdrawalSetting(srcData) {
+                let sendData = {
+                    query: {platform: vm.selectedPlatform.id},
+                    updateData: {
+                        emailNameExtension: srcData.emailNameExtension
+                    }
+                }
+                socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalSetting', sendData, function (data) {
+                    console.log("updateLargeWithdrawalSetting complete")
                 });
             }
 
@@ -28928,6 +29062,9 @@ define(['js/app'], function (myApp) {
                             if (vm.clientQnAData && vm.clientQnAData.questionTitle && vm.clientQnAData.isSecurityQuestion) {
                                 vm.questionLabelStyle = "text-align:left;display:inline-block";
                             }
+                            if (vm.clientQnAData && vm.clientQnAData.questionTitle && vm.clientQnAData.isQuestionAlignLeft) {
+                                vm.questionLabelStyle = "text-align:left;display:inline-block";
+                            }
 
                             if (vm.clientQnAData.autoRetrive){
                                 let objKey = Object.keys(vm.clientQnAData.autoRetrive);
@@ -28952,7 +29089,7 @@ define(['js/app'], function (myApp) {
                                     item => {
                                         vm.clientQnAInput[item.objKey] = item[item.objKey]
                                     }
-                                )
+                                );
                                 vm.getCityListQnA();
                             }
                         });

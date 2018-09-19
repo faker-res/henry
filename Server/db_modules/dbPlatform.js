@@ -412,6 +412,15 @@ var dbPlatform = {
         return dbconfig.collection_platform.findOne(query).lean()
     },
 
+    getLargeWithdrawalSetting: function (platformObjId) {
+        platformObjId = ObjectId(platformObjId);
+        return dbconfig.collection_largeWithdrawalSetting.findOne({platform: platformObjId}).lean();
+    },
+
+    updateLargeWithdrawalSetting: function (query, updateData) {
+        return dbconfig.collection_largeWithdrawalSetting.findOneAndUpdate(query, updateData, {upsert: true}).lean();
+    },
+
     /**
      * Delete platform by object _id of the platform schema
      * @param {array}  platformObjIds - The object _ids of the platform

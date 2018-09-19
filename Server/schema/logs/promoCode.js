@@ -79,7 +79,11 @@ let promoCodeSchema = new Schema({
     //auto feedback mission obj id
     autoFeedbackMissionObjId: {type: Schema.ObjectId},
     //auto feedback schedule number (first, second, or third time)
-    autoFeedbackMissionScheduleNumber: {type: Number}
+    autoFeedbackMissionScheduleNumber: {type: Number},
+    //match with login
+    autoFeedbackMissionLogin: {type: Boolean},
+    //match with top up
+    autoFeedbackMissionTopUp: {type: Boolean},
 
 });
 
