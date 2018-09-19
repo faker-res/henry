@@ -2463,29 +2463,25 @@ let dbPlayerInfo = {
 
     inquireAccountByPhoneNumber: function (platformId, phoneNumber, smsCode) {
         let platformObj;
-        let playerObj;
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (!platformData) {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
                 }
                 platformObj = platformData;
-                return dbconfig.collection_players.find({platform: platformData._id, phoneNumber: rsaCrypto.encrypt(phoneNumber)}).lean();
-            }
-        ).then(
-            playerData => {
-                if (!(playerData && playerData.length)) {
-                    return Promise.reject({name: "DBError", message: "Cannot find player"})
-                }
-
-                playerObj = playerData;
-
                 return dbPlayerMail.verifySMSValidationCode(phoneNumber, platformObj, smsCode);
             }
         ).then(
             smsVerifyData => {
                 if (!smsVerifyData) {
                     return Q.reject({name: "DataError", message: "Incorrect SMS Validation Code"});
+                }
+                return dbconfig.collection_players.find({platform: platformObj._id, phoneNumber: rsaCrypto.encrypt(phoneNumber)}).lean();
+            }
+        ).then(
+            playerData => {
+                if (!(playerData && playerData.length)) {
+                    return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
 
                 let code = dbUtility.generateRandomPositiveNumber(1000, 9999);
@@ -2494,7 +2490,7 @@ let dbPlayerInfo = {
                     code: code,
                     createTime: new Date(),
                     platformObjId: platformObj._id,
-                    playerObjIds: playerObj.map(function (player) {
+                    playerObjIds: playerData.map(function (player) {
                         return player._id;
                     })
                 }
@@ -2505,7 +2501,7 @@ let dbPlayerInfo = {
                     list: []
                 };
 
-                playerObj.forEach(player => {
+                playerData.forEach(player => {
                     let tempObj = {
                         code: code,
                         name: player.name,
@@ -2516,7 +2512,6 @@ let dbPlayerInfo = {
                     returnData.list.push(tempObj);
                 })
                 return returnData;
-
             }
         )
     },
@@ -2526,6 +2521,7 @@ let dbPlayerInfo = {
         let playerObj;
         let isCheckByPhone = false;
         let isCheckByCode = false;
+        let isGetQuestion = false; //  return question only
         let correctQues = [];
         let incorrectQues = [];
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
@@ -2578,6 +2574,16 @@ let dbPlayerInfo = {
                     return Q.reject({name: "DataError", message: "Incorrect SMS Validation Code"});
                 }
 
+                if (name && !smsCode && !answerArr && !phoneNumber && !code) {
+                    // return question only
+                    isGetQuestion = true;
+                    return dbconfig.collection_clientQnATemplate.findOne({
+                        type: constClientQnA.FORGOT_PASSWORD,
+                        processNo: "2_2",
+                        isSecurityQuestion: true
+                    }, {question: 1, answerInput: 1});
+                }
+
                 if (!isCheckByCode && !isCheckByPhone && answerArr && answerArr.length) {
                     answerArr.forEach(answer => {
                         if (answer.quesNo && answer.ans) {
@@ -2619,8 +2625,11 @@ let dbPlayerInfo = {
                 return dbconfig.collection_clientQnATemplateConfig.findOne({type: constClientQnA.FORGOT_PASSWORD, platform: platformObj._id}).lean();
             }
         ).then(
-            configData => {
-                if (!configData) {
+            resData => {
+                if (!resData) {
+                    if (isGetQuestion) {
+                        return Promise.reject({name: "DBError", message: "Cannot find QnA template"});
+                    }
                     return Promise.reject({name: "DBError", message: "Cannot find QnA template config"});
                 }
 
@@ -2634,20 +2643,49 @@ let dbPlayerInfo = {
                     returnData.realName = playerObj.realName;
                 }
 
+                if (isGetQuestion) {
+                    returnData.phoneNumber = dbUtility.encodePhoneNum(playerObj.phoneNumber);
+                    returnData.questionList = [];
+                    if (resData.question && resData.question.length) {
+                        resData.question.forEach(ques => {
+                            let tempObj = {
+                                id: ques.questionNo,
+                                type: 1,
+                                title: localization.localization.translate(ques.des)
+                            };
+                            if (ques.questionNo == 3) {
+                                tempObj.type = 2;
+                            }
+                            returnData.questionList.push(tempObj);
+                        })
+                    }
+                    return returnData;
+                }
+
+                if (!resData.defaultPassword) {
+                    return Promise.reject({name: "DBError", message: "Default password not found"});
+                }
+
                 if (!isCheckByCode && !isCheckByPhone && answerArr && answerArr.length) {
-                    if (correctQues && correctQues.length && correctQues.indexOf("1") != -1) {
-                        if (!configData.defaultPassword) {
-                            return Promise.reject({name: "DBError", message: "Default password not found"});
-                        }
-                        if (!configData.hasOwnProperty("minQuestionPass")) {
-                            return Promise.reject({name: "DBError", message: "Minimum correct answer has not config"});
-                        }
-                        if (correctQues.length < configData.minQuestionPass) {
-                            return Promise.reject({name: "DBError", message: "Answer correct count does not meet minimum requirement."});
-                        }
+                    if (!resData.hasOwnProperty("minQuestionPass")) {
+                        return Promise.reject({name: "DBError", message: "Minimum correct answer has not config"});
+                    }
+
+                    if(resData.hasOwnProperty("wrongCount") && playerObj && playerObj.qnaWrongCount &&
+                        playerObj.qnaWrongCount.hasOwnProperty("forgotPassword") &&  playerObj.qnaWrongCount.forgotPassword > resData.wrongCount) {
+                        return Promise.reject({name: "DBError", message: "Security question exceed maximum wrong count, this account has been banned from being modified automatically, please contact customer service"});
+                    }
+
+                    if (!(correctQues && correctQues.length && correctQues.indexOf("1") != -1) || correctQues.length < resData.minQuestionPass) {
+                        dbconfig.collection_players.findOneAndUpdate({_id: playerObj._id, platform: platformObj._id},{$inc: {"qnaWrongCount.forgotPassword": 1}}).catch(errorUtils.reportError);
+                        return Promise.reject({
+                            name: "DBError",
+                            message: "Answer correct count does not meet minimum requirement."
+                        });
                     }
                 }
-                dbPlayerInfo.resetPlayerPassword(playerObj._id, configData.defaultPassword, platformObj._id, false, null).catch(errorUtils.reportError);
+                returnData.password = resData.defaultPassword;
+                dbPlayerInfo.resetPlayerPassword(playerObj._id, resData.defaultPassword, platformObj._id, false, null).catch(errorUtils.reportError);
                 return returnData;
             }
         )
