@@ -8,6 +8,7 @@ var simplifiedChinese = {
     "User not found OR Invalid Password": "用户没有发现或无效密码",
     "Captcha code invalid": "图形验证码无效",
     "SUBMIT": "提交",
+    "The same bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他玩家绑定，请更换卡号或联系客服，谢谢！",
     "Phone number already exists": "手机号码已存在",
     "Username is Valid": "用户名有效",
     "Username already exists": "此用户名已存在",

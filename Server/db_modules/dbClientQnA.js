@@ -1555,8 +1555,16 @@ var dbClientQnA = {
         let correctAnswer = [];
         let wrongAnswer = [];
 
-        if (!inputDataObj || !inputDataObj.phoneNumber || !dbutility.isNumeric(inputDataObj.lastWithdrawalAmount)) {
-            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        if (!inputDataObj || !dbutility.isNumeric(inputDataObj.lastWithdrawalAmount)) {
+            return Promise.reject({name: "DBError", message: "Invalid Data"});
+        }
+
+        if (!inputDataObj.phoneNumber || inputDataObj.phoneNumber.length !== 11) {
+            return Promise.reject({message: "Phone number must be 11 characters."});
+        }
+
+        if (inputDataObj.bankAccount && !(inputDataObj.bankAccount.length === 16 || inputDataObj.bankAccount.length === 19)) {
+            return Promise.reject({message: "Bank account must be either 16 number or 19 number"});
         }
 
         return dbconfig.collection_clientQnA.findOne({_id: qnaObjId}).lean().then(

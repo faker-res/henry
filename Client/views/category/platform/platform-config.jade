@@ -48,6 +48,8 @@
                         span {{"phoneFilterConfig" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "financialSettlementConfig"}', ng-click='vm.configTabClicked("financialSettlementConfig")')
                         span {{"financialSettlementConfig" | translate}}
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "largeWithdrawalSetting"}', ng-click='vm.configTabClicked("largeWithdrawalSetting")')
+                        span {{"largeWithdrawalSetting" | translate}}
 
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
@@ -1891,7 +1893,37 @@
                     .pull-right
                         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Config', 'financialSettlementConfig')", ng-click = 'vm.showFinancialPointsChange()') {{"add/deduct financial points" | translate}}
 
+                div(ng-if='vm.selectedConfigTab=="largeWithdrawalSetting"')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'TITLE' | translate}}
+                                th {{'VALUE' | translate}}
+                        tbody
+                            tr
+                                td {{'DEFAULT_EMAIL_NAME' | translate}}
+                                td
+                                    text(style='color:red') {{"large amount withdrawal (x): date--username--current withdrawal amount" | translate}} &nbsp
+                                    input(type='text' ng-model='vm.largeWithdrawalSetting.emailNameExtension', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'RECIPIENT_SELECT' | translate}}
+                                td
+                                    text(ng-if='!vm.configTableEdit') {{"Please tick website's recipient" | translate}}
+                                    a(data-toggle="modal", data-target='#modalLargeWithdrawalRecipient', ng-if='vm.configTableEdit', ng-click='vm.initModalLargeWithdrawal()') {{"Please tick website's recipient" | translate}}
+                            tr
+                                td {{'The person who have the right to execute proposal' | translate}}
+                                td
+                                    text(ng-if='!vm.configTableEdit') {{"Please tick website's reviewer" | translate}}
+                                    a(data-toggle="modal", data-target='#modalLargeWithdrawalRecipient', ng-if='vm.configTableEdit', ng-click='vm.initModalLargeWithdrawal()') {{"Please tick website's reviewer" | translate}}
+                           
 
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'largeWithdrawalSetting')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("largeWithdrawalSetting")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("largeWithdrawalSetting")') {{"CONFIRM" | translate}}
+                
+                    
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")
                         form(name="platformAnnouncementsForm")
@@ -1950,6 +1982,43 @@
                     label {{"PREVIEW" | translate}}
                     .well(style="margin-bottom: 0px; padding-top: 15px; padding-bottom: 15px", ng-non-bindable)
                         .announcementPreview.html(style="max-height: 185px; overflow: auto; background-color: white")
+
+#modalLargeWithdrawalRecipient.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style="width:80%")
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Recipient and executor setting' | translate}}
+            .modal-body
+                table.simple-table(style='max-width:100%')
+                    thead
+                        tr
+                            th {{'RECIPIENT' | translate}}
+                            th {{'USER_NAME' | translate}}
+                            th {{'EMAIL' | translate}}
+                            th {{'DEPARTMENT' | translate}}
+                            th {{'ROLE' | translate}}
+                            th {{'EMAIL_EXECUTE_PERMISSION' | translate}}
+                    tbody
+                        tr(ng-repeat='(i,admin) in vm.adminList' ng-attr-id="{{ 'largeWithdrawRow' + i }}")
+                            td 
+                                input(type='checkbox' ng-model='vm.largeWithdrawCheckRecipient[i]' ng-click='vm.setLargeWithdrawRecipient(admin._id, vm.largeWithdrawCheckRecipient[i], i)')
+                            td 
+                                text {{admin.adminName}}
+                            td 
+                                text {{admin.email}}
+                            td 
+                                text {{admin.departmentName | translate}}
+                            td 
+                                text {{vm.getAdminRoleNameString(admin.roleName) | translate}}
+                            td 
+                                input(ng-if='vm.largeWithdrawCheckRecipient[i]' type='checkbox' ng-model='vm.largeWithdrawCheckReviewer[i]' ng-click='vm.setLargeWithdrawReviewer(admin._id, vm.largeWithdrawCheckReviewer[i], i)')
+                                text(ng-if='!vm.largeWithdrawCheckRecipient[i]') {{"-"}}
+
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal' ng-click='vm.updateLargeWithdrawalRecipient()') {{"CONFIRM" | translate}}
+                button.btn.btn-success.common-button(data-dismiss='modal' ng-click='vm.configTabClicked("largeWithdrawalSetting")') {{"CLOSE" | translate}}
+
 
 #modalFinancialPointsChange.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
