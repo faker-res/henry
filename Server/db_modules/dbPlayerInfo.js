@@ -6367,9 +6367,6 @@ let dbPlayerInfo = {
                     if (
                         playerObj.lastPlayedProvider
                         && playerObj.lastPlayedProvider.providerId != targetProviderId
-                        // Don't check for ebet
-                        && gameProvider.name.toUpperCase() !== "EBET"
-                        && gameProvider.name.toUpperCase() !== "EBETSLOTS"
                     ) {
                         if (
                             gameProvider.sameLineProviders
