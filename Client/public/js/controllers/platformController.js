@@ -33738,13 +33738,23 @@ define(['js/app'], function (myApp) {
                     startTime: null,
                     endTime: null
                 };
+                let addLoginCountToolTip = (elem) => {
+                    elem.title = $translate('Note:');
+                    elem.title += String.fromCharCode(13)+"1. ";
+                    elem.title += $translate('Multiple login after 1 issuance of promo code to be counted as 1');
+                    elem.title += String.fromCharCode(13)+"2. ";
+                    elem.title += $translate('Multiple login after 2 issuance of promo code to be counted as 2');
+                };
                 commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearchDetail', 'startTime', '#autoFeedbackListStartTimePicker', utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(7)), true);
                 commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearchDetail', 'endTime', '#autoFeedbackListEndTimePicker', utilService.setLocalDayEndTime(new Date()), true);
-                utilService.actionAfterLoaded("#autoFeedbackDetailSpin", function () {
+                utilService.actionAfterLoaded("#autoFeedbackDetailTableThird", function () {
                     vm.autoFeedbackMissionSearchDetail.startTime = $('#autoFeedbackListStartTimePicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMissionSearchDetail.endTime = $('#autoFeedbackListEndTimePicker').data('datetimepicker').getDate();
                     $scope.$evalAsync(() => {
                         vm.autoFeedbackMissionSearchDetail.name = vm.autoFeedbackMissions[0].name;
+                        addLoginCountToolTip($('#autoFeedbackDetailTableFirst th')[3]);
+                        addLoginCountToolTip($('#autoFeedbackDetailTableSecond th')[3]);
+                        addLoginCountToolTip($('#autoFeedbackDetailTableThird th')[3]);
                     });
                 });
             };
