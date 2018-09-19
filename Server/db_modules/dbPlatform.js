@@ -857,16 +857,23 @@ var dbPlatform = {
 
                     // Update same line providers
                     if (sameLineProviders && sameLineProviders.length) {
-                        sameLineProviders.forEach(provider => {
-                            let key = "sameLineProviders." + provider;
-                            let setObj = {};
-                            setObj[key] = sameLineProviders;
+                        console.log('sameLineProviders', sameLineProviders);
+                        sameLineProviders.forEach(providers => {
+                            if (providers && providers.length) {
+                                providers.forEach(provider => {
+                                    let key = "sameLineProviders." + provider;
+                                    let setObj = {};
+                                    setObj[key] = sameLineProviders;
 
-                            proms.push(
-                                dbconfig.collection_gameProvider.findOneAndUpdate({providerId: provider}, {
-                                    $set: setObj
+                                    console.log('setObj', setObj);
+
+                                    proms.push(
+                                        dbconfig.collection_gameProvider.findOneAndUpdate({providerId: provider}, {
+                                            $set: setObj
+                                        })
+                                    )
                                 })
-                            )
+                            }
                         })
                     }
 
@@ -891,7 +898,7 @@ var dbPlatform = {
         platformProviders.forEach(
             row => {
                 if (row.platformId && row.providers && Array.isArray(row.providers)) {
-                    proms.push(dbPlatform.syncPlatformProvider(row.platformId, row.providers));
+                    proms.push(dbPlatform.syncPlatformProvider(row.platformId, row.providers, row.sameLineProviders));
                 }
             }
         );
