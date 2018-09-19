@@ -29257,6 +29257,36 @@ define(['js/app'], function (myApp) {
                     } else if (vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.des) {
                         copiedText = $translate(vm.clientQnAData.clientQnAEnd.des);
                     }
+
+                    if (vm.clientQnAData.isHighDetailCopy) {
+                        copiedText = $translate(vm.clientQnAData.questionTitle) + "\n";
+                        vm.clientQnAData.question.map(ques => {
+                            copiedText += " \n";
+                            copiedText += $translate(ques.des);
+                            copiedText += ": ";
+
+                            vm.clientQnAData.answerInput.map(input => {
+                                if (ques.questionNo == input.questionNo) {
+                                    if (input.type == "select") {
+                                        if (vm.clientQnAInput[input.objKey]) {
+                                            vm[input.options].map(option => {
+                                                if (vm.clientQnAInput[input.objKey] == option.id) {
+                                                    copiedText += $translate(option.name);
+                                                }
+                                            });
+                                        }
+                                    } else {
+                                        if (vm.clientQnAInput[input.objKey]) {
+                                            copiedText += vm.clientQnAInput[input.objKey];
+                                        } else {
+                                            copiedText += $translate(input.placeHolder);
+                                        }
+                                    }
+                                }
+                            });
+                        });
+
+                    }
                 }
                 //add on here
                 commonService.copyToClipboard(copiedText);
