@@ -3830,6 +3830,37 @@ let dbPlayerInfo = {
                         );
                     }
 
+                    //check and set promo code autoFeedbackMissionTopUp to true;
+                    dbconfig.collection_promoCode.aggregate([
+                        {$match: {
+                            platformObjId: topupRecordData.platformId,
+                            playerObjId: topupRecordData.playerId,
+                            promoCodeTemplateObjId: {$exists: true},
+                            autoFeedbackMissionObjId: {$exists: true},
+                            autoFeedbackMissionTopUp: {$exists: false}
+                        }},
+                        {$sort: {createTime: -1}},
+                        {
+                            $group: {
+                                _id: "$autoFeedbackMissionObjId",
+                                autoFeedbackMissionScheduleNumber: {$first: "$autoFeedbackMissionScheduleNumber"},
+                                createTime: {$first: "$createTime"}
+                            }
+                        }
+                    ]).exec().then(promoCodes => {
+                        console.log("autofeedback promoCodes record during successful topup",promoCodes);
+                        promoCodes.forEach(promoCode => {
+                            if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
+                                dbconfig.collection_promoCode.findOneAndUpdate({
+                                    autoFeedbackMissionObjId: promoCode._id,
+                                    autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
+                                    createTime: promoCode.createTime
+                                }, {
+                                    autoFeedbackMissionTopUp: true
+                                }).exec();
+                            }
+                        })
+                    });
                     return Promise.resolve(data && data[0]);
                 }
             },

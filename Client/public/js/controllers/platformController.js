@@ -33916,7 +33916,7 @@ define(['js/app'], function (myApp) {
                         if(vm.autoFeedbackSearchDetailResult[scheduleNumber]) {
                             vm.autoFeedbackSearchDetailResult[scheduleNumber][date] = {};
                             vm.autoFeedbackSearchDetailResult[scheduleNumber][date].acceptedCount = 0;
-                            vm.autoFeedbackSearchDetailResult[scheduleNumber][date].accessCount = 0;
+                            vm.autoFeedbackSearchDetailResult[scheduleNumber][date].loginCount = 0;
                             vm.autoFeedbackSearchDetailResult[scheduleNumber][date].topUpCount = 0;
                             vm.autoFeedbackSearchDetailResult[scheduleNumber][date].data = [];
                         }
@@ -33924,8 +33924,6 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         result.forEach(item => {
                             let promoCodeTime = new Date(item.createTime);
-                            let accessTime = new Date(item.lastAccessTime);
-                            let topUpTime = new Date(item.lastTopUpTime);
                             let date = new Date(promoCodeTime).toLocaleString('en-US', {
                                 year: 'numeric',
                                 month: '2-digit',
@@ -33940,10 +33938,10 @@ define(['js/app'], function (myApp) {
                                 if(item.status == vm.constPromoCodeStatus.ACCEPTED) {
                                     vm.autoFeedbackSearchDetailResult[scheduleNumber][date].acceptedCount++;
                                 }
-                                if(promoCodeTime.getTime() < accessTime.getTime()) {
-                                    vm.autoFeedbackSearchDetailResult[scheduleNumber][date].accessCount++;
+                                if(item.autoFeedbackMissionLogin) {
+                                    vm.autoFeedbackSearchDetailResult[scheduleNumber][date].loginCount++;
                                 }
-                                if(promoCodeTime.getTime() < topUpTime.getTime()) {
+                                if(item.autoFeedbackMissionTopUp) {
                                     vm.autoFeedbackSearchDetailResult[scheduleNumber][date].topUpCount++;
                                 }
                                 vm.autoFeedbackSearchDetailResult[scheduleNumber][date].data.push(item);

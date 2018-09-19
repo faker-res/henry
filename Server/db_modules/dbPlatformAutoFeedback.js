@@ -141,7 +141,6 @@ let dbPlatformAutoFeedback = {
     getAutoFeedbackDetail: function (platformObjId, name, startTime, endTime) {
         let useProviderGroup;
         let autoFeedbackObjId, autoFeedbackName;
-        let autoFeedbackDetail = [];
         let autoFeedbackQuery = {};
         autoFeedbackQuery.platformObjId = platformObjId;
         autoFeedbackQuery.name = name;
@@ -170,55 +169,12 @@ let dbPlatformAutoFeedback = {
             }).lean();
         }).then(promoCodes => {
             if(promoCodes && promoCodes.length > 0) {
-                autoFeedbackDetail = promoCodes;
-                let playerObjIds = [];
-                let lastTopUpProm, lastAccessProm;
-                promoCodes.filter(promoCode => {
-                    if (playerObjIds.indexOf(promoCode.playerObjId) < 0) {
-                        playerObjIds.push(promoCode.playerObjId);
-                    }
-                });
-                lastTopUpProm = dbconfig.collection_playerTopUpRecord.aggregate([
-                    {$match: {playerId: {$in: playerObjIds}}},
-                    {$sort: {createTime: -1}},
-                    {
-                        $group: {
-                            _id: "$playerId",
-                            lastTopUpTime: {$first: "$createTime"}
-                        }
-                    }
-                ]);
-                lastAccessProm = dbconfig.collection_players.find({_id: {$in: playerObjIds}}, {
-                    _id: 1,
-                    name: 1,
-                    lastAccessTime: 1
-                }).lean();
-                return Promise.all([lastTopUpProm, lastAccessProm]);
-            }
-        }).then(data => {
-            if(data && data.length > 0) {
-                let topUpArr = [], accessTimeArr = [], playerNameArr = [];
-                let lastTopUps = data[0];
-                let players = data[1];
-                lastTopUps.forEach(item => {
-                    topUpArr[item._id] = item.lastTopUpTime;
-                });
-                players.forEach(item => {
-                    accessTimeArr[item._id] = item.lastAccessTime;
-                });
-                players.forEach(item => {
-                    playerNameArr[item._id] = item.name;
-                });
-
-                autoFeedbackDetail.forEach(item => {
-                    item.lastTopUpTime = topUpArr[item.playerObjId];
-                    item.lastAccessTime = accessTimeArr[item.playerObjId];
-                    item.playerName = playerNameArr[item.playerObjId];
+                promoCodes.forEach(item => {
                     item.name = autoFeedbackName;
                     item.type = item.promoCodeTemplateObjId.type;
                 });
             }
-            return autoFeedbackDetail;
+            return promoCodes;
         });
     },
 
