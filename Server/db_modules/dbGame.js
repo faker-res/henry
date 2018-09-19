@@ -659,7 +659,7 @@ var dbGame = {
         );
     },
 
-    modifyGamePassword: function(playerId, providerId, newPassword, creator) {
+    modifyGamePassword: function(playerId, providerId, newPassword, creator, inputDevice) {
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
         ).lean().then(
@@ -690,6 +690,7 @@ var dbGame = {
                         },
                         entryType: creator ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                         userType: constProposalUserType.PLAYERS,
+                        inputDevice: inputDevice ? inputDevice : 0
                     };
                     return dbProposal.createProposalWithTypeName(playerData.platform,constProposalType.UPDATE_PLAYER_INFO,proposalData).then(
                         () => {

@@ -671,6 +671,33 @@ var dbMigration = {
         //         }
         //     }
         ).then(
+            data => {
+                if (data) {
+                    if (data.children) {
+                        let childrenIds = [];
+                        return dbconfig.collection_partner.find({partnerName: {$in: data.children}, platform: data.platform}).lean().then(
+                            childrenData => {
+                                if (childrenData && childrenData.length > 0) {
+                                    for (let i = 0, len = childrenData.length; i < len; i++) {
+                                        if (childrenData[i] && childrenData[i]._id) {
+                                            childrenIds.push(childrenData[i]._id);
+                                        }
+                                    }
+
+                                    data.children = childrenIds;
+
+                                    return data;
+                                }
+                                else {
+                                    return Q.reject({name: "DataError", message: "Can not find children partner"});
+                                }
+                            }
+                        )
+                    } else {
+                        return data;
+                    }
+                }
+        }).then(
             partnerData => {
                 if (partnerData) {
                     if (partnerData.parent) {
@@ -713,6 +740,23 @@ var dbMigration = {
                             }
                         }
                     ).catch(error => {console.error(error)} );
+                }
+                return partnerData;
+            }
+        ).then(
+            partnerData => {
+                if (partnerData && partnerData._id && partnerData.children && partnerData.children.length > 0) {
+                    let promArr = [];
+
+                    for (let i = 0, len = partnerData.children.length; i < len; i++) {
+                        let children = partnerData.children[i];
+
+                        if (children) {
+                            promArr.push(dbconfig.collection_partner.findOneAndUpdate({_id: children, platform: partnerData.platform}, {parent: partnerData._id}));
+                        }
+                    };
+
+                    Promise.all(promArr);
                 }
                 return partnerData;
             }
