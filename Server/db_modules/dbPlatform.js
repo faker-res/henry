@@ -862,7 +862,7 @@ var dbPlatform = {
                                 providers.forEach(provider => {
                                     let key = "sameLineProviders." + platformId;
                                     let setObj = {};
-                                    setObj[key] = sameLineProviders;
+                                    setObj[key] = providers;
 
                                     proms.push(
                                         dbconfig.collection_gameProvider.findOneAndUpdate({providerId: provider}, {
