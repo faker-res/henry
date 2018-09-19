@@ -978,7 +978,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     "http://jinbailitw.tel400.me/cti/previewcallout.action",
                     "http://jinbailitz.tel400.me/cti/previewcallout.action",
                 ];
-            } else if (platformId == '2' || platformId == '7') {
+            } else if (platformId == '7') {
                 urls = [
                     "http://bbet8dl.tel400.me/cti/previewcallout.action",
                     "http://bbet8.tel400.me/cti/previewcallout.action",
