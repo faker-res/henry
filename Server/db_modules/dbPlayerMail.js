@@ -716,7 +716,15 @@ const dbPlayerMail = {
                         delay: 0
                     };
                     // Log the verification SMS before send
-                    new dbconfig.collection_smsVerificationLog(saveObj).save().catch(errorUtils.reportError);
+                    dbconfig.collection_smsVerificationLog.remove({tel: telNum, platformId: platformId}).then(
+                        () => {
+                            return new dbconfig.collection_smsVerificationLog(saveObj).save();
+                        }
+                    ).catch(err => {
+                        console.log("save sms verification code error", err);
+                        return errorUtils.reportError(err);
+                    });
+
                     return dbPlayerMail.sendVerificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName);
                 }
             }

@@ -857,15 +857,12 @@ var dbPlatform = {
 
                     // Update same line providers
                     if (sameLineProviders && sameLineProviders.length) {
-                        console.log('sameLineProviders', sameLineProviders);
                         sameLineProviders.forEach(providers => {
                             if (providers && providers.length) {
                                 providers.forEach(provider => {
-                                    let key = "sameLineProviders." + provider;
+                                    let key = "sameLineProviders." + platformId;
                                     let setObj = {};
-                                    setObj[key] = sameLineProviders;
-
-                                    console.log('setObj', setObj);
+                                    setObj[key] = providers;
 
                                     proms.push(
                                         dbconfig.collection_gameProvider.findOneAndUpdate({providerId: provider}, {
@@ -898,7 +895,7 @@ var dbPlatform = {
         platformProviders.forEach(
             row => {
                 if (row.platformId && row.providers && Array.isArray(row.providers)) {
-                    proms.push(dbPlatform.syncPlatformProvider(row.platformId, row.providers));
+                    proms.push(dbPlatform.syncPlatformProvider(row.platformId, row.providers, row.sameLineProviders));
                 }
             }
         );
