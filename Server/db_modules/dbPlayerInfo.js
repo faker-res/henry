@@ -6327,7 +6327,13 @@ let dbPlayerInfo = {
                     platformData = playerObj.platform;
 
                     // Enforce player to transfer out from correct last played provider
-                    if (playerObj.lastPlayedProvider && playerObj.lastPlayedProvider.providerId != targetProviderId) {
+                    if (
+                        playerObj.lastPlayedProvider
+                        && playerObj.lastPlayedProvider.providerId != targetProviderId
+                        // Don't check for ebet
+                        && gameProvider.name.toUpperCase() !== "EBET"
+                        && gameProvider.name.toUpperCase() !== "EBETSLOTS"
+                    ) {
                         if (
                             gameProvider.sameLineProviders
                             && gameProvider.sameLineProviders[platformData.platformId]
