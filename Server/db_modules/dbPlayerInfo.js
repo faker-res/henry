@@ -2890,7 +2890,7 @@ let dbPlayerInfo = {
             platformData => {
                 if (platformData) {
                     // check if the limit of using the same bank account number
-                    if (platformData.sameBankAccountCount && sameBankAccountCount > platformData.sameBankAccountCount){
+                    if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount && playerObj.bankAccount != updateData.bankAccount){
                         return Q.reject({
                             name: "DataError",
                             code: constServerCode.INVALID_DATA,
@@ -19593,7 +19593,7 @@ let dbPlayerInfo = {
                 let sameBankAccountCount = data[0] || 0;
                 let platformData = data[1];
 
-                if (platformData.sameBankAccountCount && sameBankAccountCount > platformData.sameBankAccountCount){
+                if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount){
                     return Promise.resolve(false)
                 }
                 return Promise.resolve(true);
