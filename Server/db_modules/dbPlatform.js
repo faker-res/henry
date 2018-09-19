@@ -898,7 +898,7 @@ var dbPlatform = {
         platformProviders.forEach(
             row => {
                 if (row.platformId && row.providers && Array.isArray(row.providers)) {
-                    proms.push(dbPlatform.syncPlatformProvider(row.platformId, row.providers));
+                    proms.push(dbPlatform.syncPlatformProvider(row.platformId, row.providers, row.sameLineProviders));
                 }
             }
         );
