@@ -1543,6 +1543,9 @@ var dbClientQnA = {
                 if (player.bankAccountName && template.answerInput && template.answerInput[0]) {
                     template.answerInput[0].value = player.bankAccountName;
                     template.answerInput[0].disabled = true;
+                    template.answerInput[2].value = player.bankName;
+                    template.answerInput[3].value = player.bankAccountProvince;
+                    template.answerInput[4].value = player.bankAccountCity;
                 }
 
                 return template;
@@ -1641,9 +1644,12 @@ var dbClientQnA = {
                     template.qnaObjId = clientQnA._id;
                 }
 
-                if (player.bankAccountName && template.answerInput && template.answerInput[0]) {
+                if (player.bankAccountName && template.answerInput && template.answerInput[0] && template.answerInput[2] && template.answerInput[3] && template.answerInput[4]) {
                     template.answerInput[0].value = player.bankAccountName;
                     template.answerInput[0].disabled = true;
+                    template.answerInput[2].value = player.bankName;
+                    template.answerInput[3].value = player.bankAccountProvince;
+                    template.answerInput[4].value = player.bankAccountCity;
                 }
 
                 return template;
@@ -1714,12 +1720,20 @@ var dbClientQnA = {
                     return Promise.reject({message: "Player not found."});
                 }
 
-                if (!data[1]){
+                if (!data[1]) {
                     return Promise.reject({message: "Platform not found."});
                 }
 
                 player = data[0];
                 platform = data[1];
+
+                return isExceedSameBankAccount(inputDataObj.bankAccount, platform);
+            }
+        ).then(
+            exceedSameBankAccount => {
+                if (exceedSameBankAccount) {
+                    return Promise.reject({message: "The same bank account has been registered, please change a new bank card or contact our cs, thank you!"});
+                }
 
                 // APPROACH 3
                 let proposalData = {
@@ -2657,6 +2671,21 @@ var dbClientQnA = {
 
     //endregion
 };
+
+function isExceedSameBankAccount(bankAccount, platformData) {
+    if (!platformData || !platformData.sameBankAccountCount) {
+        return false;
+    }
+    return dbconfig.collection_players.find({
+        bankAccount: bankAccount,
+        platform: platformData._id,
+        'permission.forbidPlayerFromLogin': false
+    }).lean().count().then(
+        bankAccountCount => {
+            return Boolean(bankAccountCount && bankAccountCount >= platformData.sameBankAccountCount);
+        }
+    )
+}
 
 var proto = dbClientQnAFunc.prototype;
 proto = Object.assign(proto, dbClientQnA);

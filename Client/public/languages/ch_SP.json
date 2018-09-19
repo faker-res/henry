@@ -4130,7 +4130,7 @@
   "*Bank Card Name": "*银行姓名",
   "*BankCardNo": "*银行卡号",
   "*BANK_TYPE": "*银行类别",
-  "*BANK_ACCOUNT_PROVINCE": "*开户城市",
+  "*BANK_ACCOUNT_PROVINCE": "*开户省份",
   "*BANK_ACCOUNT_CITY": "*开户城市",
 
   "Mailing Status:": "邮件状态：",
