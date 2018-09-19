@@ -741,7 +741,10 @@ let dbPlayerInfo = {
     },
 
     checkPlayerIsBlacklistIp: (platformObjId, playerObjId, playerLoginIps) => {
-        return dbPlatform.getBlacklistIpConfig(platformObjId).then(
+        let fixedCredibilityRemarksProm = [];
+        let playerProm = [];
+
+        return dbPlatform.getBlacklistIpConfig().then(
             blackListIpConfig => {
                 let blacklistIpList = [];
                 let matchBlacklistIpList = [];
@@ -766,8 +769,8 @@ let dbPlayerInfo = {
             }
         ).then(
             matchBlacklistIpList => {
-                if (matchBlacklistIpList && matchBlacklistIpList.length > 0) {
-                    return dbconfig.collection_players.findOneAndUpdate({
+                if (matchBlacklistIpList) {
+                    dbconfig.collection_players.findOneAndUpdate({
                         platform: platformObjId,
                         _id: playerObjId
                     }, {
@@ -775,6 +778,42 @@ let dbPlayerInfo = {
                             blacklistIp: matchBlacklistIpList
                         }
                     }).lean().exec();
+                }
+
+                // remove fixed credibility from player if no match blacklist ip
+                if (matchBlacklistIpList && matchBlacklistIpList.length === 0) {
+                    fixedCredibilityRemarksProm = dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId);
+
+                    playerProm = dbconfig.collection_players.findOne({
+                        _id: playerObjId,
+                        platform: platformObjId
+                    }).lean();
+
+                    return Promise.all([fixedCredibilityRemarksProm, playerProm]).then(
+                        data => {
+                            if (data) {
+                                let fixedCredibilityRemarks = data[0];
+                                let playerData = data[1];
+                                let blacklistIpID = null;
+
+                                if (fixedCredibilityRemarks && fixedCredibilityRemarks.length > 0) {
+                                    fixedCredibilityRemarks.forEach(remark => {
+                                        if (remark.name === '黑名单IP') {
+                                            blacklistIpID = remark._id;
+                                        }
+                                    });
+                                }
+
+                                if (playerData && playerData.credibilityRemarks && playerData.credibilityRemarks.length > 0) {
+                                    if (playerData.credibilityRemarks.some(e => e && blacklistIpID && e.toString() === blacklistIpID.toString())) {
+                                        // if blacklistIpID already exist
+                                        let credibilityRemarks = playerData.credibilityRemarks.filter(e => e && blacklistIpID && e.toString() !== blacklistIpID.toString());
+                                        dbPlayerInfo.updatePlayerCredibilityRemark('System', platformObjId, playerObjId, credibilityRemarks, '删除黑名单IP');
+                                    }
+                                }
+                            }
+                        }
+                    );
                 }
             }
         )
@@ -5220,6 +5259,36 @@ let dbPlayerInfo = {
                             var record = new dbconfig.collection_playerLoginRecord(recordData);
                             return record.save().then(
                                 function () {
+                                    dbconfig.collection_promoCode.aggregate([
+                                        {$match: {
+                                            platformObjId: record.platform,
+                                            playerObjId: record.player,
+                                            promoCodeTemplateObjId: {$exists: true},
+                                            autoFeedbackMissionObjId: {$exists: true},
+                                            autoFeedbackMissionLogin: {$exists: false}
+                                        }},
+                                        {$sort: {createTime: -1}},
+                                        {
+                                            $group: {
+                                                _id: "$autoFeedbackMissionObjId",
+                                                autoFeedbackMissionScheduleNumber: {$first: "$autoFeedbackMissionScheduleNumber"},
+                                                createTime: {$first: "$createTime"}
+                                            }
+                                        }
+                                    ]).exec().then(promoCodes => {
+                                        console.log("autofeedback promoCodes record during login",promoCodes);
+                                        promoCodes.forEach(promoCode => {
+                                            if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
+                                                dbconfig.collection_promoCode.findOneAndUpdate({
+                                                    autoFeedbackMissionObjId: promoCode._id,
+                                                    autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
+                                                    createTime: promoCode.createTime
+                                                }, {
+                                                    autoFeedbackMissionLogin: true
+                                                }).exec();
+                                            }
+                                        })
+                                    });
                                     if (bUpdateIp) {
                                         dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
                                         dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
@@ -6925,6 +6994,10 @@ let dbPlayerInfo = {
                         }).populate({
                             path: "param.providers",
                             model: dbconfig.collection_gameProvider
+                        }).populate({
+                            path: "param.rewardParam.levelId",
+                            model: dbconfig.collection_playerLevel,
+                            select: {value: 1}
                         })
                 } else {
                     return Q.reject({
@@ -6974,6 +7047,14 @@ let dbPlayerInfo = {
                             rewardEventItem.list = rewardEventItem.display;
                         }
                         delete rewardEventItem.display;
+
+                        if (rewardEventItem && rewardEventItem.param && rewardEventItem.param.rewardParam && rewardEventItem.param.rewardParam.length > 0) {
+                            rewardEventItem.param.rewardParam.forEach(el => {
+                                if (el && el.levelId && Object.keys(el.levelId).length) {
+                                    el.levelId = el.levelId.value;
+                                }
+                            })
+                        }
 
                         let isShowInRealServer = 1;
                         if (rewardEventItem && rewardEventItem.hasOwnProperty("showInRealServer") && rewardEventItem.showInRealServer == false) {
@@ -20202,7 +20283,7 @@ function getProviderCredit(providers, playerName, platformId) {
 }
 
 function checkRouteSetting(url, setting) {
-    if (url && (url.indexOf("http") == -1 || url.indexOf("https") == -1 || url.indexOf("") == -1) && setting) {
+    if (url && (url.indexOf("http") === -1) && setting) {
         url = setting.concat(url.trim());
     }
 

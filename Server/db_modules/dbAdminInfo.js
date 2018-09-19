@@ -651,39 +651,54 @@ function getAllAdminFromChildDepartments (departmentIds, count) {
     let admins = [];
     let department;
     return dbconfig.collection_department.find({_id:{$in: departmentIds}}, {departmentName:1, children:1, users:1})
-            .populate({path: "users", model: dbconfig.collection_admin, select: "adminName"})
+            .populate({path: "users", model: dbconfig.collection_admin, select: "adminName roles email"})
             .lean().then(
         departments => {
             let childDeparmentProms = [];
-            for (let i = 0, len = departments.length; i < len; i++) {
-                department = departments[i];
+            if (departments.length) {
+                return dbconfig.collection_role.populate(departments, {
+                    path: 'users.roles',
+                    model: dbconfig.collection_role,
+                    select: "roleName"
+                }).then(
+                    populatedData => {
+                        for (let i = 0, len = populatedData.length; i < len; i++) {
+                            department = populatedData[i];
 
-                for (let j = 0, jLen = department.users.length; j < jLen; j++) {
-                    let admin = department.users[j];
-                    if (admin && admin._id) {
-                        admins.push({
-                            adminName: admin.adminName,
-                            _id: admin._id,
-                            department: department._id,
-                            departmentName: department.departmentName,
-                        });
-                    }
-                    else if (admin && admin[0] && admin[0]._id) {
-                        // have no idea why this kind of data appear in my local db
-                        admins.push({
-                            adminName: admin[0].adminName,
-                            _id: admin[0]._id,
-                            department: department._id,
-                            departmentName: department.departmentName,
-                        });
-                    }
-                }
+                            for (let j = 0, jLen = department.users.length; j < jLen; j++) {
+                                let admin = department.users[j];
+                                if (admin && admin._id) {
+                                    admins.push({
+                                        adminName: admin.adminName,
+                                        _id: admin._id,
+                                        department: department._id,
+                                        departmentName: department.departmentName,
+                                        email: admin.email,
+                                        roleName: admin.roles.map(role => role.roleName)
+                                    });
+                                }
+                        else if (admin && admin[0] && admin[0]._id) {
+                                    admins.push({
+                                        adminName: admin[0].adminName,
+                                        _id: admin[0]._id,
+                                        department: department._id,
+                                        departmentName: department.departmentName,
+                                        email: admin.email,
+                                        roleName: admin.roles.map(role => role.roleName)
+                                    });
+                                }
+                            }
 
-                if (department.children && department.children.length > 0 && count <= 10) {
-                    let childDepartmentProm = getAllAdminFromChildDepartments(department.children, count);
-                    childDeparmentProms.push(childDepartmentProm);
-                }
+                            if (department.children && department.children.length > 0 && count <= 10) {
+                                let childDepartmentProm = getAllAdminFromChildDepartments(department.children, count);
+                                childDeparmentProms.push(childDepartmentProm);
+                            }
+                        }
+                        return Promise.all(childDeparmentProms);
+                    }
+                )
             }
+
             return Promise.all(childDeparmentProms);
         }
     ).then(

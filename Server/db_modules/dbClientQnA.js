@@ -979,7 +979,7 @@ var dbClientQnA = {
             if (error.message === "Max SMS count") {
                 return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
             }else{
-                return Promise.reject({name: "DBError", message: error.message ||''})
+                return Promise.reject({name: "DBError", message: localization.localization.translate(error.message) ||''})
             }
           })
     },
@@ -1314,7 +1314,7 @@ var dbClientQnA = {
             },err=>{
 
                 let errorMessage = err.message ? err.message : '';
-                return Promise.reject({name: "DBError", message: errorMessage})
+                return Promise.reject({name: "DBError", message: localization.localization.translate(errorMessage)})
             });
     },
     getOldNumberSMS: function (platformObjId, inputDataObj, qnaObjId) {
@@ -1540,6 +1540,11 @@ var dbClientQnA = {
                     template.qnaObjId = clientQnA._id;
                 }
 
+                if (player.bankAccountName && template.answerInput && template.answerInput[0]) {
+                    template.answerInput[0].value = player.bankAccountName;
+                    template.answerInput[0].disabled = true;
+                }
+
                 return template;
             }
         );
@@ -1550,8 +1555,16 @@ var dbClientQnA = {
         let correctAnswer = [];
         let wrongAnswer = [];
 
-        if (!inputDataObj || !inputDataObj.phoneNumber || !dbutility.isNumeric(inputDataObj.lastWithdrawalAmount)) {
-            return Promise.reject({name: "DBError", message: "Invalid Data"})
+        if (!inputDataObj || !dbutility.isNumeric(inputDataObj.lastWithdrawalAmount)) {
+            return Promise.reject({name: "DBError", message: "Invalid Data"});
+        }
+
+        if (!inputDataObj.phoneNumber || inputDataObj.phoneNumber.length !== 11) {
+            return Promise.reject({message: "Phone number must be 11 characters."});
+        }
+
+        if (inputDataObj.bankAccount && !(inputDataObj.bankAccount.length === 16 || inputDataObj.bankAccount.length === 19)) {
+            return Promise.reject({message: "Bank account must be either 16 number or 19 number"});
         }
 
         return dbconfig.collection_clientQnA.findOne({_id: qnaObjId}).lean().then(
@@ -1628,6 +1641,11 @@ var dbClientQnA = {
                     template.qnaObjId = clientQnA._id;
                 }
 
+                if (player.bankAccountName && template.answerInput && template.answerInput[0]) {
+                    template.answerInput[0].value = player.bankAccountName;
+                    template.answerInput[0].disabled = true;
+                }
+
                 return template;
             }
         );
@@ -1653,6 +1671,10 @@ var dbClientQnA = {
             return Promise.reject({name: "DBError", message: "Invalid Data"})
         }
 
+        if (!inputDataObj.bankAccountName) {
+            return Promise.reject({message: "Please insert bank account name."})
+        }
+
         if (!inputDataObj.bankAccount) {
             return Promise.reject({message: "Please insert bank account."});
         }
@@ -1665,9 +1687,9 @@ var dbClientQnA = {
             return Promise.reject({message: "Bank Type is a required field."});
         }
 
-        if (!inputDataObj.bankAccountType) {
-            return Promise.reject({message: "Bank Account Type is a required field."});
-        }
+        // if (!inputDataObj.bankAccountType) {
+        //     return Promise.reject({message: "Bank Account Type is a required field."});
+        // }
 
         if (!inputDataObj.bankCardProvince || !inputDataObj.bankAccountCity) {
             return Promise.reject({message: "Bank city is a required field"});
@@ -1707,9 +1729,10 @@ var dbClientQnA = {
                         _id: String(player._id),
                         playerName: player.name,
                         playerId: player.playerId,
+                        bankAccountName: inputDataObj.bankAccountName,
                         bankAccount: inputDataObj.bankAccount,
                         bankName: String(inputDataObj.bankType),
-                        bankAccountType: inputDataObj.bankAccountType,
+                        // bankAccountType: inputDataObj.bankAccountType,
                         bankAccountProvince: inputDataObj.bankCardProvince,
                         bankAccountCity: inputDataObj.bankAccountCity,
                         bankAddress: inputDataObj.bankAddress,

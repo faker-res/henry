@@ -412,6 +412,15 @@ var dbPlatform = {
         return dbconfig.collection_platform.findOne(query).lean()
     },
 
+    getLargeWithdrawalSetting: function (platformObjId) {
+        platformObjId = ObjectId(platformObjId);
+        return dbconfig.collection_largeWithdrawalSetting.findOne({platform: platformObjId}).lean();
+    },
+
+    updateLargeWithdrawalSetting: function (query, updateData) {
+        return dbconfig.collection_largeWithdrawalSetting.findOneAndUpdate(query, updateData, {upsert: true}).lean();
+    },
+
     /**
      * Delete platform by object _id of the platform schema
      * @param {array}  platformObjIds - The object _ids of the platform
@@ -814,8 +823,9 @@ var dbPlatform = {
      * Sync platform providers data
      * @param platformId
      * @param providerIds
+     * @param sameLineProviders
      */
-    syncPlatformProvider: function (platformId, providerIds) {
+    syncPlatformProvider: function (platformId, providerIds, sameLineProviders) {
         return dbconfig.collection_platform.findOne({platformId}).populate(
             {path: "gameProviders", model: dbconfig.collection_gameProvider}
         ).then(
@@ -844,6 +854,30 @@ var dbPlatform = {
                             }
                         }
                     );
+
+                    // Update same line providers
+                    if (sameLineProviders && sameLineProviders.length) {
+                        console.log('sameLineProviders', sameLineProviders);
+                        sameLineProviders.forEach(providers => {
+                            if (providers && providers.length) {
+                                providers.forEach(provider => {
+                                    let key = "sameLineProviders." + provider;
+                                    let setObj = {};
+                                    setObj[key] = sameLineProviders;
+
+                                    console.log('setObj', setObj);
+
+                                    proms.push(
+                                        dbconfig.collection_gameProvider.findOneAndUpdate({providerId: provider}, {
+                                            $set: setObj
+                                        })
+                                    )
+                                })
+                            }
+                        })
+                    }
+
+
                     if (proms.length > 0) {
                         return Q.all(proms);
                     }
@@ -864,7 +898,7 @@ var dbPlatform = {
         platformProviders.forEach(
             row => {
                 if (row.platformId && row.providers && Array.isArray(row.providers)) {
-                    proms.push(dbPlatform.syncPlatformProvider(row.platformId, row.providers));
+                    proms.push(dbPlatform.syncPlatformProvider(row.platformId, row.providers, row.sameLineProviders));
                 }
             }
         );
@@ -3360,7 +3394,7 @@ var dbPlatform = {
         );
     },
 
-    saveBlacklistIpConfig: (platformObjId, insertData, updateData, adminName) => {
+    saveBlacklistIpConfig: (insertData, updateData, adminName) => {
         let insertProm = Promise.resolve(true);
         let updateProm = Promise.resolve(true);
         let proms1 = [];
