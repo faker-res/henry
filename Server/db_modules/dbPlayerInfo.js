@@ -747,16 +747,40 @@ let dbPlayerInfo = {
         }).lean();
         let fixedCredibilityRemarksProm = dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId);
         let blacklistIpConfigProm = dbPlatform.getBlacklistIpConfig();
+        let playerActionLogProm = dbconfig.collection_actionLog.find({
+            platform: platformObjId,
+            player: playerObjId,
+            providerId: {$exists: true}
+        });
 
-        return Promise.all([playerProm, fixedCredibilityRemarksProm, blacklistIpConfigProm]).then(
+        return Promise.all([playerProm, fixedCredibilityRemarksProm, blacklistIpConfigProm, playerActionLogProm]).then(
             data => {
                 let playerData = data[0];
                 let fixedCredibilityRemarks = data[1];
                 let blacklistIpData = data[2];
+                let playerLoginProviderData = data[3];
                 let blacklistIpID = null;
                 let blacklistIpList = [];
                 let matchBlacklistIpList = [];
                 let credibilityRemarks = [];
+                let playerGameLoginIP = [];
+                let playerUniqueLoginIP = [];
+
+                if (playerLoginProviderData && playerLoginProviderData.length > 0) {
+                    playerLoginProviderData.forEach(data => {
+                        if (data && data.ipAddress) {
+                            playerGameLoginIP.push(data.ipAddress);
+                        }
+                    });
+                }
+
+                if (playerGameLoginIP && playerLoginIps && playerGameLoginIP.length > 0 && playerLoginIps.length > 0) {
+                    playerUniqueLoginIP = playerGameLoginIP.concat(playerLoginIps);
+                    playerUniqueLoginIP = [...new Set(playerUniqueLoginIP)];
+                } else if (playerLoginIps && playerLoginIps.length > 0) {
+                    playerUniqueLoginIP = [...new Set(playerLoginIps)];
+                }
+
 
                 if (blacklistIpData && blacklistIpData.length > 0) {
                     for (let x = 0; x < blacklistIpData.length; x++) {
@@ -764,8 +788,8 @@ let dbPlayerInfo = {
                             blacklistIpList.push(blacklistIpData[x].ip);
                         }
                     }
-                    if (playerLoginIps && blacklistIpData && playerLoginIps.length > 0 && blacklistIpData.length > 0) {
-                        playerLoginIps.forEach(IP => {
+                    if (playerUniqueLoginIP && blacklistIpData && playerUniqueLoginIP.length > 0 && blacklistIpData.length > 0) {
+                        playerUniqueLoginIP.forEach(IP => {
                             blacklistIpData.forEach(bIP => {
                                 if (IP === bIP.ip && bIP.isEffective) {
                                     matchBlacklistIpList.push(bIP._id);
