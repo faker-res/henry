@@ -8981,10 +8981,9 @@ let dbPartner = {
         })
     },
 
-    partnerCreditToPlayer: (platformId, partnerId, amount, playerName, providerGroupId, spendingTimes, userAgent) => {
+    partnerCreditToPlayer: (platformId, partnerId, targetList, userAgent) => {
         let platformObj;
         let partnerObj;
-        let playerObj;
 
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(platformData => {
             if (!platformData || !platformData._id) {
@@ -9000,62 +8999,129 @@ let dbPartner = {
                 return Promise.reject({name: "DataError", message: "Invalid partner data"});
             }
 
+            let proms = [];
+            let isDownlineValid = true;
+            let isAmountValid = true;
+            let isSpendingTimesValid = true;
+            let isProviderGroupValid = true;
+
             partnerObj = partnerData;
 
-            return dbconfig.collection_players.findOne({platform: platformObj._id, name: playerName, partner: partnerObj._id}).lean();
+            if (targetList && targetList.length > 0) {
+                targetList.forEach(downline => {
+                    if (downline && downline.username) {
+                        let prom = dbconfig.collection_players.findOne({platform: platformObj._id, name: downline.username, partner: partnerObj._id}).lean().then(
+                            playerData => {
+                                if (!playerData) {
+                                    isDownlineValid = false;
+                                } else {
+                                    if (!downline.amount || downline.amount <= 0) {
+                                        isAmountValid = false;
+                                    }
 
-        }).then(playerData => {
-            if (!playerData || !playerData._id) {
+                                    if (downline.providerGroupId) {
+                                        if (!downline.spendingTimes) {
+                                            isSpendingTimesValid = false;
+                                        } else {
+                                            return dbconfig.collection_gameProviderGroup.findOne({providerGroupId: downline.providerGroupId, platform: platformObj._id}).lean().then(
+                                                providerGroupData => {
+                                                    if (!providerGroupData) {
+                                                        isProviderGroupValid = false;
+                                                    }
+
+                                                    return {
+                                                        playerObjId: playerData._id,
+                                                        playerName: playerData.name,
+                                                        amount: downline.amount,
+                                                        withdrawConsumption: downline.spendingTimes ? dbUtil.noRoundTwoDecimalPlaces(downline.amount * downline.spendingTimes) : 0,
+                                                        providerGroup: providerGroupData && providerGroupData._id ? providerGroupData._id : ''
+                                                    }
+                                                }
+                                            );
+                                        }
+                                    } else {
+                                        return {
+                                            playerObjId: playerData._id,
+                                            playerName: playerData.name,
+                                            amount: downline.amount,
+                                            withdrawConsumption: 0
+                                        }
+                                    }
+
+                                };
+                            }
+                        );
+
+                        proms.push(prom);
+
+                    } else {
+                        return Promise.reject({
+                            status: constServerCode.PLAYER_NAME_INVALID,
+                            name: "DataError",
+                            message: "Invalid player data"});
+                    }
+                });
+
+                return Promise.all(proms).then(
+                    res => {
+                        if (!isDownlineValid) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_NAME_INVALID,
+                                name: "DataError",
+                                message: "Invalid player data"});
+                        } else if (!isAmountValid) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: "Cannot transfer negative amount"});
+                        } else if (!isSpendingTimesValid) {
+                            return Promise.reject({
+                                status: constServerCode.SPENDING_TIMES_REQUIRED,
+                                name: "DataError",
+                                message: "Spending Times cannot be empty"});
+                        } else {
+                            return res;
+                        }
+                    }
+                );
+            } else {
                 return Promise.reject({
-                    status: constServerCode.PLAYER_NAME_INVALID,
                     name: "DataError",
-                    message: "Invalid player data"});
+                    message: "targetList cannot be empty"});
             }
 
-            playerObj = playerData;
+        }).then(downlineTransferData => {
+            let transferDetail = [];
+            let sumTransferAmount = 0;
 
-            if (providerGroupId) {
-                if (!spendingTimes) {
-                    return Promise.reject({
-                        status: constServerCode.SPENDING_TIMES_REQUIRED,
-                        name: "DataError",
-                        message: "Spending Times cannot be empty"});
+            if (downlineTransferData && downlineTransferData.length > 0) {
+                transferDetail = downlineTransferData;
+                sumTransferAmount = dbUtil.noRoundTwoDecimalPlaces(downlineTransferData.reduce((sum, value) => sum + value.amount, 0));
+
+                if (partnerObj.credits) {
+                    if(partnerObj.credits <= 0 || partnerObj.credits < sumTransferAmount) {
+                        return Promise.reject({
+                            status: constServerCode.PARTNER_NOT_ENOUGH_CREDIT,
+                            name: "DataError",
+                            message: "Partner does not have enough credit."});
+                    } else {
+                        let currentCredit = partnerObj.credits;
+                        let updateCredit = partnerObj.credits - sumTransferAmount;
+
+                        return applyTransferPartnerCreditToPlayer(platformObj._id, partnerObj, currentCredit, updateCredit, sumTransferAmount, transferDetail, null, userAgent);
+                    }
                 } else {
-                    return dbconfig.collection_gameProviderGroup.findOne({providerGroupId: providerGroupId, platform: platformObj._id}).lean();
-                }
-            }
-        }).then(providerGroupData => {
-            let transferDetail = {
-                playerObjId: playerObj._id,
-                playerName: playerObj.name,
-                amount: amount,
-                withdrawConsumption: spendingTimes ? dbUtil.noRoundTwoDecimalPlaces(amount * spendingTimes) : 0,
-                providerGroup: providerGroupData && providerGroupData._id ? providerGroupData._id : ''
-            };
-
-            if (partnerObj.credits) {
-                if(partnerObj.credits <= 0 || partnerObj.credits < amount) {
                     return Promise.reject({
                         status: constServerCode.PARTNER_NOT_ENOUGH_CREDIT,
                         name: "DataError",
                         message: "Partner does not have enough credit."});
-                } else {
-                    let currentCredit = partnerObj.credits;
-                    let updateCredit = partnerObj.credits - amount;
-
-                    return applyTransferPartnerCreditToPlayer(platformObj._id, partnerObj, currentCredit, updateCredit, amount, [transferDetail], null, userAgent);
                 }
-            } else {
-                return Promise.reject({
-                    status: constServerCode.PARTNER_NOT_ENOUGH_CREDIT,
-                    name: "DataError",
-                    message: "Partner does not have enough credit."});
             }
+
         }).then(proposalData => {
             if (proposalData && proposalData.data && proposalData.data.amount) {
-                return {amount: proposalData.data.amount * -1};
+                return {amount: proposalData.data.amount * -1, balance: proposalData.data.updateCredit};
             }
-        })
+        });
     },
 
     getDownPartnerContribution: (platformId, partnerId, requestPage, count, startTime, endTime) => {
