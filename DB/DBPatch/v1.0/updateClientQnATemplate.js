@@ -324,6 +324,7 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
+            isHighDetailCopy: true,
             isQuestionAlignLeft: true,
             questionTitle: "Please fill in new bank account detail",
             question: [
@@ -336,7 +337,7 @@ db.clientQnATemplate.update(
             ],
             answerInput: [
                 {type: "text", objKey: "bankAccountName", questionNo: 1, placeHolder: ""},
-                {type: "text", objKey: "bankAccount", questionNo: 2, placeHolder: ""},
+                {type: "text", objKey: "bankAccount", questionNo: 2, placeHolder: "(Please insert new bank card)"},
                 {type: "select", objKey: "bankType", questionNo: 3, options: "qnaAllBankTypeList"},
                 {type: "select", objKey: "bankCardProvince", questionNo: 4, options: "qnaProvinceList"},
                 {type: "select", objKey: "bankAccountCity", questionNo: 5, options: "qnaCityList"},

@@ -4132,6 +4132,7 @@
   "*BANK_TYPE": "*银行类别",
   "*BANK_ACCOUNT_PROVINCE": "*开户省份",
   "*BANK_ACCOUNT_CITY": "*开户城市",
+  "(Please insert new bank card)": "（请输入新的卡号）",
 
   "Mailing Status:": "邮件状态：",
   "Not send": "未发送",
