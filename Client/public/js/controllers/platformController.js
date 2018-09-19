@@ -29257,6 +29257,36 @@ define(['js/app'], function (myApp) {
                     } else if (vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.des) {
                         copiedText = $translate(vm.clientQnAData.clientQnAEnd.des);
                     }
+
+                    if (vm.clientQnAData.isHighDetailCopy) {
+                        copiedText = $translate(vm.clientQnAData.questionTitle) + "\n";
+                        vm.clientQnAData.question.map(ques => {
+                            copiedText += " \n";
+                            copiedText += $translate(ques.des);
+                            copiedText += ": ";
+
+                            vm.clientQnAData.answerInput.map(input => {
+                                if (ques.questionNo == input.questionNo) {
+                                    if (input.type == "select") {
+                                        if (vm.clientQnAInput[input.objKey]) {
+                                            vm[input.options].map(option => {
+                                                if (vm.clientQnAInput[input.objKey] == option.id) {
+                                                    copiedText += $translate(option.name);
+                                                }
+                                            });
+                                        }
+                                    } else {
+                                        if (vm.clientQnAInput[input.objKey]) {
+                                            copiedText += vm.clientQnAInput[input.objKey];
+                                        } else {
+                                            copiedText += $translate(input.placeHolder);
+                                        }
+                                    }
+                                }
+                            });
+                        });
+
+                    }
                 }
                 //add on here
                 commonService.copyToClipboard(copiedText);
@@ -33882,6 +33912,13 @@ define(['js/app'], function (myApp) {
                     elem.title += String.fromCharCode(13)+"2. ";
                     elem.title += $translate('Multiple login after 2 issuance of promo code to be counted as 2');
                 };
+                let addTopUpCountToolTip = (elem) => {
+                    elem.title = $translate('Note:');
+                    elem.title += String.fromCharCode(13)+"1. ";
+                    elem.title += $translate('Multiple top up after 1 issuance of promo code to be counted as 1');
+                    elem.title += String.fromCharCode(13)+"2. ";
+                    elem.title += $translate('Multiple top up after 2 issuance of promo code to be counted as 2');
+                };
                 commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearchDetail', 'startTime', '#autoFeedbackListStartTimePicker', utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(7)), true);
                 commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearchDetail', 'endTime', '#autoFeedbackListEndTimePicker', utilService.setLocalDayEndTime(new Date()), true);
                 utilService.actionAfterLoaded("#autoFeedbackDetailTableThird", function () {
@@ -33892,6 +33929,9 @@ define(['js/app'], function (myApp) {
                         addLoginCountToolTip($('#autoFeedbackDetailTableFirst th')[3]);
                         addLoginCountToolTip($('#autoFeedbackDetailTableSecond th')[3]);
                         addLoginCountToolTip($('#autoFeedbackDetailTableThird th')[3]);
+                        addTopUpCountToolTip($('#autoFeedbackDetailTableFirst th')[4]);
+                        addTopUpCountToolTip($('#autoFeedbackDetailTableSecond th')[4]);
+                        addTopUpCountToolTip($('#autoFeedbackDetailTableThird th')[4]);
                     });
                 });
             };
@@ -33916,7 +33956,7 @@ define(['js/app'], function (myApp) {
                         if(vm.autoFeedbackSearchDetailResult[scheduleNumber]) {
                             vm.autoFeedbackSearchDetailResult[scheduleNumber][date] = {};
                             vm.autoFeedbackSearchDetailResult[scheduleNumber][date].acceptedCount = 0;
-                            vm.autoFeedbackSearchDetailResult[scheduleNumber][date].accessCount = 0;
+                            vm.autoFeedbackSearchDetailResult[scheduleNumber][date].loginCount = 0;
                             vm.autoFeedbackSearchDetailResult[scheduleNumber][date].topUpCount = 0;
                             vm.autoFeedbackSearchDetailResult[scheduleNumber][date].data = [];
                         }
@@ -33924,8 +33964,6 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         result.forEach(item => {
                             let promoCodeTime = new Date(item.createTime);
-                            let accessTime = new Date(item.lastAccessTime);
-                            let topUpTime = new Date(item.lastTopUpTime);
                             let date = new Date(promoCodeTime).toLocaleString('en-US', {
                                 year: 'numeric',
                                 month: '2-digit',
@@ -33940,10 +33978,10 @@ define(['js/app'], function (myApp) {
                                 if(item.status == vm.constPromoCodeStatus.ACCEPTED) {
                                     vm.autoFeedbackSearchDetailResult[scheduleNumber][date].acceptedCount++;
                                 }
-                                if(promoCodeTime.getTime() < accessTime.getTime()) {
-                                    vm.autoFeedbackSearchDetailResult[scheduleNumber][date].accessCount++;
+                                if(item.autoFeedbackMissionLogin) {
+                                    vm.autoFeedbackSearchDetailResult[scheduleNumber][date].loginCount++;
                                 }
-                                if(promoCodeTime.getTime() < topUpTime.getTime()) {
+                                if(item.autoFeedbackMissionTopUp) {
                                     vm.autoFeedbackSearchDetailResult[scheduleNumber][date].topUpCount++;
                                 }
                                 vm.autoFeedbackSearchDetailResult[scheduleNumber][date].data.push(item);
