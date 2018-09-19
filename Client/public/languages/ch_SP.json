@@ -147,6 +147,7 @@
   "Invalid bank card province": "开户省无效",
   "Invalid bank card city": "开户城市无效",
   "Old phone number doesn't match": "旧的电话号码匹配失败，请重新输入。",
+  "The same bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他玩家绑定，请更换卡号或联系客服，谢谢！",
   "DETACH_ADMIN": "移除用户",
   "EDIT": "编辑",
   "EDIT_ALL": "编辑全部",
