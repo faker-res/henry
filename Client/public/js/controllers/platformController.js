@@ -33882,6 +33882,13 @@ define(['js/app'], function (myApp) {
                     elem.title += String.fromCharCode(13)+"2. ";
                     elem.title += $translate('Multiple login after 2 issuance of promo code to be counted as 2');
                 };
+                let addTopUpCountToolTip = (elem) => {
+                    elem.title = $translate('Note:');
+                    elem.title += String.fromCharCode(13)+"1. ";
+                    elem.title += $translate('Multiple top up after 1 issuance of promo code to be counted as 1');
+                    elem.title += String.fromCharCode(13)+"2. ";
+                    elem.title += $translate('Multiple top up after 2 issuance of promo code to be counted as 2');
+                };
                 commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearchDetail', 'startTime', '#autoFeedbackListStartTimePicker', utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(7)), true);
                 commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearchDetail', 'endTime', '#autoFeedbackListEndTimePicker', utilService.setLocalDayEndTime(new Date()), true);
                 utilService.actionAfterLoaded("#autoFeedbackDetailTableThird", function () {
@@ -33892,6 +33899,9 @@ define(['js/app'], function (myApp) {
                         addLoginCountToolTip($('#autoFeedbackDetailTableFirst th')[3]);
                         addLoginCountToolTip($('#autoFeedbackDetailTableSecond th')[3]);
                         addLoginCountToolTip($('#autoFeedbackDetailTableThird th')[3]);
+                        addTopUpCountToolTip($('#autoFeedbackDetailTableFirst th')[4]);
+                        addTopUpCountToolTip($('#autoFeedbackDetailTableSecond th')[4]);
+                        addTopUpCountToolTip($('#autoFeedbackDetailTableThird th')[4]);
                     });
                 });
             };
