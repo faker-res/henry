@@ -414,7 +414,15 @@ var dbPlatform = {
 
     getLargeWithdrawalSetting: function (platformObjId) {
         platformObjId = ObjectId(platformObjId);
-        return dbconfig.collection_largeWithdrawalSetting.findOne({platform: platformObjId}).lean();
+        return dbconfig.collection_largeWithdrawalSetting.findOne({platform: platformObjId}).lean().then(
+            largeWithdrawalData => {
+                if (!largeWithdrawalData) {
+                    return dbconfig.collection_largeWithdrawalSetting({platform: platformObjId}).save();
+                } else {
+                    return largeWithdrawalData;
+                }
+            }
+        );
     },
 
     updateLargeWithdrawalSetting: function (query, updateData) {

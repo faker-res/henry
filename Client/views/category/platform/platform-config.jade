@@ -1911,7 +1911,244 @@
                                     text(ng-if='!vm.configTableEdit') {{"Please tick website's reviewer" | translate}}
                                     a(data-toggle="modal", data-target='#modalLargeWithdrawalRecipient', ng-if='vm.configTableEdit', ng-click='vm.initModalLargeWithdrawal()') {{"Please tick website's reviewer" | translate}}
                            
+                    br
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'A.'}} {{'PLAYER_INFORMATION_PORTION' | translate}}
+                                th {{'SELECT' | translate}}
+                                th {{'TITLE' | translate}}
+                                th {{'DEFINITION' | translate}}
+                        tbody
+                            tr
+                                td(rowspan=8, style='background-color:lightblue') {{'BASIC_INFORMATION' | translate}}
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showRealName', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'REAL_NAME' | translate}}
+                                td
+                                    text
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showPlayerLevel', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'LEVEL' | translate}}
+                                td
+                                    text
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showBankCity', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'BANK_CITY' | translate}}
+                                td
+                                    text {{'Bank card registration city' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showRegisterTime', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'REGISTRATION_TIME' | translate}}
+                                td
+                                    text
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showCurrentWithdrawalTime', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'CURRENT_WITHDRAWAL_TIME' | translate}}
+                                td
+                                    text {{'Current apply withdrawal time' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showLastWithdrawalTime', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'LAST_WITHDRAWAL_TIME' | translate}}
+                                td
+                                    text {{'Last apply withdrawal time' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showCurrentCredit', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'providerCreditAmount' | translate}}
+                                td
+                                    text {{'local credit + game credit' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.allowAdminComment', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'CS manually confirm transfer status' | translate}}
+                                td
+                                    text {{'Manually fill in' | translate}}
 
+                            tr
+                                td(rowspan=6, style='background-color:lightblue') {{'LAST_TO_CURRENT_WITHDRAWAL' | translate}}
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showPlayerBonusRatio', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'PLAYER_PROFIT' | translate}}
+                                td
+                                    text {{'(current withdrawal + current credit) - (total top up between last and current top up) amount' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showTotalTopUpAmount', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'TopupAmount' | translate}}
+                                td
+                                    text {{'Top up amount from last success withdrawal to current apply withdrawal time' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showConsumptionReturnAmount', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'CONSUMPTION_RETURN_REWARD' | translate}}
+                                td
+                                    text {{'Consumption return amount from last success withdrawal to current apply withdrawal time' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showRewardAmount', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'OTHER_REWARD' | translate}}
+                                td
+                                    text {{'Reward amount from last success withdrawal to current apply withdrawal time' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showConsumptionSectionCount', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'CONSUMPTION_AMOUNT_SECTION' | translate}}
+                                td
+                                    text {{'Example: 0~100/ 100~1000/ 1000~10000/ 10000~100000/ above 100000' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showGameProviderInfo', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'GAME_PROVIDER_INFO' | translate}}
+                                td
+                                    text {{'The table lists individual game provider information' | translate}}
+                            tr
+                                td(rowspan=6, style='background-color:lightblue') {{'LAST_TOPUP_TO_CURRENT_WITHDRAWAL' | translate}}
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showLastTopUpBonusAmount', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'PLAYER_PROFIT' | translate}}
+                                td
+                                    text {{'(current withdrawal + current credit) - (last top up) amount' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showLastTopUpAmount', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'TopupAmount' | translate}}
+                                td
+                                    text {{'Top up amount from last top up to current apply withdrawal time' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showLastTopUpConsumptionReturnAmount', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'CONSUMPTION_RETURN_REWARD' | translate}}
+                                td
+                                    text {{'Consumption return from last top up to current apply withdrawal time' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showLastTopUpRewardAmount', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'OTHER_REWARD' | translate}}
+                                td
+                                    text {{'Reward amount from last top up to current apply withdrawal time' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showLastTopUpConsumptionSectionCount', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'CONSUMPTION_AMOUNT_SECTION' | translate}}
+                                td
+                                    text {{'Example: 0~100/ 100~1000/ 1000~10000/ 10000~100000/ above 100000' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showLastTopUpGameProviderInfo', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'GAME_PROVIDER_INFO' | translate}}
+                                td
+                                    text {{'The table lists individual game provider information' | translate}}
+                    
+                    br       
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'B.'}} {{'SITE_DATA_SECTION' | translate}}
+                                th {{'SELECT' | translate}}
+                                th {{'TITLE' | translate}}
+                                th {{'DEFINITION' | translate}}
+                        tbody
+                            tr
+                                td(rowspan=3, style='background-color:lightcoral') {{'CURRENT_DAY_TO_CURRENT_WITHDRAWAL' | translate}}
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showDayTopUpAmount', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'DAILY_TOPUP' | translate}}
+                                td
+                                    text {{'Current day to current time total top up' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showDayBonusAmount', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'DAILY_WITHDRAWAL' | translate}}
+                                td
+                                    text {{'Current day to current time total successful withdrawal' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showDayTopUpBonusDifference', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'Daily top up - daily withdrawal' | translate}}
+                                td
+                                    text {{'Daily top up - daily withdrawal(approved) - current withdrawal(pending) - balance' | translate}}
+                            tr
+                                td(rowspan=3, style='background-color:lightcoral') {{'REGISTRATION_TIME_TO_CURRENT_WITHDRAWAL' | translate}}
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showTopUpAmount', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'TOTAL_TOP_UP' | translate}}
+                                td
+                                    text {{'Current day to current time total top up' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showBonusAmount', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'TOTAL_WITHDRAWAL_AMOUNT' | translate}}
+                                td
+                                    text {{'Registration time to current time total successful withdrawal' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showTopUpBonusDifference', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'Total top up - total withdrawal' | translate}}
+                                td
+                                    text {{'Total top up - total withdrawal(approved) - current withdrawal(pending) - balance' | translate}}
+                            tr
+                                td(rowspan=4, style='background-color:lightcoral') {{'Last 3 month player report(separated by month)' | translate}}
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showLastThreeMonthTopUp', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'DEPOSIT_TOPUP' | translate}}
+                                td
+                                    text {{'Monthly total top up' | translate}} {{'(Example: July: 100,000/ August: 200,000/ September: 50,000)' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showLastThreeMonthBonus', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'DEPOSIT_BONUS' | translate}} 
+                                td
+                                    text {{'Monthly total withdrawal' | translate}} {{'(Example: July: 100,000/ August: 200,000/ September: 50,000)' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showLastThreeMonthTopUpBonusDifference', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'Top up - withdrawal' | translate}}
+                                td
+                                    text {{'Monthly total bonus' | translate}} {{'(Example: July: 100,000/ August: 200,000/ September: 50,000)' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showLastThreeMonthConsumptionAmount', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'CONSUMPTION' | translate}}
+                                td
+                                    text {{'Monthly total consumption' | translate}} {{'(Example: July: 100,000/ August: 200,000/ September: 50,000)' | translate}}
+                               
+                    br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'largeWithdrawalSetting')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit

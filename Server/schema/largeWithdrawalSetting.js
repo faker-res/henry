@@ -3,7 +3,7 @@ var Schema = mongoose.Schema;
 
 var gameSchema = new Schema({
     // platform obj id
-    platform: {type: Schema.ObjectId, ref: 'platform', index: true},
+    platform: {type: Schema.ObjectId, ref: 'platform', index: true, required: true},
     // email name extension
     emailNameExtension: {type: String},
     // recipient
