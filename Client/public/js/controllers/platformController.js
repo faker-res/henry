@@ -27007,6 +27007,7 @@ define(['js/app'], function (myApp) {
                 vm.platformBasic.playerPasswordMinLength = vm.selectedPlatform.data.playerPasswordMinLength;
                 vm.platformBasic.prefix = vm.selectedPlatform.data.prefix;
                 vm.platformBasic.samePhoneNumberRegisterCount = vm.selectedPlatform.data.samePhoneNumberRegisterCount;
+                vm.platformBasic.sameBankAccountCount = vm.selectedPlatform.data.sameBankAccountCount;
                 vm.platformBasic.showMinTopupAmount = vm.selectedPlatform.data.minTopUpAmount;
                 vm.platformBasic.showAllowSameRealNameToRegister = vm.selectedPlatform.data.allowSameRealNameToRegister;
                 vm.platformBasic.showAllowSamePhoneNumberToRegister = vm.selectedPlatform.data.allowSamePhoneNumberToRegister;
@@ -27062,7 +27063,7 @@ define(['js/app'], function (myApp) {
             vm.getBlacklistIpConfig = function () {
                 vm.blacklistIpConfig = vm.blacklistIpConfig || [];
 
-                socketService.$socket($scope.AppSocket, 'getBlacklistIpConfig', {platformObjId: vm.selectedPlatform.id}, function (data) {
+                socketService.$socket($scope.AppSocket, 'getBlacklistIpConfig', {}, function (data) {
                     $scope.$evalAsync(() => {
                         vm.blacklistIpConfig = data.data;
                     });
@@ -27077,7 +27078,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.deleteBlacklistIpConfig = (blacklistIpID) => {
-                $scope.$socketPromise('deleteBlacklistIpConfig', {_id: blacklistIpID, platformObjId: vm.selectedPlatform.id}).then((data) => {
+                $scope.$socketPromise('deleteBlacklistIpConfig', {_id: blacklistIpID}).then((data) => {
                     $scope.$evalAsync(() => {
                         vm.blacklistIpConfig = data.data;
                     });
@@ -28275,6 +28276,7 @@ define(['js/app'], function (myApp) {
                         allowSamePhoneNumberToRegister: srcData.showAllowSamePhoneNumberToRegister,
                         demoPlayerValidDays: srcData.demoPlayerValidDays,
                         samePhoneNumberRegisterCount: srcData.samePhoneNumberRegisterCount,
+                        sameBankAccountCount: srcData.sameBankAccountCount,
                         canMultiReward: srcData.canMultiReward,
                         autoCheckPlayerLevelUp: srcData.autoCheckPlayerLevelUp,
                         manualPlayerLevelUp: srcData.manualPlayerLevelUp,
@@ -28354,7 +28356,6 @@ define(['js/app'], function (myApp) {
 
             function updateBlacklistIpConfig() {
                 let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
                     insertData: vm.newBlacklistIpConfig,
                     updateData: vm.blacklistIpConfig,
                     adminName: authService.adminName
@@ -29093,6 +29094,9 @@ define(['js/app'], function (myApp) {
                             if (vm.clientQnAData && vm.clientQnAData.questionTitle && vm.clientQnAData.isSecurityQuestion) {
                                 vm.questionLabelStyle = "text-align:left;display:inline-block";
                             }
+                            if (vm.clientQnAData && vm.clientQnAData.questionTitle && vm.clientQnAData.isQuestionAlignLeft) {
+                                vm.questionLabelStyle = "text-align:left;display:inline-block";
+                            }
 
                             if (vm.clientQnAData.autoRetrive){
                                 let objKey = Object.keys(vm.clientQnAData.autoRetrive);
@@ -29117,7 +29121,7 @@ define(['js/app'], function (myApp) {
                                     item => {
                                         vm.clientQnAInput[item.objKey] = item[item.objKey]
                                     }
-                                )
+                                );
                                 vm.getCityListQnA();
                             }
                         });
@@ -29172,7 +29176,7 @@ define(['js/app'], function (myApp) {
                                     vm.clientQnASecurityQuesCount.minQuestionPass = data.data[1].minQuestionPass;
                                 }
                             }
-                            if(vm.clientQnASecurityQuesConfig.config && data.data[0] && data.data[0].question && data.data[0].question.length){
+                            if(vm.clientQnASecurityQuesConfig.config && data.data[0] && data.data[0].question && data.data[0].question.length && vm.selectedClientQnAType && vm.selectedClientQnAType.data != "forgotPassword" ){
                                 vm.clientQnASecurityQuesConfig.config.minQuestionPass = data.data[0].question.length;
                             }
                         });
@@ -29284,6 +29288,36 @@ define(['js/app'], function (myApp) {
                         })
                     } else if (vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.des) {
                         copiedText = $translate(vm.clientQnAData.clientQnAEnd.des);
+                    }
+
+                    if (vm.clientQnAData.isHighDetailCopy) {
+                        copiedText = $translate(vm.clientQnAData.questionTitle) + "\n";
+                        vm.clientQnAData.question.map(ques => {
+                            copiedText += " \n";
+                            copiedText += $translate(ques.des);
+                            copiedText += ": ";
+
+                            vm.clientQnAData.answerInput.map(input => {
+                                if (ques.questionNo == input.questionNo) {
+                                    if (input.type == "select") {
+                                        if (vm.clientQnAInput[input.objKey]) {
+                                            vm[input.options].map(option => {
+                                                if (vm.clientQnAInput[input.objKey] == option.id) {
+                                                    copiedText += $translate(option.name);
+                                                }
+                                            });
+                                        }
+                                    } else {
+                                        if (vm.clientQnAInput[input.objKey]) {
+                                            copiedText += vm.clientQnAInput[input.objKey];
+                                        } else {
+                                            copiedText += $translate(input.placeHolder);
+                                        }
+                                    }
+                                }
+                            });
+                        });
+
                     }
                 }
                 //add on here
@@ -33903,13 +33937,33 @@ define(['js/app'], function (myApp) {
                     startTime: null,
                     endTime: null
                 };
+                let addLoginCountToolTip = (elem) => {
+                    elem.title = $translate('Note:');
+                    elem.title += String.fromCharCode(13)+"1. ";
+                    elem.title += $translate('Multiple login after 1 issuance of promo code to be counted as 1');
+                    elem.title += String.fromCharCode(13)+"2. ";
+                    elem.title += $translate('Multiple login after 2 issuance of promo code to be counted as 2');
+                };
+                let addTopUpCountToolTip = (elem) => {
+                    elem.title = $translate('Note:');
+                    elem.title += String.fromCharCode(13)+"1. ";
+                    elem.title += $translate('Multiple top up after 1 issuance of promo code to be counted as 1');
+                    elem.title += String.fromCharCode(13)+"2. ";
+                    elem.title += $translate('Multiple top up after 2 issuance of promo code to be counted as 2');
+                };
                 commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearchDetail', 'startTime', '#autoFeedbackListStartTimePicker', utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(7)), true);
                 commonService.commonInitTime(utilService, vm, 'autoFeedbackMissionSearchDetail', 'endTime', '#autoFeedbackListEndTimePicker', utilService.setLocalDayEndTime(new Date()), true);
-                utilService.actionAfterLoaded("#autoFeedbackDetailSpin", function () {
+                utilService.actionAfterLoaded("#autoFeedbackDetailTableThird", function () {
                     vm.autoFeedbackMissionSearchDetail.startTime = $('#autoFeedbackListStartTimePicker').data('datetimepicker').getDate();
                     vm.autoFeedbackMissionSearchDetail.endTime = $('#autoFeedbackListEndTimePicker').data('datetimepicker').getDate();
                     $scope.$evalAsync(() => {
                         vm.autoFeedbackMissionSearchDetail.name = vm.autoFeedbackMissions[0].name;
+                        addLoginCountToolTip($('#autoFeedbackDetailTableFirst th')[3]);
+                        addLoginCountToolTip($('#autoFeedbackDetailTableSecond th')[3]);
+                        addLoginCountToolTip($('#autoFeedbackDetailTableThird th')[3]);
+                        addTopUpCountToolTip($('#autoFeedbackDetailTableFirst th')[4]);
+                        addTopUpCountToolTip($('#autoFeedbackDetailTableSecond th')[4]);
+                        addTopUpCountToolTip($('#autoFeedbackDetailTableThird th')[4]);
                     });
                 });
             };
@@ -33934,7 +33988,7 @@ define(['js/app'], function (myApp) {
                         if(vm.autoFeedbackSearchDetailResult[scheduleNumber]) {
                             vm.autoFeedbackSearchDetailResult[scheduleNumber][date] = {};
                             vm.autoFeedbackSearchDetailResult[scheduleNumber][date].acceptedCount = 0;
-                            vm.autoFeedbackSearchDetailResult[scheduleNumber][date].accessCount = 0;
+                            vm.autoFeedbackSearchDetailResult[scheduleNumber][date].loginCount = 0;
                             vm.autoFeedbackSearchDetailResult[scheduleNumber][date].topUpCount = 0;
                             vm.autoFeedbackSearchDetailResult[scheduleNumber][date].data = [];
                         }
@@ -33942,8 +33996,6 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         result.forEach(item => {
                             let promoCodeTime = new Date(item.createTime);
-                            let accessTime = new Date(item.lastAccessTime);
-                            let topUpTime = new Date(item.lastTopUpTime);
                             let date = new Date(promoCodeTime).toLocaleString('en-US', {
                                 year: 'numeric',
                                 month: '2-digit',
@@ -33958,10 +34010,10 @@ define(['js/app'], function (myApp) {
                                 if(item.status == vm.constPromoCodeStatus.ACCEPTED) {
                                     vm.autoFeedbackSearchDetailResult[scheduleNumber][date].acceptedCount++;
                                 }
-                                if(promoCodeTime.getTime() < accessTime.getTime()) {
-                                    vm.autoFeedbackSearchDetailResult[scheduleNumber][date].accessCount++;
+                                if(item.autoFeedbackMissionLogin) {
+                                    vm.autoFeedbackSearchDetailResult[scheduleNumber][date].loginCount++;
                                 }
-                                if(promoCodeTime.getTime() < topUpTime.getTime()) {
+                                if(item.autoFeedbackMissionTopUp) {
                                     vm.autoFeedbackSearchDetailResult[scheduleNumber][date].topUpCount++;
                                 }
                                 vm.autoFeedbackSearchDetailResult[scheduleNumber][date].data.push(item);

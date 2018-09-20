@@ -761,7 +761,7 @@ var roleChecker = {
         },
         Admin: {
             Department: {
-                Read: ['getDepartmentTreeById', 'getDepartmentTreeByIdWithUser', 'getAllDepartments', 'getAllRolesforAdmin', 'getUnAttachDepartments', 'getPotentialChildren'],
+                Read: ['getDepartmentTreeById', 'getDepartmentTreeByIdWithUser', 'getAllDepartments', 'getAllRolesforAdmin', 'getUnAttachDepartments', 'getPotentialChildren', 'getDepartmentTreeByIds'],
                 Create: ['createDepartment', 'createDepartmentWithParent'],
                 Delete: ['deleteDepartmentsById'],
                 Move: ['updateDepartmentParent', 'removeChildrenById', 'addChildrenById'],

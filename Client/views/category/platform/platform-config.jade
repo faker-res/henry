@@ -1020,9 +1020,14 @@
                                     text(ng-show='!vm.configTableEdit') {{vm.platformBasic.samePhoneNumberRegisterCount}}
                                     input(type='number', ng-show='vm.configTableEdit && vm.platformBasic.showAllowSamePhoneNumberToRegister', min=1, ng-model='vm.platformBasic.samePhoneNumberRegisterCount')
                             tr
-                                td {{'PLAYER_MULTIPLE_REWARD' | translate}}
+                                td {{'sameBankAccountCount' | translate}}
                                 td
-                                    input(type='checkbox', ng-model='vm.platformBasic.canMultiReward', ng-disabled='!vm.configTableEdit')
+                                    text(ng-show='!vm.configTableEdit') {{vm.platformBasic.sameBankAccountCount}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=1, ng-model='vm.platformBasic.sameBankAccountCount')
+                            //tr
+                            //    td {{'PLAYER_MULTIPLE_REWARD' | translate}}
+                            //    td
+                            //        input(type='checkbox', ng-model='vm.platformBasic.canMultiReward', ng-disabled='!vm.configTableEdit')
                             tr
                                 td {{'SMS_VERIFICATION_FOR_CREATE_TEST_PLAYER' | translate}}
                                 td

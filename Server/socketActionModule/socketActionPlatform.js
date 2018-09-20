@@ -803,23 +803,20 @@ function socketActionPlatform(socketIO, socket) {
 
         getBlacklistIpConfig: function getBlacklistIpConfig(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId);
-            let platformObjId = ObjectId(data.platformObjId);
-            socketUtil.emitter(self.socket, dbPlatform.getBlacklistIpConfig, [platformObjId], actionName, isValidData);
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbPlatform.getBlacklistIpConfig, [], actionName, isValidData);
         },
 
         deleteBlacklistIpConfig: function deleteBlacklistIpConfig(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data._id && data.platformObjId);
-            let platformObjId = ObjectId(data.platformObjId);
-            socketUtil.emitter(self.socket, dbPlatform.deleteBlacklistIpConfig, [data._id, platformObjId], actionName, isValidData);
+            let isValidData = Boolean(data && data._id);
+            socketUtil.emitter(self.socket, dbPlatform.deleteBlacklistIpConfig, [data._id], actionName, isValidData);
         },
 
         saveBlacklistIpConfig: function saveBlacklistIpConfig(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.insertData && data.updateData && data.adminName);
-            let platformObjId = ObjectId(data.platformObjId);
-            socketUtil.emitter(self.socket, dbPlatform.saveBlacklistIpConfig, [platformObjId, data.insertData, data.updateData, data.adminName], actionName, isValidData);
+            let isValidData = Boolean(data && data.insertData && data.updateData && data.adminName);
+            socketUtil.emitter(self.socket, dbPlatform.saveBlacklistIpConfig, [data.insertData, data.updateData, data.adminName], actionName, isValidData);
         },
     };
     socketActionPlatform.actions = this.actions;

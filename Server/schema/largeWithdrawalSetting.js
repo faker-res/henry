@@ -1,7 +1,7 @@
-var mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+let mongoose = require('mongoose');
+let Schema = mongoose.Schema;
 
-var gameSchema = new Schema({
+let largeWithdrawalSettingSchema = new Schema({
     // platform obj id
     platform: {type: Schema.ObjectId, ref: 'platform', index: true, required: true},
     // email name extension
@@ -27,7 +27,7 @@ var gameSchema = new Schema({
     // customer service comment
     allowAdminComment: {type: Boolean, default: true},
     // show player bonus amount / profit amount (current credit + current withdrawal amount - total top up amount between current withdrawal and last withdrawal)
-    showPlayerBonusRatio: {type: Boolean, default: true},
+    showPlayerBonusAmount: {type: Boolean, default: true},
     // show total top up amount after last withdrawal
     showTotalTopUpAmount: {type: Boolean, default: true},
     // show consumption return amount after last withdrawal
@@ -52,24 +52,24 @@ var gameSchema = new Schema({
     showLastTopUpGameProviderInfo: {type: Boolean, default: true},
     // show current day total top up amount
     showDayTopUpAmount: {type: Boolean, default: true},
-    // show current day total bonus amount
-    showDayBonusAmount: {type: Boolean, default: true},
-    // show current day top up - bonus difference
-    showDayTopUpBonusDifference: {type: Boolean, default: true},
+    // show current day total withdraw amount
+    showDayWithdrawAmount: {type: Boolean, default: true},
+    // show current day top up - withdraw difference
+    showDayTopUpWithdrawDifference: {type: Boolean, default: true},
     // show total top up amount
-    showTopUpAmount: {type: Boolean, default: true},
-    // show total bonus amount
-    showBonusAmount: {type: Boolean, default: true},
-    // show account top up - bonus difference
-    showTopUpBonusDifference: {type: Boolean, default: true},
+    showAccountTopUpAmount: {type: Boolean, default: true},
+    // show total withdraw amount
+    showAccountWithdrawAmount: {type: Boolean, default: true},
+    // show account top up - withdraw difference
+    showAccountTopUpWithdrawDifference: {type: Boolean, default: true},
     // show last 3 month player top up amount (separated by each month)
     showLastThreeMonthTopUp: {type: Boolean, default: true},
-    // show last 3 month player bonus amount (separated by each month)
-    showLastThreeMonthBonus: {type: Boolean, default: true},
-    // show last 3 month top up - bonus difference (separated by each month)
-    showLastThreeMonthTopUpBonusDifference: {type: Boolean, default: true},
+    // show last 3 month player withdraw amount (separated by each month)
+    showLastThreeMonthWithdraw: {type: Boolean, default: true},
+    // show last 3 month top up - withdraw difference (separated by each month)
+    showLastThreeMonthTopUpWithdrawDifference: {type: Boolean, default: true},
     // show last 3 month consumption amount (separated by each month)
     showLastThreeMonthConsumptionAmount: {type: Boolean, default: true},
 });
 
-module.exports = gameSchema;
+module.exports = largeWithdrawalSettingSchema;

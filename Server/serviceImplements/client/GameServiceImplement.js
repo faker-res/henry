@@ -273,7 +273,7 @@ var GameServiceImplement = function () {
     this.searchGame.expectsData = 'platformId: String';
     this.searchGame.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.platformId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformGameStatus.searchGame, [data.platformId, data.name, data.type, data.groupCode, conn.playerId, data.playGameType], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformGameStatus.searchGame, [data.platformId, data.name, data.type, data.groupCode, conn.playerId, data.playGameType, data.providerId], isValidData, false, false, true);
     };
 
     this.searchGameByGroup.expectsData = 'platformId: String, groups: []+';
@@ -289,7 +289,8 @@ var GameServiceImplement = function () {
 
     this.modifyGamePassword.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.providerId && data.newPassword);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbGame.modifyGamePassword, [conn.playerId, data.providerId, data.newPassword], isValidData);
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbGame.modifyGamePassword, [conn.playerId, data.providerId, data.newPassword, null, inputDevice], isValidData);
     };
 
 };

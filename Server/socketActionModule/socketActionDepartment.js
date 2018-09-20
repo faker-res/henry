@@ -214,6 +214,16 @@ function socketActionDepartment(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isDataValid = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbDepartment.getDepartmentDetailsByPlatformObjId, [data.platformObjId], actionName, isDataValid);
+        },
+
+        /**
+         * Get multiple department tree data for departmentId
+         * @param {json} data - It has to contain departmentId
+         */
+        getDepartmentTreeByIds: function getDepartmentTreeByIds(data) {
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data && data.departmentIds);
+            socketUtil.emitter(self.socket, dbDepartment.getDepartmentTreeByIds, [data.departmentIds], actionName, isDataValid);
         }
     };
 
