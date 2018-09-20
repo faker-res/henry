@@ -6457,12 +6457,6 @@ let dbPlayerInfo = {
                         ) {
                             targetProviderId = playerObj.lastPlayedProvider.providerId;
                             return dbconfig.collection_gameProvider.findOne({providerId: targetProviderId}).lean();
-                        } else {
-                            return Promise.reject({
-                                name: "DataError",
-                                message: "Please transfer out from correct provider",
-                                dontLogTransfer: true
-                            })
                         }
                     }
 
