@@ -508,6 +508,11 @@ var PartnerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getDownPartnerContribution, [data.platformId, data.partnerId, data.requestPage, data.count, data.startTime, data.endTime], isValidData, false, false, true);
     };
 
+    this.getPartnerTransferList.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && data.partnerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.getPartnerTransferList, [data.platformId, data.partnerId, data.startTime, data.endTime, data.requestPage, data.count], isValidData, false, false, true);
+    };
+
     this.notifyNewMail.addListener(
         function (data) {
             WebSocketUtil.notifyMessagePartner(self, "notifyNewMail", data);

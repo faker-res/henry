@@ -99,6 +99,7 @@
                 "saveClientData",
                 "callBackToUser",
                 "getOMCaptcha",
+                "getReceiveTransferList"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -441,6 +442,7 @@
                 "getDownPartnerInfo",
                 "partnerCreditToPlayer",
                 "getDownPartnerContribution",
+                "getPartnerTransferList",
                 "notifyNewMail",
                 "getMailList",
                 "deleteAllMail",

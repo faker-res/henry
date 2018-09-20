@@ -740,7 +740,7 @@ let dbPlayerInfo = {
         )
     },
 
-    checkPlayerIsBlacklistIp: (platformObjId, playerObjId, playerLoginIps) => {
+    checkPlayerIsBlacklistIp: (platformObjId, playerObjId) => {
         let playerProm = dbconfig.collection_players.findOne({
             _id: playerObjId,
             platform: platformObjId
@@ -2525,12 +2525,12 @@ let dbPlayerInfo = {
                 dbconfig.collection_resetPasswordVerification(updateObj).save().catch(errorUtils.reportError);
 
                 let returnData = {
+                    code: code,
                     list: []
                 };
 
                 playerData.forEach(player => {
                     let tempObj = {
-                        code: code,
                         name: player.name,
                         realName: player.realName? player.realName: "",
                         playerId: player.playerId? player.playerId: "",
@@ -2671,22 +2671,39 @@ let dbPlayerInfo = {
                 }
 
                 if (isGetQuestion) {
-                    returnData.phoneNumber = dbUtility.encodePhoneNum(playerObj.phoneNumber);
-                    returnData.questionList = [];
-                    if (resData.question && resData.question.length) {
-                        resData.question.forEach(ques => {
-                            let tempObj = {
-                                id: ques.questionNo,
-                                type: 1,
-                                title: localization.localization.translate(ques.des)
-                            };
-                            if (ques.questionNo == 3) {
-                                tempObj.type = 2;
+                    return  pmsAPI.bankcard_getBankTypeList({}).then(
+                        bankTypeData => {
+                            returnData.phoneNumber = dbUtility.encodePhoneNum(playerObj.phoneNumber);
+                            returnData.questionList = [];
+                            if (resData.question && resData.question.length) {
+                                resData.question.forEach(ques => {
+                                    let tempObj = {
+                                        id: ques.questionNo,
+                                        type: 1,
+                                        title: localization.localization.translate(ques.des)
+                                    };
+
+                                    if (ques.questionNo == 3) {
+                                        tempObj.type = 2;
+                                        tempObj.option = "city";
+                                    } else if (ques.questionNo == 4) {
+                                        tempObj.type = 2;
+                                        tempObj.list = [];
+                                        if (bankTypeData && bankTypeData.data && bankTypeData.data.length) {
+                                            bankTypeData.data.forEach(bank => {
+                                                tempObj.list.push({
+                                                    answerId: bank.id,
+                                                    content: bank.name
+                                                })
+                                            })
+                                        }
+                                    }
+
+                                    returnData.questionList.push(tempObj);
+                                })
                             }
-                            returnData.questionList.push(tempObj);
-                        })
-                    }
-                    return returnData;
+                            return returnData;
+                        });
                 }
 
                 if (!resData.defaultPassword) {
@@ -19990,6 +20007,151 @@ let dbPlayerInfo = {
                 }
             }
         );
+    },
+
+    getReceiveTransferList: function (platformId, playerId, startTime, endTime, requestPage, count) {
+        let platformObj;
+        let playerObj;
+        let proposalObj;
+        let providerGroupObj;
+        let index = 0;
+        let currentPage = requestPage || 1;
+        let pageNo = null;
+        let limit = count || 10;
+        let statsObj = {};
+        let totalCount = 0;
+        let totalPage = 1;
+        let sortCol = {createTime: 1};
+        let totalReceiveAmount = 0;
+
+        if (typeof currentPage != 'number' || typeof limit != 'number') {
+            return Promise.reject({name: "DataError", message: "Incorrect parameter type"});
+        }
+
+        if (currentPage <= 0) {
+            pageNo = 0;
+        } else {
+            pageNo = currentPage;
+        }
+
+        index = ((pageNo - 1) * limit);
+        currentPage = pageNo;
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platformObj = platformData;
+
+                    if (playerId) {
+                        return dbconfig.collection_players.findOne({
+                            platform: platformObj._id,
+                            playerId: playerId
+                        }, {_id: 1, playerId: 1, name: 1}).lean();
+
+                    } else {
+                        return Promise.resolve(true);
+                    }
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
+            playerData => {
+                if (playerData) {
+                    playerObj = playerData;
+
+                    return dbconfig.collection_proposalType.findOne({platformId: platformObj._id, name: constProposalType.DOWNLINE_RECEIVE_PARTNER_CREDIT}).lean();
+
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"});
+                }
+            }
+        ).then(
+            proposalTypeData => {
+                if (proposalTypeData) {
+
+                    if (!startTime) {
+                        startTime = dbUtility.getCurrentMonthSGTIme().startTime;
+                    }
+
+                    if (!endTime) {
+                        endTime = new Date();
+                        endTime.setHours(23, 59, 59, 999);
+                    }
+
+                    let query = {
+                        type: proposalTypeData._id,
+                        'data.playerObjId': playerObj._id,
+                        'data.platformId': platformObj._id,
+                        createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
+                    };
+
+                    let countProm = dbconfig.collection_proposal.find(query).count();
+                    let proposalProm = dbconfig.collection_proposal.find(query,
+                        {
+                            proposalId: 1, createTime: 1, status: 1, "data.amount": 1, "data.withdrawConsumption": 1, "data.providerGroup": 1
+                        }).skip(index).limit(limit).sort(sortCol).lean();
+                    let totalReceiveAmountProm = dbconfig.collection_proposal.aggregate([
+                        {$match: query},
+                        {
+                            $group: {
+                                _id: null,
+                                totalReceive: {$sum: "$data.amount"},
+                            }
+                        }
+                    ]);
+                    let gameProviderGroupProm = dbconfig.collection_gameProviderGroup.find({platform: platformObj._id}).lean();
+
+                    return Promise.all([countProm, proposalProm, totalReceiveAmountProm, gameProviderGroupProm]);
+
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                }
+            }
+        ).then(
+            data => {
+                totalCount = data && data[0] ? data[0] : 0;
+                totalPage = Math.ceil(totalCount / limit);
+                proposalObj = data && data[1] ? data[1] : null;
+                totalReceiveAmount = data && data[2] && data[2][0] && data[2][0].totalReceive ? dbUtil.noRoundTwoDecimalPlaces(data[2][0].totalReceive) : 0;
+                providerGroupObj = data && data[3] ? data[3] : null;
+
+                statsObj.totalCount = totalCount;
+                statsObj.totalPage = totalPage;
+                statsObj.currentPage = currentPage;
+                statsObj.totalReceiveAmount = totalReceiveAmount;
+                let proposalList = [];
+
+                if (proposalObj && proposalObj.length > 0) {
+                    for (let i = 0, len = proposalObj.length; i < len; i++) {
+                        let proposal = proposalObj[i];
+
+                        if (proposal) {
+                            let proposalDetail = {};
+                            proposalDetail.amount = proposal.data && proposal.data.amount ? proposal.data.amount : 0;
+                            proposalDetail.time = proposal.createTime;
+                            proposalDetail.status = proposal.status;
+                            proposalDetail.proposalId = proposal.proposalId;
+                            proposalDetail.withdrawConsumption = proposal.data && proposal.data.withdrawConsumption ? proposal.data.withdrawConsumption : 0;
+
+                            if (proposal.data && proposal.data.providerGroup && providerGroupObj && providerGroupObj.length > 0) {
+                                providerGroupObj.forEach(providerGroup => {
+                                    if (providerGroup && providerGroup._id && providerGroup._id.toString() == proposal.data.providerGroup.toString()) {
+                                        proposalDetail.providerGroupId = providerGroup.providerGroupId;
+                                    }
+                                });
+                            } else {
+                                proposalDetail.providerGroupId = "";
+                            }
+
+                            proposalList.push(proposalDetail);
+                        }
+                    }
+                }
+
+                return {stats: statsObj, list: proposalList};
+            }
+        )
     }
 };
 

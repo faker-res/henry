@@ -330,7 +330,8 @@ define(['js/app'], function (myApp) {
                 PARTNER_UPDATE_PASSWORD: 'Partner_updatePassword',
                 PARTNER_UPDATE_BANK_INFO_FIRST: 'Partner_updateBankInfoFirst',
                 PARTNER_UPDATE_BANK_INFO: 'Partner_updateBankInfo',
-                // RESET_PASSWORD: 'resetPassword'
+                RESET_PASSWORD: 'resetPassword',
+                INQUIRE_ACCOUNT: 'inquireAccount'
             };
 
             vm.constProposalStatus = {
@@ -27104,16 +27105,18 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'getLargeWithdrawalSetting', sendData, function (data) {
                     console.log('getLargeWithdrawalSetting');
-                    vm.largeWithdrawalSetting = {}
-                    if (data && data.data) {
-                        vm.largeWithdrawalSetting = data.data;
-                    }
-                    if (!vm.largeWithdrawalSetting.recipient) {
-                        vm.largeWithdrawalSetting.recipient = [];
-                    }
-                    if (!vm.largeWithdrawalSetting.reviewer) {
-                        vm.largeWithdrawalSetting.reviewer = [];
-                    }
+                    $scope.$evalAsync(() => {
+                        vm.largeWithdrawalSetting = {}
+                        if (data && data.data) {
+                            vm.largeWithdrawalSetting = data.data;
+                        }
+                        if (!vm.largeWithdrawalSetting.recipient) {
+                            vm.largeWithdrawalSetting.recipient = [];
+                        }
+                        if (!vm.largeWithdrawalSetting.reviewer) {
+                            vm.largeWithdrawalSetting.reviewer = [];
+                        }
+                    });
                 });
 
             };
@@ -28368,7 +28371,37 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     query: {platform: vm.selectedPlatform.id},
                     updateData: {
-                        emailNameExtension: srcData.emailNameExtension
+                        emailNameExtension: srcData.emailNameExtension,
+                        showRealName: srcData.showRealName,
+                        showPlayerLevel: srcData.showPlayerLevel,
+                        showBankCity: srcData.showBankCity,
+                        showRegisterTime: srcData.showRegisterTime,
+                        showCurrentWithdrawalTime: srcData.showCurrentWithdrawalTime,
+                        showLastWithdrawalTime: srcData.showLastWithdrawalTime,
+                        showCurrentCredit: srcData.showCurrentCredit,
+                        allowAdminComment: srcData.allowAdminComment,
+                        showPlayerBonusRatio: srcData.showPlayerBonusRatio,
+                        showTotalTopUpAmount: srcData.showTotalTopUpAmount,
+                        showConsumptionReturnAmount: srcData.showConsumptionReturnAmount,
+                        showRewardAmount: srcData.showRewardAmount,
+                        showConsumptionSectionCount: srcData.showConsumptionSectionCount,
+                        showGameProviderInfo: srcData.showGameProviderInfo,
+                        showLastTopUpBonusAmount: srcData.showLastTopUpBonusAmount,
+                        showLastTopUpAmount: srcData.showLastTopUpAmount,
+                        showLastTopUpConsumptionReturnAmount: srcData.showLastTopUpConsumptionReturnAmount,
+                        showLastTopUpRewardAmount: srcData.showLastTopUpRewardAmount,
+                        showLastTopUpConsumptionSectionCount: srcData.showLastTopUpConsumptionSectionCount,
+                        showLastTopUpGameProviderInfo: srcData.showLastTopUpGameProviderInfo,
+                        showDayTopUpAmount: srcData.showDayTopUpAmount,
+                        showDayBonusAmount: srcData.showDayBonusAmount,
+                        showDayTopUpBonusDifference: srcData.showDayTopUpBonusDifference,
+                        showTopUpAmount: srcData.showTopUpAmount,
+                        showBonusAmount: srcData.showBonusAmount,
+                        showTopUpBonusDifference: srcData.showTopUpBonusDifference,
+                        showLastThreeMonthTopUp: srcData.showLastThreeMonthTopUp,
+                        showLastThreeMonthBonus: srcData.showLastThreeMonthBonus,
+                        showLastThreeMonthTopUpBonusDifference: srcData.showLastThreeMonthTopUpBonusDifference,
+                        showLastThreeMonthConsumptionAmount: srcData.showLastThreeMonthConsumptionAmount,
                     }
                 }
                 socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalSetting', sendData, function (data) {
