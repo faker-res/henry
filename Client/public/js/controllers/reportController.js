@@ -6736,8 +6736,7 @@ define(['js/app'], function (myApp) {
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
-                    {title: $translate('PROPOSAL_TYPE'), data: "name"},
-                    {title: $translate('AllPagesLabel'), data: "", sClass: "AllPagesLabel"},
+                    {title: $translate('PROPOSAL_TYPE'), data: "name", sClass:"AllPagesLabel"},
                     {title: $translate('event name'), data: "eventName"},
                     {title: $translate('CountRewardApplied'), data: "countRewardApplied" , sClass:"sumFloat alignRight"},
                     {title: $translate('TotalRewardAmount'), data: "$amount", sClass:"sumFloat alignRight"},
