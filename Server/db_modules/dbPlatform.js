@@ -917,7 +917,7 @@ var dbPlatform = {
                         //if root department, show all the platforms
                         //else only show department platform
                         let rootDepartIndex = data.departments.findIndex(d => d.parent && d.parent.length > 0);
-                        if(rootDepartIndex == -1){
+                        if(rootDepartIndex != -1){
                             let platformProm = [];
                             data.departments.forEach(
                                 department => {
