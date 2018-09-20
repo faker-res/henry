@@ -1225,6 +1225,7 @@
   "SEQUENCE_NO": "No.",
   "Operator_Name": "Operator Name",
   "IS_EFFECTIVE": "Is effective for this product",
+  "blacklistIpConfig": "Blacklist IP Config",
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
   "SMS_VERIFICATION": "SMS Verification",

@@ -1216,6 +1216,11 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getOMCaptcha, [data.platformId], isValidData, false, false, true);
     };
 
+    this.getReceiveTransferList.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data.platformId && conn.playerId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getReceiveTransferList, [data.platformId, conn.playerId, data.startTime, data.endTime, data.requestPage, data.count], isValidData);
+    };
+
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;
