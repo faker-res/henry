@@ -240,7 +240,7 @@ var dbClientQnA = {
                 if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 5) {
                     return dbClientQnA.forgotPassword2(platformObjId, inputDataObj, qnaObjId);
                 } else {
-                    return dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.UPDATE_PASSWORD).then(
+                    return dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.RESET_PASSWORD).then(
                         smsRes => {
                             if (!smsRes) {
                                 return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
@@ -283,7 +283,7 @@ var dbClientQnA = {
 
                 clientQnAObj.QnAData.phoneNumber = inputDataObj.phoneNumber;
 
-                return dbClientQnA.sendSMSVerificationCode(clientQnAObj, constSMSPurpose.UPDATE_PASSWORD);
+                return dbClientQnA.sendSMSVerificationCode(clientQnAObj, constSMSPurpose.RESET_PASSWORD);
             }
         ).then(
             smsRes => {
@@ -634,7 +634,7 @@ var dbClientQnA = {
                 clientQnAData = clientQnA;
 
                 // Send verification code
-                return dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.UPDATE_PASSWORD)
+                return dbClientQnA.sendSMSVerificationCode(clientQnAData, constSMSPurpose.RESET_PASSWORD)
             }
         ).then(
             smsRes => {
@@ -733,7 +733,7 @@ var dbClientQnA = {
             }
         ).then(
             updatedData => {
-                return dbClientQnA.sendSMSVerificationCode(updatedData, constSMSPurpose.UPDATE_PASSWORD)
+                return dbClientQnA.sendSMSVerificationCode(updatedData, constSMSPurpose.RESET_PASSWORD)
             }
         ).then(
             smsRes => {
@@ -792,7 +792,7 @@ var dbClientQnA = {
                 if (qnaObj && qnaObj.QnAData && qnaObj.QnAData.smsCount && qnaObj.QnAData.smsCount >= 5) {
                     return dbClientQnA.rejectFailedRetrieveAccount();
                 } else {
-                    return dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.UPDATE_PASSWORD).then(
+                    return dbClientQnA.sendSMSVerificationCode(qnaObj, constSMSPurpose.RESET_PASSWORD).then(
                         smsRes => {
                             if (!smsRes) {
                                 return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
