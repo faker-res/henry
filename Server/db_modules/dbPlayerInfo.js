@@ -2525,12 +2525,12 @@ let dbPlayerInfo = {
                 dbconfig.collection_resetPasswordVerification(updateObj).save().catch(errorUtils.reportError);
 
                 let returnData = {
+                    code: code,
                     list: []
                 };
 
                 playerData.forEach(player => {
                     let tempObj = {
-                        code: code,
                         name: player.name,
                         realName: player.realName? player.realName: "",
                         playerId: player.playerId? player.playerId: "",
