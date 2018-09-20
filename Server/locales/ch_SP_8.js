@@ -470,7 +470,8 @@ var simplifiedChinese = {
     "2.Parent Partner Commission Rate：": "2.一级代理佣金比例：",
     "Incorrect parameter type": "参数类型错误",
     "Cannot transfer negative amount": "金额不能是负数",
-    "Spending Times cannot be empty": "解锁流水不能为空"
+    "Spending Times cannot be empty": "解锁流水不能为空",
+    "SMS function under maintenance, please try again later.": "短信功能维护中，请稍后再次尝试。",
 
     //todo::add missing messages here
 
