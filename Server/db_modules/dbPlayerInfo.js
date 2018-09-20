@@ -2699,7 +2699,7 @@ let dbPlayerInfo = {
                     }
 
                     if(resData.hasOwnProperty("wrongCount") && playerObj && playerObj.qnaWrongCount &&
-                        playerObj.qnaWrongCount.hasOwnProperty("forgotPassword") &&  playerObj.qnaWrongCount.forgotPassword > resData.wrongCount) {
+                        playerObj.qnaWrongCount.hasOwnProperty("forgotPassword") &&  playerObj.qnaWrongCount.forgotPassword >= resData.wrongCount) {
                         return Promise.reject({name: "DBError", message: "Security question exceed maximum wrong count, this account has been banned from being modified automatically, please contact customer service"});
                     }
 
