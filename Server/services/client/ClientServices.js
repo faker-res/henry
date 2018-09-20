@@ -441,6 +441,7 @@
                 "getDownPartnerInfo",
                 "partnerCreditToPlayer",
                 "getDownPartnerContribution",
+                "getPartnerTransferList",
                 "notifyNewMail",
                 "getMailList",
                 "deleteAllMail",
