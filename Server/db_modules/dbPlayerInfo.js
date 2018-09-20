@@ -2680,7 +2680,7 @@ let dbPlayerInfo = {
                                 type: 1,
                                 title: localization.localization.translate(ques.des)
                             };
-                            if (ques.questionNo == 3  || ques.questionNo == 4) {
+                            if (ques.questionNo == 3) {
                                 tempObj.type = 2;
                             }
                             returnData.questionList.push(tempObj);
