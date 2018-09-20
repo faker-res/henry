@@ -718,18 +718,25 @@ const dbRewardTask = {
                 path: "type",
                 model: dbconfig.collection_proposalType
             }).lean().sort(sortCol).then(udata => {
-                udata.map(item => {
-                    if(!item.data.topUpProposal) {
-                        item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
-                    }
+                if (udata) {
+                    udata.map(item => {
+                        if (!item.data.topUpProposal) {
+                            item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                        }
 
-                    if (item.type.name) {
-                        item.data.rewardType = item.type.name;
-                    }
-                });
+                        if (item.type.name) {
+                            item.data.rewardType = item.type.name;
+                        }
+                    });
 
-                return dbRewardTask.getTopUpProposal(udata);
-
+                    return dbRewardTask.getTopUpProposal(udata);
+                }
+                else{
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "could not get the proposal data"
+                    })
+                }
             }).then(result => {
 
                 if (result){
@@ -1860,6 +1867,7 @@ const dbRewardTask = {
                         if (player) {
                             let rewardType = rewardGroupData && rewardGroupData.type ? rewardGroupData.type : "Free amount";
 
+                            console.log("checking unlockedType --- yH", unlockType)
                             dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardType + ":unlock", player.validCredit, 0, -rewardAmount, null, rewardGroupData);
 
                             prohibitWithdrawal(player);
@@ -2400,6 +2408,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                         if (updatedRTG) {
                             // update the locked reward tasks
                             rewardTaskUnlockedProgress = dbRewardTask.unlockRewardTaskInRewardTaskGroup(updatedRTG, updatedRTG.playerId).then( rewards => {
+                                console.log("checking rewards---yH", rewards || "could not find the rewards data")
                                 if (rewards){
 
                                     return dbRewardTask.getRewardTasksRecord(rewards, updatedRTG);
@@ -2475,7 +2484,10 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
 
                                         if (res[1]) {
                                             dbRewardTask.completeRewardTaskGroup(res[1], res[1].status).catch(errorUtils.reportError);
+                                            console.log("checking---UnlockedRewardTasksRecord", res[0] || "could not find the record");
                                             if (res[0]){
+                                                console.log("yH checking---unlockedRTG-status", statusUpdObj.status)
+                                                console.log("yH checking---unlockedRTG-playerId", updatedRTG.playerId)
                                                 dbRewardTask.updateUnlockedRewardTasksRecord(res[0], statusUpdObj.status, updatedRTG.playerId, updatedRTG.platformId).catch(errorUtils.reportError);
                                             }
 
