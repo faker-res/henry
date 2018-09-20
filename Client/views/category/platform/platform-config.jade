@@ -1986,7 +1986,7 @@
                             tr
                                 td(rowspan=6, style='background-color:lightblue') {{'LAST_TO_CURRENT_WITHDRAWAL' | translate}}
                                 td                                     
-                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showPlayerBonusRatio', ng-disabled='!vm.configTableEdit')
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showPlayerBonusAmount', ng-disabled='!vm.configTableEdit')
                                 td
                                     text {{'PLAYER_PROFIT' | translate}}
                                 td
@@ -2089,14 +2089,14 @@
                                     text {{'Current day to current time total top up' | translate}}
                             tr
                                 td                                     
-                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showDayBonusAmount', ng-disabled='!vm.configTableEdit')
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showDayWithdrawAmount', ng-disabled='!vm.configTableEdit')
                                 td
                                     text {{'DAILY_WITHDRAWAL' | translate}}
                                 td
                                     text {{'Current day to current time total successful withdrawal' | translate}}
                             tr
                                 td                                     
-                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showDayTopUpBonusDifference', ng-disabled='!vm.configTableEdit')
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showDayTopUpWithdrawDifference', ng-disabled='!vm.configTableEdit')
                                 td
                                     text {{'Daily top up - daily withdrawal' | translate}}
                                 td
@@ -2104,21 +2104,21 @@
                             tr
                                 td(rowspan=3, style='background-color:lightcoral') {{'REGISTRATION_TIME_TO_CURRENT_WITHDRAWAL' | translate}}
                                 td                                     
-                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showTopUpAmount', ng-disabled='!vm.configTableEdit')
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showAccountTopUpAmount', ng-disabled='!vm.configTableEdit')
                                 td
                                     text {{'TOTAL_TOP_UP' | translate}}
                                 td
                                     text {{'Current day to current time total top up' | translate}}
                             tr
                                 td                                     
-                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showBonusAmount', ng-disabled='!vm.configTableEdit')
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showAccountWithdrawAmount', ng-disabled='!vm.configTableEdit')
                                 td
                                     text {{'TOTAL_WITHDRAWAL_AMOUNT' | translate}}
                                 td
                                     text {{'Registration time to current time total successful withdrawal' | translate}}
                             tr
                                 td                                     
-                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showTopUpBonusDifference', ng-disabled='!vm.configTableEdit')
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showAccountTopUpWithdrawDifference', ng-disabled='!vm.configTableEdit')
                                 td
                                     text {{'Total top up - total withdrawal' | translate}}
                                 td
@@ -2133,14 +2133,14 @@
                                     text {{'Monthly total top up' | translate}} {{'(Example: July: 100,000/ August: 200,000/ September: 50,000)' | translate}}
                             tr
                                 td                                     
-                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showLastThreeMonthBonus', ng-disabled='!vm.configTableEdit')
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showLastThreeMonthWithdraw', ng-disabled='!vm.configTableEdit')
                                 td
                                     text {{'DEPOSIT_BONUS' | translate}} 
                                 td
                                     text {{'Monthly total withdrawal' | translate}} {{'(Example: July: 100,000/ August: 200,000/ September: 50,000)' | translate}}
                             tr
                                 td                                     
-                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showLastThreeMonthTopUpBonusDifference', ng-disabled='!vm.configTableEdit')
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showLastThreeMonthTopUpWithdrawDifference', ng-disabled='!vm.configTableEdit')
                                 td
                                     text {{'Top up - withdrawal' | translate}}
                                 td
