@@ -1663,6 +1663,7 @@
   "SEQUENCE_NO": "编号",
   "Operator_Name": "操作员帐号",
   "IS_EFFECTIVE": "是否对本产品生效",
+  "blacklistIpConfig": "黑名单IP设置",
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",

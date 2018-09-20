@@ -740,7 +740,7 @@ let dbPlayerInfo = {
         )
     },
 
-    checkPlayerIsBlacklistIp: (platformObjId, playerObjId, playerLoginIps) => {
+    checkPlayerIsBlacklistIp: (platformObjId, playerObjId) => {
         let playerProm = dbconfig.collection_players.findOne({
             _id: playerObjId,
             platform: platformObjId
