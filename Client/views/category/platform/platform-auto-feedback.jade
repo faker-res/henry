@@ -379,7 +379,7 @@
                             td
                                 a(ng-click="vm.autoFeedbackShowPromoCodeDetail(vm.autoFeedbackSearchDetailResult[1][i].data)" data-toggle="modal" data-target="#modalAutoFeedbackPromoCodeDetail") {{v.data.length}}
                             td {{v.acceptedCount}}
-                            td {{v.accessCount}}
+                            td {{v.loginCount}}
                             td {{v.topUpCount}}
                 br
                 table#autoFeedbackDetailTableSecond.simple-table.display(style="min-width:100%;" ng-show="vm.autoFeedbackSearchDetailResult[2]")
@@ -395,7 +395,7 @@
                             td
                                 a(ng-click="vm.autoFeedbackShowPromoCodeDetail(vm.autoFeedbackSearchDetailResult[2][i].data)" data-toggle="modal" data-target="#modalAutoFeedbackPromoCodeDetail") {{v.data.length}}
                             td {{v.acceptedCount}}
-                            td {{v.accessCount}}
+                            td {{v.loginCount}}
                             td {{v.topUpCount}}
                 br
                 table#autoFeedbackDetailTableThird.simple-table.display(style="min-width:100%;" ng-show="vm.autoFeedbackSearchDetailResult[3]")
@@ -411,7 +411,7 @@
                             td
                                 a(ng-click="vm.autoFeedbackShowPromoCodeDetail(vm.autoFeedbackSearchDetailResult[3][i].data)" data-toggle="modal" data-target="#modalAutoFeedbackPromoCodeDetail") {{v.data.length}}
                             td {{v.acceptedCount}}
-                            td {{v.accessCount}}
+                            td {{v.loginCount}}
                             td {{v.topUpCount}}
 
 #modalAutoFeedbackPromoCodeDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')

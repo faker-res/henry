@@ -569,6 +569,17 @@ function socketActionProposal(socketIO, socket) {
             socketUtil.emitter(self.socket, dbProposal.getPaymentMonitorResult, [data, data.index, data.limit], actionName, isValidData);
         },
 
+        getPaymentMonitorTotalResult: function getPaymentMonitorTotalResult(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            let time = dbUtil.getYesterdaySGTime();
+            data.startTime = data.startTime ? new Date(data.startTime) : time.startTime;
+            data.endTime = data.endTime ? new Date(data.endTime) : time.endTime;
+            data.limit = data.limit || 10;
+            data.index = data.index || 0;
+            socketUtil.emitter(self.socket, dbProposal.getPaymentMonitorTotalResult, [data, data.index, data.limit], actionName, isValidData);
+        },
+
         approveCsPendingAndChangeStatus: function approveCsPendingAndChangeStatus(data) {
             let actionName = arguments.callee.name;
             let isDataValid = Boolean(data && data.proposalObjId && data.createTime);
@@ -644,6 +655,21 @@ function socketActionProposal(socketIO, socket) {
             var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
             var endTime = data.endDate ? new Date(data.endDate) : new Date();
             socketUtil.emitter(self.socket, dbProposal.getProfitDisplayDetailByPlatform, [ObjectId(data.platformId), startTime, endTime, data.playerBonusType, data.topUpType], actionName, isValidData);
+        },
+        lockProposalByAdmin: function lockProposalByAdmin(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.proposalId && data.adminId && data.adminName);
+            socketUtil.emitter(self.socket, dbProposal.lockProposalByAdmin, [data.proposalId, data.adminId, data.adminName], actionName, isValidData);
+        },
+        unlockProposalByAdmin: function unlockProposalByAdmin(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.proposalId && data.adminId);
+            socketUtil.emitter(self.socket, dbProposal.unlockProposalByAdmin, [data.proposalId, data.adminId], actionName, isValidData);
+        },
+        updateFollowUpContent: function updateFollowUpContent(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.proposalId && data.followUpContent);
+            socketUtil.emitter(self.socket, dbProposal.updateFollowUpContent, [data.proposalId, data.followUpContent], actionName, isValidData);
         },
 
 

@@ -609,6 +609,8 @@ define([], function () {
                         htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
                     } else if(classes.indexOf("limitedOfferSumLabel") > -1) {
                         htmlStr = gethtmlStr($trans('Page Total'), $trans('All Pages'));
+                    } else if(classes.indexOf("AllPagesLabel") > -1) {
+                        htmlStr = gethtmlStr($trans('All Pages'), $trans('All Pages'));
                     }  else if(classes.indexOf("limitedOfferClaimStatusLabel") > -1) {
                         htmlStr = gethtmlStr($trans('STILL VALID')+":", $trans('ACCEPTED')+":", [$trans('EXPIRED')+":", $trans('TOTAL_SUM')+":"], true);
                     } else if(classes.indexOf("limitedOfferClaimStatusAmount") > -1) {

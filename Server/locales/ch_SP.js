@@ -58,6 +58,11 @@ var simplifiedChinese = {
     "Phone number does not match": "电话号码不匹配",
     "Answer correct count does not meet minimum requirement.": "问题答对数量不符合要求。",
     "Code does not match or expired.": "验证码错误或已过期",
+    "Default password not found": "找不到预设密码",
+    "Please enter last 4 digits of bank account (must answer correctly)": "填写银行账号后4位（必需回答正确）",
+    "Please enter bank card name?": "银行卡姓名",
+    "Please enter bank card registration city?": "开户城市",
+    "Please enter bank name?": "银行名称",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",
@@ -477,7 +482,9 @@ var simplifiedChinese = {
     "Parent Partner": "一级代理",
     "1.Partner Commission Proposal No.: ": "1.代理佣金提案号：",
     "2.Parent Partner Commission Rate：": "2.一级代理佣金比例：",
-    "Incorrect parameter type": "参数类型错误"
+    "Incorrect parameter type": "参数类型错误",
+    "Cannot transfer negative amount": "金额不能是负数",
+    "Spending Times cannot be empty": "解锁流水不能为空"
 
     //todo::add missing messages here
 

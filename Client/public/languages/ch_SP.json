@@ -4130,8 +4130,9 @@
   "*Bank Card Name": "*银行姓名",
   "*BankCardNo": "*银行卡号",
   "*BANK_TYPE": "*银行类别",
-  "*BANK_ACCOUNT_PROVINCE": "*开户城市",
+  "*BANK_ACCOUNT_PROVINCE": "*开户省份",
   "*BANK_ACCOUNT_CITY": "*开户城市",
+  "(Please insert new bank card)": "（请输入新的卡号）",
 
   "Mailing Status:": "邮件状态：",
   "Not send": "未发送",
@@ -4366,6 +4367,8 @@
   "Top Up Count Till Next Three Days of Sending": "发送后成功存款人数（三天内）",
   "Multiple login after 1 issuance of promo code to be counted as 1": "同一人触发1次发送多次登入算1人。",
   "Multiple login after 2 issuance of promo code to be counted as 2": "同一人触发2次发送多次登入算2人。",
+  "Multiple top up after 1 issuance of promo code to be counted as 1": "同一人触发1次发送多笔存款算1人。",
+  "Multiple top up after 2 issuance of promo code to be counted as 2": "同一人触发2次发送多笔存款算2人。",
   "Source": "状态来源",
   "Current Game Status": "目前游戏状态",
   "Actions":"状态操作",
@@ -4474,5 +4477,12 @@
   "Please select the departments below to add/remove department(s) to FPMS account": "请勾选下列部门（复选），该部门将『添加/移除』至此后台帐号",
   "CLEAR_ALL_CHECKED": "清空勾选",
   "orderNoInfo": "存款单号（PMS 结算只匹配存款单号、收款帐号、金额后强制自动执行）",
-  "orderNo": "存款单号"
+  "orderNo": "存款单号",
+  "Website": "网站",
+  "Admin_Locked": "客服锁定",
+  "Followup_Content": "跟进内容",
+  "is following up": "正在跟进中",
+  "follow up completed": "已跟进",
+  "A: Pending To Collect": "A区: 待认领",
+  "B: Follow Up Completed": "B区: 已跟进"
 }

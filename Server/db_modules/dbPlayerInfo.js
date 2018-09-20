@@ -741,34 +741,75 @@ let dbPlayerInfo = {
     },
 
     checkPlayerIsBlacklistIp: (platformObjId, playerObjId, playerLoginIps) => {
-        let fixedCredibilityRemarksProm = [];
-        let playerProm = [];
+        let playerProm = dbconfig.collection_players.findOne({
+            _id: playerObjId,
+            platform: platformObjId
+        }).lean();
+        let fixedCredibilityRemarksProm = dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId);
+        let blacklistIpConfigProm = dbPlatform.getBlacklistIpConfig();
+        let playerActionLogProm = dbconfig.collection_actionLog.aggregate(
+            {
+                $match: {
+                    platform: platformObjId,
+                    player: playerObjId,
+                    $or: [
+                        {providerId: {$exists: true}}, // login ip to provider
+                        {action: {$in: ['login', 'player - create']}} // login ip and registration ip
+                    ]
+                }
+            },
+            {
+                $group: {
+                    _id: "$ipAddress"
+                }
+            }
+        );
 
-        return dbPlatform.getBlacklistIpConfig().then(
-            blackListIpConfig => {
+        return Promise.all([playerProm, fixedCredibilityRemarksProm, blacklistIpConfigProm, playerActionLogProm]).then(
+            data => {
+                let playerData = data[0];
+                let fixedCredibilityRemarks = data[1];
+                let blacklistIpData = data[2];
+                let playerActionLogData = data[3];
+                let blacklistIpID = null;
                 let blacklistIpList = [];
                 let matchBlacklistIpList = [];
-                if (blackListIpConfig && blackListIpConfig.length > 0) {
-                    for (let x = 0; x < blackListIpConfig.length; x++) {
-                        if (blackListIpConfig[x].ip && blackListIpConfig[x].isEffective) {
-                            blacklistIpList.push(blackListIpConfig[x].ip);
+                let credibilityRemarks = [];
+                let playerUniqueLoginIP = [];
+
+                if (playerActionLogData && playerActionLogData.length > 0) {
+                    playerActionLogData.forEach(data => {
+                        if (data && data._id) {
+                            playerUniqueLoginIP.push(data._id);
+                        }
+                    });
+                }
+
+                if (blacklistIpData && blacklistIpData.length > 0) {
+                    for (let x = 0; x < blacklistIpData.length; x++) {
+                        if (blacklistIpData[x].ip && blacklistIpData[x].isEffective) {
+                            blacklistIpList.push(blacklistIpData[x].ip);
                         }
                     }
-                    if (playerLoginIps && blackListIpConfig && playerLoginIps.length > 0 && blackListIpConfig.length > 0) {
-                        playerLoginIps.forEach(IP => {
-                            blackListIpConfig.forEach(bIP => {
+                    if (playerUniqueLoginIP && blacklistIpData && playerUniqueLoginIP.length > 0 && blacklistIpData.length > 0) {
+                        playerUniqueLoginIP.forEach(IP => {
+                            blacklistIpData.forEach(bIP => {
                                 if (IP === bIP.ip && bIP.isEffective) {
                                     matchBlacklistIpList.push(bIP._id);
-                                    return dbPlayerCredibility.addFixedCredibilityRemarkToPlayer(platformObjId, playerObjId, '黑名单IP')
                                 }
                             })
                         })
                     }
-                    return matchBlacklistIpList;
                 }
-            }
-        ).then(
-            matchBlacklistIpList => {
+
+                if (fixedCredibilityRemarks && fixedCredibilityRemarks.length > 0) {
+                    fixedCredibilityRemarks.forEach(remark => {
+                        if (remark.name === '黑名单IP') {
+                            blacklistIpID = remark._id;
+                        }
+                    });
+                }
+
                 if (matchBlacklistIpList) {
                     dbconfig.collection_players.findOneAndUpdate({
                         platform: platformObjId,
@@ -778,42 +819,34 @@ let dbPlayerInfo = {
                             blacklistIp: matchBlacklistIpList
                         }
                     }).lean().exec();
-                }
 
-                // remove fixed credibility from player if no match blacklist ip
-                if (matchBlacklistIpList && matchBlacklistIpList.length === 0) {
-                    fixedCredibilityRemarksProm = dbPlayerCredibility.getFixedCredibilityRemarks(platformObjId);
-
-                    playerProm = dbconfig.collection_players.findOne({
-                        _id: playerObjId,
-                        platform: platformObjId
-                    }).lean();
-
-                    return Promise.all([fixedCredibilityRemarksProm, playerProm]).then(
-                        data => {
-                            if (data) {
-                                let fixedCredibilityRemarks = data[0];
-                                let playerData = data[1];
-                                let blacklistIpID = null;
-
-                                if (fixedCredibilityRemarks && fixedCredibilityRemarks.length > 0) {
-                                    fixedCredibilityRemarks.forEach(remark => {
-                                        if (remark.name === '黑名单IP') {
-                                            blacklistIpID = remark._id;
-                                        }
-                                    });
-                                }
-
-                                if (playerData && playerData.credibilityRemarks && playerData.credibilityRemarks.length > 0) {
-                                    if (playerData.credibilityRemarks.some(e => e && blacklistIpID && e.toString() === blacklistIpID.toString())) {
-                                        // if blacklistIpID already exist
-                                        let credibilityRemarks = playerData.credibilityRemarks.filter(e => e && blacklistIpID && e.toString() !== blacklistIpID.toString());
-                                        dbPlayerInfo.updatePlayerCredibilityRemark('System', platformObjId, playerObjId, credibilityRemarks, '删除黑名单IP');
-                                    }
-                                }
+                    // add fixed credibility to player if found match blacklist ip
+                    if (matchBlacklistIpList.length > 0) {
+                        if (playerData && playerData.credibilityRemarks && playerData.credibilityRemarks.length > 0) {
+                            if (playerData.credibilityRemarks.some(e => e && blacklistIpID && e.toString() === blacklistIpID.toString())) {
+                                // if blacklistIpID already exist
+                                credibilityRemarks = playerData.credibilityRemarks;
+                            } else {
+                                // if blacklistIpID didn't exist
+                                playerData.credibilityRemarks.push(blacklistIpID);
+                                credibilityRemarks = playerData.credibilityRemarks;
+                                dbPlayerInfo.updatePlayerCredibilityRemark('System', platformObjId, playerObjId, credibilityRemarks, '黑名单IP');
                             }
+                        } else {
+                            // player didn't have any credibility remarks, auto add
+                            credibilityRemarks.push(blacklistIpID);
+                            dbPlayerInfo.updatePlayerCredibilityRemark('System', platformObjId, playerObjId, credibilityRemarks, '黑名单IP');
                         }
-                    );
+                    }
+
+                    // remove fixed credibility from player if no match blacklist ip
+                    if (matchBlacklistIpList.length === 0 && playerData && playerData.credibilityRemarks && playerData.credibilityRemarks.length > 0) {
+                        if (playerData.credibilityRemarks.some(e => e && blacklistIpID && e.toString() === blacklistIpID.toString())) {
+                            // if blacklistIpID already exist
+                            credibilityRemarks = playerData.credibilityRemarks.filter(e => e && blacklistIpID && e.toString() !== blacklistIpID.toString());
+                            dbPlayerInfo.updatePlayerCredibilityRemark('System', platformObjId, playerObjId, credibilityRemarks, '删除黑名单IP');
+                        }
+                    }
                 }
             }
         )
@@ -2457,29 +2490,25 @@ let dbPlayerInfo = {
 
     inquireAccountByPhoneNumber: function (platformId, phoneNumber, smsCode) {
         let platformObj;
-        let playerObj;
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (!platformData) {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
                 }
                 platformObj = platformData;
-                return dbconfig.collection_players.find({platform: platformData._id, phoneNumber: rsaCrypto.encrypt(phoneNumber)}).lean();
-            }
-        ).then(
-            playerData => {
-                if (!(playerData && playerData.length)) {
-                    return Promise.reject({name: "DBError", message: "Cannot find player"})
-                }
-
-                playerObj = playerData;
-
                 return dbPlayerMail.verifySMSValidationCode(phoneNumber, platformObj, smsCode);
             }
         ).then(
             smsVerifyData => {
                 if (!smsVerifyData) {
                     return Q.reject({name: "DataError", message: "Incorrect SMS Validation Code"});
+                }
+                return dbconfig.collection_players.find({platform: platformObj._id, phoneNumber: rsaCrypto.encrypt(phoneNumber)}).lean();
+            }
+        ).then(
+            playerData => {
+                if (!(playerData && playerData.length)) {
+                    return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
 
                 let code = dbUtility.generateRandomPositiveNumber(1000, 9999);
@@ -2488,7 +2517,7 @@ let dbPlayerInfo = {
                     code: code,
                     createTime: new Date(),
                     platformObjId: platformObj._id,
-                    playerObjIds: playerObj.map(function (player) {
+                    playerObjIds: playerData.map(function (player) {
                         return player._id;
                     })
                 }
@@ -2499,7 +2528,7 @@ let dbPlayerInfo = {
                     list: []
                 };
 
-                playerObj.forEach(player => {
+                playerData.forEach(player => {
                     let tempObj = {
                         code: code,
                         name: player.name,
@@ -2510,7 +2539,6 @@ let dbPlayerInfo = {
                     returnData.list.push(tempObj);
                 })
                 return returnData;
-
             }
         )
     },
@@ -2520,6 +2548,7 @@ let dbPlayerInfo = {
         let playerObj;
         let isCheckByPhone = false;
         let isCheckByCode = false;
+        let isGetQuestion = false; //  return question only
         let correctQues = [];
         let incorrectQues = [];
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
@@ -2572,6 +2601,16 @@ let dbPlayerInfo = {
                     return Q.reject({name: "DataError", message: "Incorrect SMS Validation Code"});
                 }
 
+                if (name && !smsCode && !answerArr && !phoneNumber && !code) {
+                    // return question only
+                    isGetQuestion = true;
+                    return dbconfig.collection_clientQnATemplate.findOne({
+                        type: constClientQnA.FORGOT_PASSWORD,
+                        processNo: "2_2",
+                        isSecurityQuestion: true
+                    }, {question: 1, answerInput: 1});
+                }
+
                 if (!isCheckByCode && !isCheckByPhone && answerArr && answerArr.length) {
                     answerArr.forEach(answer => {
                         if (answer.quesNo && answer.ans) {
@@ -2613,8 +2652,11 @@ let dbPlayerInfo = {
                 return dbconfig.collection_clientQnATemplateConfig.findOne({type: constClientQnA.FORGOT_PASSWORD, platform: platformObj._id}).lean();
             }
         ).then(
-            configData => {
-                if (!configData) {
+            resData => {
+                if (!resData) {
+                    if (isGetQuestion) {
+                        return Promise.reject({name: "DBError", message: "Cannot find QnA template"});
+                    }
                     return Promise.reject({name: "DBError", message: "Cannot find QnA template config"});
                 }
 
@@ -2628,20 +2670,49 @@ let dbPlayerInfo = {
                     returnData.realName = playerObj.realName;
                 }
 
+                if (isGetQuestion) {
+                    returnData.phoneNumber = dbUtility.encodePhoneNum(playerObj.phoneNumber);
+                    returnData.questionList = [];
+                    if (resData.question && resData.question.length) {
+                        resData.question.forEach(ques => {
+                            let tempObj = {
+                                id: ques.questionNo,
+                                type: 1,
+                                title: localization.localization.translate(ques.des)
+                            };
+                            if (ques.questionNo == 3) {
+                                tempObj.type = 2;
+                            }
+                            returnData.questionList.push(tempObj);
+                        })
+                    }
+                    return returnData;
+                }
+
+                if (!resData.defaultPassword) {
+                    return Promise.reject({name: "DBError", message: "Default password not found"});
+                }
+
                 if (!isCheckByCode && !isCheckByPhone && answerArr && answerArr.length) {
-                    if (correctQues && correctQues.length && correctQues.indexOf("1") != -1) {
-                        if (!configData.defaultPassword) {
-                            return Promise.reject({name: "DBError", message: "Default password not found"});
-                        }
-                        if (!configData.hasOwnProperty("minQuestionPass")) {
-                            return Promise.reject({name: "DBError", message: "Minimum correct answer has not config"});
-                        }
-                        if (correctQues.length < configData.minQuestionPass) {
-                            return Promise.reject({name: "DBError", message: "Answer correct count does not meet minimum requirement."});
-                        }
+                    if (!resData.hasOwnProperty("minQuestionPass")) {
+                        return Promise.reject({name: "DBError", message: "Minimum correct answer has not config"});
+                    }
+
+                    if(resData.hasOwnProperty("wrongCount") && playerObj && playerObj.qnaWrongCount &&
+                        playerObj.qnaWrongCount.hasOwnProperty("forgotPassword") &&  playerObj.qnaWrongCount.forgotPassword > resData.wrongCount) {
+                        return Promise.reject({name: "DBError", message: "Security question exceed maximum wrong count, this account has been banned from being modified automatically, please contact customer service"});
+                    }
+
+                    if (!(correctQues && correctQues.length && correctQues.indexOf("1") != -1) || correctQues.length < resData.minQuestionPass) {
+                        dbconfig.collection_players.findOneAndUpdate({_id: playerObj._id, platform: platformObj._id},{$inc: {"qnaWrongCount.forgotPassword": 1}}).catch(errorUtils.reportError);
+                        return Promise.reject({
+                            name: "DBError",
+                            message: "Answer correct count does not meet minimum requirement."
+                        });
                     }
                 }
-                dbPlayerInfo.resetPlayerPassword(playerObj._id, configData.defaultPassword, platformObj._id, false, null).catch(errorUtils.reportError);
+                returnData.password = resData.defaultPassword;
+                dbPlayerInfo.resetPlayerPassword(playerObj._id, resData.defaultPassword, platformObj._id, false, null).catch(errorUtils.reportError);
                 return returnData;
             }
         )
@@ -3830,6 +3901,37 @@ let dbPlayerInfo = {
                         );
                     }
 
+                    //check and set promo code autoFeedbackMissionTopUp to true;
+                    dbconfig.collection_promoCode.aggregate([
+                        {$match: {
+                            platformObjId: topupRecordData.platformId,
+                            playerObjId: topupRecordData.playerId,
+                            promoCodeTemplateObjId: {$exists: true},
+                            autoFeedbackMissionObjId: {$exists: true},
+                            autoFeedbackMissionTopUp: {$exists: false}
+                        }},
+                        {$sort: {createTime: -1}},
+                        {
+                            $group: {
+                                _id: "$autoFeedbackMissionObjId",
+                                autoFeedbackMissionScheduleNumber: {$first: "$autoFeedbackMissionScheduleNumber"},
+                                createTime: {$first: "$createTime"}
+                            }
+                        }
+                    ]).exec().then(promoCodes => {
+                        console.log("autofeedback promoCodes record during successful topup",promoCodes);
+                        promoCodes.forEach(promoCode => {
+                            if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
+                                dbconfig.collection_promoCode.findOneAndUpdate({
+                                    autoFeedbackMissionObjId: promoCode._id,
+                                    autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
+                                    createTime: promoCode.createTime
+                                }, {
+                                    autoFeedbackMissionTopUp: true
+                                }).exec();
+                            }
+                        })
+                    });
                     return Promise.resolve(data && data[0]);
                 }
             },
@@ -4953,7 +5055,7 @@ let dbPlayerInfo = {
                                     }
 
                                     if (playerLoginIps && playerLoginIps.length > 0 && !skippedIP.includes(registrationIp)) {
-                                        dbPlayerInfo.checkPlayerIsBlacklistIp(platformId, playerId, playerLoginIps);
+                                        dbPlayerInfo.checkPlayerIsBlacklistIp(platformId, playerId);
                                     }
                                 }
                             }
@@ -6303,19 +6405,18 @@ let dbPlayerInfo = {
     transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
         let playerObj;
         let gameProvider;
+        let targetProviderId = providerId;
+        let platformData;
         let playerProm = forSync
             ? dbconfig.collection_players.findOne({name: playerId})
-                .populate({path: "platform", model: dbconfig.collection_platform})
+                .populate({path: "platform", model: dbconfig.collection_platform}).lean()
             : dbconfig.collection_players.findOne({playerId: playerId})
                 .populate({path: "platform", model: dbconfig.collection_platform})
-                .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider});
-        let providerProm = dbconfig.collection_gameProvider.findOne({providerId: providerId});
-
-        console.log('transferPlayerCreditFromProvider', playerId, providerId);
+                .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean();
+        let providerProm = dbconfig.collection_gameProvider.findOne({providerId: targetProviderId}).lean();
 
         return Promise.all([playerProm, providerProm]).then(
-            function (data) {
-                console.log('data', data);
+            data => {
                 if (data && data[0] && data[0].isTestPlayer) {
                     return Promise.reject({
                         name: "DataError",
@@ -6323,60 +6424,74 @@ let dbPlayerInfo = {
                     })
                 }
 
-                // Enforce player to transfer out from correct last played provider
-                if (data && data[0] && data[0].lastPlayedProvider && data[0].lastPlayedProvider.providerId != providerId) {
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "Please transfer out from correct provider",
-                        dontLogTransfer: true
-                    })
-                }
-
                 if (data && data[0] && data[1]) {
                     [playerObj, gameProvider] = data;
-                    let platformData = playerObj.platform;
+                    platformData = playerObj.platform;
 
-                    if (dbUtility.getPlatformSpecificProviderStatus(gameProvider, platformData.platformId) != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(gameProvider._id)] && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false) {
-                        return Promise.reject({
-                            name: "DataError",
-                            message: "Provider is not available"
-                        });
+                    // Enforce player to transfer out from correct last played provider
+                    if (
+                        playerObj.lastPlayedProvider
+                        && playerObj.lastPlayedProvider.providerId != targetProviderId
+                    ) {
+                        if (
+                            gameProvider.sameLineProviders
+                            && gameProvider.sameLineProviders[platformData.platformId]
+                            && gameProvider.sameLineProviders[platformData.platformId].includes(playerObj.lastPlayedProvider.providerId)
+                        ) {
+                            targetProviderId = playerObj.lastPlayedProvider.providerId;
+                            return dbconfig.collection_gameProvider.findOne({providerId: targetProviderId}).lean();
+                        } else {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: "Please transfer out from correct provider",
+                                dontLogTransfer: true
+                            })
+                        }
                     }
 
-                    return dbPlayerUtil.setPlayerState(playerObj._id, "TransferFromProvider").then(
-                        playerState => {
-                            if (playerState) {
-
-                                dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, playerObj.platform._id, playerObj.platform.platformId, "transferOut", "unknown",
-                                    providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
-
-                                if (playerObj.platform.useProviderGroup) {
-                                    // Platform supporting provider group
-                                    if (playerObj.platform.useEbetWallet && (data[1].name.toUpperCase() === "EBET" || data[1].name.toUpperCase() === "EBETSLOTS")) {
-                                        // if use eBet Wallet
-                                        console.log("using eBetWallet");
-                                        return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallets(
-                                            data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
-                                    } else {
-                                        return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
-                                            data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
-                                    }
-                                } else {
-                                    // Deprecated - should not go this path
-                                    return dbPlayerInfo.transferPlayerCreditFromProviderbyPlayerObjId(data[0]._id, data[0].platform._id, data[1]._id, amount, playerId, providerId, data[0].name, data[0].platform.platformId, adminName, data[1].name, bResolve, maxReward, forSync);
-                                }
-                            } else {
-                                return Promise.reject({
-                                    name: "DBError",
-                                    message: "transfer credit fail, please try again later",
-                                    dontLogTransfer: true
-                                })
-                            }
-                        });
-
+                    return gameProvider;
                 } else {
                     return Promise.reject({name: "DataError", message: "Cant find player or provider"});
                 }
+            }
+        ).then(
+            gameProviderData => {
+                gameProvider = gameProviderData;
+
+                if (dbUtility.getPlatformSpecificProviderStatus(gameProvider, platformData.platformId) != constProviderStatus.NORMAL || platformData && platformData.gameProviderInfo && platformData.gameProviderInfo[String(gameProvider._id)] && platformData.gameProviderInfo[String(gameProvider._id)].isEnable === false) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Provider is not available"
+                    });
+                }
+
+                return dbPlayerUtil.setPlayerState(playerObj._id, "TransferFromProvider").then(
+                    playerState => {
+                        if (playerState) {
+
+                            dbLogger.createPlayerCreditTransferStatusLog(playerObj._id, playerObj.playerId, playerObj.name, playerObj.platform._id, playerObj.platform.platformId, "transferOut", "unknown",
+                                providerId, amount, 0, adminName, null, constPlayerCreditTransferStatus.REQUEST);
+
+                            // Platform supporting provider group
+                            if (playerObj.platform.useEbetWallet && (gameProvider.name.toUpperCase() === "EBET" || gameProvider.name.toUpperCase() === "EBETSLOTS")) {
+                                // if use eBet Wallet
+                                console.log("using eBetWallet");
+                                return dbPlayerCreditTransfer.playerCreditTransferFromEbetWallets(
+                                    playerObj._id, playerObj.platform._id, gameProvider._id, amount, playerId, targetProviderId, playerObj.name, playerObj.platform.platformId, adminName, gameProvider.name, bResolve, maxReward, forSync);
+                            } else {
+                                return dbPlayerCreditTransfer.playerCreditTransferFromProviderWithProviderGroup(
+                                    playerObj._id, playerObj.platform._id, gameProvider._id, amount, playerId, targetProviderId, playerObj.name, playerObj.platform.platformId, adminName, gameProvider.name, bResolve, maxReward, forSync);
+                            }
+                        } else {
+                            return Promise.reject({
+                                name: "DBError",
+                                message: "transfer credit fail, please try again later",
+                                dontLogTransfer: true
+                            })
+                        }
+                    });
+
+
             },
             function (err) {
                 return Promise.reject({name: "DataError", message: "Cant find player or provider" + err.message, error: err})

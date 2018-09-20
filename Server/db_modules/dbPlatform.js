@@ -857,15 +857,12 @@ var dbPlatform = {
 
                     // Update same line providers
                     if (sameLineProviders && sameLineProviders.length) {
-                        console.log('sameLineProviders', sameLineProviders);
                         sameLineProviders.forEach(providers => {
                             if (providers && providers.length) {
                                 providers.forEach(provider => {
-                                    let key = "sameLineProviders." + provider;
+                                    let key = "sameLineProviders." + platformId;
                                     let setObj = {};
-                                    setObj[key] = sameLineProviders;
-
-                                    console.log('setObj', setObj);
+                                    setObj[key] = providers;
 
                                     proms.push(
                                         dbconfig.collection_gameProvider.findOneAndUpdate({providerId: provider}, {
@@ -920,7 +917,7 @@ var dbPlatform = {
                         //if root department, show all the platforms
                         //else only show department platform
                         let rootDepartIndex = data.departments.findIndex(d => d.parent && d.parent.length > 0);
-                        if(rootDepartIndex == -1){
+                        if(rootDepartIndex != -1){
                             let platformProm = [];
                             data.departments.forEach(
                                 department => {
