@@ -8891,8 +8891,7 @@ let dbPartner = {
                     return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
                 }
 
-                let todayDate = new Date();
-                let thisMonthDateStartTime = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1, 0, 0, 0);
+                let thisMonthDateStartTime = dbutility.getCurrentMonthSGTIme().startTime;
                 let endTime = new Date();
                 endTime.setHours(23, 59, 59, 999);
                 let proms = [];
@@ -9185,8 +9184,7 @@ let dbPartner = {
             proposalTypeData => {
                 if (proposalTypeData) {
                     if (!startTime) {
-                        let todayDate = new Date();
-                        startTime = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1, 0, 0, 0);
+                        startTime = dbutility.getCurrentMonthSGTIme().startTime;
                     }
 
                     if (!endTime) {
@@ -9336,8 +9334,7 @@ let dbPartner = {
             proposalTypeData => {
                 if (proposalTypeData) {
                     if (!startTime) {
-                        let todayDate = new Date();
-                        startTime = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1, 0, 0, 0);
+                        startTime = dbutility.getCurrentMonthSGTIme().startTime;
                     }
 
                     if (!endTime) {
