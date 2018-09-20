@@ -422,6 +422,34 @@ let dbPlayerInfo = {
                         return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
 
+                    if (inputData.lastLoginIp) {
+                        return dbPlatform.getBlacklistIpIsEffective().then(
+                            blacklistIpData => {
+                                let blacklistIpList = [];
+                                if (blacklistIpData && blacklistIpData.length > 0) {
+                                    for (let x = 0; x < blacklistIpData.length; x++) {
+                                        if (blacklistIpData[x].ip && blacklistIpData[x].isEffective) {
+                                            blacklistIpList.push(blacklistIpData[x].ip);
+                                        }
+                                    }
+
+                                    if (blacklistIpList && blacklistIpList.length > 0 && blacklistIpList.includes(inputData.lastLoginIp)) {
+                                        return Q.reject({
+                                            status: constServerCode.BLACKLIST_IP,
+                                            name: "DBError",
+                                            message: localization.localization.translate("Registration function under maintenance, please try again later.")
+                                        });
+                                    } else {
+                                        return platformData;
+                                    }
+                                }
+                            }
+                        );
+                    }
+                    return platformData;
+                }
+            ).then(
+                platformData => {
                     if (inputData.phoneNumber && platformData.blackListingPhoneNumbers) {
                         let indexNo = platformData.blackListingPhoneNumbers.findIndex(p => p == inputData.phoneNumber);
 
