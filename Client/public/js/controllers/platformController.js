@@ -34014,7 +34014,93 @@ define(['js/app'], function (myApp) {
                     item.createTime$ = item.createTime ? utilService.$getTimeFromStdTimeFormat(item.createTime) : "-";
                     item.acceptedTime$ = item.acceptedTime ? utilService.$getTimeFromStdTimeFormat(item.acceptedTime) : "-";
                     item.adminName$ = item.adminName ? item.adminName : $translate("Backstage");
-                })
+                });
+                vm.drawAutoFeedbackPromoCodeTable(vm.autoFeedbackPromoCodeDetail);
+            };
+            vm.drawAutoFeedbackPromoCodeTable = function (data) {
+                let tableOptions = {
+                    data: data,
+                    "order": [[12, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [12]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('ACCOUNT'),
+                            data: "playerName"
+                        },
+                        {
+                            title: $translate('PROMO_CODE_TYPE'),
+                            data: "name"
+                        },
+                        {
+                            title: $translate('PROMO_REWARD_AMOUNT'),
+                            data: "amount$",
+                        },
+                        {
+                            title: $translate('PROMO_minTopUpAmount'),
+                            data: "minTopUpAmount"
+                        },
+                        {
+                            title: $translate('PROMO_maxTopUpAmount'),
+                            data: "maxRewardAmount"
+                        },
+                        {
+                            title: $translate('PROMO_CONSUMPTION'),
+                            data: "requiredConsumption$",
+                        },
+                        {
+                            title: $translate('SHARE_WITH_XIMA'),
+                            data: "isSharedWithXIMA$"
+                        },
+                        {
+                            title: $translate('FORBID_WITHDRAW'),
+                            data: "isForbidWithdraw$"
+                        },
+                        {
+                            title: $translate('PROMO_DUE_DATE'),
+                            data: "expirationTime$"
+                        },
+                        {
+                            title: $translate('ALLOWED_PROVIDER'),
+                            data: "allowedProviders$"
+                        },
+                        {
+                            title: $translate('BANNER_TEXT'),
+                            data: "bannerText",
+                        },
+                        {
+                            title: $translate('PROMO_CODE'),
+                            data: "code"
+                        },
+                        {
+                            title: $translate('CREATETIME'),
+                            data: "createTime$"
+                        },
+                        {
+                            title: $translate('ACCEPTTIME'),
+                            data: "acceptedTime$"
+                        },
+                        {
+                            title: $translate('proposalId'),
+                            data: "proposalId"
+                        },
+                        {
+                            title: $translate('CREATED_BY'),
+                            data: "adminName$"
+                        },
+                        {
+                            title: $translate('REMARK'),
+                            data: "remark"
+                        }
+
+                    ],
+                    "paging": true,
+                };
+                tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
+                utilService.createDatatableWithFooter('#autoFeedbackPromoCodeTable', tableOptions, {}, true);
+                $('#autoFeedbackPromoCodeTable').resize();
             };
             vm.getAllAutoFeedback = function() {
                 socketService.$socket($scope.AppSocket, 'getAllAutoFeedback', {platformObjId: vm.selectedPlatform.id}, function (data) {
