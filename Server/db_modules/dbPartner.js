@@ -9386,7 +9386,7 @@ let dbPartner = {
                 statsObj.totalPage = totalPage;
                 statsObj.currentPage = currentPage;
                 statsObj.totalTransferAmount = totalTransferAmount;
-                let proposalList = []
+                let proposalList = [];
 
                 if (proposalObj && proposalObj.length > 0) {
                     for (let i = 0, len = proposalObj.length; i < len; i++) {
