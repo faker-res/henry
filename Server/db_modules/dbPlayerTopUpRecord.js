@@ -725,6 +725,7 @@ var dbPlayerTopUpRecord = {
         var merchantResult = null;
         let merchantGroupList = [];
         let rewardEvent;
+        let newProposal;
 
         if (topupRequest.bonusCode && topUpReturnCode) {
             return Q.reject({
@@ -885,14 +886,37 @@ var dbPlayerTopUpRecord = {
                     proposalData.lastLoginIp = lastLoginIp;
                 }
 
-                let newProposal = {
+                newProposal = {
                     creator: proposalData.creator,
                     data: proposalData,
                     entryType: constProposalEntryType.CLIENT,
                     userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                 };
                 newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr, false);
+                return isLastTopUpProposalWithin30Mins(constProposalType.PLAYER_TOP_UP, player.platform._id, player);
+            }
+        ).then(
+            lastTopUpProposal => {
+                if(lastTopUpProposal && lastTopUpProposal.length > 0 && lastTopUpProposal[0].data){
+                    if(lastTopUpProposal[0].data.lockedAdminId){
+                        newProposal.data.lockedAdminId = lastTopUpProposal[0].data.lockedAdminId;
+                    }
+
+                    if(lastTopUpProposal[0].data.lockedAdminName){
+                        newProposal.data.lockedAdminName = lastTopUpProposal[0].data.lockedAdminName;
+                    }
+
+                    if(lastTopUpProposal[0].data.followUpContent){
+                        newProposal.data.followUpContent = lastTopUpProposal[0].data.followUpContent;
+                    }
+
+                    if(lastTopUpProposal[0].data.followUpCompletedTime){
+                        newProposal.data.followUpCompletedTime = lastTopUpProposal[0].data.followUpCompletedTime;
+                    }
+                }
+
                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_TOP_UP, newProposal);
+
             }
         ).then(
             proposalData => {
@@ -1067,6 +1091,7 @@ var dbPlayerTopUpRecord = {
         let userAgentStr = userAgent;
         let rewardEvent;
         let isFPMS = false; // true - use FPMS to manage payment
+        let newProposal;
 
         if (inputData.bonusCode && topUpReturnCode) {
             return Q.reject({
@@ -1262,7 +1287,7 @@ var dbPlayerTopUpRecord = {
                     proposalData.lastLoginIp = lastLoginIp;
                 }
 
-                var newProposal = {
+                newProposal = {
                     creator: proposalData.creator,
                     data: proposalData,
                     entryType: constProposalEntryType[entryType],
@@ -1277,6 +1302,28 @@ var dbPlayerTopUpRecord = {
                     }
                 }
                 newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr, false, adminInfo);//newProposal.isPartner
+                return isLastTopUpProposalWithin30Mins(constProposalType.PLAYER_MANUAL_TOP_UP, player.platform._id, player);
+            }
+        ).then(
+            lastTopUpProposal => {
+                if(lastTopUpProposal && lastTopUpProposal.length > 0 && lastTopUpProposal[0].data){
+                    if(lastTopUpProposal[0].data.lockedAdminId){
+                        newProposal.data.lockedAdminId = lastTopUpProposal[0].data.lockedAdminId;
+                    }
+
+                    if(lastTopUpProposal[0].data.lockedAdminName){
+                        newProposal.data.lockedAdminName = lastTopUpProposal[0].data.lockedAdminName;
+                    }
+
+                    if(lastTopUpProposal[0].data.followUpContent){
+                        newProposal.data.followUpContent = lastTopUpProposal[0].data.followUpContent;
+                    }
+
+                    if(lastTopUpProposal[0].data.followUpCompletedTime){
+                        newProposal.data.followUpCompletedTime = lastTopUpProposal[0].data.followUpCompletedTime;
+                    }
+                }
+
                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_MANUAL_TOP_UP, newProposal);
             }
         ).then(
@@ -2226,6 +2273,7 @@ var dbPlayerTopUpRecord = {
         let pmsData = null;
         let rewardEvent;
         let isFPMS = false; // true - use FPMS to manage payment
+        let newProposal;
 
         if (bonusCode && topUpReturnCode) {
             return Q.reject({
@@ -2384,7 +2432,7 @@ var dbPlayerTopUpRecord = {
                         proposalData.lastLoginIp = lastLoginIp;
                     }
 
-                    let newProposal = {
+                    newProposal = {
                         creator: proposalData.creator,
                         data: proposalData,
                         entryType: constProposalEntryType[entryType],
@@ -2400,6 +2448,28 @@ var dbPlayerTopUpRecord = {
                         }
                     }
                     newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr, false, adminInfo);
+                    return isLastTopUpProposalWithin30Mins(constProposalType.PLAYER_ALIPAY_TOP_UP, player.platform._id, player);
+                }
+            ).then(
+                lastTopUpProposal => {
+                    if(lastTopUpProposal && lastTopUpProposal.length > 0 && lastTopUpProposal[0].data){
+                        if(lastTopUpProposal[0].data.lockedAdminId){
+                            newProposal.data.lockedAdminId = lastTopUpProposal[0].data.lockedAdminId;
+                        }
+
+                        if(lastTopUpProposal[0].data.lockedAdminName){
+                            newProposal.data.lockedAdminName = lastTopUpProposal[0].data.lockedAdminName;
+                        }
+
+                        if(lastTopUpProposal[0].data.followUpContent){
+                            newProposal.data.followUpContent = lastTopUpProposal[0].data.followUpContent;
+                        }
+
+                        if(lastTopUpProposal[0].data.followUpCompletedTime){
+                            newProposal.data.followUpCompletedTime = lastTopUpProposal[0].data.followUpCompletedTime;
+                        }
+                    }
+
                     return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_ALIPAY_TOP_UP, newProposal);
                 })
             .then(
@@ -2807,6 +2877,7 @@ var dbPlayerTopUpRecord = {
         let pmsData = null;
         let rewardEvent;
         let isFPMS = false; // true - use FPMS to manage payment
+        let newProposal;
 
         if (bonusCode && topUpReturnCode) {
             return Q.reject({
@@ -2963,7 +3034,7 @@ var dbPlayerTopUpRecord = {
                             proposalData.lastLoginIp = lastLoginIp;
                         }
 
-                        let newProposal = {
+                        newProposal = {
                             creator: proposalData.creator,
                             data: proposalData,
                             entryType: constProposalEntryType[entryType],
@@ -2979,11 +3050,34 @@ var dbPlayerTopUpRecord = {
                             }
                         }
                         newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr, false, adminInfo);
-                        return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_WECHAT_TOP_UP, newProposal);
+                        return isLastTopUpProposalWithin30Mins(constProposalType.PLAYER_WECHAT_TOP_UP, player.platform._id, player);
                     }
                     else {
                         return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
                     }
+                }
+            ).then(
+                lastTopUpProposal => {
+                    if(lastTopUpProposal && lastTopUpProposal.length > 0 && lastTopUpProposal[0].data){
+                        if(lastTopUpProposal[0].data.lockedAdminId){
+                            newProposal.data.lockedAdminId = lastTopUpProposal[0].data.lockedAdminId;
+                        }
+
+                        if(lastTopUpProposal[0].data.lockedAdminName){
+                            newProposal.data.lockedAdminName = lastTopUpProposal[0].data.lockedAdminName;
+                        }
+
+                        if(lastTopUpProposal[0].data.followUpContent){
+                            newProposal.data.followUpContent = lastTopUpProposal[0].data.followUpContent;
+                        }
+
+                        if(lastTopUpProposal[0].data.followUpCompletedTime){
+                            newProposal.data.followUpCompletedTime = lastTopUpProposal[0].data.followUpCompletedTime;
+                        }
+                    }
+
+                    return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_WECHAT_TOP_UP, newProposal);
+
                 }
             ).then(
                 proposalData => {
@@ -4388,4 +4482,33 @@ function updateProposalRemark (proposalData, remark) {
         return Promise.resolve(true);
     }
 
+}
+
+function isLastTopUpProposalWithin30Mins(proposalType, platformObjId, playerObj){
+    if(proposalType && platformObjId && playerObj){
+        return dbconfig.collection_proposalType.findOne({name: proposalType, platformId: platformObjId}).then(
+            proposalType => {
+                if(proposalType && proposalType._id){
+                    return dbconfig.collection_proposal.find({type: proposalType._id, 'data.playerObjId': playerObj._id}).limit(1).sort({_id: -1});
+                }
+            }
+        ).then(
+            proposalData => {
+                let currentDate = new Date();
+                if(proposalData && proposalData.length > 0 && proposalData[0].createTime){
+                    let diff =(currentDate.getTime() - proposalData[0].createTime.getTime()) / 1000;
+                    diff /= 60;
+                    let diffInMin = Math.abs(Math.round(diff));
+
+                    if(diffInMin <= 30){
+                        return proposalData;
+                    }
+                }
+
+                return Promise.resolve(true);
+            }
+        )
+    }else{
+        return Promise.resolve(true);
+    }
 }

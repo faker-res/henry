@@ -216,7 +216,7 @@ var dbPlatformGameStatus = {
         }
     },
 
-    searchGame: function (platformId, name, type, groupCode, playerId, playGameType) {
+    searchGame: function (platformId, name, type, groupCode, playerId, playGameType, providerId) {
         function getGameType(type) {
             if (type != null) {
                 return dbconfig.collection_game.find({type: type}, {_id: 1}).lean();
@@ -296,7 +296,11 @@ var dbPlatformGameStatus = {
         ).then(
             games => {
                 if (games && games.length > 0) {
-                    games = games.filter(game => game.status != 4);
+                    if(providerId){
+                        games = games.filter(game => game.status != 4 && game.provider.providerId == providerId);
+                    }else{
+                        games = games.filter(game => game.status != 4);
+                    }
 
                     // display the status of collection_game with the status in collection_dbPlatformGameStatus
                     games.map( game => {
