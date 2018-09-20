@@ -6729,24 +6729,29 @@ define(['js/app'], function (myApp) {
                     return record
                 }
             );
-            var option = $.extend({}, vm.commonTableOption, {
+
+            var option = $.extend(true, {}, vm.commonTableOption, {
                 data: tableData,
+                columnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
                 columns: [
-                    {title: $translate('PROPOSAL_TYPE'), data: "name"},
+                    {title: $translate('PROPOSAL_TYPE'), data: "name", sClass:"AllPagesLabel"},
                     {title: $translate('event name'), data: "eventName"},
-                    {title: $translate('CountRewardApplied'), data: "countRewardApplied"},
-                    {title: $translate('TotalRewardAmount'), data: "$amount"},
-                    {title: $translate('CountPlayerApplied'), data: "countPlayerApplied"},
-                    {title: $translate('TOTAL_TOP_UP'), data: "sumTotalTopupAmount"},
-                    {title: $translate('Total_Bonus_Amount'), data: "sumTotalBonusAmount"},
-                    {title: $translate('PlayerProfit'), data: "sumPlayerProfit"}
+                    {title: $translate('CountRewardApplied'), data: "countRewardApplied" , sClass:"sumFloat alignRight"},
+                    {title: $translate('TotalRewardAmount'), data: "$amount", sClass:"sumFloat alignRight"},
+                    {title: $translate('CountPlayerApplied'), data: "countPlayerApplied", sClass:"sumFloat alignRight"},
+                    {title: $translate('TOTAL_TOP_UP'), data: "sumTotalTopupAmount", sClass:"sumFloat alignRight"},
+                    {title: $translate('Total_Bonus_Amount'), data: "sumTotalBonusAmount", sClass:"sumFloat alignRight"},
+                    {title: $translate('PlayerProfit'), data: "sumPlayerProfit", sClass:"sumFloat alignRight"}
+
                 ],
                 bSortClasses: false,
                 destroy: true,
                 paging: false,
                 autoWidth: true,
             });
-            var a = utilService.createDatatableWithFooter('#rewardProposalTable', option, {});
+            var a = utilService.createDatatableWithFooter('#rewardProposalTable', option,  {}, true);
             $('#rewardProposalTable').resize();
         }
         // end of reward proposal report
