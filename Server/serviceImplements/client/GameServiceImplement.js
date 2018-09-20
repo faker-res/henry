@@ -273,7 +273,7 @@ var GameServiceImplement = function () {
     this.searchGame.expectsData = 'platformId: String';
     this.searchGame.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && data.platformId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformGameStatus.searchGame, [data.platformId, data.name, data.type, data.groupCode, conn.playerId, data.playGameType], isValidData, false, false, true);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatformGameStatus.searchGame, [data.platformId, data.name, data.type, data.groupCode, conn.playerId, data.playGameType, data.providerId], isValidData, false, false, true);
     };
 
     this.searchGameByGroup.expectsData = 'platformId: String, groups: []+';
