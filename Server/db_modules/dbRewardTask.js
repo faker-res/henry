@@ -718,18 +718,25 @@ const dbRewardTask = {
                 path: "type",
                 model: dbconfig.collection_proposalType
             }).lean().sort(sortCol).then(udata => {
-                udata.map(item => {
-                    if(!item.data.topUpProposal) {
-                        item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
-                    }
+                if (udata) {
+                    udata.map(item => {
+                        if (!item.data.topUpProposal) {
+                            item.data.topUpProposal = item.data ? item.data.topUpProposalId : '';
+                        }
 
-                    if (item.type.name) {
-                        item.data.rewardType = item.type.name;
-                    }
-                });
+                        if (item.type.name) {
+                            item.data.rewardType = item.type.name;
+                        }
+                    });
 
-                return dbRewardTask.getTopUpProposal(udata);
-
+                    return dbRewardTask.getTopUpProposal(udata);
+                }
+                else{
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "could not get the proposal data"
+                    })
+                }
             }).then(result => {
 
                 if (result){
@@ -2401,6 +2408,7 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                         if (updatedRTG) {
                             // update the locked reward tasks
                             rewardTaskUnlockedProgress = dbRewardTask.unlockRewardTaskInRewardTaskGroup(updatedRTG, updatedRTG.playerId).then( rewards => {
+                                console.log("checking rewards---yH", rewards || "could not find the rewards data")
                                 if (rewards){
 
                                     return dbRewardTask.getRewardTasksRecord(rewards, updatedRTG);
