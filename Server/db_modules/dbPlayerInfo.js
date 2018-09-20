@@ -2671,22 +2671,39 @@ let dbPlayerInfo = {
                 }
 
                 if (isGetQuestion) {
-                    returnData.phoneNumber = dbUtility.encodePhoneNum(playerObj.phoneNumber);
-                    returnData.questionList = [];
-                    if (resData.question && resData.question.length) {
-                        resData.question.forEach(ques => {
-                            let tempObj = {
-                                id: ques.questionNo,
-                                type: 1,
-                                title: localization.localization.translate(ques.des)
-                            };
-                            if (ques.questionNo == 3) {
-                                tempObj.type = 2;
+                    return  pmsAPI.bankcard_getBankTypeList({}).then(
+                        bankTypeData => {
+                            returnData.phoneNumber = dbUtility.encodePhoneNum(playerObj.phoneNumber);
+                            returnData.questionList = [];
+                            if (resData.question && resData.question.length) {
+                                resData.question.forEach(ques => {
+                                    let tempObj = {
+                                        id: ques.questionNo,
+                                        type: 1,
+                                        title: localization.localization.translate(ques.des)
+                                    };
+
+                                    if (ques.questionNo == 3) {
+                                        tempObj.type = 2;
+                                        tempObj.option = "city";
+                                    } else if (ques.questionNo == 4) {
+                                        tempObj.type = 2;
+                                        tempObj.list = [];
+                                        if (bankTypeData && bankTypeData.data && bankTypeData.data.length) {
+                                            bankTypeData.data.forEach(bank => {
+                                                tempObj.list.push({
+                                                    answerId: bank.id,
+                                                    content: bank.name
+                                                })
+                                            })
+                                        }
+                                    }
+
+                                    returnData.questionList.push(tempObj);
+                                })
                             }
-                            returnData.questionList.push(tempObj);
-                        })
-                    }
-                    return returnData;
+                            return returnData;
+                        });
                 }
 
                 if (!resData.defaultPassword) {
