@@ -330,7 +330,8 @@ define(['js/app'], function (myApp) {
                 PARTNER_UPDATE_PASSWORD: 'Partner_updatePassword',
                 PARTNER_UPDATE_BANK_INFO_FIRST: 'Partner_updateBankInfoFirst',
                 PARTNER_UPDATE_BANK_INFO: 'Partner_updateBankInfo',
-                // RESET_PASSWORD: 'resetPassword'
+                RESET_PASSWORD: 'resetPassword',
+                INQUIRE_ACCOUNT: 'inquireAccount'
             };
 
             vm.constProposalStatus = {
