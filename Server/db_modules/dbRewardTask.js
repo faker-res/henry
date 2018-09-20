@@ -1860,6 +1860,7 @@ const dbRewardTask = {
                         if (player) {
                             let rewardType = rewardGroupData && rewardGroupData.type ? rewardGroupData.type : "Free amount";
 
+                            console.log("checking unlockedType --- yH", unlockType)
                             dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardType + ":unlock", player.validCredit, 0, -rewardAmount, null, rewardGroupData);
 
                             prohibitWithdrawal(player);
@@ -2475,7 +2476,10 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
 
                                         if (res[1]) {
                                             dbRewardTask.completeRewardTaskGroup(res[1], res[1].status).catch(errorUtils.reportError);
+                                            console.log("checking---UnlockedRewardTasksRecord", res[0] || "could not find the record");
                                             if (res[0]){
+                                                console.log("yH checking---unlockedRTG-status", statusUpdObj.status)
+                                                console.log("yH checking---unlockedRTG-playerId", updatedRTG.playerId)
                                                 dbRewardTask.updateUnlockedRewardTasksRecord(res[0], statusUpdObj.status, updatedRTG.playerId, updatedRTG.platformId).catch(errorUtils.reportError);
                                             }
 
