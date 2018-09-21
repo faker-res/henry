@@ -27266,6 +27266,7 @@ define(['js/app'], function (myApp) {
                 vm.partnerBasic.partnerUsePhoneNumberTwoStepsVerification = vm.selectedPlatform.data.partnerUsePhoneNumberTwoStepsVerification;
                 vm.partnerBasic.partnerUnreadMailMaxDuration = vm.selectedPlatform.data.partnerUnreadMailMaxDuration;
                 vm.partnerBasic.partnerDefaultCommissionGroup = vm.selectedPlatform.data.partnerDefaultCommissionGroup.toString();
+                vm.partnerBasic.partnerSameBankAccountCount = vm.selectedPlatform.data.partnerSameBankAccountCount;
 
                 $scope.safeApply();
             }
@@ -28647,7 +28648,8 @@ define(['js/app'], function (myApp) {
                         partnerRequireCaptchaInSMS: srcData.partnerRequireCaptchaInSMS,
                         partnerUsePhoneNumberTwoStepsVerification: srcData.partnerUsePhoneNumberTwoStepsVerification,
                         partnerUnreadMailMaxDuration: srcData.partnerUnreadMailMaxDuration,
-                        partnerDefaultCommissionGroup: srcData.partnerDefaultCommissionGroup
+                        partnerDefaultCommissionGroup: srcData.partnerDefaultCommissionGroup,
+                        partnerSameBankAccountCount: srcData.partnerSameBankAccountCount
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {

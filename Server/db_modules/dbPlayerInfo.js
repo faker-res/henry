@@ -3013,17 +3013,18 @@ let dbPlayerInfo = {
                             });
                         }
 
-                        if (updateData.bankAccountType) {
-                            let tempBankAccountType = updateData.bankAccountType;
-                            let isValidBankType = Number.isInteger(Number(tempBankAccountType));
-                            if (!isValidBankType) {
-                                return Q.reject({
-                                    name: "DataError",
-                                    code: constServerCode.INVALID_DATA,
-                                    message: "Please enter bank account name or contact cs"
-                                });
-                            }
-                        }
+                        // if (updateData.bankAccountType) {
+                        //     let tempBankAccountType = updateData.bankAccountType;
+                        //     let isValidBankType = Number.isInteger(Number(tempBankAccountType));
+                        //     if (!isValidBankType) {
+                        //         return Q.reject({
+                        //             name: "DataError",
+                        //             code: constServerCode.INVALID_DATA,
+                        //             message: "Please enter bank account name or contact cs"
+                        //         });
+                        //     }
+                        // }
+                        updateData.bankAccountType = 1;
 
                         return dbconfig.collection_platform.findOne({
                             _id: playerData.platform
