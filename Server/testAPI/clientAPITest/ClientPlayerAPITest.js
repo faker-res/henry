@@ -720,6 +720,12 @@
         });
     };
 
+    proto.getReceiveTransferList = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.getReceiveTransferList.request(data);
+        this.playerService.getReceiveTransferList.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPlayerAPITest;
     } else {

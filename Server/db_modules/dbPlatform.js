@@ -414,7 +414,15 @@ var dbPlatform = {
 
     getLargeWithdrawalSetting: function (platformObjId) {
         platformObjId = ObjectId(platformObjId);
-        return dbconfig.collection_largeWithdrawalSetting.findOne({platform: platformObjId}).lean();
+        return dbconfig.collection_largeWithdrawalSetting.findOne({platform: platformObjId}).lean().then(
+            largeWithdrawalData => {
+                if (!largeWithdrawalData) {
+                    return dbconfig.collection_largeWithdrawalSetting({platform: platformObjId}).save();
+                } else {
+                    return largeWithdrawalData;
+                }
+            }
+        );
     },
 
     updateLargeWithdrawalSetting: function (query, updateData) {
@@ -3381,6 +3389,16 @@ var dbPlatform = {
 
     getBlacklistIpConfig: () => {
         return dbconfig.collection_platformBlacklistIpConfig.find({}).lean().exec();
+    },
+
+    getBlacklistIpIsEffective: (ipAddress) => {
+        let query = {
+            isEffective: true
+        };
+        if (ipAddress) {
+            query.ip = ipAddress
+        }
+        return dbconfig.collection_platformBlacklistIpConfig.find(query).lean().exec();
     },
 
     deleteBlacklistIpConfig: (blacklistIpID) => {

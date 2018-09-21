@@ -8891,8 +8891,7 @@ let dbPartner = {
                     return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
                 }
 
-                let todayDate = new Date();
-                let thisMonthDateStartTime = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1, 0, 0, 0);
+                let thisMonthDateStartTime = dbutility.getCurrentMonthSGTIme().startTime;
                 let endTime = new Date();
                 endTime.setHours(23, 59, 59, 999);
                 let proms = [];
@@ -9185,8 +9184,7 @@ let dbPartner = {
             proposalTypeData => {
                 if (proposalTypeData) {
                     if (!startTime) {
-                        let todayDate = new Date();
-                        startTime = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1, 0, 0, 0);
+                        startTime = dbutility.getCurrentMonthSGTIme().startTime;
                     }
 
                     if (!endTime) {
@@ -9273,6 +9271,165 @@ let dbPartner = {
             return {stats: statsObj, list: finaldownlineProposalData ? finaldownlineProposalData : []};
         })
 
+    },
+
+    getPartnerTransferList: (platformId, partnerId, startTime, endTime, requestPage, count) => {
+        let platformObj;
+        let partnerObj;
+        let proposalObj;
+        let providerGroupObj;
+        let index = 0;
+        let currentPage = requestPage || 1;
+        let pageNo = null;
+        let limit = count || 10;
+        let statsObj = {};
+        let totalCount = 0;
+        let totalPage = 1;
+        let sortCol = {createTime: 1};
+        let totalTransferAmount = 0;
+
+        if (typeof currentPage != 'number' || typeof limit != 'number') {
+            return Promise.reject({name: "DataError", message: "Incorrect parameter type"});
+        }
+
+        if (currentPage <= 0) {
+            pageNo = 0;
+        } else {
+            pageNo = currentPage;
+        }
+
+        index = ((pageNo - 1) * limit);
+        currentPage = pageNo;
+
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData) {
+                    platformObj = platformData;
+
+                    if (partnerId) {
+                        return dbconfig.collection_partner.findOne({
+                            platform: platformObj._id,
+                            partnerId: partnerId
+                        }, {_id: 1, partnerId: 1, partnerName: 1}).lean();
+
+                    } else {
+                        return Promise.resolve(true);
+                    }
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
+            partnerData => {
+                if (partnerData) {
+                    partnerObj = partnerData;
+
+                    return dbconfig.collection_proposalType.findOne({platformId: platformObj._id, name: constProposalType.PARTNER_CREDIT_TRANSFER_TO_DOWNLINE}).lean();
+
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find partner"});
+                }
+            }
+        ).then(
+            proposalTypeData => {
+                if (proposalTypeData) {
+                    if (!startTime) {
+                        startTime = dbutility.getCurrentMonthSGTIme().startTime;
+                    }
+
+                    if (!endTime) {
+                        endTime = new Date();
+                        endTime.setHours(23, 59, 59, 999);
+                    }
+
+                    let query = {
+                        type: proposalTypeData._id,
+                        'data.partnerObjId': partnerObj._id,
+                        'data.platformObjId': platformObj._id,
+                        createTime: {$gte: new Date(startTime), $lt: new Date(endTime)},
+                    };
+
+                    let countProm = dbconfig.collection_proposal.find(query).count();
+                    let proposalProm = dbconfig.collection_proposal.find(query,
+                        {
+                            proposalId: 1, createTime: 1, status: 1, "data.amount": 1, "data.transferToDownlineDetail": 1
+                        }).skip(index).limit(limit).sort(sortCol).lean();
+                    let totalTransferAmountProm = dbconfig.collection_proposal.aggregate([
+                        {$match: query},
+                        {
+                            $group: {
+                                _id: null,
+                                totalTransfer: {$sum: "$data.amount"},
+                            }
+                        }
+                    ]);
+                    let gameProviderGroupProm = dbconfig.collection_gameProviderGroup.find({platform: platformObj._id}).lean();
+
+                    return Promise.all([countProm, proposalProm, totalTransferAmountProm, gameProviderGroupProm]);
+
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                }
+            }
+        ).then(
+            data => {
+                totalCount = data && data[0] ? data[0] : 0;
+                totalPage = Math.ceil(totalCount / limit);
+                proposalObj = data && data[1] ? data[1] : null;
+                totalTransferAmount = data && data[2] && data[2][0] && data[2][0].totalTransfer ? dbUtil.noRoundTwoDecimalPlaces(data[2][0].totalTransfer) * -1 : 0;
+                providerGroupObj = data && data[3] ? data[3] : null;
+
+                statsObj.totalCount = totalCount;
+                statsObj.totalPage = totalPage;
+                statsObj.currentPage = currentPage;
+                statsObj.totalTransferAmount = totalTransferAmount;
+                let proposalList = [];
+
+                if (proposalObj && proposalObj.length > 0) {
+                    for (let i = 0, len = proposalObj.length; i < len; i++) {
+                        let proposal = proposalObj[i];
+                        let transferList = []
+
+                        if (proposal) {
+                            if (proposal.data && proposal.data.transferToDownlineDetail && proposal.data.transferToDownlineDetail.length > 0) {
+                                let transferDetails = proposal.data.transferToDownlineDetail;
+                                for (let j = 0, jlen = transferDetails.length; j < jlen; j++) {
+                                    if (transferDetails[j]) {
+                                        let transferDetail = {};
+                                        transferDetail.username = transferDetails[j].playerName;
+                                        transferDetail.transferAmount = transferDetails[j].amount;
+                                        transferDetail.withdrawConsumption = transferDetails[j].withdrawConsumption;
+
+                                        if (transferDetails[j].providerGroup && providerGroupObj && providerGroupObj.length > 0) {
+                                            providerGroupObj.forEach(providerGroup => {
+                                                if (providerGroup && providerGroup._id && providerGroup._id.toString() == transferDetails[j].providerGroup.toString()) {
+                                                    transferDetail.providerGroupId = providerGroup.providerGroupId;
+                                                }
+                                            });
+                                        } else {
+                                            transferDetail.providerGroupId = "";
+                                        }
+
+                                        transferList.push(transferDetail);
+                                    }
+                                }
+                            }
+
+                            let proposalDetail = {};
+                            proposalDetail.amount = proposal.data && proposal.data.amount ? proposal.data.amount * -1 : 0;
+                            proposalDetail.time = proposal.createTime;
+                            proposalDetail.status = proposal.status;
+                            proposalDetail.proposalId = proposal.proposalId;
+                            proposalDetail.transferList = transferList;
+
+                            proposalList.push(proposalDetail);
+                        }
+                    }
+                }
+
+                return {stats: statsObj, list: proposalList};
+            }
+        )
     },
 
     checkChildPartnerNameValidity: (platformId, partnerName) => {

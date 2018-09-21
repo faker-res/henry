@@ -1606,6 +1606,7 @@
                         div
                             label &nbsp;
                             button.btn.btn-success(ng-click='vm.getRewardProposalReport()') {{'SEARCH' | translate}}
+                            button.btn.btn-info.margin-left-5(ng-click='vm.exportToExcel("rewardProposalTable", "RewardReport")') {{'EXPORT_EXCEL' | translate}}
                             span#rewardProposalTableSpin.collapse
                                 i.fa.fa-spinner.fa-spin
                     .clearfix
@@ -1662,7 +1663,7 @@
                     label {{"Total" | translate}} {{vm.generalRewardTaskTableProp.totalCount}} {{"records" | translate}}
                     table#generalRewardTaskTable.common-table.display(style="width:100%")
                     #generalRewardTaskTablePage
-        
+
         div(ng-if='vm.showPageName=="RewardReport"')
             .panel.panel-primary
                 .panel-heading
@@ -1710,7 +1711,7 @@
                                         tr
                                             th(ng-click="vm.dataArraySort('rewardReportPlayer', 'date')") {{ vm.rewardReportAnalysis.periodText | translate}}
                                             th(ng-repeat='(i, v) in vm.rewardReportPieLabel') {{v | translate}}
-                                           
+
                                     tbody
                                         tr
                                             td
@@ -1738,7 +1739,7 @@
                                         tr
                                             th(ng-click="vm.dataArraySort('rewardReportProposal', 'date')") {{ vm.rewardReportAnalysis.periodText | translate}}
                                             th(ng-repeat='(i, v) in vm.rewardReportPieLabel') {{v | translate}}
-                                           
+
                                     tbody
                                         tr
                                             td
@@ -1766,7 +1767,7 @@
                                         tr
                                             th(ng-click="vm.dataArraySort('rewardReportAmount', 'date')") {{ vm.rewardReportAnalysis.periodText | translate}}
                                             th(ng-repeat='(i, v) in vm.rewardReportPieLabel') {{v | translate}}
-                                           
+
                                     tbody
                                         tr
                                             td
@@ -1779,7 +1780,7 @@
                                                 span {{ v.date | date:"yyyy-MM-dd" }}
                                             td(ng-repeat='(k, item) in v' ng-if='k != "date" && k != "$$hashkey" && k != "totalPlayerCount" && k != "totalAmount" && k != "totalProposalCount"')
                                                 span {{ item.amount | noRoundTwoDecimalPlaces}}
-                                           
+
 
         //MISCELLANEOUS_REPORT
         div(ng-if='vm.showPageName=="PLAYER_FEEDBACK_REPORT"')
