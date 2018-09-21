@@ -1203,6 +1203,11 @@
                                     text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerSamePhoneNumberRegisterCount}}
                                     input(type='number', ng-show='vm.configTableEdit && vm.partnerBasic.partnerAllowSamePhoneNumberToRegister', min=1, ng-model='vm.partnerBasic.partnerSamePhoneNumberRegisterCount')
                             tr
+                                td {{'partnerSameBankAccountCount' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerSameBankAccountCount}}
+                                    input(type='number', ng-show='vm.configTableEdit && vm.partnerBasic.partnerSameBankAccountCount', min=1, ng-model='vm.partnerBasic.partnerSameBankAccountCount')
+                            tr
                                 td {{'partnerAllowSameRealNameToRegister' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.partnerBasic.partnerAllowSameRealNameToRegister', ng-disabled='!vm.configTableEdit')
