@@ -13700,22 +13700,22 @@ define(['js/app'], function (myApp) {
                 let tblData = data && data.data ? data.data.data.map(item => {
                     item.operationTime$ = vm.dateReformat(item.operationTime);
 
-                    if(item.providerId && item.providerId.name){
+                    if (item.providerId && item.providerId.name) {
                         item.action$ = $translate(item.action) + item.providerId.name;
-                    }else{
+                    } else {
                         item.action$ = $translate("Login to main site");
                     }
 
-                    if(item.player && item.player.name){
+                    if (item.player && item.player.name) {
                         item.playerName = item.player.name;
                     }
 
                     item.os = item.userAgent[0] && item.userAgent[0].os ? item.userAgent[0].os : "";
                     item.browser = item.userAgent[0] && item.userAgent[0].browser ? item.userAgent[0].browser : "";
                     item.ipArea$ = item.ipArea && item.ipArea.province && item.ipArea.city ? item.ipArea.province + "," + item.ipArea.city : "";
-                    if(item.domain){
+                    if (item.domain) {
                         var filteredDomain = item.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
-                        let indexNo = filteredDomain.indexOf("/")
+                        let indexNo = filteredDomain.indexOf("/");
                         if (indexNo != -1) {
                             filteredDomain = filteredDomain.substring(0,indexNo);
                         }
@@ -13750,7 +13750,32 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     },
-                    {title: $translate('IP_ADDRESS'), data: "ipAddress"},
+                    {
+                        title: $translate('IP_ADDRESS'),
+                        data: "ipAddress",
+                        render: function (data, type, row) {
+                            data = data || '0';
+                            vm.blacklistIpRowData = (row && row.ipAddress) ? row.ipAddress : "";
+                            let playerIpAddress = (row && row.ipAddress) ? row.ipAddress : "";
+                            vm.blacklistIpDetail = vm.blacklistIpConfig.filter(e => {
+                                if (e && e.ip && playerIpAddress && e.ip.toString() === playerIpAddress.toString()) {
+                                    return e;
+                                }
+                            });
+
+                            // display text in red if match blacklist ip
+                            if (vm.blacklistIpList.includes(playerIpAddress)) {
+                                return $('<a data-target="#modalPlayerBlacklistIpDetail" style="z-index: auto" data-toggle="modal" data-container="body" ' +
+                                    'data-placement="bottom" data-trigger="focus" class="colorRed" type="button" ng-click="vm.showBlacklistIpDetail(' + JSON.stringify(data) + ')" data-html="true" href="#"></a>')
+                                    .attr('data-row', JSON.stringify(data))
+                                    .text((data))
+                                    .prop('outerHTML');
+                            } else {
+                                return $('<p>', {}).text(data).prop('outerHTML');
+                            }
+                        },
+                        "sClass": "alignRight"
+                    },
                     {title: $translate('IP_AREA'), data: "ipArea$"},
                     {title: $translate('OS'), data: "os"},
                     {title: $translate('Browser'), data: "browser"},
@@ -13768,6 +13793,20 @@ define(['js/app'], function (myApp) {
             });
 
             $scope.safeApply();
+        };
+
+        vm.showBlacklistIpDetail = function (playerIpAddress) {
+            console.log('playerIpAddress===', playerIpAddress);
+            // vm.playerBlacklistIpDetail = [];
+            //
+            // vm.blacklistIpConfig.forEach(data => {
+            //     console.log('data.ip===', data.ip);
+            //     if (data.ip === playerIpAddress) {
+            //         vm.playerBlacklistIpDetail.push(data);
+            //     }
+            // });
+            // console.log('vm.playerBlacklistIpDetail===', vm.playerBlacklistIpDetail);
+            // $('#modalPlayerBlacklistIpDetail').modal();
         };
 
         vm.initPlayerRewardPointLog = () => {
