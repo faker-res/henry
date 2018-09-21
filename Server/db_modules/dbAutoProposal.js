@@ -874,15 +874,16 @@ function sendToApprove(proposalObjId, createTime, remark, remarkChinese, process
             let prom = Promise.resolve(true);
 
             if (proposalObj && proposalObj.mainType === constProposalType.PLAYER_BONUS && proposalObj.data && proposalObj.data.playerObjId && proposalObj.data.platformId) {
-                prom = dbconfig.collection_players.findOne({_id: data.data.playerObjId, platform: data.data.platformId}, {permission: 1, _id: 1, platform: 1})
+                prom = dbconfig.collection_players.findOne({_id: proposalObj.data.playerObjId, platform: proposalObj.data.platformId}, {permission: 1, _id: 1, platform: 1})
                     .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
                     playerData => {
-                        if (playerData && playerData.permission && !playerData.permission.applyBonus && playerData.platform && playerData.platform.playerForbidApplyBonusNeedCsApproval
+                        if (playerData && playerData.permission && playerData.permission.hasOwnProperty('applyBonus') && playerData.permission.applyBonus.toString() == 'false'
+                            && playerData.platform && playerData.platform.playerForbidApplyBonusNeedCsApproval
                             && proposalObj.status == constProposalStatus.APPROVED && proposalObj.data.needCsApproved) {
 
                             return dbconfig.collection_playerPermissionLog.findOne({
                                 player: playerData._id,
-                                platform: data.data.platformId,
+                                platform: proposalObj.data.platformId,
                                 isSystem: false
                             }).sort({createTime: -1}).lean().then(
                                 manualPermissionSetting => {
