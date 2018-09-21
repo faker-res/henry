@@ -214,7 +214,7 @@ define([], () => {
         };
 
         self.getAllThemeSetting = function ($scope, platformObjId) {
-            return $scope.$socketPromise("getAllThemeSetting", {platform: platformObjId}).then(data => data.data)
+            return $scope.$socketPromise("getAllThemeSetting").then(data => data.data)
         };
 
         self.getAllTSPhoneList = function ($scope, platformObjId) {

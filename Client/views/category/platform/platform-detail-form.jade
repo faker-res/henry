@@ -1636,7 +1636,47 @@ form(name="form_new_platform" ,novalidate)
                         button.common-button.btn.btn-info(ng-if="vm.addNewSpecialModule", ng-click="vm.addNewSpecialModule=false; vm.getFrontEndSpecialModuleSetting(); vm.setPlatformFooter(null);" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
                         button.common-button.btn.btn-info(ng-if="vm.addNewSpecialModule", ng-click="vm.addNewSpecialModuleSetting();vm.addNewSpecialModule=false; vm.setPlatformFooter(null);" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
 
-
+        div(name="theme-select", ng-if="vm.selectedPlatformDetailTab == 'theme-select'")
+            #playerThemeSelectPanel.panel-body(style="background-color: white;")
+                strong(style="margin-bottom: 10px;") {{"PLAYER_THEME" | translate}}:
+                br
+                div.col-md-6(ng-repeat= '(i,v) in vm.playerThemeSetting', style="float:none; display: inline-block; vertical-align: top; margin-bottom: 30px; margin-top: 20px;")
+                    //button(ng-if='!vm.isNotAllowEdit' style= 'width:20px; height:20px; background-color:#337ab7;', class='fa fa-times close', ng-click='vm.removeModule(v._id, i)')
+                    table.simple-table.playerThemeTable
+                        thead
+                            tr
+                                th(colspan = 3) {{"Theme Style" | translate}} : {{v.themeStyle}}
+                            tr
+                                th(style="width: 40%;") {{"Theme" | translate}} {{" "}} ID
+                                th(style="width: 40%;") {{"REMARK" | translate}}
+                                th(style="width: 20%") {{"ACTION_BUTTON" | translate}}
+                        tbody
+                            tr(ng-repeat= '(o, item) in v.content')
+                                td {{ item.themeId ? item.themeId : ''}}
+                                td {{ item.remark ? item.remark : ''}}
+                                td(ng-click="vm.checkedThemeSetting('player')")
+                                    input.transform150(ng-disabled="vm.platformAction != 'edit' || !vm.platformAction", type="checkbox", data-themeId="{{item.themeId}}", data-_id="{{v._id}}")
+            br(style="margin-bottom:10px;")
+            #partnerThemeSelectPanel.panel-body(style="background-color: white;")
+                strong(style="margin-bottom: 10px;") {{"PARTNER_THEME" | translate}}:
+                br
+                div.col-md-6(ng-repeat= '(i,v) in vm.partnerThemeSetting', style="float:none; display: inline-block; vertical-align: top; margin-bottom: 30px; margin-top: 20px;")
+                    //button(ng-if='!vm.isNotAllowEdit' style= 'width:20px; height:20px; background-color:#337ab7;', class='fa fa-times close', ng-click='vm.removeModule(v._id, i)')
+                    table.simple-table#partnerThemeTable
+                        thead
+                            tr
+                                th(colspan = 3) {{"Theme Style" | translate}} : {{v.themeStyle}}
+                            tr
+                                th(style="width: 40%;") {{"Theme" | translate}} {{" "}} ID
+                                th(style="width: 40%;") {{"REMARK" | translate}}
+                                th(style="width: 20%") {{"ACTION_BUTTON" | translate}}
+                        tbody
+                            tr(ng-repeat= '(o, item) in v.content')
+                                td {{ item.themeId ? item.themeId : ''}}
+                                td {{ item.remark ? item.remark : ''}}
+                                td(ng-click="vm.checkedThemeSetting('partner')")
+                                    input.transform150(ng-disabled="vm.platformAction != 'edit' || !vm.platformAction", type="checkbox", data-themeId="{{item.themeId}}", data-_id="{{v._id}}")
+                            
 
 div(name="system-settlement", ng-show="vm.selectedPlatformDetailTab == 'system-settlement'")
     .col-md-12.block-query.well

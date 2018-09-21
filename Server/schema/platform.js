@@ -445,7 +445,17 @@ var platformSchema = new Schema({
     bankCardGroupIsPMS: {type: Boolean, default: false},
     merchantGroupIsPMS: {type: Boolean, default: false},
     aliPayGroupIsPMS: {type: Boolean, default: false},
-    wechatPayGroupIsPMS: {type: Boolean, default: false}
+    wechatPayGroupIsPMS: {type: Boolean, default: false},
+    // player theme setting
+    playerThemeSetting: {
+        themeStyleId: {type: Schema.ObjectId, ref: 'themeSetting', index: true},
+        themeId: {type: String},
+    },
+    // partner theme setting 
+    partnerThemeSetting: {
+        themeStyleId: {type: Schema.ObjectId, ref: 'themeSetting', index: true},
+        themeId: {type: String},
+    }
 });
 
 //add platform id before save
