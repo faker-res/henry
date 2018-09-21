@@ -6,11 +6,11 @@
                     //ul.nav.nav-tabs.common-nav-tabs.padding-left-5
                     ul.nav.nav-tabs.common-nav-tabs
                         li.active
-                            a.common-tab(style="margin-left: 20px;", ng-if="checkViewPermission('ThemeControl', 'playerTheme', 'Read')", data-toggle="tab", href="#playerTheme", ng-click="vm.editForm ='player'; vm.setThemeFooter(null); vm.reloadThemeSetting('player'); vm.themeSettingEdit = false; vm.themeControlPageName='playerTheme';vm.updatePageTile();")
+                            a.common-tab(style="margin-left: 20px;", ng-if="checkViewPermission('ThemeControl', 'playerTheme', 'Read')", data-toggle="tab", href="#playerTheme", ng-click="vm.editForm ='player'; vm.setThemeFooter(null); vm.reloadThemeSetting('player'); vm.themeSettingEdit = false; vm.addNewTheme = false; vm.themeControlPageName='playerTheme';")
                                 .fa.fa-wrench.margin-right-5
                                 text.span {{"playerTheme" | translate}}
                         li
-                            a.common-tab(ng-if="checkViewPermission('ThemeControl', 'partnerTheme', 'Read')", data-toggle="tab", href="#partnerTheme", ng-click="vm.editForm ='partner'; vm.setThemeFooter(null); vm.reloadThemeSetting('partner'); vm.themeControlPageName='partnerTheme'; vm.themeSettingEdit = false;")
+                            a.common-tab(ng-if="checkViewPermission('ThemeControl', 'partnerTheme', 'Read')", data-toggle="tab", href="#partnerTheme", ng-click="vm.editForm ='partner'; vm.setThemeFooter(null); vm.reloadThemeSetting('partner'); vm.themeControlPageName='partnerTheme'; vm.themeSettingEdit = false; vm.addNewTheme = false")
                                 .fa.fa-wrench.margin-right-5
                                 text.span {{"partnerTheme" | translate}}
                 .panel-body.common-right-panel-body
