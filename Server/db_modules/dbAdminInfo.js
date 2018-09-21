@@ -338,13 +338,15 @@ var dbAdminInfo = {
                     if (department && department.departmentObjId) {
                         let parentPath = "";
 
-                        function getParentName(departmentId) {
+                        function getParentName(departmentId, count) {
+                            count = count || 0;
+                            count++;
                             return dbconfig.collection_department.findOne({_id: departmentId}).then(
                                 departmentData => {
                                     if (departmentData){
                                         parentPath = "/" + departmentData.departmentName + parentPath;
-                                        if(departmentData.parent){
-                                            return getParentName(departmentData.parent);
+                                        if(departmentData.parent && count <= 7){
+                                            return getParentName(departmentData.parent, count);
                                         }
                                         return parentPath;
                                     }
