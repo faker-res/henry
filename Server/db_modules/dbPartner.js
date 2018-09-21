@@ -9285,7 +9285,7 @@ let dbPartner = {
         let statsObj = {};
         let totalCount = 0;
         let totalPage = 1;
-        let sortCol = {createTime: 1};
+        let sortCol = {createTime: -1};
         let totalTransferAmount = 0;
 
         if (typeof currentPage != 'number' || typeof limit != 'number') {
