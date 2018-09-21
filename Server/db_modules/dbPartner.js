@@ -1852,15 +1852,30 @@ let dbPartner = {
         let partnerData;
         let partnerQuery = null;
         let duplicatedRealNameCount = 0;
+        let platformObjId;
         return dbconfig.collection_partner.findOne({partnerId: partnerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .then(
                 partnerResult => {
+                    platformObjId = partnerResult.platform;
                     partnerQuery = {
                         _id: partnerResult._id,
                         platform: partnerResult.platform
                     }
                     partnerData = partnerResult;
+                    updateData.curData = {};
+
+                    if(partnerResult.bankAccount){
+                        updateData.curData.bankAccount = partnerResult.bankAccount;
+                    }
+
+                    if(partnerResult.bankAccountName){
+                        updateData.curData.bankAccountName = partnerResult.bankAccountName;
+                    }
+
+                    if(partnerResult.bankName){
+                        updateData.curData.bankName = partnerResult.bankName;
+                    }
 
                     return dbconfig.collection_partner.find({realName : updateData.bankAccountName, platform: partnerResult.platform._id}).lean().count().then(
                         count => {
@@ -1883,6 +1898,20 @@ let dbPartner = {
             ).then(
                 isVerified => {
                     if (isVerified) {
+
+                        updateData.updateData = {};
+
+                        if(updateData.bankAccount){
+                            updateData.updateData.bankAccount = updateData.bankAccount;
+                        }
+
+                        if(updateData.bankAccountName){
+                            updateData.updateData.bankAccountName = updateData.bankAccountName;
+                        }
+
+                        if(updateData.bankName){
+                            updateData.updateData.bankName = updateData.bankName;
+                        }
 
                         if(partnerData.bankAccountName){
                             delete updateData.bankAccountName;
@@ -1927,8 +1956,20 @@ let dbPartner = {
                         // if(!partnerData.bankAccountName){
                         //     updateData.bankAccountName = partnerData.realName ? partnerData.realName : '';
                         // }
-                        let partnerProm = dbutility.findOneAndUpdateForShard(dbconfig.collection_partner, partnerQuery, updateData, constShardKeys.collection_partner);
-                        return Promise.all([partnerProm]);
+                        // let partnerProm = dbutility.findOneAndUpdateForShard(dbconfig.collection_partner, partnerQuery, updateData, constShardKeys.collection_partner);
+                        // return Promise.all([partnerProm]);
+                        let inputDeviceData = dbutility.getInputDevice(userAgent, false);
+                        updateData._id = partnerData._id || "";
+                        updateData.partnerObjId = partnerData._id || "";
+                        updateData.partnerName = partnerData.partnerName || "";
+
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_BANK_INFO, {
+                            creator: {type: "partner", name: partnerData.partnerName, id: partnerData._id},
+                            data: updateData,
+                            inputDevice: inputDeviceData
+                        });
+
+                        return updateData;
                     }
                 }
             )
