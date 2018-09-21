@@ -17,28 +17,34 @@ function socketActionThemeControl(socketIO, socket) {
     this.actions = {
 
         saveThemeSetting: function saveThemeSetting(data) {
-            var actionName = arguments.callee.name;
-            var isDataValid = Boolean(data && data.platform && data.themeStyle && data.content && data.type);
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.themeStyle && data.content && data.type);
             console.log("checking", isDataValid)
             socketUtil.emitter(self.socket, dbThemeControl.saveThemeSetting, [data], actionName, isDataValid);
         },
 
-        getAllThemeSetting: function getAllThemeSetting(data) {
-            var actionName = arguments.callee.name;
-            var isDataValid = Boolean(data && data.platform);
-            socketUtil.emitter(self.socket, dbThemeControl.getAllThemeSetting, [data], actionName, isDataValid);
+        getAllThemeSetting: function getAllThemeSetting() {
+            let actionName = arguments.callee.name;
+            let isDataValid = true;
+            socketUtil.emitter(self.socket, dbThemeControl.getAllThemeSetting, [], actionName, isDataValid);
         },
 
         updateThemeSetting: function updateThemeSetting(data) {
-            var actionName = arguments.callee.name;
-            var isDataValid = Boolean(data);
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.updateData);
             socketUtil.emitter(self.socket, dbThemeControl.updateThemeSetting, [data], actionName, isDataValid);
         },
 
         deleteThemeSetting: function deleteThemeSetting(data) {
-            var actionName = arguments.callee.name;
-            var isDataValid = Boolean(data && data._id);
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data._id);
             socketUtil.emitter(self.socket, dbThemeControl.deleteThemeSetting, [data], actionName, isDataValid);
+        },
+
+        checkThemeSettingFromPlatform: function checkThemeSettingFromPlatform(data) {
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data._id);
+            socketUtil.emitter(self.socket, dbThemeControl.checkThemeSettingFromPlatform, [data], actionName, isDataValid);
         },
 
 

@@ -3,9 +3,9 @@ var Schema = mongoose.Schema;
 
 var themeSetting = new Schema({
     // platform
-    platform: {type: Schema.ObjectId, ref: 'platform', index: true},
+    // platform: {type: Schema.ObjectId, ref: 'platform', index: true},
 
-    themeStyle: {type: String},
+    themeStyle: {type: String, index: true},
 
     content:[{
         _id: false,
@@ -18,7 +18,7 @@ var themeSetting = new Schema({
 
 });
 
-themeSetting.index({ platform: 1}, {unique: true});
+themeSetting.index({ themeStyle: 1}, {unique: true});
 
 
 module.exports = themeSetting;

@@ -222,6 +222,18 @@ var platformSchema = new Schema({
     whiteListingPhoneNumbers: [{type:String}],
     // black listing phone number
     blackListingPhoneNumbers: [{type:String}],
+    // Auto audit settings
+    autoAudit: {
+        // First withdraw amount >= X (Manual audit)
+        firstWithdrawExceedAmount: {type: Number, default: 0},
+        // First withdraw + current credit - total topup >= X (Manual audit)
+        firstWithdrawAndCurrentMinusTopupExceedAmount: {type: Number, default: 0},
+        // Total Bet / Total Topup >= X, and withdraw amount >= Y (Maunual audit)
+        firstWithdrawTotalBetOverTotalTopupExceedTimes: {type: Number, default: 0},
+        firstWithdrawCondBExceedAmount: {type: Number, default: 0},
+        // location of registration IP + phone number + bank card are different (Manual audit)
+        firstWithdrawDifferentIPCheck: {type: Boolean, default: false}
+    },
     // Auto approve bonus proposal platform switch
     enableAutoApplyBonus: {type: Boolean, default: false},
     // Auto approve single withdrawal limit
@@ -445,7 +457,17 @@ var platformSchema = new Schema({
     bankCardGroupIsPMS: {type: Boolean, default: false},
     merchantGroupIsPMS: {type: Boolean, default: false},
     aliPayGroupIsPMS: {type: Boolean, default: false},
-    wechatPayGroupIsPMS: {type: Boolean, default: false}
+    wechatPayGroupIsPMS: {type: Boolean, default: false},
+    // player theme setting
+    playerThemeSetting: {
+        themeStyleId: {type: Schema.ObjectId, ref: 'themeSetting', index: true},
+        themeId: {type: String},
+    },
+    // partner theme setting 
+    partnerThemeSetting: {
+        themeStyleId: {type: Schema.ObjectId, ref: 'themeSetting', index: true},
+        themeId: {type: String},
+    }
 });
 
 //add platform id before save
