@@ -9043,7 +9043,7 @@ let dbPartner = {
                                             playerObjId: playerData._id,
                                             playerName: playerData.name,
                                             amount: downline.amount,
-                                            withdrawConsumption: 0
+                                            withdrawConsumption: downline.spendingTimes ? dbUtil.noRoundTwoDecimalPlaces(downline.amount * downline.spendingTimes) : 0,
                                         }
                                     }
 
