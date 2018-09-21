@@ -562,8 +562,7 @@ define(['js/app'], function (myApp) {
                     }
                 }
                 else if (type == 'style') {
-
-
+                    
                     if (vm.themeStyleList) {
                         let index = vm.themeStyleList.indexOf(codeName);
                         if (index != -1) {
