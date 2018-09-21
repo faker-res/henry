@@ -13,8 +13,8 @@ var dbThemeControl = {
         return themeSetting.save();
     },
 
-    getAllThemeSetting: function(data){
-        return dbconfig.collection_themeSetting.find(data).lean();
+    getAllThemeSetting: function(){
+        return dbconfig.collection_themeSetting.find({}).lean();
     },
 
     updateThemeSetting: function(data){
@@ -22,7 +22,7 @@ var dbThemeControl = {
         let queryObj = {};
         let updateObj;
 
-        if (!data){
+        if (!data || !data.updateData){
             return Promise.reject({
                 name: "DataError",
                 message: "data is not found"
@@ -31,8 +31,8 @@ var dbThemeControl = {
 
         let updateProm = [];
 
-        if(data.length > 0){
-            data.forEach(
+        if(data.updateData.length > 0){
+            data.updateData.forEach(
                 item => {
                     if (item._id){
                         queryObj._id = ObjectId(item._id)
@@ -52,11 +52,46 @@ var dbThemeControl = {
             )
         }
 
-        return Promise.all(updateProm);
+        return Promise.all(updateProm).then(
+            retData => {
+
+                if (data.deletedThemeStyleIds && data.deletedThemeStyleIds.length > 0){
+                    let deleteProm = [];
+                    data.deletedThemeStyleIds.forEach(
+                        id =>{
+                            deleteProm.push(dbconfig.collection_themeSetting.remove({_id: ObjectId(id)}))
+                        }
+                    );
+
+                    return Promise.all(deleteProm);
+                }
+                else{
+                    return retData;
+                }
+            }
+        );
     },
 
     deleteThemeSetting: function(data){
         return dbconfig.collection_themeSetting.remove(data).lean();
+    },
+
+    checkThemeSettingFromPlatform: function(data){
+
+        let query = {};
+        if (data._id  && data.type == 'player'){
+            query['playerThemeSetting.themeStyleId'] = data._id;
+        }
+        if (data.themeId && data.type == 'player'){
+            query['playerThemeSetting.themeId'] = data.themeId;
+        }
+        if (data._id  && data.type == 'partner'){
+            query['partnerThemeSetting.themeStyleId'] = data._id;
+        }
+        if (data.themeId && data.type == 'partner'){
+            query['partnerThemeSetting.themeId'] = data.themeId;
+        }
+        return dbconfig.collection_platform.find(query,{platformId: 1, name: 1, playerThemeSetting: 1, partnerThemeSetting: 1}).populate({path: "playerThemeSetting.themeStyleId", model: dbconfig.collection_themeSetting}).lean();
     },
 
 

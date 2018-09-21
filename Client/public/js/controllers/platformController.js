@@ -577,8 +577,112 @@ define(['js/app'], function (myApp) {
                     vm.prepareSettlementHistory();
                 } else if (tabName && tabName == "frontend-module-setting"){
                     vm.initFrontendModuleSettingModal();
+                } else if (tabName && tabName == "theme-select"){
+                    vm.loadThemeSetting();
                 }
             };
+
+            vm.loadThemeSetting = function (){
+                vm.updatePlayerThemeData = {};
+                vm.updatePartnerThemeData = {};
+
+                socketService.$socket($scope.AppSocket, 'getAllThemeSetting', {}, function (data) {
+
+                    if (data && data.data){
+                        vm.playerThemeSetting = data.data.filter(theme => theme.type == 'player');
+                        vm.partnerThemeSetting = data.data.filter(theme => theme.type == 'partner');
+
+                    }
+
+                    $scope.$evalAsync();
+                });
+
+                vm.initThemeSetting();
+
+            };
+
+            vm.initThemeSetting = function (){
+
+                utilService.actionAfterLoaded("#playerThemeSelectPanel .playerThemeTable", function () {
+                    setTimeout(()=>{
+                        if (vm.selectedPlatform.data && vm.selectedPlatform.data.playerThemeSetting) {
+                            vm.initThemeCheck(vm.selectedPlatform.data.playerThemeSetting, 'player');
+                        }
+
+                        if (vm.selectedPlatform.data && vm.selectedPlatform.data.partnerThemeSetting) {
+                            vm.initThemeCheck(vm.selectedPlatform.data.partnerThemeSetting, 'partner');
+                        }
+                    }, 100);
+                });
+            }
+
+            vm.initThemeCheck = function (data, mode){
+                if (mode == 'player'){
+                    if (data.themeStyleId && data.themeId){
+                        let themeList = $('#playerThemeSelectPanel input[type="checkbox"]');
+                        if (themeList.length > 0) {
+                            themeList.each(function (index, item) {
+                                if (item && item.dataset && item.dataset._id == data.themeStyleId && item.dataset.themeid == data.themeId){
+
+                                    item.checked = true;
+
+                                }
+                                else{
+                                    item.checked = false;
+                                }
+
+                            })
+                        }
+                    }
+
+                }
+                else if (mode == 'partner'){
+
+                    if (data.themeStyleId && data.themeId){
+                        let themeList = $('#partnerThemeSelectPanel input[type="checkbox"]');
+                        if (themeList.length > 0) {
+                            themeList.each(function (index, item) {
+                                if (item && item.dataset && item.dataset._id == data.themeStyleId && item.dataset.themeid == data.themeId){
+
+                                    item.checked = true;
+
+                                }
+                                else{
+                                    item.checked = false;
+                                }
+
+                            })
+                        }
+                    }
+                }
+            };
+
+            vm.checkedThemeSetting= function (mode) {
+
+                if (mode == 'player'){
+                    $('#playerThemeSelectPanel input[type="checkbox"]').on('change', function () {
+                        $('#playerThemeSelectPanel input[type="checkbox"]').not(this).prop('checked', false);
+
+                        if (this && this.dataset && this.dataset.themeid && this.dataset._id) {
+                            vm.updatePlayerThemeData._id = this.dataset._id;
+                            vm.updatePlayerThemeData.themeId = this.dataset.themeid;
+
+                        }
+                    });
+                }
+                else if (mode == 'partner'){
+                    $('#partnerThemeSelectPanel input[type="checkbox"]').on('change', function () {
+                        $('#partnerThemeSelectPanel input[type="checkbox"]').not(this).prop('checked', false);
+
+                        if (this && this.dataset && this.dataset.themeid && this.dataset._id) {
+                            vm.updatePartnerThemeData._id = this.dataset._id;
+                            vm.updatePartnerThemeData.themeId = this.dataset.themeid;
+
+                        }
+                    });
+                }
+            };
+
             vm.isValidCompanyId = function (live800CompanyIdTXT) {
                 let live800Arr = live800CompanyIdTXT.split(",");
                 live800Arr = live800Arr.filter(item => {
@@ -2218,6 +2322,7 @@ define(['js/app'], function (myApp) {
                         vm.showPlatform.demoPlayerPrefix = vm.selectedPlatform.data.demoPlayerPrefix;
                         vm.getFrontEndPresetModuleSetting();
                         vm.getFrontEndSpecialModuleSetting();
+                        vm.initThemeSetting();
                     }
                 }
             };
@@ -2241,6 +2346,26 @@ define(['js/app'], function (myApp) {
 
                 if(vm.specialModuleSettingData){
                     vm.showPlatform.specialModuleSetting =  vm.specialModuleSettingData;
+                }
+
+                if (vm.updatePlayerThemeData && vm.updatePlayerThemeData._id && vm.updatePlayerThemeData.themeId) {
+
+                    if (!vm.showPlatform.playerThemeSetting) {
+                        vm.showPlatform.playerThemeSetting = {};
+                    }
+
+                    vm.showPlatform.playerThemeSetting.themeStyleId = vm.updatePlayerThemeData._id;
+                    vm.showPlatform.playerThemeSetting.themeId = vm.updatePlayerThemeData.themeId;
+                }
+
+                if (vm.updatePartnerThemeData && vm.updatePartnerThemeData._id && vm.updatePartnerThemeData.themeId) {
+
+                    if (!vm.showPlatform.partnerThemeSetting) {
+                        vm.showPlatform.partnerThemeSetting = {};
+                    }
+
+                    vm.showPlatform.partnerThemeSetting.themeStyleId = vm.updatePartnerThemeData._id;
+                    vm.showPlatform.partnerThemeSetting.themeId = vm.updatePartnerThemeData.themeId;
                 }
 
                 socketService.$socket($scope.AppSocket, 'updatePlatform',

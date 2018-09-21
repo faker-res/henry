@@ -137,7 +137,8 @@ define(['js/app'], function (myApp) {
                 commonService.getAllDepartmentInfo($scope, vm.selectedPlatform.id, vm.selectedPlatform.data.name).catch(err => Promise.resolve([[], [], []])),
             ]);
 
-            vm.initThemeSetting();
+            vm.initPlayerThemeSetting();
+            vm.editForm ='partner';
         };
 
         //search and select platform node
@@ -157,8 +158,8 @@ define(['js/app'], function (myApp) {
         }
         $scope.$on(eventName, function (e, d) {
             vm.loadPlatformData();
-            vm.getAllPlayerFeedbackResults();
-            vm.getPlayerFeedbackTopic();
+            // vm.getAllPlayerFeedbackResults();
+            // vm.getPlayerFeedbackTopic();
         });
 
 
@@ -166,9 +167,22 @@ define(['js/app'], function (myApp) {
             vm.themeAction = action;
         };
 
-        vm.editThemeSetting = function (mode, data, type){
+        vm.simpleUpdateCollectionInEdit = function (type, collection, data) {
 
-            if (data && mode && type) {
+                if (type == 'add') {
+                    if (type && collection && data) {
+                        collection.push(data);
+                    }
+
+                } else if (type == 'remove') {
+                    if (type && collection && typeof data =='number') {
+                        collection.splice(data, 1);
+                    }
+                }
+
+        };
+
+        vm.editThemeSetting = function (mode, data, type){
 
                 let sendData;
 
@@ -184,10 +198,8 @@ define(['js/app'], function (myApp) {
                         )
                     }
 
-                    console.log("checking", data)
-
                     sendData = {
-                        platform: vm.selectedPlatform.id,
+                        // platform: vm.selectedPlatform.id,
                         themeStyle: data.themeStyle,
                         content: data.content,
                         type: type
@@ -231,12 +243,18 @@ define(['js/app'], function (myApp) {
                         )
                     }
 
-                    sendData = data;
+                    sendData = {
+                        updateData: data
+                    };
+
+                    if (vm.deletedThemeSettingList && vm.deletedThemeSettingList.length > 0){
+                        sendData.deletedThemeStyleIds = vm.deletedThemeSettingList;
+                    }
 
                     return $scope.$socketPromise("updateThemeSetting", sendData).then(data => {
                         if (data && data.data) {
                             $scope.$evalAsync(() => {
-                                console.log("updateThemeSetting", data)
+                                console.log("updateThemeSetting", data);
                                 vm.reloadThemeSetting();
                             });
                         }
@@ -245,79 +263,385 @@ define(['js/app'], function (myApp) {
                         console.log("error", err)
                     });
 
-
                 }
-                else if (mode == 'delete') {
-
-                    sendData = {
-                        _id: data
-                    };
-
-                    GeneralModal.confirm({
-                        title: $translate('DELETE_PLAYER_THEME_SETTING'),
-                        text: $translate('Confirm to delete this player theme setting?')
-                    }).then(function () {
-
-                        return $scope.$socketPromise("deleteThemeSetting", sendData).then(data => {
-                            if (data && data.data) {
-                                $scope.$evalAsync(() => {
-                                    vm.setThemeFooter(null);
-                                    vm.themeSettingEdit = false;
-                                    vm.reloadThemeSetting();
-
-                                });
-                            }
-
-                        }, err => {
-                            console.log("error", err)
-                        });
-
-                    });
-
-                }
-            }
-
         };
 
-        vm.reloadThemeSetting = function(){
-            return $scope.$socketPromise("getAllThemeSetting", {platform: vm.selectedPlatform.id}).then(
+        vm.reloadThemeSetting = function(type){
+            return $scope.$socketPromise("getAllThemeSetting").then(
                 data => {
                     if (data && data.data) {
                         vm.allThemeSetting = data.data;
                     }
-                    vm.initThemeSetting();
+                    if (type == 'player') {
+                        vm.initPlayerThemeSetting();
+                    }
+                    else if (type == 'partner'){
+                        vm.initPartnerThemeSetting();
+                    }
                 }
             )
-        },
+        };
 
-        vm.initThemeSetting = function(){
+        vm.initPlayerThemeSetting = function(){
             if (vm.allThemeSetting){
+
                 vm.themeSettingEdit = false;
                 vm.playerThemeData = vm.allThemeSetting.filter(inData => inData.type == 'player');
                 vm.partnerThemeData = vm.allThemeSetting.filter(inData => inData.type == 'partner');
 
+                vm.themeDataLength = vm.playerThemeData.length;
+                vm.deletedThemeSettingList = [];
+                vm.themeIdList = [];
+                vm.themeStyleList = [];
+                if (vm.playerThemeData.length > 0) {
+                    vm.playerThemeData.forEach(
+                        themeData => {
+                            if (themeData && themeData.content && themeData.content.length > 0) {
+                                themeData.content.forEach(
+                                    inTheme => {
+                                        if (inTheme.themeId) {
+                                            vm.themeIdList.push(inTheme.themeId);
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    )
+                }
+            }
 
+            if (vm.playerThemeData.length > 0) {
+                vm.playerThemeData.forEach(
+                    themeData => {
+                        if (themeData && themeData.themeStyle) {
+
+                            vm.themeStyleList.push(themeData.themeStyle);
+
+                        }
+                    }
+                )
             }
 
             vm.newPlayerThemeSetting = {
                 themeStyle: null,
                 content: []
             }
+            vm.repetitiveBoolean = false;
+            vm.instRepetitiveBoolean = false;
             $scope.$evalAsync();
         };
 
-        vm.updateCollectionInEdit = function (type, collection, data) {
+        vm.initPartnerThemeSetting = function(){
+            if (vm.allThemeSetting){
+
+                vm.themeSettingEdit = false;
+                vm.playerThemeData = vm.allThemeSetting.filter(inData => inData.type == 'player');
+                vm.partnerThemeData = vm.allThemeSetting.filter(inData => inData.type == 'partner');
+
+                vm.themeDataLength = vm.partnerThemeData.length;
+                vm.deletedThemeSettingList = [];
+                vm.themeIdList = [];
+                vm.themeStyleList = [];
+                if (vm.partnerThemeData.length > 0) {
+                    vm.partnerThemeData.forEach(
+                        themeData => {
+                            if (themeData && themeData.content && themeData.content.length > 0) {
+                                themeData.content.forEach(
+                                    inTheme => {
+                                        if (inTheme.themeId) {
+                                            vm.themeIdList.push(inTheme.themeId);
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    )
+                }
+            }
+
+            if (vm.partnerThemeData.length > 0) {
+                vm.partnerThemeData.forEach(
+                    themeData => {
+                        if (themeData && themeData.themeStyle) {
+
+                            vm.themeStyleList.push(themeData.themeStyle);
+
+                        }
+                    }
+                )
+            }
+
+            vm.newPartnerThemeSetting = {
+                themeStyle: null,
+                content: []
+            }
+            vm.repetitiveBoolean = false;
+            vm.instRepetitiveBoolean = false;
+            $scope.$evalAsync();
+        };
+
+
+        vm.updateCollectionInEdit = function (mode, type, collection, data, selThemeSetting, allThemeSetting) {
+            vm.onHoldDeletedTheme = null;
             if (type == 'add') {
 
                 collection.push(data);
 
             } else if (type == 'remove') {
 
-                collection.splice(data, 1);
+                if (allThemeSetting) {
+                    if (selThemeSetting && typeof data == 'number') {
+
+                        let query = {
+                            _id: selThemeSetting._id,
+                            type: mode
+
+                        };
+
+                        vm.deletedThemeList = {
+                            theme: allThemeSetting,
+                            index: data,
+                            type: 'theme',
+
+                        };
+
+                        vm.onHoldDeletedTheme = selThemeSetting._id;
+
+                        vm.checkRemovingTheme(query, allThemeSetting, data);
+                    }
+                }
+                else {
+
+                    if (selThemeSetting && collection && typeof data == 'number' && collection[data]) {
+                        let query = {
+                            _id: selThemeSetting._id,
+                            themeId: collection[data].themeId,
+                            type: mode
+                        };
+
+                        vm.deletedThemeList = {
+                            theme: selThemeSetting,
+                            index: data,
+                            type: 'content',
+
+                        };
+
+                        vm.checkRemovingTheme(query, collection, data);
+
+                    }
+                }
             }
         };
 
-    };
+        vm.checkRemovingTheme = function (query, collection, data) {
+
+            return $scope.$socketPromise("checkThemeSettingFromPlatform", query).then(
+                platform => {
+
+                    if (platform && platform.data && platform.data.length > 0) {
+
+                        vm.listedThemeSettingDetail = [];
+
+                        platform.data.forEach(
+                            inData => {
+                                vm.listedThemeSettingDetail.push(
+                                    inData.platformId + '. ' + inData.name + ' (' + $translate('Type') + ': ' + inData.playerThemeSetting.themeStyleId.themeStyle + ', ' + $translate('Theme') + 'ID: ' + inData.playerThemeSetting.themeId + ')'
+                                )
+                            }
+                        );
+
+                        $('#modalThemeSetting').modal().show();
+                        $scope.$evalAsync();
+
+                    }
+                    else {
+                        if (vm.onHoldDeletedTheme){
+                            vm.deletedThemeSettingList.push(vm.onHoldDeletedTheme);
+                        }
+                        collection.splice(data, 1);
+                        $scope.$evalAsync();
+                    }
+
+                }
+            )
+        };
+
+        vm.confirmDeleteThemeSetting = function() {
+
+            if(vm.deletedThemeList && vm.deletedThemeList.type == 'content'){
+                vm.deletedThemeList.theme.content.splice(vm.deletedThemeList.index,1);
+                $scope.$evalAsync();
+            }
+            else if (vm.deletedThemeList && vm.deletedThemeList.type == 'theme'){
+                vm.deletedThemeList.theme.splice(vm.deletedThemeList.index,1);
+                if (vm.onHoldDeletedTheme){
+                    vm.deletedThemeSettingList.push(vm.onHoldDeletedTheme);
+                }
+                $scope.$evalAsync();
+            }
+        };
+
+        vm.checkInstantDuplicatedThemeIdFromList = function (codeName, mode) {
+            if (codeName && mode){
+
+                if (mode == 'player') {
+
+                    let themeIdList = [];
+
+                    if (vm.playerThemeData && vm.playerThemeData.length > 0){
+                        vm.playerThemeData.forEach(
+                            theme => {
+                                if (theme && theme.content && theme.content.length > 0){
+                                    theme.content.forEach(
+                                        inTheme => {
+                                            themeIdList.push(inTheme.themeId);
+                                        }
+                                    )
+                                }
+                            }
+                        )
+                    }
+
+                    if (themeIdList) {
+                        let index = themeIdList.indexOf(codeName);
+                        if (index != -1) {
+                            vm.instRepetitiveBoolean = true;
+                            return socketService.showErrorMessage($translate("Theme ID is repetitive"));
+                        }
+                        else {
+                            vm.instRepetitiveBoolean = false;
+                        }
+                    }
+                }
+                else if ( mode == 'partner') {
+                    let themeIdList = [];
+
+                    if (vm.partnerThemeData && vm.partnerThemeData.length > 0){
+                        vm.partnerThemeData.forEach(
+                            theme => {
+                                if (theme && theme.content && theme.content.length > 0){
+                                    theme.content.forEach(
+                                        inTheme => {
+                                            themeIdList.push(inTheme.themeId);
+                                        }
+                                    )
+                                }
+                            }
+                        )
+                    }
+
+                    if (themeIdList) {
+                        let index = themeIdList.indexOf(codeName);
+                        if (index != -1) {
+                            vm.instRepetitiveBoolean = true;
+                            return socketService.showErrorMessage($translate("Theme ID is repetitive"));
+                        }
+                        else {
+                            vm.instRepetitiveBoolean = false;
+                        }
+                    }
+                }
+
+            }
+        };
+
+        vm.checkDuplicatedThemeSetting = function (codeName, type){
+            if (codeName && type){
+
+                if (type == 'id' ) {
+
+                    if (vm.themeIdList) {
+                        let index = vm.themeIdList.indexOf(codeName);
+                        if (index != -1) {
+                            vm.repetitiveBoolean = true;
+                            return socketService.showErrorMessage($translate("Theme ID is repetitive"));
+                        }
+                        else {
+                            vm.repetitiveBoolean = false;
+                        }
+                    }
+                }
+                else if (type == 'style') {
+
+
+                    if (vm.themeStyleList) {
+                        let index = vm.themeStyleList.indexOf(codeName);
+                        if (index != -1) {
+                            vm.repetitiveBoolean = true;
+                            return socketService.showErrorMessage($translate("Theme style is repetitive"));
+                        }
+                        else {
+                            vm.repetitiveBoolean = false;
+                        }
+                    }
+                }
+
+            }
+        };
+
+        vm.checkInstantDuplicatedThemeId = function (codeName, mode){
+            if (codeName && mode){
+
+                if (mode == 'player') {
+
+                    let themeIdList = [];
+
+                    if (vm.newPlayerThemeSetting && vm.newPlayerThemeSetting.content && vm.newPlayerThemeSetting.content.length > 0) {
+                        vm.newPlayerThemeSetting.content.forEach(
+                            inTheme => {
+                                if (inTheme.themeId) {
+                                    themeIdList.push(inTheme.themeId);
+                                }
+                            }
+                        )
+                    }
+
+                    if (themeIdList) {
+                        let index = themeIdList.indexOf(codeName);
+                        if (index != -1) {
+                            vm.instRepetitiveBoolean = true;
+                            return socketService.showErrorMessage($translate("Theme ID is repetitive"));
+                        }
+                        else {
+                            vm.instRepetitiveBoolean = false;
+                        }
+                    }
+                }
+                else if ( mode == 'partner') {
+
+                    let themeIdList = [];
+
+                    if (vm.newPartnerThemeSetting && vm.newPartnerThemeSetting.content && vm.newPartnerThemeSetting.content.length > 0) {
+                        vm.newPartnerThemeSetting.content.forEach(
+                            inTheme => {
+                                if (inTheme.themeId) {
+                                    themeIdList.push(inTheme.themeId);
+                                }
+                            }
+                        )
+                    }
+
+                    if (themeIdList) {
+                        let index = themeIdList.indexOf(codeName);
+                        if (index != -1) {
+                            vm.instRepetitiveBoolean = true;
+                            return socketService.showErrorMessage($translate("Theme ID is repetitive"));
+                        }
+                        else {
+                            vm.instRepetitiveBoolean = false;
+                        }
+                    }
+                }
+
+            }
+        };
+
+
+
+
+};
+
+
 
     let injectParams = [
         '$sce',
