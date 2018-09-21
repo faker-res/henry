@@ -85,8 +85,10 @@ const messageDispatcher = {
             data => {
                 if(data){
                     if(metaData.isProviderGroup) {
-                        if(data.length > 0 && data[0].name){
+                        if(data.length > 0 && data[0] && data[0].name){
                             metaData.allowedProviders = data[0].name;
+                        } else if(!data[0]) {
+                            metaData.allowedProviders = null;
                         }
                     }else{
                         if(data[0] && data[0].length > 0){
@@ -95,7 +97,7 @@ const messageDispatcher = {
                     }
                 }
 
-                let messageTitle = metaData.promoCodeType ? metaData.promoCodeType.smsTitle : metaData.smsTitle;
+                let messageTitle = metaData.promoCodeType ? metaData.promoCodeType.smsTitle : metaData.interMailTitle || metaData.smsTitle;
                 let rawContent = metaData.promoCodeType ? metaData.promoCodeType.smsContent : metaData.smsContent;
                 let messageContent = messageDispatcher.contentModifier(rawContent,metaData);
 
@@ -103,7 +105,7 @@ const messageDispatcher = {
                     format: 'internal',
                     subject: messageTitle,
                     content: messageContent
-                }
+                };
 
                 messageDispatcher.renderTemplateAndSendMessage(messageTemplate, metaData);
             }

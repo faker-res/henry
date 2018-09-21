@@ -547,7 +547,6 @@ define(['js/app'], function (myApp) {
             if (vm.paymentMonitorQuery.mainTopupType === '0' || vm.paymentMonitorQuery.mainTopupType === '1' || vm.paymentMonitorQuery.mainTopupType === '3' || vm.paymentMonitorQuery.mainTopupType === '4' || vm.paymentMonitorQuery.mainTopupType === '5') {
                 vm.paymentMonitorQuery.topupType = '';
                 vm.paymentMonitorQuery.merchantGroup = '';
-                vm.paymentMonitorQuery.merchantNo = '';
             }
             var staArr = vm.paymentMonitorQuery.status ? vm.paymentMonitorQuery.status : [];
             if (staArr.length > 0) {

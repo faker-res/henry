@@ -330,7 +330,8 @@ define(['js/app'], function (myApp) {
                 PARTNER_UPDATE_PASSWORD: 'Partner_updatePassword',
                 PARTNER_UPDATE_BANK_INFO_FIRST: 'Partner_updateBankInfoFirst',
                 PARTNER_UPDATE_BANK_INFO: 'Partner_updateBankInfo',
-                // RESET_PASSWORD: 'resetPassword'
+                RESET_PASSWORD: 'resetPassword',
+                INQUIRE_ACCOUNT: 'inquireAccount'
             };
 
             vm.constProposalStatus = {
@@ -27229,16 +27230,18 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'getLargeWithdrawalSetting', sendData, function (data) {
                     console.log('getLargeWithdrawalSetting');
-                    vm.largeWithdrawalSetting = {}
-                    if (data && data.data) {
-                        vm.largeWithdrawalSetting = data.data;
-                    }
-                    if (!vm.largeWithdrawalSetting.recipient) {
-                        vm.largeWithdrawalSetting.recipient = [];
-                    }
-                    if (!vm.largeWithdrawalSetting.reviewer) {
-                        vm.largeWithdrawalSetting.reviewer = [];
-                    }
+                    $scope.$evalAsync(() => {
+                        vm.largeWithdrawalSetting = {}
+                        if (data && data.data) {
+                            vm.largeWithdrawalSetting = data.data;
+                        }
+                        if (!vm.largeWithdrawalSetting.recipient) {
+                            vm.largeWithdrawalSetting.recipient = [];
+                        }
+                        if (!vm.largeWithdrawalSetting.reviewer) {
+                            vm.largeWithdrawalSetting.reviewer = [];
+                        }
+                    });
                 });
 
             };
@@ -28493,7 +28496,37 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     query: {platform: vm.selectedPlatform.id},
                     updateData: {
-                        emailNameExtension: srcData.emailNameExtension
+                        emailNameExtension: srcData.emailNameExtension,
+                        showRealName: srcData.showRealName,
+                        showPlayerLevel: srcData.showPlayerLevel,
+                        showBankCity: srcData.showBankCity,
+                        showRegisterTime: srcData.showRegisterTime,
+                        showCurrentWithdrawalTime: srcData.showCurrentWithdrawalTime,
+                        showLastWithdrawalTime: srcData.showLastWithdrawalTime,
+                        showCurrentCredit: srcData.showCurrentCredit,
+                        allowAdminComment: srcData.allowAdminComment,
+                        showPlayerBonusAmount: srcData.showPlayerBonusAmount,
+                        showTotalTopUpAmount: srcData.showTotalTopUpAmount,
+                        showConsumptionReturnAmount: srcData.showConsumptionReturnAmount,
+                        showRewardAmount: srcData.showRewardAmount,
+                        showConsumptionSectionCount: srcData.showConsumptionSectionCount,
+                        showGameProviderInfo: srcData.showGameProviderInfo,
+                        showLastTopUpBonusAmount: srcData.showLastTopUpBonusAmount,
+                        showLastTopUpAmount: srcData.showLastTopUpAmount,
+                        showLastTopUpConsumptionReturnAmount: srcData.showLastTopUpConsumptionReturnAmount,
+                        showLastTopUpRewardAmount: srcData.showLastTopUpRewardAmount,
+                        showLastTopUpConsumptionSectionCount: srcData.showLastTopUpConsumptionSectionCount,
+                        showLastTopUpGameProviderInfo: srcData.showLastTopUpGameProviderInfo,
+                        showDayTopUpAmount: srcData.showDayTopUpAmount,
+                        showDayWithdrawAmount: srcData.showDayWithdrawAmount,
+                        showDayTopUpWithdrawDifference: srcData.showDayTopUpWithdrawDifference,
+                        showAccountTopUpAmount: srcData.showAccountTopUpAmount,
+                        showAccountWithdrawAmount: srcData.showAccountWithdrawAmount,
+                        showAccountTopUpWithdrawDifference: srcData.showAccountTopUpWithdrawDifference,
+                        showLastThreeMonthTopUp: srcData.showLastThreeMonthTopUp,
+                        showLastThreeMonthWithdraw: srcData.showLastThreeMonthWithdraw,
+                        showLastThreeMonthTopUpWithdrawDifference: srcData.showLastThreeMonthTopUpWithdrawDifference,
+                        showLastThreeMonthConsumptionAmount: srcData.showLastThreeMonthConsumptionAmount,
                     }
                 }
                 socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalSetting', sendData, function (data) {
@@ -34139,7 +34172,93 @@ define(['js/app'], function (myApp) {
                     item.createTime$ = item.createTime ? utilService.$getTimeFromStdTimeFormat(item.createTime) : "-";
                     item.acceptedTime$ = item.acceptedTime ? utilService.$getTimeFromStdTimeFormat(item.acceptedTime) : "-";
                     item.adminName$ = item.adminName ? item.adminName : $translate("Backstage");
-                })
+                });
+                vm.drawAutoFeedbackPromoCodeTable(vm.autoFeedbackPromoCodeDetail);
+            };
+            vm.drawAutoFeedbackPromoCodeTable = function (data) {
+                let tableOptions = {
+                    data: data,
+                    "order": [[12, 'desc']],
+                    aoColumnDefs: [
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [12]},
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('ACCOUNT'),
+                            data: "playerName"
+                        },
+                        {
+                            title: $translate('PROMO_CODE_TYPE'),
+                            data: "name"
+                        },
+                        {
+                            title: $translate('PROMO_REWARD_AMOUNT'),
+                            data: "amount$",
+                        },
+                        {
+                            title: $translate('PROMO_minTopUpAmount'),
+                            data: "minTopUpAmount"
+                        },
+                        {
+                            title: $translate('PROMO_maxTopUpAmount'),
+                            data: "maxRewardAmount"
+                        },
+                        {
+                            title: $translate('PROMO_CONSUMPTION'),
+                            data: "requiredConsumption$",
+                        },
+                        {
+                            title: $translate('SHARE_WITH_XIMA'),
+                            data: "isSharedWithXIMA$"
+                        },
+                        {
+                            title: $translate('FORBID_WITHDRAW'),
+                            data: "isForbidWithdraw$"
+                        },
+                        {
+                            title: $translate('PROMO_DUE_DATE'),
+                            data: "expirationTime$"
+                        },
+                        {
+                            title: $translate('ALLOWED_PROVIDER'),
+                            data: "allowedProviders$"
+                        },
+                        {
+                            title: $translate('BANNER_TEXT'),
+                            data: "bannerText",
+                        },
+                        {
+                            title: $translate('PROMO_CODE'),
+                            data: "code"
+                        },
+                        {
+                            title: $translate('CREATETIME'),
+                            data: "createTime$"
+                        },
+                        {
+                            title: $translate('ACCEPTTIME'),
+                            data: "acceptedTime$"
+                        },
+                        {
+                            title: $translate('proposalId'),
+                            data: "proposalId"
+                        },
+                        {
+                            title: $translate('CREATED_BY'),
+                            data: "adminName$"
+                        },
+                        {
+                            title: $translate('REMARK'),
+                            data: "remark"
+                        }
+
+                    ],
+                    "paging": true,
+                };
+                tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
+                utilService.createDatatableWithFooter('#autoFeedbackPromoCodeTable', tableOptions, {}, true);
+                $('#autoFeedbackPromoCodeTable').resize();
             };
             vm.getAllAutoFeedback = function() {
                 socketService.$socket($scope.AppSocket, 'getAllAutoFeedback', {platformObjId: vm.selectedPlatform.id}, function (data) {
