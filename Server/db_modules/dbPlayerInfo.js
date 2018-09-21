@@ -5869,7 +5869,7 @@ let dbPlayerInfo = {
     },
 
     /**
-     * Transfer credit from platform to game provider
+     * Main trasfer in logic
      * 1. Check where is the player's credit
      *
      * @param {objectId} platform
