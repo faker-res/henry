@@ -30,6 +30,7 @@ const dbPartner = require('./../db_modules/dbPartner');
 const rsaCrypto = require('./../modules/rsaCrypto');
 const errorUtils = require('../modules/errorUtils');
 const localization = require("../modules/localization");
+const dbPlatform = require('./../db_modules/dbPlatform');
 
 const dbPlayerMail = {
 
@@ -485,6 +486,22 @@ const dbPlayerMail = {
                             }
                         }
                     )
+                }
+            }
+        ).then(
+            () => {
+                if (purpose && purpose === constSMSPurpose.REGISTRATION && inputData && inputData.lastLoginIp) {
+                    return dbPlatform.getBlacklistIpIsEffective(inputData.lastLoginIp).then(
+                        blacklistIpData => {
+                            if (blacklistIpData && blacklistIpData.length > 0) {
+                                return Q.reject({
+                                    status: constServerCode.BLACKLIST_IP,
+                                    name: "DBError",
+                                    message: localization.localization.translate("SMS function under maintenance, please try again later.")
+                                });
+                            }
+                        }
+                    );
                 }
             }
         ).then(

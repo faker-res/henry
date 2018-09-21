@@ -2180,9 +2180,8 @@ var dbPlatform = {
     },
 
     updateAutoApprovalConfig: function (query, updateData) {
-        console.log("updateAutoApprovalConfig platform update:", updateData);
-
-        return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true});
+        let updObj = {$set: updateData};
+        return dbconfig.collection_platform.findOneAndUpdate(query, updObj, {new: true});
     },
     generateObjectId: function () {
         return new ObjectId();
@@ -2762,7 +2761,7 @@ var dbPlatform = {
                 return Q.reject({name: "DBError", message: "Missing of default param: 'partner' or 'player'."});
             }
 
-            return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            return dbconfig.collection_platform.findOne({platformId: platformId}).populate({path: 'partnerThemeSetting.themeStyleId', model: dbconfig.collection_themeSetting}).populate({path: 'playerThemeSetting.themeStyleId', model: dbconfig.collection_themeSetting}).lean().then(
                 data => {
                     if (data) {
 
@@ -2802,6 +2801,20 @@ var dbPlatform = {
                         returnedObj.needImageCodeForSendSMSCode = platformData.requireCaptchaInSMS ? 1 : 0;
                         returnedObj.twoStepsForModifyPhoneNumber = platformData.usePhoneNumberTwoStepsVerification ? 1 : 0;
                         returnedObj.cdnOrFtpLink = platformData.playerRouteSetting ? platformData.playerRouteSetting : "";
+                        returnedObj.themeStyle = platformData.playerThemeSetting && platformData.playerThemeSetting.themeStyleId &&  platformData.playerThemeSetting.themeStyleId.themeStyle ? platformData.playerThemeSetting.themeStyleId.themeStyle : "";
+                        if (platformData.playerThemeSetting && platformData.playerThemeSetting.themeStyleId &&  platformData.playerThemeSetting.themeStyleId.content && platformData.playerThemeSetting.themeStyleId.content.length > 0){
+                            let index = platformData.playerThemeSetting.themeStyleId.content.findIndex(p => p.themeId == platformData.playerThemeSetting.themeId)
+                            if (index != -1){
+                                returnedObj.themeID = platformData.playerThemeSetting.themeId;
+                            }
+                            else{
+                                returnedObj.themeID = "";
+                            }
+                        }
+                        else{
+                            returnedObj.themeID = "";
+                        }
+
                     }
 
                     if (subject === 'partner') {
@@ -2819,6 +2832,19 @@ var dbPlatform = {
                         returnedObj.twoStepsForModifyPhoneNumber = platformData.partnerUsePhoneNumberTwoStepsVerification ? 1 : 0;
                         returnedObj.defaultCommissionType = platformData.partnerDefaultCommissionGroup ? platformData.partnerDefaultCommissionGroup : 0;
                         returnedObj.cndOrFtpLink = platformData.partnerRouteSetting ? platformData.partnerRouteSetting : "";
+                        returnedObj.themeStyle = platformData.partnerThemeSetting && platformData.partnerThemeSetting.themeStyleId &&  platformData.partnerThemeSetting.themeStyleId.themeStyle ? platformData.partnerThemeSetting.themeStyleId.themeStyle : "";
+                        if (platformData.partnerThemeSetting && platformData.partnerThemeSetting.themeStyleId &&  platformData.partnerThemeSetting.themeStyleId.content && platformData.partnerThemeSetting.themeStyleId.content.length > 0){
+                            let index = platformData.partnerThemeSetting.themeStyleId.content.findIndex(p => p.themeId == platformData.partnerThemeSetting.themeId)
+                            if (index != -1){
+                                returnedObj.themeID = platformData.partnerThemeSetting.themeId;
+                            }
+                            else{
+                                returnedObj.themeID = "";
+                            }
+                        }
+                        else{
+                            returnedObj.themeID = "";
+                        }
                     }
 
                     returnedObj.callBackToUserLines = [];
@@ -3406,6 +3432,16 @@ var dbPlatform = {
 
     getBlacklistIpConfig: () => {
         return dbconfig.collection_platformBlacklistIpConfig.find({}).lean().exec();
+    },
+
+    getBlacklistIpIsEffective: (ipAddress) => {
+        let query = {
+            isEffective: true
+        };
+        if (ipAddress) {
+            query.ip = ipAddress
+        }
+        return dbconfig.collection_platformBlacklistIpConfig.find(query).lean().exec();
     },
 
     deleteBlacklistIpConfig: (blacklistIpID) => {

@@ -9,6 +9,7 @@ var simplifiedChinese = {
     "Captcha code invalid": "图形验证码无效",
     "SUBMIT": "提交",
     "The same bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他玩家绑定，请更换卡号或联系客服，谢谢！",
+    "The identical bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他代理绑定，请更换卡号或联系客服，谢谢！",
     "Phone number already exists": "手机号码已存在",
     "Username is Valid": "用户名有效",
     "Username already exists": "此用户名已存在",
@@ -475,7 +476,9 @@ var simplifiedChinese = {
     "2.Parent Partner Commission Rate：": "2.一级代理佣金比例：",
     "Incorrect parameter type": "参数类型错误",
     "Cannot transfer negative amount": "金额不能是负数",
-    "Spending Times cannot be empty": "解锁流水不能为空"
+    "Spending Times cannot be empty": "解锁流水不能为空",
+    "SMS function under maintenance, please try again later.": "短信功能维护中，请稍后再次尝试。",
+    "Registration function under maintenance, please try again later.": "注册功能维护中，请稍后再次尝试。",
 
     //todo::add missing messages here
 

@@ -263,13 +263,13 @@
                                             tr(ng-repeat="(idx, val) in vm.departmentRolelist")
                                                 td {{val.orderNo}}
                                                 td {{val.departmentPath}}
-                                                td(colspan=2, style="padding: 0;border-bottom:0px;border-top:0px;")
+                                                td(colspan=2, style="padding: 0;")
                                                     div(style='margin-bottom:-1px')
                                                         table.simple-table
                                                             tbody
                                                                 tr(ng-repeat="v in val.roles track by $index")
-                                                                    td(style="width:251px;border:none;border-right:1px solid rgba(43, 102, 152, 0.5);border-bottom:1px solid rgba(43, 102, 152, 0.5);") {{v.roleName}}
-                                                                    td(style="width:150px;border:none;border-bottom:1px solid rgba(43, 102, 152, 0.5);text-align:center;")
+                                                                    td(style="width:251px;border:0px") {{v.roleName}}
+                                                                    td(style="width:150px;text-align:center;border-top:0px;border-bottom:0px;border-right:0px")
                                                                         input(type='checkbox', name="selectRoleCheckBox", ng-checked="v.isAttach==true", ng-model='v.isAttach', ng-change="vm.attachDetachAdminRole(v._id,v.isAttach)")
 
             .modal-footer
