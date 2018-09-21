@@ -1932,17 +1932,18 @@ let dbPartner = {
                             });
                         }
 
-                        if (updateData.bankAccountType) {
-                            let tempBankAccountType = updateData.bankAccountType;
-                            let isValidBankType = Number.isInteger(Number(tempBankAccountType));
-                            if (!isValidBankType) {
-                                return Q.reject({
-                                    name: "DataError",
-                                    code: constServerCode.INVALID_DATA,
-                                    message: "Invalid bank account type"
-                                });
-                            }
-                        }
+                        // if (updateData.bankAccountType) {
+                        //     let tempBankAccountType = updateData.bankAccountType;
+                        //     let isValidBankType = Number.isInteger(Number(tempBankAccountType));
+                        //     if (!isValidBankType) {
+                        //         return Q.reject({
+                        //             name: "DataError",
+                        //             code: constServerCode.INVALID_DATA,
+                        //             message: "Invalid bank account type"
+                        //         });
+                        //     }
+                        // }
+                        updateData.bankAccountType = 1;
 
                         // check if same real name can be used for registration
                         if (updateData.realName && duplicatedRealNameCount > 0 && !partnerData.platform.partnerAllowSameRealNameToRegister){

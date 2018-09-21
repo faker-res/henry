@@ -360,17 +360,17 @@ p
                                                         label {{"BANK_ACCOUNT_NAME" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePartner.bankAccountName || 'Unknown' | translate}}
-                                            .col-md-4
-                                                .row
-                                                    .col-sm-4(style='white-space: nowrap;')
-                                                        label {{"BANK_ACCOUNT_TYPE" | translate}}
-                                                    .col-sm-8
-                                                        text(ng-if='vm.selectedSinglePartner.bankAccountType==2 || vm.selectedSinglePartner.bankAccountType=="2"') {{'Debit Card '|translate}}
-                                                        text(ng-if='vm.selectedSinglePartner.bankAccountType==1 || vm.selectedSinglePartner.bankAccountType=="1"') {{'Credit Card '|translate}}
-                                                        text(ng-if='vm.selectedSinglePartner.bankAccountType==3 || vm.selectedSinglePartner.bankAccountType=="3"') {{'储存卡'|translate}}
-                                                        text(ng-if='vm.selectedSinglePartner.bankAccountType==4 || vm.selectedSinglePartner.bankAccountType=="4"') {{'储蓄卡'|translate}}
-                                                        text(ng-if='vm.selectedSinglePartner.bankAccountType==5 || vm.selectedSinglePartner.bankAccountType=="5"') {{'商务理财卡'|translate}}
-                                                        text(ng-if='vm.selectedSinglePartner.bankAccountType==6 || vm.selectedSinglePartner.bankAccountType=="6"') {{'工商银行一卡通'|translate}}
+                                            //.col-md-4
+                                            //    .row
+                                            //        .col-sm-4(style='white-space: nowrap;')
+                                            //            label {{"BANK_ACCOUNT_TYPE" | translate}}
+                                            //        .col-sm-8
+                                            //            text(ng-if='vm.selectedSinglePartner.bankAccountType==2 || vm.selectedSinglePartner.bankAccountType=="2"') {{'Debit Card '|translate}}
+                                            //            text(ng-if='vm.selectedSinglePartner.bankAccountType==1 || vm.selectedSinglePartner.bankAccountType=="1"') {{'Credit Card '|translate}}
+                                            //            text(ng-if='vm.selectedSinglePartner.bankAccountType==3 || vm.selectedSinglePartner.bankAccountType=="3"') {{'储存卡'|translate}}
+                                            //            text(ng-if='vm.selectedSinglePartner.bankAccountType==4 || vm.selectedSinglePartner.bankAccountType=="4"') {{'储蓄卡'|translate}}
+                                            //            text(ng-if='vm.selectedSinglePartner.bankAccountType==5 || vm.selectedSinglePartner.bankAccountType=="5"') {{'商务理财卡'|translate}}
+                                            //            text(ng-if='vm.selectedSinglePartner.bankAccountType==6 || vm.selectedSinglePartner.bankAccountType=="6"') {{'工商银行一卡通'|translate}}
                                         .row
                                             .col-md-4
                                                 .row
