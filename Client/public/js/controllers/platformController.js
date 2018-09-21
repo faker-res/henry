@@ -33949,8 +33949,8 @@ define(['js/app'], function (myApp) {
             vm.autoFeedbackPrepareTableData = function (missions) {
                 let curTime = new Date();
                 let drawData = missions.map(mission => {
-                    let missionStartTime = utilService.setThisDayStartTime(new Date(mission.missionStartTime));
-                    let missionEndTime = utilService.setThisDayStartTime(new Date(mission.missionEndTime));
+                    let missionStartTime = utilService.getUTCTime(new Date(mission.missionStartTime));
+                    let missionEndTime = utilService.getUTCTime(new Date(mission.missionEndTime));
                     if(mission.enabled) {
                         if (missionStartTime > curTime) {
                             mission.missionStatus$ = $translate('Unbegun');
