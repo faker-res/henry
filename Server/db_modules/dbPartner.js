@@ -764,7 +764,7 @@ let dbPartner = {
                 let sameBankAccountCount = data[0] || 0;
                 let platformData = data[1];
 
-                if (platformData.sameBankAccountCount && sameBankAccountCount >= platformData.sameBankAccountCount){
+                if (platformData.partnerSameBankAccountCount && sameBankAccountCount >= platformData.partnerSameBankAccountCount){
                     return Promise.resolve(false)
                 }
                 return Promise.resolve(true);
@@ -2006,7 +2006,7 @@ let dbPartner = {
                         }
 
                         // check if the same bank account count exceeds the pre-defined limit
-                        if (platformData && platformData.sameBankAccountCount && sameBankAccCount >= platformData.sameBankAccountCount && partnerData.bankAccount != updateData.bankAccount){
+                        if (platformData && platformData.partnerSameBankAccountCount && sameBankAccCount >= platformData.partnerSameBankAccountCount && partnerData.bankAccount != updateData.bankAccount){
                             return Q.reject({
                                 name: "DataError",
                                 code: constServerCode.INVALID_DATA,
