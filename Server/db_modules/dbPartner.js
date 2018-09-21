@@ -9084,7 +9084,7 @@ let dbPartner = {
                                             playerObjId: playerData._id,
                                             playerName: playerData.name,
                                             amount: downline.amount,
-                                            withdrawConsumption: 0
+                                            withdrawConsumption: downline.spendingTimes ? dbUtil.noRoundTwoDecimalPlaces(downline.amount * downline.spendingTimes) : 0,
                                         }
                                     }
 
@@ -9326,7 +9326,7 @@ let dbPartner = {
         let statsObj = {};
         let totalCount = 0;
         let totalPage = 1;
-        let sortCol = {createTime: 1};
+        let sortCol = {createTime: -1};
         let totalTransferAmount = 0;
 
         if (typeof currentPage != 'number' || typeof limit != 'number') {

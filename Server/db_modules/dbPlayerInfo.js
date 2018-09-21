@@ -5888,7 +5888,7 @@ let dbPlayerInfo = {
     },
 
     /**
-     * Transfer credit from platform to game provider
+     * Main trasfer in logic
      * 1. Check where is the player's credit
      *
      * @param {objectId} platform
@@ -20034,7 +20034,7 @@ let dbPlayerInfo = {
         let statsObj = {};
         let totalCount = 0;
         let totalPage = 1;
-        let sortCol = {createTime: 1};
+        let sortCol = {createTime: -1};
         let totalReceiveAmount = 0;
 
         if (typeof currentPage != 'number' || typeof limit != 'number') {
