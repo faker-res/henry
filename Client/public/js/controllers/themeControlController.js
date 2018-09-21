@@ -138,7 +138,7 @@ define(['js/app'], function (myApp) {
             ]);
 
             vm.initPlayerThemeSetting();
-            vm.editForm ='partner';
+            vm.editForm ='player';
         };
 
         //search and select platform node
@@ -442,13 +442,28 @@ define(['js/app'], function (myApp) {
 
                         vm.listedThemeSettingDetail = [];
 
-                        platform.data.forEach(
-                            inData => {
-                                vm.listedThemeSettingDetail.push(
-                                    inData.platformId + '. ' + inData.name + ' (' + $translate('Type') + ': ' + inData.playerThemeSetting.themeStyleId.themeStyle + ', ' + $translate('Theme') + 'ID: ' + inData.playerThemeSetting.themeId + ')'
-                                )
-                            }
-                        );
+                        if (query && query.type && query.type == 'player'){
+                            platform.data.forEach(
+                                inData => {
+                                    if (inData && inData.playerThemeSetting && inData.playerThemeSetting.themeStyleId && inData.playerThemeSetting.themeStyleId.themeStyle) {
+                                        vm.listedThemeSettingDetail.push(
+                                            inData.platformId + '. ' + inData.name + ' (' + $translate('Type') + ': ' + inData.playerThemeSetting.themeStyleId.themeStyle + ', ' + $translate('Theme') + 'ID: ' + inData.playerThemeSetting.themeId + ')'
+                                        )
+                                    }
+                                }
+                            );
+                        }
+                        else if (query && query.type && query.type == 'partner'){
+                            platform.data.forEach(
+                                inData => {
+                                    if (inData && inData.partnerThemeSetting && inData.partnerThemeSetting.themeStyleId && inData.partnerThemeSetting.themeStyleId.themeStyle) {
+                                        vm.listedThemeSettingDetail.push(
+                                            inData.platformId + '. ' + inData.name + ' (' + $translate('Type') + ': ' + inData.partnerThemeSetting.themeStyleId.themeStyle + ', ' + $translate('Theme') + 'ID: ' + inData.partnerThemeSetting.themeId + ')'
+                                        )
+                                    }
+                                }
+                            );
+                        }
 
                         $('#modalThemeSetting').modal().show();
                         $scope.$evalAsync();
@@ -562,7 +577,7 @@ define(['js/app'], function (myApp) {
                     }
                 }
                 else if (type == 'style') {
-                    
+
                     if (vm.themeStyleList) {
                         let index = vm.themeStyleList.indexOf(codeName);
                         if (index != -1) {
