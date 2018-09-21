@@ -204,21 +204,11 @@ define(['js/app'], function (myApp) {
             utilService.actionAfterLoaded("#paymentMonitorTotalTablePage", function () {
                 vm.commonInitTime(vm.paymentMonitorTotalQuery, '#paymentMonitorTotalQuery');
                 vm.paymentMonitorTotalQuery.merchantType = null;
-                vm.paymentMonitorTotalQuery.pageObj = utilService.createPageForPagingTable("#paymentMonitorTotalTablePage", {}, $translate, function (curP, pageSize) {
-                    vm.commonPageChangeHandler(curP, pageSize, "paymentMonitorTotalQuery", vm.getPaymentMonitorTotalRecord)
-                });
+                // vm.paymentMonitorTotalQuery.pageObj = utilService.createPageForPagingTable("#paymentMonitorTotalTablePage", {}, $translate, function (curP, pageSize) {
+                //     vm.commonPageChangeHandler(curP, pageSize, "paymentMonitorTotalQuery", vm.getPaymentMonitorTotalRecord)
+                // });
                 $scope.safeApply();
             })
-
-            utilService.actionAfterLoaded("#paymentMonitorTotalCompletedTablePage", function () {
-                vm.commonInitTime(vm.paymentMonitorTotalQuery, '#paymentMonitorTotalQuery');
-                vm.paymentMonitorTotalQuery.merchantType = null;
-                vm.paymentMonitorTotalQuery.pageObj = utilService.createPageForPagingTable("#paymentMonitorTotalCompletedTablePage", {}, $translate, function (curP, pageSize) {
-                    vm.commonPageChangeHandler(curP, pageSize, "paymentMonitorTotalQuery", vm.getPaymentMonitorTotalRecord)
-                });
-                $scope.safeApply();
-            })
-
         };
         vm.merchantsNBcard = function () {
             Object.keys(vm.merchants).forEach(item => {
@@ -704,8 +694,8 @@ define(['js/app'], function (myApp) {
                 startTime: vm.paymentMonitorTotalQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.paymentMonitorTotalQuery.endTime.data('datetimepicker').getLocalDate(),
                 platformList: vm.paymentMonitorTotalQuery.platformList,
-                index: vm.paymentMonitorTotalQuery.index,
-                limit: vm.paymentMonitorTotalQuery.limit || 10,
+                index: 0,
+                limit: 1000,
                 sortCol: vm.paymentMonitorTotalQuery.sortCol,
 
             };
@@ -713,131 +703,132 @@ define(['js/app'], function (myApp) {
             vm.paymentMonitorTotalQuery.merchantNo ? sendObj.merchantNo = vm.paymentMonitorTotalQuery.merchantNo : null;
             console.log('sendObj', sendObj);
 
-            socketService.$socket($scope.AppSocket, 'getPaymentMonitorTotalResult', sendObj, function (data) {
-                $scope.$evalAsync(() => {
-                    $('#paymentMonitorTotalTableSpin').hide();
-                    console.log('Payment Monitor Total Result', data);
-                    vm.paymentMonitorTotalData = data.data.data;
+            return $scope.$socketPromise('getPaymentMonitorTotalResult', sendObj).then(
+                data => {
+                    $scope.$evalAsync(() => {
 
+                        console.log('Payment Monitor Total Result', data);
+                        vm.paymentMonitorTotalData = data.data.data;
 
-                    vm.drawPaymentRecordTotalTable(
-                        data.data.data.filter(item => {
-                            if(item && item.$merchantCurrentCount && item.$merchantAllCount && item.$playerCurrentCount && item.$playerAllCount
-                                && ((item.$merchantCurrentCount == item.$merchantAllCount && item.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)
-                                || (item.$playerCurrentCount == item.$playerAllCount && item.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4))))){
+                        vm.drawPaymentRecordTotalTable(
+                            data.data.data.filter(item => {
+                                if (item && item.$merchantCurrentCount && item.$merchantAllCount && item.$playerCurrentCount && item.$playerAllCount
+                                    && ((item.$merchantCurrentCount == item.$merchantAllCount && item.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)
+                                        || (item.$playerCurrentCount == item.$playerAllCount && item.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4))))) {
 
-                                item.amount$ = parseFloat(item.data.amount).toFixed(2);
-                                item.merchantNo$ = item.data.merchantNo ? item.data.merchantNo
-                                    : item.data.wechatAccount ? item.data.wechatAccount
-                                        : item.data.weChatAccount != null ? item.data.weChatAccount
-                                            : item.data.alipayAccount ? item.data.alipayAccount
-                                                : item.data.bankCardNo ? item.data.bankCardNo
-                                                    : item.data.accountNo ? item.data.accountNo : null;
-                                item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
-                                item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
-                                item.status$ = $translate(item.status);
-                                item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
-                                item.website = item && item.data && item.data.platform && item.data.platformId ?
-                                               item.data.platform + "." + getPlatformNameByPlatformObjId(item.data.platformId) : "";
+                                    item.amount$ = parseFloat(item.data.amount).toFixed(2);
+                                    item.merchantNo$ = item.data.merchantNo ? item.data.merchantNo
+                                        : item.data.wechatAccount ? item.data.wechatAccount
+                                            : item.data.weChatAccount != null ? item.data.weChatAccount
+                                                : item.data.alipayAccount ? item.data.alipayAccount
+                                                    : item.data.bankCardNo ? item.data.bankCardNo
+                                                        : item.data.accountNo ? item.data.accountNo : null;
+                                    item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
+                                    item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
+                                    item.status$ = $translate(item.status);
+                                    item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
+                                    item.website = item && item.data && item.data.platform && item.data.platformId ?
+                                        item.data.platform + "." + getPlatformNameByPlatformObjId(item.data.platformId) : "";
 
-                                if (item.data.msg && item.data.msg.indexOf(" 单号:") !== -1) {
-                                    let msgSplit = item.data.msg.split(" 单号:");
-                                    item.merchantName = msgSplit[0];
-                                    item.merchantNo$ = msgSplit[1];
-                                }
-
-                                if (item.type.name === 'PlayerTopUp') {
-                                    //show detail topup type info for online topup.
-                                    let typeID = item.data.topUpType || item.data.topupType;
-                                    item.topupTypeStr = typeID
-                                        ? $translate(vm.topUpTypeList[typeID])
-                                        : $translate("Unknown");
-                                    item.merchantNo$ = vm.getOnlineMerchantId(item.data.merchantNo, item.inputDevice, typeID);
-                                } else {
-                                    //show topup type for other types
-                                    item.topupTypeStr = $translate(item.type.name);
-                                }
-                                item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.createTime));
-                                item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime) : "-";
-                                item.remark$ = item.data.remark? item.data.remark: "";
-                                if(item.$merchantCurrentCount == item.$merchantAllCount && item.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)){
-                                    item.lockedButtonDisplay =    "商户";
-                                }else if(item.$playerCurrentCount == item.$playerAllCount && item.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4)){
-                                    item.lockedButtonDisplay =    "玩家";
-                                }
-
-                                return item;
-                            }
-                        }), data.data.size, {}, isNewSearch
-                    );
-
-                    sendObj.searchType = "completed";
-                    socketService.$socket($scope.AppSocket, 'getPaymentMonitorTotalResult', sendObj, function (data) {
-                        $scope.$evalAsync(() => {
-                            $('#paymentMonitorTotalTableSpin').hide();
-                            console.log('Payment Monitor Total Result', data);
-
-                            vm.drawPaymentRecordTotalCompletedTable(
-                                data.data.data.filter(item => {
-                                    if(item && item.$merchantCurrentCount && item.$merchantAllCount && item.$playerCurrentCount && item.$playerAllCount
-                                        && ((item.$merchantCurrentCount == item.$merchantAllCount && item.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)
-                                            || (item.$playerCurrentCount == item.$playerAllCount && item.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4))))){
-
-
-
-
-                                        item.amount$ = parseFloat(item.data.amount).toFixed(2);
-                                        item.merchantNo$ = item.data.merchantNo ? item.data.merchantNo
-                                            : item.data.wechatAccount ? item.data.wechatAccount
-                                                : item.data.weChatAccount != null ? item.data.weChatAccount
-                                                    : item.data.alipayAccount ? item.data.alipayAccount
-                                                        : item.data.bankCardNo ? item.data.bankCardNo
-                                                            : item.data.accountNo ? item.data.accountNo : null;
-                                        item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
-                                        item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
-                                        item.status$ = $translate(item.status);
-                                        item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
-                                        item.website = item && item.data && item.data.platform && item.data.platformId ?
-                                            item.data.platform + "." + getPlatformNameByPlatformObjId(item.data.platformId) : "";
-
-                                        if (item.data.msg && item.data.msg.indexOf(" 单号:") !== -1) {
-                                            let msgSplit = item.data.msg.split(" 单号:");
-                                            item.merchantName = msgSplit[0];
-                                            item.merchantNo$ = msgSplit[1];
-                                        }
-
-                                        if (item.type.name === 'PlayerTopUp') {
-                                            //show detail topup type info for online topup.
-                                            let typeID = item.data.topUpType || item.data.topupType;
-                                            item.topupTypeStr = typeID
-                                                ? $translate(vm.topUpTypeList[typeID])
-                                                : $translate("Unknown")
-                                            item.merchantNo$ = vm.getOnlineMerchantId(item.data.merchantNo, item.inputDevice, typeID);
-                                        } else {
-                                            //show topup type for other types
-                                            item.topupTypeStr = $translate(item.type.name);
-                                        }
-                                        item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.createTime));
-                                        item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime) : "-";
-                                        item.remark$ = item.data.remark? item.data.remark: "";
-                                        if(item.$merchantCurrentCount == item.$merchantAllCount && item.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)){
-                                            item.lockedButtonDisplay =    "商户";
-                                        }else if(item.$playerCurrentCount == item.$playerAllCount && item.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4)){
-                                            item.lockedButtonDisplay =    "玩家";
-                                        }
-
-                                        return item;
+                                    if (item.data.msg && item.data.msg.indexOf(" 单号:") !== -1) {
+                                        let msgSplit = item.data.msg.split(" 单号:");
+                                        item.merchantName = msgSplit[0];
+                                        item.merchantNo$ = msgSplit[1];
                                     }
-                                }), data.data.size, {}, isNewSearch
-                            );
+
+                                    if (item.type.name === 'PlayerTopUp') {
+                                        //show detail topup type info for online topup.
+                                        let typeID = item.data.topUpType || item.data.topupType;
+                                        item.topupTypeStr = typeID
+                                            ? $translate(vm.topUpTypeList[typeID])
+                                            : $translate("Unknown");
+                                        item.merchantNo$ = vm.getOnlineMerchantId(item.data.merchantNo, item.inputDevice, typeID);
+                                    } else {
+                                        //show topup type for other types
+                                        item.topupTypeStr = $translate(item.type.name);
+                                    }
+                                    item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.createTime));
+                                    item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime) : "-";
+                                    item.remark$ = item.data.remark ? item.data.remark : "";
+                                    if (item.$merchantCurrentCount == item.$merchantAllCount && item.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)) {
+                                        item.lockedButtonDisplay = "商户";
+                                    } else if (item.$playerCurrentCount == item.$playerAllCount && item.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4)) {
+                                        item.lockedButtonDisplay = "玩家";
+                                    }
+
+                                    return item;
+                                }
+                            }), data.data.size, {}, isNewSearch
+                        );
+
+                        sendObj.searchType = "completed";
+                        utilService.actionAfterLoaded("#paymentMonitorTotalTable", function () {
+                                $scope.$socketPromise('getPaymentMonitorTotalResult', sendObj).then(
+                                    data => {
+                                        $scope.$evalAsync(() => {
+                                            $('#paymentMonitorTableSpin').hide();
+                                            console.log('Payment Monitor Total  Completed Result', data);
+
+                                            vm.drawPaymentRecordTotalCompletedTable(
+                                                data.data.data.filter(item => {
+                                                    if (item && item.$merchantCurrentCount && item.$merchantAllCount && item.$playerCurrentCount && item.$playerAllCount
+                                                        && ((item.$merchantCurrentCount == item.$merchantAllCount && item.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)
+                                                            || (item.$playerCurrentCount == item.$playerAllCount && item.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4))))) {
+
+                                                        item.amount$ = parseFloat(item.data.amount).toFixed(2);
+                                                        item.merchantNo$ = item.data.merchantNo ? item.data.merchantNo
+                                                            : item.data.wechatAccount ? item.data.wechatAccount
+                                                                : item.data.weChatAccount != null ? item.data.weChatAccount
+                                                                    : item.data.alipayAccount ? item.data.alipayAccount
+                                                                        : item.data.bankCardNo ? item.data.bankCardNo
+                                                                            : item.data.accountNo ? item.data.accountNo : null;
+                                                        item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
+                                                        item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
+                                                        item.status$ = $translate(item.status);
+                                                        item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
+                                                        item.website = item && item.data && item.data.platform && item.data.platformId ?
+                                                            item.data.platform + "." + getPlatformNameByPlatformObjId(item.data.platformId) : "";
+
+                                                        if (item.data.msg && item.data.msg.indexOf(" 单号:") !== -1) {
+                                                            let msgSplit = item.data.msg.split(" 单号:");
+                                                            item.merchantName = msgSplit[0];
+                                                            item.merchantNo$ = msgSplit[1];
+                                                        }
+
+                                                        if (item.type.name === 'PlayerTopUp') {
+                                                            //show detail topup type info for online topup.
+                                                            let typeID = item.data.topUpType || item.data.topupType;
+                                                            item.topupTypeStr = typeID
+                                                                ? $translate(vm.topUpTypeList[typeID])
+                                                                : $translate("Unknown")
+                                                            item.merchantNo$ = vm.getOnlineMerchantId(item.data.merchantNo, item.inputDevice, typeID);
+                                                        } else {
+                                                            //show topup type for other types
+                                                            item.topupTypeStr = $translate(item.type.name);
+                                                        }
+                                                        item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.createTime));
+                                                        item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime) : "-";
+                                                        item.remark$ = item.data.remark ? item.data.remark : "";
+                                                        if (item.$merchantCurrentCount == item.$merchantAllCount && item.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)) {
+                                                            item.lockedButtonDisplay = "商户";
+                                                        } else if (item.$playerCurrentCount == item.$playerAllCount && item.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4)) {
+                                                            item.lockedButtonDisplay = "玩家";
+                                                        }
+
+                                                        return item;
+                                                    }
+                                                }), data.data.size, {}, isNewSearch
+                                            );
+                                        });
+                                }, err => {
+                                    console.error(err);
+                                }, true);
                         });
-                    }, function (err) {
-                        console.error(err);
-                    }, true);
-                });
-            }, function (err) {
-                console.error(err);
-            }, true);
+                    });
+                }, err => {
+                    console.error(err);
+                }, true
+            );
         };
 
         vm.getMerchantName = function (merchantNo, inputDevice) {
@@ -1048,6 +1039,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.drawPaymentRecordTotalTable = function (data, size, summary, newSearch) {
+            size = data.length;
             vm.paymentMonitorTotalQuery.totalCount = data.length;
             console.log('data', data);
             vm.paymentMonitorTotalData.followUpContent = {};
@@ -1199,21 +1191,13 @@ define(['js/app'], function (myApp) {
 
             vm.topUpProposalTable = utilService.createDatatableWithFooter('#paymentMonitorTotalTable', tableOptions, {}, true);
 
-            vm.paymentMonitorTotalQuery.pageObj.init({maxCount: size}, newSearch);
-
-            if(!newSearch){
-                $('#paymentMonitorTotalTable').off('order.dt');
-                $('#paymentMonitorTotalTable').on('order.dt', function (event, a, b) {
-                    vm.commonSortChangeHandler(a, 'paymentMonitorTotalQuery', vm.getPaymentMonitorTotalRecord);
-                });
-            }
-
             $('#paymentMonitorTotalTable').resize();
 
             $('#paymentMonitorTotalTable tbody').on('click', 'tr', vm.tableRowClicked);
         };
 
         vm.drawPaymentRecordTotalCompletedTable = function (data, size, summary, newSearch) {
+            size = data.length;
             vm.paymentMonitorTotalQuery.totalCompletedCount = data.length;
             console.log('data', data);
             let tableOptions = {
@@ -1355,15 +1339,6 @@ define(['js/app'], function (myApp) {
 
             vm.topUpProposalTable = utilService.createDatatableWithFooter('#paymentMonitorTotalCompletedTable', tableOptions, {}, true);
 
-            vm.paymentMonitorTotalQuery.pageObj.init({maxCount: size}, newSearch);
-
-            if(!newSearch){
-                $('#paymentMonitorTotalCompletedTable').off('order.dt');
-                $('#paymentMonitorTotalCompletedTable').on('order.dt', function (event, a, b) {
-                    vm.commonSortChangeHandler(a, 'paymentMonitorTotalQuery', vm.getPaymentMonitorTotalRecord);
-                });
-            }
-
             $('#paymentMonitorTotalCompletedTable').resize();
 
             $('#paymentMonitorTotalCompletedTable tbody').on('click', 'tr', vm.tableRowClicked);
@@ -1434,7 +1409,7 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, 'updateFollowUpContent', sendObj, function (data) {
                 vm.showEditFollowUpContent = false;
-                vm.getPaymentMonitorTotalRecord(true)
+                vm.getPaymentMonitorTotalRecord(true);
             });
         };
 
