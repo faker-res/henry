@@ -733,6 +733,45 @@ let dbPartner = {
         return dbconfig.collection_partner.find({}).limit(constSystemParam.MAX_RECORD_NUM).exec();
     },
 
+    checkDuplicatedPartnerBankAccount: function (bankAccount, platform) {
+
+        let sameBankAccountCountProm = dbconfig.collection_partner.find({
+            bankAccount: bankAccount,
+            platform: ObjectId(platform),
+            'permission.forbidPartnerFromLogin': false
+        }).lean().count();
+
+        let platformProm =  dbconfig.collection_platform.findOne({
+            _id: ObjectId(platform)
+        });
+
+        return Promise.all([sameBankAccountCountProm, platformProm]).then(
+            data => {
+                if (!data){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "data is not found"
+                    })
+                }
+
+                if (!data[1]){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "platform data is not found"
+                    })
+                }
+
+                let sameBankAccountCount = data[0] || 0;
+                let platformData = data[1];
+
+                if (platformData.partnerSameBankAccountCount && sameBankAccountCount >= platformData.partnerSameBankAccountCount){
+                    return Promise.resolve(false)
+                }
+                return Promise.resolve(true);
+            }
+        )
+    },
+
     /**
      * Search the information of the partner by partnerName or _id
      * @param {String} query - Query string
@@ -1850,8 +1889,10 @@ let dbPartner = {
     },
     updatePartnerBankInfo: function (userAgent, partnerId, updateData) {
         let partnerData;
+        let platformData = null;
         let partnerQuery = null;
         let duplicatedRealNameCount = 0;
+        let sameBankAccCount = 0;
         let platformObjId;
         return dbconfig.collection_partner.findOne({partnerId: partnerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
@@ -1863,6 +1904,7 @@ let dbPartner = {
                         platform: partnerResult.platform
                     }
                     partnerData = partnerResult;
+                    platformData = partnerResult.platform;
                     updateData.curData = {};
 
                     if(partnerResult.bankAccount){
@@ -1877,7 +1919,17 @@ let dbPartner = {
                         updateData.curData.bankName = partnerResult.bankName;
                     }
 
-                    return dbconfig.collection_partner.find({realName : updateData.bankAccountName, platform: partnerResult.platform._id}).lean().count().then(
+                    return dbconfig.collection_partner.find({
+                        bankAccount: updateData.bankAccount,
+                        platform: partnerData.platform._id,
+                        'permission.forbidPartnerFromLogin': false
+                    }).lean().count();
+                }
+            ).then(
+                retCount => {
+                    sameBankAccCount = retCount || 0;
+
+                    return dbconfig.collection_partner.find({realName : updateData.bankAccountName, platform: partnerData.platform._id}).lean().count().then(
                         count => {
                             duplicatedRealNameCount = count || 0;
 
@@ -1951,6 +2003,15 @@ let dbPartner = {
                                 name: "DataError",
                                 code: constServerCode.INVALID_DATA,
                                 message: "The name has been registered, please change a new bank card or contact our cs."
+                            });
+                        }
+
+                        // check if the same bank account count exceeds the pre-defined limit
+                        if (platformData && platformData.partnerSameBankAccountCount && sameBankAccCount >= platformData.partnerSameBankAccountCount && partnerData.bankAccount != updateData.bankAccount){
+                            return Q.reject({
+                                name: "DataError",
+                                code: constServerCode.INVALID_DATA,
+                                message: "The identical bank account has been registered, please change a new bank card or contact our cs, thank you!"
                             });
                         }
 
