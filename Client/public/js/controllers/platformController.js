@@ -27203,7 +27203,6 @@ define(['js/app'], function (myApp) {
             }
             vm.getAutoApprovalBasic = () => {
                 vm.autoApprovalBasic = vm.autoApprovalBasic || {};
-                console.log('vm.selectedPlatform.data', vm.selectedPlatform.data);
                 vm.autoApprovalBasic.enableAutoApplyBonus = vm.selectedPlatform.data.enableAutoApplyBonus;
                 vm.autoApprovalBasic.manualAuditFirstWithdrawal = typeof vm.selectedPlatform.data.manualAuditFirstWithdrawal === 'boolean' ? vm.selectedPlatform.data.manualAuditFirstWithdrawal : true;
                 vm.autoApprovalBasic.manualAuditAfterBankChanged = typeof vm.selectedPlatform.data.manualAuditAfterBankChanged === 'boolean' ? vm.selectedPlatform.data.manualAuditAfterBankChanged : true;
@@ -27216,7 +27215,12 @@ define(['js/app'], function (myApp) {
                 vm.autoApprovalBasic.profitTimesMinAmount = vm.selectedPlatform.data.autoApproveProfitTimesMinAmount;
                 vm.autoApprovalBasic.bonusProfitOffset = vm.selectedPlatform.data.autoApproveBonusProfitOffset;
                 vm.autoApprovalBasic.autoUnlockWhenInitAmtLessThanLostThreshold = vm.selectedPlatform.data.autoUnlockWhenInitAmtLessThanLostThreshold;
-                $scope.safeApply();
+
+                vm.autoApprovalBasic.firstWithdrawExceedAmount = vm.selectedPlatform.data.autoAudit.firstWithdrawExceedAmount;
+                vm.autoApprovalBasic.firstWithdrawAndCurrentMinusTopupExceedAmount = vm.selectedPlatform.data.autoAudit.firstWithdrawAndCurrentMinusTopupExceedAmount;
+                vm.autoApprovalBasic.firstWithdrawTotalBetOverTotalTopupExceedTimes = vm.selectedPlatform.data.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes;
+                vm.autoApprovalBasic.firstWithdrawCondBExceedAmount = vm.selectedPlatform.data.autoAudit.firstWithdrawCondBExceedAmount;
+                vm.autoApprovalBasic.firstWithdrawDifferentIPCheck = vm.selectedPlatform.data.autoAudit.firstWithdrawDifferentIPCheck;
             };
 
             vm.getMonitorBasic = () => {
@@ -28539,7 +28543,15 @@ define(['js/app'], function (myApp) {
                         autoApproveConsumptionOffset: srcData.consumptionOffset,
                         autoApproveProfitTimes: srcData.profitTimes,
                         autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
-                        autoApproveBonusProfitOffset: srcData.bonusProfitOffset,autoUnlockWhenInitAmtLessThanLostThreshold: srcData.autoUnlockWhenInitAmtLessThanLostThreshold,
+                        autoApproveBonusProfitOffset: srcData.bonusProfitOffset,
+                        autoUnlockWhenInitAmtLessThanLostThreshold: srcData.autoUnlockWhenInitAmtLessThanLostThreshold,
+                        autoAudit: {
+                            firstWithdrawExceedAmount: srcData.firstWithdrawExceedAmount,
+                            firstWithdrawAndCurrentMinusTopupExceedAmount: srcData.firstWithdrawAndCurrentMinusTopupExceedAmount,
+                            firstWithdrawTotalBetOverTotalTopupExceedTimes: srcData.firstWithdrawTotalBetOverTotalTopupExceedTimes,
+                            firstWithdrawCondBExceedAmount: srcData.firstWithdrawCondBExceedAmount,
+                            firstWithdrawDifferentIPCheck: srcData.firstWithdrawDifferentIPCheck,
+                        }
                     }
                 };
                 console.log('\n\n\nupdateAutoApprovalConfig sendData', JSON.stringify(sendData));

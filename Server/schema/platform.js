@@ -222,6 +222,18 @@ var platformSchema = new Schema({
     whiteListingPhoneNumbers: [{type:String}],
     // black listing phone number
     blackListingPhoneNumbers: [{type:String}],
+    // Auto audit settings
+    autoAudit: {
+        // First withdraw amount >= X (Manual audit)
+        firstWithdrawExceedAmount: {type: Number, default: 0},
+        // First withdraw + current credit - total topup >= X (Manual audit)
+        firstWithdrawAndCurrentMinusTopupExceedAmount: {type: Number, default: 0},
+        // Total Bet / Total Topup >= X, and withdraw amount >= Y (Maunual audit)
+        firstWithdrawTotalBetOverTotalTopupExceedTimes: {type: Number, default: 0},
+        firstWithdrawCondBExceedAmount: {type: Number, default: 0},
+        // location of registration IP + phone number + bank card are different (Manual audit)
+        firstWithdrawDifferentIPCheck: {type: Boolean, default: false}
+    },
     // Auto approve bonus proposal platform switch
     enableAutoApplyBonus: {type: Boolean, default: false},
     // Auto approve single withdrawal limit
