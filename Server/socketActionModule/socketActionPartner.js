@@ -104,6 +104,12 @@ function socketActionPartner(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPartner.getAllPartner, [{}], actionName, true);
         },
 
+        checkDuplicatedPartnerBankAccount: function checkDuplicatedPartnerBankAccount(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.bankAccount && data.platform);
+            socketUtil.emitter(self.socket, dbPartner.checkDuplicatedPartnerBankAccount, [data.bankAccount, data.platform], actionName, isValidData);
+        },
+
         /**
          * Get all partner status options
          */

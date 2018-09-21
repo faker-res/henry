@@ -2735,7 +2735,7 @@ let dbPlayerInfo = {
                     }
 
                     if(resData.hasOwnProperty("wrongCount") && playerObj && playerObj.qnaWrongCount &&
-                        playerObj.qnaWrongCount.hasOwnProperty("forgotPassword") &&  playerObj.qnaWrongCount.forgotPassword > resData.wrongCount) {
+                        playerObj.qnaWrongCount.hasOwnProperty("forgotPassword") &&  playerObj.qnaWrongCount.forgotPassword >= resData.wrongCount) {
                         return Promise.reject({name: "DBError", message: "Security question exceed maximum wrong count, this account has been banned from being modified automatically, please contact customer service"});
                     }
 
@@ -3013,17 +3013,18 @@ let dbPlayerInfo = {
                             });
                         }
 
-                        if (updateData.bankAccountType) {
-                            let tempBankAccountType = updateData.bankAccountType;
-                            let isValidBankType = Number.isInteger(Number(tempBankAccountType));
-                            if (!isValidBankType) {
-                                return Q.reject({
-                                    name: "DataError",
-                                    code: constServerCode.INVALID_DATA,
-                                    message: "Please enter bank account name or contact cs"
-                                });
-                            }
-                        }
+                        // if (updateData.bankAccountType) {
+                        //     let tempBankAccountType = updateData.bankAccountType;
+                        //     let isValidBankType = Number.isInteger(Number(tempBankAccountType));
+                        //     if (!isValidBankType) {
+                        //         return Q.reject({
+                        //             name: "DataError",
+                        //             code: constServerCode.INVALID_DATA,
+                        //             message: "Please enter bank account name or contact cs"
+                        //         });
+                        //     }
+                        // }
+                        updateData.bankAccountType = 1;
 
                         return dbconfig.collection_platform.findOne({
                             _id: playerData.platform
@@ -5888,7 +5889,7 @@ let dbPlayerInfo = {
     },
 
     /**
-     * Transfer credit from platform to game provider
+     * Main trasfer in logic
      * 1. Check where is the player's credit
      *
      * @param {objectId} platform
@@ -6476,12 +6477,6 @@ let dbPlayerInfo = {
                         ) {
                             targetProviderId = playerObj.lastPlayedProvider.providerId;
                             return dbconfig.collection_gameProvider.findOne({providerId: targetProviderId}).lean();
-                        } else {
-                            return Promise.reject({
-                                name: "DataError",
-                                message: "Please transfer out from correct provider",
-                                dontLogTransfer: true
-                            })
                         }
                     }
 
@@ -20040,7 +20035,7 @@ let dbPlayerInfo = {
         let statsObj = {};
         let totalCount = 0;
         let totalPage = 1;
-        let sortCol = {createTime: 1};
+        let sortCol = {createTime: -1};
         let totalReceiveAmount = 0;
 
         if (typeof currentPage != 'number' || typeof limit != 'number') {
