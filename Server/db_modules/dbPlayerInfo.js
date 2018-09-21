@@ -422,6 +422,25 @@ let dbPlayerInfo = {
                         return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
 
+                    if (inputData.lastLoginIp) {
+                        return dbPlatform.getBlacklistIpIsEffective(inputData.lastLoginIp).then(
+                            blacklistIpData => {
+                                if (blacklistIpData && blacklistIpData.length > 0) {
+                                    return Q.reject({
+                                        status: constServerCode.BLACKLIST_IP,
+                                        name: "DBError",
+                                        message: localization.localization.translate("Registration function under maintenance, please try again later.")
+                                    });
+                                } else {
+                                    return platformData;
+                                }
+                            }
+                        );
+                    }
+                    return platformData;
+                }
+            ).then(
+                platformData => {
                     if (inputData.phoneNumber && platformData.blackListingPhoneNumbers) {
                         let indexNo = platformData.blackListingPhoneNumbers.findIndex(p => p == inputData.phoneNumber);
 
@@ -6457,12 +6476,6 @@ let dbPlayerInfo = {
                         ) {
                             targetProviderId = playerObj.lastPlayedProvider.providerId;
                             return dbconfig.collection_gameProvider.findOne({providerId: targetProviderId}).lean();
-                        } else {
-                            return Promise.reject({
-                                name: "DataError",
-                                message: "Please transfer out from correct provider",
-                                dontLogTransfer: true
-                            })
                         }
                     }
 

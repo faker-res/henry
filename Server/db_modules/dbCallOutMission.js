@@ -502,6 +502,8 @@ function getCtiUrls (platformId) {
             "http://b8a.tel400.me/cti/",
             "http://xindelitz.tel400.me/cti/",
             "http://jinbailinewcro.tel400.me/cti/",
+            "http://xbet.tel400.me/cti/",
+            "http://xbetdx.tel400.me/cti/",
         ];
     } else if (platformId == '8') {
         urls = [
