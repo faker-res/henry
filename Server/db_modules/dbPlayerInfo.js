@@ -423,25 +423,16 @@ let dbPlayerInfo = {
                     }
 
                     if (inputData.lastLoginIp) {
-                        return dbPlatform.getBlacklistIpIsEffective().then(
+                        return dbPlatform.getBlacklistIpIsEffective(inputData.lastLoginIp).then(
                             blacklistIpData => {
-                                let blacklistIpList = [];
                                 if (blacklistIpData && blacklistIpData.length > 0) {
-                                    for (let x = 0; x < blacklistIpData.length; x++) {
-                                        if (blacklistIpData[x].ip && blacklistIpData[x].isEffective) {
-                                            blacklistIpList.push(blacklistIpData[x].ip);
-                                        }
-                                    }
-
-                                    if (blacklistIpList && blacklistIpList.length > 0 && blacklistIpList.includes(inputData.lastLoginIp)) {
-                                        return Q.reject({
-                                            status: constServerCode.BLACKLIST_IP,
-                                            name: "DBError",
-                                            message: localization.localization.translate("Registration function under maintenance, please try again later.")
-                                        });
-                                    } else {
-                                        return platformData;
-                                    }
+                                    return Q.reject({
+                                        status: constServerCode.BLACKLIST_IP,
+                                        name: "DBError",
+                                        message: localization.localization.translate("Registration function under maintenance, please try again later.")
+                                    });
+                                } else {
+                                    return platformData;
                                 }
                             }
                         );
