@@ -16781,7 +16781,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.clearFeedBackResultDataStatus = function (rowData) {
-                if (rowData && rowData.playerId) {
+                if (rowData && (rowData.playerId || rowData.toLowerCase() === "player")) {
                     vm.addPlayerFeedbackResultData.message = null;
                     vm.addPlayerFeedbackResultData.success = null;
                     vm.addPlayerFeedbackResultData.failure = null;
@@ -16806,7 +16806,7 @@ define(['js/app'], function (myApp) {
                 vm.clearFeedBackResultDataStatus(rowData);
                 let reqData = {};
 
-                if (rowData && rowData.playerId) {
+                if (rowData && (rowData.playerId || rowData.toLowerCase() === "player")) {
                     reqData.key = vm.addPlayerFeedbackResultData.key;
                     reqData.value = vm.addPlayerFeedbackResultData.value;
                     console.log(reqData);
@@ -16860,7 +16860,7 @@ define(['js/app'], function (myApp) {
                 vm.clearFeedBackResultDataStatus(rowData);
                 let reqData = {};
 
-                if (rowData && rowData.playerId) {
+                if (rowData && (rowData.playerId || rowData.toLowerCase() === "player")) {
                     reqData._id = vm.deletePlayerFeedbackResultData._id;
                     return $scope.$socketPromise('deletePlayerFeedbackResult', reqData).then(
                         function (data) {
@@ -16907,7 +16907,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.clearFeedBackTopicDataStatus = function (rowData) {
-                if (rowData && rowData.playerId) {
+                if (rowData && (rowData.playerId || rowData.toLowerCase() === "player")) {
                     vm.addPlayerFeedbackTopicData.message = null;
                     vm.addPlayerFeedbackTopicData.success = null;
                     vm.addPlayerFeedbackTopicData.failure = null;
@@ -16932,7 +16932,7 @@ define(['js/app'], function (myApp) {
                 vm.clearFeedBackTopicDataStatus(rowData);
                 let reqData = {};
 
-                if (rowData && rowData.playerId) {
+                if (rowData && (rowData.playerId || rowData.toLowerCase() === "player")) {
                     reqData.key = vm.addPlayerFeedbackTopicData.value;
                     reqData.value = vm.addPlayerFeedbackTopicData.value;
                     reqData.platform = vm.selectedPlatform.id;
@@ -16990,7 +16990,7 @@ define(['js/app'], function (myApp) {
                 vm.clearFeedBackTopicDataStatus(rowData);
                 let reqData = {};
 
-                if (rowData && rowData.playerId) {
+                if (rowData && (rowData.playerId || rowData.toLowerCase() === "player")) {
                     reqData._id = vm.deletePlayerFeedbackTopicData._id;
                     return $scope.$socketPromise('deletePlayerFeedbackTopic', reqData).then(
                         () => $scope.$evalAsync(async () => {
