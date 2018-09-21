@@ -765,12 +765,11 @@ let dbPlayerCreditTransfer = {
     },
 
     /**
-     * TODO: NOT YET COMPLETE
-     * TODO:: NOT YET HANDLE FIRST REGISTRATION REWARD
+     * Main transfer in logic
      * Transfer player credit from local to provider (provider group)
      * @param playerObjId
      * @param platform
-     * @param {String} providerId
+     * @param {ObjectId} providerId
      * @param amount
      * @param providerShortId
      * @param userName
@@ -975,6 +974,7 @@ let dbPlayerCreditTransfer = {
                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, player.playerId, player.name, platform,
                         platformId, constPlayerCreditChangeType.TRANSFER_IN, transferId, providerShortId, transferAmount, lockedTransferAmount, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
 
+                    // End return
                     return dbConfig.collection_rewardTaskGroup.find({
                         platformId: ObjectId(platform),
                         playerId: ObjectId(playerObjId),
@@ -1042,7 +1042,8 @@ let dbPlayerCreditTransfer = {
     },
 
     /**
-     * TODO:: WORK IN PROGRESS
+     * Main transfer out logic
+     * - Query and check if in game credit is sufficient
      * @param playerObjId
      * @param platform
      * @param providerId
@@ -1058,18 +1059,12 @@ let dbPlayerCreditTransfer = {
      * @param forSync
      */
     playerCreditTransferFromProviderWithProviderGroup: function (playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, adminName, cpName, bResolve, maxReward, forSync) {
-        //let pCTFP = this;
-        //let lockedAmount = 0;
         let rewardTaskTransferredAmount = 0;
         let validCreditToAdd = 0;
         let gameCredit = 0;
         let playerCredit = 0;
         let rewardTaskCredit = 0;
-        //let transferId = new Date().getTime();
         let providerPlayerObj = 0;
-
-        //let rewardGroupObj;
-        //let updateObj = {};
         let checkBResolve = false;
 
         // First, need to make sure there's money in provider first
@@ -1133,6 +1128,27 @@ let dbPlayerCreditTransfer = {
         );
     },
 
+    /**
+     * Main transfer out logic
+     * - Check provider group credit
+     * @param playerObjId
+     * @param platform
+     * @param providerId
+     * @param amount
+     * @param playerId
+     * @param providerShortId
+     * @param userName
+     * @param platformId
+     * @param bResolve
+     * @param forSync
+     * @param providerPlayerObj
+     * @param checkBResolve
+     * @param adminName
+     * @param cpName
+     * @param gameProviderGroup
+     * @param useEbetWallet
+     * @constructor
+     */
     TransferPlayerCreditFromProviderWithProviderGroup: function(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, providerPlayerObj, checkBResolve, adminName, cpName, gameProviderGroup, useEbetWallet) {
         let pCTFP = this;
         let lockedAmount = 0;
@@ -1142,13 +1158,12 @@ let dbPlayerCreditTransfer = {
         let playerCredit = 0;
         let rewardTaskCredit = 0;
         let transferId = new Date().getTime();
-
         let rewardGroupObj;
         let updateObj = {};
         let eBetWalletObj = {};
+
         return checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, gameProviderGroup, useEbetWallet).then(
             res => {
-                console.log("checkProviderGroupCredit return res",res);
                 if (res && res[1]) {
                     amount = res[0];
                     updateObj = res[1];
@@ -1199,7 +1214,6 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
-                console.log("res===1", res);
                 if (res) {
                     // CPMS Transfer out success
                     // Update reward task group if available
@@ -1242,7 +1256,6 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
-                console.log("res===2", res);
                 if (res) {
                     let updatePlayerObj = {
                         lastPlayedProvider: null,
@@ -1268,7 +1281,6 @@ let dbPlayerCreditTransfer = {
             }
         ).then(
             res => {
-                console.log("res===3", res);
                 if (res) {//create log
                     playerCredit = res.validCredit;
                     let lockedCredit = res.lockedCredit;
@@ -1934,7 +1946,7 @@ function playerCreditChange(playerObjId, platformObjId, incValidCredit, incLocke
 }
 
 /**
- * TODO:: NOT TESTED YET, MIGHT NOT BE WORKING PROPERLY
+ *
  * @param playerObjId
  * @param platformObjId
  * @param rewardTaskGroupObjId
@@ -1985,7 +1997,6 @@ function playerCreditChangeWithRewardTaskGroup(playerObjId, platformObjId, rewar
 }
 
 function checkProviderGroupCredit(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, gameProviderGroup, useEbetWallet) {
-    console.log("gameProviderGroup",gameProviderGroup);
     let gameProviderGroupProm = gameProviderGroup ? Promise.resolve(gameProviderGroup) :
         dbConfig.collection_gameProviderGroup.findOne({
             platform: platform,
@@ -1994,9 +2005,8 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
     return gameProviderGroupProm.then(
         res => {
             gameProviderGroup = res;
-            console.log("gameProviderGroup2",gameProviderGroup);
+
             if (gameProviderGroup) {
-                console.log("gameProviderGroup2 ID",gameProviderGroup._id);
                 // Search for reward task group of this player on this provider
                 let gameCreditProm = Promise.resolve(false);
                 let rewardTaskGroupProm;
@@ -2039,9 +2049,6 @@ function checkProviderGroupCredit(playerObjId, platform, providerId, amount, pla
                 let providerPlayerObj = {gameCredit: res[0].credit ? parseInt(res[0].credit) : 0};
                 rewardGroupObj = res[1];
                 if(useEbetWallet === true) {
-                    console.log("res[0]",res[0]);
-                    console.log("gameProviderGroup.ebetWallet",gameProviderGroup.ebetWallet);
-                    console.log("rewardGroupObj",rewardGroupObj);
                     let curWalletCredit = res[0].wallet[gameProviderGroup.ebetWallet];
                     let curWalletCreditRounded = Math.floor(curWalletCredit);
                     eBetWalletObj[gameProviderGroup.ebetWallet] = curWalletCreditRounded;

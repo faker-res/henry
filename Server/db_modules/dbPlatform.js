@@ -2163,9 +2163,8 @@ var dbPlatform = {
     },
 
     updateAutoApprovalConfig: function (query, updateData) {
-        console.log("updateAutoApprovalConfig platform update:", updateData);
-
-        return dbconfig.collection_platform.findOneAndUpdate(query, updateData, {new: true});
+        let updObj = {$set: updateData};
+        return dbconfig.collection_platform.findOneAndUpdate(query, updObj, {new: true});
     },
     generateObjectId: function () {
         return new ObjectId();
