@@ -421,7 +421,9 @@
                 a.fa.fa-times.close(type='button' data-dismiss='modal')
                 h4.modal-title {{'AUTO_FEEDBACK' | translate}} {{'PROMO_CODE_HISTORY' | translate}}
             .modal-body
-                table.simple-table
+                table#autoFeedbackPromoCodeTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                    #autoFeedbackPromoCodeTablePage.col-md-12
+                //table.simple-table
                     thead
                         tr
                             th {{'ACCOUNT' | translate}}

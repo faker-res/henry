@@ -3391,8 +3391,14 @@ var dbPlatform = {
         return dbconfig.collection_platformBlacklistIpConfig.find({}).lean().exec();
     },
 
-    getBlacklistIpIsEffective: () => {
-        return dbconfig.collection_platformBlacklistIpConfig.find({isEffective: true}).lean().exec();
+    getBlacklistIpIsEffective: (ipAddress) => {
+        let query = {
+            isEffective: true
+        };
+        if (ipAddress) {
+            query.ip = ipAddress
+        }
+        return dbconfig.collection_platformBlacklistIpConfig.find(query).lean().exec();
     },
 
     deleteBlacklistIpConfig: (blacklistIpID) => {
