@@ -2816,7 +2816,6 @@ var dbPlatform = {
                         returnedObj.defaultCommissionType = platformData.partnerDefaultCommissionGroup ? platformData.partnerDefaultCommissionGroup : 0;
                         returnedObj.cndOrFtpLink = platformData.partnerRouteSetting ? platformData.partnerRouteSetting : "";
                         returnedObj.themeStyle = platformData.partnerThemeSetting && platformData.partnerThemeSetting.themeStyleId &&  platformData.partnerThemeSetting.themeStyleId.themeStyle ? platformData.partnerThemeSetting.themeStyleId.themeStyle : "";
-                       console.log("checking--", platformData.partnerThemeSetting)
                         if (platformData.partnerThemeSetting && platformData.partnerThemeSetting.themeStyleId &&  platformData.partnerThemeSetting.themeStyleId.content && platformData.partnerThemeSetting.themeStyleId.content.length > 0){
                             let index = platformData.partnerThemeSetting.themeStyleId.content.findIndex(p => p.themeId == platformData.partnerThemeSetting.themeId)
                             if (index != -1){

@@ -105,7 +105,6 @@ var dbThemeControl = {
             })
         }
 
-
     },
 
 
