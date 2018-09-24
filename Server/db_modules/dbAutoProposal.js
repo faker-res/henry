@@ -238,10 +238,13 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 playerTotalBets = data[5][0].totalBetAmt;
             }
 
-            if (data && data[6] && playerData && playerData.bankAccountProvince) {
-                let allProvinces = data[6];
+            if (data && data[6] && data[6].provinces && playerData && playerData.bankAccountProvince) {
+                let allProvinces = data[6].provinces;
                 let pIdx = allProvinces.findIndex(d => d.id === playerData.bankAccountProvince);
-                bankProvince = allProvinces[pIdx].name.substring(0, 2);
+
+                if (pIdx && allProvinces[pIdx] && allProvinces[pIdx].name) {
+                    bankProvince = allProvinces[pIdx].name.substring(0, 2);
+                }
             }
 
             let isApprove = true, canApprove = true;
