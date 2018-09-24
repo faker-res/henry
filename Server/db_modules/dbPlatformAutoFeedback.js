@@ -220,6 +220,7 @@ let dbPlatformAutoFeedback = {
                 let admins = [];
 
                 let departmentProm = dbDepartment.getDepartmentDetailsByPlatformObjId(feedback.platformObjId).then(departments => {
+                    console.log("departments",departments);
                     departments.forEach(department => {
                         if(department._id == platformObjId) {
                             roles = department.roles;
