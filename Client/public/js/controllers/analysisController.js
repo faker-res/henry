@@ -3038,7 +3038,8 @@ define(['js/app'], function (myApp) {
                     }
 
                     // set first domain as default selected domain
-                    // vm.queryPara.clickCount.domain = vm.clickCountDomain[Object.keys(vm.clickCountDomain)[0]] || "";
+                    vm.queryPara.clickCount.domain = vm.clickCountDomain[Object.keys(vm.clickCountDomain)[0]] || "";
+                    vm.getClickCountButtonName(vm.queryPara.clickCount.inputDevice, vm.queryPara.clickCount.pageName, vm.queryPara.clickCount.domain);
                 });
             }, function (data) {
                 console.log("clickCount domain data not found?", data);
@@ -3069,7 +3070,7 @@ define(['js/app'], function (myApp) {
             vm.clickCountTableID = '#'+vm.clickCountTable; // new table ID (increment)
             vm.clickCountTableID2 = '#'+vm.clickCountTable2; // previous table ID after first search (need to be replaced)
 
-            vm.getClickCountButtonName(device, pageName, domain);
+            // vm.getClickCountButtonName(device, pageName, domain);
             vm.isShowLoadingSpinner('#clickCountAnalysis', true);
             let sendData = {
                 platformId: vm.selectedPlatform._id,

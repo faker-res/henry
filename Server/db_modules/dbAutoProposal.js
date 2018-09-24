@@ -9,6 +9,8 @@ const constProposalType = require('../const/constProposalType');
 const constSystemParam = require('./../const/constSystemParam');
 const constPlayerCreditTransferStatus = require('../const/constPlayerCreditTransferStatus');
 
+const pmsAPI = require('../externalAPI/pmsAPI');
+
 const dbconfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
@@ -132,10 +134,17 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 operationTime: {$lt: proposal.createTime},
             };
 
+            let consumptionQuery = {
+                platformId: ObjectId(proposal.data.platformId),
+                playerId: ObjectId(proposal.data.playerObjId),
+                createTime: {$lt: proposal.createTime}
+            };
+
             if (lastWithdrawDate) {
                 dLastWithdraw = lastWithdrawDate;
                 transferLogQuery.createTime["$gt"] = lastWithdrawDate;
                 creditLogQuery.operationTime["$gt"] = lastWithdrawDate;
+                consumptionQuery.createTime["$gt"] = lastWithdrawDate;
             }
 
             let RTGPromise = dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: proposal.data.playerObjId}, proposal.createTime);
@@ -153,22 +162,36 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 {path: "type", model: dbconfig.collection_proposalType}
             ).sort({createTime: -1}).lean();
 
-            let promises = [RTGPromise, transferLogsWithinPeriodPromise, playerInfoPromise, proposalsPromise, creditLogPromise];
+            let consumptionPromise = dbconfig.collection_playerConsumptionRecord.aggregate({
+                $match: consumptionQuery
+            }, {
+                $group: {
+                    _id: null,
+                    totalBetAmt: {$sum: "$validAmount"}
+                }
+            });
+
+            let provinceListProm = pmsAPI.foundation_getProvinceList({});
+
+            let promises = [
+                RTGPromise, transferLogsWithinPeriodPromise, playerInfoPromise, proposalsPromise, creditLogPromise,
+                consumptionPromise, provinceListProm
+            ];
             return Promise.all(promises);
         }
     ).then(
         data => {
             // Check abnormal transfer in and out amount
-            if (data && data[0] && data[2]) {
-                let transferInRec = data[0].filter(rec => rec.type == "TransferIn");
+            if (data && data[1] && data[4]) {
+                let transferInRec = data[1].filter(rec => rec.type == "TransferIn");
 
                 if (transferInRec && transferInRec[0]) {
                     initialAmount = transferInRec[0].amount;
                     initialTransferTime = transferInRec[0].createTime;
                 }
 
-                let transferLogs = data[0];
-                let creditChangeLogs = data[2];
+                let transferLogs = data[1];
+                let creditChangeLogs = data[4];
 
                 return findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, proposal.data.playerObjId).then(
                     transferAbnormalities => {
@@ -192,16 +215,34 @@ function checkRewardTaskGroup(proposal, platformObj) {
             let bNoBonusPermission = false;
             let bPendingPaymentInfo = false;
             let bUpdatePaymentInfo = false;
+            let withdrawAmount = proposal.data.amount;
+            let playerCurrentAmount = 0;
+            let playerTotalTopupAmount = 0;
+            let playerTotalBets = 0;
+            let bankProvince = "";
 
             if (data && data[3]) {
                 allProposals = data[3];
                 bPendingPaymentInfo = hasPendingPaymentInfoChanges(allProposals);
                 bUpdatePaymentInfo = isFirstWithdrawalAfterPaymentInfoUpdated(allProposals);
+                playerTotalTopupAmount = calcPlayerTotalTopupAmount(allProposals);
             }
 
             if (data && data[2]) {
                 playerData = data[2];
                 bNoBonusPermission = !playerData.permission.applyBonus;
+                playerCurrentAmount = playerData.validCredit;
+            }
+
+            if (data && data[5] && data[5][0] && data[5][0].totalBetAmt) {
+                playerTotalBets = data[5][0].totalBetAmt;
+            }
+
+            if (data && data[6] && playerData && playerData.bankAccountProvince) {
+                let allProvinces = data[6];
+                console.log('allProvinces', allProvinces);
+                let pIdx = allProvinces.findIndex(d => d.id === playerData.bankAccountProvince);
+                bankProvince = allProvinces[pIdx].name.substring(0, 2);
             }
 
             let isApprove = true, canApprove = true;
@@ -222,7 +263,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
             }
 
             // Consumption reached, check for other conditions
-            if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
+            if (withdrawAmount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
                 checkMsg += " Denied: Single limit;";
                 checkMsgChinese += " 失败：单限;";
                 canApprove = false;
@@ -240,10 +281,50 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 }
             }
 
-            if (bFirstWithdraw && platformObj.manualAuditFirstWithdrawal !== false) {
-                checkMsg += " Denied: First withdrawal;";
-                checkMsgChinese += " 失败：首提;";
-                canApprove = false;
+            // First withdrawal checks
+            // if (bFirstWithdraw && platformObj.manualAuditFirstWithdrawal !== false) {
+            //     checkMsg += " Denied: First withdrawal;";
+            //     checkMsgChinese += " 失败：首提;";
+            //     canApprove = false;
+            // }
+
+            if (bFirstWithdraw && platformObj.autoAudit) {
+                if (platformObj.autoAudit.firstWithdrawExceedAmount
+                    && withdrawAmount >= platformObj.autoAudit.firstWithdrawExceedAmount
+                ) {
+                    checkMsg += ' Denied: FW: Amount Exceeded;';
+                    checkMsgChinese += ' 失败：首提超额;';
+                    canApprove = false;
+                }
+
+                if (platformObj.autoAudit.firstWithdrawAndCurrentMinusTopupExceedAmount
+                    && (withdrawAmount + playerCurrentAmount - playerTotalTopupAmount) >= platformObj.autoAudit.firstWithdrawAndCurrentMinusTopupExceedAmount
+                ) {
+                    checkMsg += ' Denied: FW: Amount Higher Than Top Up;';
+                    checkMsgChinese += ' 失败：首提高于存款;';
+                    canApprove = false;
+                }
+
+                if (platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
+                    && platformObj.autoAudit.firstWithdrawCondBExceedAmount
+                    && (playerTotalBets / playerTotalTopupAmount) >= platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
+                    && withdrawAmount >= platformObj.autoAudit.firstWithdrawCondBExceedAmount
+                ) {
+                    checkMsg += ' Denied: FW: Low Bet/Top Up Ratio;';
+                    checkMsgChinese += ' 失败：投注额/存款过低;';
+                    canApprove = false;
+                }
+
+                if (platformObj.autoAudit.firstWithdrawDifferentIPCheck
+                    && bankProvince
+                    && playerData.province
+                    && playerData.phoneProvince
+                    && (bankProvince !== playerData.phoneProvince || bankProvince !== playerData.province)
+                ) {
+                    checkMsg += ' Denied: FW: Different Province between IP, Phone, And Bank Account;';
+                    checkMsgChinese += ' 失败：IP, 电话, 银行所在省不一致;';
+                    canApprove = false;
+                }
             }
 
             if (bTransferAbnormal) {
@@ -874,15 +955,16 @@ function sendToApprove(proposalObjId, createTime, remark, remarkChinese, process
             let prom = Promise.resolve(true);
 
             if (proposalObj && proposalObj.mainType === constProposalType.PLAYER_BONUS && proposalObj.data && proposalObj.data.playerObjId && proposalObj.data.platformId) {
-                prom = dbconfig.collection_players.findOne({_id: data.data.playerObjId, platform: data.data.platformId}, {permission: 1, _id: 1, platform: 1})
+                prom = dbconfig.collection_players.findOne({_id: proposalObj.data.playerObjId, platform: proposalObj.data.platformId}, {permission: 1, _id: 1, platform: 1})
                     .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
                     playerData => {
-                        if (playerData && playerData.permission && !playerData.permission.applyBonus && playerData.platform && playerData.platform.playerForbidApplyBonusNeedCsApproval
+                        if (playerData && playerData.permission && playerData.permission.hasOwnProperty('applyBonus') && playerData.permission.applyBonus.toString() == 'false'
+                            && playerData.platform && playerData.platform.playerForbidApplyBonusNeedCsApproval
                             && proposalObj.status == constProposalStatus.APPROVED && proposalObj.data.needCsApproved) {
 
                             return dbconfig.collection_playerPermissionLog.findOne({
                                 player: playerData._id,
-                                platform: data.data.platformId,
+                                platform: proposalObj.data.platformId,
                                 isSystem: false
                             }).sort({createTime: -1}).lean().then(
                                 manualPermissionSetting => {
@@ -1225,6 +1307,16 @@ function isFirstWithdrawalAfterPaymentInfoUpdated(proposals) {
         }
     }
     return false;
+}
+
+function calcPlayerTotalTopupAmount(proposals) {
+    let totalAmt = 0;
+    proposals.forEach(prop => {
+        if (prop.mainType === 'TopUp' && prop.status === constProposalStatus.SUCCESS) {
+            totalAmt += prop.data.amount || 0;
+        }
+    })
+    return totalAmt;
 }
 
 function autoEnableBonusPermission(proposalObj, platformObjId, playerObjId, remark, oldPermissionObj, newPermissionObj) {

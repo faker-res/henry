@@ -6931,6 +6931,49 @@ define(['js/app'], function (myApp) {
                                 }
                                 sendPartnerUpdate(this.partnerId, this.partnerBeforeEditing, this.newPartner, selectedPartner.permission);
                             },
+                            checkDuplicatedBankAccount: function (partnerPaymentData){
+
+                                if (partnerPaymentData.newBankAccount == selectedPartner.bankAccount){
+                                    partnerPaymentData.invalid = false;
+                                    partnerPaymentData.showAlert = false;
+                                }
+                                else {
+                                    if (partnerPaymentData.newBankAccount && partnerPaymentData.newBankAccount.length) {
+
+                                        socketService.$socket($scope.AppSocket, 'checkDuplicatedPartnerBankAccount', {
+                                            bankAccount: partnerPaymentData.newBankAccount,
+                                            platform: vm.selectedPlatform.id
+                                        }, function (data) {
+                                            if (data && data.data) {
+                                                if (partnerPaymentData.newBankAccount.length >= 16 && partnerPaymentData.newBankAccount.length <= 19) {
+                                                    partnerPaymentData.invalid = false;
+                                                    if (partnerPaymentData.newBankAccount.match(/[a-z]/i)){
+                                                        partnerPaymentData.invalid = true;
+                                                    }
+                                                }
+                                                else {
+                                                    partnerPaymentData.invalid = true;
+                                                }
+
+                                                partnerPaymentData.showAlert = false;
+                                                $scope.$evalAsync();
+
+                                            }
+                                            else {
+                                                partnerPaymentData.showAlert = true;
+                                                partnerPaymentData.invalid = true;
+                                                partnerPaymentData.alertMsg = "The same bank account has been registered";
+                                                $scope.$evalAsync();
+                                            }
+
+                                        })
+                                    }
+                                    else {
+                                        playerPaymentData.invalid = false;
+                                        playerPaymentData.showAlert = false;
+                                    }
+                                }
+                            },
                         }
                     };
 

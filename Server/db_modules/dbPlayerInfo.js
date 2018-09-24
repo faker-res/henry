@@ -3013,17 +3013,18 @@ let dbPlayerInfo = {
                             });
                         }
 
-                        if (updateData.bankAccountType) {
-                            let tempBankAccountType = updateData.bankAccountType;
-                            let isValidBankType = Number.isInteger(Number(tempBankAccountType));
-                            if (!isValidBankType) {
-                                return Q.reject({
-                                    name: "DataError",
-                                    code: constServerCode.INVALID_DATA,
-                                    message: "Please enter bank account name or contact cs"
-                                });
-                            }
-                        }
+                        // if (updateData.bankAccountType) {
+                        //     let tempBankAccountType = updateData.bankAccountType;
+                        //     let isValidBankType = Number.isInteger(Number(tempBankAccountType));
+                        //     if (!isValidBankType) {
+                        //         return Q.reject({
+                        //             name: "DataError",
+                        //             code: constServerCode.INVALID_DATA,
+                        //             message: "Please enter bank account name or contact cs"
+                        //         });
+                        //     }
+                        // }
+                        updateData.bankAccountType = 1;
 
                         return dbconfig.collection_platform.findOne({
                             _id: playerData.platform
@@ -5888,7 +5889,7 @@ let dbPlayerInfo = {
     },
 
     /**
-     * Transfer credit from platform to game provider
+     * Main trasfer in logic
      * 1. Check where is the player's credit
      *
      * @param {objectId} platform
@@ -11423,7 +11424,7 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
-    getFavoriteGames: function (playerId) {
+    getFavoriteGames: function (playerId, device) {
         var result = [];
         let playerRouteSetting = null;
         let platformId;
@@ -11438,7 +11439,18 @@ let dbPlayerInfo = {
                     playerRouteSetting = platformData.playerRouteSetting;
                     platformId = platformData.platformId;
 
-                    return dbconfig.collection_game.findOne({_id: gameId})
+                    let sendQuery = {
+                        _id: gameId
+                    }
+
+                    if (Number(device)) {
+                        if(device != 1 && device != 2){
+                            return Q.reject({name: "DataError", message: "Device is incorrect"});
+                        }
+                        sendQuery.playGameType = device;
+                    }
+
+                    return dbconfig.collection_game.findOne(sendQuery)
                         .populate({path: "provider", model: dbconfig.collection_gameProvider}).lean()
                         .then(data => {
                             if (data) {
@@ -20034,7 +20046,7 @@ let dbPlayerInfo = {
         let statsObj = {};
         let totalCount = 0;
         let totalPage = 1;
-        let sortCol = {createTime: 1};
+        let sortCol = {createTime: -1};
         let totalReceiveAmount = 0;
 
         if (typeof currentPage != 'number' || typeof limit != 'number') {

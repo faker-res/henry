@@ -79,19 +79,32 @@ var dbThemeControl = {
     checkThemeSettingFromPlatform: function(data){
 
         let query = {};
-        if (data._id  && data.type == 'player'){
-            query['playerThemeSetting.themeStyleId'] = data._id;
+        if (data.type == 'player'){
+            if (data._id){
+                query['playerThemeSetting.themeStyleId'] = data._id;
+            }
+            if (data.themeId){
+                query['playerThemeSetting.themeId'] = data.themeId;
+            }
+            return dbconfig.collection_platform.find(query,{platformId: 1, name: 1, playerThemeSetting: 1}).populate({path: "playerThemeSetting.themeStyleId", model: dbconfig.collection_themeSetting}).lean();
         }
-        if (data.themeId && data.type == 'player'){
-            query['playerThemeSetting.themeId'] = data.themeId;
+        else if(data.type == 'partner'){
+            if (data._id){
+                query['partnerThemeSetting.themeStyleId'] = data._id;
+            }
+            if (data.themeId){
+                query['partnerThemeSetting.themeId'] = data.themeId;
+            }
+            return dbconfig.collection_platform.find(query,{platformId: 1, name: 1, partnerThemeSetting: 1}).populate({path: "partnerThemeSetting.themeStyleId", model: dbconfig.collection_themeSetting}).lean();
+
         }
-        if (data._id  && data.type == 'partner'){
-            query['partnerThemeSetting.themeStyleId'] = data._id;
+        else{
+            return Promise.reject({
+                name: "DataError",
+                message: "type is not found"
+            })
         }
-        if (data.themeId && data.type == 'partner'){
-            query['partnerThemeSetting.themeId'] = data.themeId;
-        }
-        return dbconfig.collection_platform.find(query,{platformId: 1, name: 1, playerThemeSetting: 1, partnerThemeSetting: 1}).populate({path: "playerThemeSetting.themeStyleId", model: dbconfig.collection_themeSetting}).lean();
+
     },
 
 

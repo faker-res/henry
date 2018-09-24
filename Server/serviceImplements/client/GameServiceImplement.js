@@ -255,7 +255,7 @@ var GameServiceImplement = function () {
     this.getFavoriteGames.expectsData = '';
     this.getFavoriteGames.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(conn.playerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getFavoriteGames, [conn.playerId], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getFavoriteGames, [conn.playerId, data.device], isValidData);
     };
 
     this.addFavoriteGame.expectsData = 'gameId: String';
