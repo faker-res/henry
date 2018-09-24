@@ -11424,7 +11424,7 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
-    getFavoriteGames: function (playerId) {
+    getFavoriteGames: function (playerId, device) {
         var result = [];
         let playerRouteSetting = null;
         let platformId;
@@ -11439,7 +11439,18 @@ let dbPlayerInfo = {
                     playerRouteSetting = platformData.playerRouteSetting;
                     platformId = platformData.platformId;
 
-                    return dbconfig.collection_game.findOne({_id: gameId})
+                    let sendQuery = {
+                        _id: gameId
+                    }
+
+                    if (Number(device)) {
+                        if(device != 1 && device != 2){
+                            return Q.reject({name: "DataError", message: "Device is incorrect"});
+                        }
+                        sendQuery.playGameType = device;
+                    }
+
+                    return dbconfig.collection_game.findOne(sendQuery)
                         .populate({path: "provider", model: dbconfig.collection_gameProvider}).lean()
                         .then(data => {
                             if (data) {
