@@ -569,6 +569,7 @@ var dbDepartment = {
             }
         }).then(
             data => {
+                console.log("departments data",data);
                 if (data && data.length > 0) {
                     return data
                 }
@@ -577,6 +578,7 @@ var dbDepartment = {
                 }
             },
             error => {
+                console.log("departments error",error);
                 return Q.reject({name: "DBError", message: "Failed to find all departments", error: error});
             }
         );

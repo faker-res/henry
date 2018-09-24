@@ -222,6 +222,14 @@ var platformSchema = new Schema({
     whiteListingPhoneNumbers: [{type:String}],
     // black listing phone number
     blackListingPhoneNumbers: [{type:String}],
+    // Partner auto approve bonus proposal platform switch
+    partnerEnableAutoApplyBonus: {type: Boolean, default: false},
+    // Partner auto approve single withdrawal limit
+    partnerAutoApproveWhenSingleBonusApplyLessThan: {type: Number, default: 0},
+    // Partner auto approve daily total withdrawal limit
+    partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan: {type: Number, default: 0},
+    // Partner current withdrawal amount minus total commission from the last withdrawal(include first level partner commission) >= X (transfer to manual approval)
+    partnerWithdrawalCommissionDifference: {type: Number, default: 0},
     // Auto audit settings
     autoAudit: {
         // First withdraw amount >= X (Manual audit)

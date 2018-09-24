@@ -187,11 +187,12 @@ let dbPlatformAutoFeedback = {
     },
 
     executeAutoFeedback: function () {
+        let UTC8Time = dbutility.getUTC8Time(new Date());
         let curHour = new Date().getHours();
         let curMinute = new Date().getMinutes();
         let query = {
-            missionStartTime: {$lte: new Date()},
-            missionEndTime: {$gte: new Date()},
+            missionStartTime: {$lte: UTC8Time},
+            missionEndTime: {$gte: UTC8Time},
             $or: [{
                     'schedule.0.triggerHour': curHour,
                     'schedule.0.triggerMinute': curMinute
@@ -204,6 +205,9 @@ let dbPlatformAutoFeedback = {
             }],
             enabled: true,
         };
+        console.log("new date",(new Date()));
+        console.log("UTC8Time",dbutility.getUTC8Time(new Date()));
+        console.log("new date getLocalTime",dbutility.getLocalTime(new Date()));
 
         return dbPlatformAutoFeedback.getAutoFeedback(query, null, null, true).then(autoFeedbacks => {
             if(!autoFeedbacks || autoFeedbacks.length < 1) {
@@ -211,11 +215,14 @@ let dbPlatformAutoFeedback = {
             }
             let executeAutoFeedback = feedback => {
                 console.log("feedbackName", feedback.name);
+                console.log("feedback", feedback);
                 let platformObjId = feedback.platformObjId;
                 let roles = [];
                 let admins = [];
 
+                console.log("platformObjId", platformObjId);
                 let departmentProm = dbDepartment.getDepartmentDetailsByPlatformObjId(feedback.platformObjId).then(departments => {
+                    console.log("departments",departments);
                     departments.forEach(department => {
                         if(department._id == platformObjId) {
                             roles = department.roles;
@@ -553,38 +560,6 @@ let dbPlatformAutoFeedback = {
                     console.log('playerQuery', playerQuery);
                     console.log('playerQueryAND', JSON.stringify(playerQuery.$and));
                     return dbconfig.collection_players.find(playerQuery).lean();
-                // }).then(players => {
-                //     console.log("players", players);
-                //     let relatedFeedbackQuery = {};
-                //     let playerObjIds = [];
-                //
-                //     players.forEach(player => {playerObjIds.push(player._id)});
-                //     if(feedback.filterFeedbackTopic && feedback.filterFeedbackTopic.length > 0) {
-                //         relatedFeedbackQuery.topic = {$nin: feedback.filterFeedbackTopic};
-                //         relatedFeedbackQuery.platform = feedback.platformObjId;
-                //         relatedFeedbackQuery.playerId = {$in: playerObjIds};
-                //         if(feedback.filterFeedback) {
-                //             relatedFeedbackQuery.createTime = {$lt: dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), feedback.filterFeedback))};
-                //         }
-                //
-                //         return dbconfig.collection_playerFeedback.distinct("playerId", relatedFeedbackQuery).lean().then(feedbackPlayerObjIds => {
-                //             console.log("feedbackPlayerObjIds", feedbackPlayerObjIds);
-                //             players.forEach((player, index) => {
-                //                 let exist = false;
-                //                 feedbackPlayerObjIds.forEach(feedbackPlayerObjId => {
-                //                     if(player._id.toString() == feedbackPlayerObjId.toString()) {
-                //                         exist = true;
-                //                     }
-                //                 });
-                //                 if(!exist && player.lastFeedbackTime) {
-                //                     players.splice(index,1);
-                //                 }
-                //             });
-                //             return players;
-                //         });
-                //     } else {
-                //         return players;
-                //     }
                 }).then(filteredPlayers => {
                     // console.log("filteredPlayers", filteredPlayers);
                     feedback.schedule.forEach((item, index) => {
