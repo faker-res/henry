@@ -445,6 +445,10 @@ var dbUtility = {
         var date = moment(date, 'YYYY-MM-DD HH:mm').tz('Asia/Singapore');
         return date.toDate()
     },
+    getUTC8Time: function (date) {
+        if (!date) return null;
+        return new Date(date.getTime() - new Date().getTimezoneOffset() * 60 * 1000);
+    },
     getDayStartTime: function (date) {
         return date ? moment(date).tz('Asia/Singapore').startOf('day').toDate() : null;
     },

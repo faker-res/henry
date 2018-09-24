@@ -1203,6 +1203,11 @@
                                     text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerSamePhoneNumberRegisterCount}}
                                     input(type='number', ng-show='vm.configTableEdit && vm.partnerBasic.partnerAllowSamePhoneNumberToRegister', min=1, ng-model='vm.partnerBasic.partnerSamePhoneNumberRegisterCount')
                             tr
+                                td {{'partnerSameBankAccountCount' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerSameBankAccountCount}}
+                                    input(type='number', ng-show='vm.configTableEdit && vm.partnerBasic.partnerSameBankAccountCount', min=1, ng-model='vm.partnerBasic.partnerSameBankAccountCount')
+                            tr
                                 td {{'partnerAllowSameRealNameToRegister' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.partnerBasic.partnerAllowSameRealNameToRegister', ng-disabled='!vm.configTableEdit')
@@ -1348,10 +1353,32 @@
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.bonusProfitOffset}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.bonusProfitOffset')
+                            //tr
+                            //    td {{'FIRST_WITHDRAWAL_MANUAL_AUDIT' | translate}}
+                            //    td
+                            //        input(type='checkbox', ng-model='vm.autoApprovalBasic.manualAuditFirstWithdrawal', ng-disabled='!vm.configTableEdit')
                             tr
-                                td {{'FIRST_WITHDRAWAL_MANUAL_AUDIT' | translate}}
+                                td {{'FIRST_WITHDRAWAL_MANUAL_AUDIT_EXCEED_AMOUNT' | translate}}
                                 td
-                                    input(type='checkbox', ng-model='vm.autoApprovalBasic.manualAuditFirstWithdrawal', ng-disabled='!vm.configTableEdit')
+                                    text(ng-if='!vm.configTableEdit') {{vm.autoApprovalBasic.firstWithdrawExceedAmount}}
+                                    input(type='number' ng-if='vm.configTableEdit' ng-model='vm.autoApprovalBasic.firstWithdrawExceedAmount')
+                            tr
+                                td {{'FIRST_WITHDRAWAL_AND_CURRENT_MINUS_TOPUP_EXCEED_AMOUNT' | translate}}
+                                td
+                                    text(ng-if='!vm.configTableEdit') {{vm.autoApprovalBasic.firstWithdrawAndCurrentMinusTopupExceedAmount}}
+                                    input(type='number' ng-if='vm.configTableEdit' ng-model='vm.autoApprovalBasic.firstWithdrawAndCurrentMinusTopupExceedAmount')
+                            tr
+                                td {{'FIRST_WITHDRAWAL_TOTAL_BET_OVER_TOTAL_TOPUP_EXCEED_TIMES' | translate}}
+                                td
+                                    text(ng-if='!vm.configTableEdit') {{vm.autoApprovalBasic.firstWithdrawTotalBetOverTotalTopupExceedTimes}}
+                                    input(type='number' ng-if='vm.configTableEdit' ng-model='vm.autoApprovalBasic.firstWithdrawTotalBetOverTotalTopupExceedTimes')
+                                    text &nbsp&&nbsp
+                                    text(ng-if='!vm.configTableEdit') {{vm.autoApprovalBasic.firstWithdrawCondBExceedAmount}}
+                                    input(type='number' ng-if='vm.configTableEdit' ng-model='vm.autoApprovalBasic.firstWithdrawCondBExceedAmount')
+                            tr
+                                td {{'FIRST_WITHDRAWAL_DIFFERENT_IP_CHECK' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.autoApprovalBasic.firstWithdrawDifferentIPCheck', ng-disabled='!vm.configTableEdit')
                             tr
                                 td {{'MANUAL_AUDIT_AFTER_BANK_CHANGED' | translate}}
                                 td
@@ -1364,6 +1391,34 @@
                                 td {{'UNLOCK_IF_INIT_AMT_LESS_THAN_LOST_THRESHOLD' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.autoApprovalBasic.autoUnlockWhenInitAmtLessThanLostThreshold', ng-disabled='!vm.configTableEdit')
+                    
+                    br
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'PARTNER_WITHDRAWAL_AUTO_APPROVAL' | translate}}
+                                th {{'VALUE' | translate}}
+                        tbody
+                            tr
+                                td {{'Partner Bonus Auto Approval' | translate}}
+                                td
+                                    input(type='checkbox', ng-model='vm.autoApprovalBasic.partnerEnableAutoApplyBonus', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Partner single Withdrawal Limit' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.partnerAutoApproveWhenSingleBonusApplyLessThan}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.partnerAutoApproveWhenSingleBonusApplyLessThan')
+                            tr
+                                td {{'Partner single Day Withdrawal Limit' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan')
+                            tr
+                                td {{'Partner current withdrawal amount minus total commission from the last withdrawal(include first level partner commission) >= X (transfer to manual approval)' | translate}}
+                                td
+                                    text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.partnerWithdrawalCommissionDifference}}
+                                    input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.partnerWithdrawalCommissionDifference')
+                            
                     br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'autoApproval')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
@@ -1894,6 +1949,7 @@
                         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Config', 'financialSettlementConfig')", ng-click = 'vm.showFinancialPointsChange()') {{"add/deduct financial points" | translate}}
 
                 div(ng-if='vm.selectedConfigTab=="largeWithdrawalSetting"')
+                    h4(style='text-align:center;font-weight:bold') {{"PLAYER" | translate}}
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
@@ -2159,7 +2215,128 @@
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("largeWithdrawalSetting")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("largeWithdrawalSetting")') {{"CONFIRM" | translate}}
-                
+                    
+                    h4(style='text-align:center;font-weight:bold') {{"PARTNER" | translate}}
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'TITLE' | translate}}
+                                th {{'VALUE' | translate}}
+                        tbody
+                            tr
+                                td {{'DEFAULT_EMAIL_NAME' | translate}}
+                                td
+                                    text(style='color:red') {{"large amount withdrawal (x): date--username--current withdrawal amount" | translate}} &nbsp
+                                    input(type='text' ng-model='vm.largeWithdrawalPartnerSetting.emailNameExtension', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'RECIPIENT_SELECT' | translate}}
+                                td
+                                    text(ng-if='!vm.configTableEdit') {{"Please tick website's recipient" | translate}}
+                                    a(data-toggle="modal", data-target='#modalLargeWithdrawalPartnerRecipient', ng-if='vm.configTableEdit', ng-click='vm.initModalLargeWithdrawalPartner()') {{"Please tick website's recipient" | translate}}
+                            tr
+                                td {{'The person who have the right to execute proposal' | translate}}
+                                td
+                                    text(ng-if='!vm.configTableEdit') {{"Please tick website's reviewer" | translate}}
+                                    a(data-toggle="modal", data-target='#modalLargeWithdrawalPartnerRecipient', ng-if='vm.configTableEdit', ng-click='vm.initModalLargeWithdrawalPartner()') {{"Please tick website's reviewer" | translate}}
+                    
+                    br
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'A.'}} {{'PARTNER_INFO_SECTION' | translate}}
+                                th {{'SELECT' | translate}}
+                                th {{'TITLE' | translate}}
+                                th {{'DEFINITION' | translate}}
+                        tbody
+                            tr
+                                td(rowspan=9, style='background-color:lightblue') {{'PARTNER_BASIC_INFO' | translate}}
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showRealName', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'REAL_NAME' | translate}}
+                                td
+                                    text
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showCommissionType', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'COMMISSION_TYPE' | translate}}
+                                td
+                                    text
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showBankCity', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'BANK_CITY' | translate}}
+                                td
+                                    text {{'Bank card registration city' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showRegisterTime', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'REGISTRATION_TIME' | translate}}
+                                td
+                                    text
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showCurrentWithdrawalTime', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'CURRENT_WITHDRAWAL_TIME' | translate}}
+                                td
+                                    text {{'Current apply withdrawal time' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showLastWithdrawalTime', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'LAST_WITHDRAWAL_TIME' | translate}}
+                                td
+                                    text {{'Last apply withdrawal time' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showCurrentCredit', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'providerCreditAmount' | translate}}
+                                td
+                                    text {{'LOCAL_CREDIT_AMOUNT' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showTotalDownlinePlayersCount', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'TOTAL_DOWNLINE_PLAYERS_COUNT' | translate}}
+                                td
+                                    text {{'Total number of players' | translate}}
+                            tr
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showTotalDownlinePartnersCount', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'TOTAL_DOWNLINE_PARTNERS_COUNT' | translate}}
+                                td
+                                    text {{'Total number of partners' | translate}}
+                    
+                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'B.'}} {{'CURRENT_DAY_TO_CURRENT_WITHDRAWAL' | translate}}
+                                th {{'SELECT' | translate}}
+                                th {{'TITLE' | translate}}
+                                th {{'DEFINITION' | translate}}
+                        tbody
+                            tr
+                                td(style='background-color:lightcoral') {{'CURRENT_DAY_TO_CURRENT_WITHDRAWAL' | translate}}
+                                td                                     
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showAllPartnerRelatedProposal', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'ALL_PARTNER_RELATED_PROPOSAL' | translate}}
+                                td
+                                    text {{'email all proposal created between two withdrawal times' | translate}}
+
+                    br
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'largeWithdrawalSetting')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("largeWithdrawalSetting")') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("largeWithdrawalSetting")') {{"CONFIRM" | translate}}
+                    
                     
                 //div(ng-if='vm.selectedConfigTab=="announcement"')
                     div(style="height:265px;overflow:auto;margin-bottom:5px")
@@ -2237,7 +2414,7 @@
                             th {{'ROLE' | translate}}
                             th {{'EMAIL_EXECUTE_PERMISSION' | translate}}
                     tbody
-                        tr(ng-repeat='(i,admin) in vm.adminList' ng-attr-id="{{ 'largeWithdrawRow' + i }}")
+                        tr(ng-repeat='(i,admin) in vm.adminList | unique: "_id"' ng-attr-id="{{ 'largeWithdrawRow' + i }}")
                             td 
                                 input(type='checkbox' ng-model='vm.largeWithdrawCheckRecipient[i]' ng-click='vm.setLargeWithdrawRecipient(admin._id, vm.largeWithdrawCheckRecipient[i], i)')
                             td 
@@ -2254,6 +2431,42 @@
 
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal' ng-click='vm.updateLargeWithdrawalRecipient()') {{"CONFIRM" | translate}}
+                button.btn.btn-success.common-button(data-dismiss='modal' ng-click='vm.configTabClicked("largeWithdrawalSetting")') {{"CLOSE" | translate}}
+
+#modalLargeWithdrawalPartnerRecipient.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style="width:80%")
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Recipient and executor setting' | translate}}
+            .modal-body
+                table.simple-table(style='max-width:100%')
+                    thead
+                        tr
+                            th {{'RECIPIENT' | translate}}
+                            th {{'USER_NAME' | translate}}
+                            th {{'EMAIL' | translate}}
+                            th {{'DEPARTMENT' | translate}}
+                            th {{'ROLE' | translate}}
+                            th {{'EMAIL_EXECUTE_PERMISSION' | translate}}
+                    tbody
+                        tr(ng-repeat='(i,admin) in vm.adminList | unique: "_id"' ng-attr-id="{{ 'largeWithdrawPartnerRow' + i }}")
+                            td 
+                                input(type='checkbox' ng-model='vm.largeWithdrawPartnerCheckRecipient[i]' ng-click='vm.setLargeWithdrawPartnerRecipient(admin._id, vm.largeWithdrawPartnerCheckRecipient[i], i)')
+                            td 
+                                text {{admin.adminName}}
+                            td 
+                                text {{admin.email}}
+                            td 
+                                text {{admin.departmentName | translate}}
+                            td 
+                                text {{vm.getAdminRoleNameString(admin.roleName) | translate}}
+                            td 
+                                input(ng-if='vm.largeWithdrawPartnerCheckRecipient[i]' type='checkbox' ng-model='vm.largeWithdrawPartnerCheckReviewer[i]' ng-click='vm.setLargeWithdrawPartnerReviewer(admin._id, vm.largeWithdrawPartnerCheckReviewer[i], i)')
+                                text(ng-if='!vm.largeWithdrawPartnerCheckRecipient[i]') {{"-"}}
+
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal' ng-click='vm.updateLargeWithdrawalPartnerRecipient()') {{"CONFIRM" | translate}}
                 button.btn.btn-success.common-button(data-dismiss='modal' ng-click='vm.configTabClicked("largeWithdrawalSetting")') {{"CLOSE" | translate}}
 
 

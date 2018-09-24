@@ -733,6 +733,45 @@ let dbPartner = {
         return dbconfig.collection_partner.find({}).limit(constSystemParam.MAX_RECORD_NUM).exec();
     },
 
+    checkDuplicatedPartnerBankAccount: function (bankAccount, platform) {
+
+        let sameBankAccountCountProm = dbconfig.collection_partner.find({
+            bankAccount: bankAccount,
+            platform: ObjectId(platform),
+            'permission.forbidPartnerFromLogin': false
+        }).lean().count();
+
+        let platformProm =  dbconfig.collection_platform.findOne({
+            _id: ObjectId(platform)
+        });
+
+        return Promise.all([sameBankAccountCountProm, platformProm]).then(
+            data => {
+                if (!data){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "data is not found"
+                    })
+                }
+
+                if (!data[1]){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "platform data is not found"
+                    })
+                }
+
+                let sameBankAccountCount = data[0] || 0;
+                let platformData = data[1];
+
+                if (platformData.partnerSameBankAccountCount && sameBankAccountCount >= platformData.partnerSameBankAccountCount){
+                    return Promise.resolve(false)
+                }
+                return Promise.resolve(true);
+            }
+        )
+    },
+
     /**
      * Search the information of the partner by partnerName or _id
      * @param {String} query - Query string
@@ -1850,19 +1889,47 @@ let dbPartner = {
     },
     updatePartnerBankInfo: function (userAgent, partnerId, updateData) {
         let partnerData;
+        let platformData = null;
         let partnerQuery = null;
         let duplicatedRealNameCount = 0;
+        let sameBankAccCount = 0;
+        let platformObjId;
         return dbconfig.collection_partner.findOne({partnerId: partnerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .then(
                 partnerResult => {
+                    platformObjId = partnerResult.platform;
                     partnerQuery = {
                         _id: partnerResult._id,
                         platform: partnerResult.platform
                     }
                     partnerData = partnerResult;
+                    platformData = partnerResult.platform;
+                    updateData.curData = {};
 
-                    return dbconfig.collection_partner.find({realName : updateData.bankAccountName, platform: partnerResult.platform._id}).lean().count().then(
+                    if(partnerResult.bankAccount){
+                        updateData.curData.bankAccount = partnerResult.bankAccount;
+                    }
+
+                    if(partnerResult.bankAccountName){
+                        updateData.curData.bankAccountName = partnerResult.bankAccountName;
+                    }
+
+                    if(partnerResult.bankName){
+                        updateData.curData.bankName = partnerResult.bankName;
+                    }
+
+                    return dbconfig.collection_partner.find({
+                        bankAccount: updateData.bankAccount,
+                        platform: partnerData.platform._id,
+                        'permission.forbidPartnerFromLogin': false
+                    }).lean().count();
+                }
+            ).then(
+                retCount => {
+                    sameBankAccCount = retCount || 0;
+
+                    return dbconfig.collection_partner.find({realName : updateData.bankAccountName, platform: partnerData.platform._id}).lean().count().then(
                         count => {
                             duplicatedRealNameCount = count || 0;
 
@@ -1884,6 +1951,20 @@ let dbPartner = {
                 isVerified => {
                     if (isVerified) {
 
+                        updateData.updateData = {};
+
+                        if(updateData.bankAccount){
+                            updateData.updateData.bankAccount = updateData.bankAccount;
+                        }
+
+                        if(updateData.bankAccountName){
+                            updateData.updateData.bankAccountName = updateData.bankAccountName;
+                        }
+
+                        if(updateData.bankName){
+                            updateData.updateData.bankName = updateData.bankName;
+                        }
+
                         if(partnerData.bankAccountName){
                             delete updateData.bankAccountName;
                         }
@@ -1903,17 +1984,18 @@ let dbPartner = {
                             });
                         }
 
-                        if (updateData.bankAccountType) {
-                            let tempBankAccountType = updateData.bankAccountType;
-                            let isValidBankType = Number.isInteger(Number(tempBankAccountType));
-                            if (!isValidBankType) {
-                                return Q.reject({
-                                    name: "DataError",
-                                    code: constServerCode.INVALID_DATA,
-                                    message: "Invalid bank account type"
-                                });
-                            }
-                        }
+                        // if (updateData.bankAccountType) {
+                        //     let tempBankAccountType = updateData.bankAccountType;
+                        //     let isValidBankType = Number.isInteger(Number(tempBankAccountType));
+                        //     if (!isValidBankType) {
+                        //         return Q.reject({
+                        //             name: "DataError",
+                        //             code: constServerCode.INVALID_DATA,
+                        //             message: "Invalid bank account type"
+                        //         });
+                        //     }
+                        // }
+                        updateData.bankAccountType = 1;
 
                         // check if same real name can be used for registration
                         if (updateData.realName && duplicatedRealNameCount > 0 && !partnerData.platform.partnerAllowSameRealNameToRegister){
@@ -1924,11 +2006,32 @@ let dbPartner = {
                             });
                         }
 
+                        // check if the same bank account count exceeds the pre-defined limit
+                        if (platformData && platformData.partnerSameBankAccountCount && sameBankAccCount >= platformData.partnerSameBankAccountCount && partnerData.bankAccount != updateData.bankAccount){
+                            return Q.reject({
+                                name: "DataError",
+                                code: constServerCode.INVALID_DATA,
+                                message: "The identical bank account has been registered, please change a new bank card or contact our cs, thank you!"
+                            });
+                        }
+
                         // if(!partnerData.bankAccountName){
                         //     updateData.bankAccountName = partnerData.realName ? partnerData.realName : '';
                         // }
-                        let partnerProm = dbutility.findOneAndUpdateForShard(dbconfig.collection_partner, partnerQuery, updateData, constShardKeys.collection_partner);
-                        return Promise.all([partnerProm]);
+                        // let partnerProm = dbutility.findOneAndUpdateForShard(dbconfig.collection_partner, partnerQuery, updateData, constShardKeys.collection_partner);
+                        // return Promise.all([partnerProm]);
+                        let inputDeviceData = dbutility.getInputDevice(userAgent, false);
+                        updateData._id = partnerData._id || "";
+                        updateData.partnerObjId = partnerData._id || "";
+                        updateData.partnerName = partnerData.partnerName || "";
+
+                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_BANK_INFO, {
+                            creator: {type: "partner", name: partnerData.partnerName, id: partnerData._id},
+                            data: updateData,
+                            inputDevice: inputDeviceData
+                        });
+
+                        return updateData;
                     }
                 }
             )
@@ -9043,7 +9146,7 @@ let dbPartner = {
                                             playerObjId: playerData._id,
                                             playerName: playerData.name,
                                             amount: downline.amount,
-                                            withdrawConsumption: 0
+                                            withdrawConsumption: downline.spendingTimes ? dbUtil.noRoundTwoDecimalPlaces(downline.amount * downline.spendingTimes) : 0,
                                         }
                                     }
 
@@ -9285,7 +9388,7 @@ let dbPartner = {
         let statsObj = {};
         let totalCount = 0;
         let totalPage = 1;
-        let sortCol = {createTime: 1};
+        let sortCol = {createTime: -1};
         let totalTransferAmount = 0;
 
         if (typeof currentPage != 'number' || typeof limit != 'number') {

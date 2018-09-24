@@ -490,25 +490,15 @@ const dbPlayerMail = {
             }
         ).then(
             () => {
-                if (purpose && purpose === constSMSPurpose.REGISTRATION) {
-                    return dbPlatform.getBlacklistIpIsEffective().then(
+                if (purpose && purpose === constSMSPurpose.REGISTRATION && inputData && inputData.lastLoginIp) {
+                    return dbPlatform.getBlacklistIpIsEffective(inputData.lastLoginIp).then(
                         blacklistIpData => {
-                            let blacklistIpList = [];
                             if (blacklistIpData && blacklistIpData.length > 0) {
-                                for (let x = 0; x < blacklistIpData.length; x++) {
-                                    if (blacklistIpData[x].ip && blacklistIpData[x].isEffective) {
-                                        blacklistIpList.push(blacklistIpData[x].ip);
-                                    }
-                                }
-                                if (inputData && inputData.lastLoginIp && blacklistIpList && blacklistIpList.length > 0) {
-                                    if (blacklistIpList.includes(inputData.lastLoginIp)) {
-                                        return Q.reject({
-                                            status: constServerCode.BLACKLIST_IP,
-                                            name: "DBError",
-                                            message: localization.localization.translate("SMS function under maintenance, please try again later.")
-                                        });
-                                    }
-                                }
+                                return Q.reject({
+                                    status: constServerCode.BLACKLIST_IP,
+                                    name: "DBError",
+                                    message: localization.localization.translate("SMS function under maintenance, please try again later.")
+                                });
                             }
                         }
                     );

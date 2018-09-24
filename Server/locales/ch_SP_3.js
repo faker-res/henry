@@ -26,6 +26,7 @@ var simplifiedChinese = {
     "SUBMIT": "提交",
     "Editing bank information is successful": "银行资料绑定成功",
     "The same bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他玩家绑定，请更换卡号或联系客服，谢谢！",
+    "The identical bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他代理绑定，请更换卡号或联系客服，谢谢！",
     "Authentification Passed": "身份验证通过",
     "CLOSED_COMMISSION": "关闭",
     "DAILY_BONUS_AMOUNT": "1天-输赢值",
@@ -477,6 +478,7 @@ var simplifiedChinese = {
     "Cannot transfer negative amount": "金额不能是负数",
     "Spending Times cannot be empty": "解锁流水不能为空",
     "SMS function under maintenance, please try again later.": "短信功能维护中，请稍后再次尝试。",
+    "Registration function under maintenance, please try again later.": "注册功能维护中，请稍后再次尝试。",
 
     //todo::add missing messages here
 

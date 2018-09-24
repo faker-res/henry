@@ -85,10 +85,22 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getLargeWithdrawalSetting, [data.platform], actionName, isValidData);
         },
 
+        getLargeWithdrawalPartnerSetting: function getLargeWithdrawalPartnerSetting(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPlatform.getLargeWithdrawalPartnerSetting, [data.platform], actionName, isValidData);
+        },
+
         updateLargeWithdrawalSetting: function updateLargeWithdrawalSetting(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);
             socketUtil.emitter(self.socket, dbPlatform.updateLargeWithdrawalSetting, [data.query, data.updateData], actionName, isValidData);
+        },
+
+        updateLargeWithdrawalPartnerSetting: function updateLargeWithdrawalPartnerSetting(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPlatform.updateLargeWithdrawalPartnerSetting, [data.query, data.updateData], actionName, isValidData);
         },
         /**
          * Delete a platform

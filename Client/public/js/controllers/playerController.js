@@ -13700,22 +13700,22 @@ define(['js/app'], function (myApp) {
                 let tblData = data && data.data ? data.data.data.map(item => {
                     item.operationTime$ = vm.dateReformat(item.operationTime);
 
-                    if(item.providerId && item.providerId.name){
+                    if (item.providerId && item.providerId.name) {
                         item.action$ = $translate(item.action) + item.providerId.name;
-                    }else{
+                    } else {
                         item.action$ = $translate("Login to main site");
                     }
 
-                    if(item.player && item.player.name){
+                    if (item.player && item.player.name) {
                         item.playerName = item.player.name;
                     }
 
                     item.os = item.userAgent[0] && item.userAgent[0].os ? item.userAgent[0].os : "";
                     item.browser = item.userAgent[0] && item.userAgent[0].browser ? item.userAgent[0].browser : "";
                     item.ipArea$ = item.ipArea && item.ipArea.province && item.ipArea.city ? item.ipArea.province + "," + item.ipArea.city : "";
-                    if(item.domain){
+                    if (item.domain) {
                         var filteredDomain = item.domain.replace("https://www.", "").replace("http://www.", "").replace("https://", "").replace("http://", "").replace("www.", "");
-                        let indexNo = filteredDomain.indexOf("/")
+                        let indexNo = filteredDomain.indexOf("/");
                         if (indexNo != -1) {
                             filteredDomain = filteredDomain.substring(0,indexNo);
                         }
@@ -13750,7 +13750,32 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     },
-                    {title: $translate('IP_ADDRESS'), data: "ipAddress"},
+                    {
+                        title: $translate('IP_ADDRESS'),
+                        data: "ipAddress",
+                        render: function (data, type, row) {
+                            data = data || '0';
+                            vm.blacklistIpRowData = (row && row.ipAddress) ? row.ipAddress : "";
+                            let playerIpAddress = (row && row.ipAddress) ? row.ipAddress : "";
+                            vm.blacklistIpDetail = vm.blacklistIpConfig.filter(e => {
+                                if (e && e.ip && playerIpAddress && e.ip.toString() === playerIpAddress.toString()) {
+                                    return e;
+                                }
+                            });
+
+                            // display text in red if match blacklist ip
+                            if (vm.blacklistIpList.includes(playerIpAddress)) {
+                                return $('<a data-target="#modalPlayerBlacklistIpDetail" style="z-index: auto" data-toggle="modal" data-container="body" ' +
+                                    'data-placement="bottom" data-trigger="focus" class="colorRed" type="button" ng-click="vm.showBlacklistIpDetail(' + JSON.stringify(data) + ')" data-html="true" href="#"></a>')
+                                    .attr('data-row', JSON.stringify(data))
+                                    .text((data))
+                                    .prop('outerHTML');
+                            } else {
+                                return $('<p>', {}).text(data).prop('outerHTML');
+                            }
+                        },
+                        "sClass": "alignRight"
+                    },
                     {title: $translate('IP_AREA'), data: "ipArea$"},
                     {title: $translate('OS'), data: "os"},
                     {title: $translate('Browser'), data: "browser"},
@@ -13768,6 +13793,20 @@ define(['js/app'], function (myApp) {
             });
 
             $scope.safeApply();
+        };
+
+        vm.showBlacklistIpDetail = function (playerIpAddress) {
+            console.log('playerIpAddress===', playerIpAddress);
+            // vm.playerBlacklistIpDetail = [];
+            //
+            // vm.blacklistIpConfig.forEach(data => {
+            //     console.log('data.ip===', data.ip);
+            //     if (data.ip === playerIpAddress) {
+            //         vm.playerBlacklistIpDetail.push(data);
+            //     }
+            // });
+            // console.log('vm.playerBlacklistIpDetail===', vm.playerBlacklistIpDetail);
+            // $('#modalPlayerBlacklistIpDetail').modal();
         };
 
         vm.initPlayerRewardPointLog = () => {
@@ -16702,89 +16741,6 @@ define(['js/app'], function (myApp) {
         // platform-reward end =============================================================================
 
         // player level codes==============start===============================
-        vm.configTabClicked = function (choice) {
-            vm.selectedConfigTab = choice;
-            vm.configTableEdit = false;
-            vm.delayDurationGroupProviderEdit = false;
-            switch (choice) {
-                case 'player':
-                    //vm.playerTableShowCol = {};
-                    vm.getAllPlayerLevels().done(
-                        function (data) {
-                            migratePlayerLevels();
-                            // vm.endLoadWeekDay();
-                        }
-                    );
-                    break;
-                case 'partner':
-                    vm.newPartnerLvl = {};
-                    vm.getAllPartners();
-                    break;
-                case 'validActive':
-                    vm.getPartnerLevelConfig();
-                    break;
-                case 'partnerCommission':
-                    vm.partnerCommission = {};
-                    vm.getCommissionRateGameProviderGroup();
-                    vm.selectedCommissionTab('DAILY_BONUS_AMOUNT');
-                    break;
-                case 'announcement':
-                    vm.getAllPlatformAnnouncements();
-                    break;
-                case 'partnerBasic':
-                    vm.getPartnerBasic();
-                    break;
-                case 'platformBasic':
-                    vm.getPlatformBasic();
-                    vm.getDelayDurationGroup();
-                    loadDelayDurationGroup();
-
-                    vm.newDelayDurationGroup = {};
-                    break;
-                case 'bonusBasic':
-                    vm.getBonusBasic();
-                    break;
-                case 'autoApproval':
-                    vm.getAutoApprovalBasic();
-                    break;
-                case 'monitor':
-                    vm.getMonitorBasic();
-                    break;
-                case 'playerValue':
-                    vm.getPlayerValueBasic();
-                    break;
-                case 'credibility':
-                    vm.prepareCredibilityConfig();
-                    break;
-                case 'providerGroup':
-                    vm.availableGameProviders = vm.allGameProviders;
-                    vm.providerGroupConfig = {showWarning: false};
-                    vm.getPlatformProviderGroup();
-                    break;
-                case 'smsGroup':
-                    vm.deletingSmsGroup = null;
-                    vm.getPlatformSmsGroups();
-                    vm.getAllMessageTypes();
-                    break;
-                case 'keywordFilter':
-                    vm.keywordFilterType = "sms";
-                    vm.getAllFilteredKeywords();
-                    vm.currentKeywords = [];
-                    vm.keywordRemoveList = [];
-                    vm.keywordFilterChannel = $scope.channelList && $scope.channelList[0];
-
-
-                    vm.scopeChannelList = $scope.channelList; // todo :: debug use, remove later
-                    break;
-                case 'bulkPhoneCallSetting':
-                    vm.getBulkCallBasic();
-                    break;
-                case 'callRequestConfig':
-                    vm.getCallRequestConfig();
-                    break;
-            }
-        };
-
         vm.keywordFilterTypeChange = (type) => {
             vm.keywordFilterType = type;
 
@@ -18930,16 +18886,6 @@ define(['js/app'], function (myApp) {
                     console.log('Done migration:', JSON.stringify(playerLevel));
                 }
             });
-
-            // It is confusing to present fixed data to the user, if it is not actually fixed on the server.
-            // So we will save it if it has changed.
-            if (aLevelWasChanged) {
-                vm.configSubmitUpdate('player');
-                $scope.safeApply();
-            }
-            // In fact it is still confusing.  We are only migrating data when it is accessed in the UI by a user with write permission.
-            // We should probably have made this a back-end migration for all records in the DB.
-            // *** Next time let's do that! ***
         };
 
         vm.saveDelayDurationGroup = function (isDelete, index) {
@@ -19405,23 +19351,6 @@ define(['js/app'], function (myApp) {
             }
             return result;
         }
-        vm.getAutoApprovalBasic = () => {
-            vm.autoApprovalBasic = vm.autoApprovalBasic || {};
-            console.log('vm.selectedPlatform.data', vm.selectedPlatform.data);
-            vm.autoApprovalBasic.enableAutoApplyBonus = vm.selectedPlatform.data.enableAutoApplyBonus;
-            vm.autoApprovalBasic.manualAuditFirstWithdrawal = typeof vm.selectedPlatform.data.manualAuditFirstWithdrawal === 'boolean' ? vm.selectedPlatform.data.manualAuditFirstWithdrawal : true;
-            vm.autoApprovalBasic.manualAuditAfterBankChanged = typeof vm.selectedPlatform.data.manualAuditAfterBankChanged === 'boolean' ? vm.selectedPlatform.data.manualAuditAfterBankChanged : true;
-            vm.autoApprovalBasic.manualAuditBanWithdrawal = typeof vm.selectedPlatform.data.manualAuditBanWithdrawal === 'boolean' ? vm.selectedPlatform.data.manualAuditBanWithdrawal : true;
-            vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleBonusApplyLessThan;
-            vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.selectedPlatform.data.autoApproveWhenSingleDayTotalBonusApplyLessThan;
-            vm.autoApprovalBasic.lostThreshold = vm.selectedPlatform.data.autoApproveLostThreshold;
-            vm.autoApprovalBasic.consumptionOffset = vm.selectedPlatform.data.autoApproveConsumptionOffset;
-            vm.autoApprovalBasic.profitTimes = vm.selectedPlatform.data.autoApproveProfitTimes;
-            vm.autoApprovalBasic.profitTimesMinAmount = vm.selectedPlatform.data.autoApproveProfitTimesMinAmount;
-            vm.autoApprovalBasic.bonusProfitOffset = vm.selectedPlatform.data.autoApproveBonusProfitOffset;
-            vm.autoApprovalBasic.autoUnlockWhenInitAmtLessThanLostThreshold = vm.selectedPlatform.data.autoUnlockWhenInitAmtLessThanLostThreshold;
-            $scope.safeApply();
-        };
 
         vm.getMonitorBasic = () => {
             vm.monitorBasic = vm.monitorBasic || {};
@@ -19665,90 +19594,6 @@ define(['js/app'], function (myApp) {
             vm.configTableEdit = false;
             vm.configTableAdd = false;
         }
-        vm.configSubmitUpdate = function (choice) {
-            switch (choice) {
-                case 'player':
-                    console.log('vm.playerLvlData', vm.playerLvlData);
-
-                    for (let i = 0; i < Object.keys(vm.playerLvlData).length; i++) {
-                        let levelUpConfig = vm.playerLvlData[Object.keys(vm.playerLvlData)[i]].levelUpConfig;
-                        for (let j = 0; j < levelUpConfig.length; j++) {
-                            if (vm.allPlayerLevelUpPeriod[levelUpConfig[j].topupPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod
-                                || vm.allPlayerLevelUpPeriod[levelUpConfig[j].consumptionPeriod] != vm.playerLevelPeriod.playerLevelUpPeriod) {
-                                vm.platformBatchLevelUp = false;
-                                break;
-                            } else if (vm.isDiffConsumptionProvider(levelUpConfig[j].consumptionSourceProviderId)) {
-                                vm.platformBatchLevelUp = false;
-                                break;
-                            }
-                        }
-                        if (vm.platformBatchLevelUp == false) {
-                            break;
-                        }
-                    }
-
-                    updatePlatformBasic({
-                        autoCheckPlayerLevelUp: vm.autoCheckPlayerLevelUp,
-                        manualPlayerLevelUp: vm.manualPlayerLevelUp,
-                        playerLevelUpPeriod: vm.playerLevelPeriod.playerLevelUpPeriod,
-                        playerLevelDownPeriod: vm.playerLevelPeriod.playerLevelDownPeriod,
-                        platformBatchLevelUp: vm.platformBatchLevelUp
-                    });
-                    if (vm.allPlayerLvlReordered) {
-                        // Number the levels correctly.  (This should only really be needed if something went wrong on a previous attempt.)
-                        vm.ensurePlayerLevelOrder();
-                    } else {
-                        updatePlayerLevels(vm.playerIDArr, 0);
-                    }
-                    break;
-                case 'partner':
-                    updatePartnerLevels(vm.partnerIDArr, 0);
-                    break;
-                case 'validActive':
-                    updatePartnerLevelConfig();
-                    break;
-                case 'announcement':
-                    updatePlatformAnnouncements(vm.allPlatformAnnouncements, 0);
-                    break;
-                case 'platformBasic':
-                    updatePlatformBasic(vm.platformBasic);
-                    break;
-                case 'partnerBasic':
-                    updatePartnerBasic(vm.partnerBasic);
-                    break;
-                case 'bonusBasic':
-                    updatePlatformBasic(vm.bonusBasic);
-                    break;
-                case 'autoApproval':
-                    updateAutoApprovalConfig(vm.autoApprovalBasic);
-                    break;
-                case 'monitor':
-                    updateMonitorBasic(vm.monitorBasic);
-                    break;
-                case 'PlayerValue':
-                    updatePlayerValueConfig(vm.playerValueBasic);
-                    updatePlayerLevelScore();
-                    break;
-                case 'credibility':
-                    updateCredibilityRemark();
-                    break;
-                case 'promoSMSContent':
-                    updatePromoSMSContent();
-                    break;
-                case 'providerGroup':
-                    updateProviderGroup();
-                    break;
-                case 'smsGroup':
-                    updateSmsGroup();
-                    break;
-                case 'bulkPhoneCallSetting':
-                    updateBulkCallBasic(vm.bulkCallBasic);
-                    break;
-                case 'callRequestConfig':
-                    updateCallRequestConfig(vm.callRequestConfig);
-                    break;
-            }
-        };
 
         function updatePlayerLevels(arr, index, deltaValue, callback) {
             if (index >= arr.length) {
@@ -19999,31 +19844,6 @@ define(['js/app'], function (myApp) {
                 }
             };
             socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
-                loadPlatformData({loadAll: false});
-            });
-        }
-
-        function updateAutoApprovalConfig(srcData) {
-            let sendData = {
-                query: {_id: vm.selectedPlatform.id},
-                updateData: {
-                    enableAutoApplyBonus: srcData.enableAutoApplyBonus,
-                    manualAuditFirstWithdrawal: srcData.manualAuditFirstWithdrawal,
-                    manualAuditAfterBankChanged: srcData.manualAuditAfterBankChanged,
-                    manualAuditBanWithdrawal: srcData.manualAuditBanWithdrawal,
-                    autoApproveWhenSingleBonusApplyLessThan: srcData.showAutoApproveWhenSingleBonusApplyLessThan,
-                    autoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.showAutoApproveWhenSingleDayTotalBonusApplyLessThan,
-                    autoApproveLostThreshold: srcData.lostThreshold,
-                    autoApproveConsumptionOffset: srcData.consumptionOffset,
-                    autoApproveProfitTimes: srcData.profitTimes,
-                    autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
-                    autoApproveBonusProfitOffset: srcData.bonusProfitOffset,autoUnlockWhenInitAmtLessThanLostThreshold: srcData.autoUnlockWhenInitAmtLessThanLostThreshold,
-                }
-            };
-            console.log('\n\n\nupdateAutoApprovalConfig sendData', JSON.stringify(sendData));
-
-            socketService.$socket($scope.AppSocket, 'updateAutoApprovalConfig', sendData, function (data) {
-                console.log('update auto approval socket', JSON.stringify(data));
                 loadPlatformData({loadAll: false});
             });
         }
