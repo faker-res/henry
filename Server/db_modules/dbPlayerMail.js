@@ -493,7 +493,7 @@ const dbPlayerMail = {
                 if (purpose && purpose === constSMSPurpose.REGISTRATION && inputData && inputData.lastLoginIp) {
                     return dbPlatform.getBlacklistIpIsEffective(inputData.lastLoginIp).then(
                         blacklistIpData => {
-                            if (blacklistIpData && blacklistIpData.length > 0) {
+                            if (blacklistIpData && blacklistIpData.length && blacklistIpData.length > 0) {
                                 return Q.reject({
                                     status: constServerCode.BLACKLIST_IP,
                                     name: "DBError",
