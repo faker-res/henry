@@ -6158,7 +6158,7 @@ define(['js/app'], function (myApp) {
                     columnDefs: [
                         {targets: '_all', defaultContent: ' '}
                     ],
-                    "order": vm.playerTableQuery.aaSorting || [[7, 'desc']],
+                    "order": vm.playerTableQuery.aaSorting || [[8, 'desc']],
                     columns: [
                         // {title: $translate('PLAYER_ID'), data: "playerId", advSearch: true},
                         {
@@ -7620,12 +7620,12 @@ define(['js/app'], function (myApp) {
                 // $.each(tableOptions.columns, function (i, v) {
                 //     v.defaultContent = "";
                 // });
-                vm.playerTable = $('#playerDataTable').DataTable(tableOptions);
+                // vm.playerTable = $('#playerDataTable').DataTable(tableOptions);
                 vm.playerFeedbackTable = $('#playerFeedbackDataTable').DataTable(tableOptions);
                 // $('#playerDataTable').DataTable(tableOptions);
 
                 // vm.playerTable.columns.adjust().draw();
-                utilService.setDataTablePageInput('playerDataTable', vm.playerTable, $translate);
+                // utilService.setDataTablePageInput('playerDataTable', vm.playerTable, $translate);
                 utilService.setDataTablePageInput('playerFeedbackDataTable', vm.playerFeedbackTable, $translate);
 
                 if (!vm.playersQueryCreated) {
