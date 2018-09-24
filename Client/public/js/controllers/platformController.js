@@ -16906,7 +16906,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.clearFeedBackResultDataStatus = function (rowData) {
-                if (rowData && rowData.playerId) {
+                if (rowData && (rowData.playerId || rowData.toLowerCase() === "player")) {
                     vm.addPlayerFeedbackResultData.message = null;
                     vm.addPlayerFeedbackResultData.success = null;
                     vm.addPlayerFeedbackResultData.failure = null;
@@ -16931,7 +16931,7 @@ define(['js/app'], function (myApp) {
                 vm.clearFeedBackResultDataStatus(rowData);
                 let reqData = {};
 
-                if (rowData && rowData.playerId) {
+                if (rowData && (rowData.playerId || rowData.toLowerCase() === "player")) {
                     reqData.key = vm.addPlayerFeedbackResultData.key;
                     reqData.value = vm.addPlayerFeedbackResultData.value;
                     console.log(reqData);
@@ -16985,7 +16985,7 @@ define(['js/app'], function (myApp) {
                 vm.clearFeedBackResultDataStatus(rowData);
                 let reqData = {};
 
-                if (rowData && rowData.playerId) {
+                if (rowData && (rowData.playerId || rowData.toLowerCase() === "player")) {
                     reqData._id = vm.deletePlayerFeedbackResultData._id;
                     return $scope.$socketPromise('deletePlayerFeedbackResult', reqData).then(
                         function (data) {
@@ -17032,7 +17032,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.clearFeedBackTopicDataStatus = function (rowData) {
-                if (rowData && rowData.playerId) {
+                if (rowData && (rowData.playerId || rowData.toLowerCase() === "player")) {
                     vm.addPlayerFeedbackTopicData.message = null;
                     vm.addPlayerFeedbackTopicData.success = null;
                     vm.addPlayerFeedbackTopicData.failure = null;
@@ -17057,7 +17057,7 @@ define(['js/app'], function (myApp) {
                 vm.clearFeedBackTopicDataStatus(rowData);
                 let reqData = {};
 
-                if (rowData && rowData.playerId) {
+                if (rowData && (rowData.playerId || rowData.toLowerCase() === "player")) {
                     reqData.key = vm.addPlayerFeedbackTopicData.value;
                     reqData.value = vm.addPlayerFeedbackTopicData.value;
                     reqData.platform = vm.selectedPlatform.id;
@@ -17115,7 +17115,7 @@ define(['js/app'], function (myApp) {
                 vm.clearFeedBackTopicDataStatus(rowData);
                 let reqData = {};
 
-                if (rowData && rowData.playerId) {
+                if (rowData && (rowData.playerId || rowData.toLowerCase() === "player")) {
                     reqData._id = vm.deletePlayerFeedbackTopicData._id;
                     return $scope.$socketPromise('deletePlayerFeedbackTopic', reqData).then(
                         () => $scope.$evalAsync(async () => {
@@ -27225,9 +27225,11 @@ define(['js/app'], function (myApp) {
 
             vm.getLargeWithdrawalSetting = function () {
                 vm.largeWithdrawalSetting = vm.largeWithdrawalSetting || {};
+                vm.largeWithdrawalPartnerSetting = vm.largeWithdrawalPartnerSetting || {};
                 let sendData = {
                     platform: vm.selectedPlatform.id
-                }
+                };
+
                 socketService.$socket($scope.AppSocket, 'getLargeWithdrawalSetting', sendData, function (data) {
                     console.log('getLargeWithdrawalSetting');
                     $scope.$evalAsync(() => {
@@ -27240,6 +27242,23 @@ define(['js/app'], function (myApp) {
                         }
                         if (!vm.largeWithdrawalSetting.reviewer) {
                             vm.largeWithdrawalSetting.reviewer = [];
+                        }
+                    });
+                });
+
+                // partner large withdrawal
+                socketService.$socket($scope.AppSocket, 'getLargeWithdrawalPartnerSetting', sendData, function (data) {
+                    console.log('getLargeWithdrawalPartnerSetting');
+                    $scope.$evalAsync(() => {
+                        vm.largeWithdrawalPartnerSetting = {}
+                        if (data && data.data) {
+                            vm.largeWithdrawalPartnerSetting = data.data;
+                        }
+                        if (!vm.largeWithdrawalPartnerSetting.recipient) {
+                            vm.largeWithdrawalPartnerSetting.recipient = [];
+                        }
+                        if (!vm.largeWithdrawalPartnerSetting.reviewer) {
+                            vm.largeWithdrawalPartnerSetting.reviewer = [];
                         }
                     });
                 });
@@ -27266,6 +27285,7 @@ define(['js/app'], function (myApp) {
                 vm.partnerBasic.partnerUsePhoneNumberTwoStepsVerification = vm.selectedPlatform.data.partnerUsePhoneNumberTwoStepsVerification;
                 vm.partnerBasic.partnerUnreadMailMaxDuration = vm.selectedPlatform.data.partnerUnreadMailMaxDuration;
                 vm.partnerBasic.partnerDefaultCommissionGroup = vm.selectedPlatform.data.partnerDefaultCommissionGroup.toString();
+                vm.partnerBasic.partnerSameBankAccountCount = vm.selectedPlatform.data.partnerSameBankAccountCount;
 
                 $scope.safeApply();
             }
@@ -27342,11 +27362,17 @@ define(['js/app'], function (myApp) {
                 vm.autoApprovalBasic.bonusProfitOffset = vm.selectedPlatform.data.autoApproveBonusProfitOffset;
                 vm.autoApprovalBasic.autoUnlockWhenInitAmtLessThanLostThreshold = vm.selectedPlatform.data.autoUnlockWhenInitAmtLessThanLostThreshold;
 
+                vm.autoApprovalBasic.partnerEnableAutoApplyBonus = vm.selectedPlatform.data.partnerEnableAutoApplyBonus;
+                vm.autoApprovalBasic.partnerAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.partnerAutoApproveWhenSingleBonusApplyLessThan;
+                vm.autoApprovalBasic.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan = vm.selectedPlatform.data.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan;
+                vm.autoApprovalBasic.partnerWithdrawalCommissionDifference = vm.selectedPlatform.data.partnerWithdrawalCommissionDifference;
+
                 vm.autoApprovalBasic.firstWithdrawExceedAmount = vm.selectedPlatform.data.autoAudit.firstWithdrawExceedAmount;
                 vm.autoApprovalBasic.firstWithdrawAndCurrentMinusTopupExceedAmount = vm.selectedPlatform.data.autoAudit.firstWithdrawAndCurrentMinusTopupExceedAmount;
                 vm.autoApprovalBasic.firstWithdrawTotalBetOverTotalTopupExceedTimes = vm.selectedPlatform.data.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes;
                 vm.autoApprovalBasic.firstWithdrawCondBExceedAmount = vm.selectedPlatform.data.autoAudit.firstWithdrawCondBExceedAmount;
                 vm.autoApprovalBasic.firstWithdrawDifferentIPCheck = vm.selectedPlatform.data.autoAudit.firstWithdrawDifferentIPCheck;
+                $scope.safeApply();
             };
 
             vm.getMonitorBasic = () => {
@@ -27742,6 +27768,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'largeWithdrawalSetting':
                         updateLargeWithdrawalSetting(vm.largeWithdrawalSetting);
+                        updateLargeWithdrawalPartnerSetting(vm.largeWithdrawalPartnerSetting);
                         break;
 
                 }
@@ -28189,7 +28216,8 @@ define(['js/app'], function (myApp) {
             vm.initModalLargeWithdrawal = function () {
                vm.largeWithdrawCheckReviewer = {};
                vm.largeWithdrawCheckRecipient = {};
-               vm.adminList.forEach((admin, index) => {
+               //to remove duplicate
+                [...new Set(vm.adminList.map(item => item))].forEach((admin, index) => {
                    vm.largeWithdrawCheckRecipient[index] = vm.getLargeWithdrawIsRecipient(admin._id);
                    vm.largeWithdrawCheckReviewer[index] = vm.getLargeWithdrawIsReviewer(admin._id);
                    $('#largeWithdrawRow' + index).removeAttr('style');
@@ -28265,6 +28293,100 @@ define(['js/app'], function (myApp) {
                     console.log("updateLargeWithdrawalRecipient complete", data)
                 });
             }
+
+            vm.initModalLargeWithdrawalPartner = function () {
+                vm.largeWithdrawPartnerCheckReviewer = {};
+                vm.largeWithdrawPartnerCheckRecipient = {};
+                // to remove duplicate
+                [...new Set(vm.adminList.map(item => item))].forEach((admin, index) => {
+                    vm.largeWithdrawPartnerCheckRecipient[index] = vm.getLargeWithdrawPartnerIsRecipient(admin._id);
+                    vm.largeWithdrawPartnerCheckReviewer[index] = vm.getLargeWithdrawPartnerIsReviewer(admin._id);
+                    $('#largeWithdrawPartnerRow' + index).removeAttr('style');
+                    if (vm.largeWithdrawPartnerCheckReviewer[index]) {
+                        $('#largeWithdrawPartnerRow' + index).css('background-color', 'pink');
+                    }
+                })
+            };
+
+            vm.getLargeWithdrawPartnerIsRecipient = function (adminObjId) {
+                // largeWithdrawalPartnerSetting
+                let isRecipient = false;
+                if (adminObjId && vm.largeWithdrawalPartnerSetting && vm.largeWithdrawalPartnerSetting.recipient &&
+                    vm.largeWithdrawalPartnerSetting.recipient.length && vm.largeWithdrawalPartnerSetting.recipient.indexOf(String(adminObjId)) > -1) {
+                    isRecipient = true;
+                }
+                return isRecipient;
+            };
+
+            vm.getLargeWithdrawPartnerIsReviewer = function (adminObjId) {
+                // largeWithdrawalSetting
+                let isReviewer = false;
+                if (adminObjId && vm.largeWithdrawalPartnerSetting && vm.largeWithdrawalPartnerSetting.reviewer &&
+                    vm.largeWithdrawalPartnerSetting.reviewer && vm.largeWithdrawalPartnerSetting.reviewer.indexOf(String(adminObjId)) > -1) {
+                    isReviewer = true;
+                }
+                return isReviewer;
+            };
+
+            vm.setLargeWithdrawPartnerRecipient = function (adminObjId, isAdd, index) {
+                if (isAdd) {
+                    if (vm.largeWithdrawalPartnerSetting.recipient.indexOf(String(adminObjId)) < 0) {
+                        vm.largeWithdrawalPartnerSetting.recipient.push(String(adminObjId));
+                    }
+                } else {
+                    let indexRecipient = vm.largeWithdrawalPartnerSetting.recipient.indexOf(String(adminObjId));
+                    if (indexRecipient > -1) {
+                        vm.largeWithdrawalPartnerSetting.recipient.splice(indexRecipient, 1);
+                        let indexReviewer = vm.largeWithdrawalPartnerSetting.reviewer.indexOf(String(adminObjId));
+                        if (indexReviewer > -1) {
+                            $('#largeWithdrawPartnerRow' + index).removeAttr('style');
+                            vm.largeWithdrawalPartnerSetting.reviewer.splice(indexReviewer, 1);
+                            vm.largeWithdrawCheckReviewer[index] = false;
+                        }
+                    }
+                }
+            };
+
+            vm.setLargeWithdrawPartnerReviewer = function (adminObjId, isAdd, index) {
+                if (isAdd) {
+                    if (vm.largeWithdrawalPartnerSetting.reviewer.indexOf(String(adminObjId)) < 0) {
+                        vm.largeWithdrawalPartnerSetting.reviewer.push(String(adminObjId));
+                        $('#largeWithdrawPartnerRow' + index).css('background-color', 'pink');
+                    }
+                } else {
+                    let indexReviewer = vm.largeWithdrawalPartnerSetting.reviewer.indexOf(String(adminObjId));
+                    if (indexReviewer > -1) {
+                        vm.largeWithdrawalPartnerSetting.reviewer.splice(indexReviewer, 1);
+                        $('#largeWithdrawPartnerRow' + index).removeAttr('style');
+                    }
+                }
+            };
+
+            vm.updateLargeWithdrawalRecipient = function () {
+                let sendData = {
+                    query: {platform: vm.selectedPlatform.id},
+                    updateData: {
+                        recipient: vm.largeWithdrawalSetting.recipient,
+                        reviewer: vm.largeWithdrawalSetting.reviewer
+                    }
+                }
+                socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalSetting', sendData, function (data) {
+                    console.log("updateLargeWithdrawalRecipient complete", data)
+                });
+            };
+
+            vm.updateLargeWithdrawalPartnerRecipient = function () {
+                let sendData = {
+                    query: {platform: vm.selectedPlatform.id},
+                    updateData: {
+                        recipient: vm.largeWithdrawalPartnerSetting.recipient,
+                        reviewer: vm.largeWithdrawalPartnerSetting.reviewer
+                    }
+                }
+                socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalPartnerSetting', sendData, function (data) {
+                    console.log("updateLargeWithdrawalPartnerRecipient complete", data)
+                });
+            };
 
             function updatePlayerLevels(arr, index, deltaValue, callback) {
                 if (index >= arr.length) {
@@ -28538,6 +28660,28 @@ define(['js/app'], function (myApp) {
                 });
             }
 
+            function updateLargeWithdrawalPartnerSetting(srcData) {
+                let sendData = {
+                    query: {platform: vm.selectedPlatform.id},
+                    updateData: {
+                        emailNameExtension: srcData.emailNameExtension,
+                        showRealName: srcData.showRealName,
+                        showCommissionType: srcData.showCommissionType,
+                        showBankCity: srcData.showBankCity,
+                        showRegisterTime: srcData.showRegisterTime,
+                        showCurrentWithdrawalTime: srcData.showCurrentWithdrawalTime,
+                        showLastWithdrawalTime: srcData.showLastWithdrawalTime,
+                        showCurrentCredit: srcData.showCurrentCredit,
+                        showTotalDownlinePlayersCount: srcData.showTotalDownlinePlayersCount,
+                        showTotalDownlinePartnersCount: srcData.showTotalDownlinePartnersCount,
+                        showAllPartnerRelatedProposal: srcData.showAllPartnerRelatedProposal,
+                    }
+                }
+                socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalPartnerSetting', sendData, function (data) {
+                    console.log("updateLargeWithdrawalPartnerSetting complete")
+                });
+            }
+
             function updateFinancialSettlementConfig(srcData) {
                 let financialPointsNotification = false;
                 let financialPointsDisableWithdrawal = false;
@@ -28647,7 +28791,8 @@ define(['js/app'], function (myApp) {
                         partnerRequireCaptchaInSMS: srcData.partnerRequireCaptchaInSMS,
                         partnerUsePhoneNumberTwoStepsVerification: srcData.partnerUsePhoneNumberTwoStepsVerification,
                         partnerUnreadMailMaxDuration: srcData.partnerUnreadMailMaxDuration,
-                        partnerDefaultCommissionGroup: srcData.partnerDefaultCommissionGroup
+                        partnerDefaultCommissionGroup: srcData.partnerDefaultCommissionGroup,
+                        partnerSameBankAccountCount: srcData.partnerSameBankAccountCount
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updatePlatform', sendData, function (data) {
@@ -28671,6 +28816,10 @@ define(['js/app'], function (myApp) {
                         autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
                         autoApproveBonusProfitOffset: srcData.bonusProfitOffset,
                         autoUnlockWhenInitAmtLessThanLostThreshold: srcData.autoUnlockWhenInitAmtLessThanLostThreshold,
+                        partnerEnableAutoApplyBonus: srcData.partnerEnableAutoApplyBonus,
+                        partnerAutoApproveWhenSingleBonusApplyLessThan: srcData.partnerAutoApproveWhenSingleBonusApplyLessThan,
+                        partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan,
+                        partnerWithdrawalCommissionDifference: srcData.partnerWithdrawalCommissionDifference,
                         autoAudit: {
                             firstWithdrawExceedAmount: srcData.firstWithdrawExceedAmount,
                             firstWithdrawAndCurrentMinusTopupExceedAmount: srcData.firstWithdrawAndCurrentMinusTopupExceedAmount,
@@ -33949,8 +34098,8 @@ define(['js/app'], function (myApp) {
             vm.autoFeedbackPrepareTableData = function (missions) {
                 let curTime = new Date();
                 let drawData = missions.map(mission => {
-                    let missionStartTime = utilService.setThisDayStartTime(new Date(mission.missionStartTime));
-                    let missionEndTime = utilService.setThisDayStartTime(new Date(mission.missionEndTime));
+                    let missionStartTime = utilService.getUTCTime(new Date(mission.missionStartTime));
+                    let missionEndTime = utilService.getUTCTime(new Date(mission.missionEndTime));
                     if(mission.enabled) {
                         if (missionStartTime > curTime) {
                             mission.missionStatus$ = $translate('Unbegun');

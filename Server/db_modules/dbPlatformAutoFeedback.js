@@ -187,11 +187,12 @@ let dbPlatformAutoFeedback = {
     },
 
     executeAutoFeedback: function () {
+        let UTC8Time = dbutility.getUTC8Time(new Date());
         let curHour = new Date().getHours();
         let curMinute = new Date().getMinutes();
         let query = {
-            missionStartTime: {$lte: new Date()},
-            missionEndTime: {$gte: new Date()},
+            missionStartTime: {$lte: UTC8Time},
+            missionEndTime: {$gte: UTC8Time},
             $or: [{
                     'schedule.0.triggerHour': curHour,
                     'schedule.0.triggerMinute': curMinute
@@ -204,6 +205,9 @@ let dbPlatformAutoFeedback = {
             }],
             enabled: true,
         };
+        console.log("new date",(new Date()));
+        console.log("UTC8Time",dbutility.getUTC8Time(new Date()));
+        console.log("new date getLocalTime",dbutility.getLocalTime(new Date()));
 
         return dbPlatformAutoFeedback.getAutoFeedback(query, null, null, true).then(autoFeedbacks => {
             if(!autoFeedbacks || autoFeedbacks.length < 1) {

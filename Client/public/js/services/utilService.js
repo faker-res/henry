@@ -234,6 +234,10 @@ define([], function () {
             if (!date) return null;
             return new Date(date.getTime() - new Date().getTimezoneOffset() * 60 * 1000);
         };
+        this.getUTCTime = function (date) {
+            if (!date) return null;
+            return new Date(date.getTime() + new Date().getTimezoneOffset() * 60 * 1000);
+        };
 
         this.setLocalDayStartTime = function (date) {
             if (!date) return null;
