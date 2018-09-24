@@ -827,7 +827,7 @@ var dbPlayerConsumptionRecord = {
                             recordData.amount -= data.amount;
                             recordData.validAmount -= data.validAmount;
                             recordData.bonusAmount -= data.bonusAmount;
-                            recordData.commissionAmount -= data.commissionAmount;
+                            // recordData.commissionAmount -= data.commissionAmount;
                             return dbPlayerConsumptionRecord.createExternalPlayerConsumptionRecord(recordData, resolveError);
                         }
                         else {
