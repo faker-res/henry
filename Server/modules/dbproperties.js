@@ -209,6 +209,9 @@ let dxMissionModel = db_admin.model('dxMission', dxMissionSchema, 'dxMission');
 let largeWithdrawalSettingSchema = require('../schema/largeWithdrawalSetting');
 let largeWithdrawalSettingModel = db_admin.model('largeWithdrawalSetting', largeWithdrawalSettingSchema, 'largeWithdrawalSetting');
 
+let largeWithdrawalPartnerSettingSchema = require('../schema/largeWithdrawalPartnerSetting');
+let largeWithdrawalPartnerSettingModel = db_admin.model('largeWithdrawalPartnerSetting', largeWithdrawalPartnerSettingSchema, 'largeWithdrawalPartnerSetting');
+
 let largeWithdrawalLogSchema = require('../schema/largeWithdrawalLog');
 let largeWithdrawalLogModel = db_admin.model('largeWithdrawalLog', largeWithdrawalLogSchema, 'largeWithdrawalLog');
 
@@ -554,6 +557,7 @@ var dbProperties = {
     collection_dxPhone: dxPhoneModel,
 
     collection_largeWithdrawalSetting: largeWithdrawalSettingModel,
+    collection_largeWithdrawalPartnerSetting: largeWithdrawalPartnerSettingModel,
     collection_largeWithdrawalLog: largeWithdrawalLogModel,
 
     collection_actionLog: actionLogModel,

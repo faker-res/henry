@@ -425,8 +425,25 @@ var dbPlatform = {
         );
     },
 
+    getLargeWithdrawalPartnerSetting: function (platformObjId) {
+        platformObjId = ObjectId(platformObjId);
+        return dbconfig.collection_largeWithdrawalPartnerSetting.findOne({platform: platformObjId}).lean().then(
+            largeWithdrawalData => {
+                if (!largeWithdrawalData) {
+                    return dbconfig.collection_largeWithdrawalPartnerSetting({platform: platformObjId}).save();
+                } else {
+                    return largeWithdrawalData;
+                }
+            }
+        );
+    },
+
     updateLargeWithdrawalSetting: function (query, updateData) {
         return dbconfig.collection_largeWithdrawalSetting.findOneAndUpdate(query, updateData, {upsert: true}).lean();
+    },
+
+    updateLargeWithdrawalPartnerSetting: function (query, updateData) {
+        return dbconfig.collection_largeWithdrawalPartnerSetting.findOneAndUpdate(query, updateData, {upsert: true}).lean();
     },
 
     /**
