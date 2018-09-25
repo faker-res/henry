@@ -226,6 +226,13 @@ var SettlementServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbAutoProposal.processAutoProposals, args, isValidData);
     };
 
+    this.processPartnerAutoProposals.onRequest = (wsFunc, conn, data) => {
+        let isValidData = Boolean(data && data.proposals && data.platformObj);
+        let args = [data.proposals, data.platformObj];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbAutoProposal.processPartnerAutoProposals, args, isValidData);
+    };
+
+
     this.performPlatformPlayerLevelSettlement.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.playerObjIds && data.levels);
         let args = [data.playerObjIds, data.platformObjId, data.levels, data.startTime, data.endTime, data.upOrDown, data.platformPeriod];
