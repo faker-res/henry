@@ -490,7 +490,7 @@ const dbPlayerMail = {
             }
         ).then(
             () => {
-                if (purpose && purpose === constSMSPurpose.REGISTRATION && inputData && inputData.lastLoginIp) {
+                if (purpose && (purpose === constSMSPurpose.REGISTRATION || purpose === constSMSPurpose.PARTNER_REGISTRATION) && inputData && inputData.lastLoginIp) {
                     return dbPlatform.getBlacklistIpIsEffective(inputData.lastLoginIp).then(
                         blacklistIpData => {
                             if (blacklistIpData && blacklistIpData.length && blacklistIpData.length > 0) {
