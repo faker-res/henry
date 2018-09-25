@@ -309,7 +309,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
                 if (platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
                     && platformObj.autoAudit.firstWithdrawCondBExceedAmount
-                    && (playerTotalBets / playerTotalTopupAmount) >= platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
+                    && (playerTotalBets / playerTotalTopupAmount) <= platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
                     && withdrawAmount >= platformObj.autoAudit.firstWithdrawCondBExceedAmount
                 ) {
                     checkMsg += ' Denied: FW: Low Bet/Top Up Ratio;';
