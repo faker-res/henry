@@ -9715,20 +9715,22 @@ define(['js/app'], function (myApp) {
                 vm.playerCredibilityRemarksUpdated = false;
                 vm.prepareCredibilityConfig().then(
                     () => {
-                        if (!vm.selectedSinglePlayer.credibilityRemarks) {
-                            return;
-                        }
+                        if (vm.selectedSinglePlayer) {
+                            if (!vm.selectedSinglePlayer.credibilityRemarks) {
+                                return;
+                            }
 
-                        let playerRemarksId = vm.selectedSinglePlayer.credibilityRemarks;
-                        for (let i = 0; i < playerRemarksId.length; i++) {
-                            for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                if (playerRemarksId[i] === vm.credibilityRemarks[j]._id) {
-                                    vm.credibilityRemarks[j].selected = true;
+                            let playerRemarksId = vm.selectedSinglePlayer.credibilityRemarks;
+                            for (let i = 0; i < playerRemarksId.length; i++) {
+                                for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                    if (playerRemarksId[i] === vm.credibilityRemarks[j]._id) {
+                                        vm.credibilityRemarks[j].selected = true;
+                                    }
                                 }
                             }
+                            vm.getPlayerCredibilityComment();
+                            $scope.safeApply();
                         }
-                        vm.getPlayerCredibilityComment();
-                        $scope.safeApply();
                     }
                 );
             };
