@@ -347,7 +347,7 @@ let dbPlatformAutoFeedback = {
                             arr.push(lastFeedbackTime);
                         }
                         if(feedback.filterFeedbackTopic && feedback.filterFeedbackTopic.length > 0) {
-                            let filterFeedbackTopic = {lastFeedbackTopic: {$nin: vm.playerFeedbackQuery.filterFeedbackTopic}};
+                            let filterFeedbackTopic = {lastFeedbackTopic: {$nin: feedback.filterFeedbackTopic}};
                             arr.push(filterFeedbackTopic);
                         }
                         addMultipleOr(arr);

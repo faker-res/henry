@@ -223,25 +223,39 @@ define(['js/app'], function (myApp) {
 
                 var rawNodeList = {};
                 let departments = authService.departmentIds();
+                let filteredDepartments = departments.filter(department => {
+                    if(department && department._id){
+                        let indexNo = vm.departments.findIndex(d => d._id.toString() == department._id.toString());
+
+                        if(indexNo == -1){
+                            return department;
+                        }
+                    }
+                })
+
                 $.each(vm.departments, function (i, v) {
                     var newNode = createDepartmentNode(v);
                     //store all sub tree nodes to map list
                     if (v.parent) {
                         //if there is only one department add it to the tree
 
-                        if (departments && departments.length > 0) {
-                            for (let i = 0, len = departments.length; i < len; i++) {
-                                if (departments[i] && departments[i]._id == v._id) {
+                        if (filteredDepartments && filteredDepartments.length > 0) {
+                            for (let i = 0, len = filteredDepartments.length; i < len; i++) {
+                                if (filteredDepartments[i] && filteredDepartments[i]._id == v._id) {
                                     finalNodeTree.push(newNode);
                                 } else {
                                     rawNodeList[v._id] = newNode;
                                 }
                             }
-                        } else if (departments && departments.length == 1 && v._id == authService.departmentId()) {
+                        } else if (filteredDepartments && filteredDepartments.length == 1 && v._id == authService.departmentId()) {
                             finalNodeTree.push(newNode);
                         }
                         else {
                             rawNodeList[v._id] = newNode;
+                            let indexOfParent = vm.departments.findIndex(d => d._id == v.parent)
+                            if(indexOfParent == -1){
+                                finalNodeTree.push(newNode);
+                            }
                         }
                     }
                     //if root node, add it to the first level
@@ -254,7 +268,7 @@ define(['js/app'], function (myApp) {
                 vm.SelectedDepartmentNode = finalNodeTree[0];
                 //vm.departmentNodes["root"] = finalNodeTree[0];
                 let count = 0;
-                if (departments && departments.length > 0 && finalNodeTree && finalNodeTree.length > 0) {
+                if (filteredDepartments && filteredDepartments.length > 0 && finalNodeTree && finalNodeTree.length > 0) {
                     for (let i = 0, len = finalNodeTree.length; i < len; i++) {
                         if (finalNodeTree[i] && finalNodeTree[i].children && finalNodeTree[i].children.length > 0) {
                             vm.departmentNodes["root"] = finalNodeTree[i];
