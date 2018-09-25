@@ -1,14 +1,18 @@
+"use strict";
+
+var dbLargeWithdrawalFunc = function () {
+};
+module.exports = new dbLargeWithdrawalFunc();
+
 const dbconfig = require("./../modules/dbproperties");
 const emailer = require("./../modules/emailer");
 const constSystemParam = require('./../const/constSystemParam');
 const constProposalStatus = require('./../const/constProposalStatus');
 const bcrypt = require("bcrypt");
 const errorUtils = require("./../modules/errorUtils");
+const pmsAPI = require('../externalAPI/pmsAPI');
 const proposalExecutor = require('./../modules/proposalExecutor');
 
-// let dbLargeWithdrawalFunc = function () {
-// };
-// module.exports = new dbLargeWithdrawalFunc();
 
 const dbLargeWithdrawal = {
     getLargeWithdrawLog: (largeWithdrawLogObjId) => {
@@ -40,13 +44,28 @@ const dbLargeWithdrawal = {
                     return Promise.reject({message: "playerObjId of proposal not found"});
                 }
 
-                return dbconfig.collection_players.findOne({_id: proposal.data.playerObjId}).lean();
+                return dbconfig.collection_players.findOne({_id: proposal.data.playerObjId})
+                    .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean();
             }
         ).then(
             playerData => {
                 player = playerData;
                 // todo :: unfinished work - need to find out all the calculation base on largeWithdrawalSetting
-                return playerData;
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find player"});
+                }
+
+                let bankCityProm = pmsAPI.foundation_getCityList({provinceId: player.bankAccountProvince});
+                let updateObj = {
+                    realName: player.realName,
+                    playerLevelName: player.playerLevel.name,
+                };
+
+                return Promise.all([bankCityProm]);
+            }
+        ).then(
+            ([bankCity]) => {
+                console.log("bankcity", bankCity)
             }
         );
     },
@@ -345,6 +364,8 @@ function sendLargeWithdrawalProposalAuditedInfo(proposalData, adminObjId) {
     );
 }
 
+var proto = dbLargeWithdrawalFunc.prototype;
+proto = Object.assign(proto, dbLargeWithdrawal);
 
 // ======== large withdrawal log input common function START ========
 
