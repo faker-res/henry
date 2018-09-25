@@ -14659,7 +14659,9 @@ let dbPlayerInfo = {
             let prom = dbconfig.collection_players.findOne({name: playerName, platform: platformObjId})
                 .then(data => {
                     let playerCredibilityRemarks = data.credibilityRemarks.filter(item => {
-                        return item != "undefined"
+                        if (item) {
+                            return item != "undefined"
+                        }
                     }) || [];
                     updateData.credibilityRemarks = dbPlayerInfo.managingDataList(playerCredibilityRemarks, addList, removeList);
                     if (addList.length == 0 && removeList.length == 0) {
