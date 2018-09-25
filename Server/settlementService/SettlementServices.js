@@ -48,6 +48,7 @@
                 "savePlayerCredit",
                 "markDuplicatedConsumptionRecords",
                 "processAutoProposals",
+                "processPartnerAutoProposals",
                 "sendPlayerMailFromAdminToAllPlayers",
                 "sendPlayerMailFromAdminToPlayer",
                 "performPlatformPlayerLevelSettlement",

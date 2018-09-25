@@ -15,6 +15,7 @@ const dbconfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbRewardTaskGroup = require("./../db_modules/dbRewardTaskGroup");
+const errorUtils = require("../modules/errorUtils.js");
 
 const SettlementBalancer = require('../settlementModule/settlementBalancer');
 const proposalExecutor = require('../modules/proposalExecutor');
@@ -65,10 +66,64 @@ let dbAutoProposal = {
         )
     },
 
+    applyPartnerBonus: (platformObjId) => {
+        let platformData, proposalTypeObjId;
+
+        return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
+            platform => {
+                platformData = platform;
+                return dbconfig.collection_proposalType.findOne({
+                    platformId: platformObjId,
+                    name: constProposalType.PARTNER_BONUS
+                }).lean();
+            }
+        ).then(
+            proposalType => {
+                if (proposalType) {
+                    proposalTypeObjId = proposalType._id;
+                    let checkTime = new Date();
+                    checkTime.setMinutes(checkTime.getMinutes() + 1);
+
+                    let stream = dbconfig.collection_proposal.find({
+                        type: proposalTypeObjId,
+                        status: constProposalStatus.AUTOAUDIT,
+                        // $or: [{"data.nextCheckTime": {$exists: false}}, {"data.nextCheckTime": {$lte: checkTime}}]
+                    }).cursor({batchSize: 10000});
+
+                    let balancer = new SettlementBalancer();
+                    return balancer.initConns().then(function () {
+                        return balancer.processStream(
+                            {
+                                stream: stream,
+                                batchSize: constSystemParam.BATCH_SIZE,
+                                makeRequest: function (proposals, request) {
+                                    request("player", "processPartnerAutoProposals", {
+                                        proposals: proposals,
+                                        platformObj: platformData,
+                                        useProviderGroup: platformData.useProviderGroup
+                                    });
+                                }
+                            }
+                        );
+                    });
+                }
+            }
+        )
+    },
+
     processAutoProposals: (proposals, platformObj, useProviderGroup) => {
         if (proposals && proposals.length > 0) {
             return Promise.all(proposals.map(proposal => {
                 return (platformObj.useProviderGroup || useProviderGroup)  ? checkRewardTaskGroup(proposal, platformObj) : checkProposalConsumption(proposal, platformObj)
+            }));
+        }
+    },
+
+    // process partner bonus auto audit
+    processPartnerAutoProposals: (proposals, platformObj) => {
+        if (proposals && proposals.length > 0) {
+            return Promise.all(proposals.map(proposal => {
+                return checkPartnerAutoBonus(proposal, platformObj);
             }));
         }
     },
@@ -84,6 +139,108 @@ let dbAutoProposal = {
             'data.remarkChinese': "已转换成手动审核。"
         });
     }
+};
+
+/**
+ * Audit  partner bonus(withdrawal) auto audit proposal
+ */
+function checkPartnerAutoBonus (proposal, platformObj) {
+    let canApprove = true;
+    let withdrawAmount = proposal.data.amount;
+    let checkMsg = "", checkMsgChinese = "";
+
+    let todayTime = dbUtility.getTodaySGTime();
+    let bonusProm = dbconfig.collection_proposal.aggregate(
+        {
+            $match: {
+                type: ObjectId(proposal.type),
+                createTime: {
+                    $gte: todayTime.startTime,
+                    $lt: todayTime.endTime
+                },
+                'data.partnerObjId': ObjectId(proposal.data.partnerObjId),
+                status: {$in: [constProposalStatus.AUTOAUDIT, constProposalStatus.PROCESSING, constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+            }
+        },
+        {
+            $group: {
+                _id: "$data.partnerObjId",
+                amount: {$sum: "$data.amount"}
+            }
+        }
+    );
+
+    let commissionProm = dbconfig.collection_proposal.findOne({
+        'data.partnerObjId': ObjectId(proposal.data.partnerObjId),
+        type: ObjectId(proposal.type),
+        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+    }).sort({createTime: -1}).lean().then(
+        withdrawalData => {
+            if (!withdrawalData) {
+                return Promise.reject({name: "DataError", message: "Cannot find proposals"})
+            }
+
+            return dbconfig.collection_proposalType.find({
+                platformId: platformObj._id,
+                name: {$in: [constProposalType.UPDATE_PARENT_PARTNER_COMMISSION, constProposalType.SETTLE_PARTNER_COMMISSION]}
+            }, {_id: 1}).lean().then(
+                proposalType => {
+                    if (!(proposalType && proposalType.length)) {
+                        return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                    }
+
+                    return dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                type: {$in: proposalType.map(item => item._id)},
+                                createTime: {
+                                    $gte: withdrawalData.createTime,
+                                    $lt: proposal.createTime
+                                },
+                                'data.partnerObjId': ObjectId(proposal.data.partnerObjId),
+                                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$data.partnerObjId",
+                                amount: {$sum: "$data.amount"}
+                            }
+                        }
+                    );
+                }
+            );
+        }
+    ).catch(errorUtils.reportError);
+
+    return Promise.all([bonusProm, commissionProm]).then(
+        ([todayWithdrawal, totalCommission]) => {
+
+            if (withdrawAmount >= platformObj.partnerAutoApproveWhenSingleBonusApplyLessThan) {
+                checkMsg += " Denied: Single limit;";
+                checkMsgChinese += " 失败：单限;";
+                canApprove = false;
+            }
+
+            if (todayWithdrawal && todayWithdrawal[0] && todayWithdrawal[0].amount >= platformObj.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan) {
+                checkMsg += " Denied: Daily limit;";
+                checkMsgChinese += " 失败：日限;";
+                canApprove = false;
+            }
+
+            if (totalCommission && totalCommission[0] && totalCommission[0].amount >= platformObj.partnerWithdrawalCommissionDifference) {
+                checkMsg += " Denied: Commission limit;";
+                checkMsgChinese += " 失败：佣金限;";
+                canApprove = false;
+            }
+
+            if (canApprove) {
+                sendToApprovePartner(proposal._id);
+            } else {
+                sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null);
+            }
+        }
+    )
 };
 
 /**
@@ -307,13 +464,14 @@ function checkRewardTaskGroup(proposal, platformObj) {
                     canApprove = false;
                 }
 
-                if (platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
+                if ((platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
                     && platformObj.autoAudit.firstWithdrawCondBExceedAmount
                     && (playerTotalBets / playerTotalTopupAmount) <= platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
-                    && withdrawAmount >= platformObj.autoAudit.firstWithdrawCondBExceedAmount
+                    && withdrawAmount >= platformObj.autoAudit.firstWithdrawCondBExceedAmount)
+                    || !Number.isFinite(playerTotalBets / playerTotalTopupAmount)
                 ) {
                     checkMsg += ' Denied: FW: Low Bet/Top Up Ratio;';
-                    checkMsgChinese += ' 失败：投注额/存款过低;';
+                    checkMsgChinese += ' 失败：首提投注额/存款过低;';
                     canApprove = false;
                 }
 
@@ -324,7 +482,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
                     && (bankProvince !== playerData.phoneProvince || bankProvince !== playerData.province)
                 ) {
                     checkMsg += ' Denied: FW: Different Province between IP, Phone, And Bank Account;';
-                    checkMsgChinese += ' 失败：IP, 电话, 银行所在省不一致;';
+                    checkMsgChinese += ' 失败：首提IP, 电话, 银行所在省不一致;';
                     canApprove = false;
                 }
             }
@@ -915,6 +1073,43 @@ function checkProposalConsumption(proposal, platformObj) {
         }
     )
 }
+
+function sendToApprovePartner (proposalObjId, createTime, remark, remarkChinese) {
+    // processRemark = processRemark ? processRemark : "";
+    let proposalObj;
+
+    dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
+        path: "type",
+        model: dbconfig.collection_proposalType
+    }).lean().then(
+        proposalData => {
+            if (proposalData) {
+                return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, true, proposalData, true).then(
+                    res => {
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {_id: proposalData._id, createTime: proposalData.createTime},
+                            {
+                                noSteps: true,
+                                process: null,
+                                status: constProposalStatus.APPROVED,
+                                'data.autoAuditTime': Date.now(),
+                                'data.autoAuditRemark': remark,
+                                'data.autoAuditRemarkChinese': remarkChinese,
+                                // 'data.autoAuditCheckMsg': processRemark,
+                                // 'data.detail': abnormalMessage ? abnormalMessage : "",
+                                // 'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : "",
+                                // 'data.autoAuditRepeatMsg': repeatMsg,
+                                // 'data.autoAuditRepeatMsgChinese': repeatMsgChinese,
+                                // 'data.devCheckMsg': devCheckMsg
+                            },
+                            {new: true}
+                        );
+                    }
+                );
+            }
+        }
+    )
+};
 
 function sendToApprove(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg) {
     processRemark = processRemark ? processRemark : "";

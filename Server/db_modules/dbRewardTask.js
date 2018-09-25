@@ -1523,7 +1523,7 @@ const dbRewardTask = {
                     }
 
                     // Available XIMA Amt
-                    if (res.XIMAAmt) {
+                    if (Number.isFinite(res.XIMAAmt)) {
                         nonDirtyAmount = res.XIMAAmt;
                     }
 
