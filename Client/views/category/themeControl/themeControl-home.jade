@@ -34,7 +34,7 @@
                                     tbody
                                         tr(ng-repeat= 'item in v.content')
                                             td(ng-if="vm.themeSettingEdit")
-                                                input.form-control(type='text', value='{{item.themeId}}', ng-model='item.themeId', ng-change="vm.checkDuplicatedThemeSetting(item.themeId, 'id')")
+                                                input.form-control(type='text', value='{{item.themeId}}', ng-model='item.themeId', ng-change="vm.checkDuplicatedThemeSetting(item.themeId, 'id'); vm.updateExistingThemeSetting(v._id, item._id, item.themeId, 'player')")
                                             td(ng-if="vm.themeSettingEdit")
                                                 input.form-control(type='text', value='{{item.remark}}', ng-model='item.remark')
                                             td(ng-if="vm.themeSettingEdit")
@@ -116,7 +116,7 @@
                                     tbody
                                         tr(ng-repeat= 'item in v.content')
                                             td(ng-if="vm.themeSettingEdit")
-                                                input.form-control(type='text', value='{{item.themeId}}', ng-model='item.themeId', ng-change="vm.checkDuplicatedThemeSetting(item.themeId, 'id')")
+                                                input.form-control(type='text', value='{{item.themeId}}', ng-model='item.themeId', ng-change="vm.checkDuplicatedThemeSetting(item.themeId, 'id'); vm.updateExistingThemeSetting(v._id, item._id, item.themeId, 'partner')")
                                             td(ng-if="vm.themeSettingEdit")
                                                 input.form-control(type='text', value='{{item.remark}}', ng-model='item.remark')
                                             td(ng-if="vm.themeSettingEdit")
