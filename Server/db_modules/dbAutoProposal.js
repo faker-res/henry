@@ -242,7 +242,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 let allProvinces = data[6].provinces;
                 let pIdx = allProvinces.findIndex(d => d.id === playerData.bankAccountProvince);
 
-                if (pIdx && allProvinces[pIdx] && allProvinces[pIdx].name) {
+                if (allProvinces[pIdx] && allProvinces[pIdx].name) {
                     bankProvince = allProvinces[pIdx].name.substring(0, 2);
                 }
             }
@@ -284,11 +284,11 @@ function checkRewardTaskGroup(proposal, platformObj) {
             }
 
             // First withdrawal checks
-            // if (bFirstWithdraw && platformObj.manualAuditFirstWithdrawal !== false) {
-            //     checkMsg += " Denied: First withdrawal;";
-            //     checkMsgChinese += " 失败：首提;";
-            //     canApprove = false;
-            // }
+            if (bFirstWithdraw && platformObj.manualAuditFirstWithdrawal !== false) {
+                checkMsg += " Denied: First withdrawal;";
+                checkMsgChinese += " 失败：首提;";
+                canApprove = false;
+            }
 
             if (bFirstWithdraw && platformObj.autoAudit) {
                 if (platformObj.autoAudit.firstWithdrawExceedAmount
@@ -309,7 +309,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
                 if (platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
                     && platformObj.autoAudit.firstWithdrawCondBExceedAmount
-                    && (playerTotalBets / playerTotalTopupAmount) >= platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
+                    && (playerTotalBets / playerTotalTopupAmount) <= platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
                     && withdrawAmount >= platformObj.autoAudit.firstWithdrawCondBExceedAmount
                 ) {
                     checkMsg += ' Denied: FW: Low Bet/Top Up Ratio;';
