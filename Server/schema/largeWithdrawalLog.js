@@ -44,7 +44,7 @@ let largeWithdrawalLogSchema = new Schema({
         aboveHundredThousand: {type: Number}
     },
     // provider related detail
-    gameProviderInfo: {
+    gameProviderInfo: [{
         _id: false,
         // provider name
         providerName: {type: String},
@@ -58,7 +58,7 @@ let largeWithdrawalLogSchema = new Schema({
         consumptionAmountByType: {type: JSON},
         // game type player bonus amount
         playerBonusAmountByType: {type: JSON}
-    },
+    }],
     // (since last top up) player bonus amount / profit amount (current credit + current withdrawal amount - total top up amount between current withdrawal and last withdrawal)
     lastTopUpPlayerBonusAmount: {type: Number},
     // last top up amount
