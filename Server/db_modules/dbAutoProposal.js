@@ -307,17 +307,11 @@ function checkRewardTaskGroup(proposal, platformObj) {
                     canApprove = false;
                 }
 
-                console.log('playerTotalBets', playerTotalBets);
-                console.log('playerTotalTopupAmount', playerTotalTopupAmount);
-                console.log('platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes', platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes);
-                console.log('withdrawAmount', withdrawAmount);
-                console.log('platformObj.autoAudit.firstWithdrawCondBExceedAmount', platformObj.autoAudit.firstWithdrawCondBExceedAmount);
-
-
-                if (platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
+                if ((platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
                     && platformObj.autoAudit.firstWithdrawCondBExceedAmount
                     && (playerTotalBets / playerTotalTopupAmount) <= platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
-                    && withdrawAmount >= platformObj.autoAudit.firstWithdrawCondBExceedAmount
+                    && withdrawAmount >= platformObj.autoAudit.firstWithdrawCondBExceedAmount)
+                    || !Number.isInteger(playerTotalBets / playerTotalTopupAmount)
                 ) {
                     checkMsg += ' Denied: FW: Low Bet/Top Up Ratio;';
                     checkMsgChinese += ' 失败：投注额/存款过低;';
