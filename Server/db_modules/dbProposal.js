@@ -359,6 +359,10 @@ var proposal = {
                         proposalData.status = constProposalStatus.AUTOAUDIT;
                     }
 
+                    if (proposalTypeData.name == constProposalType.PARTNER_BONUS && proposalData.data.isAutoApproval) {
+                        proposalData.status = constProposalStatus.AUTOAUDIT;
+                    }
+
                     if (proposalTypeData.name == constProposalType.PLAYER_BONUS && proposalData.data.needCsApproved) {
                         bExecute = false;
                         proposalData.status = constProposalStatus.CSPENDING;

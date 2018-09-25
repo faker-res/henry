@@ -1206,7 +1206,7 @@
                                 td {{'partnerSameBankAccountCount' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.partnerBasic.partnerSameBankAccountCount}}
-                                    input(type='number', ng-show='vm.configTableEdit && vm.partnerBasic.partnerSameBankAccountCount', min=1, ng-model='vm.partnerBasic.partnerSameBankAccountCount')
+                                    input(type='number', ng-show='vm.configTableEdit', min=1, ng-model='vm.partnerBasic.partnerSameBankAccountCount')
                             tr
                                 td {{'partnerAllowSameRealNameToRegister' | translate}}
                                 td
