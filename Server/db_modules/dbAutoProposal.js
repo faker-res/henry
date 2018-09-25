@@ -307,6 +307,13 @@ function checkRewardTaskGroup(proposal, platformObj) {
                     canApprove = false;
                 }
 
+                console.log('playerTotalBets', playerTotalBets);
+                console.log('playerTotalTopupAmount', playerTotalTopupAmount);
+                console.log('platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes', platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes);
+                console.log('withdrawAmount', withdrawAmount);
+                console.log('platformObj.autoAudit.firstWithdrawCondBExceedAmount', platformObj.autoAudit.firstWithdrawCondBExceedAmount);
+
+
                 if (platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
                     && platformObj.autoAudit.firstWithdrawCondBExceedAmount
                     && (playerTotalBets / playerTotalTopupAmount) <= platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
