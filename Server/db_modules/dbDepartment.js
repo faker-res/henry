@@ -649,8 +649,19 @@ var dbDepartment = {
             }
         ).then(data => {
             let result;
+            let filteredDepartments;
             if (data && data.length > 0) {
-                result = departments.concat(data);
+                if(departments && departments.length > 0){
+                    filteredDepartments = departments.filter(department => {
+                        if(department && department._id){
+                            let indexNo = data.findIndex(d => d._id.toString() == department._id.toString());
+                            if(indexNo == -1){
+                                return department;
+                            }
+                        }
+                    })
+                }
+                result = filteredDepartments.concat(data);
             } else {
                 result = departments;
             }
