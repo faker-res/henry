@@ -12091,6 +12091,7 @@ let dbPlayerInfo = {
                                                         }
 
                                                         type.status = status;
+                                                        type.serviceCharge = paymentData.merchants[i].rate;
                                                     }
                                                 }
                                             });
@@ -12102,7 +12103,8 @@ let dbPlayerInfo = {
                                                         type: paymentData.merchants[i].topupType,
                                                         status: status,
                                                         maxDepositAmount: paymentData.merchants[i].permerchantLimits,
-                                                        minDepositAmount: paymentData.merchants[i].permerchantminLimits
+                                                        minDepositAmount: paymentData.merchants[i].permerchantminLimits,
+                                                        serviceCharge: paymentData.merchants[i].rate
                                                     });
                                                 }
                                             }

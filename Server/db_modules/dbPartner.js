@@ -15,6 +15,7 @@ var md5 = require('md5');
 var constServerCode = require('../const/constServerCode');
 var geoip = require('geoip-lite');
 var dbProposal = require('../db_modules/dbProposal');
+var dbAutoProposal = require('../db_modules/dbAutoProposal');
 var constProposalType = require('../const/constProposalType');
 var constPlayerTopUpTypes = require('../const/constPlayerTopUpType');
 var jwt = require('jsonwebtoken');
@@ -2561,6 +2562,11 @@ let dbPartner = {
                                        // isAutoApproval: partner.platform.enableAutoApplyBonus
                                         //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                     };
+
+                                    if(partner && partner.platform && partner.platform.partnerEnableAutoApplyBonus) {
+                                        proposalData.isAutoApproval = partner.platform.enableAutoApplyBonus;
+                                    }
+
                                     if (!partner.permission.applyBonus && partner.platform.playerForbidApplyBonusNeedCsApproval) {
                                         proposalData.remark = "禁用提款";
                                         proposalData.needCsApproved = true;
@@ -2597,7 +2603,24 @@ let dbPartner = {
                     }
                 }
             ).then(
-                data => data,
+                data => {
+                    let proposal = Object.assign({}, data);
+                    proposal.type = proposal.type._id;
+                    return dbconfig.collection_platform.findOne({_id: data.data.platformId}).lean().then(
+                        platform => {
+                            if (platform  && proposal.status == constProposalStatus.AUTOAUDIT) {
+                                let proposals = [];
+                                proposals.push(proposal);
+                                dbAutoProposal.processPartnerAutoProposals(proposals, platform).catch(errorUtils.reportError);
+                            }
+                            return data;
+                        },
+                        error => {
+                            errorUtils.reportError(error);
+                            return data;
+                        }
+                    );
+                },
                 error => {
                     if (bUpdateCredit) {
                         return resetCredit(partner._id, partner.platform._id, amount, error);
