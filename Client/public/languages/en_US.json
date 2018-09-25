@@ -1580,6 +1580,7 @@
   "Credit_Amount": "Credit Amount",
   "INSERT_TIME": "Received Time",
   "UPDATE_TIME": "Updated Time",
+  "AUDIT_APPROVAL": "Approve",
 
   "FRONT_END_REGISTRATION_ATTRITION_RATE": "Front-end Registration Attrition Rate",
   "FrontEndRegistrationAttritionRate": "Front-end Registration Attrition Rate",

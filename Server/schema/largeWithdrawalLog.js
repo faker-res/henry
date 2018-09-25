@@ -4,6 +4,8 @@ let Schema = mongoose.Schema;
 let largeWithdrawalLogSchema = new Schema({
     // platform obj id
     platform: {type: Schema.ObjectId, ref: 'platform', index: true},
+    // proposal number
+    proposalId: {type: String, index: true},
     // email name extension
     emailNameExtension: {type: String},
     // real name
@@ -136,6 +138,7 @@ let largeWithdrawalLogSchema = new Schema({
         lastMonth: {type: Number},
         secondLastMonth: {type: Number}
     },
+    emailSentTimes: {type: Number, default: 0},
 });
 
 module.exports = largeWithdrawalLogSchema;

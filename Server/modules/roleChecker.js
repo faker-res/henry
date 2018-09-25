@@ -625,6 +625,7 @@ var roleChecker = {
                 queryByProposalCredit: [],
                 queryByProposalPlayer: [],
                 queryByProposalDate: [],
+                largeWithdrawal: [],
                 updatePlayerBonusStatus: ['setBonusProposalStatus'],
                 CsApproveProposal:["approveCsPendingAndChangeStatus"]
             },
