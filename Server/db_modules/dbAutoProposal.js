@@ -242,7 +242,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 let allProvinces = data[6].provinces;
                 let pIdx = allProvinces.findIndex(d => d.id === playerData.bankAccountProvince);
 
-                if (pIdx && allProvinces[pIdx] && allProvinces[pIdx].name) {
+                if (allProvinces[pIdx] && allProvinces[pIdx].name) {
                     bankProvince = allProvinces[pIdx].name.substring(0, 2);
                 }
             }
@@ -284,11 +284,11 @@ function checkRewardTaskGroup(proposal, platformObj) {
             }
 
             // First withdrawal checks
-            // if (bFirstWithdraw && platformObj.manualAuditFirstWithdrawal !== false) {
-            //     checkMsg += " Denied: First withdrawal;";
-            //     checkMsgChinese += " 失败：首提;";
-            //     canApprove = false;
-            // }
+            if (bFirstWithdraw && platformObj.manualAuditFirstWithdrawal !== false) {
+                checkMsg += " Denied: First withdrawal;";
+                checkMsgChinese += " 失败：首提;";
+                canApprove = false;
+            }
 
             if (bFirstWithdraw && platformObj.autoAudit) {
                 if (platformObj.autoAudit.firstWithdrawExceedAmount
@@ -307,13 +307,14 @@ function checkRewardTaskGroup(proposal, platformObj) {
                     canApprove = false;
                 }
 
-                if (platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
+                if ((platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
                     && platformObj.autoAudit.firstWithdrawCondBExceedAmount
-                    && (playerTotalBets / playerTotalTopupAmount) >= platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
-                    && withdrawAmount >= platformObj.autoAudit.firstWithdrawCondBExceedAmount
+                    && (playerTotalBets / playerTotalTopupAmount) <= platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
+                    && withdrawAmount >= platformObj.autoAudit.firstWithdrawCondBExceedAmount)
+                    || !Number.isInteger(playerTotalBets / playerTotalTopupAmount)
                 ) {
                     checkMsg += ' Denied: FW: Low Bet/Top Up Ratio;';
-                    checkMsgChinese += ' 失败：投注额/存款过低;';
+                    checkMsgChinese += ' 失败：首提投注额/存款过低;';
                     canApprove = false;
                 }
 
@@ -324,7 +325,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
                     && (bankProvince !== playerData.phoneProvince || bankProvince !== playerData.province)
                 ) {
                     checkMsg += ' Denied: FW: Different Province between IP, Phone, And Bank Account;';
-                    checkMsgChinese += ' 失败：IP, 电话, 银行所在省不一致;';
+                    checkMsgChinese += ' 失败：首提IP, 电话, 银行所在省不一致;';
                     canApprove = false;
                 }
             }
