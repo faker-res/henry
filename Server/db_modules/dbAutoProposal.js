@@ -314,7 +314,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
                     || !Number.isInteger(playerTotalBets / playerTotalTopupAmount)
                 ) {
                     checkMsg += ' Denied: FW: Low Bet/Top Up Ratio;';
-                    checkMsgChinese += ' 失败：投注额/存款过低;';
+                    checkMsgChinese += ' 失败：首提投注额/存款过低;';
                     canApprove = false;
                 }
 
@@ -325,7 +325,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
                     && (bankProvince !== playerData.phoneProvince || bankProvince !== playerData.province)
                 ) {
                     checkMsg += ' Denied: FW: Different Province between IP, Phone, And Bank Account;';
-                    checkMsgChinese += ' 失败：IP, 电话, 银行所在省不一致;';
+                    checkMsgChinese += ' 失败：首提IP, 电话, 银行所在省不一致;';
                     canApprove = false;
                 }
             }
