@@ -1,4 +1,5 @@
 const CronJob = require('cron').CronJob;
+const errorUtils = require("../modules/errorUtils.js");
 
 const dbAutoProposal = require('../db_modules/dbAutoProposal');
 const dbPlatform = require('../db_modules/dbPlatform');
@@ -11,7 +12,7 @@ let every1MinJob = new CronJob(
         let date = new Date();
         console.log("Auto proposal schedule starts at: ", date);
 
-        return dbconfig.collection_platform.find({enableAutoApplyBonus: true}).then(
+        dbconfig.collection_platform.find({enableAutoApplyBonus: true}).then(
             platforms => {
                 platforms.forEach(
                     platform => {
@@ -20,7 +21,18 @@ let every1MinJob = new CronJob(
                     }
                 )
             }
-        );
+        ).catch(errorUtils.reportError);
+
+        dbconfig.collection_platform.find({partnerEnableAutoApplyBonus: true}).then(
+            platforms => {
+                platforms.forEach(
+                    platform => {
+                        console.log('Auto partner proposal schedule starts for platform:', platform._id, platform.name);
+                        return dbAutoProposal.applyPartnerBonus(platform._id);
+                    }
+                )
+            }
+        ).catch(errorUtils.reportError);
     }, function () {
         /* This function is executed when the job stops */
         console.log('Auto proposal credit schedule done');

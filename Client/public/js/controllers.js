@@ -967,7 +967,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 "http://jinbailinewcro.tel400.me/cti/previewcallout.action",
                 "http://blb.tel400.me/cti/previewcallout.action",
                 "http://rb.tel400.me/cti/previewcallout.action",
-                "http://xbet.tel400.me/cti/previewcallout.action",
+                "http://xbettz.tel400.me/cti/previewcallout.action",
             ];
 
             if (platformId == '6') {
@@ -1013,7 +1013,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             }
             else if (platformId == '2') {
                 urls = [
-                    "http://xbet.tel400.me/cti/previewcallout.action",
+                    "http://xbettz.tel400.me/cti/previewcallout.action",
                     "http://xbetdx.tel400.me/cti/previewcallout.action",
                     "http://jinbailinewcro.tel400.me/cti/previewcallout.action"
                 ];
