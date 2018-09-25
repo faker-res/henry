@@ -346,7 +346,8 @@ function sendLargeWithdrawalProposalAuditedInfo(proposalData, adminObjId) {
 }
 
 
-// let proto = dbLargeWithdrawalFunc.prototype;
-// proto = Object.assign(proto, dbLargeWithdrawal);
+// ======== large withdrawal log input common function START ========
+
+// ======== large withdrawal log input common function END ========
 
 module.exports = dbLargeWithdrawal;
