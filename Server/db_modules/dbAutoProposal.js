@@ -468,7 +468,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
                     && platformObj.autoAudit.firstWithdrawCondBExceedAmount
                     && (playerTotalBets / playerTotalTopupAmount) <= platformObj.autoAudit.firstWithdrawTotalBetOverTotalTopupExceedTimes
                     && withdrawAmount >= platformObj.autoAudit.firstWithdrawCondBExceedAmount)
-                    || !Number.isInteger(playerTotalBets / playerTotalTopupAmount)
+                    || !Number.isFinite(playerTotalBets / playerTotalTopupAmount)
                 ) {
                     checkMsg += ' Denied: FW: Low Bet/Top Up Ratio;';
                     checkMsgChinese += ' 失败：首提投注额/存款过低;';
