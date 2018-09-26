@@ -7,7 +7,7 @@ var partnerCommissionRecordSchema = new Schema({
     //platform object id
     platform: {type: Schema.Types.ObjectId, required: true, index: true},
     //create time
-    createTime: {type: Date, default: Date.now},
+    createTime: {type: Date, default: Date.now, index: true},
     //settle time
     settleTime: {type: Date, required: true, index: true},
     //player total reward amount
