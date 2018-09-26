@@ -40,11 +40,13 @@ var env = process.env.NODE_ENV || 'local';
 
 // development only
 if (env === 'development') {
+    console.log('it is running on development environment');
     app.use(errorHandler());
 }
 
 // production only
 if (env === 'production') {
+    console.log('it is running on production environment');
     app.set('view cache', true);
     // TODO
 }

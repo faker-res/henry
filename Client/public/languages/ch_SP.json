@@ -4159,6 +4159,10 @@
   "Bank Account Type": "账户性质",
   "Bank Registration Address": "开户网点",
   "Update Bank Detail Succeed": "银行资料修改成功",
+  "Please setup large withdrawal setting.": "请到基础数据去设置大额提款相关参数",
+  "Send E-mail": "发送邮件",
+  "AUDIT_APPROVAL": "通过审核",
+  "largeWithdrawal": "大额提款",
 
   "Please Enter Task Name": "请输入该任务 名称",
   "Please Enter Task Description": "请输入该任务 备注",

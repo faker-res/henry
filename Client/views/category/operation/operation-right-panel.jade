@@ -252,6 +252,26 @@
                 .inlineBlk.pull-left(ng-show='vm.rightPanelTitle == "APPROVAL_PROPOSAL"')
                     label.inlineBlk {{'remark' | translate}}
                     input#proposalRemark.inlineBlk.proposalRemark.form-control(style='width:400px;')
+                button.btn.btn-danger.common-button(ng-if='vm.haveLargeWithdrawalLog && checkViewPermission("Operation", "Proposal","largeWithdrawal")' data-dismiss='modal' data-toggle="modal" data-target="#modalLargeWithdrawalLog") {{'Mailing Status:' | translate}}{{vm.largeWithdrawLog.emailSentTimes ? "Sent" : "Not send" | translate}}
+
+#modalLargeWithdrawalLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                div test modal
+            .modal-body
+                input(ng-model="vm.largeWithdrawLog.comment" ng-disabled='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")')
+            .modal-footer
+                div(ng-if="vm.isLargeWithdrawalReviewer")
+                    // is reviewer
+                    button.btn.btn-danger.common-button(ng-click="vm.auditLargeWithdrawal()" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"Cancel Proposal" | translate}}
+                    button.btn.btn-success.common-button(ng-click="vm.auditLargeWithdrawal(true)" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"AUDIT_APPROVAL" | translate}}
+                    button.btn.btn-danger.common-button(data-dismiss='modal' ng-if='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")') {{'CANCEL' | translate}}
+                div(ng-if="!vm.isLargeWithdrawalReviewer")
+                    // is not reviewer
+                    button.btn.btn-danger.common-button(data-dismiss='modal') {{'CANCEL' | translate}}
+                    button.btn.btn-success.common-button(ng-click="vm.sendLargeAmountDetailMail()" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"Send E-mail" | translate}} ({{vm.largeWithdrawLog.emailSentTimes}})
 
 
 
