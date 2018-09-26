@@ -395,9 +395,18 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 playerTotalBets = data[5][0].totalBetAmt;
             }
 
+
+            console.log('data[6].provinces', data[6].provinces);
+            console.log('playerData.bankAccountProvince', playerData.bankAccountProvince);
+
             if (data && data[6] && data[6].provinces && playerData && playerData.bankAccountProvince) {
                 let allProvinces = data[6].provinces;
-                let pIdx = allProvinces.findIndex(d => d.id === playerData.bankAccountProvince);
+                let pIdx = allProvinces.findIndex(d => {
+                    console.log('d', d);
+                    return d.id == playerData.bankAccountProvince
+                });
+
+                console.log('pIdx', pIdx);
 
                 if (allProvinces[pIdx] && allProvinces[pIdx].name) {
                     bankProvince = allProvinces[pIdx].name.substring(0, 2);
@@ -477,9 +486,10 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
                 if (platformObj.autoAudit.firstWithdrawDifferentIPCheck
                     && bankProvince
-                    && playerData.province
-                    && playerData.phoneProvince
-                    && (bankProvince !== playerData.phoneProvince || bankProvince !== playerData.province)
+                    && (
+                        (!playerData.phoneProvince || bankProvince !== playerData.phoneProvince)
+                        || (!playerData.province || bankProvince !== playerData.province)
+                    )
                 ) {
                     checkMsg += ' Denied: FW: Different Province between IP, Phone, And Bank Account;';
                     checkMsgChinese += ' 失败：首提IP, 电话, 银行所在省不一致;';
