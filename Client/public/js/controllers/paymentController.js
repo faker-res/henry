@@ -1505,11 +1505,11 @@ define(['js/app'], function (myApp) {
                                         let index = vm.platformMerchantList.findIndex(x => x && x.name && x.merchantNo && x.name == merchant.name && x.merchantNo == merchant.merchantNo);
 
                                         if(index != -1 && vm.platformMerchantList[index]) {
-                                            if (vm.platformMerchantList[index].rate) {
+                                            if (vm.platformMerchantList[index] && vm.platformMerchantList[index].rate) {
                                                 merchant.rate = vm.platformMerchantList[index].rate;
                                             }
 
-                                            if (vm.platformMerchantList[index].customizeRate) {
+                                            if (vm.platformMerchantList[index] && vm.platformMerchantList[index].customizeRate) {
                                                 merchant.customizeRate = vm.platformMerchantList[index].customizeRate;
                                             }
                                         }
