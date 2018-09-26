@@ -3,11 +3,11 @@ var Schema = mongoose.Schema;
 
 var platformAutoFeedbackSchema = new Schema({
     //platform object id
-    platformObjId: {type: Schema.ObjectId, ref: 'platform', required: true},
-    name: {type: String, required: true},
+    platformObjId: {type: Schema.ObjectId, ref: 'platform', required: true, index: true},
+    name: {type: String, required: true, index: true},
     remarks: {type: String},
-    missionStartTime: {type: Date, required: true},
-    missionEndTime: {type: Date, required: true},
+    missionStartTime: {type: Date, required: true, index: true},
+    missionEndTime: {type: Date, required: true, index: true},
     defaultStatus: {type: String},  //任务初始状态
     enabled: {type: Boolean, required: true},
     playerType: {type: String},
