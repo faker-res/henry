@@ -664,9 +664,10 @@ define(['js/app'], function (myApp) {
                     $('#playerThemeSelectPanel input[type="checkbox"]').on('change', function () {
                         $('#playerThemeSelectPanel input[type="checkbox"]').not(this).prop('checked', false);
 
-                        if (this && this.dataset && this.dataset.themeid && this.dataset._id) {
+                        if (this && this.dataset && this.dataset.themeid && this.dataset._id && this.dataset.themeidobjid) {
                             vm.updatePlayerThemeData._id = this.dataset._id;
                             vm.updatePlayerThemeData.themeId = this.dataset.themeid;
+                            vm.updatePlayerThemeData.themeIdObjId = this.dataset.themeidobjid;
 
                         }
                     });
@@ -675,9 +676,10 @@ define(['js/app'], function (myApp) {
                     $('#partnerThemeSelectPanel input[type="checkbox"]').on('change', function () {
                         $('#partnerThemeSelectPanel input[type="checkbox"]').not(this).prop('checked', false);
 
-                        if (this && this.dataset && this.dataset.themeid && this.dataset._id) {
+                        if (this && this.dataset && this.dataset.themeid && this.dataset._id && this.dataset.themeidobjid) {
                             vm.updatePartnerThemeData._id = this.dataset._id;
                             vm.updatePartnerThemeData.themeId = this.dataset.themeid;
+                            vm.updatePartnerThemeData.themeIdObjId = this.dataset.themeidobjid;
 
                         }
                     });
@@ -2357,6 +2359,7 @@ define(['js/app'], function (myApp) {
 
                     vm.showPlatform.playerThemeSetting.themeStyleId = vm.updatePlayerThemeData._id;
                     vm.showPlatform.playerThemeSetting.themeId = vm.updatePlayerThemeData.themeId;
+                    vm.showPlatform.playerThemeSetting.themeIdObjId = vm.updatePlayerThemeData.themeIdObjId;
                 }
 
                 if (vm.updatePartnerThemeData && vm.updatePartnerThemeData._id && vm.updatePartnerThemeData.themeId) {
@@ -2367,6 +2370,7 @@ define(['js/app'], function (myApp) {
 
                     vm.showPlatform.partnerThemeSetting.themeStyleId = vm.updatePartnerThemeData._id;
                     vm.showPlatform.partnerThemeSetting.themeId = vm.updatePartnerThemeData.themeId;
+                    vm.showPlatform.partnerThemeSetting.themeIdObjId = vm.updatePartnerThemeData.themeIdObjId;
                 }
 
                 socketService.$socket($scope.AppSocket, 'updatePlatform',
