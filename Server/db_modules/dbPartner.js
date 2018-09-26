@@ -2021,7 +2021,7 @@ let dbPartner = {
                         // }
                         // let partnerProm = dbutility.findOneAndUpdateForShard(dbconfig.collection_partner, partnerQuery, updateData, constShardKeys.collection_partner);
                         // return Promise.all([partnerProm]);
-                        let inputDeviceData = dbutility.getInputDevice(userAgent, false);
+                        let inputDeviceData = dbutility.getInputDevice(userAgent, true);
                         updateData._id = partnerData._id || "";
                         updateData.partnerObjId = partnerData._id || "";
                         updateData.partnerName = partnerData.partnerName || "";
