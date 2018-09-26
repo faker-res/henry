@@ -1302,14 +1302,20 @@ var proposalExecutor = {
              * execution function for player top up proposal type
              */
             executePlayerTopUp: function (proposalData, deferred) {
-                dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.ONLINE, proposalData).then(
+                let topUpAmount = Number(proposalData.data.amount);
+
+                if(proposalData.data.hasOwnProperty("actualAmountReceived")){
+                    topUpAmount = Number(proposalData.data.actualAmountReceived);
+                }
+
+                dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, topUpAmount, "", constPlayerTopUpType.ONLINE, proposalData).then(
                     function (data) {
                         var wsMessageClient = serverInstance.getWebSocketMessageClient();
                         if (wsMessageClient) {
                             wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",
                                 {
                                     proposalId: proposalData.proposalId,
-                                    amount: proposalData.data.amount,
+                                    amount: topUpAmount,
                                     handleTime: new Date(),
                                     status: proposalData.status,
                                     playerId: proposalData.data.playerId
