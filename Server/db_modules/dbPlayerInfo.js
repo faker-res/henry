@@ -102,6 +102,7 @@ let PLATFORM_PREFIX_SEPARATOR = '';
 let dbAutoProposal = require('../db_modules/dbAutoProposal');
 let dbDemoPlayer = require('../db_modules/dbDemoPlayer');
 let dbApiLog = require("../db_modules/dbApiLog");
+let dbLargeWithdrawal = require("../db_modules/dbLargeWithdrawal");
 
 let dbPlayerInfo = {
 
@@ -3024,7 +3025,7 @@ let dbPlayerInfo = {
                         //         });
                         //     }
                         // }
-                        updateData.bankAccountType = 1;
+                        updateData.bankAccountType = 2;
 
                         return dbconfig.collection_platform.findOne({
                             _id: playerData.platform
@@ -10839,6 +10840,13 @@ let dbPlayerInfo = {
             ).then(
                 proposal => {
                     if (proposal) {
+                        if (proposal.data && proposal.data.amount && proposal.data.amount >= platform.autoApproveWhenSingleBonusApplyLessThan) {
+                            createLargeWithdrawalLog(proposal, platform._id).catch(err => {
+                                console.log("createLargeWithdrawalLog failed", err);
+                                return errorUtils.reportError(err);
+                            });
+                        }
+
                         if (bUpdateCredit) {
                             dbLogger.createCreditChangeLogWithLockedCredit(player._id, player.platform._id, -amount, constProposalType.PLAYER_BONUS, player.validCredit, 0, 0, null, proposal);
                         }
@@ -13356,7 +13364,8 @@ let dbPlayerInfo = {
                         constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
                         constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
                         constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,
-                        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP
+                        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,
+                        constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP
                     ];
 
                     // Check any consumption after topup upon apply reward
@@ -14659,7 +14668,9 @@ let dbPlayerInfo = {
             let prom = dbconfig.collection_players.findOne({name: playerName, platform: platformObjId})
                 .then(data => {
                     let playerCredibilityRemarks = data.credibilityRemarks.filter(item => {
-                        return item != "undefined"
+                        if (item) {
+                            return item != "undefined"
+                        }
                     }) || [];
                     updateData.credibilityRemarks = dbPlayerInfo.managingDataList(playerCredibilityRemarks, addList, removeList);
                     if (addList.length == 0 && removeList.length == 0) {
@@ -20866,6 +20877,25 @@ function manualPlayerLevelUpReward(playerObjId, adminInfo) {
 
             } else {
                 return Promise.reject({message: "该玩家已经领取『" + playerLevel.name + "』的升级优惠。"});
+            }
+        }
+    );
+}
+
+function createLargeWithdrawalLog (proposalData, platformObjId) {
+    let largeWithdrawalLog;
+    return dbconfig.collection_largeWithdrawalLog({
+        platform: platformObjId,
+        proposalId: proposalData.proposalId
+    }).save().then(largeWithdrawalLogData => {
+        largeWithdrawalLog = largeWithdrawalLogData;
+        return dbconfig.collection_proposal.findOneAndUpdate({_id: proposalData._id, createTime: proposalData.createTime}, {"data.largeWithdrawalLog": largeWithdrawalLog._id}, {new: true}).lean();
+    }).then(
+        proposal => {
+            if (proposal) {
+                return dbLargeWithdrawal.fillUpLargeWithdrawalLogDetail(largeWithdrawalLog._id);
+            } else {
+                return Promise.reject({message: "Save to proposal failed"}); // the only time here is reach are when there is bug
             }
         }
     );

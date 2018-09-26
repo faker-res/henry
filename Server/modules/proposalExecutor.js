@@ -54,6 +54,7 @@ var cpmsAPI = require("../externalAPI/cpmsAPI");
 const moment = require('moment-timezone');
 const ObjectId = mongoose.Types.ObjectId;
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
+const dbLargeWithdrawal = require("../db_modules/dbLargeWithdrawal");
 
 /**
  * Proposal executor
@@ -1301,14 +1302,20 @@ var proposalExecutor = {
              * execution function for player top up proposal type
              */
             executePlayerTopUp: function (proposalData, deferred) {
-                dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.ONLINE, proposalData).then(
+                let topUpAmount = Number(proposalData.data.amount);
+
+                if(proposalData.data.hasOwnProperty("actualAmountReceived")){
+                    topUpAmount = Number(proposalData.data.actualAmountReceived);
+                }
+
+                dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, topUpAmount, "", constPlayerTopUpType.ONLINE, proposalData).then(
                     function (data) {
                         var wsMessageClient = serverInstance.getWebSocketMessageClient();
                         if (wsMessageClient) {
                             wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",
                                 {
                                     proposalId: proposalData.proposalId,
-                                    amount: proposalData.data.amount,
+                                    amount: topUpAmount,
                                     handleTime: new Date(),
                                     status: proposalData.status,
                                     playerId: proposalData.data.playerId
@@ -1783,6 +1790,17 @@ var proposalExecutor = {
             },
 
             executePlayerBonus: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.largeWithdrawalLog) {
+                    if (dbLargeWithdrawal.sendProposalUpdateInfoToRecipients) {
+                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.largeWithdrawalLog, proposalData).catch(err => {
+                            console.log("Send large withdrawal proposal update info failed", proposalData.data.largeWithdrawalLog, err);
+                            return errorUtils.reportError(err);
+                        });
+                    }
+                    else {
+                        console.log('dbLargeWithdrawal', dbLargeWithdrawal)
+                    }
+                }
                 dbconfig.collection_players.findOne({playerId: proposalData.data.playerId})
                     .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
                     player => {
@@ -3560,6 +3578,17 @@ var proposalExecutor = {
              * reject function for player bonus
              */
             rejectPlayerBonus: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.largeWithdrawalLog) {
+                    if (dbLargeWithdrawal.sendProposalUpdateInfoToRecipients) {
+                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.largeWithdrawalLog, proposalData).catch(err => {
+                            console.log("Send large withdrawal proposal update info failed", proposalData.data.largeWithdrawalLog, err);
+                            return errorUtils.reportError(err);
+                        });
+                    }
+                    else {
+                        console.log("dbLargeWithdrawal", dbLargeWithdrawal);
+                    }
+                }
                 if (proposalData && proposalData.data && proposalData.data.amount) {
                     //todo::add more reasons here, ex:cancel request
 

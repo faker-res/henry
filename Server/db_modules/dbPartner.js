@@ -1996,7 +1996,7 @@ let dbPartner = {
                         //         });
                         //     }
                         // }
-                        updateData.bankAccountType = 1;
+                        updateData.bankAccountType = 2;
 
                         // check if same real name can be used for registration
                         if (updateData.realName && duplicatedRealNameCount > 0 && !partnerData.platform.partnerAllowSameRealNameToRegister){
@@ -2021,19 +2021,29 @@ let dbPartner = {
                         // }
                         // let partnerProm = dbutility.findOneAndUpdateForShard(dbconfig.collection_partner, partnerQuery, updateData, constShardKeys.collection_partner);
                         // return Promise.all([partnerProm]);
-                        let inputDeviceData = dbutility.getInputDevice(userAgent, false);
+                        let inputDeviceData = dbutility.getInputDevice(userAgent, true);
                         updateData._id = partnerData._id || "";
                         updateData.partnerObjId = partnerData._id || "";
                         updateData.partnerName = partnerData.partnerName || "";
 
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_BANK_INFO, {
+                        return dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_BANK_INFO, {
                             creator: {type: "partner", name: partnerData.partnerName, id: partnerData._id},
                             data: updateData,
                             inputDevice: inputDeviceData
                         });
 
-                        return updateData;
+                        // return updateData;
                     }
+                }
+            ).then(
+                proposal => {
+                    if (!proposal){
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "proposal data is not found"
+                        });
+                    }
+                    return updateData;
                 }
             )
     },

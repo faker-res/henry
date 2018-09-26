@@ -69,7 +69,105 @@ var dbThemeControl = {
                     return retData;
                 }
             }
-        );
+        ).then(
+            retResult => {
+                let findQuery = {};
+                if (data.updateExistingThemeObj && data.updateExistingThemeObj.type) {
+                    findQuery.type = data.updateExistingThemeObj.type;
+                }
+                return dbconfig.collection_themeSetting.find(findQuery).lean();
+            }
+        ).then(
+            themeData => {
+                if (!themeData){
+                    return Promise.reject({ name: "DataError", message: "theme setting is not found"})
+                }
+
+                let updatePlatformThemeSettingProm = [];
+
+                if (data.updateExistingThemeObj && data.updateExistingThemeObj.length > 0){
+                    data.updateExistingThemeObj.forEach(
+                        themeSetting => {
+                            if (themeSetting.themeStyleId && themeSetting.themeIdObjId && themeSetting.themeId){
+
+                                let query = {};
+                                let queryReturnObj;
+                                let updateIdField;
+                                let updateObjIdField;
+
+                                if (themeSetting.type == 'player') {
+
+                                    query['playerThemeSetting.themeStyleId'] = themeSetting.themeStyleId;
+                                    query['playerThemeSetting.themeIdObjId'] = themeSetting.themeIdObjId;
+
+
+                                    queryReturnObj = {playerThemeSetting: 1};
+                                    updateIdField = 'playerThemeSetting.themeId';
+                                    updateObjIdField = 'playerThemeSetting.themeIdObjId';
+                                }
+                                else if (themeSetting.type == 'partner') {
+
+                                    query['partnerThemeSetting.themeStyleId'] = themeSetting.themeStyleId;
+                                    query['partnerThemeSetting.themeIdObjId'] = themeSetting.themeIdObjId;
+
+                                    queryReturnObj = {partnerThemeSetting: 1};
+                                    updateIdField = 'partnerThemeSetting.themeId';
+                                    updateObjIdField = 'partnerThemeSetting.themeIdObjId';
+                                }
+                                else{
+                                    return Promise.reject({ name: "DataError", message: "type is not found"})
+                                }
+
+
+                                updatePlatformThemeSettingProm.push(dbconfig.collection_platform.find(query, queryReturnObj).lean().then(
+                                    platformData => {
+
+                                        if (platformData && platformData.length > 0){
+                                            let updatePlatformProm = [];
+
+                                            platformData.forEach(
+                                                platform => {
+
+                                                   let themeStyleIndex = themeData.findIndex(q => q._id == themeSetting.themeStyleId);
+                                                   if (themeStyleIndex != -1 && themeData[themeStyleIndex].content){
+
+                                                       let themeIdIndex = themeData[themeStyleIndex].content.findIndex(r => r.themeId == themeSetting.themeId)
+                                                       if (themeIdIndex != -1){
+
+                                                           let matchQuery = {
+                                                               _id: platform._id
+                                                           };
+                                                           let updateObj = {};
+                                                           updateObj[updateIdField] = themeSetting.themeId;
+                                                           updateObj[updateObjIdField] = themeData[themeStyleIndex].content[themeIdIndex]._id;
+
+                                                           updatePlatformProm.push(
+                                                               dbconfig.collection_platform.findOneAndUpdate(matchQuery, updateObj).lean()
+                                                           )
+                                                       }
+                                                   }
+
+                                                }
+                                            )
+
+                                            return Promise.all(updatePlatformProm);
+
+                                        }
+                                    }
+                                ))
+
+                            }
+
+                        }
+                    )
+
+                    return Promise.all(updatePlatformThemeSettingProm)
+                }
+
+            }
+        )
+
+
     },
 
     deleteThemeSetting: function(data){

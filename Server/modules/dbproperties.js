@@ -213,7 +213,7 @@ let largeWithdrawalPartnerSettingSchema = require('../schema/largeWithdrawalPart
 let largeWithdrawalPartnerSettingModel = db_admin.model('largeWithdrawalPartnerSetting', largeWithdrawalPartnerSettingSchema, 'largeWithdrawalPartnerSetting');
 
 let largeWithdrawalLogSchema = require('../schema/largeWithdrawalLog');
-let largeWithdrawalLogModel = db_admin.model('largeWithdrawalLog', largeWithdrawalLogSchema, 'largeWithdrawalLog');
+let largeWithdrawalLogModel = dbLogs2.model('largeWithdrawalLog', largeWithdrawalLogSchema, 'largeWithdrawalLog');
 
 let playerFeedbackResultModel = db_admin.model('playerFeedbackResult', playerFeedbackResultSchema, 'playerFeedbackResult');
 let playerFeedbackTopicModel = db_admin.model('playerFeedbackTopic', playerFeedbackTopicSchema, 'playerFeedbackTopic');

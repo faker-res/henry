@@ -625,6 +625,7 @@ var roleChecker = {
                 queryByProposalCredit: [],
                 queryByProposalPlayer: [],
                 queryByProposalDate: [],
+                largeWithdrawal: [],
                 updatePlayerBonusStatus: ['setBonusProposalStatus'],
                 CsApproveProposal:["approveCsPendingAndChangeStatus"]
             },
@@ -691,7 +692,8 @@ var roleChecker = {
                 Delete: ['deleteMerchantGroup'],
                 AddPlayer: ['addPlayersToMerchantGroup'],
                 AddAllPlayer: ['addAllPlayersToMerchantGroup'],
-                UpdateCardGroupType: []
+                UpdateCardGroupType: [],
+                EditServiceChargeRatio: ['updateCustomizeRatePlatformMerchantList']
             },
             "AlipayGroup": {
                 Read: ['getPlatformAliPayGroup'],
