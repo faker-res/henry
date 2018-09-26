@@ -1455,6 +1455,14 @@ define(['js/app'], function (myApp) {
         vm.loadMerchantGroupData = function (keepSelected, selectGroupId) {
             if (vm.merchantGroupUsed == "PMS") {
                 vm.pmsGroupPlayerName = "";
+                vm.platformMerchantList = [];
+                socketService.$socket($scope.AppSocket, 'getPlatformMerchantList', {platformId: vm.selectedPlatform.id}, function (data) {
+                    console.log('getPlatformMerchantList', data);
+                    if (data && data.data && data.data.length > 0) {
+                        vm.platformMerchantList = data.data;
+                    }
+                });
+
                 return $scope.$socketPromise('getPMSPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, type: "4"}).then(data => {
                     console.log('getPMSPaymentGroup', data);
                     vm.platformMerchantGroupList = [];
@@ -1489,6 +1497,27 @@ define(['js/app'], function (myApp) {
 
                             vm.platformMerchantGroupList.push(groupData);
                         });
+
+                        if (vm.platformMerchantGroupList && vm.platformMerchantGroupList.length > 0 && vm.platformMerchantList && vm.platformMerchantList.length > 0) {
+                            vm.platformMerchantGroupList.forEach(merchantGroup => {
+                                if (merchantGroup && merchantGroup.merchants && merchantGroup.merchants.length > 0) {
+                                    merchantGroup.merchants.map(merchant => {
+                                        let index = vm.platformMerchantList.findIndex(x => x && x.name && x.merchantNo && x.name == merchant.name && x.merchantNo == merchant.merchantNo);
+
+                                        if(index != -1 && vm.platformMerchantList[index]) {
+                                            if (vm.platformMerchantList[index].rate) {
+                                                merchant.rate = vm.platformMerchantList[index].rate;
+                                            }
+
+                                            if (vm.platformMerchantList[index].customizeRate) {
+                                                merchant.customizeRate = vm.platformMerchantList[index].customizeRate;
+                                            }
+                                        }
+                                        return merchant;
+                                    });
+                                }
+                            });
+                        }
                     }
                     $scope.$evalAsync();
                 });
@@ -1529,6 +1558,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.merchantGroupClicked = function (i, merchantGroup) {
+            vm.cloneAllMerchantList = [];
             vm.SelectedMerchantGroupNode = merchantGroup;
             if (vm.merchantFilterOptions && !vm.merchantFilterOptions.status) {
                 vm.merchantFilterOptions.status = {
@@ -1567,6 +1597,7 @@ define(['js/app'], function (myApp) {
 
             if (vm.merchantGroupUsed == "PMS") {
                 vm.allMerchantList = merchantGroup.merchants;
+                vm.cloneAllMerchantList = vm.allMerchantList ? JSON.parse(JSON.stringify(vm.allMerchantList)) : [];
                 $scope.$evalAsync();
             }
             else {
@@ -1583,6 +1614,7 @@ define(['js/app'], function (myApp) {
                     console.log('MerchantGroupList', data);
                     //provider list init
                     vm.allMerchantList = data.data;
+                    vm.cloneAllMerchantList = vm.allMerchantList ? JSON.parse(JSON.stringify(vm.allMerchantList)) : [];
                     $scope.$evalAsync(vm.merchantPayFilter());
                 });
             }
@@ -1876,6 +1908,96 @@ define(['js/app'], function (myApp) {
             }
           });
         }
+
+        vm.editMerchantRateFlag = function (i) {
+            if (vm.allMerchantList[i]) {
+                vm.allMerchantList[i].editRate = true;
+                if (vm.allMerchantList[i].customizeRate) {
+                    vm.allMerchantList[i].customizeRate  = (vm.allMerchantList[i].customizeRate * 100).toFixed(2);
+                }
+            }
+
+            utilService.actionAfterLoaded("#merchantCustomizeRateTextBox", function () {
+                $("#merchantCustomizeRateTextBox").focus();
+            });
+        };
+
+        vm.validateCustomizeRateIsNumber = function (value, i) {
+            var rgx = /^[0-9]*\.?[0-9]*$/;
+
+            if (value.match(rgx)) {
+                return value.match(rgx);
+            } else {
+                vm.allMerchantList[i]["customizeRate"] = '';
+            }
+        };
+
+        $scope.enterSubmitMerchantCustomizeRate = function($event, currentMerchant, curCustomizeRate) {
+            if (event.which == 13 || event.keyCode == 13){ //enter code
+                vm.submitCustomizeRate(currentMerchant, curCustomizeRate);
+            }
+        };
+
+        vm.submitCustomizeRate = function (currentMerchant, curCustomizeRate) {
+            let finalCustomizeRate;
+            let isAbleSubmit = false;
+
+            if (currentMerchant && Object.keys(currentMerchant).length) {
+                finalCustomizeRate = curCustomizeRate > 0 ? Number(curCustomizeRate) / 100 : curCustomizeRate;
+
+                if (finalCustomizeRate && currentMerchant && currentMerchant.name && vm.cloneAllMerchantList && vm.cloneAllMerchantList.length > 0) {
+                    let index = vm.cloneAllMerchantList.findIndex(x => x && x.name && x.merchantNo && x.name == currentMerchant.name && x.merchantNo == currentMerchant.merchantNo);
+
+                    if(vm.cloneAllMerchantList[index] && vm.cloneAllMerchantList[index].customizeRate != finalCustomizeRate) {
+                        isAbleSubmit = true;
+                    }
+                }
+
+                console.log('isAbleSubmit', isAbleSubmit);
+
+                if (isAbleSubmit) {
+                    let sendData = {
+                            platformId: vm.selectedPlatform.id,
+                            name: currentMerchant.name,
+                            merchantNo: currentMerchant.merchantNo,
+                            customizeRate: finalCustomizeRate
+                    };
+
+                    console.log('sendData sent', sendData);
+
+                    socketService.$socket($scope.AppSocket, 'updateCustomizeRatePlatformMerchantList', sendData, function (data) {
+                        console.log(data.data);
+                        vm.SelectedMerchantGroupNode = null;
+                        vm.loadMerchantGroupData();
+                        $scope.$evalAsync();
+                    })
+                } else {
+                    vm.backToOriRate(currentMerchant);
+                }
+            }
+        };
+
+        vm.backToOriRate = function (v) {
+            if (v) {
+                v.editRate = false;
+
+                if (vm.cloneAllMerchantList && vm.cloneAllMerchantList.length) {
+                    for (let i = 0; i < vm.cloneAllMerchantList.length; i++) {
+                        let oriMerchant = vm.cloneAllMerchantList[i];
+
+                        if (oriMerchant && oriMerchant.name && v.name && oriMerchant.merchantNo && v.merchantNo
+                            && (oriMerchant.name == v.name) && (oriMerchant.platformId == v.platformId)
+                            && (oriMerchant.merchantNo == v.merchantNo)) {
+
+                            v.customizeRate = oriMerchant.customizeRate;
+
+                            break;
+                        }
+                    }
+                }
+
+            };
+        };
         /////////////////////////////////////// Merchant Group end  /////////////////////////////////////////////////
 
         /////////////////////////////////////// Alipay Group start  /////////////////////////////////////////////////

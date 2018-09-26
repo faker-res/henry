@@ -208,8 +208,28 @@ var dbPlatformMerchantGroup = {
                         allMerchants[i].isIncluded = false;
                     }
                 }
+
+                return dbconfig.collection_platformMerchantList.find({platformId: platformId, customizeRate: {$exists: true}});
+            }
+        ).then(
+            customizeRateMerchantListData => {
+                if (customizeRateMerchantListData && customizeRateMerchantListData.length > 0) {
+                    for (let x = 0, len = customizeRateMerchantListData.length; x < len; x++) {
+                        let customizeRateMerchant = customizeRateMerchantListData[x];
+
+                        if (customizeRateMerchant && customizeRateMerchant.name && customizeRateMerchant.customizeRate) {
+                            for (let i = 0; i < allMerchants.length; i++) {
+
+                                if (allMerchants[i] && allMerchants[i].name && allMerchants[i].name == customizeRateMerchant.name) {
+                                    allMerchants[i].customizeRate = customizeRateMerchant.customizeRate;
+                                }
+                            }
+                        }
+                    }
+                }
                 return allMerchants;
-            })
+            }
+        )
     },
 
     getExcludedMerchantsByMerchantGroup: function (platformId, merchantGroupId) {
@@ -326,7 +346,8 @@ var dbPlatformMerchantGroup = {
                                             permerchantLimits: isNaN(permerchantLimits) ? 0 : permerchantLimits,
                                             transactionForPlayerOneDay: isNaN(transactionForPlayerOneDay) ? 0 : transactionForPlayerOneDay,
                                             permerchantminLimits: isNaN(permerchantminLimits) ? 0 : permerchantminLimits,
-                                            status: merchant.status || ''
+                                            status: merchant.status || '',
+                                            rate: merchant.rate || 0
                                         },
                                         {upsert: true}
                                     )
@@ -471,6 +492,36 @@ var dbPlatformMerchantGroup = {
                 return result;
             })
         })
+    },
+    updateCustomizeRatePlatformMerchantList: function (platformId, name, merchantNo, customizeRate) {
+        return dbconfig.collection_platform.findOne({_id: platformId}).lean().then(
+            platformData => {
+                if (platformData && platformData.platformId) {
+                    return dbconfig.collection_platformMerchantList.findOneAndUpdate({
+                            merchantNo: merchantNo,
+                            name: name,
+                            platformId: platformData.platformId
+                        },
+                        {
+                            customizeRate: customizeRate
+                        }
+                    );
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        );
+    },
+    getPlatformMerchantList: function (platformId) {
+        return dbconfig.collection_platform.findOne({_id: platformId}).lean().then(
+            platformData => {
+                if (platformData && platformData.platformId) {
+                    return dbconfig.collection_platformMerchantList.find({platformId: platformData.platformId}).lean();
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        );
     }
 };
 
