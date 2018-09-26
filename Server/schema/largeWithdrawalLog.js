@@ -56,6 +56,8 @@ let largeWithdrawalLogSchema = new Schema({
         _id: false,
         // provider name
         providerName: {type: String},
+        // bet amount
+        consumptionTimes: {type: Number},
         // bonus amount
         bonusAmount: {type: Number},
         // valid consumption amount
@@ -93,6 +95,8 @@ let largeWithdrawalLogSchema = new Schema({
         _id: false,
         // provider name
         providerName: {type: String},
+        // bet amount
+        consumptionTimes: {type: Number},
         // bonus amount
         bonusAmount: {type: Number},
         // valid consumption amount
