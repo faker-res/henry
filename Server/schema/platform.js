@@ -472,11 +472,13 @@ var platformSchema = new Schema({
     playerThemeSetting: {
         themeStyleId: {type: Schema.ObjectId, ref: 'themeSetting', index: true},
         themeId: {type: String},
+        themeIdObjId: {type: Schema.ObjectId, index: true}
     },
     // partner theme setting 
     partnerThemeSetting: {
         themeStyleId: {type: Schema.ObjectId, ref: 'themeSetting', index: true},
         themeId: {type: String},
+        themeIdObjId: {type: Schema.ObjectId, index: true}
     }
 });
 

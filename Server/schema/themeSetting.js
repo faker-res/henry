@@ -8,7 +8,7 @@ var themeSetting = new Schema({
     themeStyle: {type: String, index: true},
 
     content:[{
-        _id: false,
+        // _id: false,
         themeId: {type: String},
         remark: {type: String},
     }],

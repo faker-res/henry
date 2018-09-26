@@ -1655,7 +1655,7 @@ form(name="form_new_platform" ,novalidate)
                                 td {{ item.themeId ? item.themeId : ''}}
                                 td {{ item.remark ? item.remark : ''}}
                                 td(ng-click="vm.checkedThemeSetting('player')")
-                                    input.transform150(ng-disabled="vm.platformAction != 'edit' || !vm.platformAction", type="checkbox", data-themeId="{{item.themeId}}", data-_id="{{v._id}}")
+                                    input.transform150(ng-disabled="vm.platformAction != 'edit' || !vm.platformAction", type="checkbox", data-themeIdObjId="{{item._id}}", data-themeId="{{item.themeId}}", data-_id="{{v._id}}")
             br(style="margin-bottom:10px;")
             #partnerThemeSelectPanel.panel-body(style="background-color: white;")
                 strong(style="margin-bottom: 10px;") {{"PARTNER_THEME" | translate}}:
@@ -1675,7 +1675,7 @@ form(name="form_new_platform" ,novalidate)
                                 td {{ item.themeId ? item.themeId : ''}}
                                 td {{ item.remark ? item.remark : ''}}
                                 td(ng-click="vm.checkedThemeSetting('partner')")
-                                    input.transform150(ng-disabled="vm.platformAction != 'edit' || !vm.platformAction", type="checkbox", data-themeId="{{item.themeId}}", data-_id="{{v._id}}")
+                                    input.transform150(ng-disabled="vm.platformAction != 'edit' || !vm.platformAction", type="checkbox", data-themeIdObjId="{{item._id}}", data-themeId="{{item.themeId}}", data-_id="{{v._id}}")
                             
 
 div(name="system-settlement", ng-show="vm.selectedPlatformDetailTab == 'system-settlement'")
