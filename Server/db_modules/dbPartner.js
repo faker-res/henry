@@ -2026,14 +2026,24 @@ let dbPartner = {
                         updateData.partnerObjId = partnerData._id || "";
                         updateData.partnerName = partnerData.partnerName || "";
 
-                        dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_BANK_INFO, {
+                        return dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PARTNER_BANK_INFO, {
                             creator: {type: "partner", name: partnerData.partnerName, id: partnerData._id},
                             data: updateData,
                             inputDevice: inputDeviceData
                         });
 
-                        return updateData;
+                        // return updateData;
                     }
+                }
+            ).then(
+                proposal => {
+                    if (!proposal){
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "proposal data is not found"
+                        });
+                    }
+                    return updateData;
                 }
             )
     },
