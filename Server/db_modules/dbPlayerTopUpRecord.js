@@ -1023,6 +1023,9 @@ var dbPlayerTopUpRecord = {
                 var updateData = {
                     status: constProposalStatus.PENDING
                 };
+                let merchantName = merchantResponse.result ? merchantResponse.result.merchantName : "";
+                let getRateProm;
+
                 updateData.data = Object.assign({}, proposal.data);
                 updateData.data.requestId = merchantResponse.result ? merchantResponse.result.requestId : "";
                 updateData.data.merchantNo = merchantResponse.result ? merchantResponse.result.merchantNo : "";
@@ -1034,10 +1037,23 @@ var dbPlayerTopUpRecord = {
                     updateData.data.amount = merchantResponse.result.revisedAmount;
                 }
 
-                // if(lastLoginIp){
-                //     updateData.data.lastLoginIp = lastLoginIp;
-                // }
+                if(updateData.data.merchantNo && player.platform._id && merchantName != ""){
+                    getRateProm = getMerchantRate(updateData.data.merchantNo , player.platform.platformId, merchantName);
+                }
 
+                return Promise.all([getRateProm]).then(
+                    rate => {
+                        if(rate && rate.length > 0 && typeof rate[0] != "undefined"){
+                            updateData.data.rate = rate[0];
+                            updateData.data.actualAmountReceived = (topupRequest.amount * (100 - Number(rate[0])) / 100).toFixed(2);
+                        }
+
+                        return updateData;
+                    }
+                )
+            }
+        ).then(
+            updateData => {
                 let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
 
                 updateOnlineTopUpProposalDailyLimit(proposalQuery, merchantResponse.result.merchantNo, merchantUseType).catch(errorUtils.reportError);
@@ -4511,4 +4527,31 @@ function isLastTopUpProposalWithin30Mins(proposalType, platformObjId, playerObj)
     }else{
         return Promise.resolve(true);
     }
+}
+
+function getMerchantRate(merchantNo, platformId, merchantName){
+    if(!merchantName || merchantName == "")
+    {
+        return 0;
+    }
+
+    let query = {
+        merchantNo: merchantNo,
+        name: merchantName,
+        platformId: platformId,
+    };
+
+    return dbconfig.collection_platformMerchantList.findOne(query).then(
+        platformMerchantList => {
+            if(platformMerchantList){
+                if(typeof platformMerchantList.customizeRate != "undefined"){
+                    return platformMerchantList.customizeRate;
+                }else if(typeof platformMerchantList.rate != "undefined"){
+                    return platformMerchantList.rate;
+                }
+            }
+
+            return 0;
+        }
+    );
 }

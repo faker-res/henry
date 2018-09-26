@@ -3025,7 +3025,7 @@ let dbPlayerInfo = {
                         //         });
                         //     }
                         // }
-                        updateData.bankAccountType = 1;
+                        updateData.bankAccountType = 2;
 
                         return dbconfig.collection_platform.findOne({
                             _id: playerData.platform
@@ -13364,7 +13364,8 @@ let dbPlayerInfo = {
                         constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
                         constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
                         constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,
-                        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP
+                        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,
+                        constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP
                     ];
 
                     // Check any consumption after topup upon apply reward
