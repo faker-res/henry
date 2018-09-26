@@ -4,8 +4,16 @@ let Schema = mongoose.Schema;
 let largeWithdrawalLogSchema = new Schema({
     // platform obj id
     platform: {type: Schema.ObjectId, ref: 'platform', index: true},
+    // proposal number
+    proposalId: {type: String, index: true},
     // email name extension
     emailNameExtension: {type: String},
+    // today large amount no (e.g. first large withdrawal log of today will be 1, second will be 2) base on GMT+8
+    todayLargeAmountNo: {type: Number},
+    // player name
+    playerName: {type: String},
+    // withdrawal amount
+    amount: {type: Number},
     // real name
     realName: {type: String},
     // player level name (at the moment withdrawal is applied)
@@ -42,7 +50,7 @@ let largeWithdrawalLogSchema = new Schema({
         aboveHundredThousand: {type: Number}
     },
     // provider related detail
-    gameProviderInfo: {
+    gameProviderInfo: [{
         _id: false,
         // provider name
         providerName: {type: String},
@@ -56,7 +64,7 @@ let largeWithdrawalLogSchema = new Schema({
         consumptionAmountByType: {type: JSON},
         // game type player bonus amount
         playerBonusAmountByType: {type: JSON}
-    },
+    }],
     // (since last top up) player bonus amount / profit amount (current credit + current withdrawal amount - total top up amount between current withdrawal and last withdrawal)
     lastTopUpPlayerBonusAmount: {type: Number},
     // last top up amount
@@ -136,6 +144,7 @@ let largeWithdrawalLogSchema = new Schema({
         lastMonth: {type: Number},
         secondLastMonth: {type: Number}
     },
+    emailSentTimes: {type: Number, default: 0},
 });
 
 module.exports = largeWithdrawalLogSchema;

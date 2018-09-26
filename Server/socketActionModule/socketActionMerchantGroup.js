@@ -149,6 +149,18 @@ function socketActionMerchantGroup(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId);
             socketUtil.emitter(self.socket, dbPlatformMerchantGroup.syncMerchantNoScript, [data.platformId], actionName, isValidData);
+        },
+
+        updateCustomizeRatePlatformMerchantList: function updateCustomizeRatePlatformMerchantList(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformId && data.name && data.merchantNo);
+            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.updateCustomizeRatePlatformMerchantList, [data.platformId, data.name, data.merchantNo, data.customizeRate], actionName, isValidData);
+        },
+
+        getPlatformMerchantList: function getPlatformMerchantList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.getPlatformMerchantList, [data.platformId], actionName, isValidData);
         }
     };
     socketActionMerchantGroup.actions = this.actions;
