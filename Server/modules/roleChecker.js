@@ -691,7 +691,8 @@ var roleChecker = {
                 Delete: ['deleteMerchantGroup'],
                 AddPlayer: ['addPlayersToMerchantGroup'],
                 AddAllPlayer: ['addAllPlayersToMerchantGroup'],
-                UpdateCardGroupType: []
+                UpdateCardGroupType: [],
+                EditServiceChargeRatio: ['updateCustomizeRatePlatformMerchantList']
             },
             "AlipayGroup": {
                 Read: ['getPlatformAliPayGroup'],
