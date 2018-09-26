@@ -8,6 +8,12 @@ let largeWithdrawalLogSchema = new Schema({
     proposalId: {type: String, index: true},
     // email name extension
     emailNameExtension: {type: String},
+    // today large amount no (e.g. first large withdrawal log of today will be 1, second will be 2) base on GMT+8
+    todayLargeAmountNo: {type: Number},
+    // player name
+    playerName: {type: String},
+    // withdrawal amount
+    amount: {type: Number},
     // real name
     realName: {type: String},
     // player level name (at the moment withdrawal is applied)
