@@ -477,9 +477,10 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
                 if (platformObj.autoAudit.firstWithdrawDifferentIPCheck
                     && bankProvince
-                    && playerData.province
-                    && playerData.phoneProvince
-                    && (bankProvince !== playerData.phoneProvince || bankProvince !== playerData.province)
+                    && (
+                        (!playerData.phoneProvince || bankProvince !== playerData.phoneProvince)
+                        || (!playerData.province || bankProvince !== playerData.province)
+                    )
                 ) {
                     checkMsg += ' Denied: FW: Different Province between IP, Phone, And Bank Account;';
                     checkMsgChinese += ' 失败：首提IP, 电话, 银行所在省不一致;';
