@@ -436,6 +436,12 @@ var dbUtility = {
             case "YYYY-MM-DD":
                 returnedStr = date.format().substring(0, 10);
                 break;
+            case "YYYY/MM/DD HH:mm:ss":
+                returnedStr = date.format("YYYY/MM/DD HH:mm:ss");
+                break;
+            case "YYYY/MM/DD":
+                returnedStr = date.format("YYYY/MM/DD");
+                break;
             default:
                 returnedStr = date.format().substring(0, 10) + " " + date.format().substring(11, 19)
         }
@@ -1370,6 +1376,7 @@ var dbUtility = {
     },
 
     noRoundTwoDecimalPlaces: (value) => {
+        value = value || 0;
         let splitString =  value.toString().split(".");
 
         let tempNum = splitString[0];
