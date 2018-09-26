@@ -412,6 +412,7 @@ const dbPlayerMail = {
             seletedDb = dbPartner;
         }
         let isSpam = false;
+        let blacklistIPDetected = false;
 
         return getPlatform.then(
             platformData => {
@@ -494,6 +495,7 @@ const dbPlayerMail = {
                     return dbPlatform.getBlacklistIpIsEffective(inputData.lastLoginIp).then(
                         blacklistIpData => {
                             if (blacklistIpData && blacklistIpData.length && blacklistIpData.length > 0) {
+                                blacklistIPDetected = true;
                                 return Q.reject({
                                     status: constServerCode.BLACKLIST_IP,
                                     name: "DBError",
@@ -875,7 +877,9 @@ const dbPlayerMail = {
                                     status: constProposalStatus.PENDING
                                 };
 
-                                dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, newProposal, constProposalStatus.PENDING);
+                                if (!blacklistIPDetected) {
+                                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, newProposal, constProposalStatus.PENDING);
+                                }
                             }
 
                             let newIntentData = {
