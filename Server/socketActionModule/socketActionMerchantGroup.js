@@ -150,7 +150,7 @@ function socketActionMerchantGroup(socketIO, socket) {
             let isValidData = Boolean(data && data.platformId);
             socketUtil.emitter(self.socket, dbPlatformMerchantGroup.syncMerchantNoScript, [data.platformId], actionName, isValidData);
         },
-ß
+
         updateCustomizeRatePlatformMerchantList: function updateCustomizeRatePlatformMerchantList(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId && data.name && data.merchantNo);
