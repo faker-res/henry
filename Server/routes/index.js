@@ -1,10 +1,12 @@
 var jwt = require('jsonwebtoken');
 var express = require('express');
 var router = express.Router();
+var bcrypt = require('bcrypt');
 
 var encrypt = require('./../modules/encrypt');
 var dbConfig = require('./../modules/dbproperties');
 var dbAdminInfo = require('./../db_modules/dbAdminInfo');
+var dbLargeWithdrawal = require('./../db_modules/dbLargeWithdrawal');
 var env = require('./../config/env');
 var jwtSecret = env.config().socketSecret;
 var memCache = require('memory-cache');
@@ -313,6 +315,41 @@ router.post('/getPlayerInfoByPhoneNumber', function (req, res, next) {
             res.json({success: false, error: {name: "UnexpectedError", message: String(err)}});
         }
     );
+});
+
+router.get('/auditLargeWithdrawalProposal', function (req, res, next) {
+    // hash = "largeWithdrawal" + propopsalId + adminObjId + "approve"/"reject"
+
+    let proposalId = req.query.proposalId;
+    let adminObjId = req.query.adminObjId;
+    let decision = req.query.decision;
+    let hash = req.query.hash;
+
+    if (decision != "approve" && decision != "reject" || !hash) {
+        res.send({success: false});
+        return;
+    }
+
+    let hashedContent = "largeWithdrawalSnsoft" + proposalId + adminObjId + decision;
+
+    bcrypt.compare(hashedContent, hash, function (err, isMatch) {
+        if (err) {
+            res.send({success: false});
+        } else if (isMatch) {
+            // what happened when success
+            dbLargeWithdrawal.largeWithdrawalAudit(proposalId, adminObjId, decision).then(
+                data => {
+                    res.send({success: true, data});
+                },
+                error => {
+                    res.send({success: false, error})
+                }
+            );
+        } else {
+            console.log('auditLargeWithdrawalProposal hash matching failed, ip:', req.headers['x-forwarded-for'] || req.connection.remoteAddress, "req.query:", req.query);
+            res.send({success: false});
+        }
+    });
 });
 
 module.exports = router;

@@ -13,7 +13,9 @@ var platformMerchantListSchema = new Schema({
     permerchantLimits: {type: Number},
     transactionForPlayerOneDay: {type: Number},
     permerchantminLimits: {type: Number},
-    status: {type: String}
+    status: {type: String},
+    rate: {type: Number},
+    customizeRate: {type: Number}
 });
 
 module.exports = platformMerchantListSchema;

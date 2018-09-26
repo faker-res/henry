@@ -182,6 +182,23 @@ define(['js/app'], function (myApp) {
 
         };
 
+        vm.updateExistingThemeSetting = function (themeStyleObjId, themeIdObjId, themeIdName, type){
+
+            if (vm.updateExistingThemeObj.length == 0){
+                vm.updateExistingThemeObj.push({themeStyleId: themeStyleObjId, themeIdObjId: themeIdObjId, themeId: themeIdName, type: type})
+            }
+            else{
+
+                let index = vm.updateExistingThemeObj.findIndex(p => p.themeStyleId == themeStyleObjId && p.themeIdObjId == themeIdObjId && p.type == type);
+                if (index != -1){
+                    vm.updateExistingThemeObj[index].themeId = themeIdName;
+                }
+                else{
+                    vm.updateExistingThemeObj.push({themeStyleId: themeStyleObjId, themeIdObjId: themeIdObjId, themeId: themeIdName, type: type});
+                }
+            }
+        };
+
         vm.editThemeSetting = function (mode, data, type){
 
                 let sendData;
@@ -235,6 +252,9 @@ define(['js/app'], function (myApp) {
                                             if (inContent.$$hashKey) {
                                                 delete inContent.$$hashKey;
                                             }
+                                            if (inContent._id) {
+                                                delete inContent._id;
+                                            }
                                         }
                                     )
                                 }
@@ -249,6 +269,10 @@ define(['js/app'], function (myApp) {
 
                     if (vm.deletedThemeSettingList && vm.deletedThemeSettingList.length > 0){
                         sendData.deletedThemeStyleIds = vm.deletedThemeSettingList;
+                    }
+
+                    if (vm.updateExistingThemeObj && vm.updateExistingThemeObj.length > 0){
+                        sendData.updateExistingThemeObj = vm.updateExistingThemeObj;
                     }
 
                     return $scope.$socketPromise("updateThemeSetting", sendData).then(data => {
@@ -285,6 +309,7 @@ define(['js/app'], function (myApp) {
         vm.initPlayerThemeSetting = function(){
             if (vm.allThemeSetting){
 
+                vm.updateExistingThemeObj = [];
                 vm.themeSettingEdit = false;
                 vm.playerThemeData = vm.allThemeSetting.filter(inData => inData.type == 'player');
                 vm.partnerThemeData = vm.allThemeSetting.filter(inData => inData.type == 'partner');
