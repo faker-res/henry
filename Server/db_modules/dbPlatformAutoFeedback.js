@@ -220,9 +220,7 @@ let dbPlatformAutoFeedback = {
                 let roles = [];
                 let admins = [];
 
-                console.log("platformObjId", platformObjId);
                 let departmentProm = dbDepartment.getDepartmentDetailsByPlatformObjId(feedback.platformObjId).then(departments => {
-                    console.log("departments",departments);
                     departments.forEach(department => {
                         if(department._id == platformObjId) {
                             roles = department.roles;
@@ -571,7 +569,7 @@ let dbPlatformAutoFeedback = {
                                     playerObjId: player._id,
                                     autoFeedbackMissionObjId: feedback._id
                                 }).sort({createTime: -1}).limit(1).lean().then(promoCode => {
-                                    console.log("promoCode",promoCode);
+                                    console.log("autoFeedback promoCode",promoCode);
                                     if(promoCode && promoCode.length > 0) {
                                         promoCode = promoCode[0];
                                         let curTime = new Date().getTime();
@@ -585,13 +583,14 @@ let dbPlatformAutoFeedback = {
                                             return dbconfig.collection_promoCodeTemplate.findOne({_id: item.template}).lean();
                                         }
                                     } else {
+                                        console.log("autoFeedback curScheduleNumber",curScheduleNumber);
                                         if(curScheduleNumber == 1) {
                                             return dbconfig.collection_promoCodeTemplate.findOne({_id: item.template}).lean();
                                         }
                                     }
                                     return null;
                                 }).then(template => {
-                                    console.log("template",template);
+                                    console.log("autoFeedback template",template);
                                     if(template) {
                                         newPromoCodeEntry = JSON.parse(JSON.stringify(template));
                                         delete newPromoCodeEntry._id;
