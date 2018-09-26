@@ -102,6 +102,7 @@ let PLATFORM_PREFIX_SEPARATOR = '';
 let dbAutoProposal = require('../db_modules/dbAutoProposal');
 let dbDemoPlayer = require('../db_modules/dbDemoPlayer');
 let dbApiLog = require("../db_modules/dbApiLog");
+let dbLargeWithdrawal = require("../db_modules/dbLargeWithdrawal");
 
 let dbPlayerInfo = {
 
@@ -10839,6 +10840,13 @@ let dbPlayerInfo = {
             ).then(
                 proposal => {
                     if (proposal) {
+                        if (proposal.data && proposal.data.amount && proposal.data.amount >= platform.autoApproveWhenSingleBonusApplyLessThan) {
+                            createLargeWithdrawalLog(proposal, platform._id).catch(err => {
+                                console.log("createLargeWithdrawalLog failed", err);
+                                return errorUtils.reportError(err);
+                            });
+                        }
+
                         if (bUpdateCredit) {
                             dbLogger.createCreditChangeLogWithLockedCredit(player._id, player.platform._id, -amount, constProposalType.PLAYER_BONUS, player.validCredit, 0, 0, null, proposal);
                         }
@@ -20868,6 +20876,25 @@ function manualPlayerLevelUpReward(playerObjId, adminInfo) {
 
             } else {
                 return Promise.reject({message: "该玩家已经领取『" + playerLevel.name + "』的升级优惠。"});
+            }
+        }
+    );
+}
+
+function createLargeWithdrawalLog (proposalData, platformObjId) {
+    let largeWithdrawalLog;
+    return dbconfig.collection_largeWithdrawalLog({
+        platform: platformObjId,
+        proposalId: proposalData.proposalId
+    }).save().then(largeWithdrawalLogData => {
+        largeWithdrawalLog = largeWithdrawalLogData;
+        return dbconfig.collection_proposal.findOneAndUpdate({_id: proposalData._id, createTime: proposalData.createTime}, {"data.largeWithdrawalLog": largeWithdrawalLog._id}, {new: true}).lean();
+    }).then(
+        proposal => {
+            if (proposal) {
+                return dbLargeWithdrawal.fillUpLargeWithdrawalLogDetail(largeWithdrawalLog._id);
+            } else {
+                return Promise.reject({message: "Save to proposal failed"}); // the only time here is reach are when there is bug
             }
         }
     );
