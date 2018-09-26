@@ -3,9 +3,9 @@ let Schema = mongoose.Schema;
 
 let promoCodeSchema = new Schema({
     // platform id
-    platformObjId: {type: Schema.ObjectId, ref: 'platform', required: true},
+    platformObjId: {type: Schema.ObjectId, ref: 'platform', required: true, index: true},
     // user id
-    playerObjId: {type: Schema.ObjectId, ref: 'player', required: true},
+    playerObjId: {type: Schema.ObjectId, ref: 'player', required: true, index: true},
     // promo code type
     promoCodeTypeObjId: {
         type: Schema.ObjectId,
@@ -22,7 +22,8 @@ let promoCodeSchema = new Schema({
         required: [
             function() { return this.promoCodeTypeObjId == null; },
             'promoCodeTemplateObjId is required if promoCodeTypeObjId is unspecified.'
-        ]
+        ],
+        index: true
     },
     // promo code reward amount
     amount: {type: Number, required: true},
@@ -77,13 +78,13 @@ let promoCodeSchema = new Schema({
     // remark
     remark: {type: String},
     //auto feedback mission obj id
-    autoFeedbackMissionObjId: {type: Schema.ObjectId},
+    autoFeedbackMissionObjId: {type: Schema.ObjectId, index: true},
     //auto feedback schedule number (first, second, or third time)
-    autoFeedbackMissionScheduleNumber: {type: Number},
+    autoFeedbackMissionScheduleNumber: {type: Number, index: true},
     //match with login
-    autoFeedbackMissionLogin: {type: Boolean},
+    autoFeedbackMissionLogin: {type: Boolean, index: true},
     //match with top up
-    autoFeedbackMissionTopUp: {type: Boolean},
+    autoFeedbackMissionTopUp: {type: Boolean, index: true},
 
 });
 

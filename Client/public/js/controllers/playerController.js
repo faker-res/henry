@@ -8695,6 +8695,14 @@ define(['js/app'], function (myApp) {
                 item.totalAmountBefore$ = $noRoundTwoDecimalPlaces((Number(item.beforeAmount) + Number(item.beforeUnlockedAmount))) + "(" + item.beforeAmount + "/" + item.beforeUnlockedAmount + ")";
                 item.totalAmountAfter$ = $noRoundTwoDecimalPlaces((Number(item.curAmount) + Number(item.lockedAmount))) + "(" + item.curAmount + "/" + item.lockedAmount + ")";
                 item.totalChangedAmount$ = $noRoundTwoDecimalPlaces((Number(item.amount) + Number(item.changedLockedAmount))) + "(" + item.amount + "/" + item.changedLockedAmount + ")";
+
+                if (item.operationType == 'OnlineTopUp' && item.data && item.data.amount && item.data.actualAmountReceived) {
+                    let serviceChargeFee = $noRoundTwoDecimalPlaces(item.data.amount - item.data.actualAmountReceived) >= 0 ? $noRoundTwoDecimalPlaces(item.data.amount - item.data.actualAmountReceived) : 0;
+
+                    item.totalChangedAmount$ = $noRoundTwoDecimalPlaces((Number(item.amount) + Number(item.changedLockedAmount))) + "(" + item.data.amount + "/" + item.changedLockedAmount + ")";
+                    item.totalAmountAfter$ = $noRoundTwoDecimalPlaces((Number(item.curAmount) + Number(item.lockedAmount))) + "(" + $noRoundTwoDecimalPlaces(Number(item.curAmount) + serviceChargeFee) + "/" + item.lockedAmount + ")";
+                }
+
                 return item;
             });
 
@@ -8734,7 +8742,7 @@ define(['js/app'], function (myApp) {
                         sClass: "wordWrap width30Per",
                         render: function (data, type, row) {
                             if (row.proposalId$) {
-                                let proposalText = $translate('PROPOSAL_NO') + ": " + row.proposalId$;
+                                let proposalText = row.operationType == 'OnlineTopUp' ? $translate('PROPOSAL_NO') + ": " + row.proposalId$ + "/" + $translate('Actual Amount') + ": " + row.amount : $translate('PROPOSAL_NO') + ": " + row.proposalId$;
                                 var link = $('<a>', {
                                     'ng-click': 'vm.showProposalModalNoObjId("' + row.proposalId$ + '",1)'
 
@@ -18052,6 +18060,12 @@ define(['js/app'], function (myApp) {
                     proposalDetail["3rdPartyPlatform"] = vm.selectedProposal.data.merchantUseName || " ";
                     proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                     proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
+                    if(vm.selectedProposal.data.hasOwnProperty("rate")){
+                        proposalDetail["Service Charge Ratio"] = vm.selectedProposal.data.rate;
+                    }
+                    if(vm.selectedProposal.data.hasOwnProperty('actualAmountReceived')){
+                        proposalDetail["ActualReceivedAmount"] = vm.selectedProposal.data.actualAmountReceived;
+                    }
                     proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                     proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                     proposalDetail["MerchantGroup"] = vm.selectedProposal.data.merchantGroupName || " ";
@@ -18432,6 +18446,12 @@ define(['js/app'], function (myApp) {
                     proposalDetail["3rdPartyPlatform"] = vm.selectedProposal.data.merchantUseName || " ";
                     proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                     proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
+                    if(vm.selectedProposal.data.hasOwnProperty("rate")){
+                        proposalDetail["Service Charge Ratio"] = vm.selectedProposal.data.rate;
+                    }
+                    if(vm.selectedProposal.data.hasOwnProperty('actualAmountReceived')){
+                        proposalDetail["ActualReceivedAmount"] = vm.selectedProposal.data.actualAmountReceived;
+                    }
                     proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                     proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                     proposalDetail["MerchantGroup"] = vm.selectedProposal.data.merchantGroupName || " ";

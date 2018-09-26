@@ -3025,7 +3025,7 @@ let dbPlayerInfo = {
                         //         });
                         //     }
                         // }
-                        updateData.bankAccountType = 1;
+                        updateData.bankAccountType = 2;
 
                         return dbconfig.collection_platform.findOne({
                             _id: playerData.platform
