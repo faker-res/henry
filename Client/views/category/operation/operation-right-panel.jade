@@ -261,7 +261,39 @@
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 div test modal
             .modal-body
-                input(ng-model="vm.largeWithdrawLog.comment" ng-disabled='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")')
+                div {{"A."}} {{"PLAYER_INFORMATION_PORTION" | translate}}
+                div {{"BASIC_INFORMATION" | translate}}
+                table.simple-table
+                    tr
+                        td {{"REAL_NAME" | translate}}
+                        td {{vm.largeWithdrawLog.realName}}
+                    tr
+                        td {{"LEVEL" | translate}}
+                        td {{vm.largeWithdrawLog.playerLevelName}}
+                    tr
+                        td {{"BANK_CITY" | translate}}
+                        td {{vm.largeWithdrawLog.bankCity}}
+                    tr
+                        td {{"REGISTRATION_TIME" | translate}}
+                        td {{vm.largeWithdrawLog.registrationTime}}
+                    tr
+                        td {{"CURRENT_WITHDRAWAL_TIME" | translate}}
+                        td {{vm.largeWithdrawLog.withdrawalTime}}
+                    tr
+                        td {{"LAST_WITHDRAWAL_TIME" | translate}}
+                        td {{vm.largeWithdrawLog.lastWithdrawalTime}}
+                div {{"LAST_TO_CURRENT_WITHDRAWAL" | translate}}
+                table.simple-table
+                    tr
+                        td {{"PLAYER_PROFIT" | translate}}
+                        td {{vm.largeWithdrawLog.playerBonusAmount}}
+                    tr
+                        td {{"TopupAmount" | translate}}
+                        td {{vm.largeWithdrawLog.playerTotalTopUpAmount}}
+                    tr
+                        td {{"CONSUMPTION_RETURN_REWARD" | translate}}
+                        td {{vm.largeWithdrawLog.consumptionReturnAmount}}
+                textarea(ng-model="vm.largeWithdrawLog.comment" ng-disabled='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")')
             .modal-footer
                 div(ng-if="vm.isLargeWithdrawalReviewer")
                     // is reviewer

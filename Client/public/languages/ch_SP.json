@@ -4571,5 +4571,6 @@
   "Service Charge Ratio": "手续费率",
   "EditServiceChargeRatio": "编辑手续费",
   "Actual Amount": "实际到帐",
-  "ActualReceivedAmount": "实际到帐金额"
+  "ActualReceivedAmount": "实际到帐金额",
+  "SKIP_CURRENT_PERIOD": "跳过本期"
 }
