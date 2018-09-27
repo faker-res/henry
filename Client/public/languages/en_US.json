@@ -1690,5 +1690,6 @@
   "DownlineReceivePartnerCredit": "Downline Receive Partner Credit",
   "EditAdminRole": "Edit Admin Role",
   "Calculated According to Promo Code Sent (Promo code sent to a same player twice will be calculated as 2) Eg. Send(1st) --> login --> send(2nd) = total count of 2":
-  "Calculated According to Promo Code Sent (Promo code sent to a same player twice will be calculated as 2) Eg. Send(1st) ——＞ login ——＞ send(2nd) = total count of 2"
+  "Calculated According to Promo Code Sent (Promo code sent to a same player twice will be calculated as 2) Eg. Send(1st) ——＞ login ——＞ send(2nd) = total count of 2",
+  "SKIP_CURRENT_PERIOD": "Skip Current Period"
 }

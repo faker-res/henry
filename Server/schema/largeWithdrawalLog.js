@@ -32,6 +32,8 @@ let largeWithdrawalLogSchema = new Schema({
     comment: {type: String, default: ""},
     // player bonus amount / profit amount (current credit + current withdrawal amount - total top up amount between current withdrawal and last withdrawal)
     playerBonusAmount: {type: Number},
+    // player total top up amount
+    playerTotalTopUpAmount: {type: Number},
     // total consumption return amount after last withdrawal
     consumptionReturnAmount: {type: Number},
     // total reward amount that are not consumption return after last withdrawal
@@ -54,6 +56,8 @@ let largeWithdrawalLogSchema = new Schema({
         _id: false,
         // provider name
         providerName: {type: String},
+        // bet amount
+        consumptionTimes: {type: Number},
         // bonus amount
         bonusAmount: {type: Number},
         // valid consumption amount
@@ -91,6 +95,8 @@ let largeWithdrawalLogSchema = new Schema({
         _id: false,
         // provider name
         providerName: {type: String},
+        // bet amount
+        consumptionTimes: {type: Number},
         // bonus amount
         bonusAmount: {type: Number},
         // valid consumption amount

@@ -1553,6 +1553,12 @@ define(['js/app'], function (myApp) {
                     proposalDetail["3rdPartyPlatform"] = vm.selectedProposal.data.merchantUseName || " ";
                     proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                     proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
+                    if(vm.selectedProposal.data.hasOwnProperty("rate")){
+                        proposalDetail["Service Charge Fee"] = $noRoundTwoDecimalPlaces(vm.selectedProposal.data.amount * vm.selectedProposal.data.rate) + '（' + $translate("Service Charge Ratio") + '：' + (vm.selectedProposal.data.rate * 100) + '%)';
+                    }
+                    if(vm.selectedProposal.data.hasOwnProperty('actualAmountReceived')){
+                        proposalDetail["ActualReceivedAmount"] = vm.selectedProposal.data.actualAmountReceived;
+                    }
                     proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                     proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                     proposalDetail["MerchantGroup"] = vm.selectedProposal.data.merchantGroupName || " ";

@@ -208,6 +208,12 @@ define(['js/app'], function (myApp) {
                     proposalDetail["3rdPartyPlatform"] = vm.getMerchantName(vm.selectedProposal.data.merchantNo, vm.selectedProposal.inputDevice) || " ";
                     proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                     proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
+                    if(vm.selectedProposal.data.hasOwnProperty("rate")){
+                        proposalDetail["Service Charge Fee"] = $noRoundTwoDecimalPlaces(vm.selectedProposal.data.amount * vm.selectedProposal.data.rate) + '（' + $translate("Service Charge Ratio") + '：' + (vm.selectedProposal.data.rate * 100) + '%)';
+                    }
+                    if(vm.selectedProposal.data.hasOwnProperty('actualAmountReceived')){
+                        proposalDetail["ActualReceivedAmount"] = vm.selectedProposal.data.actualAmountReceived;
+                    }
                     proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                     proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                     proposalDetail["MerchantGroup"] = vm.selectedProposal.data.merchantGroupName || " ";
@@ -8016,6 +8022,12 @@ define(['js/app'], function (myApp) {
                     proposalDetail["3rdPartyPlatform"] = vm.getMerchantName(vm.selectedProposal.data.merchantNo, vm.selectedProposal.inputDevice) || " ";
                     proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                     proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
+                    if(vm.selectedProposal.data.hasOwnProperty("rate")){
+                        proposalDetail["Service Charge Fee"] = $noRoundTwoDecimalPlaces(vm.selectedProposal.data.amount * vm.selectedProposal.data.rate) + '（' + $translate("Service Charge Ratio") + '：' + (vm.selectedProposal.data.rate * 100) + '%)';
+                    }
+                    if(vm.selectedProposal.data.hasOwnProperty('actualAmountReceived')){
+                        proposalDetail["ActualReceivedAmount"] = vm.selectedProposal.data.actualAmountReceived;
+                    }
                     proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                     proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                     proposalDetail["MerchantGroup"] = vm.selectedProposal.data.merchantGroupName || " ";
@@ -8178,6 +8190,41 @@ define(['js/app'], function (myApp) {
                     if (vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"]) {
                         vm.getCityName(vm.selectedProposal.data["RECEIVE_BANK_ACC_CITY"], "RECEIVE_BANK_ACC_CITY")
                     }
+                }
+
+                if (vm.selectedProposal.data['bankAccountProvince']) {
+                    socketService.$socket($scope.AppSocket, "getProvince", {provinceId: vm.selectedProposal.data['bankAccountProvince']}, function (data) {
+                        $scope.$evalAsync(() => {
+                            var text = data.data.province ? data.data.province.name : val;
+                            vm.selectedProposal.data['bankAccountProvince'] = text;
+                        })
+                    });
+                }
+
+                if (vm.selectedProposal.data['bankAccountCity']) {
+                    socketService.$socket($scope.AppSocket, "getCity", {cityId: vm.selectedProposal.data['bankAccountCity']}, function (data) {
+                        $scope.$evalAsync(() => {
+                            var text = data.data.city ? data.data.city.name : val;
+                            vm.selectedProposal.data['bankAccountCity'] = text;
+                        })
+                    });
+                }
+
+                if (vm.selectedProposal.data['districtId']) {
+                    socketService.$socket($scope.AppSocket, "getDistrict", {districtId: vm.selectedProposal.data['districtId']}, function (data) {
+                        $scope.$evalAsync(() => {
+                            var text = data.data.district ? data.data.district.name : val;
+                            vm.selectedProposal.data['districtId'] = text;
+                        })
+                    });
+                }
+                if (vm.selectedProposal.data['bankAccountDistrict']) {
+                    socketService.$socket($scope.AppSocket, "getDistrict", {districtId: vm.selectedProposal.data['bankAccountDistrict']}, function (data) {
+                        $scope.$evalAsync(() => {
+                            var text = data.data.district ? data.data.district.name : val;
+                            vm.selectedProposal.data['bankAccountDistrict'] = text;
+                        })
+                    });
                 }
 
                 $('#modalProposal').modal('show');

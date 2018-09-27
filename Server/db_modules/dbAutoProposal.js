@@ -397,7 +397,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
             if (data && data[6] && data[6].provinces && playerData && playerData.bankAccountProvince) {
                 let allProvinces = data[6].provinces;
-                let pIdx = allProvinces.findIndex(d => d.id === playerData.bankAccountProvince);
+                let pIdx = allProvinces.findIndex(d => d.id == playerData.bankAccountProvince);
 
                 if (allProvinces[pIdx] && allProvinces[pIdx].name) {
                     bankProvince = allProvinces[pIdx].name.substring(0, 2);

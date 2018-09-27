@@ -8146,7 +8146,7 @@ define(['js/app'], function (myApp) {
                 let sendQuery = {
                     playerId: vm.selectedSinglePlayer._id,
                     platformId: vm.selectedSinglePlayer.platform,
-                    lastLoginIp: vm.selectedSinglePlayer.lastLoginIp,
+                    registrationIp: vm.selectedSinglePlayer.loginIps[0] || "",
                     index: newSearch ? 0 : vm.similarIpForPlayer.index,
                     limit: newSearch ? vm.similarIpForPlayer.limit : (vm.similarIpForPlayer.limit || 50),
                     sortCol: {registrationTime: -1},
@@ -24013,6 +24013,12 @@ define(['js/app'], function (myApp) {
                         proposalDetail["3rdPartyPlatform"] = vm.selectedProposal.data.merchantUseName || " ";
                         proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                         proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
+                        if(vm.selectedProposal.data.hasOwnProperty("rate")){
+                            proposalDetail["Service Charge Fee"] = $noRoundTwoDecimalPlaces(vm.selectedProposal.data.amount * vm.selectedProposal.data.rate) + '（' + $translate("Service Charge Ratio") + '：' + (vm.selectedProposal.data.rate * 100) + '%)';
+                        }
+                        if(vm.selectedProposal.data.hasOwnProperty('actualAmountReceived')){
+                            proposalDetail["ActualReceivedAmount"] = vm.selectedProposal.data.actualAmountReceived;
+                        }
                         proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                         proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                         proposalDetail["MerchantGroup"] = vm.selectedProposal.data.merchantGroupName || " ";
@@ -24295,6 +24301,12 @@ define(['js/app'], function (myApp) {
                         proposalDetail["3rdPartyPlatform"] = vm.selectedProposal.data.merchantUseName || " ";
                         proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                         proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
+                        if(vm.selectedProposal.data.hasOwnProperty("rate")){
+                            proposalDetail["Service Charge Fee"] = $noRoundTwoDecimalPlaces(vm.selectedProposal.data.amount * vm.selectedProposal.data.rate) + '（' + $translate("Service Charge Ratio") + '：' + (vm.selectedProposal.data.rate * 100) + '%)';
+                        }
+                        if(vm.selectedProposal.data.hasOwnProperty('actualAmountReceived')){
+                            proposalDetail["ActualReceivedAmount"] = vm.selectedProposal.data.actualAmountReceived;
+                        }
                         proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
                         proposalDetail["SUBMIT_DEVICE"] = $scope.userAgentType[vm.selectedProposal.data.userAgent] || $translate("BACKSTAGE");
                         proposalDetail["MerchantGroup"] = vm.selectedProposal.data.merchantGroupName || " ";
