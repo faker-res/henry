@@ -3807,7 +3807,7 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data) {
-
+                    // Async - Update financial points
                     dbPlatform.changePlatformFinancialPoints(data.platform, proposalData.data.amount).then(
                         platformData => {
                             if (!platformData) {
@@ -3845,6 +3845,7 @@ let dbPlayerInfo = {
                 if (data) {
                     player = data;
 
+                    // Create playerTopUpRecord and credit change log
                     let logData = null;
                     let recordData = {
                         playerId: player._id,
