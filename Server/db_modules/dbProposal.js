@@ -1861,7 +1861,7 @@ var proposal = {
 
                         var a = dbconfig.collection_players.find({
                             platform: ObjectId(selectedPlatformId),
-                            phoneNumber: rsaCrypto.encrypt(phoneNumber)
+                            phoneNumber: {$in: [rsaCrypto.encrypt(phoneNumber), rsaCrypto.oldEncrypt(phoneNumber)]}
                         }).populate({
                             path: 'playerLevel',
                             model: dbconfig.collection_playerLevel
