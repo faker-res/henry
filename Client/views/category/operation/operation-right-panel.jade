@@ -297,8 +297,8 @@
             .modal-footer
                 div(ng-if="vm.isLargeWithdrawalReviewer")
                     // is reviewer
-                    button.btn.btn-danger.common-button(ng-click="vm.auditLargeWithdrawal()" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"Cancel Proposal" | translate}}
-                    button.btn.btn-success.common-button(ng-click="vm.auditLargeWithdrawal(true)" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"AUDIT_APPROVAL" | translate}}
+                    button.btn.btn-danger.common-button(data-dismiss='modal' ng-click="vm.auditLargeWithdrawal()" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"Cancel Proposal" | translate}}
+                    button.btn.btn-success.common-button(data-dismiss='modal' ng-click="vm.auditLargeWithdrawal(true)" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"AUDIT_APPROVAL" | translate}}
                     button.btn.btn-danger.common-button(data-dismiss='modal' ng-if='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")') {{'CANCEL' | translate}}
                 div(ng-if="!vm.isLargeWithdrawalReviewer")
                     // is not reviewer
