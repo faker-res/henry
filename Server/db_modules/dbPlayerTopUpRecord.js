@@ -223,6 +223,7 @@ var dbPlayerTopUpRecord = {
                 if (query.depositMethod && query.depositMethod.length > 0) {
                     queryObj['data.depositMethod'] = {'$in': convertStringNumber(query.depositMethod)};
                 }
+
                 if (query.merchantNo && query.merchantNo.length > 0 && (!query.merchantGroup || query.merchantGroup.length == 0)) {
                     queryObj['$or'] = [
                         {'data.merchantNo': {$in: convertStringNumber(query.merchantNo)}},
@@ -233,6 +234,7 @@ var dbPlayerTopUpRecord = {
                         {'data.weChatAccount': {$in: convertStringNumber(query.merchantNo)}}
                     ]
                 }
+
                 if ((!query.merchantNo || query.merchantNo.length == 0) && query.merchantGroup && query.merchantGroup.length > 0) {
                     let mGroupList = [];
                     query.merchantGroup.forEach(item => {
@@ -286,6 +288,9 @@ var dbPlayerTopUpRecord = {
                 if (query.userAgent && query.userAgent.length > 0) {
                     queryObj['data.userAgent'] = {$in: convertStringNumber(query.userAgent)};
                 }
+                if(query.line){
+                    queryObj['data.line'] = query.line;
+                }
                 return dbconfig.collection_proposalType.find({platformId: query.platformId, name: str});
             }
         ).then(
@@ -294,6 +299,7 @@ var dbPlayerTopUpRecord = {
                     return type._id;
                 });
                 queryObj.type = {$in: typeIds};
+
                 // console.log('queryObj', JSON.stringify(queryObj, null, 4));
                 var a = dbconfig.collection_proposal.find(queryObj).count();
                 var b = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
@@ -2582,6 +2588,7 @@ var dbPlayerTopUpRecord = {
                         }
 
                         if (pmsData.result.line && pmsData.result.line == 2) {
+                            updateData.data.line = pmsData.result.line;
                             if (updateData && updateData.data && updateData.data.remark) {
                                 updateData.data.remark += ", 线路二：不匹配昵称、支付宝帐号";
                             } else {

@@ -315,6 +315,22 @@ define([], () => {
             return result;
         }
 
+        self.getAlipayLine2Acc = function ($translate) {
+            let line2Acc = {
+                accountNumber:"MMM4-line2",
+                bankTypeId:"170",
+                merchantNo:"MMM4-line2",
+                merchantTypeId:"9997",
+                merchantTypeName:"AliPayAcc",
+                minDepositAmount:1,
+                name: $translate("MMM4-line2"),
+                singleLimit:0,
+                state:"NORMAL"
+            }
+            return line2Acc;
+        };
+
+
         this.updatePageTile = ($translate, pageName, tabName) => {
             window.document.title = $translate(pageName) + "->" + $translate(tabName);
             $(document).one('shown.bs.tab', function (e) {
