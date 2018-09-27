@@ -4324,150 +4324,163 @@ let dbPartner = {
     },
 
     getPartnerCommissionReport: function (platform, partnerName, startTime, endTime, index, limit, sortCol) {
-        var sortKey = Object.keys(sortCol) ? Object.keys(sortCol)[0] : null;
-        var sortVal = sortKey ? parseInt(sortCol[sortKey]) : null;
-        var matchObj = {
+        let stream;
+        let sortKey = Object.keys(sortCol) ? Object.keys(sortCol)[0] : null;
+        let sortVal = sortKey ? parseInt(sortCol[sortKey]) : null;
+
+        if (partnerName) {
+            stream = dbconfig.collection_partner.find({partnerName: partnerName}, {_id: 1}).cursor({batchSize: 100})
+        } else {
+            // Instead of searching all partners, look for only partners with permission on
+            stream = dbconfig.collection_partner.find({
+                platform: platform,
+                $or: [
+                    {permission: {$exists: false}},
+                    {$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}
+                ]
+            }, {_id: 1}).cursor({batchSize: 100})
+        }
+
+        let balancer = new SettlementBalancer();
+        let result = [];
+        return balancer.initConns().then(function () {
+            return Q(
+                balancer.processStream(
+                    {
+                        stream: stream,
+                        batchSize: 10,
+                        makeRequest: function (partners, request) {
+                            request("player", "findPartnersForCommissionReport", {
+                                platform: platform,
+                                partners: partners.map(partnerIdObj => ObjectId(partnerIdObj._id)),
+                                startTime: startTime,
+                                endTime: endTime
+                            });
+                        },
+                        processResponse: function (record) {
+                            result = result.concat(record.data);
+                        }
+                    }
+                )
+            )
+        }).then(
+            () => {
+                if (sortKey) {
+                    result = result.sort((a, b) => {
+                        return (a[sortKey] - b[sortKey]) * sortVal;
+                    })
+                }
+                let summary = {
+                    marketCost: 0,
+                    operationFee: 0,
+                    platformFee: 0,
+                    totalRewardAmount: 0,
+                    profitAmount: 0,
+                    serviceFee: 0,
+                    totalBonusAmount: 0,
+                    totalTopUpAmount: 0,
+                    totalCommissionAmount: 0,
+                    totalCommissionOfChildren: 0
+                };
+                result.forEach(item => {
+                    if (item) {
+                        summary.marketCost += item.marketCost;
+                        summary.operationFee += item.operationFee;
+                        summary.platformFee += item.platformFee;
+                        summary.totalRewardAmount += item.totalRewardAmount;
+                        summary.profitAmount += item.profitAmount;
+                        summary.serviceFee += item.serviceFee;
+                        summary.totalBonusAmount += item.totalBonusAmount;
+                        summary.totalPlayerBonusAmount += item.totalPlayerBonusAmount;
+                        summary.totalTopUpAmount += item.totalTopUpAmount;
+                        summary.totalCommissionAmount += item.totalCommissionAmount;
+                        summary.totalCommissionOfChildren += item.totalCommissionOfChildren;
+                    }
+                });
+                return {
+                    data: result.slice(index, index + limit),
+                    size: result.length,
+                    summary: summary
+                };
+            }
+        )
+    },
+
+    findPartnersForCommissionReport: (platform, partners, startTime, endTime) => {
+        let matchObj = {
             platform: platform,
             settleTime: {
                 $gte: startTime,
                 $lt: endTime
             }
         };
-        let partId = matchObj;
-        if (partnerName) {
-            partId = dbconfig.collection_partner.findOne({partnerName: partnerName}).then(
-                partner => {
-                    if (partner && partner._id) {
-                        matchObj.partner = partner._id;
-                    } else {
-                        matchObj = "noPartner";
-                    }
-                    return matchObj;
-                })
+
+        if (partners && partners.length > 0) {
+            let partnerIds = partners.map(partner => partner._id);
+            matchObj.partner = {$in: partnerIds};
         } else {
-            // Instead of searching all partners, look for only partners with permission on
-            partId = dbconfig.collection_partner.find({
-                $or: [
-                    {permission: {$exists: false}},
-                    {$and: [{permission: {$exists: true}}, {'permission.disableCommSettlement': false}]}
-                ]
-            }).then(
-                partners => {
-                    if (partners && partners.length > 0) {
-                        let partnerIds = partners.map(partner => partner._id);
-                        matchObj.partner = {$in: partnerIds};
-                    } else {
-                        matchObj = "noPartner";
-                    }
-                    return matchObj;
-                }
-            )
+            matchObj = "noPartner";
         }
 
-        return Q.resolve(partId).then(
-            matchObj => {
-                if (matchObj == "noPartner") {
-                    return {data: [], size: 0, summary: {}, message: "Cannot find partner"}
-                }
-                return dbconfig.collection_partnerCommissionRecord.aggregate(
-                    [
-                        {
-                            $match: matchObj
+        return dbconfig.collection_partnerCommissionRecord.aggregate(
+            [
+                {
+                    $match: matchObj
+                },
+                {
+                    $group: {
+                        _id: {
+                            partner: "$partner"
                         },
-                        {
-                            $group: {
-                                _id: {
-                                    partner: "$partner"
-                                },
-                                serviceFee: {$sum: "$serviceFee"},
-                                platformFee: {$sum: "$platformFee"},
-                                profitAmount: {$sum: "$profitAmount"},
-                                totalRewardAmount: {$sum: "$totalRewardAmount"},
-                                totalValidAmount: {$sum: "$totalValidAmount"},
-                                totalBonusAmount: {$sum: "$totalBonusAmount"},
-                                totalTopUpAmount: {$sum: "$totalTopUpAmount"},
-                                totalPlayerBonusAmount: {$sum: "$totalPlayerBonusAmount"},
-                                totalCommissionAmount: {$sum: "$commissionAmount"},
-                                totalCommissionOfChildren: {$sum: "$totalCommissionOfChildren"}
-                            }
-                        }
-                    ]
-                ).then(
-                    data => {
-                        var result = [];
-                        data.forEach(
-                            eachRecord => {
-                                if (eachRecord) {
-                                    eachRecord.operationFee = eachRecord.totalTopUpAmount - eachRecord.totalPlayerBonusAmount;
-                                    eachRecord.marketCost = eachRecord.totalRewardAmount + eachRecord.platformFee + eachRecord.serviceFee;
+                        serviceFee: {$sum: "$serviceFee"},
+                        platformFee: {$sum: "$platformFee"},
+                        profitAmount: {$sum: "$profitAmount"},
+                        totalRewardAmount: {$sum: "$totalRewardAmount"},
+                        totalValidAmount: {$sum: "$totalValidAmount"},
+                        totalBonusAmount: {$sum: "$totalBonusAmount"},
+                        totalTopUpAmount: {$sum: "$totalTopUpAmount"},
+                        totalPlayerBonusAmount: {$sum: "$totalPlayerBonusAmount"},
+                        totalCommissionAmount: {$sum: "$commissionAmount"},
+                        totalCommissionOfChildren: {$sum: "$totalCommissionOfChildren"}
+                    }
+                }
+            ]
+        ).then(
+            data => {
+                let result = [];
+                data.forEach(
+                    eachRecord => {
+                        if (eachRecord) {
+                            eachRecord.operationFee = eachRecord.totalTopUpAmount - eachRecord.totalPlayerBonusAmount;
+                            eachRecord.marketCost = eachRecord.totalRewardAmount + eachRecord.platformFee + eachRecord.serviceFee;
+
+                            let a = dbconfig.collection_partner.findOne({_id: eachRecord._id.partner}).then(
+                                partner => {
+                                    eachRecord._id.partnerName = partner.partnerName;
+                                    //todo::refactor the code here for partner player payment summary
+                                    // return dbPartner.getPartnerPlayerPaymentReport(partner.partnerId, startTime, endTime, 0, 0, {}).then(
+                                    //     reportData => {
+                                    //         if(reportData){
+                                    //             eachRecord.totalTopUpAmount = reportData.summary.totalTopUpAmount;
+                                    //             eachRecord.totalBonusAmount = reportData.summary.totalBonusAmount;
+                                    //         }
+                                    //         return eachRecord;
+                                    //     },
+                                    //     err => {
+                                    //         console.log(err);
+                                    //     }
+                                    // );
                                     // eachRecord.totalTopUpAmount = 0;
                                     // eachRecord.totalBonusAmount = 0;
-                                    var a = dbconfig.collection_partner.findOne({_id: eachRecord._id.partner}).then(
-                                        partner => {
-                                            eachRecord._id.partnerName = partner.partnerName;
-                                            //todo::refactor the code here for partner player payment summary
-                                            // return dbPartner.getPartnerPlayerPaymentReport(partner.partnerId, startTime, endTime, 0, 0, {}).then(
-                                            //     reportData => {
-                                            //         if(reportData){
-                                            //             eachRecord.totalTopUpAmount = reportData.summary.totalTopUpAmount;
-                                            //             eachRecord.totalBonusAmount = reportData.summary.totalBonusAmount;
-                                            //         }
-                                            //         return eachRecord;
-                                            //     },
-                                            //     err => {
-                                            //         console.log(err);
-                                            //     }
-                                            // );
-                                            // eachRecord.totalTopUpAmount = 0;
-                                            // eachRecord.totalBonusAmount = 0;
-                                            return eachRecord;
-                                        });
-                                    result.push(a);
-                                }
-                            });
-                        return Q.all(result).then(
-                            result => {
-                                if (sortKey) {
-                                    result = result.sort((a, b) => {
-                                        return (a[sortKey] - b[sortKey]) * sortVal;
-                                    })
-                                }
-                                var summary = {
-                                    marketCost: 0,
-                                    operationFee: 0,
-                                    platformFee: 0,
-                                    totalRewardAmount: 0,
-                                    profitAmount: 0,
-                                    serviceFee: 0,
-                                    totalBonusAmount: 0,
-                                    totalTopUpAmount: 0,
-                                    totalCommissionAmount: 0,
-                                    totalCommissionOfChildren: 0
-                                }
-                                result.forEach(item => {
-                                    if (item) {
-                                        summary.marketCost += item.marketCost;
-                                        summary.operationFee += item.operationFee;
-                                        summary.platformFee += item.platformFee;
-                                        summary.totalRewardAmount += item.totalRewardAmount;
-                                        summary.profitAmount += item.profitAmount;
-                                        summary.serviceFee += item.serviceFee;
-                                        summary.totalBonusAmount += item.totalBonusAmount;
-                                        summary.totalPlayerBonusAmount += item.totalPlayerBonusAmount;
-                                        summary.totalTopUpAmount += item.totalTopUpAmount;
-                                        summary.totalCommissionAmount += item.totalCommissionAmount;
-                                        summary.totalCommissionOfChildren += item.totalCommissionOfChildren;
-                                    }
+                                    return eachRecord;
                                 });
-                                return {
-                                    data: result.slice(index, index + limit),
-                                    size: result.length,
-                                    summary: summary
-                                };
-                            }
-                        )
-                    })
-            });
+                            result.push(a);
+                        }
+                    });
+
+                return Promise.all(result)
+            }
+        )
     },
 
     getPartnerCommission: function (partnerId, startTime, endTime, startIndex, requestCount) {
