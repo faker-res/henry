@@ -12056,7 +12056,6 @@ let dbPlayerInfo = {
         ).then(
             paymentType => {
                 paymentData = paymentType;
-                console.log("paymentData",paymentData);
                 if(playerData && playerData.merchantGroup && playerData.merchantGroup.merchantNames) {
                     return dbconfig.collection_platformMerchantList.findOne({
                         name: playerData.merchantGroup.merchantNames,
@@ -12068,7 +12067,6 @@ let dbPlayerInfo = {
             }
         ).then(
             localMerchantData => {
-                console.log("localMerchantData",localMerchantData);
                 if (paymentData) {
                     var resData = [];
                     if (merchantUse == 1 && (paymentData.merchants || paymentData.topupTypes)) {
@@ -12111,8 +12109,6 @@ let dbPlayerInfo = {
                                                 }
                                             });
                                             if (bValidType && playerData.permission.topupOnline && paymentData.merchants[i].name == merchant && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
-                                                console.log(paymentData.merchants[i])
-
                                                 if (!playerData.forbidTopUpType || playerData.forbidTopUpType.findIndex(f => f == paymentData.merchants[i].topupType) == -1) {
                                                     resData.push({
                                                         type: paymentData.merchants[i].topupType,
@@ -12141,11 +12137,6 @@ let dbPlayerInfo = {
                                         if (paymentData.data[i].accountNumber == bank) {
                                             status = 1;
                                         }
-
-                                        //if (playerData.permission.topupManual === false) {
-                                        //    status = 0;
-                                        //}
-
                                         var bValidType = true;
                                         resData.forEach(type => {
                                             if (type.type == paymentData.data[i].bankTypeId) {
@@ -12159,8 +12150,7 @@ let dbPlayerInfo = {
                                             if (status == 1) {
                                                 resData.push({
                                                     type: paymentData.data[i].bankTypeId,
-                                                    status: status,
-                                                    //accountNumber: paymentData.data[i].accountNumber
+                                                    status: status
                                                 });
                                             }
                                         }
