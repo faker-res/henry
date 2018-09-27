@@ -466,6 +466,13 @@ const dbPlayerMail = {
                                     if (!telNum) {
                                         telNum = savedNumber;
                                     }
+
+                                    if (purpose && purpose === constSMSPurpose.RESET_PASSWORD && telNum != savedNumber) {
+                                        return Promise.reject({
+                                            name: "DataError",
+                                            message: "Phone number does not match"
+                                        });
+                                    }
                                 }
                             }
                         )
