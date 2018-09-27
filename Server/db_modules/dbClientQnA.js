@@ -266,9 +266,10 @@ var dbClientQnA = {
                     return Promise.reject({name: "DBError", message: "Cannot find clientQnA"})
                 }
                 clientQnAObj = clientQnAData;
+                let phoneQ = {$in: [rsaCrypto.encrypt(inputDataObj.phoneNumber), rsaCrypto.oldEncrypt(inputDataObj.phoneNumber)]};
                 return dbconfig.collection_players.findOne({
                     _id: clientQnAData.playerObjId,
-                    phoneNumber: rsaCrypto.encrypt(inputDataObj.phoneNumber)
+                    phoneNumber: phoneQ
                 }).lean();
                 
             }
@@ -589,10 +590,11 @@ var dbClientQnA = {
         }).save().then(
             qnaData => {
                 clientQnAData = qnaData;
+                let phoneQ = {$in: [rsaCrypto.encrypt(inputDataObj.phoneNumber), rsaCrypto.oldEncrypt(inputDataObj.phoneNumber)]};
 
                 return dbconfig.collection_players.find({
                     platform: platformObjId,
-                    phoneNumber: rsaCrypto.encrypt(inputDataObj.phoneNumber)
+                    phoneNumber: phoneQ
                 }, '_id platform playerId name').populate({
                     path: "platform",
                     model: dbconfig.collection_platform,

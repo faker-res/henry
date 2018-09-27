@@ -643,7 +643,7 @@ const dbPlayerMail = {
                                 && platform[whiteListPhone].length > 0
                                 && platform[whiteListPhone].indexOf(telNum) > -1)) {
                             let query = {
-                                phoneNumber: rsaCrypto.encrypt(telNum.toString()),
+                                phoneNumber: {$in: [rsaCrypto.encrypt(telNum.toString()), rsaCrypto.oldEncrypt(telNum.toString())]},
                                 platform: platformObjId,
                                 isRealPlayer: true
                             };
