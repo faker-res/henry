@@ -1118,11 +1118,15 @@ define(['js/app'], function (myApp) {
                                 remark: partner.remarks ? partner.remarks : ""
                             }
                         );
-                        if (partner.settleMethod != "1") {
-                            if (!partner.remarks || partner.remarks == ""){
-                                vm.partnerCommVar.checkedRemark = "Please Add Remark If Not Normal Executed!";
-                            }
-                        }
+
+                        switch (partner.settleMethod) {
+                            case "2":
+                            case "3":
+                                if (!partner.remarks || partner.remarks == ""){
+                                    vm.partnerCommVar.checkedRemark = "Please Add Remark If Not Normal Executed!";
+                                }
+                                break;
+                        };
                     }
                 });
 

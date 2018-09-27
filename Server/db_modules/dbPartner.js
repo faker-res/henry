@@ -11449,13 +11449,16 @@ function applyCommissionToPartner (logObjId, settleType, remark, adminInfo) {
             if (settleType === constPartnerCommissionLogStatus.EXECUTED_THEN_RESET) {
                 remark = "结算后清空馀额：" + remark;
             }
-            return applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
+
+            if (settleType != constPartnerCommissionLogStatus.SKIPPED) {
+                return applyPartnerCommissionSettlement(log, settleType, adminInfo, remark);
+            }
         }
     ).then(
         proposal => {
 
             if (log && log.parentPartnerCommissionDetail && Object.keys(log.parentPartnerCommissionDetail) && Object.keys(log.parentPartnerCommissionDetail).length > 0
-                && proposal && proposal.proposalId) {
+                && proposal && proposal.proposalId && settleType != constPartnerCommissionLogStatus.SKIPPED) {
                 updateParentPartnerCommission(log, adminInfo, proposal.proposalId).catch(error => {
                     console.trace("Update parent partner commission");
                     return errorUtils.reportError(error);
