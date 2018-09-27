@@ -30,7 +30,7 @@ let largeWithdrawalLogSchema = new Schema({
     currentCredit: {type: Number},
     // admin comment
     comment: {type: String, default: ""},
-    // player bonus amount / profit amount (current credit + current withdrawal amount - total top up amount between current withdrawal and last withdrawal)
+    // player bonus amount OR profit amount (current credit + current withdrawal amount - total top up amount between current withdrawal and last withdrawal)
     playerBonusAmount: {type: Number},
     // player total top up amount
     playerTotalTopUpAmount: {type: Number},

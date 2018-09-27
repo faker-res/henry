@@ -11,6 +11,11 @@ const constProposalStatus = require('./../const/constProposalStatus');
 const bcrypt = require("bcrypt");
 const errorUtils = require("./../modules/errorUtils");
 const pmsAPI = require('../externalAPI/pmsAPI');
+const constProposalType = require('../const/constProposalType');
+const ObjectId = require('mongoose').Types.ObjectId;
+const dbUtility = require('./../modules/dbutility');
+const cpmsAPI = require("../externalAPI/cpmsAPI");
+var constProposalMainType = require('../const/constProposalMainType');
 const proposalExecutor = require('./../modules/proposalExecutor');
 
 
@@ -21,6 +26,7 @@ const dbLargeWithdrawal = {
 
     fillUpLargeWithdrawalLogDetail: (largeWithdrawalLogObjId) => {
         let largeWithdrawalLog, proposal, player;
+        let lastWithdrawalObj;
         return dbconfig.collection_largeWithdrawalLog.findOne({_id: largeWithdrawalLogObjId}).lean().then(
             largeWithdrawalLogData => {
                 if (!largeWithdrawalLogData) {
@@ -55,17 +61,85 @@ const dbLargeWithdrawal = {
                     return Promise.reject({name: "DataError", message: "Cannot find player"});
                 }
 
-                let bankCityProm = pmsAPI.foundation_getCityList({provinceId: player.bankAccountProvince});
-                let updateObj = {
-                    realName: player.realName,
-                    playerLevelName: player.playerLevel.name,
-                };
-
-                return Promise.all([bankCityProm]);
+                // return last, last 3 month withdrawal
+                let lastWithdrawalProm = dbconfig.collection_proposal.findOne({
+                    'data.playerObjId': ObjectId(proposal.data.playerObjId),
+                    mainType: constProposalType.PLAYER_BONUS,
+                    status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                }).sort({createTime: -1}).lean();
+                return Promise.all([lastWithdrawalProm]);
             }
         ).then(
-            ([bankCity]) => {
-                console.log("bankcity", bankCity)
+            ([lastWithdraw]) => {
+                lastWithdrawalObj = lastWithdraw;
+                let largeWithdrawalSettingProm = dbconfig.collection_largeWithdrawalSetting.findOne({platform: largeWithdrawalLog.platform}).lean();
+                let todayLargeAmountProm = Promise.resolve(0);
+                if (player.platform && player.platform.autoApproveWhenSingleBonusApplyLessThan) {
+                    let todayTime = dbUtility.getTodaySGTime();
+                    todayLargeAmountProm = dbconfig.collection_largeWithdrawalLog.find({
+                        platform: largeWithdrawalLog.platform,
+                        withdrawalTime: {
+                            $gte: todayTime.startTime,
+                            $lt: todayTime.endTime
+                        },
+                    }).count();
+                }
+                let bankCityProm = pmsAPI.foundation_getCityList({provinceId: player.bankAccountProvince});
+                let gameCreditProm = getTotalUniqueProviderCredit(player);
+
+                let totalTopUpFromLastWithdrawal = Promise.resolve(0); //default amount
+                let totalConsumptionFromLastWithdrawal = Promise.resolve(0);
+                let totalRewardFromLastWithdrawal = Promise.resolve(0);
+                if (lastWithdraw && lastWithdraw.createTime) {
+                    totalTopUpFromLastWithdrawal = getTotalTopUpSinceLastWithdrawal(player, lastWithdraw.createTime, proposal.createTime);
+                    totalConsumptionFromLastWithdrawal = getTotalConsumptionSinceLastWithdrawal(player, lastWithdraw.createTime, proposal.createTime);
+                    totalRewardFromLastWithdrawal = getTotalRewardSinceLastWithdrawal(player, lastWithdraw.createTime, proposal.createTime);
+
+                }
+
+
+                return Promise.all([largeWithdrawalSettingProm, todayLargeAmountProm, bankCityProm, gameCreditProm, totalTopUpFromLastWithdrawal
+                ,totalConsumptionFromLastWithdrawal, totalRewardFromLastWithdrawal]);
+            }
+        ).then(
+            ([largeWithdrawalSetting, todayLargeAmountNo, bankCity, gameCredit, topUpAmtFromLastWithdraw, consumptionAmtFromLastWithdraw
+                 , rewardAmtFromLastWithdraw]) => {
+                let bankCityName;
+                let withdrawalAmount;
+                let currentCredit = gameCredit + player.validCredit;
+                console.log("walaoreward",rewardAmtFromLastWithdraw)
+                if (proposal && proposal.data && proposal.data.hasOwnProperty("amount")) {
+                    withdrawalAmount = proposal.data.amount;
+                }
+
+                if (bankCity && bankCity.cities && bankCity.cities.length && player.bankAccountCity) {
+                    for (let i = 0; i < bankCity.cities.length; i++) {
+                        if (bankCity.cities[i].id == player.bankAccountCity) {
+                            bankCityName = bankCity.cities[i].name;
+                            break;
+                        }
+                    }
+                }
+
+                let updateObj = {
+                    emailNameExtension:largeWithdrawalSetting.emailNameExtension,
+                    todayLargeAmountNo: todayLargeAmountNo + 1,
+                    playerName: player.name,
+                    amount: withdrawalAmount,
+                    realName: player.realName,
+                    playerLevelName: player.playerLevel.name,
+                    bankCity: bankCityName,
+                    registrationTime: player.registrationTime,
+                    // withdrawalTime: proposal.createTime,
+                    lastWithdrawalTime: lastWithdrawalObj && lastWithdrawalObj.createTime || "",
+                    currentCredit: currentCredit,
+                    playerBonusAmount: currentCredit + withdrawalAmount - topUpAmtFromLastWithdraw,
+                    playerTotalTopUpAmount: topUpAmtFromLastWithdraw,
+                    consumptionReturnAmount: consumptionAmtFromLastWithdraw,
+                    rewardAmount: rewardAmtFromLastWithdraw
+                };
+                
+                console.log("walaoeheheheheheh", updateObj)
             }
         );
     },
@@ -368,7 +442,144 @@ var proto = dbLargeWithdrawalFunc.prototype;
 proto = Object.assign(proto, dbLargeWithdrawal);
 
 // ======== large withdrawal log input common function START ========
+function getTotalConsumptionSinceLastWithdrawal (playerObj, lastWithdrawTime, currentWithdrawTime) {
+    return dbconfig.collection_playerConsumptionRecord.aggregate([{
+        $match: {
+            playerId: playerObj._id,
+            createTime: {
+                $gte: lastWithdrawTime,
+                $lt: currentWithdrawTime
+            }
+        }
+    }, {
+        $group: {
+            _id: null,
+            amount: {$sum: "$validAmount"}
+        }
+    }]).then(
+        consumptionData => {
+            let consumptionAmount = 0;
+            if (consumptionData && consumptionData[0] && consumptionData[0].amount) {
+                consumptionAmount = consumptionData[0].amount;
+            }
+            return consumptionAmount;
+        }
+    );
 
+};
+
+function getTotalTopUpSinceLastWithdrawal (playerObj, lastWithdrawTime, currentWithdrawTime) {
+    return dbconfig.collection_playerTopUpRecord.aggregate([{
+        $match: {
+            playerId: playerObj._id,
+            createTime: {
+                $gte: lastWithdrawTime,
+                $lt: currentWithdrawTime
+            }
+        }
+    }, {
+        $group: {
+            _id: null,
+            amount: {$sum: "$amount"}
+        }
+    }]).then(
+        topUpData => {
+            let topUpAmount = 0;
+            if (topUpData && topUpData[0] && topUpData[0].amount) {
+                topUpAmount = topUpData[0].amount;
+            }
+            return topUpAmount;
+        }
+    );
+};
+
+function getTotalRewardSinceLastWithdrawal (playerObj, lastWithdrawTime, currentWithdrawTime) {
+    return dbconfig.collection_proposalType.findOne({
+        platformId: playerObj.platform,
+        name: constProposalType.PLAYER_CONSUMPTION_RETURN
+    }).lean().then(
+        proposalTypeData => {
+            let rewardQuery = {
+                'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
+                mainType: "Reward",
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                createTime: {
+                    $gte: lastWithdrawTime,
+                    $lt: currentWithdrawTime
+                }
+            }
+            if (proposalTypeData) {
+                rewardQuery.type = {$ne: proposalTypeData._id}
+            }
+            return dbconfig.collection_proposal.aggregate([{
+                $match: rewardQuery
+            }, {
+                $group: {
+                    _id: null,
+                    amount: {$sum: "$data.rewardAmount"}
+                }
+            }]).then(
+                rewardData => {
+                    let rewardAmount = 0;
+                    if (rewardData && rewardData[0] && rewardData[0].amount) {
+                        rewardAmount = rewardData[0].amount;
+                    }
+                    return rewardAmount;
+                }
+            );
+        }
+    )
+}
+
+function getTotalUniqueProviderCredit (playerObj) {
+    let gamePromArr = [];
+    return dbconfig.collection_platform.findOne({_id: playerObj.platform})
+        .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean().then(
+        platformData => {
+            let totalGameCredit = 0;
+
+            if (platformData && platformData.gameProviders.length > 0) {
+                for (let j = 0 ; j < platformData.gameProviders.length; j++) {
+                    let provider = platformData.gameProviders[j];
+                    let sameLineProviders = provider.sameLineProviders && provider.sameLineProviders[platformData.platformId] || [];
+
+                    for (let k = platformData.gameProviders.length - 1; k > j; k--) {
+                        let comparingProvider = platformData.gameProviders[k];
+                        if (sameLineProviders.includes(comparingProvider.providerId)) {
+                            platformData.gameProviders.splice(k, 1);
+                        }
+                    }
+                }
+
+                for (let i = 0; i < platformData.gameProviders.length; i++) {
+                    let queryObj = {
+                        username: playerObj.name,
+                        platformId: platformData.platformId,
+                        providerId: platformData.gameProviders[i].providerId,
+                    };
+                    let gameCreditProm = cpmsAPI.player_queryCredit(queryObj).catch(err => {
+                        console.log("Failed to get credit from CPMS, largeWithdrawLog")
+                        return Promise.resolve();
+                    })
+                    gamePromArr.push(gameCreditProm);
+                }
+            }
+            return Promise.all(gamePromArr).then(
+                gameCreditData => {
+                    console.log("walaogamecredit",gameCreditData)
+                    if (gameCreditData && gameCreditData.length) {
+                        gameCreditData.forEach(game => {
+                            if (game && game.credit) {
+                                totalGameCredit += parseFloat(game.credit);
+                            }
+                        })
+                    }
+                    return totalGameCredit;
+                }
+            )
+        }
+    );
+};
 // ======== large withdrawal log input common function END ========
 
 module.exports = dbLargeWithdrawal;
