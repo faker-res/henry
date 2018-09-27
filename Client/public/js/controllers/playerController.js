@@ -13765,24 +13765,23 @@ define(['js/app'], function (myApp) {
                             data = data || '0';
                             vm.blacklistIpRowData = (row && row.ipAddress) ? row.ipAddress : "";
                             let playerIpAddress = (row && row.ipAddress) ? row.ipAddress : "";
-                            vm.blacklistIpDetail = vm.blacklistIpConfig.filter(e => {
-                                if (e && e.ip && playerIpAddress && e.ip.toString() === playerIpAddress.toString()) {
-                                    return e;
-                                }
-                            });
 
                             // display text in red if match blacklist ip
                             if (vm.blacklistIpList.includes(playerIpAddress)) {
-                                return $('<a data-target="#modalPlayerBlacklistIpDetail" style="z-index: auto" data-toggle="modal" data-container="body" ' +
-                                    'data-placement="bottom" data-trigger="focus" class="colorRed" type="button" ng-click="vm.showBlacklistIpDetail(' + JSON.stringify(data) + ')" data-html="true" href="#"></a>')
-                                    .attr('data-row', JSON.stringify(data))
-                                    .text((data))
-                                    .prop('outerHTML');
+                                var $a = $('<a>', {
+                                    'class': 'colorRed',
+                                    'data-toggle': 'modal',
+                                    'data-target': '#modalPlayerBlacklistIpDetail',
+                                    'ng-click': "vm.showBlacklistIpDetail(" + JSON.stringify(data) + ")"
+                                }).text(data);
+                                return $a.prop('outerHTML');
                             } else {
                                 return $('<p>', {}).text(data).prop('outerHTML');
                             }
                         },
-                        "sClass": "alignRight"
+                        "fnCreatedCell": function (nTd, sData, oData, iRow, iCol) {
+                            $compile(nTd)($scope)
+                        }
                     },
                     {title: $translate('IP_AREA'), data: "ipArea$"},
                     {title: $translate('OS'), data: "os"},
@@ -13804,17 +13803,11 @@ define(['js/app'], function (myApp) {
         };
 
         vm.showBlacklistIpDetail = function (playerIpAddress) {
-            console.log('playerIpAddress===', playerIpAddress);
-            // vm.playerBlacklistIpDetail = [];
-            //
-            // vm.blacklistIpConfig.forEach(data => {
-            //     console.log('data.ip===', data.ip);
-            //     if (data.ip === playerIpAddress) {
-            //         vm.playerBlacklistIpDetail.push(data);
-            //     }
-            // });
-            // console.log('vm.playerBlacklistIpDetail===', vm.playerBlacklistIpDetail);
-            // $('#modalPlayerBlacklistIpDetail').modal();
+            vm.blacklistIpDetail = vm.blacklistIpConfig.filter(e => {
+                if (e && e.ip && playerIpAddress && e.ip.toString() === playerIpAddress.toString()) {
+                    return e;
+                }
+            });
         };
 
         vm.initPlayerRewardPointLog = () => {
@@ -18068,7 +18061,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                     proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                     if(vm.selectedProposal.data.hasOwnProperty("rate")){
-                        proposalDetail["Service Charge Ratio"] = vm.selectedProposal.data.rate;
+                        proposalDetail["Service Charge Fee"] = $noRoundTwoDecimalPlaces(vm.selectedProposal.data.amount * vm.selectedProposal.data.rate) + '（' + $translate("Service Charge Ratio") + '：' + (vm.selectedProposal.data.rate * 100) + '%)';
                     }
                     if(vm.selectedProposal.data.hasOwnProperty('actualAmountReceived')){
                         proposalDetail["ActualReceivedAmount"] = vm.selectedProposal.data.actualAmountReceived;
@@ -18454,7 +18447,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                     proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                     if(vm.selectedProposal.data.hasOwnProperty("rate")){
-                        proposalDetail["Service Charge Ratio"] = vm.selectedProposal.data.rate;
+                        proposalDetail["Service Charge Fee"] = $noRoundTwoDecimalPlaces(vm.selectedProposal.data.amount * vm.selectedProposal.data.rate) + '（' + $translate("Service Charge Ratio") + '：' + (vm.selectedProposal.data.rate * 100) + '%)';
                     }
                     if(vm.selectedProposal.data.hasOwnProperty('actualAmountReceived')){
                         proposalDetail["ActualReceivedAmount"] = vm.selectedProposal.data.actualAmountReceived;

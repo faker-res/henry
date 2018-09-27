@@ -1130,6 +1130,7 @@ p
                                         option(value='1', ) {{'NORMAL_EXECUTED' | translate}}
                                         option(value='2', ) {{'RESET_THEN_EXECUTED' | translate}}
                                         option(value='3', ) {{'EXECUTED_THEN_RESET' | translate}}
+                                        option(value='4', ) {{'SKIP_CURRENT_PERIOD' | translate}}
                                 td(ng-init="v.editRemark = false", ng-click="v.editRemark = true")
                                     a(href='', ng-if="!v.editRemark") {{v.remarks ? v.remarks : ""}}
                                     textarea.form-control(ng-if="v.editRemark", type="textarea", name="Remark", placeholder='{{"REMARKS" | translate}}', ng-model="v.remarks")
