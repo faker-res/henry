@@ -3807,7 +3807,7 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data) {
-
+                    // Async - Update financial points
                     dbPlatform.changePlatformFinancialPoints(data.platform, proposalData.data.amount).then(
                         platformData => {
                             if (!platformData) {
@@ -3845,6 +3845,7 @@ let dbPlayerInfo = {
                 if (data) {
                     player = data;
 
+                    // Create playerTopUpRecord and credit change log
                     let logData = null;
                     let recordData = {
                         playerId: player._id,
@@ -20726,6 +20727,7 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
                 return Promise.resolve();
             }
             if (!rewardProp) {
+                console.log("Create level up reward", playerObj.name);
                 // if this is level up and player has not reach this level before
                 // create level up reward proposal
 
@@ -20747,6 +20749,7 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
                 return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposal});
 
             } else {
+                console.log("Level up reward has been created previously", playerObj.name, rewardProp.status, rewardProp.createTime);
                 isRewardAssign = true;
                 return {}
             }
