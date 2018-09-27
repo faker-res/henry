@@ -2,21 +2,21 @@
 var localConfig = {
     mode: "local",
     redisUrl : 'localhost',
-    redisPort : '1702',
+    redisPort : '1802',
 };
 
 // dev-test
 var devConfig = {
     mode: "development",
     redisUrl : 'testkey.fpms8.me',
-    redisPort : '1702',
+    redisPort : '1802',
 };
 
 //for release production
 var prodConfig = {
     mode: "production",
     redisUrl : 'testkey.fpms8.me',
-    redisPort : '1702',
+    redisPort : '1802',
 };
 
 //env parameters
