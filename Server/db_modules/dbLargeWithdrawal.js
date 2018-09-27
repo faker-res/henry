@@ -13,6 +13,7 @@ const bcrypt = require("bcrypt");
 const errorUtils = require("./../modules/errorUtils");
 const pmsAPI = require('../externalAPI/pmsAPI');
 const proposalExecutor = require('./../modules/proposalExecutor');
+const dbProposalProcessStep = require('./../db_modules/dbLargeWithdrawal');
 
 
 const dbLargeWithdrawal = {
@@ -110,10 +111,12 @@ const dbLargeWithdrawal = {
         );
     },
 
-    largeWithdrawalAudit: (proposalId, adminObjId, decision) => {
+    largeWithdrawalAudit: (proposalId, adminObjId, decision, isMail) => {
         let admin, proposal, largeWithdrawalLog, largeWithdrawalSetting;
         let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
         let proposalProm = dbconfig.collection_proposal.findOne({proposalId}).lean();
+        let status = decision === "approve" ? constProposalStatus.APPROVED : constProposalStatus.REJECTED;
+        let memo = isMail ? "邮件回复审核" : "";
 
         return Promise.all([adminProm, proposalProm]).then(
             data => {
@@ -172,7 +175,7 @@ const dbLargeWithdrawal = {
                     createTime: proposal.createTime
                 }, {
                     'data.approvedByCs': admin.adminName,
-                    status: constProposalStatus.APPROVED,
+                    status: status,
                 }, {
                     new: true
                 }).populate({path: "type", model: dbconfig.collection_proposalType}).lean();
@@ -184,6 +187,11 @@ const dbLargeWithdrawal = {
                     return Promise.reject({message: "Proposal had been updated in the process of auditing, please try again if necessary"});
                 }
                 proposal = proposalData;
+
+                return createProposalProcessStep(proposal, adminObjId, status, memo).catch(errorUtils.reportError);
+            }
+        ).then(
+            () => {
                 return proposalExecutor.approveOrRejectProposal(proposal.type.executionType, proposal.type.rejectionType, Boolean(decision === "approve"), proposal);
             }
         );
@@ -198,10 +206,13 @@ const dbLargeWithdrawal = {
                 }
                 largeWithdrawalLog = largeWithdrawalLogData;
 
-                return dbconfig.collection_largeWithdrawalSetting.findOne({platform: largeWithdrawalLog.platform}).lean();
+                let largeWithdrawalSettingProm = dbconfig.collection_largeWithdrawalSetting.findOne({platform: largeWithdrawalLog.platform}).lean();
+                let proposalProcessProm = dbconfig.collection_proposalProcess.findOne({_id: proposal.process}).populate({path: "steps", model: dbconfig.collection_proposalProcessStep}).lean();
+
+                return Promise.all([largeWithdrawalSettingProm, proposalProcessProm]);
             }
         ).then(
-            largeWithdrawalSettingData => {
+            ([largeWithdrawalSettingData, proposalProcessData]) => {
                 if (!largeWithdrawalSettingData) {
                     return Promise.reject({message: "Large withdrawal log not found"});
                 }
@@ -211,10 +222,15 @@ const dbLargeWithdrawal = {
                     return [];
                 }
 
+                let processStep;
+                if (proposalProcessData && proposalProcessData.steps && proposalProcessData.steps[0]) {
+                    processStep = proposalProcessData.steps[0];
+                }
+
                 let proms = [];
 
                 largeWithdrawalSetting.recipient.map(recipient => {
-                    let prom = sendLargeWithdrawalProposalAuditedInfo(proposal, recipient);
+                    let prom = sendLargeWithdrawalProposalAuditedInfo(proposal, recipient, largeWithdrawalLog, processStep);
                     proms.push(prom);
                 });
 
@@ -334,21 +350,21 @@ function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSettin
     );
 }
 
-function sendLargeWithdrawalProposalAuditedInfo(proposalData, adminObjId) {
+function sendLargeWithdrawalProposalAuditedInfo(proposalData, adminObjId, log, proposalProcessStep) {
     let admin, html;
-    // get html todo
-    html = "Data";
-    return dbconfig.collection_admin.findOne({_id: adminObjId}).lean().then(
+    return dbconfig.collection_admin.findOne({_id: adminObjId}).populate({path: "departments", model: dbconfig.collection_department}).lean().then(
         adminData => {
             if (!adminData) {
                 return Promise.reject({message: "Admin not found."});
             }
             admin = adminData;
 
+            html = generateLargeWithdrawalAuditedInfoEmail(proposalData, admin, proposalProcessStep);
+
             let emailConfig = {
                 sender: "no-reply@snsoft.my", // company email?
                 recipient: admin.email, // admin email
-                subject: "大额提款（" + (largeWithdrawalLog.emailSentTimes + 1) + "）：日期--会员账号--本次提款金额- " + largeWithdrawalLog.emailNameExtension, // title
+                subject: getLogDetailEmailSubject(log), // title
                 body: html, // html content
                 isHTML: true
             };
@@ -845,6 +861,105 @@ function getLogDetailEmailSubject (log) {
     let str = `大额提款（${log.todayLargeAmountNo}）：${withdrawalDate}--${log.playerName}--${withdrawalAmount}- ${log.emailNameExtension}`;
 
     return str;
+}
+
+function createProposalProcessStep (proposal, adminObjId, status, memo) {
+    let proposalTypeProm = dbconfig.collection_proposalType.findOne({_id: proposal.type}).populate({path: "process", model: dbconfig.collection_proposalProcess}).lean();
+    let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
+
+    return Promise.resolve([proposalTypeProm, adminProm]).then(
+        ([proposalType, admin]) => {
+            if (!proposalType || admin) {
+                return Promise.resolve();
+            }
+
+            if (!proposalType.process || !proposalType.process.steps || !proposalType.process.steps.length) {
+                return Promise.resolve();
+            }
+
+            let proposalTypeProcessStepId = proposalType.process.steps[0];
+
+            let proposalProcessStepData = {
+                status,
+                memo,
+                operator: adminObjId,
+                operationTime: new Date(),
+                type: proposalTypeProcessStepId,
+                department: admin.departments && admin.departments[0] || undefined,
+                role: admin.roles && admin.roles[0] || undefined,
+                createTime: new Date()
+            };
+
+            return dbProposalProcessStep.createProposalProcessStep(proposalProcessStepData);
+        }
+    ).then(
+        stepObj => {
+            if (!stepObj) {
+                return Promise.resolve();
+            }
+
+            return dbconfig.collection_proposalProcess.findOneAndUpdate({_id: proposal.process}, {$addToSet: {steps: stepObj._id}}, {new: true}).lean();
+        }
+    );
+}
+
+function generateLargeWithdrawalAuditedInfoEmail (proposalData, admin, proposalProcessStep) {
+    let lockStatus = proposalData.isLocked && proposalData.isLocked.adminName || "未锁定";
+    let status, cancelTime, decisionColor;
+    switch (proposalData.status) {
+        case constProposalStatus.APPROVED:
+            status = "已审核";
+            cancelTime = "";
+            decisionColor = "green";
+            break;
+        case constProposalStatus.FAIL:
+            status = "失败";
+            cancelTime = dbutility.getLocalTimeString(proposalData.data && proposalData.data.lastSettleTime || proposalData.settleTime, "YYYY/MM/DD HH:mm:ss");
+            decisionColor = "red";
+            break;
+        case constProposalStatus.SUCCESS:
+            status = "成功";
+            cancelTime = "";
+            decisionColor = "green";
+            break;
+        default:
+            status = "已取消";
+            cancelTime = dbutility.getLocalTimeString(proposalProcessStep && proposalProcessStep.operationTime || proposalData.data && proposalData.data.lastSettleTime || proposalData.settleTime, "YYYY/MM/DD HH:mm:ss");
+            decisionColor = "red";
+    }
+    let creator = proposalData.creator && proposalData.creator.name || "系统";
+    let createTime = dbutility.getLocalTimeString(proposalData.createTime, "YYYY/MM/DD HH:mm:ss");
+    let settleTime = dbutility.getLocalTimeString(proposalData.data && proposalData.data.lastSettleTime || proposalData.settleTime, "YYYY/MM/DD HH:mm:ss");
+
+
+    let html = `
+    <div style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; width: 38.2%"><b>基本</b></div>
+    <div style="margin-top: 8px;">锁定状态：${lockStatus}</div>
+    <div style="margin-top: 8px;">名称：玩家提款</div>
+    <div style="margin-top: 8px; color: ${decisionColor};">状态：${status}</div>
+    <div style="margin-top: 8px;">提案号：${proposalData.proposalId}</div>
+    <div style="margin-top: 8px;">创建者：${creator}</div>
+    <div style="margin-top: 8px;">创建时间：${createTime}</div>
+    <div style="margin-top: 8px;">执行时间：${settleTime}</div>
+    <div style="margin-top: 8px;">取消时间：${cancelTime}</div>
+    <div style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; width: 38.2%; margin-top: 13px;"><b>提案历史过程</b></div>
+    `;
+
+    if (proposalProcessStep) {
+        let department = admin && admin.departments && admin.departments[0] && admin.departments[0].departmentName || "";
+        let auditor = admin.adminName;
+        let auditTime = dbutility.getLocalTimeString(proposalProcessStep.operationTime, "YYYY/MM/DD HH:mm:ss");
+        let memo = proposalProcessStep.memo || "";
+
+        html += `
+        <div style="margin-top: 8px;">部门：${department}</div>
+        <div style="margin-top: 8px;">审核人：${auditor}</div>
+        <div style="margin-top: 8px;">审核时间：${auditTime}</div>
+        <div style="margin-top: 8px; color: ${decisionColor};">备注：${memo}</div>
+        `;
+    }
+
+    return html;
 }
 
 var proto = dbLargeWithdrawalFunc.prototype;

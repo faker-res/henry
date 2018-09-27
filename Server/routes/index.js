@@ -337,7 +337,7 @@ router.get('/auditLargeWithdrawalProposal', function (req, res, next) {
             res.send({success: false});
         } else if (isMatch) {
             // what happened when success
-            dbLargeWithdrawal.largeWithdrawalAudit(proposalId, adminObjId, decision).then(
+            dbLargeWithdrawal.largeWithdrawalAudit(proposalId, adminObjId, decision, true).then(
                 data => {
                     res.send({success: true, data});
                 },
