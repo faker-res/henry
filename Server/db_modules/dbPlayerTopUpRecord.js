@@ -1045,7 +1045,7 @@ var dbPlayerTopUpRecord = {
                     rate => {
                         if(rate && rate.length > 0 && typeof rate[0] != "undefined"){
                             updateData.data.rate = rate[0];
-                            updateData.data.actualAmountReceived = (topupRequest.amount * (100 - Number(rate[0])) / 100).toFixed(2);
+                            updateData.data.actualAmountReceived = (topupRequest.amount - (topupRequest.amount * Number(rate[0]))).toFixed(2);
                         }
 
                         return updateData;
