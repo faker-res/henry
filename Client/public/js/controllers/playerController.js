@@ -18061,7 +18061,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                     proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                     if(vm.selectedProposal.data.hasOwnProperty("rate")){
-                        proposalDetail["Service Charge Ratio"] = vm.selectedProposal.data.rate;
+                        proposalDetail["Service Charge Ratio"] = (vm.selectedProposal.data.rate * 100) + '%';
                     }
                     if(vm.selectedProposal.data.hasOwnProperty('actualAmountReceived')){
                         proposalDetail["ActualReceivedAmount"] = vm.selectedProposal.data.actualAmountReceived;
@@ -18447,7 +18447,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                     proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                     if(vm.selectedProposal.data.hasOwnProperty("rate")){
-                        proposalDetail["Service Charge Ratio"] = vm.selectedProposal.data.rate;
+                        proposalDetail["Service Charge Ratio"] = (vm.selectedProposal.data.rate * 100) + '%';
                     }
                     if(vm.selectedProposal.data.hasOwnProperty('actualAmountReceived')){
                         proposalDetail["ActualReceivedAmount"] = vm.selectedProposal.data.actualAmountReceived;
