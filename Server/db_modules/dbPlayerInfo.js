@@ -18146,11 +18146,12 @@ let dbPlayerInfo = {
                     
                     for (let i = 0; i < platformData.gameProviders.length; i++) {
                         // check each of the game provider for the sameLineProvider
-                        if (platformData.gameProviders[i] && platformData.gameProviders[i].sameLineProviders && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId]) {
+                        if (platformData.gameProviders[i] && platformData.gameProviders[i].sameLineProviders && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId] &&
+                            platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0] && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0].length) {
                             gameProviderIdList.push(platformData.gameProviders[i].providerId);
 
                             if (!groupSameLineProviders.length) {
-                                groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0].sort())
+                                groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0])
                             }
                             else {
                                 // check each of the providerId
@@ -18252,8 +18253,10 @@ let dbPlayerInfo = {
                     // remove the unrelated provderID and return data
                     returnData.sameLineProviders = {};
                     for (let i = 0; i < tempSameLineProviderList.length; i ++) {
-                        returnData.sameLineProviders[i] = tempSameLineProviderList[i].filter(x => gameProviderIdList.indexOf(x) > -1).sort();
-                        amountGameProviderList.push(returnData.sameLineProviders[i][0]);
+                        if (tempSameLineProviderList[i].length) {
+                            returnData.sameLineProviders[i] = tempSameLineProviderList[i].filter(x => gameProviderIdList.indexOf(x) > -1).sort();
+                            amountGameProviderList.push(returnData.sameLineProviders[i][0]);
+                        }
                     }
                 }
 
