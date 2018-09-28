@@ -1025,7 +1025,11 @@ var proposal = {
                 }
             },
             function (err) {
-                deferred.reject({name: "DBError", message: "Error creating proposal process step", error: err});
+                if(err && err.errorMessage && err.errorMessage == "Bank Info Not Matched"){
+                    deferred.reject({name: "DBError", message: err.errorMessage, error: err});
+                }else{
+                    deferred.reject({name: "DBError", message: "Error creating proposal process step", error: err});
+                }
             }
         );
         return deferred.promise;
