@@ -561,7 +561,7 @@ let dbPlatformAutoFeedback = {
                 }).then(
                     playerQuery => {
                         let filteredPlayerProm = dbconfig.collection_players.find(playerQuery).lean();
-                        let stream = filteredPlayerProm.cursor({batchSize: 100});
+                        let stream = filteredPlayerProm.cursor({batchSize: 3000});
                         let balancer = new SettlementBalancer();
 
                         return balancer.initConns().then(function () {
