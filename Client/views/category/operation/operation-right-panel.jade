@@ -264,8 +264,8 @@ style.
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
-                div test modal
-            .modal-body
+                div {{"largeWithdrawal" | translate}}
+            .modal-body(style="max-height: 71vh; overflow-y: auto;")
                 div(style="text-align: left; background-color: #047ea5; color: #FFFFFF; font-weight: bold; padding: 13px; border-radius: 38px; width: 61.8%") A. {{"PLAYER_INFORMATION_PORTION" | translate}}
                 div(style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 38.2%") {{"BASIC_INFORMATION" | translate}}
                 table.simple-table(style="margin-top: 12px;")
@@ -291,17 +291,17 @@ style.
                         td {{"providerCreditAmount" | translate}}
                         td {{$fixTwoDecimalStr(vm.largeWithdrawLog.currentCredit)}}
                 div(style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 38.2%") {{"LAST_TO_CURRENT_WITHDRAWAL" | translate}}
-                table.simple-table
+                table.simple-table(style="margin-top: 12px;")
                     tr(ng-if="vm.largeWithdrawalSetting.showPlayerBonusAmount")
                         td.col-md-3 {{"PLAYER_PROFIT" | translate}}
                         td {{$fixTwoDecimalStr(vm.largeWithdrawLog.playerBonusAmount)}}
                     tr(ng-if="vm.largeWithdrawalSetting.showTotalTopUpAmount")
                         td {{"TopupAmount" | translate}}
                         td {{$fixTwoDecimalStr(vm.largeWithdrawLog.playerTotalTopUpAmount)}}
-                    tr(ng-if="vm.largeWithdrawalSetting.playerTotalTopUpAmount")
+                    tr(ng-if="vm.largeWithdrawalSetting.showConsumptionReturnAmount")
                         td {{"CONSUMPTION_RETURN_REWARD" | translate}}
                         td {{$fixTwoDecimalStr(vm.largeWithdrawLog.consumptionReturnAmount)}}
-                    tr(ng-if="vm.largeWithdrawalSetting.consumptionReturnAmount")
+                    tr(ng-if="vm.largeWithdrawalSetting.showRewardAmount")
                         td {{"OTHER_REWARD" | translate}}
                         td {{$fixTwoDecimalStr(vm.largeWithdrawLog.rewardAmount)}}
 
@@ -461,7 +461,7 @@ style.
 
                 div(ng-if="vm.largeWithdrawalSetting.allowAdminComment" style="text-align: left; background-color: #047ea5; color: #FFFFFF; font-weight: bold; padding: 13px; border-radius: 38px; width: 61.8%; margin-top: 38px") C. {{"CS Comment Area" | translate}}
 
-                textarea.form-control(ng-if="vm.largeWithdrawalSetting.allowAdminComment" ng-model="vm.largeWithdrawLog.comment" ng-disabled='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")')
+                textarea.form-control(ng-if="vm.largeWithdrawalSetting.allowAdminComment" style="margin-top: 12px;" ng-model="vm.largeWithdrawLog.comment" ng-disabled='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")')
             .modal-footer
                 div(ng-if="vm.isLargeWithdrawalReviewer")
                     // is reviewer
