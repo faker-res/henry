@@ -12020,6 +12020,7 @@ let dbPlayerInfo = {
         // merchantUse - 1: merchant, 2: bankcard
         // clientType: 1: browser, 2: mobileApp
         var playerData = null;
+        let paymentData = null;
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
         ).populate(
@@ -12059,7 +12060,19 @@ let dbPlayerInfo = {
                 }
             }
         ).then(
-            paymentData => {
+            paymentType => {
+                paymentData = paymentType;
+                if(playerData && playerData.merchantGroup && playerData.merchantGroup.merchantNames) {
+                    return dbconfig.collection_platformMerchantList.findOne({
+                        name: playerData.merchantGroup.merchantNames,
+                        platformId: playerData.platform.platformId
+                    }).lean();
+                } else {
+                    return null;
+                }
+            }
+        ).then(
+            localMerchantData => {
                 if (paymentData) {
                     var resData = [];
                     if (merchantUse == 1 && (paymentData.merchants || paymentData.topupTypes)) {
@@ -12080,10 +12093,6 @@ let dbPlayerInfo = {
                                                 status = 1;
                                             }
 
-                                            //if (playerData.permission.topupOnline === false) {
-                                            //    status = 0;
-                                            //}
-
                                             var bValidType = true;
                                             resData.forEach(type => {
                                                 if (type.type == paymentData.merchants[i].topupType) {
@@ -12098,20 +12107,24 @@ let dbPlayerInfo = {
                                                         }
 
                                                         type.status = status;
-                                                        type.serviceCharge = paymentData.merchants[i].rate;
+                                                        type.serviceCharge =
+                                                            localMerchantData && localMerchantData.customizeRate ? localMerchantData.customizeRate :
+                                                                localMerchantData && localMerchantData.rate ? merchant.rate :
+                                                                    paymentData.merchants[i].rate ? paymentData.merchants[i].rate : 0;
                                                     }
                                                 }
                                             });
                                             if (bValidType && playerData.permission.topupOnline && paymentData.merchants[i].name == merchant && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
-                                                console.log(paymentData.merchants[i])
-
                                                 if (!playerData.forbidTopUpType || playerData.forbidTopUpType.findIndex(f => f == paymentData.merchants[i].topupType) == -1) {
                                                     resData.push({
                                                         type: paymentData.merchants[i].topupType,
                                                         status: status,
                                                         maxDepositAmount: paymentData.merchants[i].permerchantLimits,
                                                         minDepositAmount: paymentData.merchants[i].permerchantminLimits,
-                                                        serviceCharge: paymentData.merchants[i].rate
+                                                        serviceCharge:
+                                                            localMerchantData && localMerchantData.customizeRate ? localMerchantData.customizeRate :
+                                                                localMerchantData && localMerchantData.rate ? merchant.rate :
+                                                                    paymentData.merchants[i].rate ? paymentData.merchants[i].rate : 0
                                                     });
                                                 }
                                             }
@@ -12130,11 +12143,6 @@ let dbPlayerInfo = {
                                         if (paymentData.data[i].accountNumber == bank) {
                                             status = 1;
                                         }
-
-                                        //if (playerData.permission.topupManual === false) {
-                                        //    status = 0;
-                                        //}
-
                                         var bValidType = true;
                                         resData.forEach(type => {
                                             if (type.type == paymentData.data[i].bankTypeId) {
@@ -12148,8 +12156,7 @@ let dbPlayerInfo = {
                                             if (status == 1) {
                                                 resData.push({
                                                     type: paymentData.data[i].bankTypeId,
-                                                    status: status,
-                                                    //accountNumber: paymentData.data[i].accountNumber
+                                                    status: status
                                                 });
                                             }
                                         }
