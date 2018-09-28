@@ -373,6 +373,15 @@ var dbUtility = {
         };
     },
 
+    getSecondLastMonthSGTime: function () {
+        var startTime = moment().tz('Asia/Singapore').subtract(2, 'months').startOf('month').toDate();
+        let endTime = moment(startTime).add(1, 'months').toDate();
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getNextMonthSGTime: function (time) {
         var startTime = moment(time).tz('Asia/Singapore').add(1, 'months').startOf('month').toDate();
         let endTime = moment(startTime).add(1, 'months').toDate();

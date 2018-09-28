@@ -48,7 +48,7 @@ let largeWithdrawalLogSchema = new Schema({
         belowTenThousand: {type: Number},
         // 10000 <= x < 100000
         belowHundredThousand: {type: Number},
-        // 100000 <= x
+        // x >= 100000
         aboveHundredThousand: {type: Number}
     },
     // provider related detail
@@ -69,13 +69,13 @@ let largeWithdrawalLogSchema = new Schema({
         // game type player bonus amount
         playerBonusAmountByType: {type: JSON}
     }],
-    // (since last top up) player bonus amount / profit amount (current credit + current withdrawal amount - total top up amount between current withdrawal and last withdrawal)
+    // (since last top up) player bonus amount / profit amount (current credit + current withdrawal amount - last top up)
     lastTopUpPlayerBonusAmount: {type: Number},
     // last top up amount
     lastTopUpAmount: {type: Number},
-    // (since last top up) total consumption return amount after last withdrawal
+    // (since last top up) total consumption return amount after last top up
     lastTopUpConsumptionReturnAmount: {type: Number},
-    // (since last top up) total reward amount that are not consumption return after last withdrawal
+    // (since last top up) total reward amount that are not consumption return after last top up
     lastTopUpRewardAmount: {type: Number},
     // (since last top up) consumption amount group count gap (count of consumption between 0-100, 100-1000, 1000-10000, 10000-100000, 100000+)
     lastTopUpConsumptionAmountTimes: {
@@ -87,7 +87,7 @@ let largeWithdrawalLogSchema = new Schema({
         belowTenThousand: {type: Number},
         // 10000 <= x < 100000
         belowHundredThousand: {type: Number},
-        // 100000 <= x
+        //  x >= 100000
         aboveHundredThousand: {type: Number}
     },
     // (since last top up) provider related detail
@@ -108,11 +108,11 @@ let largeWithdrawalLogSchema = new Schema({
         // game type player bonus amount
         playerBonusAmountByType: {type: JSON}
     }],
-    // withdrawal day top up amount
+    // day top up amount
     dayTopUpAmount: {type: Number},
-    // withdrawal day total withdraw amount (before current withdraw)
+    // day total withdraw amount (before current withdraw)
     dayWithdrawAmount: {type: Number},
-    // withdrawal day topup - withdraw difference
+    // day topup - withdraw difference
     dayTopUpBonusDifference: {type: Number},
     // account total top up amount
     accountTopUpAmount: {type: Number},
