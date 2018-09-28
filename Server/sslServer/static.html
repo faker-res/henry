@@ -8,43 +8,89 @@
 <body>
 
 <h1>Runtime SSL</h1>
-<form>
-    <label>Private key:</label><br>
-    <textarea id="private" rows='16' cols='65'></textarea><br>
-    <button onclick="savePrivateKey(event)">Save</button>
-</form>
+<ul>
+    <li>This page can be closed after keys are saved, but the key will not remain in cache.</li>
+    <li>Each time server restart need to save the keys once more.</li>
+</ul>
+<div class="key-area">
+    <div>
+        <form>
+            <label>Private key (In effect):</label><br>
+            <textarea id="private1" rows='16' cols='65'></textarea><br>
+            <button onclick="saveKey(event, 'playerPhone.key.pem', '#private1', '#saved1')">Save</button>
+            <text id="saved1" class="hide">&#x2714;Saved</text>
+        </form>
+    </div>
+    <div class="margin-all-5">
+        <button onclick="migrateKey(event, '#private2', '#private1')">Replicate -></button>
+    </div>
+    <div align="right">
+        <form>
+            <label>Private key (Replaced):</label><br>
+            <textarea id="private2" rows='16' cols='65'></textarea><br>
+            <button onclick="saveKey(event, 'playerPhone.key.pem.bak', '#private2', '#saved2')">Save</button>
+            <text id="saved2" class="hide">&#x2714;Saved</text>
+        </form>
+    </div>
+</div>
 <br>
-<form>
-    <label>Public key:</label><br>
-    <textarea id="public" rows='7' cols='65'></textarea><br>
-    <button onclick="savePublicKey(event)">Save</button>
-</form>
+<div class="key-area">
+    <div align="left">
+        <form>
+            <label>Public key (In effect):</label><br>
+            <textarea id="public1" rows='7' cols='65'></textarea><br>
+            <button onclick="saveKey(event, 'playerPhone.pub', '#public1', '#saved3')">Save</button>
+            <text id="saved3" class="hide">&#x2714;Saved</text>
+        </form>
+    </div>
+    <div class="margin-all-5">
+        <button onclick="migrateKey(event, '#public2', '#public1')">Replicate -></button>
+    </div>
+    <div align="right">
+        <form>
+            <label>Public key (Replaced):</label><br>
+            <textarea id="public2" rows='7' cols='65'></textarea><br>
+            <button onclick="saveKey(event, 'playerPhone.pub.bak', '#public2', '#saved4')">Save</button>
+            <text id="saved4" class="hide">&#x2714;Saved</text>
+        </form>
+    </div>
+</div>
 
 </body>
 </html>
 
 <script>
-    function savePrivateKey(e) {
+    function saveKey(e, url, textId, statusId) {
         e.preventDefault();
         $.ajax({
-            url: "playerPhone.key.pem",
-            data: $('#private').val(),
+            url: url,
+            data: $(textId).val(),
             method: "POST",
             success: (data) => {
-                console.log(data)
+                console.log(data);
+                $(statusId).removeClass('hide');
             }
         });
     }
 
-    function savePublicKey(e) {
+    function migrateKey(e, targetId, originId) {
         e.preventDefault();
-        $.ajax({
-            url: "playerPhone.pub",
-            data: $('#public').val(),
-            method: "POST",
-            success: (data) => {
-                console.log(data)
-            }
-        });
+        $(targetId).val($(originId).val());
     }
 </script>
+
+<style>
+    .key-area {
+        display: flex;
+        align-items:  center;
+    }
+
+    .margin-all-5 {
+        margin: 5px;
+    }
+
+    .hide {
+        display: none;
+    }
+
+</style>

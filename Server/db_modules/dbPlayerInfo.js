@@ -18088,6 +18088,16 @@ let dbPlayerInfo = {
     },
 
     getCreditDetail: function (playerObjId) {
+
+        function sortRankingRecord(a, b) {
+            if (parseInt(a.providerId) < parseInt(b.providerId))
+                return 1;
+            if (parseInt(a.providerId) > parseInt(b.providerId))
+                return -1;
+
+            return 0;
+        }
+
         let returnData = {
             gameCreditList: [],
             lockedCreditList: []
@@ -18097,6 +18107,11 @@ let dbPlayerInfo = {
         let gameData = [];
         let usedTaskGroup = [];
         let playerForbidProvider = [];
+        let gameProviderIdList = [];
+        let groupSameLineProviders = [];
+        let amountGameProviderList = [];
+        let totalLockedCredit = 0;
+        let totalGameCreditAmount = 0;
         return dbconfig.collection_players.findOne({_id: playerObjId}, {
             platform: 1,
             validCredit: 1,
@@ -18125,7 +18140,50 @@ let dbPlayerInfo = {
                 let providerCredit = {gameCreditList: []}
 
                 if (platformData && platformData.gameProviders.length > 0) {
+
+                    // sorting to reduce chances of getting joint-list
+                    platformData.gameProviders.sort(sortRankingRecord);
+                    
                     for (let i = 0; i < platformData.gameProviders.length; i++) {
+                        // check each of the game provider for the sameLineProvider
+                        console.log("checking--Yh groupSameLineProviders", groupSameLineProviders)
+                        if (platformData.gameProviders[i] && platformData.gameProviders[i].sameLineProviders && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId] &&
+                            platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0] && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0].length) {
+                            gameProviderIdList.push(platformData.gameProviders[i].providerId);
+
+                            if (!groupSameLineProviders.length) {
+                                groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0])
+                            }
+                            else {
+                                // check each of the providerId
+                                let isAdded = false;
+
+                                let nextProviderIdList = platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0];
+                                console.log("checking--Yh nextProviderIdList", nextProviderIdList)
+
+                                for (let count = 0; count < groupSameLineProviders.length; count++) {
+                                    console.log("checking---yH count", count)
+                                    console.log("checking--Yh inner groupSameLineProviders", groupSameLineProviders[count])
+                                    let interceptProviderIdList = groupSameLineProviders[count].filter(q => nextProviderIdList.indexOf(q) > -1);
+                                    if (interceptProviderIdList && interceptProviderIdList.length) {
+                                        nextProviderIdList.forEach(
+                                            nextItem => {
+                                                if (interceptProviderIdList.indexOf(nextItem) == -1) {
+                                                    groupSameLineProviders[count].push(nextItem);
+                                                }
+                                            }
+                                        )
+
+                                        isAdded = true;
+                                        break;
+                                    }
+                                }
+
+                                if (!isAdded) {
+                                    groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0]);
+                                }
+                            }
+                        }
                         let nickName = "";
                         let status = platformData.gameProviders[i].status;
                         if (platformData.gameProviderInfo) {
@@ -18151,6 +18209,59 @@ let dbPlayerInfo = {
                             nickName: nickName || platformData.gameProviders[i].nickName || platformData.gameProviders[i].name,
                             status: status
                         };
+                    }
+
+                    let tempSameLineProviderList = [];
+                    let skipList= [];
+                    // check if the newly added row is intercept with the current set of data
+                    for (let index1 = 0; index1 < groupSameLineProviders.length; index1++) {
+
+                        if (!skipList.length && skipList.indexOf(index1) > -1){
+                            continue;
+                        }
+                        let firstGroup = groupSameLineProviders[index1];
+                        let isAdded = false;
+
+                        for (let index2 = 0; index2 < groupSameLineProviders.length; index2++) {
+                            if (index1 == index2) {
+                                continue;
+                            }
+
+                            if (!skipList.length && skipList.indexOf(index2) > -1){
+                                continue;
+                            }
+
+                            let secondGroup = groupSameLineProviders[index2];
+
+                            let interceptProviderIdList = firstGroup.filter(q => secondGroup.indexOf(q) > -1);
+                            if (interceptProviderIdList && interceptProviderIdList.length) {
+                                secondGroup.forEach(
+                                    nextItem => {
+                                        if (interceptProviderIdList.indexOf(nextItem) == -1) {
+                                            firstGroup.push(nextItem);
+                                        }
+                                    }
+                                )
+
+                                // remove the intercepted list
+                                skipList.push(index2);
+                                isAdded = true;
+                            }
+
+                        }
+                        if (!tempSameLineProviderList.length || !isAdded){
+                            tempSameLineProviderList.push(firstGroup);
+                        }
+                    }
+
+                    console.log("checking-- yH tempSameLineProviderList", tempSameLineProviderList)
+                    // remove the unrelated provderID and return data
+                    returnData.sameLineProviders = {};
+                    for (let i = 0; i < tempSameLineProviderList.length; i ++) {
+                        if (tempSameLineProviderList[i].length) {
+                            returnData.sameLineProviders[i] = tempSameLineProviderList[i].filter(x => gameProviderIdList.indexOf(x) > -1).sort();
+                            amountGameProviderList.push(returnData.sameLineProviders[i][0]);
+                        }
                     }
                 }
 
@@ -18204,6 +18315,10 @@ let dbPlayerInfo = {
                             status: gameCreditList[i].status,
                             providerId: gameCreditList[i].providerId
                         };
+                        // check the game credit from the same platform
+                       if (amountGameProviderList.indexOf(gameCreditList[i].providerId) > -1){
+                           totalGameCreditAmount +=  parseFloat(gameCreditList[i].gameCredit) || 0;
+                       }
                     }
 
                     return dbconfig.collection_rewardTaskGroup.find({
@@ -18241,6 +18356,8 @@ let dbPlayerInfo = {
                                 lockCredit: rewardTaskGroup[i].rewardAmt,
                                 list: listData,
                             });
+
+                            totalLockedCredit += parseFloat(rewardTaskGroup[i].rewardAmt) || 0;
                         }
                     }
                 }
@@ -18284,6 +18401,9 @@ let dbPlayerInfo = {
                         })
                     }
                 }
+
+                // return total amount
+                returnData.finalAmount =  Math.floor((totalLockedCredit + totalGameCreditAmount + parseFloat(returnData.credit)) * 100 ) / 100 ;
 
                 return returnData;
             });

@@ -7,6 +7,8 @@ var fs = require('fs')
     , ursa = require('ursa')
     , crt
     , key
+    , replKey
+    , replCrt
     , msg
     ;
 
@@ -25,7 +27,7 @@ oldCert = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.
 
 let host = "http://" + env.redisUrl;
 let options = {
-    timeout: 2000,
+    timeout: 10000,
     hostname: env.redisUrl,
 };
 
@@ -34,9 +36,9 @@ if (env.redisPort) {
     options.port = env.redisPort;
 }
 
-function getPrivateKey () {
+function getKey (options, dirPath, fbPath) {
     return new Promise((resolve, reject) => {
-        options.path = "/playerPhone.key.pem";
+        options.path = dirPath;
 
         http.get(options, response => {
             // handle http errors
@@ -50,34 +52,14 @@ function getPrivateKey () {
             // we are done, resolve promise with those joined chunks
             response.on('end', () => resolve(body.join('')));
         }).on('error', (e) => {
-            resolve(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
+            console.log('getKey connection error', e);
+            resolve(fs.readFileSync(__dirname + fbPath));
         })
-    }).catch(() => fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
-}
-
-function getPublicKey () {
-    return new Promise((resolve, reject) => {
-        options.path = "/playerPhone.pub";
-
-        http.get(options, response => {
-            // handle http errors
-            if (response.statusCode < 200 || response.statusCode > 299) {
-                reject(new Error('Failed to load page, status code: ' + response.statusCode));
-            }
-            // temporary data holder
-            const body = [];
-            // on every content chunk, push it to the data array
-            response.on('data', (chunk) => body.push(chunk));
-            // we are done, resolve promise with those joined chunks
-            response.on('end', () => resolve(body.join('')));
-        }).on('error', (e) => {
-            resolve(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
-        })
-    }).catch(() => fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
+    }).catch(() => fs.readFileSync(__dirname + fbPath));
 }
 
 if (!key) {
-    getPrivateKey().then(
+    getKey(options, "/playerPhone.key.pem", "/../ssl/playerPhone.key.pem").then(
         data => {
             if (data) {
                 key = ursa.createPrivateKey(data);
@@ -89,7 +71,7 @@ if (!key) {
 }
 
 if (!crt) {
-    getPublicKey().then(
+    getKey(options, "/playerPhone.pub", "/../ssl/playerPhone.pub").then(
         data => {
             if (data) {
                 crt = ursa.createPublicKey(data);
@@ -98,6 +80,33 @@ if (!crt) {
             }
         }
     )
+}
+
+if (!replKey) {
+    getKey(options, "/playerPhone.key.pem.bak", "/../ssl/playerPhone.key.pem").then(
+        data => {
+            if (data) {
+                replKey = ursa.createPrivateKey(data);
+            } else {
+                console.log('getPrivateReplKey no data', host);
+                replKey = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
+            }
+        }
+    );
+}
+
+if (!replCrt) {
+    getKey(options, "/playerPhone.pub.bak", "/../ssl/playerPhone.pub").then(
+        data => {
+            if (data) {
+                replCrt = ursa.createPublicKey(data);
+            } else {
+                // Empty key, use fallback key
+                console.log('getPublicReplKey no data', host);
+                replCrt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
+            }
+        }
+    );
 }
 
 module.exports = {
@@ -119,9 +128,13 @@ module.exports = {
             decrypted = crt.publicDecrypt(msg, 'base64', 'utf8')
         } catch (e) {
             try {
-                decrypted = oldCert.publicDecrypt(msg, 'base64', 'utf8')
+                decrypted = replCrt.publicDecrypt(msg, 'base64', 'utf8')
             } catch (e) {
-                decrypted = msg;
+                try {
+                    decrypted = oldCert.publicDecrypt(msg, 'base64', 'utf8');
+                } catch (e) {
+                    decrypted = msg;
+                }
             }
         }
 
@@ -131,7 +144,7 @@ module.exports = {
         let encrypted = msg;
 
         try {
-            encrypted = oldKey.privateEncrypt(msg, 'utf8', 'base64');
+            encrypted = replKey.privateEncrypt(msg, 'utf8', 'base64');
         } catch (e) {
             encrypted = msg;
         }
@@ -142,7 +155,7 @@ module.exports = {
         let decrypted = msg;
 
         try {
-            decrypted = oldCert.publicDecrypt(msg, 'base64', 'utf8')
+            decrypted = replCrt.publicDecrypt(msg, 'base64', 'utf8')
         } catch (e) {
             decrypted = msg;
         }

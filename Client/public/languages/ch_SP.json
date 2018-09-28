@@ -3809,7 +3809,7 @@
   "CsApproveProposal": "客服审核",
   "Player forbid apply bonus, apply bonus proposal need cs approval": "客服优先审批禁用提款（跳过审核部）",
   "FIRST_WITHDRAWAL_MANUAL_AUDIT": "首次提款转人工审核（不论金额）",
-  "MANUAL_AUDIT_AFTER_BANK_CHANGED": "银行改之后第一次提款转人工审核（不论金额）",
+  "MANUAL_AUDIT_AFTER_BANK_CHANGED": "提款资料与上次银改内容不符或无银改（转人工审核）",
   "MANUAL_AUDIT_BAN_WITHDRAWAL": "禁用提款转人工审核（不论金额）",
   "Replicate Other Platform Setting": "复制其他网站配置",
   "ReplicateSetting": "复制网站配置",
@@ -4589,5 +4589,8 @@
   "Actual Amount": "实际到帐",
   "ActualReceivedAmount": "实际到帐金额",
   "SKIP_CURRENT_PERIOD": "跳过本期",
-  "Service Charge Fee": "手续费用"
+  "Service Charge Fee": "手续费用",
+  "Force Total Platform Fee To 0": "总平台费强制费归0",
+  "Forced 0": "强制归0",
+  "Bank Info Not Matched": "提款资料与上次银改不符"
 }

@@ -23924,12 +23924,18 @@ define(['js/app'], function (myApp) {
                             let str = rawCommission.platformFee + $translate("YEN") + " "
                                 + "(" + $translate("SITE_LOSE_WIN") + ": " + rawCommission.siteBonusAmount + "/"
                                 + $translate("RATIO") + ": " + (rawCommission.platformFeeRate) + "%)";
+                            let forcedZeroStr = rawCommission.isForcePlatformFeeToZero ? rawCommission.platformFee + $translate("YEN") + " "
+                                + "(" + $translate("Forced 0") + "/" + rawCommission.forcePlatformFeeToZeroBy.name + ")" : "";
 
-                            proposalDetail["- " + rawCommission.groupName] =  str;
+                            if (rawCommission && rawCommission.isForcePlatformFeeToZero) {
+                                proposalDetail["- " + rawCommission.groupName] =  forcedZeroStr;
+                            } else {
+                                proposalDetail["- " + rawCommission.groupName] =  str;
 
-                            if (rawCommission.isCustomPlatformFeeRate) {
-                                vm.proposalDetailStyle["- " + rawCommission.groupName] = customizedStyle;
-                                isCustomized = true;
+                                if (rawCommission.isCustomPlatformFeeRate) {
+                                    vm.proposalDetailStyle["- " + rawCommission.groupName] = customizedStyle;
+                                    isCustomized = true;
+                                }
                             }
                         });
 
@@ -24206,12 +24212,18 @@ define(['js/app'], function (myApp) {
                             let str = rawCommission.platformFee + $translate("YEN") + " "
                                 + "(" + $translate("SITE_LOSE_WIN") + ": " + rawCommission.siteBonusAmount + "/"
                                 + $translate("RATIO") + ": " + (rawCommission.platformFeeRate) + "%)";
+                            let forcedZeroStr = rawCommission.isForcePlatformFeeToZero ? rawCommission.platformFee + $translate("YEN") + " "
+                                + "(" + $translate("Forced 0") + "/" + rawCommission.forcePlatformFeeToZeroBy.name + ")" : "";
 
-                            proposalDetail["- " + rawCommission.groupName] =  str;
+                            if (rawCommission && rawCommission.isForcePlatformFeeToZero) {
+                                proposalDetail["- " + rawCommission.groupName] =  forcedZeroStr;
+                            } else {
+                                proposalDetail["- " + rawCommission.groupName] =  str;
 
-                            if (rawCommission.isCustomPlatformFeeRate) {
-                                vm.proposalDetailStyle["- " + rawCommission.groupName] = customizedStyle;
-                                isCustomized = true;
+                                if (rawCommission.isCustomPlatformFeeRate) {
+                                    vm.proposalDetailStyle["- " + rawCommission.groupName] = customizedStyle;
+                                    isCustomized = true;
+                                }
                             }
                         });
 

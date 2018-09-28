@@ -487,6 +487,12 @@ function socketActionPartner(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPartner.bulkSettlePartnerCommission, [data.applySettlementArray, adminInfo, data.platformObjId, data.commissionType, data.startTime, data.endTime], actionName, isValidData);
         },
 
+        updateTotalPlatformFeeToZero: function updateTotalPlatformFeeToZero (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id && data.platform && data.partner && data.commissionType && data.rawCommissions);
+            socketUtil.emitter(self.socket, dbPartner.updateTotalPlatformFeeToZero, [data._id, data.platform, data.partner, data.commissionType, data.rawCommissions, data.totalPlatformFee, data.nettCommission, adminInfo], actionName, isValidData);
+        },
+
         getCurrentPartnerCommissionDetail: function getCurrentPartnerCommissionDetail (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && (data.commissionType || data.partnerName));

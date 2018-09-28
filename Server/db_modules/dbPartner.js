@@ -6817,6 +6817,47 @@ let dbPartner = {
         return Promise.all(proms);
     },
 
+    updateTotalPlatformFeeToZero: (partnerCommissionLogObjId, platformObjId, partnerObjId, commissionType, rawCommissions, totalPlatformFee, nettCommission, adminInfo) => {
+        let rawCommissionsArr = [];
+        if (rawCommissions && rawCommissions.length > 0) {
+            for (let i = 0; i < rawCommissions.length; i++) {
+                let detail = rawCommissions[i];
+
+                if (detail) {
+                    detail.platformFee = 0;
+                    detail.isForcePlatformFeeToZero = true;
+                    detail.forcePlatformFeeToZeroBy = adminInfo;
+
+                    rawCommissionsArr.push(detail);
+                }
+            }
+
+            if (rawCommissionsArr && rawCommissionsArr.length > 0) {
+                let latestNettCommission = nettCommission;
+
+                if (totalPlatformFee > 0) {
+                    latestNettCommission += totalPlatformFee;
+                } else {
+                    latestNettCommission -= totalPlatformFee;
+                }
+
+                return dbconfig.collection_partnerCommissionLog.findOneAndUpdate(
+                    {
+                        _id: partnerCommissionLogObjId,
+                        platform: platformObjId,
+                        partner: partnerObjId,
+                        commissionType: commissionType
+                    },
+                    {
+                        rawCommissions: rawCommissionsArr,
+                        nettCommission: latestNettCommission,
+                        totalPlatformFee: 0
+                    }
+                );
+            }
+        }
+    },
+
     getPartnerSettlementHistory: (platformObjId, partnerName, commissionType, startTime, endTime, sortCol, index, limit) => {
         index = index || 0;
         limit = Math.min(constSystemParam.REPORT_MAX_RECORD_NUM, limit);
