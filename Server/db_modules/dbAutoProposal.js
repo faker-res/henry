@@ -372,6 +372,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
             let bNoBonusPermission = false;
             let bPendingPaymentInfo = false;
             let bUpdatePaymentInfo = false;
+            let bIsPaymenyInfoMatched = false;
             let withdrawAmount = proposal.data.amount;
             let playerCurrentAmount = 0;
             let playerTotalTopupAmount = 0;
@@ -389,6 +390,10 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 playerData = data[2];
                 bNoBonusPermission = !playerData.permission.applyBonus;
                 playerCurrentAmount = playerData.validCredit;
+            }
+
+            if(allProposals && playerData){
+                bIsPaymenyInfoMatched = isPaymentInfoMatched(allProposals, playerData);
             }
 
             if (data && data[5] && data[5][0] && data[5][0].totalBetAmt) {
@@ -500,9 +505,15 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 canApprove = false;
             }
 
-            if (bUpdatePaymentInfo && platformObj.manualAuditAfterBankChanged !== false) {
-                checkMsg += ' Denied: Bank Info Changed;';
-                checkMsgChinese += ' 失败：银行资料刚改;';
+            // if (bUpdatePaymentInfo && platformObj.manualAuditAfterBankChanged !== false) {
+            //     checkMsg += ' Denied: Bank Info Changed;';
+            //     checkMsgChinese += ' 失败：银行资料刚改;';
+            //     canApprove = false;
+            // }
+
+            if (!bIsPaymenyInfoMatched && platformObj.manualAuditAfterBankChanged !== false) {
+                checkMsg += ' Denied: Bank Info Not Matched;';
+                checkMsgChinese += ' 失败：提款资料与上次银改不符;';
                 canApprove = false;
             }
 
@@ -1505,6 +1516,111 @@ function isFirstWithdrawalAfterPaymentInfoUpdated(proposals) {
         }
     }
     return false;
+}
+
+function isPaymentInfoMatched(proposals, playerData){
+    let length = proposals.length;
+    for (let i = 0; i < length; i++) {
+        let proposal = proposals[i];
+        if (proposal.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposal.status == constProposalStatus.APPROVED) {
+            if(proposal.data){
+
+                if(proposal.data.bankAccount){
+                    if(!playerData.bankAccount){
+                        return false;
+                    }else if(proposal.data.bankAccount != playerData.bankAccount){
+                        return false;
+                    }
+                }else if(playerData.bankAccount){
+                    return false;
+                }
+
+                if(proposal.data.bankAccountName){
+                    if(!playerData.bankAccountName){
+                        return false;
+                    }else if(proposal.data.bankAccountName != playerData.bankAccountName){
+                        return false;
+                    }
+                }else if(playerData.bankAccountName){
+                    return false;
+                }
+
+                if(proposal.data.bankName){
+                    if(!playerData.bankName){
+                        return false;
+                    }else if(proposal.data.bankName != playerData.bankName){
+                        return false;
+                    }
+                }else if(playerData.bankName){
+                    return false;
+                }
+
+                if(proposal.data.bankAccountCity){
+                    if(!playerData.bankAccountCity){
+                        return false;
+                    }else if(proposal.data.bankAccountCity != playerData.bankAccountCity){
+                        return false;
+                    }
+                }else if(playerData.bankAccountCity){
+                    return false;
+                }
+
+                if(proposal.data.bankAccountType){
+                    if(!playerData.bankAccountType){
+                        return false;
+                    }else if(proposal.data.bankAccountType != playerData.bankAccountType){
+                        return false;
+                    }
+                }else if(playerData.bankAccountType){
+                    return false;
+                }
+
+                if(proposal.data.bankAddress){
+                    if(!playerData.bankAddress){
+                        return false;
+                    }else if(proposal.data.bankAddress != playerData.bankAddress){
+                        return false;
+                    }
+                }else if(playerData.bankAddress){
+                    return false;
+                }
+
+                if(proposal.data.bankBranch){
+                    if(!playerData.bankBranch){
+                        return false;
+                    }else if(proposal.data.bankBranch != playerData.bankBranch){
+                        return false;
+                    }
+                }else if(playerData.bankBranch){
+                    return false;
+                }
+
+                if(proposal.data.bankAccountDistrict){
+                    if(!playerData.bankAccountDistrict){
+                        return false;
+                    }else if(proposal.data.bankAccountDistrict != playerData.bankAccountDistrict){
+                        return false;
+                    }
+                }else if(playerData.bankAccountDistrict){
+                    return false;
+                }
+
+                if(proposal.data.bankAccountProvince){
+                    if(!playerData.bankAccountProvince){
+                        return false;
+                    }else if(proposal.data.bankAccountProvince != playerData.bankAccountProvince){
+                        return false;
+                    }
+                }else if(playerData.bankAccountProvince){
+                    return false;
+                }
+
+            }
+
+            return true;
+        }
+    }
+    return true;
 }
 
 function calcPlayerTotalTopupAmount(proposals) {
