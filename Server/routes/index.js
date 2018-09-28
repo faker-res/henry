@@ -287,13 +287,15 @@ router.post('/getPlayerInfoByPhoneNumber', function (req, res, next) {
                 return;
             }
             let encryptPhoneNumber = phoneNumber;
+            let enOldPhoneNumber = phoneNumber;
             try {
                 encryptPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+                enOldPhoneNumber = rsaCrypto.oldEncrypt(phoneNumber);
             }
             catch (error) {
                 console.log(error);
             }
-            return dbConfig.collection_players.find({platform: doc._id, phoneNumber: {$in: [encryptPhoneNumber, phoneNumber]}}).then(
+            return dbConfig.collection_players.find({platform: doc._id, phoneNumber: {$in: [encryptPhoneNumber, enOldPhoneNumber, phoneNumber]}}).then(
                 function (playerData) {
                     if( playerData && playerData.length > 0){
                         let resData = playerData.map(
@@ -337,7 +339,7 @@ router.get('/auditLargeWithdrawalProposal', function (req, res, next) {
             res.send({success: false});
         } else if (isMatch) {
             // what happened when success
-            dbLargeWithdrawal.largeWithdrawalAudit(proposalId, adminObjId, decision).then(
+            dbLargeWithdrawal.largeWithdrawalAudit(proposalId, adminObjId, decision, true).then(
                 data => {
                     res.send({success: true, data});
                 },

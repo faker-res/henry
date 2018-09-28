@@ -209,7 +209,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                     proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                     if(vm.selectedProposal.data.hasOwnProperty("rate")){
-                        proposalDetail["Service Charge Ratio"] = vm.selectedProposal.data.rate;
+                        proposalDetail["Service Charge Fee"] = $noRoundTwoDecimalPlaces(vm.selectedProposal.data.amount * vm.selectedProposal.data.rate) + '（' + $translate("Service Charge Ratio") + '：' + (vm.selectedProposal.data.rate * 100) + '%)';
                     }
                     if(vm.selectedProposal.data.hasOwnProperty('actualAmountReceived')){
                         proposalDetail["ActualReceivedAmount"] = vm.selectedProposal.data.actualAmountReceived;
@@ -315,7 +315,7 @@ define(['js/app'], function (myApp) {
                 // vm.selectedProposal.data.cityId;
                 $('#modalProposal').modal('show');
                 $('#modalProposal').on('shown.bs.modal', function (e) {
-                    $scope.safeApply();
+                    $scope.$evalAsync()
                 })
                 let cardField = vm.topUpField[typeName].filter(fieldName => {
                         if (vm.selectedProposal.data[fieldName]) {
@@ -1569,6 +1569,16 @@ define(['js/app'], function (myApp) {
             // }
 
             vm.queryTopup.merchantNo ? sendObj.merchantNo = vm.queryTopup.merchantNo : '';
+            // showing data with auto-assign card at pms.
+            if(vm.queryTopup.merchantNo && vm.queryTopup.merchantNo.length == 1 && vm.queryTopup.merchantNo.indexOf('MMM4-line2') != -1){
+                sendObj.line = '2';
+                vm.queryTopup.line = '2';
+                sendObj.merchantNo = vm.queryTopup.merchantNo.filter(merchantData=>{
+                    return merchantData != 'MMM4-line2';
+                })
+            }else{
+                vm.queryTopup.line = null;
+            }
             socketService.$socket($scope.AppSocket, 'topupReport', sendObj, function (data) {
                 $('#topupTableSpin').hide();
                 console.log('topup', data);
@@ -1706,7 +1716,16 @@ define(['js/app'], function (myApp) {
                             }
                         }
                     },
-                    {title: $translate('Business Acc/ Bank Acc'), data: "merchantNoDisplay"},
+                    {
+                        title: $translate('Business Acc/ Bank Acc'), data: "merchantNoDisplay",
+                        render: function (data, type, row){
+                            let addititionalText = '';
+                            if( row.data.line && row.data.line == '2'){
+                                addititionalText = '(MMM)';
+                            }
+                            return "<div>" + data + addititionalText + "</div>";
+                        }
+                    },
                     {title: $translate('Total Business Acc'), data: "merchantCount$"},
                     {title: $translate('STATUS'), data: "status$"},
                     {title: $translate('PLAYER_NAME'), data: "data.playerName"},
@@ -8004,7 +8023,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                     proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                     if(vm.selectedProposal.data.hasOwnProperty("rate")){
-                        proposalDetail["Service Charge Ratio"] = vm.selectedProposal.data.rate;
+                        proposalDetail["Service Charge Fee"] = $noRoundTwoDecimalPlaces(vm.selectedProposal.data.amount * vm.selectedProposal.data.rate) + '（' + $translate("Service Charge Ratio") + '：' + (vm.selectedProposal.data.rate * 100) + '%)';
                     }
                     if(vm.selectedProposal.data.hasOwnProperty('actualAmountReceived')){
                         proposalDetail["ActualReceivedAmount"] = vm.selectedProposal.data.actualAmountReceived;
@@ -8462,6 +8481,9 @@ define(['js/app'], function (myApp) {
                             vm.merchantNoNameObj[mer.merchantNo] = mer.name;
                             return mer.status != 'DISABLED';
                         });
+                        // this purpose -> add a virtual alipay account to represent a process of auto-assign card in pms
+                        let line2Acc = commonService.getAlipayLine2Acc($translate);
+                        vm.merchantNoList.push(line2Acc);
                         vm.merchantNoList.forEach(item => {
                             merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
                             merGroupList[item.merchantTypeId].list.push(item.merchantNo);

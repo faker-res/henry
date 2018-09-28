@@ -62,7 +62,8 @@
                 "settlePartnersCommission",
                 "getCurrentPartnersCommission",
                 "getAllPlayerCommissionRawDetails",
-                "getConsumptionActivePlayerAfterTopupQueryMatch"
+                "getConsumptionActivePlayerAfterTopupQueryMatch",
+                "findPartnersForCommissionReport"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
