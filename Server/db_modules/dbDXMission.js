@@ -712,7 +712,8 @@ let dbDXMission = {
                     }
                 }
                 let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
-                let phoneNumberQuery = {$in: [encryptedPhoneNumber, phoneNumber]};
+                let encryptedOldPhoneNumber = rsaCrypto.oldEncrypt(phoneNumber);
+                let phoneNumberQuery = {$in: [encryptedPhoneNumber, phoneNumber, encryptedOldPhoneNumber]};
 
                 return dbconfig.collection_players.findOne({platform: platformObjId, phoneNumber: phoneNumberQuery}).lean()
             }

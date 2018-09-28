@@ -2523,7 +2523,10 @@ let dbPlayerInfo = {
                 if (!smsVerifyData) {
                     return Q.reject({name: "DataError", message: "Incorrect SMS Validation Code"});
                 }
-                return dbconfig.collection_players.find({platform: platformObj._id, phoneNumber: rsaCrypto.encrypt(phoneNumber)}).lean();
+                return dbconfig.collection_players.find({
+                    platform: platformObj._id,
+                    phoneNumber: {$in: [rsaCrypto.encrypt(phoneNumber), rsaCrypto.oldEncrypt(phoneNumber)]}
+                }).lean();
             }
         ).then(
             playerData => {
@@ -2906,10 +2909,11 @@ let dbPlayerInfo = {
         return dbconfig.collection_platform.findOne({platformId: platformId}).then(
             platformData => {
                 if (platformData) {
-                    var encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+                    let encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(phoneNumber);
                     return dbconfig.collection_players.findOne({
                         platform: platformData._id,
-                        phoneNumber: encryptedPhoneNumber
+                        phoneNumber: {$in: [encryptedPhoneNumber, enOldPhoneNumber]}
                     }).lean();
                 } else {
                     return Q.reject({
@@ -3807,7 +3811,7 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data) {
-
+                    // Async - Update financial points
                     dbPlatform.changePlatformFinancialPoints(data.platform, proposalData.data.amount).then(
                         platformData => {
                             if (!platformData) {
@@ -3845,6 +3849,7 @@ let dbPlayerInfo = {
                 if (data) {
                     player = data;
 
+                    // Create playerTopUpRecord and credit change log
                     let logData = null;
                     let recordData = {
                         playerId: player._id,
@@ -4929,7 +4934,7 @@ let dbPlayerInfo = {
 
         //todo encrytion ?
         if (data && data.phoneNumber) {
-            data.phoneNumber = {$in: [rsaCrypto.encrypt(data.phoneNumber), data.phoneNumber]};
+            data.phoneNumber = {$in: [rsaCrypto.encrypt(data.phoneNumber), rsaCrypto.oldEncrypt(data.phoneNumber), data.phoneNumber]};
         }
 
         function getRewardData(thisPlayer) {
@@ -5514,12 +5519,14 @@ let dbPlayerInfo = {
                 if (platformData) {
                     platformId = platformData._id;
                     let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
+                    let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
 
                     return dbconfig.collection_players.findOne(
                         {
                             $or: [
                                 {phoneNumber: encryptedPhoneNumber},
-                                {phoneNumber: loginData.phoneNumber}
+                                {phoneNumber: loginData.phoneNumber},
+                                {phoneNumber: enOldPhoneNumber}
                             ],
                             platform: platformData._id
                         }
@@ -12013,6 +12020,7 @@ let dbPlayerInfo = {
         // merchantUse - 1: merchant, 2: bankcard
         // clientType: 1: browser, 2: mobileApp
         var playerData = null;
+        let paymentData = null;
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
         ).populate(
@@ -12052,7 +12060,19 @@ let dbPlayerInfo = {
                 }
             }
         ).then(
-            paymentData => {
+            paymentType => {
+                paymentData = paymentType;
+                if(playerData && playerData.merchantGroup && playerData.merchantGroup.merchantNames) {
+                    return dbconfig.collection_platformMerchantList.findOne({
+                        name: playerData.merchantGroup.merchantNames,
+                        platformId: playerData.platform.platformId
+                    }).lean();
+                } else {
+                    return null;
+                }
+            }
+        ).then(
+            localMerchantData => {
                 if (paymentData) {
                     var resData = [];
                     if (merchantUse == 1 && (paymentData.merchants || paymentData.topupTypes)) {
@@ -12073,10 +12093,6 @@ let dbPlayerInfo = {
                                                 status = 1;
                                             }
 
-                                            //if (playerData.permission.topupOnline === false) {
-                                            //    status = 0;
-                                            //}
-
                                             var bValidType = true;
                                             resData.forEach(type => {
                                                 if (type.type == paymentData.merchants[i].topupType) {
@@ -12091,20 +12107,24 @@ let dbPlayerInfo = {
                                                         }
 
                                                         type.status = status;
-                                                        type.serviceCharge = paymentData.merchants[i].rate;
+                                                        type.serviceCharge =
+                                                            localMerchantData && localMerchantData.customizeRate ? localMerchantData.customizeRate :
+                                                                localMerchantData && localMerchantData.rate ? merchant.rate :
+                                                                    paymentData.merchants[i].rate ? paymentData.merchants[i].rate : 0;
                                                     }
                                                 }
                                             });
                                             if (bValidType && playerData.permission.topupOnline && paymentData.merchants[i].name == merchant && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
-                                                console.log(paymentData.merchants[i])
-
                                                 if (!playerData.forbidTopUpType || playerData.forbidTopUpType.findIndex(f => f == paymentData.merchants[i].topupType) == -1) {
                                                     resData.push({
                                                         type: paymentData.merchants[i].topupType,
                                                         status: status,
                                                         maxDepositAmount: paymentData.merchants[i].permerchantLimits,
                                                         minDepositAmount: paymentData.merchants[i].permerchantminLimits,
-                                                        serviceCharge: paymentData.merchants[i].rate
+                                                        serviceCharge:
+                                                            localMerchantData && localMerchantData.customizeRate ? localMerchantData.customizeRate :
+                                                                localMerchantData && localMerchantData.rate ? merchant.rate :
+                                                                    paymentData.merchants[i].rate ? paymentData.merchants[i].rate : 0
                                                     });
                                                 }
                                             }
@@ -12123,11 +12143,6 @@ let dbPlayerInfo = {
                                         if (paymentData.data[i].accountNumber == bank) {
                                             status = 1;
                                         }
-
-                                        //if (playerData.permission.topupManual === false) {
-                                        //    status = 0;
-                                        //}
-
                                         var bValidType = true;
                                         resData.forEach(type => {
                                             if (type.type == paymentData.data[i].bankTypeId) {
@@ -12141,8 +12156,7 @@ let dbPlayerInfo = {
                                             if (status == 1) {
                                                 resData.push({
                                                     type: paymentData.data[i].bankTypeId,
-                                                    status: status,
-                                                    //accountNumber: paymentData.data[i].accountNumber
+                                                    status: status
                                                 });
                                             }
                                         }
@@ -13609,9 +13623,11 @@ let dbPlayerInfo = {
 
     verifyPlayerPhoneNumber: function (playerObjId, phoneNumber) {
         var enPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+        var enOldPhoneNumber = rsaCrypto.oldEncrypt(phoneNumber);
+
         return dbconfig.collection_players.findOne({
             _id: playerObjId,
-            phoneNumber: {$in: [phoneNumber, enPhoneNumber]}
+            phoneNumber: {$in: [phoneNumber, enPhoneNumber, enOldPhoneNumber]}
         }).then(
             playerData => {
                 return Boolean(playerData);
@@ -17508,6 +17524,7 @@ let dbPlayerInfo = {
         for (let i = 0; i < arrayInputPhone.length; i++) {
             oldNewPhone.$in.push(arrayInputPhone[i]);
             oldNewPhone.$in.push(rsaCrypto.encrypt(arrayInputPhone[i]));
+            oldNewPhone.$in.push(rsaCrypto.oldEncrypt(arrayInputPhone[i]));
         }
 
         // if true, user can filter phone across all platform
@@ -17569,6 +17586,7 @@ let dbPlayerInfo = {
         for (let i = 0; i < arrayPhoneCSV.length; i++) {
             oldNewPhone.$in.push(arrayPhoneCSV[i]);
             oldNewPhone.$in.push(rsaCrypto.encrypt(arrayPhoneCSV[i]));
+            oldNewPhone.$in.push(rsaCrypto.oldEncrypt(arrayPhoneCSV[i]));
         }
 
         // if true, user can filter phone across all platform
@@ -17630,6 +17648,7 @@ let dbPlayerInfo = {
         for (let i = 0; i < arrayPhoneTXT.length; i++) {
             oldNewPhone.$in.push(arrayPhoneTXT[i]);
             oldNewPhone.$in.push(rsaCrypto.encrypt(arrayPhoneTXT[i]));
+            oldNewPhone.$in.push(rsaCrypto.oldEncrypt(arrayPhoneTXT[i]));
         }
 
         // if true, user can filter phone across all platform
@@ -17693,6 +17712,7 @@ let dbPlayerInfo = {
         for (let i = 0; i < arrayPhoneXLS.length; i++) {
             oldNewPhone.$in.push(arrayPhoneXLS[i]);
             oldNewPhone.$in.push(rsaCrypto.encrypt(arrayPhoneXLS[i]));
+            oldNewPhone.$in.push(rsaCrypto.oldEncrypt(arrayPhoneXLS[i]));
         }
 
         // if true, user can filter phone across all platform
@@ -17828,11 +17848,12 @@ let dbPlayerInfo = {
 
                         phoneArr.forEach(phoneNumber => {
                             let encryptedNumber = rsaCrypto.encrypt(phoneNumber);
+                            let encryptedOldNumber = rsaCrypto.oldEncrypt(phoneNumber);
 
                             promArr.push(
                                 dbconfig.collection_tsPhone({
                                     platform: platform,
-                                    phoneNumber: encryptedNumber,
+                                    phoneNumber: {$in: [encryptedNumber, encryptedOldNumber]},
                                     tsPhoneList: tsList._id
                                 }).save()
                             )
@@ -19521,7 +19542,7 @@ let dbPlayerInfo = {
     getPagedSimilarPhoneForPlayers: function (playerId, platformId, phoneNumber, isRealPlayer, index, limit, sortCol, adminName) {
         let playerObjId = playerId ? ObjectId(playerId) : "";
         let platformObjId = platformId ? ObjectId(platformId) : "";
-        let encryptedPhoneNumber = phoneNumber ? {$in: [rsaCrypto.encrypt(phoneNumber), phoneNumber]} : "";
+        let encryptedPhoneNumber = phoneNumber ? {$in: [rsaCrypto.encrypt(phoneNumber), rsaCrypto.oldEncrypt(phoneNumber), phoneNumber]} : "";
         let similarPhoneCredibilityRemarkObjId = null;
 
         let similarPhoneCountProm = dbconfig.collection_players.find({
@@ -20496,14 +20517,14 @@ function checkPhoneNumberWhiteList(inputData, platformObj) {
     if (inputData && inputData.phoneNumber) {
         if (platformObj.allowSamePhoneNumberToRegister === true) {
             return dbPlayerInfo.isExceedPhoneNumberValidToRegister({
-                phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
+                phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber)]},
                 platform: platformObj._id,
                 isRealPlayer: true
             }, platformObj.samePhoneNumberRegisterCount);
             // return {isPhoneNumberValid: true}
         } else {
             return dbPlayerInfo.isPhoneNumberValidToRegister({
-                phoneNumber: rsaCrypto.encrypt(inputData.phoneNumber),
+                phoneNumber: {$in: [rsaCrypto.encrypt(inputData.phoneNumber), rsaCrypto.oldEncrypt(inputData.phoneNumber)]},
                 platform: platformObj._id,
                 isRealPlayer: true
             });
@@ -20726,6 +20747,7 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
                 return Promise.resolve();
             }
             if (!rewardProp) {
+                console.log("Create level up reward", playerObj.name);
                 // if this is level up and player has not reach this level before
                 // create level up reward proposal
 
@@ -20747,6 +20769,7 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
                 return dbProposal.createProposalWithTypeName(playerObj.platform, constProposalType.PLAYER_LEVEL_UP, {data: proposal});
 
             } else {
+                console.log("Level up reward has been created previously", playerObj.name, rewardProp.status, rewardProp.createTime);
                 isRewardAssign = true;
                 return {}
             }

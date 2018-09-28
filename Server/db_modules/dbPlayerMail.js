@@ -453,10 +453,15 @@ const dbPlayerMail = {
                         )
                     } else {
                         // Get player info
-                        return dbconfig.collection_players.findOne({
+                        let playerQuery = {
                             platform: platformObjId,
-                            playerId: inputData.playerId
-                        }).lean().then(
+                        }
+                        if (purpose && purpose === constSMSPurpose.RESET_PASSWORD && inputData.name) {
+                            playerQuery.name = inputData.name;
+                        } else {
+                            playerQuery.playerId = inputData.playerId;
+                        }
+                        return dbconfig.collection_players.findOne(playerQuery).lean().then(
                             playerData => {
                                 if (playerData && playerData.phoneNumber) {
                                     savedNumber = rsaCrypto.decrypt(playerData.phoneNumber);
@@ -465,6 +470,13 @@ const dbPlayerMail = {
 
                                     if (!telNum) {
                                         telNum = savedNumber;
+                                    }
+
+                                    if (purpose && purpose === constSMSPurpose.RESET_PASSWORD && telNum != savedNumber) {
+                                        return Promise.reject({
+                                            name: "DataError",
+                                            message: "Phone number does not match"
+                                        });
                                     }
                                 }
                             }
@@ -643,7 +655,7 @@ const dbPlayerMail = {
                                 && platform[whiteListPhone].length > 0
                                 && platform[whiteListPhone].indexOf(telNum) > -1)) {
                             let query = {
-                                phoneNumber: rsaCrypto.encrypt(telNum.toString()),
+                                phoneNumber: {$in: [rsaCrypto.encrypt(telNum.toString()), rsaCrypto.oldEncrypt(telNum.toString())]},
                                 platform: platformObjId,
                                 isRealPlayer: true
                             };
