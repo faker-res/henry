@@ -4589,5 +4589,7 @@
   "Actual Amount": "实际到帐",
   "ActualReceivedAmount": "实际到帐金额",
   "SKIP_CURRENT_PERIOD": "跳过本期",
-  "Service Charge Fee": "手续费用"
+  "Service Charge Fee": "手续费用",
+  "Force Total Platform Fee To 0": "总平台费强制费归0",
+  "Forced 0": "强制归0"
 }
