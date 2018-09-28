@@ -18149,33 +18149,36 @@ let dbPlayerInfo = {
                         if (platformData.gameProviders[i] && platformData.gameProviders[i].sameLineProviders && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId]) {
                             gameProviderIdList.push(platformData.gameProviders[i].providerId);
 
-                            if (!groupSameLineProviders.length) {
-                                groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0].sort())
-                            }
-                            else {
-                                // check each of the providerId
-                                let isAdded = false;
-
-                                let nextProviderIdList = platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0];
-
-                                for (let count = 0; count < groupSameLineProviders.length; count++) {
-                                    let interceptProviderIdList = groupSameLineProviders[count].filter(q => nextProviderIdList.indexOf(q) > -1);
-                                    if (interceptProviderIdList && interceptProviderIdList.length) {
-                                        nextProviderIdList.forEach(
-                                            nextItem => {
-                                                if (interceptProviderIdList.indexOf(nextItem) == -1) {
-                                                    groupSameLineProviders[count].push(nextItem);
-                                                }
-                                            }
-                                        )
-
-                                        isAdded = true;
-                                        break;
-                                    }
+                            if (platformData.gameProviders[i].sameLineProviders[playerDetails.platformId] && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0] && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0].length)
+                            {
+                                if (!groupSameLineProviders.length) {
+                                    groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0])
                                 }
+                                else {
+                                    // check each of the providerId
+                                    let isAdded = false;
 
-                                if (!isAdded) {
-                                    groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0]);
+                                    let nextProviderIdList = platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0];
+
+                                    for (let count = 0; count < groupSameLineProviders.length; count++) {
+                                        let interceptProviderIdList = groupSameLineProviders[count].filter(q => nextProviderIdList.indexOf(q) > -1);
+                                        if (interceptProviderIdList && interceptProviderIdList.length) {
+                                            nextProviderIdList.forEach(
+                                                nextItem => {
+                                                    if (interceptProviderIdList.indexOf(nextItem) == -1) {
+                                                        groupSameLineProviders[count].push(nextItem);
+                                                    }
+                                                }
+                                            )
+
+                                            isAdded = true;
+                                            break;
+                                        }
+                                    }
+
+                                    if (!isAdded) {
+                                        groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0]);
+                                    }
                                 }
                             }
                         }
@@ -18252,8 +18255,10 @@ let dbPlayerInfo = {
                     // remove the unrelated provderID and return data
                     returnData.sameLineProviders = {};
                     for (let i = 0; i < tempSameLineProviderList.length; i ++) {
-                        returnData.sameLineProviders[i] = tempSameLineProviderList[i].filter(x => gameProviderIdList.indexOf(x) > -1).sort();
-                        amountGameProviderList.push(returnData.sameLineProviders[i][0]);
+                        if (tempSameLineProviderList[i].length) {
+                            returnData.sameLineProviders[i] = tempSameLineProviderList[i].filter(x => gameProviderIdList.indexOf(x) > -1).sort();
+                            amountGameProviderList.push(returnData.sameLineProviders[i][0]);
+                        }
                     }
                 }
 
