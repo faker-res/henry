@@ -18146,39 +18146,37 @@ let dbPlayerInfo = {
                     
                     for (let i = 0; i < platformData.gameProviders.length; i++) {
                         // check each of the game provider for the sameLineProvider
-                        if (platformData.gameProviders[i] && platformData.gameProviders[i].sameLineProviders && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId]) {
+                        if (platformData.gameProviders[i] && platformData.gameProviders[i].sameLineProviders && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId] &&
+                            platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0] && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0].length) {
                             gameProviderIdList.push(platformData.gameProviders[i].providerId);
 
-                            if (platformData.gameProviders[i].sameLineProviders[playerDetails.platformId] && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0] && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0].length)
-                            {
-                                if (!groupSameLineProviders.length) {
-                                    groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0])
-                                }
-                                else {
-                                    // check each of the providerId
-                                    let isAdded = false;
+                            if (!groupSameLineProviders.length) {
+                                groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0])
+                            }
+                            else {
+                                // check each of the providerId
+                                let isAdded = false;
 
-                                    let nextProviderIdList = platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0];
+                                let nextProviderIdList = platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0];
 
-                                    for (let count = 0; count < groupSameLineProviders.length; count++) {
-                                        let interceptProviderIdList = groupSameLineProviders[count].filter(q => nextProviderIdList.indexOf(q) > -1);
-                                        if (interceptProviderIdList && interceptProviderIdList.length) {
-                                            nextProviderIdList.forEach(
-                                                nextItem => {
-                                                    if (interceptProviderIdList.indexOf(nextItem) == -1) {
-                                                        groupSameLineProviders[count].push(nextItem);
-                                                    }
+                                for (let count = 0; count < groupSameLineProviders.length; count++) {
+                                    let interceptProviderIdList = groupSameLineProviders[count].filter(q => nextProviderIdList.indexOf(q) > -1);
+                                    if (interceptProviderIdList && interceptProviderIdList.length) {
+                                        nextProviderIdList.forEach(
+                                            nextItem => {
+                                                if (interceptProviderIdList.indexOf(nextItem) == -1) {
+                                                    groupSameLineProviders[count].push(nextItem);
                                                 }
-                                            )
+                                            }
+                                        )
 
-                                            isAdded = true;
-                                            break;
-                                        }
+                                        isAdded = true;
+                                        break;
                                     }
+                                }
 
-                                    if (!isAdded) {
-                                        groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0]);
-                                    }
+                                if (!isAdded) {
+                                    groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0]);
                                 }
                             }
                         }
