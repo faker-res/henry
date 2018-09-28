@@ -1,3 +1,8 @@
+style.
+    .highlighted-cell {
+        background-color: #0b97c4;
+        color: #FFFFFF;
+    }
 .panel.panel-primary(ng-if="checkViewPermission('Operation', 'Proposal','Read')")
     .panel-heading.padding-all-5
         .panel-title.left-col
@@ -261,39 +266,202 @@
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 div test modal
             .modal-body
-                div {{"A."}} {{"PLAYER_INFORMATION_PORTION" | translate}}
-                div {{"BASIC_INFORMATION" | translate}}
-                table.simple-table
-                    tr
-                        td {{"REAL_NAME" | translate}}
+                div(style="text-align: left; background-color: #047ea5; color: #FFFFFF; font-weight: bold; padding: 13px; border-radius: 38px; width: 61.8%") A. {{"PLAYER_INFORMATION_PORTION" | translate}}
+                div(style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 38.2%") {{"BASIC_INFORMATION" | translate}}
+                table.simple-table(style="margin-top: 12px;")
+                    tr(ng-if="vm.largeWithdrawalSetting.showRealName")
+                        td.col-md-3 {{"REAL_NAME" | translate}}
                         td {{vm.largeWithdrawLog.realName}}
-                    tr
+                    tr(ng-if="vm.largeWithdrawalSetting.showPlayerLevel")
                         td {{"LEVEL" | translate}}
                         td {{vm.largeWithdrawLog.playerLevelName}}
-                    tr
+                    tr(ng-if="vm.largeWithdrawalSetting.showBankCity")
                         td {{"BANK_CITY" | translate}}
                         td {{vm.largeWithdrawLog.bankCity}}
-                    tr
+                    tr(ng-if="vm.largeWithdrawalSetting.showRegisterTime")
                         td {{"REGISTRATION_TIME" | translate}}
-                        td {{vm.largeWithdrawLog.registrationTime}}
-                    tr
+                        td {{vm.dateReformat(vm.largeWithdrawLog.registrationTime) || " "}}
+                    tr(ng-if="vm.largeWithdrawalSetting.showCurrentWithdrawalTime")
                         td {{"CURRENT_WITHDRAWAL_TIME" | translate}}
-                        td {{vm.largeWithdrawLog.withdrawalTime}}
-                    tr
+                        td {{vm.dateReformat(vm.largeWithdrawLog.withdrawalTime) || " "}}
+                    tr(ng-if="vm.largeWithdrawalSetting.showLastWithdrawalTime")
                         td {{"LAST_WITHDRAWAL_TIME" | translate}}
-                        td {{vm.largeWithdrawLog.lastWithdrawalTime}}
-                div {{"LAST_TO_CURRENT_WITHDRAWAL" | translate}}
+                        td {{vm.dateReformat(vm.largeWithdrawLog.lastWithdrawalTime) || " "}}
+                    tr(ng-if="vm.largeWithdrawalSetting.showCurrentCredit")
+                        td {{"providerCreditAmount" | translate}}
+                        td {{$fixTwoDecimalStr(vm.largeWithdrawLog.currentCredit)}}
+                div(style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 38.2%") {{"LAST_TO_CURRENT_WITHDRAWAL" | translate}}
                 table.simple-table
-                    tr
-                        td {{"PLAYER_PROFIT" | translate}}
-                        td {{vm.largeWithdrawLog.playerBonusAmount}}
-                    tr
+                    tr(ng-if="vm.largeWithdrawalSetting.showPlayerBonusAmount")
+                        td.col-md-3 {{"PLAYER_PROFIT" | translate}}
+                        td {{$fixTwoDecimalStr(vm.largeWithdrawLog.playerBonusAmount)}}
+                    tr(ng-if="vm.largeWithdrawalSetting.showTotalTopUpAmount")
                         td {{"TopupAmount" | translate}}
-                        td {{vm.largeWithdrawLog.playerTotalTopUpAmount}}
-                    tr
+                        td {{$fixTwoDecimalStr(vm.largeWithdrawLog.playerTotalTopUpAmount)}}
+                    tr(ng-if="vm.largeWithdrawalSetting.playerTotalTopUpAmount")
                         td {{"CONSUMPTION_RETURN_REWARD" | translate}}
-                        td {{vm.largeWithdrawLog.consumptionReturnAmount}}
-                textarea(ng-model="vm.largeWithdrawLog.comment" ng-disabled='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")')
+                        td {{$fixTwoDecimalStr(vm.largeWithdrawLog.consumptionReturnAmount)}}
+                    tr(ng-if="vm.largeWithdrawalSetting.consumptionReturnAmount")
+                        td {{"OTHER_REWARD" | translate}}
+                        td {{$fixTwoDecimalStr(vm.largeWithdrawLog.rewardAmount)}}
+
+                table.simple-table(style="margin-top: 12px;" ng-if="vm.largeWithdrawalSetting.showConsumptionSectionCount")
+                    tr.highlighted-cell
+                        td {{"CONSUMPTION_AMOUNT_SECTION" | translate}}
+                        td {{"0~100" | translate}}
+                        td {{"100~1000" | translate}}
+                        td {{"1000~10000" | translate}}
+                        td {{"10000~100000" | translate}}
+                        td {{"100000+" | translate}}
+                    tr
+                        td.highlighted-cell {{"COUNT" | translate}}
+                        td {{vm.largeWithdrawLog.consumptionAmountTimes.belowHundred}}
+                        td {{vm.largeWithdrawLog.consumptionAmountTimes.belowThousand}}
+                        td {{vm.largeWithdrawLog.consumptionAmountTimes.belowTenThousand}}
+                        td {{vm.largeWithdrawLog.consumptionAmountTimes.belowHundredThousand}}
+                        td {{vm.largeWithdrawLog.consumptionAmountTimes.aboveHundredThousand}}
+
+                table.simple-table(style="margin-top: 12px;" ng-if="vm.largeWithdrawalSetting.showGameProviderInfo")
+                    tr.highlighted-cell
+                        td {{"GAME_PROVIDER_INFO" | translate}}
+                        td(ng-repeat="(i, v) in vm.largeWithdrawLog.gameProviderInfo") {{v.providerName}}
+                    tr
+                        td.highlighted-cell {{"1. Total Bet Amount" | translate}}
+                        td(ng-repeat="(i, v) in vm.largeWithdrawLog.gameProviderInfo") {{v.consumptionTimes}}
+                    tr
+                        td.highlighted-cell {{"2. Bonus Amount" | translate}}
+                        td(ng-repeat="(i, v) in vm.largeWithdrawLog.gameProviderInfo") {{$fixTwoDecimalStr(v.bonusAmount)}}
+                    tr
+                        td.highlighted-cell {{"3. Valid Bet Amount" | translate}}
+                        td(ng-repeat="(i, v) in vm.largeWithdrawLog.gameProviderInfo") {{$fixTwoDecimalStr(v.validAmount)}}
+                    tr
+                        td.highlighted-cell {{"4. Site Bonus Ratio" | translate}}
+                        td(ng-repeat="(i, v) in vm.largeWithdrawLog.gameProviderInfo") {{$fixTwoDecimalStr(v.siteBonusRatio)}}
+                    tr
+                        td.highlighted-cell {{"5. Consumption Game Types" | translate}}
+                        td(ng-repeat="(i, v) in vm.largeWithdrawLog.gameProviderInfo")
+                            span(ng-repeat="(j, w) in v.consumptionAmountByType")
+                                span {{j}}: {{$fixTwoDecimalStr(w)}}
+                                br
+                    tr
+                        td.highlighted-cell {{"6. Game Type Bonus Amount" | translate}}
+                        td(ng-repeat="(i, v) in vm.largeWithdrawLog.gameProviderInfo")
+                            span(ng-repeat="(j, w) in v.playerBonusAmountByType")
+                                span {{j}}: {{$fixTwoDecimalStr(w)}}
+                                br
+                    tr
+                        td.highlighted-cell {{"7. Bet Pattern Analysis" | translate}}
+                        td(ng-repeat="(i, v) in vm.largeWithdrawLog.gameProviderInfo") {{"(Coming Soon)" | translate}}
+
+                div(style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 38.2%") {{"LAST_TOPUP_TO_CURRENT_WITHDRAWAL" | translate}}
+                table.simple-table(style="margin-top: 12px")
+                    tr(ng-if="vm.largeWithdrawalSetting.showLastTopUpBonusAmount")
+                        td.col-md-3 {{"PLAYER_PROFIT" | translate}}
+                        td {{$fixTwoDecimalStr(vm.largeWithdrawLog.lastTopUpPlayerBonusAmount)}}
+                    tr(ng-if="vm.largeWithdrawalSetting.showLastTopUpAmount")
+                        td {{"TopupAmount" | translate}}
+                        td {{$fixTwoDecimalStr(vm.largeWithdrawLog.lastTopUpAmount)}}
+                    tr(ng-if="vm.largeWithdrawalSetting.showLastTopUpConsumptionReturnAmount")
+                        td {{"CONSUMPTION_RETURN_REWARD" | translate}}
+                        td {{$fixTwoDecimalStr(vm.largeWithdrawLog.lastTopUpConsumptionReturnAmount)}}
+                    tr(ng-if="vm.largeWithdrawalSetting.showLastTopUpRewardAmount")
+                        td {{"OTHER_REWARD" | translate}}
+                        td {{$fixTwoDecimalStr(vm.largeWithdrawLog.lastTopUpRewardAmount)}}
+
+                table.simple-table(style="margin-top: 12px;" ng-if="vm.largeWithdrawalSetting.showLastTopUpConsumptionSectionCount")
+                    tr.highlighted-cell
+                        td {{"CONSUMPTION_AMOUNT_SECTION" | translate}}
+                        td {{"0~100" | translate}}
+                        td {{"100~1000" | translate}}
+                        td {{"1000~10000" | translate}}
+                        td {{"10000~100000" | translate}}
+                        td {{"100000+" | translate}}
+                    tr
+                        td.highlighted-cell {{"COUNT" | translate}}
+                        td {{vm.largeWithdrawLog.lastTopUpConsumptionAmountTimes.belowHundred}}
+                        td {{vm.largeWithdrawLog.lastTopUpConsumptionAmountTimes.belowThousand}}
+                        td {{vm.largeWithdrawLog.lastTopUpConsumptionAmountTimes.belowTenThousand}}
+                        td {{vm.largeWithdrawLog.lastTopUpConsumptionAmountTimes.belowHundredThousand}}
+                        td {{vm.largeWithdrawLog.lastTopUpConsumptionAmountTimes.aboveHundredThousand}}
+
+                table.simple-table(style="margin-top: 12px;" ng-if="vm.largeWithdrawalSetting.showLastTopUpGameProviderInfo")
+                    tr.highlighted-cell
+                        td {{"GAME_PROVIDER_INFO" | translate}}
+                        td(ng-repeat="(i, v) in vm.largeWithdrawLog.lastTopUpGameProviderInfo") {{v.providerName}}
+                    tr
+                        td.highlighted-cell {{"1. Total Bet Amount" | translate}}
+                        td(ng-repeat="(i, v) in vm.largeWithdrawLog.lastTopUpGameProviderInfo") {{v.consumptionTimes}}
+                    tr
+                        td.highlighted-cell {{"2. Bonus Amount" | translate}}
+                        td(ng-repeat="(i, v) in vm.largeWithdrawLog.lastTopUpGameProviderInfo") {{$fixTwoDecimalStr(v.bonusAmount)}}
+                    tr
+                        td.highlighted-cell {{"3. Valid Bet Amount" | translate}}
+                        td(ng-repeat="(i, v) in vm.largeWithdrawLog.lastTopUpGameProviderInfo") {{$fixTwoDecimalStr(v.validAmount)}}
+                    tr
+                        td.highlighted-cell {{"4. Site Bonus Ratio" | translate}}
+                        td(ng-repeat="(i, v) in vm.largeWithdrawLog.lastTopUpGameProviderInfo") {{$fixTwoDecimalStr(v.siteBonusRatio)}}
+                    tr
+                        td.highlighted-cell {{"5. Consumption Game Types" | translate}}
+                        td(ng-repeat="(i, v) in vm.largeWithdrawLog.lastTopUpGameProviderInfo")
+                            span(ng-repeat="(j, w) in v.consumptionAmountByType")
+                                span {{j}}: {{$fixTwoDecimalStr(w)}}
+                                br
+                    tr
+                        td.highlighted-cell {{"6. Game Type Bonus Amount" | translate}}
+                        td(ng-repeat="(i, v) in vm.largeWithdrawLog.lastTopUpGameProviderInfo")
+                            span(ng-repeat="(j, w) in v.playerBonusAmountByType")
+                                span {{j}}: {{$fixTwoDecimalStr(w)}}
+                                br
+                    tr
+                        td.highlighted-cell {{"7. Bet Pattern Analysis" | translate}}
+                        td(ng-repeat="(i, v) in vm.largeWithdrawLog.lastTopUpGameProviderInfo") {{"(Coming Soon)" | translate}}
+
+                div(style="text-align: left; background-color: #047ea5; color: #FFFFFF; font-weight: bold; padding: 13px; border-radius: 38px; width: 61.8%; margin-top: 38px") B. {{"SITE_DATA_SECTION" | translate}}
+                div(style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 38.2%") {{"LAST_TO_CURRENT_WITHDRAWAL" | translate}}
+
+                table.simple-table(style="margin-top: 12px")
+                    tr(ng-if="vm.largeWithdrawalSetting.showDayTopUpAmount")
+                        td.col-md-3 {{"DAILY_TOPUP" | translate}}
+                        td {{$fixTwoDecimalStr(vm.largeWithdrawLog.dayTopUpAmount)}}
+                    tr(ng-if="vm.largeWithdrawalSetting.showDayWithdrawAmount")
+                        td {{"DAILY_WITHDRAWAL" | translate}}
+                        td {{$fixTwoDecimalStr(vm.largeWithdrawLog.dayWithdrawAmount)}}
+                    tr(ng-if="vm.largeWithdrawalSetting.showDayTopUpWithdrawDifference")
+                        td {{"Daily top up - daily withdrawal" | translate}}
+                        td {{$fixTwoDecimalStr(vm.largeWithdrawLog.dayTopUpBonusDifference)}}
+
+                div(style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 38.2%") {{"REGISTRATION_TIME_TO_CURRENT_WITHDRAWAL" | translate}}
+
+                table.simple-table(style="margin-top: 12px")
+                    tr(ng-if="vm.largeWithdrawalSetting.showAccountTopUpAmount")
+                        td.col-md-3 {{"TOTAL_TOP_UP" | translate}}
+                        td {{$fixTwoDecimalStr(vm.largeWithdrawLog.accountTopUpAmount)}}
+                    tr(ng-if="vm.largeWithdrawalSetting.showAccountWithdrawAmount")
+                        td {{"Total_Bonus_Amount" | translate}}
+                        td {{$fixTwoDecimalStr(vm.largeWithdrawLog.accountWithdrawAmount)}}
+                    tr(ng-if="vm.largeWithdrawalSetting.showAccountTopUpWithdrawDifference")
+                        td {{"Total top up - total withdrawal" | translate}}
+                        td {{$fixTwoDecimalStr(vm.largeWithdrawLog.topUpBonusDifference)}}
+
+                div(style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 38.2%") {{"Last 3 month player report(separated by month)" | translate}}
+
+                table.simple-table(style="margin-top: 12px")
+                    tr(ng-if="vm.largeWithdrawalSetting.showLastThreeMonthTopUp")
+                        td.col-md-3 {{"DEPOSIT_TOPUP" | translate}}
+                        td ({{vm.largeWithdrawLog.lastThreeMonthValue.secondLastMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.largeWithdrawLog.lastThreeMonthTopUp.secondLastMonth)}}, {{vm.largeWithdrawLog.lastThreeMonthValue.lastMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.largeWithdrawLog.lastThreeMonthTopUp.lastMonth)}}, {{vm.largeWithdrawLog.lastThreeMonthValue.currentMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.largeWithdrawLog.lastThreeMonthTopUp.currentMonth)}})
+                    tr(ng-if="vm.largeWithdrawalSetting.showLastThreeMonthWithdraw")
+                        td.col-md-3 {{"Bonus" | translate}}
+                        td ({{vm.largeWithdrawLog.lastThreeMonthValue.secondLastMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.largeWithdrawLog.lastThreeMonthWithdraw.secondLastMonth)}}, {{vm.largeWithdrawLog.lastThreeMonthValue.lastMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.largeWithdrawLog.lastThreeMonthWithdraw.lastMonth)}}, {{vm.largeWithdrawLog.lastThreeMonthValue.currentMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.largeWithdrawLog.lastThreeMonthWithdraw.currentMonth)}})
+                    tr(ng-if="vm.largeWithdrawalSetting.showLastThreeMonthTopUpWithdrawDifference")
+                        td.col-md-3 {{"Top Up - Withdrawal" | translate}}
+                        td ({{vm.largeWithdrawLog.lastThreeMonthValue.secondLastMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.largeWithdrawLog.lastThreeMonthTopUpWithdrawDifference.secondLastMonth)}}, {{vm.largeWithdrawLog.lastThreeMonthValue.lastMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.largeWithdrawLog.lastThreeMonthTopUpWithdrawDifference.lastMonth)}}, {{vm.largeWithdrawLog.lastThreeMonthValue.currentMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.largeWithdrawLog.lastThreeMonthTopUpWithdrawDifference.currentMonth)}})
+                    tr(ng-if="vm.largeWithdrawalSetting.showLastThreeMonthConsumptionAmount")
+                        td.col-md-3 {{"CONSUMPTION" | translate}}
+                        td ({{vm.largeWithdrawLog.lastThreeMonthValue.secondLastMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.largeWithdrawLog.lastThreeMonthConsumptionAmount.secondLastMonth)}}, {{vm.largeWithdrawLog.lastThreeMonthValue.lastMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.largeWithdrawLog.lastThreeMonthConsumptionAmount.lastMonth)}}, {{vm.largeWithdrawLog.lastThreeMonthValue.currentMonth}}{{"MONTH" | translate}}: {{$fixTwoDecimalStr(vm.largeWithdrawLog.lastThreeMonthConsumptionAmount.currentMonth)}})
+
+                div(ng-if="vm.largeWithdrawalSetting.allowAdminComment" style="text-align: left; background-color: #047ea5; color: #FFFFFF; font-weight: bold; padding: 13px; border-radius: 38px; width: 61.8%; margin-top: 38px") C. {{"CS Comment Area" | translate}}
+
+                textarea.form-control(ng-if="vm.largeWithdrawalSetting.allowAdminComment" ng-model="vm.largeWithdrawLog.comment" ng-disabled='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")')
             .modal-footer
                 div(ng-if="vm.isLargeWithdrawalReviewer")
                     // is reviewer
