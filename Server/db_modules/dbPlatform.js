@@ -1971,10 +1971,11 @@ var dbPlatform = {
 
     checkPhoneNumWithRealPlayer: (phone, platformObjId, sms) => {
         let encryptPhone = rsaCrypto.encrypt(phone);
+        let oldEncryptPhone = rsaCrypto.oldEncrypt(phone);
 
         return dbconfig.collection_players.find(
             {
-                phoneNumber: encryptPhone,
+                phoneNumber: {$in: [encryptPhone, oldEncryptPhone]},
                 platform: platformObjId,
                 isRealPlayer: true // only compare with real player
             }
@@ -2015,10 +2016,11 @@ var dbPlatform = {
 
     checkPhoneNumWithPartner: (phone, platformObjId, sms) => {
         let encryptPhone = rsaCrypto.encrypt(phone);
+        let oldEncryptPhone = rsaCrypto.oldEncrypt(phone);
 
         return dbconfig.collection_partner.find(
             {
-                phoneNumber: encryptPhone,
+                phoneNumber: {$in: [encryptPhone, oldEncryptPhone]},
                 platform: platformObjId,
             }
         ).count().then(

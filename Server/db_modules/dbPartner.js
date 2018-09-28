@@ -94,13 +94,13 @@ let dbPartner = {
                     if(phoneNumber){
                         if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
                             return dbPartner.isExceedPhoneNumberValidToRegister({
-                                phoneNumber: rsaCrypto.encrypt(phoneNumber),
+                                phoneNumber: {$in: [rsaCrypto.encrypt(phoneNumber), rsaCrypto.oldEncrypt(phoneNumber)]},
                                 platform: partnerData.platform
                             }, platformData.partnerSamePhoneNumberRegisterCount);
                             // return {isPhoneNumberValid: true};
                         } else {
                             return dbPartner.isPhoneNumberValidToRegister({
-                                phoneNumber: rsaCrypto.encrypt(phoneNumber),
+                                phoneNumber: {$in: [rsaCrypto.encrypt(phoneNumber), rsaCrypto.oldEncrypt(phoneNumber)]},
                                 platform: partnerData.platform
                             });
                         }
@@ -268,13 +268,13 @@ let dbPartner = {
                     if (phoneNumber) {
                         if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
                             return dbPartner.isExceedPhoneNumberValidToRegister({
-                                phoneNumber: rsaCrypto.encrypt(phoneNumber),
+                                phoneNumber: {$in: [rsaCrypto.encrypt(phoneNumber), rsaCrypto.oldEncrypt(phoneNumber)]},
                                 platform: partnerdata.platform
                             }, platformData.partnerSamePhoneNumberRegisterCount);
                             // return {isPhoneNumberValid: true};
                         } else {
                             return dbPartner.isPhoneNumberValidToRegister({
-                                phoneNumber: rsaCrypto.encrypt(phoneNumber),
+                                phoneNumber: {$in: [rsaCrypto.encrypt(phoneNumber), rsaCrypto.oldEncrypt(phoneNumber)]},
                                 platform: partnerdata.platform
                             });
                         }
@@ -911,7 +911,7 @@ let dbPartner = {
         query.platform  = mongoose.Types.ObjectId(platformId);
 
         if (query && query.phoneNumber) {
-            query.phoneNumber = {$in: [rsaCrypto.encrypt(query.phoneNumber), query.phoneNumber]};
+            query.phoneNumber = {$in: [rsaCrypto.encrypt(query.phoneNumber), rsaCrypto.oldEncrypt(query.phoneNumber),query.phoneNumber]};
         }
 
         if (query && query.registrationTime) {
@@ -1640,10 +1640,7 @@ let dbPartner = {
             platformData => {
                 if (platformData) {
                     return dbconfig.collection_partner.findOne({
-                        $or: [
-                            {phoneNumber: partnerData.phoneNumber},
-                            {phoneNumber: rsaCrypto.encrypt(partnerData.phoneNumber)}
-                        ],
+                        phoneNumber: {$in: [partnerData.phoneNumber, rsaCrypto.encrypt(partnerData.phoneNumber), rsaCrypto.oldEncrypt(partnerData.phoneNumber)]},
                         platform: platformData._id
                     }).lean()
                 }
@@ -2088,10 +2085,11 @@ let dbPartner = {
     },
 
     verifyPartnerPhoneNumber: function (partnerObjId, phoneNumber) {
-        var enPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+        let enPhoneNumber = rsaCrypto.encrypt(phoneNumber);
+        let enOldPhoneNumber = rsaCrypto.oldEncrypt(phoneNumber);
         return dbconfig.collection_partner.findOne({
             _id: partnerObjId,
-            phoneNumber: {$in: [phoneNumber, enPhoneNumber]}
+            phoneNumber: {$in: [phoneNumber, enPhoneNumber, enOldPhoneNumber]}
         }).then(
             partnerData => {
                 return Boolean(partnerData);
@@ -6817,6 +6815,47 @@ let dbPartner = {
         });
 
         return Promise.all(proms);
+    },
+
+    updateTotalPlatformFeeToZero: (partnerCommissionLogObjId, platformObjId, partnerObjId, commissionType, rawCommissions, totalPlatformFee, nettCommission, adminInfo) => {
+        let rawCommissionsArr = [];
+        if (rawCommissions && rawCommissions.length > 0) {
+            for (let i = 0; i < rawCommissions.length; i++) {
+                let detail = rawCommissions[i];
+
+                if (detail) {
+                    detail.platformFee = 0;
+                    detail.isForcePlatformFeeToZero = true;
+                    detail.forcePlatformFeeToZeroBy = adminInfo;
+
+                    rawCommissionsArr.push(detail);
+                }
+            }
+
+            if (rawCommissionsArr && rawCommissionsArr.length > 0) {
+                let latestNettCommission = nettCommission;
+
+                if (totalPlatformFee > 0) {
+                    latestNettCommission += totalPlatformFee;
+                } else {
+                    latestNettCommission -= totalPlatformFee;
+                }
+
+                return dbconfig.collection_partnerCommissionLog.findOneAndUpdate(
+                    {
+                        _id: partnerCommissionLogObjId,
+                        platform: platformObjId,
+                        partner: partnerObjId,
+                        commissionType: commissionType
+                    },
+                    {
+                        rawCommissions: rawCommissionsArr,
+                        nettCommission: latestNettCommission,
+                        totalPlatformFee: 0
+                    }
+                );
+            }
+        }
     },
 
     getPartnerSettlementHistory: (platformObjId, partnerName, commissionType, startTime, endTime, sortCol, index, limit) => {

@@ -591,7 +591,15 @@ define(['js/app'], function (myApp) {
 
             vm.paymentMonitorQuery.merchantNo ? sendObj.merchantNo = vm.paymentMonitorQuery.merchantNo : null;
             console.log('sendObj', sendObj);
-
+            if(vm.paymentMonitorQuery.merchantNo && vm.paymentMonitorQuery.merchantNo.length == 1 && vm.paymentMonitorQuery.merchantNo.indexOf('MMM4-line2') != -1){
+                sendObj.line = '2';
+                vm.paymentMonitorQuery.line = '2';
+                sendObj.merchantNo = vm.paymentMonitorQuery.merchantNo.filter(merchantData=>{
+                    return merchantData != 'MMM4-line2';
+                })
+            }else{
+                vm.paymentMonitorQuery.line = null;
+            }
             socketService.$socket($scope.AppSocket, 'getPaymentMonitorResult', sendObj, function (data) {
                 $scope.$evalAsync(() => {
                     $('#paymentMonitorTableSpin').hide();
@@ -701,6 +709,15 @@ define(['js/app'], function (myApp) {
             };
 
             vm.paymentMonitorTotalQuery.merchantNo ? sendObj.merchantNo = vm.paymentMonitorTotalQuery.merchantNo : null;
+            if(vm.paymentMonitorTotalQuery.merchantNo && vm.paymentMonitorTotalQuery.merchantNo.length == 1 && vm.paymentMonitorTotalQuery.merchantNo.indexOf('MMM4-line2') != -1){
+                sendObj.line = '2';
+                vm.paymentMonitorTotalQuery.line = '2';
+                sendObj.merchantNo = vm.paymentMonitorTotalQuery.merchantNo.filter(merchantData=>{
+                    return merchantData != 'MMM4-line2';
+                })
+            }else{
+                vm.paymentMonitorTotalQuery.line = null;
+            }
             console.log('sendObj', sendObj);
 
             return $scope.$socketPromise('getPaymentMonitorTotalResult', sendObj).then(
@@ -969,7 +986,11 @@ define(['js/app'], function (myApp) {
                         data: "merchantNo$",
                         render: function (data, type, row) {
                             var text = data;
-                            return '<div style = "width: 90px; word-break: break-all; white-space: normal">' + text + '</div>'
+                            let additional = '';
+                            if( row.data.line && row.data.line == '2'){
+                                additional = '(MMM)';
+                            }
+                            return '<div style = "width: 90px; word-break: break-all; white-space: normal">' + text + additional + '</div>'
                         },
                         sClass: 'merchantCount',
                         "width": "90px"},
@@ -1113,7 +1134,12 @@ define(['js/app'], function (myApp) {
                         data: "merchantNo$",
                         render: function (data, type, row) {
                             var text = data;
-                            return '<div style = "width: 90px; word-break: break-all; white-space: normal">' + text + '</div>'
+                            let additional = '';
+                            console.log(row.data.line)
+                            if( row.data.line && row.data.line == '2'){
+                                additional = '(MMM)';
+                            }
+                            return '<div style = "width: 90px; word-break: break-all; white-space: normal">' + text + additional + '</div>'
                         },
                         sClass: 'merchantCount',
                         "width": "90px"},
@@ -1269,7 +1295,11 @@ define(['js/app'], function (myApp) {
                         data: "merchantNo$",
                         render: function (data, type, row) {
                             var text = data;
-                            return '<div style = "width: 90px; word-break: break-all; white-space: normal">' + text + '</div>'
+                            let additional = '';
+                            if( row.data.line && row.data.line == '2'){
+                                additional = '(MMM)';
+                            }
+                            return '<div style = "width: 90px; word-break: break-all; white-space: normal">' + text + additional + '</div>'
                         },
                         sClass: 'merchantCount',
                         "width": "90px"},
@@ -1702,6 +1732,8 @@ define(['js/app'], function (myApp) {
             return new Promise(function (resolve) {
                 socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
                     if (data.data && data.data.merchants) {
+                        let line2Acc = commonService.getAlipayLine2Acc($translate);
+                        data.data.merchants.push(line2Acc);
                         resolve(data.data.merchants);
                     }
                 }, function (error) {

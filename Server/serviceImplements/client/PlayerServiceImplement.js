@@ -775,7 +775,7 @@ let PlayerServiceImplement = function () {
     };
 
     this.resetPassword.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.platformId && data.name && ((data.smsCode && data.phoneNumber) || (data.answer && data.answer.length) || (data.code) || (data.name)));
+        var isValidData = Boolean(data && data.platformId && data.name && (!(data.answer && !data.answer.length)) && (Boolean(data.phoneNumber) === Boolean(data.smsCode)));
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.resetPassword, [data.platformId, data.name, data.smsCode, data.answer, data.phoneNumber, data.code], isValidData, false, false, true);
     };
 
@@ -814,7 +814,7 @@ let PlayerServiceImplement = function () {
     this.updatePaymentInfo.expectsData = 'playerId: String';
     this.updatePaymentInfo.onRequest = function (wsFunc, conn, data) {
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
-        let isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId) && data.bankName && data.bankAccountType);
+        let isValidData = Boolean(data && data.playerId && (data.playerId == conn.playerId) && data.bankName);
         if (data.bankAccount && !(data.bankAccount.length >= constSystemParam.BANK_ACCOUNT_LENGTH && (/^\d+$/).test(data.bankAccount))) {
             isValidData = false;
         }

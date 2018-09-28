@@ -15,7 +15,8 @@ let dbDemoPlayer = {
         let realPlayerProm = Promise.resolve();
         if (phoneNumber && !isBackStageGenerated) {
             encryptedPhoneNumber = rsaCrypto.encrypt(phoneNumber);
-            let phoneNumberQuery = {$in: [encryptedPhoneNumber, phoneNumber]};
+            let encryptedOldPhoneNumber = rsaCrypto.oldEncrypt(phoneNumber);
+            let phoneNumberQuery = {$in: [encryptedPhoneNumber, phoneNumber, encryptedOldPhoneNumber]};
             realPlayerProm = dbconfig.collection_players.findOne({platform: platformObjId, phoneNumber: phoneNumberQuery, isRealPlayer: true}).lean();
         }
 
