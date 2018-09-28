@@ -9034,7 +9034,7 @@ let dbPartner = {
         return dbconfig.collection_partner.findOne({platform: platformId, _id: partnerObjId}).lean().then( partnerData => {
             if (partnerData) {
                 if (partnerData.credits) {
-                    if(dbUtil.noRoundTwoDecimalPlaces(partnerData.credits) != dbUtil.noRoundTwoDecimalPlaces(currentCredit)) {
+                    if(parseFloat(partnerData.credits).toFixed(2) != currentCredit) {
                         return Promise.reject({name: "DataError", message: "Partner does not have enough credit."});
                     } else {
                         return applyTransferPartnerCreditToPlayer(platformId, partnerData, currentCredit, updateCredit, totalTransferAmount, transferToPlayers, adminInfo);
