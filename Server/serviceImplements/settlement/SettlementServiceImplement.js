@@ -14,6 +14,7 @@ const dbPartnerWeekSummary = require("../../db_modules/dbPartnerWeekSummary.js")
 const dbPlayerConsumptionRecord = require('./../../db_modules/dbPlayerConsumptionRecord');
 const dbPlatform = require('./../../db_modules/dbPlatform');
 const dbPartner = require('./../../db_modules/dbPartner');
+const dbPlayerReward = require('./../../db_modules/dbPlayerReward');
 const dbRewardTask = require('./../../db_modules/dbRewardTask');
 const dbRewardEvent = require('./../../db_modules/dbRewardEvent');
 const dbPlayerMail = require("./../../db_modules/dbPlayerMail");
@@ -315,6 +316,12 @@ var SettlementServiceImplement = function () {
         let isValidData = Boolean(data && data.platform && data.partners && data.startTime && data.endTime);
         let args = [data.platform, data.partners, data.startTime, data.endTime];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.findPartnersForCommissionReport, args, isValidData);
+    };
+
+    this.generatePromoCodes.onRequest = (wsFunc, conn, data) => {
+        let isValidData = true;
+        let args = [data];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.generatePromoCodes, args, isValidData);
     };
 };
 

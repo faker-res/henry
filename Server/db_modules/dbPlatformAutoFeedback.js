@@ -557,73 +557,98 @@ let dbPlatformAutoFeedback = {
 
                     console.log('playerQuery', playerQuery);
                     console.log('playerQueryAND', JSON.stringify(playerQuery.$and));
-                    return dbconfig.collection_players.find(playerQuery).lean();
-                }).then(filteredPlayers => {
-                    // console.log("filteredPlayers", filteredPlayers);
-                    feedback.schedule.forEach((item, index) => {
-                        let curScheduleNumber = index + 1;
-                        if(item.triggerHour == curHour && item.triggerMinute == curMinute) {
-                            filteredPlayers.forEach(player => {
-                                let newPromoCodeEntry;
-                                return dbconfig.collection_promoCode.find({
-                                    playerObjId: player._id,
-                                    autoFeedbackMissionObjId: feedback._id
-                                }).sort({createTime: -1}).limit(1).lean().then(promoCode => {
-                                    console.log("autoFeedback promoCode",promoCode);
-                                    if(promoCode && promoCode.length > 0) {
-                                        promoCode = promoCode[0];
-                                        let curTime = new Date().getTime();
-                                        let timeAfterLastMission = dbutility.getNdaylaterFromSpecificStartTime(item.dayAfterLastMission, new Date(promoCode.createTime)).getTime();
-                                        let promoCodeCreateTime = new Date(promoCode.createTime).getTime();
-                                        let playerLastAccessTime = new Date(player.lastAccessTime).getTime();
-                                        if(curScheduleNumber-1 == promoCode.autoFeedbackMissionScheduleNumber &&
-                                            curTime >= timeAfterLastMission && playerLastAccessTime < promoCodeCreateTime) {
-                                            return dbconfig.collection_promoCodeTemplate.findOne({_id: item.template}).lean();
-                                        } else if(curScheduleNumber == 1 && playerLastAccessTime > promoCodeCreateTime) {
-                                            return dbconfig.collection_promoCodeTemplate.findOne({_id: item.template}).lean();
+                    return playerQuery;
+                }).then(
+                    playerQuery => {
+                        let filteredPlayerProm = dbconfig.collection_players.find(playerQuery).lean();
+                        let stream = filteredPlayerProm.cursor({batchSize: 100});
+                        let balancer = new SettlementBalancer();
+
+                        return balancer.initConns().then(function () {
+                            return Q(
+                                balancer.processStream(
+                                    {
+                                        stream: stream,
+                                        batchSize: constSystemParam.BATCH_SIZE,
+                                        makeRequest: function (filteredPlayers, request) {
+                                            let promoCodeProms = [];
+                                            feedback.schedule.forEach((item, index) => {
+                                                let curScheduleNumber = index + 1;
+                                                if(item.triggerHour == curHour && item.triggerMinute == curMinute) {
+                                                    filteredPlayers.forEach(player => {
+                                                        let newPromoCodeEntry;
+                                                        let promoCodeProm = dbconfig.collection_promoCode.find({
+                                                            playerObjId: player._id,
+                                                            autoFeedbackMissionObjId: feedback._id
+                                                        }).sort({createTime: -1}).limit(1).lean().then(promoCode => {
+                                                            console.log("autoFeedback promoCode",promoCode);
+                                                            if(promoCode && promoCode.length > 0) {
+                                                                promoCode = promoCode[0];
+                                                                let curTime = new Date().getTime();
+                                                                let timeAfterLastMission = dbutility.getNdaylaterFromSpecificStartTime(item.dayAfterLastMission, new Date(promoCode.createTime)).getTime();
+                                                                let promoCodeCreateTime = new Date(promoCode.createTime).getTime();
+                                                                let playerLastAccessTime = new Date(player.lastAccessTime).getTime();
+                                                                if(curScheduleNumber-1 == promoCode.autoFeedbackMissionScheduleNumber &&
+                                                                    curTime >= timeAfterLastMission && playerLastAccessTime < promoCodeCreateTime) {
+                                                                    return dbconfig.collection_promoCodeTemplate.findOne({_id: item.template}).lean();
+                                                                } else if(curScheduleNumber == 1 && playerLastAccessTime > promoCodeCreateTime) {
+                                                                    return dbconfig.collection_promoCodeTemplate.findOne({_id: item.template}).lean();
+                                                                }
+                                                            } else {
+                                                                console.log("autoFeedback curScheduleNumber",curScheduleNumber);
+                                                                if(curScheduleNumber == 1) {
+                                                                    return dbconfig.collection_promoCodeTemplate.findOne({_id: item.template}).lean();
+                                                                }
+                                                            }
+                                                            return null;
+                                                        }).then(template => {
+                                                            console.log("autoFeedback template",template);
+                                                            if(template) {
+                                                                newPromoCodeEntry = JSON.parse(JSON.stringify(template));
+                                                                delete newPromoCodeEntry._id;
+                                                                delete newPromoCodeEntry.createTime;
+                                                                newPromoCodeEntry.promoCodeTemplateObjId = template._id;
+                                                                newPromoCodeEntry.playerName = player.name;
+                                                                newPromoCodeEntry.expirationTime = dbutility.getNdaylaterFromSpecificStartTime(template.expiredInDay, new Date());
+                                                                newPromoCodeEntry.autoFeedbackMissionObjId = feedback._id;
+                                                                newPromoCodeEntry.autoFeedbackMissionScheduleNumber = curScheduleNumber;
+                                                                newPromoCodeEntry.allowedSendSms = true;
+                                                                return {
+                                                                    platformObjId: player.platform,
+                                                                    newPromoCodeEntry: newPromoCodeEntry,
+                                                                    adminObjId: null,
+                                                                    adminName: null,
+                                                                    feedbackData: {
+                                                                        playerId: player._id,
+                                                                        platform: player.platform,
+                                                                        content: item.content,
+                                                                        result: item.feedbackResult,
+                                                                        topic: item.feedbackTopic
+                                                                    }
+                                                                }
+                                                            } else {
+                                                                return null;
+                                                            }
+                                                        });
+                                                        promoCodeProms.push(promoCodeProm);
+                                                    });
+                                                }
+                                            });
+                                            return Promise.all(promoCodeProms).then(data => {
+                                                data = data.filter(item => {
+                                                    if(item != null) {
+                                                        return item;
+                                                    }
+                                                });
+                                                request("player", "generatePromoCodes", data);
+                                            })
                                         }
-                                    } else {
-                                        console.log("autoFeedback curScheduleNumber",curScheduleNumber);
-                                        if(curScheduleNumber == 1) {
-                                            return dbconfig.collection_promoCodeTemplate.findOne({_id: item.template}).lean();
-                                        }
                                     }
-                                    return null;
-                                }).then(template => {
-                                    console.log("autoFeedback template",template);
-                                    if(template) {
-                                        newPromoCodeEntry = JSON.parse(JSON.stringify(template));
-                                        delete newPromoCodeEntry._id;
-                                        delete newPromoCodeEntry.createTime;
-                                        newPromoCodeEntry.promoCodeTemplateObjId = template._id;
-                                        newPromoCodeEntry.playerName = player.name;
-                                        newPromoCodeEntry.expirationTime = dbutility.getNdaylaterFromSpecificStartTime(template.expiredInDay, new Date());
-                                        newPromoCodeEntry.autoFeedbackMissionObjId = feedback._id;
-                                        newPromoCodeEntry.autoFeedbackMissionScheduleNumber = curScheduleNumber;
-                                        newPromoCodeEntry.allowedSendSms = true;
-                                        return dbPlayerReward.generatePromoCode(player.platform, newPromoCodeEntry, null, null);
-                                    } else {
-                                        return null;
-                                    }
-                                }).then(promoCode => {
-                                    if(promoCode) {
-                                        let feedbackData = {
-                                            playerId: player._id,
-                                            platform: player.platform,
-                                            content: item.content,
-                                            result: item.feedbackResult,
-                                            topic: item.feedbackTopic,
-                                            createTime: new Date()
-                                        };
-                                        return dbPlayerFeedback.createPlayerFeedback(feedbackData);
-                                    } else {
-                                        return Promise.resolve();
-                                    }
-                                })
-                            });
-                        }
-                    });
-                });
+                                )
+                            );
+                        });
+                    }
+                )
             };
 
             let executionChain = Promise.resolve();
