@@ -18146,6 +18146,7 @@ let dbPlayerInfo = {
                     
                     for (let i = 0; i < platformData.gameProviders.length; i++) {
                         // check each of the game provider for the sameLineProvider
+                        console.log("checking--Yh groupSameLineProviders", groupSameLineProviders)
                         if (platformData.gameProviders[i] && platformData.gameProviders[i].sameLineProviders && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId] &&
                             platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0] && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0].length) {
                             gameProviderIdList.push(platformData.gameProviders[i].providerId);
@@ -18158,8 +18159,11 @@ let dbPlayerInfo = {
                                 let isAdded = false;
 
                                 let nextProviderIdList = platformData.gameProviders[i].sameLineProviders[playerDetails.platformId][0];
+                                console.log("checking--Yh nextProviderIdList", nextProviderIdList)
 
                                 for (let count = 0; count < groupSameLineProviders.length; count++) {
+                                    console.log("checking---yH count", count)
+                                    console.log("checking--Yh inner groupSameLineProviders", groupSameLineProviders[count])
                                     let interceptProviderIdList = groupSameLineProviders[count].filter(q => nextProviderIdList.indexOf(q) > -1);
                                     if (interceptProviderIdList && interceptProviderIdList.length) {
                                         nextProviderIdList.forEach(
@@ -18250,6 +18254,7 @@ let dbPlayerInfo = {
                         }
                     }
 
+                    console.log("checking-- yH tempSameLineProviderList", tempSameLineProviderList)
                     // remove the unrelated provderID and return data
                     returnData.sameLineProviders = {};
                     for (let i = 0; i < tempSameLineProviderList.length; i ++) {
