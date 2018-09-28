@@ -1669,13 +1669,13 @@ define(['js/app'], function (myApp) {
                 "bProcessing": true,
                 bDeferRender: true,
                 // filterProposalType: true,
-                "aaSorting": vm.queryAuditProposal.aaSorting || [[20, 'asc']],
+                "aaSorting": vm.queryAuditProposal.aaSorting || [[18, 'asc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
-                    {'sortCol': 'priority', bSortable: true, 'aTargets': [7]},
-                    {'sortCol': 'relatedUser', bSortable: true, 'aTargets': [13]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [18]},
-                    {'sortCol': 'expirationTime', bSortable: true, 'aTargets': [20]},
+                    {'sortCol': 'priority', bSortable: true, 'aTargets': [5]},
+                    {'sortCol': 'relatedUser', bSortable: true, 'aTargets': [11]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [16]},
+                    {'sortCol': 'expirationTime', bSortable: true, 'aTargets': [18]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -1703,14 +1703,6 @@ define(['js/app'], function (myApp) {
                             return $link.prop('outerHTML');
                         },
                         bSortable: true
-                    },
-                    {
-                        "title": $translate('request Id'),
-                        "data": "data.requestId"
-                    },
-                    {
-                        "title": $translate('Merchant No'),
-                        "data": "merchantNo$"
                     },
                     {
                         "title": $translate('MAIN_TYPE'),
