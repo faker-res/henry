@@ -1994,6 +1994,7 @@ let dbPartner = {
                         //     }
                         // }
                         updateData.bankAccountType = 2;
+                        updateData.isIgnoreAudit = true;
 
                         // check if same real name can be used for registration
                         if (updateData.realName && duplicatedRealNameCount > 0 && !partnerData.platform.partnerAllowSameRealNameToRegister){
