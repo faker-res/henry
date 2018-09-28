@@ -1669,13 +1669,13 @@ define(['js/app'], function (myApp) {
                 "bProcessing": true,
                 bDeferRender: true,
                 // filterProposalType: true,
-                "aaSorting": vm.queryAuditProposal.aaSorting || [[20, 'asc']],
+                "aaSorting": vm.queryAuditProposal.aaSorting || [[18, 'asc']],
                 aoColumnDefs: [
                     {'sortCol': 'proposalId', bSortable: true, 'aTargets': [1]},
-                    {'sortCol': 'priority', bSortable: true, 'aTargets': [7]},
-                    {'sortCol': 'relatedUser', bSortable: true, 'aTargets': [13]},
-                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [18]},
-                    {'sortCol': 'expirationTime', bSortable: true, 'aTargets': [20]},
+                    {'sortCol': 'priority', bSortable: true, 'aTargets': [5]},
+                    {'sortCol': 'relatedUser', bSortable: true, 'aTargets': [11]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [16]},
+                    {'sortCol': 'expirationTime', bSortable: true, 'aTargets': [18]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -1703,14 +1703,6 @@ define(['js/app'], function (myApp) {
                             return $link.prop('outerHTML');
                         },
                         bSortable: true
-                    },
-                    {
-                        "title": $translate('request Id'),
-                        "data": "data.requestId"
-                    },
-                    {
-                        "title": $translate('Merchant No'),
-                        "data": "merchantNo$"
                     },
                     {
                         "title": $translate('MAIN_TYPE'),
@@ -2573,14 +2565,20 @@ define(['js/app'], function (myApp) {
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "DownlineReceivePartnerCredit") {
                 let proposalDetail = {};
                 let inputDevice = "";
+                let providerGroupName = '';
                 if (!vm.selectedProposal.data) {
                     vm.selectedProposal.data = {};
+                }
+                if (vm.selectedProposal.data && vm.selectedProposal.data.providerGroup) {
+                    providerGroupName = vm.getProviderGroupNameById(vm.selectedProposal.data.providerGroup);
+                } else {
+                    providerGroupName = $translate("LOCAL_CREDIT");
                 }
 
                 proposalDetail["Downline Player ID"] = vm.selectedProposal.data.playerId;
                 proposalDetail["Downline Player Name"] = vm.selectedProposal.data.playerName;
                 proposalDetail["Received Amount"] = vm.selectedProposal.data.amount;
-                proposalDetail["Provider group"] = vm.selectedProposal.data.providerGroup ? vm.selectedProposal.data.providerGroup : $translate("LOCAL_CREDIT");
+                proposalDetail["Provider group"] = providerGroupName;
                 proposalDetail["Withdraw Consumption (Accurate number/non-multiple)"] = vm.selectedProposal.data.withdrawConsumption;
                 proposalDetail["Proposal No. of Partner Transfer Credit to Downline"] = vm.selectedProposal.data.partnerTransferCreditToDownlineProposalNo;
                 proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;

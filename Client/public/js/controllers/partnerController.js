@@ -15804,7 +15804,7 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     platformId: vm.selectedPlatform.id,
                     partnerObjId: vm.selectedPartnerObjId || vm.selectedSinglePartner._id,
-                    currentCredit: vm.selectedSinglePartner.credits || 0,
+                    currentCredit: parseFloat(vm.selectedSinglePartner.credits).toFixed(2) || 0,
                     updateCredit: $noRoundTwoDecimalPlaces(vm.sumTotalTransferAmount) > 0 ? vm.selectedSinglePartner.credits - $noRoundTwoDecimalPlaces(vm.sumTotalTransferAmount) : 0 || 0,
                     totalTransferAmount: $noRoundTwoDecimalPlaces(vm.sumTotalTransferAmount) || 0,
                     transferToPlayers: playerArr
