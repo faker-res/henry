@@ -1,21 +1,21 @@
 // local
 var localConfig = {
     mode: "local",
-    redisUrl : 'localhost',
+    redisUrl : 'fpms_sslserver.neweb.me',
     redisPort : '1802',
 };
 
 // dev-test
 var devConfig = {
     mode: "development",
-    redisUrl : 'testkey.fpms8.me',
+    redisUrl : 'fpms_sslserver.neweb.me',
     redisPort : '1802',
 };
 
 //for release production
 var prodConfig = {
     mode: "production",
-    redisUrl : 'testkey.fpms8.me',
+    redisUrl : 'fpms_sslserver.neweb.me',
     redisPort : '1802',
 };
 
