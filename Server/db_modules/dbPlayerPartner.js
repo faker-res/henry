@@ -364,6 +364,7 @@ let dbPlayerPartner = {
                     // 3. Check if number has already registered on platform
                     let promises = [];
                     newEncrpytedPhoneNumber = rsaCrypto.encrypt(String(newPhoneNumber));
+                    let oldEnPhoneNumber = rsaCrypto.oldEncrypt(String(newPhoneNumber));
 
                     let plyProm = dbConfig.collection_players.findOne({
                         platform: platformObjId,
@@ -373,7 +374,8 @@ let dbPlayerPartner = {
                         platform: platformObjId,
                         $or: [
                             {phoneNumber: newPhoneNumber},
-                            {phoneNumber: newEncrpytedPhoneNumber}
+                            {phoneNumber: newEncrpytedPhoneNumber},
+                            {phoneNumber: oldEnPhoneNumber}
                         ]
                     }).lean();
 

@@ -923,7 +923,7 @@ var proposal = {
             //update process info
             function (data) {
                 if (data) {
-                    var status = bApprove ? constProposalStatus.APPROVED : constProposalStatus.REJECTED;                
+                    var status = bApprove ? constProposalStatus.APPROVED : constProposalStatus.REJECTED;
                     if (nextStepId) {
                         return dbconfig.collection_proposalProcess.findOneAndUpdate(
                             {_id: proposalData.process._id, createTime: proposalData.process.createTime},
@@ -945,7 +945,7 @@ var proposal = {
                                             isLocked: null
                                         },
                                         {new: true}
-                                    )                              
+                                    )
                             ).then(
                                 () => {
                                     let updateData = {status: status, isLocked: null};
@@ -1025,7 +1025,11 @@ var proposal = {
                 }
             },
             function (err) {
-                deferred.reject({name: "DBError", message: "Error creating proposal process step", error: err});
+                if(err && err.errorMessage && err.errorMessage == "Bank Info Not Matched"){
+                    deferred.reject({name: "DBError", message: err.errorMessage, error: err});
+                }else{
+                    deferred.reject({name: "DBError", message: "Error creating proposal process step", error: err});
+                }
             }
         );
         return deferred.promise;
@@ -1861,7 +1865,7 @@ var proposal = {
 
                         var a = dbconfig.collection_players.find({
                             platform: ObjectId(selectedPlatformId),
-                            phoneNumber: rsaCrypto.encrypt(phoneNumber)
+                            phoneNumber: {$in: [rsaCrypto.encrypt(phoneNumber), rsaCrypto.oldEncrypt(phoneNumber)]}
                         }).populate({
                             path: 'playerLevel',
                             model: dbconfig.collection_playerLevel
@@ -4941,6 +4945,9 @@ var proposal = {
         if (data.status && data.status.length > 0) {
             query['status'] = {$in: convertStringNumber(data.status)};
         }
+        if(data.line){
+            query['data.line'] = data.line;
+        }
         let mainTopUpType;
         switch (String(data.mainTopupType)) {
             case constPlayerTopUpType.ONLINE.toString():
@@ -5163,6 +5170,10 @@ var proposal = {
             query['data.depositMethod'] = {'$in': convertStringNumber(data.depositMethod)};
         }
 
+        if(data.line){
+            query['data.line'] = data.line;
+        }
+        
         let proposalCount, proposals;
         let proposalTypeQuery = {
             name: mainTopUpType

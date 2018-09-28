@@ -1315,9 +1315,18 @@ p
                                 td(colspan="2", style="font-weight:bold") {{'Platform Fee' | translate}} {{' ('}} {{'RATIO'| translate}} {{': '}}
                                     text.span(ng-style='vm.partnerCommVar.group.isCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.platformFeeRate ? vm.partnerCommVar.group.platformFeeRate : "0"}} {{'%)'}}
                                 td
-                                    text.span(ng-style='vm.partnerCommVar.group.isCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.platformFee}}
-                                    text.span {{'/'}}
-                                    text.span(ng-style='vm.partnerCommissionLog[vm.partnerCommVar.partner].isAnyCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommissionLog[vm.partnerCommVar.partner].totalPlatformFee}}
+                                    div(ng-if='!vm.partnerCommissionLog[vm.partnerCommVar.partner].isPlatformFeeForcedZero')
+                                        text.span(ng-style='vm.partnerCommVar.group.isCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.platformFee}}
+                                        text.span {{'/'}}
+                                        text.span(ng-style='vm.partnerCommissionLog[vm.partnerCommVar.partner].isAnyCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommissionLog[vm.partnerCommVar.partner].totalPlatformFee}}
+                                    div(ng-if='vm.partnerCommissionLog[vm.partnerCommVar.partner].isPlatformFeeForcedZero')
+                                        text.span(style='color: red') {{vm.partnerCommVar.group.platformFee}}
+                                        br
+                                        text.span(style='color: red') ({{'Forced 0' | translate}}/{{vm.partnerCommVar.group.forcePlatformFeeToZeroBy.name}})
+
+                br
+                div(style='text-align:right')
+                    button.btn.btn-danger.common-button(data-dismiss="modal", ng-disabled="vm.partnerCommissionLog[vm.partnerCommVar.partner] && vm.partnerCommissionLog[vm.partnerCommVar.partner].totalPlatformFee == 0", ng-click="vm.forceTotalPlatformFeeToZero(vm.partnerCommissionLog[vm.partnerCommVar.partner])") {{"Force Total Platform Fee To 0" | translate}}
 
 #modalPlayerDetailsSummaryTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

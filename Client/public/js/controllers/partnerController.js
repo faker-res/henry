@@ -1055,10 +1055,12 @@ define(['js/app'], function (myApp) {
                             vm.partnerCommissionLog.forEach( partner => {
                                     if (partner){
                                         partner.isAnyCustomPlatformFeeRate = false;
+                                        partner.isPlatformFeeForcedZero = false;
                                         if (partner.rawCommissions && partner.rawCommissions.length > 0) {
                                             (partner.rawCommissions).forEach((group, idxgroup) => {
                                                     group.commissionRate = +(group.commissionRate*100).toFixed(2);
                                                     partner.isAnyCustomPlatformFeeRate = group.isCustomPlatformFeeRate ? true : partner.isAnyCustomPlatformFeeRate;
+                                                    partner.isPlatformFeeForcedZero = group.isForcePlatformFeeToZero ? true : partner.isPlatformFeeForcedZero;
                                                     if (group.isCustomPlatformFeeRate == true) {
                                                         vm.partnerCommVar.platformFeeTab = idxgroup;
                                                     }
@@ -1180,6 +1182,25 @@ define(['js/app'], function (myApp) {
                 });
             };
 
+            /* Clear all platform fee */
+            vm.forceTotalPlatformFeeToZero = function (selectedPartnerCommissionLog) {
+                if (selectedPartnerCommissionLog && selectedPartnerCommissionLog.rawCommissions && selectedPartnerCommissionLog.rawCommissions.length > 0) {
+                    let sendData = {
+                        _id: selectedPartnerCommissionLog._id,
+                        platform: selectedPartnerCommissionLog.platform,
+                        partner: selectedPartnerCommissionLog.partner,
+                        commissionType: selectedPartnerCommissionLog.commissionType,
+                        rawCommissions: selectedPartnerCommissionLog.rawCommissions,
+                        totalPlatformFee: selectedPartnerCommissionLog.totalPlatformFee,
+                        nettCommission: selectedPartnerCommissionLog.nettCommission
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'updateTotalPlatformFeeToZero', sendData, function (data) {
+                        console.log('updateTotalPlatformFeeToZero', data);
+                        vm.initSettlePartnerComm(vm.partnerCommVar);
+                    });
+                }
+            };
 
             vm.performPartnerCommissionSetlement = function () {
                 vm.partnerCommissionSettlement.status = 'processing';
@@ -9200,12 +9221,18 @@ define(['js/app'], function (myApp) {
                             let str = rawCommission.platformFee + $translate("YEN") + " "
                                 + "(" + $translate("SITE_LOSE_WIN") + ": " + rawCommission.siteBonusAmount + "/"
                                 + $translate("RATIO") + ": " + (rawCommission.platformFeeRate) + "%)";
+                            let forcedZeroStr = rawCommission.isForcePlatformFeeToZero ? rawCommission.platformFee + $translate("YEN") + " "
+                                + "(" + $translate("Forced 0") + "/" + rawCommission.forcePlatformFeeToZeroBy.name + ")" : "";
 
-                            proposalDetail["- " + rawCommission.groupName] =  str;
+                            if (rawCommission && rawCommission.isForcePlatformFeeToZero) {
+                                proposalDetail["- " + rawCommission.groupName] =  forcedZeroStr;
+                            } else {
+                                proposalDetail["- " + rawCommission.groupName] =  str;
 
-                            if (rawCommission.isCustomPlatformFeeRate) {
-                                vm.proposalDetailStyle["- " + rawCommission.groupName] = customizedStyle;
-                                isCustomized = true;
+                                if (rawCommission.isCustomPlatformFeeRate) {
+                                    vm.proposalDetailStyle["- " + rawCommission.groupName] = customizedStyle;
+                                    isCustomized = true;
+                                }
                             }
                         });
 
@@ -9488,12 +9515,18 @@ define(['js/app'], function (myApp) {
                             let str = rawCommission.platformFee + $translate("YEN") + " "
                                 + "(" + $translate("SITE_LOSE_WIN") + ": " + rawCommission.siteBonusAmount + "/"
                                 + $translate("RATIO") + ": " + (rawCommission.platformFeeRate) + "%)";
+                            let forcedZeroStr = rawCommission.isForcePlatformFeeToZero ? rawCommission.platformFee + $translate("YEN") + " "
+                                + "(" + $translate("Forced 0") + "/" + rawCommission.forcePlatformFeeToZeroBy.name + ")" : "";
 
-                            proposalDetail["- " + rawCommission.groupName] =  str;
+                            if (rawCommission && rawCommission.isForcePlatformFeeToZero) {
+                                proposalDetail["- " + rawCommission.groupName] =  forcedZeroStr;
+                            } else {
+                                proposalDetail["- " + rawCommission.groupName] =  str;
 
-                            if (rawCommission.isCustomPlatformFeeRate) {
-                                vm.proposalDetailStyle["- " + rawCommission.groupName] = customizedStyle;
-                                isCustomized = true;
+                                if (rawCommission.isCustomPlatformFeeRate) {
+                                    vm.proposalDetailStyle["- " + rawCommission.groupName] = customizedStyle;
+                                    isCustomized = true;
+                                }
                             }
                         });
 
@@ -15771,7 +15804,7 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     platformId: vm.selectedPlatform.id,
                     partnerObjId: vm.selectedPartnerObjId || vm.selectedSinglePartner._id,
-                    currentCredit: vm.selectedSinglePartner.credits || 0,
+                    currentCredit: parseFloat(vm.selectedSinglePartner.credits).toFixed(2) || 0,
                     updateCredit: $noRoundTwoDecimalPlaces(vm.sumTotalTransferAmount) > 0 ? vm.selectedSinglePartner.credits - $noRoundTwoDecimalPlaces(vm.sumTotalTransferAmount) : 0 || 0,
                     totalTransferAmount: $noRoundTwoDecimalPlaces(vm.sumTotalTransferAmount) || 0,
                     transferToPlayers: playerArr

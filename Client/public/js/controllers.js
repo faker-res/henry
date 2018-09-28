@@ -1701,6 +1701,13 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
     $scope.PROPOSAL_SEARCH_MAX_TIME_FRAME = 604800000 // 7 days ( 7 * (1000*3600*24))
 
+    $scope.$fixTwoDecimalStr = (value) => {
+        if (typeof value != 'number') {
+            return value;
+        }
+        return $filter('noRoundTwoDecimalPlaces')(value).toFixed(2);
+    };
+
     function updateFinancialNotificationShowed() {
         let sendData = {
             query: {_id: authService.adminId},
