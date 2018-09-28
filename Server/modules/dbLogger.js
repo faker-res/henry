@@ -828,7 +828,7 @@ var dbLogger = {
         let phoneQuery;
         if (tel) {
             tel = tel.toString();
-            phoneQuery = {$in: [rsaCrypto.encrypt(tel), tel]};
+            phoneQuery = {$in: [rsaCrypto.encrypt(tel), rsaCrypto.oldEncrypt(tel), tel]};
         }
 
         let playerQuery = {phoneNumber: phoneQuery};
