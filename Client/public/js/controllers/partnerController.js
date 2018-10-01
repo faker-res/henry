@@ -15563,13 +15563,13 @@ define(['js/app'], function (myApp) {
                     partnerObjId: vm.selectedSinglePartner._id
                 }, function (data) {
                     $scope.$evalAsync(() => {
-                        if (data && data.data && data.data.hasOwnProperty('isExist') && data.data.isExist && data.data.isExist.toString() == 'false') {
+                        if (data && data.data && data.data.hasOwnProperty('isExist') && !data.data.isExist) {
                             vm.disableEditChildPartner = true;
                             vm.childPartnerList[idx].errorMessage = $translate('PARTNER_NAME_DOES_NOT_EXISTS');
-                        } else if (data && data.data && data.data.hasOwnProperty('isExist') && data.data.isExist && data.data.isExist.toString() == 'true') {
+                        } else if (data && data.data && data.data.hasOwnProperty('isExist') && data.data.isExist) {
                             vm.disableEditChildPartner = true;
                             vm.childPartnerList[idx].errorMessage = $translate('PARTNER_NAME_ALREADY_HAS_A_PARENT') + data.data.parent + $translate('REMOVE_IT_FROM_THE_ORIGINAL_PARENT');
-                        } else if (data && data.data && data.data.hasOwnProperty('isOwnParent') && data.data.isOwnParent && data.data.isOwnParent.toString() == 'true') {
+                        } else if (data && data.data && data.data.hasOwnProperty('isOwnParent') && data.data.isOwnParent) {
                             vm.disableEditChildPartner = true;
                             vm.childPartnerList[idx].errorMessage = $translate('Partner Name cannot be used for its own parent(cannot be edited)');
                         } else {
