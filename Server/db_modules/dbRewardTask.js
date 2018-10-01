@@ -1808,7 +1808,7 @@ const dbRewardTask = {
                         });
                         totalCredit = validCredit + lockedCredit + providerCredit;
 
-                        console.log("checking ---YH rewardGroupData.forbidWithdrawIfBalanceAfterUnlock", rewardGroupData.forbidWithdrawIfBalanceAfterUnlock || "null")
+                        console.log("checking ---YH rewardGroupData.forbidWithdrawIfBalanceAfterUnlock", rewardGroupData && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock ? rewardGroupData.forbidWithdrawIfBalanceAfterUnlock :  "null")
                         console.log("checking ---YH totalCredit", totalCredit)
 
                         // Set player bonus permission to off if there's still credit available after unlock reward
