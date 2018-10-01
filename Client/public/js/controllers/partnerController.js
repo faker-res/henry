@@ -15559,15 +15559,19 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'checkChildPartnerNameValidity', {
                     platform: vm.selectedPlatform.id,
-                    partnerName: name
+                    partnerName: name,
+                    partnerObjId: vm.selectedSinglePartner._id
                 }, function (data) {
                     $scope.$evalAsync(() => {
-                        if (data && data.data && !data.data.isExist) {
+                        if (data && data.data && data.data.hasOwnProperty('isExist') && !data.data.isExist) {
                             vm.disableEditChildPartner = true;
                             vm.childPartnerList[idx].errorMessage = $translate('PARTNER_NAME_DOES_NOT_EXISTS');
-                        } else if (data && data.data && data.data.isExist) {
+                        } else if (data && data.data && data.data.hasOwnProperty('isExist') && data.data.isExist) {
                             vm.disableEditChildPartner = true;
                             vm.childPartnerList[idx].errorMessage = $translate('PARTNER_NAME_ALREADY_HAS_A_PARENT') + data.data.parent + $translate('REMOVE_IT_FROM_THE_ORIGINAL_PARENT');
+                        } else if (data && data.data && data.data.hasOwnProperty('isOwnParent') && data.data.isOwnParent) {
+                            vm.disableEditChildPartner = true;
+                            vm.childPartnerList[idx].errorMessage = $translate('Partner Name cannot be used for its own parent(cannot be edited)');
                         } else {
                             vm.disableEditChildPartner = false;
                             delete vm.childPartnerList[idx].errorMessage;

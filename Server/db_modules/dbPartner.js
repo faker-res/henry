@@ -9769,9 +9769,10 @@ let dbPartner = {
         )
     },
 
-    checkChildPartnerNameValidity: (platformId, partnerName) => {
+    checkChildPartnerNameValidity: (platformId, partnerName, currentPartnerObjId) => {
         let isPartnerExist = null;
         let parentPartnerName = null;
+        let isOwnParentPartner = null;
 
         return dbconfig.collection_partner.findOne({platform: mongoose.Types.ObjectId(platformId), partnerName: partnerName.trim()}, {_id: 1}).lean().then(
             partnerData => {
@@ -9785,6 +9786,16 @@ let dbPartner = {
                             isPartnerExist = true;
                             parentPartnerName = data && data.partnerName ? data.partnerName : '';
                             return {isExist: isPartnerExist, parent: parentPartnerName};
+                        } else {
+                            if (currentPartnerObjId) {
+                                return dbconfig.collection_partner.findOne({_id: mongoose.Types.ObjectId(currentPartnerObjId), parent: partnerData._id}).lean().then(
+                                    ownParentPartnerData => {
+                                        if (ownParentPartnerData) {
+                                            isOwnParentPartner = true;
+                                            return {isOwnParent: isOwnParentPartner};
+                                        }
+                                    });
+                            }
                         }
                     });
                 }
