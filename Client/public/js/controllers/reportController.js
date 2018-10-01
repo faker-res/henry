@@ -1692,7 +1692,7 @@ define(['js/app'], function (myApp) {
                     {
                         "title": $translate('Online Topup Type'), "data": "data.topupType",
                         render: function (data, type, row) {
-                            var text = $translate(data ? $scope.merchantTopupTypeJson[data] : "");
+                            var text = $translate(data && $scope.merchantTopupTypeJson[data] ? $scope.merchantTopupTypeJson[data] : "");
                             return "<div>" + text + "</div>";
                         }
                     },
