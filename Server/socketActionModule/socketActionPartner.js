@@ -604,7 +604,7 @@ function socketActionPartner(socketIO, socket) {
         checkChildPartnerNameValidity: function checkChildPartnerNameValidity (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platform && data.partnerName);
-            socketUtil.emitter(self.socket, dbPartner.checkChildPartnerNameValidity, [data.platform, data.partnerName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPartner.checkChildPartnerNameValidity, [data.platform, data.partnerName, data.partnerObjId], actionName, isValidData);
         },
 
         /**
