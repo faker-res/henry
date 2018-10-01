@@ -63,7 +63,8 @@
                 "getCurrentPartnersCommission",
                 "getAllPlayerCommissionRawDetails",
                 "getConsumptionActivePlayerAfterTopupQueryMatch",
-                "findPartnersForCommissionReport"
+                "findPartnersForCommissionReport",
+                "generatePromoCodes"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
