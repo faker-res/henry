@@ -5458,7 +5458,7 @@ let dbPlayerInfo = {
                                             var a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
                                             var b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
                                             var c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
-                                            var creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
+                                            // var creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
                                             return Q.all([a, b, c, creditProm]);
                                         }
                                     ).then(
@@ -5466,7 +5466,7 @@ let dbPlayerInfo = {
                                             retObj.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
                                             retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
                                             retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
-                                            retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
+                                            // retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
                                             retObj.platform.requireLogInCaptcha = requireLogInCaptcha;
                                             deferred.resolve(retObj);
                                         },
