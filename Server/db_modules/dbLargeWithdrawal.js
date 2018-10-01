@@ -1171,7 +1171,7 @@ function getProviderInfoByTime (playerObj, startTime, endTime) {
                     $group: {
                         _id: {"providerId": "$providerId", "cpGameType": "$cpGameType"},
                         times: {$sum: 1},
-                        bonusAmount: {$sum: "$validAmount"},
+                        bonusAmount: {$sum: "$bonusAmount"},
                         validAmount: {$sum: "$validAmount"}
                     }
                 }])
