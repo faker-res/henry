@@ -10732,6 +10732,7 @@ let dbPlayerInfo = {
                                 let changeCredit = -amount;
                                 let finalAmount = amount;
                                 let creditCharge = 0;
+                                let creditChargeWithoutDecimal = 0;
                                 let amountAfterUpdate = player.validCredit - amount;
                                 let playerLevelVal = player.playerLevel.value;
                                 if (player.platform.bonusSetting) {
@@ -10748,7 +10749,12 @@ let dbPlayerInfo = {
                                     }
                                     if (todayBonusApply.length >= bonusSetting.bonusCharges && bonusSetting.bonusPercentageCharges > 0) {
                                         creditCharge = (finalAmount * bonusSetting.bonusPercentageCharges) * 0.01;
-                                        finalAmount = finalAmount - creditCharge;
+                                        if(platform.withdrawalFeeNoDecimal){
+                                            creditChargeWithoutDecimal = creditCharge.toFixed(0);
+                                            finalAmount = finalAmount - creditChargeWithoutDecimal;
+                                        }else{
+                                            finalAmount = finalAmount - creditCharge;
+                                        }
                                     }
                                 }
 
@@ -10815,7 +10821,8 @@ let dbPlayerInfo = {
                                                 // remark: player.remark,
                                                 lastSettleTime: new Date(),
                                                 honoreeDetail: honoreeDetail,
-                                                creditCharge: creditCharge,
+                                                creditCharge: platform.withdrawalFeeNoDecimal ? creditChargeWithoutDecimal : creditCharge,
+                                                oriCreditCharge: creditCharge,
                                                 ximaWithdrawUsed: ximaWithdrawUsed,
                                                 isAutoApproval: player.platform.enableAutoApplyBonus
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}

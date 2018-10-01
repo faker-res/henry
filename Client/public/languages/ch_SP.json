@@ -4594,5 +4594,8 @@
   "Service Charge Fee": "手续费用",
   "Force Total Platform Fee To 0": "总平台费强制费归0",
   "Forced 0": "强制归0",
-  "Bank Info Not Matched": "提款资料与上次银改不符"
+  "Bank Info Not Matched": "提款资料与上次银改不符",
+  "Withdrawal service charge omit amount after decimal": "提款手续费无条件减免小数点后金额（少扣玩家金额）",
+  "original service charge": "原手续费",
+  "remove decimal": "删除小数"
 }
