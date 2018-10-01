@@ -1659,6 +1659,7 @@
   "EDIT_CHILD_PARTNER_INFO_TITLE": "* Only allow 1 partner can be entered per row, and editable. It will be checked dynamically when enter partner:",
   "EDIT_CHILD_PARTNER_INFO_DESCRIPTION_A": "a.Partner Name does not exists(cannot be edited).",
   "EDIT_CHILD_PARTNER_INFO_DESCRIPTION_B": "b.Partner Name already has a parent (cannot be edited, please remove it from the original parent).",
+  "EDIT_CHILD_PARTNER_INFO_DESCRIPTION_C": "c.Partner Name cannot be used for its own parent.",
   "PARTNER_NAME_ALREADY_HAS_A_PARENT": "* This Partner Name already has a parent ",
   "REMOVE_IT_FROM_THE_ORIGINAL_PARENT": "(cannot be edited, please remove it from the original parent)",
   "PARTNER_NAME_DOES_NOT_EXISTS": "* Partner Name does not exists(cannot be edited)",

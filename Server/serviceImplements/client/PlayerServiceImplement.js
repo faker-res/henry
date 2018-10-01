@@ -775,7 +775,7 @@ let PlayerServiceImplement = function () {
     };
 
     this.resetPassword.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.platformId && data.name && (!(data.answer && !data.answer.length)) && (!(data.phoneNumber && !data.smsCode)));
+        var isValidData = Boolean(data && data.platformId && data.name && (!(data.answer && !data.answer.length)) && (Boolean(data.phoneNumber) === Boolean(data.smsCode)));
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.resetPassword, [data.platformId, data.name, data.smsCode, data.answer, data.phoneNumber, data.code], isValidData, false, false, true);
     };
 

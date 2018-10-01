@@ -327,7 +327,7 @@ var dbRewardEvent = {
                                             }
                                             if (checkRewardData.condition.deposit.status == 1 && topUpDataObj) {
                                                 checkRewardData.condition.deposit.details = {
-                                                    id: topUpDataObj.proposalId,
+                                                    id: topUpDataObj._id,
                                                     amount: topUpDataObj.amount
                                                 };
                                             }

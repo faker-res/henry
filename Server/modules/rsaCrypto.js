@@ -18,10 +18,10 @@ var fs = require('fs')
 // TESTING
 // env.redisUrl = "testkey.fpms8.me";
 // env.redisPort = "";
-
+//
 let oldKey, oldCert;
 
-// Legacy key and cert - fallback plan
+// // Legacy key and cert - fallback plan
 oldKey = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
 oldCert = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
 
