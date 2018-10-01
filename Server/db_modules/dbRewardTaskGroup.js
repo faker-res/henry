@@ -210,6 +210,9 @@ let dbRewardTaskGroup = {
     unlockRewardTaskInRewardTaskGroup: (rewardTaskGroupId, incRewardAmount, incConsumptionAmount, adminId, adminName) => {
         let unlockTime = new Date();
 
+        // Debug log
+        console.log('unlockRewardTaskInRewardTaskGroup', rewardTaskGroupId, incRewardAmount, incConsumptionAmount, adminId, adminName);
+
         return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
             _id: ObjectId(rewardTaskGroupId)
         }, {
