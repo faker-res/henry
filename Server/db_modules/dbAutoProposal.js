@@ -446,11 +446,11 @@ function checkRewardTaskGroup(proposal, platformObj) {
             }
 
             // First withdrawal checks
-            if (bFirstWithdraw && platformObj.manualAuditFirstWithdrawal !== false) {
-                checkMsg += " Denied: First withdrawal;";
-                checkMsgChinese += " 失败：首提;";
-                canApprove = false;
-            }
+            // if (bFirstWithdraw && platformObj.manualAuditFirstWithdrawal !== false) {
+            //     checkMsg += " Denied: First withdrawal;";
+            //     checkMsgChinese += " 失败：首提;";
+            //     canApprove = false;
+            // }
 
             if (bFirstWithdraw && platformObj.autoAudit) {
                 if (platformObj.autoAudit.firstWithdrawExceedAmount
@@ -499,11 +499,11 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 canApprove = false;
             }
 
-            if (bPendingPaymentInfo) {
-                checkMsg += ' Denied: Rebank;';
-                checkMsgChinese += ' 失败：银改;';
-                canApprove = false;
-            }
+            // if (bPendingPaymentInfo) {
+            //     checkMsg += ' Denied: Rebank;';
+            //     checkMsgChinese += ' 失败：银改;';
+            //     canApprove = false;
+            // }
 
             // if (bUpdatePaymentInfo && platformObj.manualAuditAfterBankChanged !== false) {
             //     checkMsg += ' Denied: Bank Info Changed;';
