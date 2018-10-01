@@ -2647,6 +2647,38 @@ define(['js/app'], function (myApp) {
                 vm.selectedProposalDetailForDisplay = proposalDetail;
             }
 
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerBonus") {
+                let proposalDetail = {};
+                let inputDevice = "";
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+
+
+                proposalDetail["realNameBeforeEdit"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["proposalPlayerLevel"] = vm.selectedProposal.data.proposalPlayerLevel;
+                proposalDetail["proposalPlayerLevelValue"] = vm.selectedProposal.data.proposalPlayerLevelValue;
+                proposalDetail["isAutoApproval"] = vm.selectedProposal.data.isAutoApproval;
+                proposalDetail["ximaWithdrawUsed"] = vm.selectedProposal.data.ximaWithdrawUsed;
+                if(vm.selectedProposal.data.creditCharge != vm.selectedProposal.data.oriCreditCharge){
+                    proposalDetail["creditCharge"] = vm.selectedProposal.data.creditCharge + " (" + $translate("original service charge") + vm.selectedProposal.data.oriCreditCharge + ", " + $translate("remove decimal") + ")";
+                }else{
+                    proposalDetail["creditCharge"] = vm.selectedProposal.data.creditCharge
+                }
+                proposalDetail["lastSettleTime"] = vm.selectedProposal.data.lastSettleTime;
+                proposalDetail["curAmount"] = vm.selectedProposal.data.curAmount;
+                proposalDetail["amount"] = vm.selectedProposal.data.amount;
+                proposalDetail["bankTypeId"] = vm.selectedProposal.data.bankTypeId;
+                proposalDetail["bonusId"] = vm.selectedProposal.data.bonusId;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
+                proposalDetail["pointsBefore"] = vm.selectedProposal.data.pointsBefore;
+                proposalDetail["pointsAfter"] = vm.selectedProposal.data.pointsAfter;
+                proposalDetail["autoAuditTime"] = vm.selectedProposal.data.autoAuditTime;
+
+                vm.selectedProposalDetailForDisplay = proposalDetail;
+            }
+
             // Remove fields for detail viewing
             delete vm.selectedProposalDetailForDisplay.creator;
             delete vm.selectedProposalDetailForDisplay.platform;

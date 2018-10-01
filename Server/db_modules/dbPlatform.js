@@ -2804,6 +2804,7 @@ var dbPlatform = {
                         returnedObj.twoStepsForModifyPhoneNumber = platformData.usePhoneNumberTwoStepsVerification ? 1 : 0;
                         returnedObj.cdnOrFtpLink = platformData.playerRouteSetting ? platformData.playerRouteSetting : "";
                         returnedObj.themeStyle = platformData.playerThemeSetting && platformData.playerThemeSetting.themeStyleId &&  platformData.playerThemeSetting.themeStyleId.themeStyle ? platformData.playerThemeSetting.themeStyleId.themeStyle : "";
+                        returnedObj.withdrawFeeNoDecimal = platformData.withdrawalFeeNoDecimal ? 1: 0
                         if (platformData.playerThemeSetting && platformData.playerThemeSetting.themeStyleId &&  platformData.playerThemeSetting.themeStyleId.content && platformData.playerThemeSetting.themeStyleId.content.length > 0){
                             let index = platformData.playerThemeSetting.themeStyleId.content.findIndex(p => p.themeId == platformData.playerThemeSetting.themeId)
                             if (index != -1){
