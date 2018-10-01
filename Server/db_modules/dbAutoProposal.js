@@ -1473,9 +1473,12 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
         }
 
         function hasTopUpOrRewardWithinPeriod(startTime, endTime) {
-
             for (let i = 0; i < creditChangeLogs.length; i++) {
-                if (creditChangeLogs[i].operationTime > startTime && creditChangeLogs[i].operationTime < endTime && creditChangeLogs[i].amount >= 0.02) {
+                if (
+                    creditChangeLogs[i].operationTime > startTime
+                    && creditChangeLogs[i].operationTime < endTime
+                    && creditChangeLogs[i].amount + creditChangeLogs[i].lockedAmount >= 0.02
+                ) {
                     return true;
                 }
             }
