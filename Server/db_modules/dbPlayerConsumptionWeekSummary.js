@@ -334,7 +334,7 @@ var dbPlayerConsumptionWeekSummary = {
                                         let nonXIMAAmt = 0;
                                         let consumedValidAmount = 0;
                                         let ratio = eventRatios && eventRatios[gameType];
-                                        let consumptionSummary = consumptionSumm.find(summ => summ.gameType === gameType);
+                                        let consumptionSummary = consumptionSumm.filter(summ => summ.gameType === gameType);
 
                                         // Process return ratio
                                         if (!eventRatios || typeof ratio !== 'number') {
@@ -348,10 +348,14 @@ var dbPlayerConsumptionWeekSummary = {
                                             }
 
                                             // Get non xima detail of this game type
-                                            if (consumptionSummary) {
-                                                nonXIMAAmt = consumptionSummary.nonXIMAAmt ? consumptionSummary.nonXIMAAmt : 0;
-                                                summaryIds.push(consumptionSummary._id);
-                                                thisPlayerSummaries.push(consumptionSummary);
+                                            if (consumptionSummary && consumptionSummary.length) {
+                                                consumptionSummary.forEach(summ => {
+                                                    if (summ.nonXIMAAmt) {
+                                                        nonXIMAAmt += Number(summ.nonXIMAAmt);
+                                                    }
+                                                    summaryIds.push(summ._id);
+                                                    thisPlayerSummaries.push(summ);
+                                                });
 
                                                 if (nonXIMAAmt) {
                                                     totalNonXIMAAmt += nonXIMAAmt;
@@ -950,7 +954,7 @@ var dbPlayerConsumptionWeekSummary = {
                             let nonXIMAAmt = 0;
                             let consumedValidAmount = 0;
                             let ratio = eventRatios && eventRatios[gameType];
-                            let consumptionSummary = consumptionSumm.find(summ => summ.gameType === gameType);
+                            let consumptionSummary = consumptionSumm.filter(summ => summ.gameType === gameType);
 
                             // Process return ratio
                             if (!eventRatios || typeof ratio !== 'number') {
@@ -964,10 +968,14 @@ var dbPlayerConsumptionWeekSummary = {
                                 }
 
                                 // Get non xima detail of this game type
-                                if (consumptionSummary) {
-                                    nonXIMAAmt = consumptionSummary.nonXIMAAmt ? consumptionSummary.nonXIMAAmt : 0;
-                                    summaryIds.push(consumptionSummary._id);
-                                    thisPlayerSummaries.push(consumptionSummary);
+                                if (consumptionSummary && consumptionSummary.length) {
+                                    consumptionSummary.forEach(summ => {
+                                        if (summ.nonXIMAAmt) {
+                                            nonXIMAAmt += Number(summ.nonXIMAAmt);
+                                        }
+                                        summaryIds.push(summ._id);
+                                        thisPlayerSummaries.push(summ);
+                                    });
 
                                     if (nonXIMAAmt) {
                                         totalNonXIMAAmt += nonXIMAAmt;
