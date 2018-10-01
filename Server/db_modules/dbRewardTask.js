@@ -1808,13 +1808,19 @@ const dbRewardTask = {
                         });
                         totalCredit = validCredit + lockedCredit + providerCredit;
 
+                        console.log("checking ---YH rewardGroupData.forbidWithdrawIfBalanceAfterUnlock", rewardGroupData.forbidWithdrawIfBalanceAfterUnlock || "null")
+                        console.log("checking ---YH totalCredit", totalCredit)
+
                         // Set player bonus permission to off if there's still credit available after unlock reward
                         if (rewardGroupData
                             && rewardGroupData.hasOwnProperty("forbidWithdrawIfBalanceAfterUnlock")
                             && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock > 0
                             && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock <= totalCredit) {
                             dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).then(
-                                () => {
+                                updatePlayerInfo => {
+                                    if (updatePlayerInfo && updatePlayerInfo.permission && updatePlayerInfo.permission.applyBonus){
+                                        console.log("checking--- yH playerInfo-permission", updatePlayerInfo.permission.applyBonus)
+                                    }
                                     return dbconfig.collection_proposal.findOne({_id: rewardGroupData.lastProposalId})
                                 }
                             ).then(
