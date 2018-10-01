@@ -21029,7 +21029,8 @@ function createLargeWithdrawalLog (proposalData, platformObjId) {
     let largeWithdrawalLog;
     return dbconfig.collection_largeWithdrawalLog({
         platform: platformObjId,
-        proposalId: proposalData.proposalId
+        proposalId: proposalData.proposalId,
+        withdrawalTime: proposalData.createTime
     }).save().then(largeWithdrawalLogData => {
         largeWithdrawalLog = largeWithdrawalLogData;
         return dbconfig.collection_proposal.findOneAndUpdate({_id: proposalData._id, createTime: proposalData.createTime}, {"data.largeWithdrawalLog": largeWithdrawalLog._id}, {new: true}).lean();

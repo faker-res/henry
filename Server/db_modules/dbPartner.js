@@ -1994,6 +1994,7 @@ let dbPartner = {
                         //     }
                         // }
                         updateData.bankAccountType = 2;
+                        updateData.isIgnoreAudit = true;
 
                         // check if same real name can be used for registration
                         if (updateData.realName && duplicatedRealNameCount > 0 && !partnerData.platform.partnerAllowSameRealNameToRegister){
@@ -9034,7 +9035,7 @@ let dbPartner = {
         return dbconfig.collection_partner.findOne({platform: platformId, _id: partnerObjId}).lean().then( partnerData => {
             if (partnerData) {
                 if (partnerData.credits) {
-                    if(dbUtil.noRoundTwoDecimalPlaces(partnerData.credits) != dbUtil.noRoundTwoDecimalPlaces(currentCredit)) {
+                    if(parseFloat(partnerData.credits).toFixed(2) != currentCredit) {
                         return Promise.reject({name: "DataError", message: "Partner does not have enough credit."});
                     } else {
                         return applyTransferPartnerCreditToPlayer(platformId, partnerData, currentCredit, updateCredit, totalTransferAmount, transferToPlayers, adminInfo);
@@ -9768,9 +9769,10 @@ let dbPartner = {
         )
     },
 
-    checkChildPartnerNameValidity: (platformId, partnerName) => {
+    checkChildPartnerNameValidity: (platformId, partnerName, currentPartnerObjId) => {
         let isPartnerExist = null;
         let parentPartnerName = null;
+        let isOwnParentPartner = null;
 
         return dbconfig.collection_partner.findOne({platform: mongoose.Types.ObjectId(platformId), partnerName: partnerName.trim()}, {_id: 1}).lean().then(
             partnerData => {
@@ -9784,6 +9786,16 @@ let dbPartner = {
                             isPartnerExist = true;
                             parentPartnerName = data && data.partnerName ? data.partnerName : '';
                             return {isExist: isPartnerExist, parent: parentPartnerName};
+                        } else {
+                            if (currentPartnerObjId) {
+                                return dbconfig.collection_partner.findOne({_id: mongoose.Types.ObjectId(currentPartnerObjId), parent: partnerData._id}).lean().then(
+                                    ownParentPartnerData => {
+                                        if (ownParentPartnerData) {
+                                            isOwnParentPartner = true;
+                                            return {isOwnParent: isOwnParentPartner};
+                                        }
+                                    });
+                            }
                         }
                     });
                 }

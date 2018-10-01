@@ -32,6 +32,7 @@ const dbPlayerMail = require('../db_modules/dbPlayerMail');
 const dbPlayerPayment = require('../db_modules/dbPlayerPayment');
 const dbPlayerTopUpRecord = require('../db_modules/dbPlayerTopUpRecord');
 const dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionRecord');
+const dbPlayerFeedback = require('./../db_modules/dbPlayerFeedback');
 
 const dbConfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
@@ -2915,6 +2916,27 @@ let dbPlayerReward = {
             multi: true
         }).exec();
 
+    },
+
+    //batch support for generatePromoCode()
+    //params is an array of objects which includes:
+    //platformObjId, newPromoCodeEntry, adminObjId, adminName, [feedbackData]
+    generatePromoCodes: (params) => {
+        let generatePromoCodeProm = [];
+        params.map(param => {
+            generatePromoCodeProm.push(
+                dbPlayerReward.generatePromoCode(param.platformObjId, param.newPromoCodeEntry, param.adminObjId, param.adminName).then(promoCode => {
+                    if(promoCode && param.feedbackData) {
+                        let feedbackData = param.feedbackData;
+                        feedbackData.createTime = new Date();
+                        return dbPlayerFeedback.createPlayerFeedback(feedbackData);
+                    } else {
+                        return Promise.resolve();
+                    }
+                })
+            );
+        });
+        return Promise.all(generatePromoCodeProm);
     },
 
     generatePromoCode: (platformObjId, newPromoCodeEntry, adminObjId, adminName) => {
