@@ -1661,8 +1661,8 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.sendMessageToPartnerBtn = function (type, data) {
-                vm.telphonePartner = data;
+            vm.sendMessageToPartnerBtn = function (partnerObjId) {
+                vm.telphonePartner = vm.partners.find(p => String(p._id) === partnerObjId);
                 $('#messagePartnerModal').modal('show');
             };
 
@@ -1717,10 +1717,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.telorMessageToPartnerBtn = function (type, partnerObjId, data) {
-                // let rowData = JSON.parse(data);
-                console.log(type, data);
+                data = vm.partners.find(p => String(p._id) === partnerObjId);
                 vm.getSMSTemplate();
-                let title, text;
+
                 if (type === 'msg' && authService.checkViewPermission('Partner', 'Partner', 'sendSMS')) {
                     vm.smsPartner = {
                         partnerId: partnerObjId.partnerId,
@@ -5163,8 +5162,6 @@ define(['js/app'], function (myApp) {
             return $scope.$socketPromise('getDailyActivePlayerCount', sendQuery).then(function (data) {
                 // append back daily active player into draw table data
                 data.data.forEach( inData => {
-                    console.log('partner.data', partner.data);
-                    console.log('inData', inData);
                     if (inData && inData.partnerId) {
                         let index = partner.data.findIndex(p => p._id === inData.partnerId);
                         if (index !== -1) {
@@ -5399,19 +5396,12 @@ define(['js/app'], function (myApp) {
                 vm.platformPartnerCount = data.size;
                 vm.selectedPartnerCount = 0;
                 vm.searchPartnerCount = data.size;
+
                 var emptyString = (vm.curPlatformText) ? ('No partner found in ' + vm.curPlatformText) : 'Please select platform';
                 var tableOptions = {
                     data: data.data,
                     aaSorting: [],
                     columns: [
-                        //{
-                        //    title: '#', "data": "select",
-                        //    render: function (data, type, row) {
-                        //        return '<input type="checkbox" class="editor-active readonly" disabled="disabled">';
-                        //    }
-                        //},
-                        //{title: 'ID', "data": "_id"},
-                        // {title: $translate('PARTNER_ID'), data: 'partnerId', advSearch: true, "sClass": ""},
                         {
                             title: $translate('PARTNER_NAME'), data: "partnerName", advSearch: true, "sClass": "",
                             render: function (data, type, row) {
@@ -5643,8 +5633,8 @@ define(['js/app'], function (myApp) {
                                 let link = $('<div>', {});
                                 link.append($('<a>', {
                                     'class': 'fa fa-envelope margin-right-5',
-                                    'ng-click': 'vm.initPartnerMessageModal(); vm.sendMessageToPartnerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
-                                    'data-row': JSON.stringify(row),
+                                    'ng-click': 'vm.initPartnerMessageModal(); vm.sendMessageToPartnerBtn("' + partnerObjId + '");',
+                                    // 'data-row': JSON.stringify(row),
                                     'data-toggle': 'tooltip',
                                     'title': $translate("SEND_MESSAGE_TO_PARTNER"),
                                     'data-placement': 'left',
@@ -5653,16 +5643,16 @@ define(['js/app'], function (myApp) {
                                     'class': 'fa fa-comment margin-right-5' + (row.permission.SMSFeedBack === false ? " text-danger" : ""),
                                     'ng-click': 'vm.initPartnerSMSModal();' + "vm.onClickPartnerCheck('" +
                                     partnerObjId + "', " + "vm.telorMessageToPartnerBtn" +
-                                    ", " + "[" + '"msg"' + ", " + JSON.stringify(row) + "]);",
-                                    'data-row': JSON.stringify(row),
+                                    ", " + "[" + '"msg"' + ", '" + partnerObjId + "']);",
+                                    // 'data-row': JSON.stringify(row),
                                     'data-toggle': 'tooltip',
                                     'title': $translate("SEND_SMS_TO_PARTNER"),
                                     'data-placement': 'left',
                                 }));
                                 link.append($('<a>', {
                                     'class': 'fa fa-volume-control-phone margin-right-5' + (row.permission.phoneCallFeedback === false ? " text-danger" : ""),
-                                    'ng-click': 'vm.telorMessageToPartnerBtn(' + '"tel", "' + partnerObjId + '",' + JSON.stringify(row) + ');',
-                                    'data-row': JSON.stringify(row),
+                                    'ng-click': 'vm.telorMessageToPartnerBtn(' + '"tel", "' + partnerObjId + '");',
+                                    // 'data-row': JSON.stringify(row),
                                     'data-toggle': 'tooltip',
                                     'title': $translate("PHONE"),
                                     'data-placement': 'left',
@@ -5670,8 +5660,8 @@ define(['js/app'], function (myApp) {
                                 if ($scope.checkViewPermission('Partner', 'Feedback', 'AddFeedback')) {
                                     link.append($('<a>', {
                                         'class': 'fa fa-commenting margin-right-5',
-                                        'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
-                                        'data-row': JSON.stringify(row),
+                                        'ng-click': 'vm.initFeedbackModal("' + partnerObjId + '");',
+                                        // 'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalAddPartnerFeedback',
                                         'title': $translate("ADD_FEEDBACK"),
@@ -5685,7 +5675,7 @@ define(['js/app'], function (myApp) {
                                         'height': "14px",
                                         'width': "14px",
                                         'ng-click': 'vm.initPartnerBonus();',
-                                        'data-row': JSON.stringify(row),
+                                        // 'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPartnerBonus',
                                         'title': $translate("Bonus"),
@@ -5699,7 +5689,7 @@ define(['js/app'], function (myApp) {
                                         'height': "14px",
                                         'width': "14px",
                                         'ng-click': 'vm.onClickPartnerCheck("' + partnerObjId + '", vm.prepareShowPartnerCreditAdjustment, \'adjust\')',
-                                        'data-row': JSON.stringify(row),
+                                        // 'data-row': JSON.stringify(row),
                                         'data-toggle': 'modal',
                                         'data-target': '#modalPartnerCreditAdjustment',
                                         'title': $translate("CREDIT_ADJUSTMENT"),
@@ -5715,13 +5705,11 @@ define(['js/app'], function (myApp) {
                             orderable: false,
                             render: function (data, type, row) {
                                 data = data || {permission: {}};
+                                let partnerObjId = row._id ? row._id : "";
 
                                 let link = $('<a>', {
                                     'class': 'partnerPermissionPopover',
-                                    'ng-click': "vm.permissionPartner = " + JSON.stringify(row)
-                                    + "; vm.permissionPartner.permission.forbidPartnerFromLogin = !vm.permissionPartner.permission.forbidPartnerFromLogin;"
-                                    + "; vm.permissionPlayer.permission.disableCommSettlement = !vm.permissionPlayer.permission.disableCommSettlement;",
-                                    'data-row': JSON.stringify(row),
+                                    'ng-click': "vm.initPermissionPartner('" + partnerObjId + "');",
                                     'data-toggle': 'popover',
                                     'data-trigger': 'focus',
                                     'data-placement': 'left',
@@ -6086,7 +6074,7 @@ define(['js/app'], function (myApp) {
                                 //adminId: authService.adminId,
                                 adminName: authService.adminName,
                                 platformId: vm.selectedPlatform.id,
-                                partnerId: vm.telphonePartner._id,
+                                partnerId: vm.selectedSinglePartner.data._id,
                                 title: vm.messageForPartner.title,
                                 content: vm.messageForPartner.content
                             };
@@ -6101,7 +6089,9 @@ define(['js/app'], function (myApp) {
                 $.each(tableOptions.columns, function (i, v) {
                     v.defaultContent = "";
                 });
+                console.log('start datatable')
                 vm.partnerTable = $('#partnerDataTable').DataTable(tableOptions);
+                console.log('end datatable');
                 utilService.setDataTablePageInput('partnerDataTable', vm.partnerTable, $translate);
                 vm.advancedPartnerQueryObj.pageObj.init({maxCount: data.size}, !Boolean(vm.advancedPartnerQueryObj.index));
 
@@ -6146,6 +6136,11 @@ define(['js/app'], function (myApp) {
                         } ).data();
                 }
             };
+            vm.initPermissionPartner = function (partnerObjId) {
+                vm.permissionPartner = vm.partners.find(p => String(p._id) === partnerObjId);
+                vm.permissionPartner.permission.forbidPartnerFromLogin = !vm.permissionPartner.permission.forbidPartnerFromLogin;
+                vm.permissionPlayer.permission.disableCommSettlement = !vm.permissionPlayer.permission.disableCommSettlement;
+            }
             vm.sendSMSToPartner = function () {
                 vm.sendSMSResult = {sent: "sending"};
                 return $scope.sendSMSToPlayer(vm.smsPartner, function (data) {
@@ -6391,7 +6386,8 @@ define(['js/app'], function (myApp) {
                 });
             };
 
-            vm.initFeedbackModal = function (rowData) {
+            vm.initFeedbackModal = function (partnerObjId) {
+                let rowData = vm.partners.find(p => String(p._id) === partnerObjId);
                 if (rowData && rowData.partnerId) {
                     $scope.$evalAsync(() => {
                         $('#addPartnerFeedbackTab').addClass('active');
