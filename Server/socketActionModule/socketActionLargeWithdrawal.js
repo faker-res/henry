@@ -23,8 +23,8 @@ function socketActionLargeWithdrawal (socketIO, socket) {
     this.actions = {
         getLargeWithdrawLog: function getLargeWithdrawLog (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.largeWithdrawalLogObjId);
-            socketUtil.emitter(self.socket, dbLargeWithrawal.getLargeWithdrawLog, [data.largeWithdrawalLogObjId], actionName, isValidData);
+            let isValidData = Boolean(data && data.logObjId);
+            socketUtil.emitter(self.socket, dbLargeWithrawal.getLargeWithdrawLog, [data.logObjId], actionName, isValidData);
         },
 
         getAllPlatformLargeWithdrawalSetting: function getAllPlatformLargeWithdrawalSetting (data) {
@@ -34,8 +34,25 @@ function socketActionLargeWithdrawal (socketIO, socket) {
 
         sendLargeAmountDetailMail: function sendLargeAmountDetailMail (data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.largeWithdrawalLogObjId);
-            socketUtil.emitter(self.socket, dbLargeWithrawal.sendLargeAmountDetailMail, [data.largeWithdrawalLogObjId, data.comment, getAdminId(), getHost()], actionName, isValidData);
+            let isValidData = Boolean(data && data.logObjId);
+            socketUtil.emitter(self.socket, dbLargeWithrawal.sendLargeAmountDetailMail, [data.logObjId, data.comment, getAdminId(), getHost()], actionName, isValidData);
+        },
+
+        getPartnerLargeWithdrawLog: function getPartnerLargeWithdrawLog (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.logObjId);
+            socketUtil.emitter(self.socket, dbLargeWithrawal.getPartnerLargeWithdrawLog, [data.logObjId], actionName, isValidData);
+        },
+
+        getAllPlatformPartnerLargeWithdrawalSetting: function getAllPlatformPartnerLargeWithdrawalSetting (data) {
+            let actionName = arguments.callee.name;
+            socketUtil.emitter(self.socket, dbLargeWithrawal.getAllPlatformPartnerLargeWithdrawalSetting, [], actionName, true);
+        },
+
+        sendPartnerLargeAmountDetailMail: function sendPartnerLargeAmountDetailMail (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.logObjId);
+            socketUtil.emitter(self.socket, dbLargeWithrawal.sendPartnerLargeAmountDetailMail, [data.logObjId, data.comment, getAdminId(), getHost()], actionName, isValidData);
         },
 
         largeWithdrawalAudit: function largeWithdrawalAudit (data) {

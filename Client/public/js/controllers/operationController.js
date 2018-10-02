@@ -2074,7 +2074,7 @@ define(['js/app'], function (myApp) {
 
         vm.getLargeWithdrawalLog = (logObjId) => {
             console.log('logObjId', logObjId)
-            return $scope.$socketPromise('getLargeWithdrawLog', {largeWithdrawalLogObjId: logObjId}).then(data => {
+            return $scope.$socketPromise('getLargeWithdrawLog', {logObjId: logObjId}).then(data => {
                 console.log("getLargeWithdrawLog", data);
                 vm.largeWithdrawLog = data && data.data;
                 if (vm.largeWithdrawLog && !vm.largeWithdrawLog.emailSentTimes) {
@@ -2087,7 +2087,7 @@ define(['js/app'], function (myApp) {
 
         vm.sendLargeAmountDetailMail = () => {
             let query = {
-                largeWithdrawalLogObjId: vm.largeWithdrawLog._id,
+                logObjId: vm.largeWithdrawLog._id,
                 comment: vm.largeWithdrawLog.comment
             };
 
