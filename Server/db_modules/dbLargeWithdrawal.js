@@ -308,6 +308,10 @@ const dbLargeWithdrawal = {
         );
     },
 
+    sendPartnerLargeAmountDetailMail: (largeWithdrawalLogObjId, comment, admin, host) => {
+        // todo huat
+    },
+
     largeWithdrawalAudit: (proposalId, adminObjId, decision, isMail, isPartner) => {
         let admin, proposal, largeWithdrawalLog, largeWithdrawalSetting;
         let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
@@ -461,7 +465,7 @@ const dbLargeWithdrawal = {
             }
         );
     },
-    
+
 };
 
 function generateAuditDecisionLink(host, proposalId, adminObjId) {
