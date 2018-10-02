@@ -172,7 +172,7 @@ const dbLargeWithdrawal = {
                     emailNameExtension: largeWithdrawalSetting.emailNameExtension,
                     todayLargeAmountNo: todayLargeAmountNo,
                     playerName: player.name,
-                    amount: withdrawalAmount,
+                    amount: withdrawalAmount || 0,
                     realName: player.realName,
                     playerLevelName: player.playerLevel.name,
                     bankCity: bankCityName,
@@ -184,11 +184,11 @@ const dbLargeWithdrawal = {
                     consumptionReturnAmount: consumptionAmtFromLastWithdraw,
                     rewardAmount: rewardAmtFromLastWithdraw,
                     consumptionAmountTimes: {
-                        belowHundred: consumptionTimesFromLastWithdraw.belowHundred,
-                        belowThousand: consumptionTimesFromLastWithdraw.belowThousand,
-                        belowTenThousand: consumptionTimesFromLastWithdraw.belowTenThousand,
-                        belowHundredThousand: consumptionTimesFromLastWithdraw.belowHundredThousand,
-                        aboveHundredThousand: consumptionTimesFromLastWithdraw.aboveHundredThousand
+                        belowHundred: consumptionTimesFromLastWithdraw.belowHundred || 0,
+                        belowThousand: consumptionTimesFromLastWithdraw.belowThousand || 0,
+                        belowTenThousand: consumptionTimesFromLastWithdraw.belowTenThousand || 0,
+                        belowHundredThousand: consumptionTimesFromLastWithdraw.belowHundredThousand || 0,
+                        aboveHundredThousand: consumptionTimesFromLastWithdraw.aboveHundredThousand || 0
                     },
                     gameProviderInfo: providerInfoFromLastWithdraw,
                     lastTopUpPlayerBonusAmount: currentCredit + withdrawalAmount - totalTopUpFromLastTopUp,
@@ -196,11 +196,11 @@ const dbLargeWithdrawal = {
                     lastTopUpConsumptionReturnAmount: totalConsumptionFromLastTopUp,
                     lastTopUpRewardAmount: totalRewardFromLastTopUp,
                     lastTopUpConsumptionAmountTimes: {
-                        belowHundred: consumptionTimesFromLastTopUp.belowHundred,
-                        belowThousand: consumptionTimesFromLastTopUp.belowThousand,
-                        belowTenThousand: consumptionTimesFromLastTopUp.belowTenThousand,
-                        belowHundredThousand: consumptionTimesFromLastTopUp.belowHundredThousand,
-                        aboveHundredThousand: consumptionTimesFromLastTopUp.aboveHundredThousand
+                        belowHundred: consumptionTimesFromLastTopUp.belowHundred || 0,
+                        belowThousand: consumptionTimesFromLastTopUp.belowThousand || 0,
+                        belowTenThousand: consumptionTimesFromLastTopUp.belowTenThousand || 0,
+                        belowHundredThousand: consumptionTimesFromLastTopUp.belowHundredThousand || 0,
+                        aboveHundredThousand: consumptionTimesFromLastTopUp.aboveHundredThousand || 0
                     },
                     lastTopUpGameProviderInfo: providerInfoFromLastTopUp,
                     dayTopUpAmount: todayTopUpAmt,
