@@ -16,9 +16,8 @@ const constProposalType = require('../const/constProposalType');
 const ObjectId = require('mongoose').Types.ObjectId;
 const dbUtility = require('./../modules/dbutility');
 const cpmsAPI = require("../externalAPI/cpmsAPI");
-var constProposalMainType = require('../const/constProposalMainType');
+const constProposalMainType = require('../const/constProposalMainType');
 const proposalExecutor = require('./../modules/proposalExecutor');
-const dbProposalProcessStep = require('./../db_modules/dbLargeWithdrawal');
 
 
 const dbLargeWithdrawal = {
@@ -260,14 +259,27 @@ const dbLargeWithdrawal = {
                 }
                 largeWithdrawalSetting = largeWithdrawalSettingData;
 
+
+                let recipientsProm = Promise.resolve();
+                if (largeWithdrawalSetting.recipient && largeWithdrawalSetting.recipient.length) {
+                    recipientsProm = dbconfig.collection_admin.find({_id: {$in: largeWithdrawalSetting.recipient}}).lean();
+                }
+
+                return recipientsProm;
+            }
+        ).then(
+            recipientsData => {
+                let allRecipientEmail = recipientsData.map(recipient => {
+                    return recipient.email;
+                });
+
                 let proms = [];
 
                 if (largeWithdrawalSetting.recipient && largeWithdrawalSetting.recipient.length) {
-
                     largeWithdrawalSetting.recipient.map(recipient => {
                         let isReviewer = Boolean(largeWithdrawalSetting.reviewer && largeWithdrawalSetting.reviewer.length && largeWithdrawalSetting.reviewer.map(reviewer => String(reviewer)).includes(String(recipient)));
 
-                        let prom = sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSetting, recipient, isReviewer, host).catch(err => {
+                        let prom = sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSetting, recipient, isReviewer, host, allRecipientEmail).catch(err => {
                             console.log('large withdrawal mail to admin failed', recipient, err);
                             return errorUtils.reportError(err);
                         });
@@ -393,8 +405,8 @@ const dbLargeWithdrawal = {
                 }
 
                 let processStep;
-                if (proposalProcessData && proposalProcessData.steps && proposalProcessData.steps[0]) {
-                    processStep = proposalProcessData.steps[0];
+                if (proposalProcessData && proposalProcessData.steps && proposalProcessData.steps.length) {
+                    processStep = proposalProcessData.steps[proposalProcessData.steps.length - 1];
                 }
 
                 let proms = [];
@@ -421,8 +433,6 @@ const dbLargeWithdrawal = {
             }
         );
     },
-
-
 };
 
 function generateAuditDecisionLink(host, proposalId, adminObjId) {
@@ -480,10 +490,9 @@ function generateAuditDecisionLink(host, proposalId, adminObjId) {
     );
 }
 
-
-function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSetting, adminObjId, isReviewer, host) {
+function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSetting, adminObjId, isReviewer, host, allRecipientEmail) {
     let admin, html;
-    html = generateLargeWithdrawalDetailEmail(largeWithdrawalLog, largeWithdrawalSetting);
+    html = generateLargeWithdrawalDetailEmail(largeWithdrawalLog, largeWithdrawalSetting, allRecipientEmail);
 
     return dbconfig.collection_admin.findOne({_id: adminObjId}).lean().then(
         adminData => {
@@ -544,11 +553,15 @@ function sendLargeWithdrawalProposalAuditedInfo(proposalData, adminObjId, log, p
     );
 }
 
-function generateLargeWithdrawalDetailEmail (log, setting) {
+function generateLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
     let html = ``;
     if (!setting) {
         return Promise.reject({message: "Please setup large withdrawal setting."});
     }
+
+    let allEmailStr = allEmailArr && allEmailArr.length ? allEmailArr.join() : "";
+
+    let emailSubject = getLogDetailEmailSubject(log) + " " + dbutility.getLocalTimeString(log.withdrawalTime, "hh:ss A");
 
     html += `<div style="text-align: left; background-color: #047ea5; color: #FFFFFF; font-weight: bold; padding: 13px; border-radius: 38px; width: 61.8%">A.玩家信息区</div>`;
 
@@ -1007,6 +1020,12 @@ function generateLargeWithdrawalDetailEmail (log, setting) {
         html += `<div style="border: solid; border-collapse: collapse; margin-top: 13px; padding: 5px">${str}</div>`;
     }
 
+    html += `
+    <div style="margin-top: 38px">
+        <a href="mailto:${allEmailStr}?subject=${emailSubject}" target="_blank" style="margin: 8px;"><span style="display: inline-block; padding: 8px; font-weight: bold; background-color: purple; color: white; border-radius: 8px">发送邮件到给所有收件人</span></a>
+    </div>
+    `;
+
     return html;
 }
 
@@ -1034,20 +1053,22 @@ function getLogDetailEmailSubject (log) {
 }
 
 function createProposalProcessStep (proposal, adminObjId, status, memo) {
-    let proposalTypeProm = dbconfig.collection_proposalType.findOne({_id: proposal.type}).populate({path: "process", model: dbconfig.collection_proposalProcess}).lean();
+    let proposalTypeProm = dbconfig.collection_proposalType.findOne({_id: proposal.type}).populate({path: "process", model: dbconfig.collection_proposalTypeProcess}).lean();
     let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
 
-    return Promise.resolve([proposalTypeProm, adminProm]).then(
+    return Promise.all([proposalTypeProm, adminProm]).then(
         ([proposalType, admin]) => {
-            if (!proposalType || admin) {
+            if (!proposalType || !admin) {
+                console.log('proposalType', proposalType)
                 return Promise.resolve();
             }
 
             if (!proposalType.process || !proposalType.process.steps || !proposalType.process.steps.length) {
+                console.log('proposalType.process', proposalType.process);
                 return Promise.resolve();
             }
 
-            let proposalTypeProcessStepId = proposalType.process.steps[0];
+            let proposalTypeProcessStepId = proposalType.process.steps[0] || ObjectId();
 
             let proposalProcessStepData = {
                 status,
@@ -1060,7 +1081,8 @@ function createProposalProcessStep (proposal, adminObjId, status, memo) {
                 createTime: new Date()
             };
 
-            return dbProposalProcessStep.createProposalProcessStep(proposalProcessStepData);
+            let proposalProcessStep = new dbconfig.collection_proposalProcessStep(proposalProcessStepData);
+            return proposalProcessStep.save();
         }
     ).then(
         stepObj => {
@@ -1195,7 +1217,7 @@ function getProviderInfoByTime (playerObj, startTime, endTime) {
                 return gameProviderInfo;
             }
         );
-};
+}
 
 function getTotalWithdrawalByTime (playerObj, startTime, endTime) {
     let matchQuery = {
@@ -1264,7 +1286,7 @@ function getConsumptionTimesByTime (playerObj, startTime, endTime) {
         }
     );
 
-};
+}
 
 function getTotalConsumptionByTime (playerObj, startTime, endTime) {
     return dbconfig.collection_playerConsumptionRecord.aggregate([{
@@ -1290,7 +1312,7 @@ function getTotalConsumptionByTime (playerObj, startTime, endTime) {
         }
     );
 
-};
+}
 
 function getTotalTopUpByTime (playerObj, startTime, endTime) {
     let matchQuery = {
@@ -1318,7 +1340,7 @@ function getTotalTopUpByTime (playerObj, startTime, endTime) {
             return topUpAmount;
         }
     );
-};
+}
 
 function getTotalRewardByTime (playerObj, startTime, endTime) {
     return dbconfig.collection_proposalType.findOne({
