@@ -137,6 +137,7 @@ define(['js/app'], function (myApp) {
             vm.getPlatformProviderGroup();
             vm.getAllGameTypes();
             vm.getLargeWithdrawalSetting();
+            vm.getPartnerLargeWithdrawalSetting();
         };
 
         vm.renderMultipleSelectDropDownList = function(elem) {
@@ -1051,6 +1052,14 @@ define(['js/app'], function (myApp) {
             return $scope.$socketPromise('getAllPlatformLargeWithdrawalSetting', {}).then(
                 data => {
                     vm.largeWithdrawalSettings = data && data.data || {};
+                }
+            );
+        };
+
+        vm.getPartnerLargeWithdrawalSetting = function () {
+            return $scope.$socketPromise('getAllPlatformPartnerLargeWithdrawalSetting', {}).then(
+                data => {
+                    vm.partnerLargeWithdrawalSettings = data && data.data || {};
                 }
             );
         };
@@ -2035,6 +2044,34 @@ define(['js/app'], function (myApp) {
             //console.log("row", nRow, aData, iDisplayIndex, iDisplayIndexFull);
         };
 
+        vm.getPartnerLargeWithdrawalLog = (logObjId) => {
+            console.log('logObjId', logObjId)
+            return $scope.$socketPromise('getPartnerLargeWithdrawLog', {logObjId: logObjId}).then(data => {
+                console.log("getPartnerLargeWithdrawLog", data);
+                vm.partnerLargeWithdrawLog = data && data.data;
+                if (vm.partnerLargeWithdrawLog && !vm.partnerLargeWithdrawLog.emailSentTimes) {
+                    vm.partnerLargeWithdrawLog.emailSentTimes = 0;
+                }
+
+                $scope.$evalAsync();
+            });
+        };
+
+        vm.sendPartnerLargeAmountDetailMail = () => {
+            let query = {
+                logObjId: vm.partnerLargeWithdrawLog._id,
+                comment: vm.partnerLargeWithdrawLog.comment
+            };
+
+            return $scope.$socketPromise('sendPartnerLargeAmountDetailMail', query).then(
+                data => {
+                    console.log('sendPartnerLargeAmountDetailMail', data);
+                    vm.getPartnerLargeWithdrawalLog(vm.partnerLargeWithdrawLog._id);
+                }
+            );
+        };
+
+
         vm.getLargeWithdrawalLog = (logObjId) => {
             console.log('logObjId', logObjId)
             return $scope.$socketPromise('getLargeWithdrawLog', {largeWithdrawalLogObjId: logObjId}).then(data => {
@@ -2062,11 +2099,13 @@ define(['js/app'], function (myApp) {
             );
         };
 
-        vm.auditLargeWithdrawal = (isApprove) => {
+        vm.auditLargeWithdrawal = (isApprove, isPartner) => {
             isApprove = Boolean(isApprove);
+            isPartner = Boolean(isPartner);
             let query = {
                 proposalId: vm.largeWithdrawLog.proposalId,
-                isApprove
+                isApprove,
+                isPartner
             };
 
             return $scope.$socketPromise('largeWithdrawalAudit', query).then(
@@ -2129,16 +2168,29 @@ define(['js/app'], function (myApp) {
 
             var proposalDetail = $.extend({}, vm.selectedProposal.data);
 
-            if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.largeWithdrawalLog) {
-                vm.largeWithdrawLog = vm.largeWithdrawLog || {};
-                vm.haveLargeWithdrawalLog = true;
-                if (vm.selectedProposal.data.platformId) {
-                    vm.largeWithdrawalSetting = vm.largeWithdrawalSettings[vm.selectedProposal.data.platformId] || {};
-                    vm.isLargeWithdrawalReviewer = Boolean(authService.adminId && vm.largeWithdrawalSetting.reviewer && vm.largeWithdrawalSetting.reviewer.length && vm.largeWithdrawalSetting.reviewer.includes(authService.adminId));
+            if (vm.selectedProposal && vm.selectedProposal.data && (vm.selectedProposal.data.largeWithdrawalLog || vm.selectedProposal.data.partnerLargeWithdrawalLog)) {
+                if (vm.selectedProposal.data.largeWithdrawalLog) {
+                    vm.largeWithdrawLog = vm.largeWithdrawLog || {};
+                    vm.haveLargeWithdrawalLog = true;
+                    vm.havePartnerLargeWithdrawalLog = false;
+                    if (vm.selectedProposal.data.platformId) {
+                        vm.largeWithdrawalSetting = vm.largeWithdrawalSettings[vm.selectedProposal.data.platformId] || {};
+                        vm.isLargeWithdrawalReviewer = Boolean(authService.adminId && vm.largeWithdrawalSetting.reviewer && vm.largeWithdrawalSetting.reviewer.length && vm.largeWithdrawalSetting.reviewer.includes(authService.adminId));
+                    }
+                    vm.getLargeWithdrawalLog(vm.selectedProposal.data.largeWithdrawalLog);
+                } else {
+                    vm.partnerLargeWithdrawLog = vm.partnerLargeWithdrawLog || {};
+                    vm.havePartnerLargeWithdrawalLog = true;
+                    vm.haveLargeWithdrawalLog = false;
+                    if (vm.selectedProposal.data.platformId) {
+                        vm.partnerLargeWithdrawalSetting = vm.partnerLargeWithdrawalSettings[vm.selectedProposal.data.platformId] || {};
+                        vm.isPartnerLargeWithdrawalReviewer = Boolean(authService.adminId && vm.partnerLargeWithdrawalSetting.reviewer && vm.partnerLargeWithdrawalSetting.reviewer.length && vm.partnerLargeWithdrawalSetting.reviewer.includes(authService.adminId));
+                    }
+                    vm.getPartnerLargeWithdrawalLog(vm.selectedProposal.data.partnerLargeWithdrawalLog);
                 }
-                vm.getLargeWithdrawalLog(vm.selectedProposal.data.largeWithdrawalLog);
             } else {
                 vm.haveLargeWithdrawalLog = false;
+                vm.havePartnerLargeWithdrawalLog = false;
             }
 
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "SettlePartnerCommission") {
