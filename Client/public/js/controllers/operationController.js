@@ -2719,6 +2719,25 @@ define(['js/app'], function (myApp) {
             delete vm.selectedProposalDetailForDisplay.isIgnoreAudit;
             delete vm.selectedProposalDetailForDisplay.forbidWithdrawAfterApply;
 
+            if (vm.selectedProposalDetailForDisplay.isProviderGroup$){
+                delete vm.selectedProposalDetailForDisplay.isProviderGroup$
+            }
+            if (vm.selectedProposalDetailForDisplay.openCreateTime$){
+                delete vm.selectedProposalDetailForDisplay.openCreateTime$
+            }
+            if (vm.selectedProposalDetailForDisplay.openExpirationTime$){
+                delete vm.selectedProposalDetailForDisplay.openExpirationTime$
+            }
+            if (vm.selectedProposalDetailForDisplay.minTopUpAmount$){
+                delete vm.selectedProposalDetailForDisplay.minTopUpAmount$
+            }
+            if (vm.selectedProposalDetailForDisplay.requiredConsumption$){
+                delete vm.selectedProposalDetailForDisplay.requiredConsumption$
+            }
+            if (vm.selectedProposalDetailForDisplay.amount$){
+                delete vm.selectedProposalDetailForDisplay.amount$
+            }
+
             function canCancelProposal(proposal) {
                 if (!proposal || vm.rightPanelTitle == "APPROVAL_PROPOSAL")return false;
                 var creatorId = (proposal && proposal.creator) ? proposal.creator.id : '';
