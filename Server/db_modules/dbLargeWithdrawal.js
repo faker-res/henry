@@ -531,14 +531,19 @@ function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSettin
 
 function sendLargeWithdrawalProposalAuditedInfo(proposalData, adminObjId, log, proposalProcessStep) {
     let admin, html;
-    return dbconfig.collection_admin.findOne({_id: adminObjId}).populate({path: "departments", model: dbconfig.collection_department}).lean().then(
-        adminData => {
+
+    let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).populate({path: "departments", model: dbconfig.collection_department}).lean();
+    let auditorProm = dbconfig.collection_admin.findOne({_id: proposalProcessStep.operator}).lean();
+    let auditorDepartmentProm = dbconfig.collection_department.findOne({_id: proposalProcessStep.department}).lean();
+
+    return Promise.all([adminProm, auditorProm, auditorDepartmentProm]).then(
+        ([adminData, auditorData, auditorDepartmentData]) => {
             if (!adminData) {
                 return Promise.reject({message: "Admin not found."});
             }
             admin = adminData;
 
-            html = generateLargeWithdrawalAuditedInfoEmail(proposalData, admin, proposalProcessStep);
+            html = generateLargeWithdrawalAuditedInfoEmail(proposalData, admin, proposalProcessStep, auditorData, auditorDepartmentData);
 
             let emailConfig = {
                 sender: "no-reply@snsoft.my", // company email?
@@ -1093,7 +1098,7 @@ function createProposalProcessStep (proposal, adminObjId, status, memo) {
     );
 }
 
-function generateLargeWithdrawalAuditedInfoEmail (proposalData, admin, proposalProcessStep) {
+function generateLargeWithdrawalAuditedInfoEmail (proposalData, admin, proposalProcessStep, auditor, auditorDepartment) {
     let lockStatus = proposalData.isLocked && proposalData.isLocked.adminName || "未锁定";
     let status, cancelTime, decisionColor;
     switch (proposalData.status) {
@@ -1136,14 +1141,14 @@ function generateLargeWithdrawalAuditedInfoEmail (proposalData, admin, proposalP
     `;
 
     if (proposalProcessStep) {
-        let department = admin && admin.departments && admin.departments[0] && admin.departments[0].departmentName || "";
-        let auditor = admin.adminName;
+        let departmentName = auditorDepartment && auditorDepartment.departmentName || "";
+        let auditorName = auditor && auditor.adminName || "";
         let auditTime = dbutility.getLocalTimeString(proposalProcessStep.operationTime, "YYYY/MM/DD HH:mm:ss");
         let memo = proposalProcessStep.memo || "";
 
         html += `
-        <div style="margin-top: 8px;">部门：${department}</div>
-        <div style="margin-top: 8px;">审核人：${auditor}</div>
+        <div style="margin-top: 8px;">部门：${departmentName}</div>
+        <div style="margin-top: 8px;">审核人：${auditorName}</div>
         <div style="margin-top: 8px;">审核时间：${auditTime}</div>
         <div style="margin-top: 8px; color: ${decisionColor};">备注：${memo}</div>
         `;
