@@ -511,6 +511,12 @@ function checkRewardTaskGroup(proposal, platformObj) {
             //     canApprove = false;
             // }
 
+            // if (bUpdatePaymentInfo && platformObj.manualAuditAfterBankChanged !== false) {
+            //     checkMsg += ' Denied: Bank Info Changed;';
+            //     checkMsgChinese += ' 失败：银行资料刚改;';
+            //     canApprove = false;
+            // }
+          
             if (!bIsPaymenyInfoMatched && platformObj.manualAuditAfterBankChanged !== false) {
                 checkMsg += ' Denied: Bank Info Not Matched;';
                 checkMsgChinese += ' 失败：提款资料与上次银改不符;';
