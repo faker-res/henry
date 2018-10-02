@@ -1059,12 +1059,10 @@ function createProposalProcessStep (proposal, adminObjId, status, memo) {
     return Promise.all([proposalTypeProm, adminProm]).then(
         ([proposalType, admin]) => {
             if (!proposalType || !admin) {
-                console.log('proposalType', proposalType)
                 return Promise.resolve();
             }
 
             if (!proposalType.process || !proposalType.process.steps || !proposalType.process.steps.length) {
-                console.log('proposalType.process', proposalType.process);
                 return Promise.resolve();
             }
 
