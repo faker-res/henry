@@ -5142,7 +5142,6 @@ define(['js/app'], function (myApp) {
         function getTotalPlayerDownline(partner) {
             return $scope.$socketPromise('getTotalPlayerDownline', partner).then(function (data) {
                 // append back total player downline into draw table data
-                console.log('getTotalPlayerDownline', data);
                 data.data.forEach( inData => {
                     if (inData && inData.partnerId) {
                         let index = partner.data.findIndex(p => p._id === inData.partnerId);
@@ -5162,10 +5161,7 @@ define(['js/app'], function (myApp) {
 
             return $scope.$socketPromise('getDailyActivePlayerCount', sendQuery).then(function (data) {
                 // append back daily active player into draw table data
-                console.log('getDailyActivePlayerCount', data);
                 data.data.forEach( inData => {
-                    console.log('partner.data', partner.data);
-                    console.log('inData', inData);
                     if (inData && inData.partnerId) {
                         let index = partner.data.findIndex(p => p._id === inData.partnerId);
                         if (index !== -1) {
@@ -5185,7 +5181,6 @@ define(['js/app'], function (myApp) {
 
             return $scope.$socketPromise('getWeeklyActivePlayerCount', sendQuery).then(function (data) {
                 // append back weekly active player into draw table data
-                console.log('getWeeklyActivePlayerCount', data);
                 data.data.forEach( inData => {
                     if (inData && inData.partnerId) {
                         let index = partner.data.findIndex(p => p._id === inData.partnerId);
@@ -5206,7 +5201,6 @@ define(['js/app'], function (myApp) {
 
             return $scope.$socketPromise('getMonthlyActivePlayerCount', sendQuery).then(function (data) {
                 // append back monthly active player into draw table data
-                console.log('getMonthlyActivePlayerCount', data);
                 data.data.forEach( inData => {
                     if (inData && inData.partnerId) {
                         let index = partner.data.findIndex(p => p._id === inData.partnerId);
@@ -5227,7 +5221,6 @@ define(['js/app'], function (myApp) {
 
             return $scope.$socketPromise('getValidPlayersCount', sendQuery).then(function (data) {
                 // append back valid players into draw table data
-                console.log('getValidPlayersCount', data);
                 data.data.forEach( inData => {
                     if (inData && inData.partnerId){
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
@@ -5248,7 +5241,6 @@ define(['js/app'], function (myApp) {
 
             return $scope.$socketPromise('getTotalChildrenDeposit', sendQuery).then(function (data) {
                 // append back total children deposit into draw table data
-                console.log('getTotalChildrenDeposit', data);
                 data.data.forEach( inData => {
                     let index =  partner.data.findIndex(p => p._id === inData.partnerId);
                     if ( index !== -1) {
@@ -5266,7 +5258,6 @@ define(['js/app'], function (myApp) {
 
             return $scope.$socketPromise('getTotalChildrenBalance', sendQuery).then(function (data) {
                 // append back total children balance into draw table data
-                console.log('getTotalChildrenBalance', data);
                 data.data.forEach( inData => {
                     let index =  partner.data.findIndex(p => p._id === inData.partnerId);
                     if ( index !== -1) {
@@ -5279,7 +5270,6 @@ define(['js/app'], function (myApp) {
         function getTotalSettledCommission(partner) {
             return $scope.$socketPromise('getTotalSettledCommission', partner).then(function (data) {
                 // append back total settled commission into draw table data
-                console.log('getTotalSettledCommission', data);
                 data.data.forEach( inData => {
                     if (inData && inData.partnerId) {
                         let index =  partner.data.findIndex(p => p._id === inData.partnerId);
@@ -5293,7 +5283,6 @@ define(['js/app'], function (myApp) {
 
         function getReferralsList(partner) {
             return $scope.$socketPromise('getReferralsList', partner).then(function (data) {
-                console.log('getReferralsList', data);
                 let promArr = [];
 
                 promArr.push(getTotalPlayerDownline(partner));
@@ -5403,9 +5392,7 @@ define(['js/app'], function (myApp) {
                     partner.totalSettledCommission = partner.totalSettledCommission ? parseFloat(partner.totalSettledCommission).toFixed(2) : 0;
                 });
 
-                console.log('start getReferralsList')
                 vm.partners = await getReferralsList(data);
-                console.log('end getReferralsList', data.data)
                 vm.platformPartnerCount = data.size;
                 vm.selectedPartnerCount = 0;
                 vm.searchPartnerCount = data.size;
