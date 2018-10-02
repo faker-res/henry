@@ -1637,10 +1637,7 @@ let dbPlayerInfo = {
 
                         if (playerData) {
                             let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
-                                domain: {
-                                    $regex: playerData.domain,
-                                    $options: "xi"
-                                },
+                                domain: filteredDomain,
                                 platform: playerdata.platform
                             }).lean().then(data => {
                                 if (data) {
