@@ -7,7 +7,7 @@
             .panel-heading.panel-heading-sm
                 label {{"WechatPay Group" | translate}}
             .panel-body
-                div
+                div(ng-if="false")
                     input#FPMSWechatPaymentGroup(type='radio' value='FPMS' ng-model="vm.wechatGroupUsed" ng-change="vm.loadWechatPayGroupData();")
                     label(for='FPMSWechatPaymentGroup') {{"FPMS Group" | translate}}
                     input#PMSWechatPaymentGroup(type='radio' value='PMS' ng-model="vm.wechatGroupUsed" ng-change="vm.loadWechatPayGroupData()")
