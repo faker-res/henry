@@ -309,7 +309,55 @@ const dbLargeWithdrawal = {
     },
 
     sendPartnerLargeAmountDetailMail: (largeWithdrawalLogObjId, comment, admin, host) => {
-        // todo huat
+        let largeWithdrawalLog, largeWithdrawalSetting;
+        return dbconfig.collection_partnerLargeWithdrawalLog.findOneAndUpdate({_id: largeWithdrawalLogObjId}, {comment: comment}, {new: true}).lean().then(
+            largeWithdrawalLogData => {
+                if (!largeWithdrawalLogData) {
+                    return Promise.reject({message: "Large withdrawal log not found."});
+                }
+                largeWithdrawalLog = largeWithdrawalLogData;
+
+                return dbconfig.collection_largeWithdrawalPartnerSetting.findOne({platform: largeWithdrawalLog.platform}).lean();
+            }
+        ).then(
+            largeWithdrawalSettingData => {
+                if (!largeWithdrawalSettingData) {
+                    return Promise.reject({message: "Please setup large withdrawal setting."});
+                }
+                largeWithdrawalSetting = largeWithdrawalSettingData;
+
+
+                let recipientsProm = Promise.resolve();
+                if (largeWithdrawalSetting.recipient && largeWithdrawalSetting.recipient.length) {
+                    recipientsProm = dbconfig.collection_admin.find({_id: {$in: largeWithdrawalSetting.recipient}}).lean();
+                }
+
+                return recipientsProm;
+            }
+        ).then(
+            recipientsData => {
+                let allRecipientEmail = recipientsData.map(recipient => {
+                    return recipient.email;
+                });
+
+                let proms = [];
+
+                if (largeWithdrawalSetting.recipient && largeWithdrawalSetting.recipient.length) {
+                    largeWithdrawalSetting.recipient.map(recipient => {
+                        let isReviewer = Boolean(largeWithdrawalSetting.reviewer && largeWithdrawalSetting.reviewer.length && largeWithdrawalSetting.reviewer.map(reviewer => String(reviewer)).includes(String(recipient)));
+
+                        let prom = sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSetting, recipient, isReviewer, host, allRecipientEmail).catch(err => {
+                            console.log('large withdrawal mail to admin failed', recipient, err);
+                            return errorUtils.reportError(err);
+                        });
+                        proms.push(prom);
+                    });
+                }
+
+                Promise.all(proms).catch(errorUtils.reportError);
+                return dbconfig.collection_partnerLargeWithdrawalLog.findOneAndUpdate({_id: largeWithdrawalLog._id}, {$inc: {emailSentTimes: 1}}, {new: true}).lean().catch(errorUtils.reportError);
+            }
+        );
     },
 
     largeWithdrawalAudit: (proposalId, adminObjId, decision, isMail, isPartner) => {
@@ -339,10 +387,17 @@ const dbLargeWithdrawal = {
                     return Promise.reject({message: "This proposal is already audited"});
                 }
 
-                if (!proposal.data || !proposal.data.largeWithdrawalLog) {
+                if (isPartner && (!proposal.data || !proposal.data.partnerLargeWithdrawalLog)) {
                     return Promise.reject({message: "Proposal not found"});
                 }
 
+                if (!isPartner && (!proposal.data || !proposal.data.largeWithdrawalLog)) {
+                    return Promise.reject({message: "Proposal not found"});
+                }
+
+                if (isPartner) {
+                    return dbconfig.collection_partnerLargeWithdrawalLog.findOne({_id: proposal.data.partnerLargeWithdrawalLog}).lean();
+                }
                 return dbconfig.collection_largeWithdrawalLog.findOne({_id: proposal.data.largeWithdrawalLog}).lean();
             }
         ).then(
@@ -352,6 +407,9 @@ const dbLargeWithdrawal = {
                 }
                 largeWithdrawalLog = largeWithdrawalLogData;
 
+                if (isPartner) {
+                    return dbconfig.collection_largeWithdrawalPartnerSetting.findOne({platform: largeWithdrawalLog.platform}).lean();
+                }
                 return dbconfig.collection_largeWithdrawalSetting.findOne({platform: largeWithdrawalLog.platform}).lean();
             }
         ).then(
