@@ -10750,7 +10750,7 @@ let dbPlayerInfo = {
                                     if (todayBonusApply.length >= bonusSetting.bonusCharges && bonusSetting.bonusPercentageCharges > 0) {
                                         creditCharge = (finalAmount * bonusSetting.bonusPercentageCharges) * 0.01;
                                         if(platform.withdrawalFeeNoDecimal){
-                                            creditChargeWithoutDecimal = creditCharge.toFixed(0);
+                                            creditChargeWithoutDecimal = parseInt(creditCharge);
                                             finalAmount = finalAmount - creditChargeWithoutDecimal;
                                         }else{
                                             finalAmount = finalAmount - creditCharge;
