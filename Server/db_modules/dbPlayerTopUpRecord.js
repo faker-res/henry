@@ -1029,8 +1029,8 @@ var dbPlayerTopUpRecord = {
                 var updateData = {
                     status: constProposalStatus.PENDING
                 };
-                let merchantName = merchantResponse.result ? merchantResponse.result.merchantName : "";
-                let getRateProm;
+                // let merchantName = merchantResponse.result ? merchantResponse.result.merchantName : "";
+                // let getRateProm;
 
                 updateData.data = Object.assign({}, proposal.data);
                 updateData.data.requestId = merchantResponse.result ? merchantResponse.result.requestId : "";
@@ -1043,23 +1043,23 @@ var dbPlayerTopUpRecord = {
                     updateData.data.amount = merchantResponse.result.revisedAmount;
                 }
 
-                if(updateData.data.merchantNo && player.platform._id && merchantName != ""){
-                    getRateProm = getMerchantRate(updateData.data.merchantNo , player.platform.platformId, merchantName);
-                }
-
-                return Promise.all([getRateProm]).then(
-                    rate => {
-                        if(rate && rate.length > 0 && typeof rate[0] != "undefined"){
-                            updateData.data.rate = rate[0];
-                            updateData.data.actualAmountReceived = (topupRequest.amount - (topupRequest.amount * Number(rate[0]))).toFixed(2);
-                        }
-
-                        return updateData;
-                    }
-                )
-            }
-        ).then(
-            updateData => {
+        //         if(updateData.data.merchantNo && player.platform._id && merchantName != ""){
+        //             getRateProm = getMerchantRate(updateData.data.merchantNo , player.platform.platformId, merchantName);
+        //         }
+        //
+        //         return Promise.all([getRateProm]).then(
+        //             rate => {
+        //                 if(rate && rate.length > 0 && typeof rate[0] != "undefined"){
+        //                     updateData.data.rate = rate[0];
+        //                     updateData.data.actualAmountReceived = (topupRequest.amount - (topupRequest.amount * Number(rate[0]))).toFixed(2);
+        //                 }
+        //
+        //                 return updateData;
+        //             }
+        //         )
+        //     }
+        // ).then(
+        //     updateData => {
                 let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
 
                 updateOnlineTopUpProposalDailyLimit(proposalQuery, merchantResponse.result.merchantNo, merchantUseType).catch(errorUtils.reportError);
