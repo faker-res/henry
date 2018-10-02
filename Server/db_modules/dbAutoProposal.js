@@ -446,11 +446,11 @@ function checkRewardTaskGroup(proposal, platformObj) {
             }
 
             // First withdrawal checks
-            if (bFirstWithdraw && platformObj.manualAuditFirstWithdrawal !== false) {
-                checkMsg += " Denied: First withdrawal;";
-                checkMsgChinese += " 失败：首提;";
-                canApprove = false;
-            }
+            // if (bFirstWithdraw && platformObj.manualAuditFirstWithdrawal !== false) {
+            //     checkMsg += " Denied: First withdrawal;";
+            //     checkMsgChinese += " 失败：首提;";
+            //     canApprove = false;
+            // }
 
             if (bFirstWithdraw && platformObj.autoAudit) {
                 if (platformObj.autoAudit.firstWithdrawExceedAmount
@@ -499,11 +499,11 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 canApprove = false;
             }
 
-            if (bPendingPaymentInfo) {
-                checkMsg += ' Denied: Rebank;';
-                checkMsgChinese += ' 失败：银改;';
-                canApprove = false;
-            }
+            // if (bPendingPaymentInfo) {
+            //     checkMsg += ' Denied: Rebank;';
+            //     checkMsgChinese += ' 失败：银改;';
+            //     canApprove = false;
+            // }
 
             // if (bUpdatePaymentInfo && platformObj.manualAuditAfterBankChanged !== false) {
             //     checkMsg += ' Denied: Bank Info Changed;';
@@ -511,6 +511,12 @@ function checkRewardTaskGroup(proposal, platformObj) {
             //     canApprove = false;
             // }
 
+            // if (bUpdatePaymentInfo && platformObj.manualAuditAfterBankChanged !== false) {
+            //     checkMsg += ' Denied: Bank Info Changed;';
+            //     checkMsgChinese += ' 失败：银行资料刚改;';
+            //     canApprove = false;
+            // }
+          
             if (!bIsPaymenyInfoMatched && platformObj.manualAuditAfterBankChanged !== false) {
                 checkMsg += ' Denied: Bank Info Not Matched;';
                 checkMsgChinese += ' 失败：提款资料与上次银改不符;';
@@ -1473,9 +1479,12 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
         }
 
         function hasTopUpOrRewardWithinPeriod(startTime, endTime) {
-
             for (let i = 0; i < creditChangeLogs.length; i++) {
-                if (creditChangeLogs[i].operationTime > startTime && creditChangeLogs[i].operationTime < endTime && creditChangeLogs[i].amount >= 0.02) {
+                if (
+                    creditChangeLogs[i].operationTime > startTime
+                    && creditChangeLogs[i].operationTime < endTime
+                    && creditChangeLogs[i].amount + creditChangeLogs[i].lockedAmount >= 0.02
+                ) {
                     return true;
                 }
             }

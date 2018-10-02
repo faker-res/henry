@@ -488,6 +488,7 @@ var simplifiedChinese = {
     "Spending Times cannot be empty": "解锁流水不能为空",
     "SMS function under maintenance, please try again later.": "短信功能维护中，请稍后再次尝试。",
     "Registration function under maintenance, please try again later.": "注册功能维护中，请稍后再次尝试。",
+    "This reward event is expired": "活动已经结束，感谢您的支持"
 
     //todo::add missing messages here
 

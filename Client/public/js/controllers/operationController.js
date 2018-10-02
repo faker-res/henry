@@ -2699,6 +2699,13 @@ define(['js/app'], function (myApp) {
                 vm.selectedProposalDetailForDisplay = proposalDetail;
             }
 
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerBonus") {
+                if(vm.selectedProposalDetailForDisplay.creditCharge && vm.selectedProposalDetailForDisplay.oriCreditCharge
+                    && vm.selectedProposalDetailForDisplay.creditCharge != vm.selectedProposalDetailForDisplay.oriCreditCharge){
+                    vm.selectedProposalDetailForDisplay.creditCharge = vm.selectedProposal.data.creditCharge + " (" + $translate("original service charge") + vm.selectedProposal.data.oriCreditCharge + ", " + $translate("remove decimal") + ")";
+                }
+            }
+
             // Remove fields for detail viewing
             delete vm.selectedProposalDetailForDisplay.creator;
             delete vm.selectedProposalDetailForDisplay.platform;
@@ -2711,6 +2718,25 @@ define(['js/app'], function (myApp) {
             // delete vm.selectedProposalDetailForDisplay.remark;
             delete vm.selectedProposalDetailForDisplay.isIgnoreAudit;
             delete vm.selectedProposalDetailForDisplay.forbidWithdrawAfterApply;
+
+            if (vm.selectedProposalDetailForDisplay.isProviderGroup$){
+                delete vm.selectedProposalDetailForDisplay.isProviderGroup$
+            }
+            if (vm.selectedProposalDetailForDisplay.openCreateTime$){
+                delete vm.selectedProposalDetailForDisplay.openCreateTime$
+            }
+            if (vm.selectedProposalDetailForDisplay.openExpirationTime$){
+                delete vm.selectedProposalDetailForDisplay.openExpirationTime$
+            }
+            if (vm.selectedProposalDetailForDisplay.minTopUpAmount$){
+                delete vm.selectedProposalDetailForDisplay.minTopUpAmount$
+            }
+            if (vm.selectedProposalDetailForDisplay.requiredConsumption$){
+                delete vm.selectedProposalDetailForDisplay.requiredConsumption$
+            }
+            if (vm.selectedProposalDetailForDisplay.amount$){
+                delete vm.selectedProposalDetailForDisplay.amount$
+            }
 
             function canCancelProposal(proposal) {
                 if (!proposal || vm.rightPanelTitle == "APPROVAL_PROPOSAL")return false;
