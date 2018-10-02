@@ -1594,7 +1594,7 @@ define(['js/app'], function (myApp) {
                             : item.data.weChatAccount != null ? item.data.weChatAccount
                             : item.data.alipayAccount != null ? item.data.alipayAccount
                             : item.data.accountNo != null ? item.data.accountNo
-                            : null;
+                            : '';
                             item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                             item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
                         if (item.type.name == 'PlayerTopUp') {
@@ -1692,7 +1692,7 @@ define(['js/app'], function (myApp) {
                     {
                         "title": $translate('Online Topup Type'), "data": "data.topupType",
                         render: function (data, type, row) {
-                            var text = $translate(data ? $scope.merchantTopupTypeJson[data] : "");
+                            var text = $translate(data && $scope.merchantTopupTypeJson[data] ? $scope.merchantTopupTypeJson[data] : "");
                             return "<div>" + text + "</div>";
                         }
                     },
