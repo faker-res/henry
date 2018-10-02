@@ -921,162 +921,164 @@ var proposal = {
                     }else{
                         playerData = player;
 
-                        let allProposalQuery = {
-                            'data.platformId': ObjectId(player.platform._id),
-                            createTime: {$lt: proposalData.createTime},
-                            $or: [{'data.playerObjId': ObjectId(proposalData.data.playerObjId)}]
-                        };
+                        if (proposalProcessData && proposalProcessData.currentStep && proposalProcessData.steps) {
+                            var curTime = new Date();
+                            nextStepId = bApprove ? proposalProcessData.currentStep.nextStepWhenApprove : proposalProcessData.currentStep.nextStepWhenReject;
+                            var stepData = {
+                                status: bApprove ? constProposalStepStatus.APPROVED : constProposalStepStatus.REJECTED,
+                                operator: adminId,
+                                memo: memo,
+                                operationTime: curTime,
+                                isLocked: null
+                            };
 
-                        if (proposalData.data.playerId) {
-                            allProposalQuery["$or"].push({'data.playerId': proposalData.data.playerId});
-                        }
-                        if (proposalData.data.playerName) {
-                            allProposalQuery["$or"].push({'data.playerName': proposalData.data.playerName});
+                            return dbconfig.collection_proposalProcessStep.findOneAndUpdate(
+                                {_id: proposalProcessData.currentStep._id, createTime: proposalProcessData.currentStep.createTime},
+                                stepData
+                            ).exec();
                         }
 
-                        return dbconfig.collection_proposal.find(allProposalQuery).populate(
-                            {path: "type", model: dbconfig.collection_proposalType}
-                        ).sort({createTime: -1}).lean()
+                        // let allProposalQuery = {
+                        //     'data.platformId': ObjectId(player.platform._id),
+                        //     createTime: {$lt: proposalData.createTime},
+                        //     $or: [{'data.playerObjId': ObjectId(proposalData.data.playerObjId)}]
+                        // };
+                        //
+                        // if (proposalData.data.playerId) {
+                        //     allProposalQuery["$or"].push({'data.playerId': proposalData.data.playerId});
+                        // }
+                        // if (proposalData.data.playerName) {
+                        //     allProposalQuery["$or"].push({'data.playerName': proposalData.data.playerName});
+                        // }
+                        //
+                        // return dbconfig.collection_proposal.find(allProposalQuery).populate(
+                        //     {path: "type", model: dbconfig.collection_proposalType}
+                        // ).sort({createTime: -1}).lean()
                     }
                 }
             }
-        ).then(
-            proposals => {
-                if(proposals){
-                    let length = proposals.length;
-                    for (let i = 0; i < length; i++) {
-                        let proposal = proposals[i];
-                        if (proposal && proposal.type && proposal.type.name && proposal.status && proposal.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposal.status == constProposalStatus.APPROVED) {
-                            if (proposal.data) {
-
-                                if (proposal.data.bankAccount) {
-                                    if (!playerData.bankAccount) {
-                                        return false;
-                                    } else if (proposal.data.bankAccount != playerData.bankAccount) {
-                                        return false;
-                                    }
-                                } else if (playerData.bankAccount) {
-                                    return false;
-                                }
-
-                                if (proposal.data.bankAccountName) {
-                                    if (!playerData.bankAccountName) {
-                                        return false;
-                                    } else if (proposal.data.bankAccountName != playerData.bankAccountName) {
-                                        return false;
-                                    }
-                                } else if (playerData.bankAccountName) {
-                                    return false;
-                                }
-
-                                if (proposal.data.bankName) {
-                                    if (!playerData.bankName) {
-                                        return false;
-                                    } else if (proposal.data.bankName != playerData.bankName) {
-                                        return false;
-                                    }
-                                } else if (playerData.bankName) {
-                                    return false;
-                                }
-
-                                if (proposal.data.bankAccountCity) {
-                                    if (!playerData.bankAccountCity) {
-                                        return false;
-                                    } else if (proposal.data.bankAccountCity != playerData.bankAccountCity) {
-                                        return false;
-                                    }
-                                } else if (playerData.bankAccountCity) {
-                                    return false;
-                                }
-
-                                if (proposal.data.bankAccountType) {
-                                    if (!playerData.bankAccountType) {
-                                        return false;
-                                    } else if (proposal.data.bankAccountType != playerData.bankAccountType) {
-                                        return false;
-                                    }
-                                } else if (playerData.bankAccountType) {
-                                    return false;
-                                }
-
-                                if (proposal.data.bankAddress) {
-                                    if (!playerData.bankAddress) {
-                                        return false;
-                                    } else if (proposal.data.bankAddress != playerData.bankAddress) {
-                                        return false;
-                                    }
-                                } else if (playerData.bankAddress) {
-                                    return false;
-                                }
-
-                                if (proposal.data.bankBranch) {
-                                    if (!playerData.bankBranch) {
-                                        return false;
-                                    } else if (proposal.data.bankBranch != playerData.bankBranch) {
-                                        return false;
-                                    }
-                                } else if (playerData.bankBranch) {
-                                    return false;
-                                }
-
-                                if (proposal.data.bankAccountDistrict) {
-                                    if (!playerData.bankAccountDistrict) {
-                                        return false;
-                                    } else if (proposal.data.bankAccountDistrict != playerData.bankAccountDistrict) {
-                                        return false;
-                                    }
-                                } else if (playerData.bankAccountDistrict) {
-                                    return false;
-                                }
-
-                                if (proposal.data.bankAccountProvince) {
-                                    if (!playerData.bankAccountProvince) {
-                                        return false;
-                                    } else if (proposal.data.bankAccountProvince != playerData.bankAccountProvince) {
-                                        return false;
-                                    }
-                                } else if (playerData.bankAccountProvince) {
-                                    return false;
-                                }
-
-                            }
-
-                            return true;
-                        }
-                    }
-                }
-                return true;
-            }
-        ).then(
-            //find proposal process and create finished step for process
-            function (bIsPaymentInfoMatched) {
-                if(bIsPaymentInfoMatched || typeof bIsPaymentInfoMatched == "undefined"){
-                    if (proposalProcessData && proposalProcessData.currentStep && proposalProcessData.steps) {
-                        var curTime = new Date();
-                        nextStepId = bApprove ? proposalProcessData.currentStep.nextStepWhenApprove : proposalProcessData.currentStep.nextStepWhenReject;
-                        var stepData = {
-                            status: bApprove ? constProposalStepStatus.APPROVED : constProposalStepStatus.REJECTED,
-                            operator: adminId,
-                            memo: memo,
-                            operationTime: curTime,
-                            isLocked: null
-                        };
-
-                        return dbconfig.collection_proposalProcessStep.findOneAndUpdate(
-                            {_id: proposalProcessData.currentStep._id, createTime: proposalProcessData.currentStep.createTime},
-                            stepData
-                        ).exec();
-                    }
-                    else {
-                        deferred.reject({name: "DBError", message: "Can't find proposal process"});
-                    }
-                }else{
-                    deferred.reject({name: "DataError", errorMessage: "Bank Info Not Matched"});
-                }
-            },
-            function (err) {
-                deferred.reject({name: "DBError", message: "Error finding proposal process", error: err});
-            }
+        // ).then(
+        //     proposals => {
+        //         if(proposals){
+        //             let length = proposals.length;
+        //             for (let i = 0; i < length; i++) {
+        //                 let proposal = proposals[i];
+        //                 if (proposal && proposal.type && proposal.type.name && proposal.status && proposal.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposal.status == constProposalStatus.APPROVED) {
+        //                     if (proposal.data) {
+        //
+        //                         if (proposal.data.bankAccount) {
+        //                             if (!playerData.bankAccount) {
+        //                                 return false;
+        //                             } else if (proposal.data.bankAccount != playerData.bankAccount) {
+        //                                 return false;
+        //                             }
+        //                         } else if (playerData.bankAccount) {
+        //                             return false;
+        //                         }
+        //
+        //                         if (proposal.data.bankAccountName) {
+        //                             if (!playerData.bankAccountName) {
+        //                                 return false;
+        //                             } else if (proposal.data.bankAccountName != playerData.bankAccountName) {
+        //                                 return false;
+        //                             }
+        //                         } else if (playerData.bankAccountName) {
+        //                             return false;
+        //                         }
+        //
+        //                         if (proposal.data.bankName) {
+        //                             if (!playerData.bankName) {
+        //                                 return false;
+        //                             } else if (proposal.data.bankName != playerData.bankName) {
+        //                                 return false;
+        //                             }
+        //                         } else if (playerData.bankName) {
+        //                             return false;
+        //                         }
+        //
+        //                         if (proposal.data.bankAccountCity) {
+        //                             if (!playerData.bankAccountCity) {
+        //                                 return false;
+        //                             } else if (proposal.data.bankAccountCity != playerData.bankAccountCity) {
+        //                                 return false;
+        //                             }
+        //                         } else if (playerData.bankAccountCity) {
+        //                             return false;
+        //                         }
+        //
+        //                         if (proposal.data.bankAccountType) {
+        //                             if (!playerData.bankAccountType) {
+        //                                 return false;
+        //                             } else if (proposal.data.bankAccountType != playerData.bankAccountType) {
+        //                                 return false;
+        //                             }
+        //                         } else if (playerData.bankAccountType) {
+        //                             return false;
+        //                         }
+        //
+        //                         if (proposal.data.bankAddress) {
+        //                             if (!playerData.bankAddress) {
+        //                                 return false;
+        //                             } else if (proposal.data.bankAddress != playerData.bankAddress) {
+        //                                 return false;
+        //                             }
+        //                         } else if (playerData.bankAddress) {
+        //                             return false;
+        //                         }
+        //
+        //                         if (proposal.data.bankBranch) {
+        //                             if (!playerData.bankBranch) {
+        //                                 return false;
+        //                             } else if (proposal.data.bankBranch != playerData.bankBranch) {
+        //                                 return false;
+        //                             }
+        //                         } else if (playerData.bankBranch) {
+        //                             return false;
+        //                         }
+        //
+        //                         if (proposal.data.bankAccountDistrict) {
+        //                             if (!playerData.bankAccountDistrict) {
+        //                                 return false;
+        //                             } else if (proposal.data.bankAccountDistrict != playerData.bankAccountDistrict) {
+        //                                 return false;
+        //                             }
+        //                         } else if (playerData.bankAccountDistrict) {
+        //                             return false;
+        //                         }
+        //
+        //                         if (proposal.data.bankAccountProvince) {
+        //                             if (!playerData.bankAccountProvince) {
+        //                                 return false;
+        //                             } else if (proposal.data.bankAccountProvince != playerData.bankAccountProvince) {
+        //                                 return false;
+        //                             }
+        //                         } else if (playerData.bankAccountProvince) {
+        //                             return false;
+        //                         }
+        //
+        //                     }
+        //
+        //                     return true;
+        //                 }
+        //             }
+        //         }
+        //         return true;
+        //     }
+        // ).then(
+        //     //find proposal process and create finished step for process
+        //     function (bIsPaymentInfoMatched) {
+        //         if(bIsPaymentInfoMatched || typeof bIsPaymentInfoMatched == "undefined"){
+        //
+        //             else {
+        //                 deferred.reject({name: "DBError", message: "Can't find proposal process"});
+        //             }
+        //         }else{
+        //             deferred.reject({name: "DataError", errorMessage: "Bank Info Not Matched"});
+        //         }
+        //     },
+        //     function (err) {
+        //         deferred.reject({name: "DBError", message: "Error finding proposal process", error: err});
+        //     }
         ).then(
             //update process info
             function (data) {
