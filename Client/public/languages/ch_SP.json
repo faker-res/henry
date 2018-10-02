@@ -2742,6 +2742,7 @@
   "Total number of partners": "所有代理人数",
   "PARTNER_INFO_SECTION": "代理信息区",
   "PROPOSAL_INFO_SECTION": "提案数据区",
+  "PARTNER_LAST_WITHDRAW_TO_CURRENT_WITHDRAW": "上次代理提款至本次提款",
   "PARTNER_BASIC_INFO": "代理基本信息",
   "LOCAL_CREDIT_AMOUNT": "本地馀额",
   "ALL_PARTNER_RELATED_PROPOSAL": "所有代理相关提案",
@@ -4594,5 +4595,8 @@
   "Service Charge Fee": "手续费用",
   "Force Total Platform Fee To 0": "总平台费强制费归0",
   "Forced 0": "强制归0",
-  "Bank Info Not Matched": "提款资料与上次银改不符"
+  "Bank Info Not Matched": "提款资料与上次银改不符",
+  "Withdrawal service charge omit amount after decimal": "提款手续费无条件减免小数点后金额（少扣玩家金额）",
+  "original service charge": "原手续费",
+  "remove decimal": "删除小数"
 }

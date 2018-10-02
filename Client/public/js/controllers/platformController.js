@@ -27329,6 +27329,8 @@ define(['js/app'], function (myApp) {
                         } else {
                             vm.bonusSetting = {};
                         }
+
+                        vm.withdrawalFeeNoDecimal = vm.selectedPlatform.data.withdrawalFeeNoDecimal ? true : false;
                         vm.constructBonusSetting();
 
                     }
@@ -27364,7 +27366,8 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 }
-                vm.bonusBasic = {'bonusSetting': vm.bonusSetting}
+                vm.bonusBasic = {'bonusSetting': vm.bonusSetting};
+                vm.bonusBasic.withdrawalFeeNoDecimal = vm.withdrawalFeeNoDecimal;
                 $scope.safeApply();
             }
             vm.getValueByKey = (val, bonusSettings) => {
@@ -28575,6 +28578,7 @@ define(['js/app'], function (myApp) {
                         playerPasswordMinLength: srcData.playerPasswordMinLength,
                         prefix: srcData.prefix,
                         bonusSetting: srcData.bonusSetting,
+                        withdrawalFeeNoDecimal: srcData.withdrawalFeeNoDecimal,
                         requireSMSVerification: srcData.requireSMSVerification,
                         requireSMSVerificationForDemoPlayer: srcData.requireSMSVerificationForDemoPlayer,
                         requireSMSVerificationForPasswordUpdate: srcData.requireSMSVerificationForPasswordUpdate,
