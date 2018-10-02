@@ -3701,7 +3701,7 @@ let dbPlayerReward = {
                         playerName: playerObj.name,
                         realName: playerObj.realName,
                         platformObjId: playerObj.platform._id,
-                        rewardAmount: promoCodeObj.type === 3 ? promoCodeObj.requiredConsumption$ : promoCodeObj.requiredConsumption,
+                        rewardAmount: promoCodeObj.amount,
                         spendingAmount: promoCodeObj.requiredConsumption,
                         promoCode: promoCodeObj.code,
                         disableWithdraw: promoCodeObj.disableWithdraw,
