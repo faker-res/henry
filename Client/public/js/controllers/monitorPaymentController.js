@@ -614,7 +614,7 @@ define(['js/app'], function (myApp) {
                                     : item.data.weChatAccount != null ? item.data.weChatAccount
                                         : item.data.alipayAccount ? item.data.alipayAccount
                                             : item.data.bankCardNo ? item.data.bankCardNo
-                                                : item.data.accountNo ? item.data.accountNo : null;
+                                                : item.data.accountNo ? item.data.accountNo : '';
                             item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                             item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
                             item.status$ = $translate(item.status);
@@ -955,7 +955,7 @@ define(['js/app'], function (myApp) {
                     {
                         "title": $translate('Online Topup Type'), "data": 'data.topupType',
                         render: function (data, type, row) {
-                            var text = $translate(data ? $scope.merchantTopupTypeJson[data] : "");
+                            var text = $translate(data && $scope.merchantTopupTypeJson[data] ? $scope.merchantTopupTypeJson[data] : "");
                             return "<div>" + text + "</div>";
                         },
                         sClass: 'merchantCount'

@@ -1594,7 +1594,7 @@ define(['js/app'], function (myApp) {
                             : item.data.weChatAccount != null ? item.data.weChatAccount
                             : item.data.alipayAccount != null ? item.data.alipayAccount
                             : item.data.accountNo != null ? item.data.accountNo
-                            : null;
+                            : '';
                             item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                             item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
                         if (item.type.name == 'PlayerTopUp') {
