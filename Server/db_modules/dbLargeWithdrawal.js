@@ -293,7 +293,7 @@ const dbLargeWithdrawal = {
         );
     },
 
-    largeWithdrawalAudit: (proposalId, adminObjId, decision, isMail) => {
+    largeWithdrawalAudit: (proposalId, adminObjId, decision, isMail, isPartner) => {
         let admin, proposal, largeWithdrawalLog, largeWithdrawalSetting;
         let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
         let proposalProm = dbconfig.collection_proposal.findOne({proposalId}).lean();

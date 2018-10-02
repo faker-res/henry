@@ -42,7 +42,7 @@ function socketActionLargeWithdrawal (socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.proposalId);
             let decision = data.isApprove ? "approve" : "reject";
-            socketUtil.emitter(self.socket, dbLargeWithrawal.largeWithdrawalAudit, [data.proposalId, getAdminId(), decision], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbLargeWithrawal.largeWithdrawalAudit, [data.proposalId, getAdminId(), decision, data.isPartner], actionName, isValidData);
         },
     };
 

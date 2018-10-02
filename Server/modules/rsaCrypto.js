@@ -12,8 +12,9 @@ var fs = require('fs')
     , msg
     ;
 
-// key = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
-// crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
+// SSL preparation - comment after SSL online
+key = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
+crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
 
 // TESTING
 // env.redisUrl = "testkey.fpms8.me";
