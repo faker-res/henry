@@ -25,6 +25,10 @@ const dbLargeWithdrawal = {
         return dbconfig.collection_largeWithdrawalLog.findOne({_id: largeWithdrawLogObjId}).lean();
     },
 
+    getPartnerLargeWithdrawLog: (largeWithdrawLogObjId) => {
+        return dbconfig.collection_partnerLargeWithdrawalLog.findOne({_id: largeWithdrawLogObjId}).lean();
+    },
+
     fillUpLargeWithdrawalLogDetail: (largeWithdrawalLogObjId) => {
         let largeWithdrawalLog, proposal, player;
         let lastWithdrawalObj;
@@ -97,7 +101,12 @@ const dbLargeWithdrawal = {
                 let totalTopUpFromLastWithdrawal = Promise.resolve(0); //default amount
                 let totalConsumptionFromLastWithdrawal = Promise.resolve(0);
                 let totalRewardFromLastWithdrawal = Promise.resolve(0);
-                let consumptionTimesFromLastWithdrawal = Promise.resolve({});
+                let consumptionTimesFromLastWithdrawal = Promise.resolve({
+                    belowHundred: 0,
+                    belowThousand: 0,
+                    belowTenThousand: 0,
+                    belowHundredThousand: 0,
+                    aboveHundredThousand: 0});
                 let providerInfoFromLastWithdrawal = Promise.resolve([]);
                 if (lastWithdraw && lastWithdraw.createTime) {
                     totalTopUpFromLastWithdrawal = getTotalTopUpByTime(player, lastWithdraw.createTime, proposal.createTime);
@@ -110,7 +119,13 @@ const dbLargeWithdrawal = {
                 let totalTopUpFromLastTopUp = Promise.resolve(0);
                 let totalConsumptionFromLastTopUp = Promise.resolve(0);
                 let totalRewardFromLastTopUp = Promise.resolve(0);
-                let consumptionTimesFromLastTopUp = Promise.resolve({});
+                let consumptionTimesFromLastTopUp = Promise.resolve({
+                    belowHundred: 0,
+                    belowThousand: 0,
+                    belowTenThousand: 0,
+                    belowHundredThousand: 0,
+                    aboveHundredThousand: 0
+                });
                 let providerInfoFromLastTopUp = Promise.resolve([]);
                 let todayTopUpAmt = getTotalTopUpByTime(player, todayTime.startTime, todayTime.endTime);
                 let todayWithdrawalAmt = getTotalWithdrawalByTime(player, todayTime.startTime, todayTime.endTime);
@@ -172,7 +187,7 @@ const dbLargeWithdrawal = {
                     emailNameExtension: largeWithdrawalSetting.emailNameExtension,
                     todayLargeAmountNo: todayLargeAmountNo,
                     playerName: player.name,
-                    amount: withdrawalAmount,
+                    amount: withdrawalAmount || 0,
                     realName: player.realName,
                     playerLevelName: player.playerLevel.name,
                     bankCity: bankCityName,
@@ -184,11 +199,11 @@ const dbLargeWithdrawal = {
                     consumptionReturnAmount: consumptionAmtFromLastWithdraw,
                     rewardAmount: rewardAmtFromLastWithdraw,
                     consumptionAmountTimes: {
-                        belowHundred: consumptionTimesFromLastWithdraw.belowHundred,
-                        belowThousand: consumptionTimesFromLastWithdraw.belowThousand,
-                        belowTenThousand: consumptionTimesFromLastWithdraw.belowTenThousand,
-                        belowHundredThousand: consumptionTimesFromLastWithdraw.belowHundredThousand,
-                        aboveHundredThousand: consumptionTimesFromLastWithdraw.aboveHundredThousand
+                        belowHundred: consumptionTimesFromLastWithdraw.belowHundred || 0,
+                        belowThousand: consumptionTimesFromLastWithdraw.belowThousand || 0,
+                        belowTenThousand: consumptionTimesFromLastWithdraw.belowTenThousand || 0,
+                        belowHundredThousand: consumptionTimesFromLastWithdraw.belowHundredThousand || 0,
+                        aboveHundredThousand: consumptionTimesFromLastWithdraw.aboveHundredThousand || 0
                     },
                     gameProviderInfo: providerInfoFromLastWithdraw,
                     lastTopUpPlayerBonusAmount: currentCredit + withdrawalAmount - totalTopUpFromLastTopUp,
@@ -196,11 +211,11 @@ const dbLargeWithdrawal = {
                     lastTopUpConsumptionReturnAmount: totalConsumptionFromLastTopUp,
                     lastTopUpRewardAmount: totalRewardFromLastTopUp,
                     lastTopUpConsumptionAmountTimes: {
-                        belowHundred: consumptionTimesFromLastTopUp.belowHundred,
-                        belowThousand: consumptionTimesFromLastTopUp.belowThousand,
-                        belowTenThousand: consumptionTimesFromLastTopUp.belowTenThousand,
-                        belowHundredThousand: consumptionTimesFromLastTopUp.belowHundredThousand,
-                        aboveHundredThousand: consumptionTimesFromLastTopUp.aboveHundredThousand
+                        belowHundred: consumptionTimesFromLastTopUp.belowHundred || 0,
+                        belowThousand: consumptionTimesFromLastTopUp.belowThousand || 0,
+                        belowTenThousand: consumptionTimesFromLastTopUp.belowTenThousand || 0,
+                        belowHundredThousand: consumptionTimesFromLastTopUp.belowHundredThousand || 0,
+                        aboveHundredThousand: consumptionTimesFromLastTopUp.aboveHundredThousand || 0
                     },
                     lastTopUpGameProviderInfo: providerInfoFromLastTopUp,
                     dayTopUpAmount: todayTopUpAmt,
@@ -291,6 +306,10 @@ const dbLargeWithdrawal = {
                 return dbconfig.collection_largeWithdrawalLog.findOneAndUpdate({_id: largeWithdrawalLog._id}, {$inc: {emailSentTimes: 1}}, {new: true}).lean().catch(errorUtils.reportError);
             }
         );
+    },
+
+    sendPartnerLargeAmountDetailMail: (largeWithdrawalLogObjId, comment, admin, host) => {
+        // todo huat
     },
 
     largeWithdrawalAudit: (proposalId, adminObjId, decision, isMail, isPartner) => {
@@ -433,6 +452,20 @@ const dbLargeWithdrawal = {
             }
         );
     },
+
+    getAllPlatformPartnerLargeWithdrawalSetting: () => {
+        return dbconfig.collection_largeWithdrawalPartnerSetting.find({platform: {$exists: true}}).lean().then(
+            settings => {
+                let outputData = {};
+                settings.map(setting => {
+                    outputData[setting.platform] = setting;
+                });
+
+                return outputData;
+            }
+        );
+    },
+
 };
 
 function generateAuditDecisionLink(host, proposalId, adminObjId) {

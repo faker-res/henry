@@ -1637,10 +1637,7 @@ let dbPlayerInfo = {
 
                         if (playerData) {
                             let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
-                                domain: {
-                                    $regex: playerData.domain,
-                                    $options: "xi"
-                                },
+                                domain: filteredDomain,
                                 platform: playerdata.platform
                             }).lean().then(data => {
                                 if (data) {
@@ -11121,6 +11118,21 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data && data.status != constProposalStatus.SUCCESS && data.status != constProposalStatus.FAIL && data.status != constProposalStatus.CANCEL) {
+                    if (data && data.data && data.data.largeWithdrawalLog) {
+                        if (dbLargeWithdrawal.sendProposalUpdateInfoToRecipients) {
+                            dbconfig.collection_proposal.findOne({_id: data._id}).lean().then(proposal => {
+                                return dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposal.data.largeWithdrawalLog, proposal);
+                            }).catch(err => {
+                                console.log("Send large withdrawal proposal update info failed", data.data.largeWithdrawalLog, err);
+                                return errorUtils.reportError(err);
+                            });
+
+                        }
+                        else {
+                            console.log('dbLargeWithdrawal', dbLargeWithdrawal)
+                        }
+                    }
+
                     if (!bSuccess) {
                         return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, bSuccess, proposalData);
                     }
