@@ -1995,7 +1995,7 @@
                                 th {{'DEFINITION' | translate}}
                         tbody
                             tr
-                                td(rowspan=8, style='background-color:lightblue') {{'BASIC_INFORMATION' | translate}}
+                                td(rowspan=7, style='background-color:lightblue') {{'BASIC_INFORMATION' | translate}}
                                 td                                     
                                     input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showRealName', ng-disabled='!vm.configTableEdit')
                                 td
@@ -2044,13 +2044,6 @@
                                     text {{'providerCreditAmount' | translate}}
                                 td
                                     text {{'local credit + game credit' | translate}}
-                            tr
-                                td                                     
-                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.allowAdminComment', ng-disabled='!vm.configTableEdit')
-                                td
-                                    text {{'CS manually confirm transfer status' | translate}}
-                                td
-                                    text {{'Manually fill in' | translate}}
 
                             tr
                                 td(rowspan=6, style='background-color:lightblue') {{'LAST_TO_CURRENT_WITHDRAWAL' | translate}}
@@ -2221,6 +2214,23 @@
                                     text {{'CONSUMPTION' | translate}}
                                 td
                                     text {{'Monthly total consumption' | translate}} {{'(Example: July: 100,000/ August: 200,000/ September: 50,000)' | translate}}
+                    br
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'C.'}} {{'CS Comment Area' | translate}}
+                                th {{'SELECT' | translate}}
+                                th {{'TITLE' | translate}}
+                                th {{'DEFINITION' | translate}}
+                        tbody
+                            tr
+                                td(rowspan=1, style='background-color:lightgray') {{'CS Comment Area' | translate}}
+                                td
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.allowAdminComment', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'CS manually confirm transfer status' | translate}}
+                                td
+                                    text {{'Manually fill in' | translate}}
                                
                     br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'largeWithdrawalSetting')", ng-click='vm.configTableEdit=!vm.configTableEdit')
@@ -2325,17 +2335,17 @@
                                     text {{'TOTAL_DOWNLINE_PARTNERS_COUNT' | translate}}
                                 td
                                     text {{'Total number of partners' | translate}}
-                    
-                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                    br
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
-                                th {{'B.'}} {{'CURRENT_DAY_TO_CURRENT_WITHDRAWAL' | translate}}
+                                th {{'B.'}} {{'PROPOSAL_INFO_SECTION' | translate}}
                                 th {{'SELECT' | translate}}
                                 th {{'TITLE' | translate}}
                                 th {{'DEFINITION' | translate}}
                         tbody
                             tr
-                                td(style='background-color:lightcoral') {{'CURRENT_DAY_TO_CURRENT_WITHDRAWAL' | translate}}
+                                td(style='background-color:lightcoral') {{'PARTNER_LAST_WITHDRAW_TO_CURRENT_WITHDRAW' | translate}}
                                 td                                     
                                     input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showAllPartnerRelatedProposal', ng-disabled='!vm.configTableEdit')
                                 td

@@ -2742,6 +2742,7 @@
   "Total number of partners": "所有代理人数",
   "PARTNER_INFO_SECTION": "代理信息区",
   "PROPOSAL_INFO_SECTION": "提案数据区",
+  "PARTNER_LAST_WITHDRAW_TO_CURRENT_WITHDRAW": "上次代理提款至本次提款",
   "PARTNER_BASIC_INFO": "代理基本信息",
   "LOCAL_CREDIT_AMOUNT": "本地馀额",
   "ALL_PARTNER_RELATED_PROPOSAL": "所有代理相关提案",
