@@ -313,7 +313,7 @@ const dbLargeWithdrawal = {
         return dbconfig.collection_partnerLargeWithdrawalLog.findOneAndUpdate({_id: largeWithdrawalLogObjId}, {comment: comment}, {new: true}).lean().then(
             largeWithdrawalLogData => {
                 if (!largeWithdrawalLogData) {
-                    return Promise.reject({message: "Large withdrawal log not found."});
+                    return Promise.reject({message: "Partner large withdrawal log not found."});
                 }
                 largeWithdrawalLog = largeWithdrawalLogData;
 
@@ -322,7 +322,7 @@ const dbLargeWithdrawal = {
         ).then(
             largeWithdrawalSettingData => {
                 if (!largeWithdrawalSettingData) {
-                    return Promise.reject({message: "Please setup large withdrawal setting."});
+                    return Promise.reject({message: "Please setup partner large withdrawal setting."});
                 }
                 largeWithdrawalSetting = largeWithdrawalSettingData;
 
@@ -346,8 +346,8 @@ const dbLargeWithdrawal = {
                     largeWithdrawalSetting.recipient.map(recipient => {
                         let isReviewer = Boolean(largeWithdrawalSetting.reviewer && largeWithdrawalSetting.reviewer.length && largeWithdrawalSetting.reviewer.map(reviewer => String(reviewer)).includes(String(recipient)));
 
-                        let prom = sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSetting, recipient, isReviewer, host, allRecipientEmail).catch(err => {
-                            console.log('large withdrawal mail to admin failed', recipient, err);
+                        let prom = sendPartnerLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSetting, recipient, isReviewer, host, allRecipientEmail).catch(err => {
+                            console.log('partner large withdrawal mail to admin failed', recipient, err);
                             return errorUtils.reportError(err);
                         });
                         proms.push(prom);
@@ -581,6 +581,10 @@ function generateAuditDecisionLink(host, proposalId, adminObjId) {
     );
 }
 
+function generatePartnerAuditDecisionLink(host, proposalId, adminObjId) {
+    //todo huat
+}
+
 function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSetting, adminObjId, isReviewer, host, allRecipientEmail) {
     let admin, html;
     html = generateLargeWithdrawalDetailEmail(largeWithdrawalLog, largeWithdrawalSetting, allRecipientEmail);
@@ -611,6 +615,45 @@ function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSettin
                 sender: "no-reply@snsoft.my", // company email?
                 recipient: admin.email, // admin email
                 subject: getLogDetailEmailSubject(largeWithdrawalLog), // title
+                body: html, // html content
+                isHTML: true
+            };
+
+            return emailer.sendEmail(emailConfig);
+        }
+    );
+}
+
+function sendPartnerLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSetting, adminObjId, isReviewer, host, allRecipientEmail) {
+    let admin, html;
+    html = generatePartnerLargeWithdrawalDetailEmail(largeWithdrawalLog, largeWithdrawalSetting, allRecipientEmail);
+
+    return dbconfig.collection_admin.findOne({_id: adminObjId}).lean().then(
+        adminData => {
+            if (!adminData) {
+                return Promise.reject({message: "Admin not found."});
+            }
+            admin = adminData;
+
+            let auditLinksProm = Promise.resolve();
+
+            if (isReviewer) {
+                // get button html
+                auditLinksProm = generatePartnerAuditDecisionLink(host, largeWithdrawalLog.proposalId, adminObjId);
+            }
+
+            return auditLinksProm;
+        }
+    ).then(
+        auditLinks => {
+            if (auditLinks) {
+                html = appendAuditLinks(html, auditLinks);
+            }
+
+            let emailConfig = {
+                sender: "no-reply@snsoft.my", // company email?
+                recipient: admin.email, // admin email
+                subject: getLogDetailEmailSubject(largeWithdrawalLog, true), // title
                 body: html, // html content
                 isHTML: true
             };
@@ -1125,6 +1168,10 @@ function generateLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
     return html;
 }
 
+function generatePartnerLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
+    //todo huat
+}
+
 function appendAuditLinks (html, auditLinks) {
     auditLinks = auditLinks || {};
     let approveLink = auditLinks.approve || "";
@@ -1140,10 +1187,14 @@ function appendAuditLinks (html, auditLinks) {
     return html;
 }
 
-function getLogDetailEmailSubject (log) {
+function getLogDetailEmailSubject (log, isPartner) {
     let withdrawalDate = dbutility.getLocalTimeString(log.withdrawalTime , "YYYY/MM/DD");
     let withdrawalAmount = dbutility.noRoundTwoDecimalPlaces(log.amount);
-    let str = `大额提款（${log.todayLargeAmountNo}）：${withdrawalDate}--${log.playerName}--${withdrawalAmount}- ${log.emailNameExtension}`;
+    let strTitle = "大额提款";
+    if (isPartner) {
+        strTitle = "代理大额提款"
+    }
+    let str = `${strTitle}（${log.todayLargeAmountNo}）：${withdrawalDate}--${log.playerName}--${withdrawalAmount}- ${log.emailNameExtension}`;
 
     return str;
 }
