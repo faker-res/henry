@@ -7,7 +7,7 @@
             .panel-heading.panel-heading-sm
                 label {{"Alipay Group" | translate}}
             .panel-body
-                div(ng-if="false")
+                div
                     input#FPMSAlipayPaymentGroup(type='radio' value='FPMS' ng-model="vm.alipayGroupUsed" ng-change="vm.loadAlipayGroupData()")
                     label(for='FPMSAlipayPaymentGroup') {{"FPMS Group" | translate}}
                     input#PMSAlipayPaymentGroup(type='radio' value='PMS' ng-model="vm.alipayGroupUsed" ng-change="vm.loadAlipayGroupData()")

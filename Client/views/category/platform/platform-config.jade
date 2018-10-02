@@ -2224,13 +2224,13 @@
                                 th {{'DEFINITION' | translate}}
                         tbody
                             tr
-                                td(rowspan=1, style='background-color:lightgray') {{'CS Comment Area' | translate}}
+                                td(rowspan=1, style='background-color:lightgray') {{'CS_MANUAL_COMMENT' | translate}}
                                 td
                                     input(type='checkbox' ng-model='vm.largeWithdrawalSetting.allowAdminComment', ng-disabled='!vm.configTableEdit')
                                 td
-                                    text {{'CS manually confirm transfer status' | translate}}
+                                    text {{'CS_MANUAL_COMMENT' | translate}}
                                 td
-                                    text {{'Manually fill in' | translate}}
+                                    text {{'Manual fill in transfer in out status and etc.' | translate}}
                                
                     br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'largeWithdrawalSetting')", ng-click='vm.configTableEdit=!vm.configTableEdit')

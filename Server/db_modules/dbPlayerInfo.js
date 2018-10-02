@@ -1637,10 +1637,7 @@ let dbPlayerInfo = {
 
                         if (playerData) {
                             let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
-                                domain: {
-                                    $regex: playerData.domain,
-                                    $options: "xi"
-                                },
+                                domain: filteredDomain,
                                 platform: playerdata.platform
                             }).lean().then(data => {
                                 if (data) {
@@ -10750,7 +10747,7 @@ let dbPlayerInfo = {
                                     if (todayBonusApply.length >= bonusSetting.bonusCharges && bonusSetting.bonusPercentageCharges > 0) {
                                         creditCharge = (finalAmount * bonusSetting.bonusPercentageCharges) * 0.01;
                                         if(platform.withdrawalFeeNoDecimal){
-                                            creditChargeWithoutDecimal = creditCharge.toFixed(0);
+                                            creditChargeWithoutDecimal = parseInt(creditCharge);
                                             finalAmount = finalAmount - creditChargeWithoutDecimal;
                                         }else{
                                             finalAmount = finalAmount - creditCharge;
