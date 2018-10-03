@@ -5059,6 +5059,7 @@ let dbPlayerInfo = {
                     .populate({path: "partner", model: dbconfig.collection_partner})
                     .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
                     .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints, select: 'points'})
+                    .populate({path: "blacklistIp", model: dbconfig.collection_platformBlacklistIpConfig})
                     .lean().then(
                         playerData => {
                             var players = [];
