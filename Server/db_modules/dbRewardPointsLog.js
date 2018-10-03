@@ -164,7 +164,7 @@ var dbRewardPointsLog = {
                 }
                 return({
                     "stats":statsData,
-                    "list":rewardPointLogs
+                    "list":rewardPointLogs ? rewardPointLogs : []
                 })
        })
     }
