@@ -11131,12 +11131,14 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data && data.status != constProposalStatus.SUCCESS && data.status != constProposalStatus.FAIL && data.status != constProposalStatus.CANCEL) {
-                    if (data && data.data && data.data.largeWithdrawalLog) {
+                    if (data && data.data && (data.data.largeWithdrawalLog || data.data.partnerLargeWithdrawalLog)) {
+                        let isPartner = Boolean(data.data.partnerLargeWithdrawalLog);
+                        let logObjId = data.data.largeWithdrawalLog || data.data.partnerLargeWithdrawalLog;
                         if (dbLargeWithdrawal.sendProposalUpdateInfoToRecipients) {
                             dbconfig.collection_proposal.findOne({_id: data._id}).lean().then(proposal => {
-                                return dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposal.data.largeWithdrawalLog, proposal);
+                                return dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(logObjId, proposal, null, isPartner);
                             }).catch(err => {
-                                console.log("Send large withdrawal proposal update info failed", data.data.largeWithdrawalLog, err);
+                                console.log("Send large withdrawal proposal update info failed", logObjId, err);
                                 return errorUtils.reportError(err);
                             });
 
