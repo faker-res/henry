@@ -3129,6 +3129,12 @@ var proposalExecutor = {
                         prom = resetAllCustomizedCommissionRate(proposalData);
                     }
 
+                    if (proposalData.data.isEditAll) {
+                        if (proposalData.data.newConfigArr && proposalData.data.newConfigArr.length > 0) {
+                            prom = updateAllCustomizeCommissionRate(proposalData);
+                        }
+                    }
+
                     prom.then(
                         data => deferred.resolve(data),
                         error => deferred.reject(error)
@@ -4833,6 +4839,38 @@ function resetAllCustomizedCommissionRate (proposalData) {
             return error;
         }
     );
+}
+
+function updateAllCustomizeCommissionRate (proposalData) {
+    let proms = [];
+
+    if (proposalData && proposalData.data && proposalData.data.newConfigArr && proposalData.data.newConfigArr.length > 0) {
+        proposalData.data.newConfigArr.forEach(newConfig => {
+            if (newConfig) {
+                let qObj = {
+                    platform: newConfig.platform,
+                    provider: newConfig.provider,
+                    commissionType: newConfig.commissionType,
+                    partner: proposalData.data.partnerObjId
+                };
+
+                newConfig.partner = proposalData.data.partnerObjId;
+                delete newConfig._id;
+                delete newConfig.__v;
+
+                proms.push(dbconfig.collection_partnerCommissionConfig.findOneAndUpdate(qObj, newConfig, {new: true, upsert: true}))
+            }
+        });
+
+        return Promise.all(proms).then(
+            data => {
+                return data;
+            },
+            error => {
+                return error;
+            }
+        )
+    }
 }
 
 function getProviderCredit(providers, playerName, platformId) {

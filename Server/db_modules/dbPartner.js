@@ -30,6 +30,7 @@ var localization = require("../modules/localization");
 const translate = localization.localization.translate;
 var serverInstance = require("../modules/serverInstance");
 var ObjectId = mongoose.Types.ObjectId;
+const dbLargeWithdrawal = require("../db_modules/dbLargeWithdrawal");
 // db_common
 const dbPropUtil = require("../db_common/dbProposalUtility");
 
@@ -2390,7 +2391,7 @@ let dbPartner = {
      */
     applyBonus: function (userAgent, partnerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
 
-
+        let platform;
         let partner = null;
         // let bonusDetail = null;
         let bUpdateCredit = false;
@@ -2427,6 +2428,7 @@ let dbPartner = {
                         let propQ = {
                             "data._id": String(partnerData._id)
                         };
+                        platform = partnerData.platform;
 
                         return dbPropUtil.getProposalDataOfType(partnerData.platform._id, constProposalType.UPDATE_PARTNER_BANK_INFO, propQ).then(
                             proposals => {
@@ -2601,6 +2603,13 @@ let dbPartner = {
             ).then(
                 proposal => {
                     if (proposal) {
+                        if (proposal.data && proposal.data.amount && proposal.data.amount >= platform.partnerAutoApproveWhenSingleBonusApplyLessThan) {
+                            createPartnerLargeWithdrawalLog(proposal, platform._id).catch(err => {
+                                console.log("createLargeWithdrawalLog failed", err);
+                                return errorUtils.reportError(err);
+                            });
+                        }
+
                         if (bUpdateCredit) {
                             //todo::partner credit change log???
                             //dbLogger.createCreditChangeLog(player._id, player.platform._id, -amount * bonusDetail.credit, constProposalType.PLAYER_BONUS, player.validCredit, null, message);
@@ -6306,6 +6315,50 @@ let dbPartner = {
                 }
             }
         );
+    },
+
+    updateAllCustomizeCommissionRate: (partnerObjId, commissionType, oldConfigArr, newConfigArr, adminInfo) => {
+        if (newConfigArr && newConfigArr.length > 0) {
+            newConfigArr.forEach(config => {
+                if (config && config.commissionSetting && config.commissionSetting.length > 0) {
+                    config.commissionSetting.forEach(setting => {
+                        if (setting) {
+                            setting.commissionRate = parseFloat((setting.commissionRate / 100).toFixed(4));
+                        }
+                    });
+                }
+            });
+        }
+
+        return dbconfig.collection_partner.findById(partnerObjId).lean().then(
+            partnerObj => {
+                if (partnerObj) {
+                    let creatorData = adminInfo || {
+                        type: 'partner',
+                        name: partnerObj.partnerName,
+                        id: partnerObj._id
+                    };
+
+                    let proposalData = {
+                        creator: adminInfo || {
+                            type: 'partner',
+                            name: partnerObj.partnerName,
+                            id: partnerObj._id
+                        },
+                        platformObjId: partnerObj.platform,
+                        partnerObjId: partnerObjId,
+                        partnerName: partnerObj.partnerName,
+                        commissionType: commissionType,
+                        remark: localization.localization.translate('commissionRate'),
+                        isEditAll: true,
+                        oldConfigArr: oldConfigArr,
+                        newConfigArr: newConfigArr
+                    };
+
+                    return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {creator: creatorData, data: proposalData});
+                }
+            }
+        )
     },
 
     resetAllCustomizedCommissionRate: (partnerObjId, field, isResetAll, commissionType, adminInfo) => {
@@ -11678,6 +11731,25 @@ function applyCommissionToPartner (logObjId, settleType, remark, adminInfo) {
             }
 
             return proposal;
+        }
+    );
+}
+
+function createPartnerLargeWithdrawalLog (proposalData, platformObjId) {
+    let log;
+    return dbconfig.collection_partnerLargeWithdrawalLog({
+        platform: platformObjId,
+        proposalId: proposalData.proposalId
+    }).save().then(logData => {
+        log = logData;
+        return dbconfig.collection_proposal.findOneAndUpdate({_id: proposalData._id, createTime: proposalData.createTime}, {"data.largeWithdrawalLog": log._id}, {new: true}).lean();
+    }).then(
+        proposal => {
+            if (proposal) {
+                return dbLargeWithdrawal.fillUpPartnerLargeWithdrawalLogDetail(log._id);
+            } else {
+                return Promise.reject({message: "Save to proposal failed"}); // the only time here is reach are when there is bug
+            }
         }
     );
 }
