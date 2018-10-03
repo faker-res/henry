@@ -543,12 +543,12 @@ style.
 
                 textarea.form-control(style="margin-top: 12px;" ng-model="vm.largeWithdrawLog.comment" ng-disabled='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")')
             .modal-footer
-                div(ng-if="vm.isLargeWithdrawalReviewer")
+                div(ng-if="vm.isPartnerLargeWithdrawalReviewer")
                     // is reviewer
                     button.btn.btn-danger.common-button(data-dismiss='modal' ng-click="vm.auditLargeWithdrawal(false, true)" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"Cancel Proposal" | translate}}
                     button.btn.btn-success.common-button(data-dismiss='modal' ng-click="vm.auditLargeWithdrawal(true, true)" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"AUDIT_APPROVAL" | translate}}
                     button.btn.btn-danger.common-button(data-dismiss='modal' ng-if='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")') {{'CANCEL' | translate}}
-                div(ng-if="!vm.isLargeWithdrawalReviewer")
+                div(ng-if="!vm.isPartnerLargeWithdrawalReviewer")
                     // is not reviewer
                     button.btn.btn-danger.common-button(data-dismiss='modal') {{'CANCEL' | translate}}
                     button.btn.btn-success.common-button(ng-click="vm.sendPartnerLargeAmountDetailMail()" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"Send E-mail" | translate}} ({{vm.partnerLargeWithdrawLog.emailSentTimes}})
