@@ -19,7 +19,7 @@ var playerConsumptionRecordSchema = new Schema({
     // gameRound
     roundNo: {type: String},
     // gameRound
-    playNo: {type: String},
+    playNo: {type: String, index: true},
     // payment time
     createTime: {type: Date, default: Date.now, index: true},
     //total amount for statistics
