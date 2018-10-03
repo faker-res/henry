@@ -2677,7 +2677,6 @@ var dbPlayerTopUpRecord = {
     },
 
     getPlayerWechatPayStatus: (playerId, bPMSGroup, userIp) => {
-        console.log('ricco - 111', bPMSGroup);
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup}).lean().then(
@@ -2718,7 +2717,6 @@ var dbPlayerTopUpRecord = {
                                 let bValid = false;
                                 let maxDeposit = 0;
                                 if (String(bPMSGroup) == "true") {
-                                    console.log('ricco - true', wechats);
                                     if (wechats.data) {
                                         if (!playerData.permission.disableWechatPay && wechats.data.valid) {
                                             bValid = true;
@@ -2729,7 +2727,6 @@ var dbPlayerTopUpRecord = {
                                     }
                                 } else {
                                     if (wechats.data && wechats.data.length > 0) {
-                                        console.log('ricco - false', bPMSGroup);
                                         wechats.data.forEach(
                                             wechat => {
                                                 playerData.wechatPayGroup.wechats.forEach(
