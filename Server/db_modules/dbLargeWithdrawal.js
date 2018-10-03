@@ -310,6 +310,171 @@ const dbLargeWithdrawal = {
         );
     },
 
+    fillUpPartnerLargeWithdrawalLogDetail: (logObjId) => {
+        let log, partner, proposal, setting, todayLargeAmount, bankCityName, lastWithdrawalDate, downLinePlayerAmount, downlinePartnerAmount;
+        let todayTime = dbUtility.getTodaySGTime();
+        return dbconfig.collection_partnerLargeWithdrawalLog.findOne({_id: logObjId}).lean().then(
+            logData => {
+                if (!logData) {
+                    console.log("no partner large withdrawal log found:", logObjId);
+                    return Promise.reject({message: "no partner large withdrawal log found"});
+                }
+                log = logData;
+
+                let proposalProm = dbconfig.collection_proposal.findOne({proposalId: log.proposalId}).lean();
+                let settingProm = dbconfig.collection_largeWithdrawalPartnerSetting.findOne({platform: log.platform}).lean();
+
+                return Promise.all([proposalProm, settingProm]);
+            }
+        ).then(
+            ([proposalData, settingData]) => {
+                if (!proposalData) {
+                    console.log("proposal of partner large withdrawal not found", logObjId);
+                    return Promise.reject({message: "proposal of partner large withdrawal not found"});
+                }
+                proposal = proposalData;
+
+                if (!proposal.data || !proposal.data.partnerObjId) {
+                    console.log("partnerObjId of proposal not found:", log.proposalId);
+                    return Promise.reject({message: "partnerObjId of proposal not found"});
+                }
+
+                if (!settingData) {
+                    return Promise.reject({name: "DataError", message: "Please setup large withdrawal setting."});
+                }
+                setting = settingData;
+
+
+                return dbconfig.collection_partner.findOne({_id: proposal.data.partnerObjId}).lean();
+
+            }
+        ).then(
+            partnerData => {
+                if (!partnerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find partner"});
+                }
+                partner = partnerData;
+
+                let todayLargeAmountProm = dbconfig.collection_partnerLargeWithdrawalLog.find({
+                    platform: log.platform,
+                    withdrawalTime: {
+                        $gte: todayTime.startTime,
+                        $lt: todayTime.endTime
+                    },
+                }).count();
+
+                let bankCityProm = pmsAPI.foundation_getCityList({provinceId: partner.bankAccountProvince});
+                let lastWithdrawalProm = dbconfig.collection_proposal.findOne({
+                    'data.partnerObjId': proposal.data.partnerObjId,
+                    mainType: constProposalType.PLAYER_BONUS,
+                    status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                    createTime: {$lt: proposal.createTime}
+                }).sort({createTime: -1}).lean();
+
+                let downLinePlayerProm = dbconfig.collection_players.find({partner: partner._id}, {_id: 1}).lean();
+                let downLinePartnerProm = dbconfig.collection_partner.find({parent: partner._id}, {_id: 1}).lean();
+
+                return Promise.all([todayLargeAmountProm, bankCityProm, lastWithdrawalProm, downLinePlayerProm, downLinePartnerProm]);
+            }
+        ).then(
+            ([todayLargeAmountData, bankCityData, lastWithdrawalData, downLinePlayerData, downLinePartnerData]) => {
+                todayLargeAmount = todayLargeAmountData || 0;
+
+                bankCityName = "";
+                if (bankCityData && bankCityData.cities && bankCityData.cities.length && partner.bankAccountCity) {
+                    for (let i = 0; i < bankCityData.cities.length; i++) {
+                        if (bankCityData.cities[i].id == partner.bankAccountCity) {
+                            bankCityName = bankCityData.cities[i].name;
+                            break;
+                        }
+                    }
+                }
+
+                lastWithdrawalDate = lastWithdrawalData && lastWithdrawalData.createTime || null;
+
+                downLinePlayerAmount = downLinePlayerData && downLinePlayerData.length || 0;
+                downlinePartnerAmount = downLinePartnerData && downLinePartnerData.length || 0;
+
+                let proposalsQuery = {
+                    "data.platformId": {$in:[String(log.platform), log.platform]},
+                    "data.partnerName": partner.partnerName,
+                    createTime: {
+                        $lt: proposal.createTime,
+                    }
+                };
+
+                if (lastWithdrawalDate) {
+                    proposalsQuery.createTime.$gt = lastWithdrawalDate;
+                }
+
+                return dbconfig.collection_proposal.find(proposalsQuery).populate({path: "type", model: dbconfig.collection_proposalType}).lean();
+            }
+        ).then(
+            periodProposals => {
+                let proposalsAfterLastWithdrawal = periodProposals.map(prop => {
+                    let detail = {};
+                    detail.proposalId = prop.proposalId;
+                    detail.creatorName = prop.creator && prop.creator.name ? prop.creator.name : "";
+                    detail.inputDevice = prop.inputDevice || 0;
+                    detail.proposalMailType = prop.mainType;
+                    detail.proposalType = prop.type && prop.type.name ? prop.type.name : "";
+                    detail.statys = prop.status;
+                    detail.relatedUser = partner.partnerName;
+                    detail.amount = prop.data && prop.data.amount ? prop.data.amount : 0;
+                    detail.createTime = prop.createTime || "";
+                    detail.remark = prop.data && prop.data.remark? prop.data.remark : "";
+                    return detail;
+                });
+
+                let commissionTypeName = "";
+
+                switch (partner.commissionType) {
+                    case 0:
+                        commissionTypeName = "关闭";
+                        break;
+                    case 1:
+                        commissionTypeName = "1天-输赢值";
+                        break;
+                    case 2:
+                        commissionTypeName = "7天-输赢值";
+                        break;
+                    case 3:
+                        commissionTypeName = "半月-输赢值";
+                        break;
+                    case 4:
+                        commissionTypeName = "1月-输赢值";
+                        break;
+                    case 5:
+                        commissionTypeName = "7天-投注额";
+                        break;
+                    case 6:
+                        commissionTypeName = "代理前端自选（未选择）";
+                        break;
+                }
+
+
+                let updateData = {
+                    emailNameExtension: setting.emailNameExtension || "",
+                    todayLargeAmountNo: todayLargeAmount,
+                    partnerName: partner.partnerName,
+                    amount: proposal.data && proposal.data.amount || 0,
+                    realName: partner.realName || "",
+                    commissionTypeName: commissionTypeName,
+                    bankCity: bankCityName,
+                    registrationTime: partner.registrationTime,
+                    withdrawalTime: proposal.createTime,
+                    lastWithdrawalTime: lastWithdrawalDate,
+                    currentCredit: partner.credits || 0,
+                    downLinePlayerAmount: downLinePlayerAmount,
+                    downLinePartnerAmount: downlinePartnerAmount,
+                    proposalsAfterLastWithdrawal: proposalsAfterLastWithdrawal,
+                };
+
+                return dbconfig.collection_partnerLargeWithdrawalLog.findOneAndUpdate({_id: log._id}, updateData, {new: true}).lean();
+            }
+        );
+    },
+
     sendPartnerLargeAmountDetailMail: (largeWithdrawalLogObjId, comment, admin, host) => {
         let largeWithdrawalLog, largeWithdrawalSetting;
         return dbconfig.collection_partnerLargeWithdrawalLog.findOneAndUpdate({_id: largeWithdrawalLogObjId}, {comment: comment}, {new: true}).lean().then(

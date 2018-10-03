@@ -40,7 +40,7 @@ let largeWithdrawalLogSchema = new Schema({
         // creator name (if any)
         creatorName: {type: String},
         // proposal entry point (based on constPlayerRegistrationInterface)
-        inputDevice: {type: String, default: '0'},
+        inputDevice: {type: Number, default: 0},
         // proposal main type (based on constProposalMainType)
         proposalMainType: {type: String},
         // proposal type (based on constProposalType)

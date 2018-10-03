@@ -23532,10 +23532,7 @@ define(['js/app'], function (myApp) {
                         });
 
 
-                        return p.then(ret => {
-                            vm.endLoadWeekDay();
-                            $scope.safeApply();
-                        });
+                        return p.then(vm.endLoadWeekDay);
                     } else {
                         let searchQ = {
                             platformObjId: vm.selectedPlatform.id,
@@ -23649,7 +23646,6 @@ define(['js/app'], function (myApp) {
                             vm.promoCode2HasMoreThanOne = false;
                             vm.promoCode3HasMoreThanOne = false;
                         }
-                        $scope.safeApply();
                     }
                 });
 

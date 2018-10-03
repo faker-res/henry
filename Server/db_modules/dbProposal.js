@@ -896,47 +896,73 @@ var proposal = {
                 deferred.reject({name: "DBError", message: "Error finding proposal", error: err});
             }
         ).then(
-            proposalProcess => {
-                proposalProcessData = proposalProcess;
+            //find proposal process and create finished step for process
+            function (data) {
+                if (data && data.currentStep && data.steps) {
+                    var curTime = new Date();
+                    nextStepId = bApprove ? data.currentStep.nextStepWhenApprove : data.currentStep.nextStepWhenReject;
+                    var stepData = {
+                        status: bApprove ? constProposalStepStatus.APPROVED : constProposalStepStatus.REJECTED,
+                        operator: adminId,
+                        memo: memo,
+                        operationTime: curTime,
+                        isLocked: null
+                    };
 
-                if(proposalData && proposalData.data && proposalData.data.playerId){
-                    return dbconfig.collection_players.findOne({playerId: proposalData.data.playerId})
-                        .populate({path: "platform", model: dbconfig.collection_platform}).lean();
+                    return dbconfig.collection_proposalProcessStep.findOneAndUpdate(
+                        {_id: data.currentStep._id, createTime: data.currentStep.createTime},
+                        stepData
+                    ).exec();
                 }
-
-                return;
+                else {
+                    deferred.reject({name: "DBError", message: "Can't find proposal process"});
+                }
             },
-            err => {
+            function (err) {
                 deferred.reject({name: "DBError", message: "Error finding proposal process", error: err});
             }
-        ).then(
-            player => {
-                if (player) {
-                    if (proposalData.status == constProposalStatus.CANCEL || proposalData.status == constProposalStatus.SUCCESS || proposalData.status == constProposalStatus.FAIL) {
-                        deferred.reject({
-                            name: "DataError",
-                            message: "Invalid proposal status",
-                            data: {proposal: proposalData}
-                        });
-                    }else{
-                        playerData = player;
-
-                        if (proposalProcessData && proposalProcessData.currentStep && proposalProcessData.steps) {
-                            var curTime = new Date();
-                            nextStepId = bApprove ? proposalProcessData.currentStep.nextStepWhenApprove : proposalProcessData.currentStep.nextStepWhenReject;
-                            var stepData = {
-                                status: bApprove ? constProposalStepStatus.APPROVED : constProposalStepStatus.REJECTED,
-                                operator: adminId,
-                                memo: memo,
-                                operationTime: curTime,
-                                isLocked: null
-                            };
-
-                            return dbconfig.collection_proposalProcessStep.findOneAndUpdate(
-                                {_id: proposalProcessData.currentStep._id, createTime: proposalProcessData.currentStep.createTime},
-                                stepData
-                            ).exec();
-                        }
+        // ).then(
+        //     proposalProcess => {
+        //         proposalProcessData = proposalProcess;
+        //
+        //         if(proposalData && proposalData.data && proposalData.data.playerId){
+        //             return dbconfig.collection_players.findOne({playerId: proposalData.data.playerId})
+        //                 .populate({path: "platform", model: dbconfig.collection_platform}).lean();
+        //         }
+        //
+        //         return;
+        //     },
+        //     err => {
+        //         deferred.reject({name: "DBError", message: "Error finding proposal process", error: err});
+        //     }
+        // ).then(
+        //     player => {
+        //         if (player) {
+        //             if (proposalData.status == constProposalStatus.CANCEL || proposalData.status == constProposalStatus.SUCCESS || proposalData.status == constProposalStatus.FAIL) {
+        //                 deferred.reject({
+        //                     name: "DataError",
+        //                     message: "Invalid proposal status",
+        //                     data: {proposal: proposalData}
+        //                 });
+        //             }else{
+        //                 playerData = player;
+        //
+        //                 if (proposalProcessData && proposalProcessData.currentStep && proposalProcessData.steps) {
+        //                     var curTime = new Date();
+        //                     nextStepId = bApprove ? proposalProcessData.currentStep.nextStepWhenApprove : proposalProcessData.currentStep.nextStepWhenReject;
+        //                     var stepData = {
+        //                         status: bApprove ? constProposalStepStatus.APPROVED : constProposalStepStatus.REJECTED,
+        //                         operator: adminId,
+        //                         memo: memo,
+        //                         operationTime: curTime,
+        //                         isLocked: null
+        //                     };
+        //
+        //                     return dbconfig.collection_proposalProcessStep.findOneAndUpdate(
+        //                         {_id: proposalProcessData.currentStep._id, createTime: proposalProcessData.currentStep.createTime},
+        //                         stepData
+        //                     ).exec();
+        //                 }
 
                         // let allProposalQuery = {
                         //     'data.platformId': ObjectId(player.platform._id),
@@ -954,9 +980,9 @@ var proposal = {
                         // return dbconfig.collection_proposal.find(allProposalQuery).populate(
                         //     {path: "type", model: dbconfig.collection_proposalType}
                         // ).sort({createTime: -1}).lean()
-                    }
-                }
-            }
+            //         }
+            //     }
+            // }
         // ).then(
         //     proposals => {
         //         if(proposals){

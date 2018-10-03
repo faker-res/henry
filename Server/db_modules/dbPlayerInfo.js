@@ -2768,11 +2768,23 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerObj = data;
-                    db_password = String(data.password);
+                    return dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", true).then(
+                        playerState => {
+                            if (playerState) {
+                                db_password = String(data.password);
 
-                    return dbconfig.collection_platform.findOne({
-                        _id: playerObj.platform
-                    }).lean();
+                                return dbconfig.collection_platform.findOne({
+                                    _id: playerObj.platform
+                                }).lean();
+                            } else {
+                                return Promise.reject({
+                                    name: "DBError",
+                                    status: constServerCode.CONCURRENT_DETECTED,
+                                    message: "Update Password Failed, please try again later"
+                                })
+                            }
+                        }
+                    );
                 } else {
                     return Q.reject({
                         name: "DataError",
@@ -2886,12 +2898,13 @@ let dbPlayerInfo = {
                             );
                         });
                     });
-
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", false).catch(errorUtils.reportError);
                     // playerObj.password = newPassword;
                     // return playerObj.save();
                     return deferred.promise;
                 }
                 else {
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", false).catch(errorUtils.reportError);
                     return Q.reject({
                         name: "DataError",
                         message: "Password do not match",
@@ -13575,6 +13588,7 @@ let dbPlayerInfo = {
                     dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 }
 
+                console.log('applyRewardEvent error', playerId, err);
                 throw err;
             }
         );

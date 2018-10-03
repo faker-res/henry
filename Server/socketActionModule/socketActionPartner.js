@@ -465,6 +465,16 @@ function socketActionPartner(socketIO, socket) {
             }], actionName, isValidData);
         },
 
+        updateAllCustomizeCommissionRate: function updateAllCustomizeCommissionRate (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.partnerObjId && data.commissionType && data.oldConfigArr && data.newConfigArr);
+            socketUtil.emitter(self.socket, dbPartner.updateAllCustomizeCommissionRate, [data.partnerObjId, data.commissionType, data.oldConfigArr, data.newConfigArr, {
+                type: "admin",
+                name: getAdminName(),
+                id: getAdminId()
+            }], actionName, isValidData);
+        },
+
         resetAllCustomizedCommissionRate: function resetAllCustomizedCommissionRate (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.partnerObjId && data.field && data.isResetAll && data.commissionType);
