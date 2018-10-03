@@ -131,6 +131,8 @@ var dbRewardPointsLog = {
 
                 if(totalPage <1){
                     totalPage = 1;
+                }else if(spending.length % limit > 0){
+                    totalPage = parseInt(totalPage + 1);
                 }else{
                     totalPage = parseInt(totalPage);
                 }
