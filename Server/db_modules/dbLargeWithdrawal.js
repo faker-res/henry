@@ -18,7 +18,6 @@ const dbUtility = require('./../modules/dbutility');
 const cpmsAPI = require("../externalAPI/cpmsAPI");
 const constProposalMainType = require('../const/constProposalMainType');
 const constPlayerRegistrationInterface = require('../const/constPlayerRegistrationInterface');
-const constProposalType = require('../const/constProposalType');
 const proposalExecutor = require('./../modules/proposalExecutor');
 
 
