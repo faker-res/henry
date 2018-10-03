@@ -6,7 +6,6 @@ const constRewardPointsLogStatus = require('../const/constRewardPointsLogStatus'
 
 var dbConfig = require('../modules/dbproperties');
 var dbLogger = require('../modules/dbLogger');
-const ObjectId = mongoose.Types.ObjectId;
 
 var dbRewardPointsLog = {
 

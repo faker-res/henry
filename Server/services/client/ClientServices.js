@@ -99,7 +99,7 @@
                 "saveClientData",
                 "callBackToUser",
                 "getOMCaptcha",
-                "getReceiveTransferList",
+                "getReceiveTransferList"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
