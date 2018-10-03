@@ -3971,7 +3971,7 @@ let dbPlayerInfo = {
                                 createTime: {$first: "$createTime"}
                             }
                         }
-                    ]).exec().then(promoCodes => {
+                    ]).read("secondaryPreferred").exec().then(promoCodes => {
                         console.log("autofeedback promoCodes record during successful topup",promoCodes);
                         promoCodes.forEach(promoCode => {
                             if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
@@ -5431,7 +5431,7 @@ let dbPlayerInfo = {
                                                 createTime: {$first: "$createTime"}
                                             }
                                         }
-                                    ]).exec().then(promoCodes => {
+                                    ]).read("secondaryPreferred").exec().then(promoCodes => {
                                         console.log("autofeedback promoCodes record during login",promoCodes);
                                         promoCodes.forEach(promoCode => {
                                             if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
