@@ -13,7 +13,8 @@ let promoCodeSchema = new Schema({
         required: [
             function() { return this.promoCodeTemplateObjId == null; },
             'promoCodeTypeObjId is required if promoCodeTemplateObjId is unspecified.'
-        ]
+        ],
+        index: true
     },
     // promo code template
     promoCodeTemplateObjId: {
