@@ -105,7 +105,7 @@ var dbRewardPointsLog = {
                         points: {$sum: "$amount"}
                     }
                 }
-            );
+            ).read("secondaryPreferred");
             let b = dbConfig.collection_rewardPointsLog.aggregate(
                 {
                     $match: query
@@ -120,7 +120,7 @@ var dbRewardPointsLog = {
                 },
                 { $skip: index },
                 { $limit : limit }
-            );
+            ).read("secondaryPreferred");
             return Promise.all([a, b])
        }).then(data => {
                 let rewardPointLogs;
