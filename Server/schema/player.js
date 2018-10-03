@@ -468,6 +468,11 @@ var playerPostFindUpdate = function (result, bOne) {
     if (result && result.smsSetting && !result.smsSetting.hasOwnProperty("PromoCodeSend")) {
         result.smsSetting.PromoCodeSend = true;
     }
+
+    // Prevent very small value when reading valid credit
+    if (result && result.validCredit && result.validCredit < 0.001) {
+        result.validCredit = 0;
+    }
 };
 
 // // example to get player phone number
