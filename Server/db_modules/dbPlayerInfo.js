@@ -1637,10 +1637,7 @@ let dbPlayerInfo = {
 
                         if (playerData) {
                             let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
-                                domain: {
-                                    $regex: playerData.domain,
-                                    $options: "xi"
-                                },
+                                domain: filteredDomain,
                                 platform: playerdata.platform
                             }).lean().then(data => {
                                 if (data) {
@@ -5476,7 +5473,7 @@ let dbPlayerInfo = {
                                             var a = retObj.bankAccountProvince ? pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}) : true;
                                             var b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
                                             var c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
-                                            var creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
+                                            // var creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
                                             return Q.all([a, b, c, creditProm]);
                                         }
                                     ).then(
@@ -5484,7 +5481,7 @@ let dbPlayerInfo = {
                                             retObj.bankAccountProvince = zoneData[0].province ? zoneData[0].province.name : retObj.bankAccountProvince;
                                             retObj.bankAccountCity = zoneData[1].city ? zoneData[1].city.name : retObj.bankAccountCity;
                                             retObj.bankAccountDistrict = zoneData[2].district ? zoneData[2].district.name : retObj.bankAccountDistrict;
-                                            retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
+                                            // retObj.pendingRewardAmount = zoneData[3] ? zoneData[3].pendingRewardAmount : 0;
                                             retObj.platform.requireLogInCaptcha = requireLogInCaptcha;
                                             deferred.resolve(retObj);
                                         },
@@ -10745,6 +10742,7 @@ let dbPlayerInfo = {
                                 let changeCredit = -amount;
                                 let finalAmount = amount;
                                 let creditCharge = 0;
+                                let creditChargeWithoutDecimal = 0;
                                 let amountAfterUpdate = player.validCredit - amount;
                                 let playerLevelVal = player.playerLevel.value;
                                 if (player.platform.bonusSetting) {
@@ -10761,7 +10759,12 @@ let dbPlayerInfo = {
                                     }
                                     if (todayBonusApply.length >= bonusSetting.bonusCharges && bonusSetting.bonusPercentageCharges > 0) {
                                         creditCharge = (finalAmount * bonusSetting.bonusPercentageCharges) * 0.01;
-                                        finalAmount = finalAmount - creditCharge;
+                                        if(platform.withdrawalFeeNoDecimal){
+                                            creditChargeWithoutDecimal = parseInt(creditCharge);
+                                            finalAmount = finalAmount - creditChargeWithoutDecimal;
+                                        }else{
+                                            finalAmount = finalAmount - creditCharge;
+                                        }
                                     }
                                 }
 
@@ -10828,7 +10831,8 @@ let dbPlayerInfo = {
                                                 // remark: player.remark,
                                                 lastSettleTime: new Date(),
                                                 honoreeDetail: honoreeDetail,
-                                                creditCharge: creditCharge,
+                                                creditCharge: platform.withdrawalFeeNoDecimal ? creditChargeWithoutDecimal : creditCharge,
+                                                oriCreditCharge: creditCharge,
                                                 ximaWithdrawUsed: ximaWithdrawUsed,
                                                 isAutoApproval: player.platform.enableAutoApplyBonus
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
@@ -11127,6 +11131,21 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data && data.status != constProposalStatus.SUCCESS && data.status != constProposalStatus.FAIL && data.status != constProposalStatus.CANCEL) {
+                    if (data && data.data && data.data.largeWithdrawalLog) {
+                        if (dbLargeWithdrawal.sendProposalUpdateInfoToRecipients) {
+                            dbconfig.collection_proposal.findOne({_id: data._id}).lean().then(proposal => {
+                                return dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposal.data.largeWithdrawalLog, proposal);
+                            }).catch(err => {
+                                console.log("Send large withdrawal proposal update info failed", data.data.largeWithdrawalLog, err);
+                                return errorUtils.reportError(err);
+                            });
+
+                        }
+                        else {
+                            console.log('dbLargeWithdrawal', dbLargeWithdrawal)
+                        }
+                    }
+
                     if (!bSuccess) {
                         return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, bSuccess, proposalData);
                     }

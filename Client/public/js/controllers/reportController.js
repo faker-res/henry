@@ -1594,7 +1594,7 @@ define(['js/app'], function (myApp) {
                             : item.data.weChatAccount != null ? item.data.weChatAccount
                             : item.data.alipayAccount != null ? item.data.alipayAccount
                             : item.data.accountNo != null ? item.data.accountNo
-                            : null;
+                            : '';
                             item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
                             item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
                         if (item.type.name == 'PlayerTopUp') {
@@ -1692,7 +1692,7 @@ define(['js/app'], function (myApp) {
                     {
                         "title": $translate('Online Topup Type'), "data": "data.topupType",
                         render: function (data, type, row) {
-                            var text = $translate(data ? $scope.merchantTopupTypeJson[data] : "");
+                            var text = $translate(data && $scope.merchantTopupTypeJson[data] ? $scope.merchantTopupTypeJson[data] : "");
                             return "<div>" + text + "</div>";
                         }
                     },
@@ -8185,6 +8185,12 @@ define(['js/app'], function (myApp) {
                     proposalDetail.defineLoseValue = $translate($scope.loseValueType[vm.selectedProposal.data.defineLoseValue]);
                     if (vm.selectedProposal.data.rewardPercent) {
                         proposalDetail.rewardPercent = vm.selectedProposal.data.rewardPercent + "%";
+                    }
+                }
+
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerBonus") {
+                    if(vm.selectedProposal.data.creditCharge && vm.selectedProposal.data.oriCreditCharge && vm.selectedProposal.data.creditCharge != vm.selectedProposal.data.oriCreditCharge){
+                        vm.selectedProposal.data.creditCharge = vm.selectedProposal.data.creditCharge + " (" + $translate("original service charge") + vm.selectedProposal.data.oriCreditCharge + ", " + $translate("remove decimal") + ")";
                     }
                 }
 

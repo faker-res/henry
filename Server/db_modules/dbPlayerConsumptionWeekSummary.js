@@ -334,7 +334,7 @@ var dbPlayerConsumptionWeekSummary = {
                                         let nonXIMAAmt = 0;
                                         let consumedValidAmount = 0;
                                         let ratio = eventRatios && eventRatios[gameType];
-                                        let consumptionSummary = consumptionSumm.find(summ => summ.gameType === gameType);
+                                        let consumptionSummary = consumptionSumm.filter(summ => summ.gameType === gameType);
 
                                         // Process return ratio
                                         if (!eventRatios || typeof ratio !== 'number') {
@@ -348,10 +348,14 @@ var dbPlayerConsumptionWeekSummary = {
                                             }
 
                                             // Get non xima detail of this game type
-                                            if (consumptionSummary) {
-                                                nonXIMAAmt = consumptionSummary.nonXIMAAmt ? consumptionSummary.nonXIMAAmt : 0;
-                                                summaryIds.push(consumptionSummary._id);
-                                                thisPlayerSummaries.push(consumptionSummary);
+                                            if (consumptionSummary && consumptionSummary.length) {
+                                                consumptionSummary.forEach(summ => {
+                                                    if (summ.nonXIMAAmt) {
+                                                        nonXIMAAmt += Number(summ.nonXIMAAmt);
+                                                    }
+                                                    summaryIds.push(summ._id);
+                                                    thisPlayerSummaries.push(summ);
+                                                });
 
                                                 if (nonXIMAAmt) {
                                                     totalNonXIMAAmt += nonXIMAAmt;
@@ -651,11 +655,49 @@ var dbPlayerConsumptionWeekSummary = {
                             }
 
                             let proms = [];
+                            let curTime = new Date();
+                            let invalidEventCount = 0;
+                            let isDetectEventNotStart = false;
+                            let isDetectEventEnd = false;
                             for (let eventData of eventsData) {
+                                let isValidEvent = true;
+                                if (eventData.validStartTime && (curTime.getTime() < eventData.validStartTime.getTime())) {
+                                    isDetectEventNotStart = true;
+                                    isValidEvent = false;
+                                    invalidEventCount++;
+                                } else if (eventData.validEndTime && (curTime.getTime() > eventData.validEndTime.getTime())) {
+                                    isDetectEventEnd = true;
+                                    isValidEvent = false;
+                                    invalidEventCount++;
+                                }
                                 if (dbPlayerReward.isRewardEventForbidden(playerData, eventsData._id)) {
                                     continue;
                                 }
-                                proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest, userAgent, bAdmin, adminName, isForceApply));
+                                if (isValidEvent) {
+                                    proms.push(dbPlayerConsumptionWeekSummary.calculatePlayerConsumptionReturn(playerData, platformData, eventData, bRequest, userAgent, bAdmin, adminName, isForceApply));
+                                }
+                            }
+
+                            if (invalidEventCount && eventsData && invalidEventCount == eventsData.length) {
+                                if (isDetectEventNotStart && isDetectEventEnd) {
+                                    return Promise.reject({
+                                        status: constServerCode.REWARD_EVENT_INVALID,
+                                        name: "DataError",
+                                        errorMessage: "This reward event is expired"
+                                    });
+                                } else if (isDetectEventNotStart && !isDetectEventEnd) {
+                                    return Promise.reject({
+                                        status: constServerCode.REWARD_EVENT_INVALID,
+                                        name: "DataError",
+                                        errorMessage: "This reward event is not valid anymore"
+                                    });
+                                } else if (!isDetectEventNotStart && isDetectEventEnd) {
+                                    return Promise.reject({
+                                        status: constServerCode.REWARD_EVENT_INVALID,
+                                        name: "DataError",
+                                        errorMessage: "This reward event is expired"
+                                    });
+                                }
                             }
 
                             return Q.all(proms).then(
@@ -950,7 +992,7 @@ var dbPlayerConsumptionWeekSummary = {
                             let nonXIMAAmt = 0;
                             let consumedValidAmount = 0;
                             let ratio = eventRatios && eventRatios[gameType];
-                            let consumptionSummary = consumptionSumm.find(summ => summ.gameType === gameType);
+                            let consumptionSummary = consumptionSumm.filter(summ => summ.gameType === gameType);
 
                             // Process return ratio
                             if (!eventRatios || typeof ratio !== 'number') {
@@ -964,10 +1006,14 @@ var dbPlayerConsumptionWeekSummary = {
                                 }
 
                                 // Get non xima detail of this game type
-                                if (consumptionSummary) {
-                                    nonXIMAAmt = consumptionSummary.nonXIMAAmt ? consumptionSummary.nonXIMAAmt : 0;
-                                    summaryIds.push(consumptionSummary._id);
-                                    thisPlayerSummaries.push(consumptionSummary);
+                                if (consumptionSummary && consumptionSummary.length) {
+                                    consumptionSummary.forEach(summ => {
+                                        if (summ.nonXIMAAmt) {
+                                            nonXIMAAmt += Number(summ.nonXIMAAmt);
+                                        }
+                                        summaryIds.push(summ._id);
+                                        thisPlayerSummaries.push(summ);
+                                    });
 
                                     if (nonXIMAAmt) {
                                         totalNonXIMAAmt += nonXIMAAmt;

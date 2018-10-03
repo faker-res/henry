@@ -1733,7 +1733,6 @@ const dbRewardTask = {
     },
 
     /**
-     * TODO:: WORK IN PROGRESS
      * Add manual unlock support
      * NO_CREDIT will also trigger this function now
      * @param rewardGroupData
@@ -1747,7 +1746,7 @@ const dbRewardTask = {
         let rewardAmount = rewardGroupData.rewardAmt;
 
         // Mark the provider group as complete if it is manual unlocked
-        let taskGroupProm = Promise.resolve();
+        let taskGroupProm = Promise.resolve(rewardGroupData);
 
         let prohibitWithdrawal = function (player) {
             if (player) {
@@ -1808,13 +1807,19 @@ const dbRewardTask = {
                         });
                         totalCredit = validCredit + lockedCredit + providerCredit;
 
+                        console.log("checking ---YH rewardGroupData.forbidWithdrawIfBalanceAfterUnlock", rewardGroupData && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock ? rewardGroupData.forbidWithdrawIfBalanceAfterUnlock :  "null")
+                        console.log("checking ---YH totalCredit", totalCredit)
+
                         // Set player bonus permission to off if there's still credit available after unlock reward
                         if (rewardGroupData
                             && rewardGroupData.hasOwnProperty("forbidWithdrawIfBalanceAfterUnlock")
                             && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock > 0
                             && rewardGroupData.forbidWithdrawIfBalanceAfterUnlock <= totalCredit) {
                             dbPlayerUtil.setPlayerPermission(rewardGroupData.platformId, rewardGroupData.playerId, [["applyBonus", false]]).then(
-                                () => {
+                                updatePlayerInfo => {
+                                    if (updatePlayerInfo && updatePlayerInfo.permission && updatePlayerInfo.permission.applyBonus){
+                                        console.log("checking--- yH playerInfo-permission", updatePlayerInfo.permission.applyBonus)
+                                    }
                                     return dbconfig.collection_proposal.findOne({_id: rewardGroupData.lastProposalId})
                                 }
                             ).then(
@@ -1836,70 +1841,73 @@ const dbRewardTask = {
             }
         };
 
-        if (unlockType == constRewardTaskStatus.MANUAL_UNLOCK) {
+        if (unlockType === constRewardTaskStatus.MANUAL_UNLOCK) {
             taskGroupProm = dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                 // platformId: rewardGroupData.platformId,
                 // playerId: rewardGroupData.playerId,
                 // providerGroup: rewardGroupData.providerGroup
-                _id: rewardGroupData._id
+                _id: rewardGroupData._id,
+                status: constRewardTaskStatus.STARTED
             }, {
                 status: constRewardTaskStatus.MANUAL_UNLOCK
             }, {new: true}).lean();
         }
 
-        return taskGroupProm.then(() => {
-            // Check if player is in game when reward group completed
-            // Move balance in RTG to free credit when RTG became no credit
-            // Move balance when RTG achieved, as there may be no transfer out action and credit will lost
-            if (!rewardGroupData.inProvider || unlockType === constRewardTaskStatus.NO_CREDIT || unlockType === constRewardTaskStatus.ACHIEVED) {
-                // If player has left game, add the rewardAmt to player's credit
-                playerCreditChange = {
-                    $inc: {validCredit: rewardAmount}
-                };
+        return taskGroupProm.then(RTG => {
+            if (RTG) {
+                // Check if player is in game when reward group completed
+                // Move balance in RTG to free credit when RTG became no credit
+                // Move balance when RTG achieved, as there may be no transfer out action and credit will lost
+                if (!RTG.inProvider || unlockType === constRewardTaskStatus.NO_CREDIT || unlockType === constRewardTaskStatus.ACHIEVED) {
+                    // If player has left game, add the rewardAmt to player's credit
+                    playerCreditChange = {
+                        $inc: {validCredit: rewardAmount}
+                    };
 
-                return dbRewardTask.findOneAndUpdateWithRetry(
-                    dbconfig.collection_players,
-                    {_id: rewardGroupData.playerId, platform: rewardGroupData.platformId},
-                    playerCreditChange,
-                    {new: true}
-                ).then(
-                    player => {
-                        if (player) {
-                            let rewardType = rewardGroupData && rewardGroupData.type ? rewardGroupData.type : "Free amount";
+                    return dbRewardTask.findOneAndUpdateWithRetry(
+                        dbconfig.collection_players,
+                        {_id: RTG.playerId, platform: RTG.platformId},
+                        playerCreditChange,
+                        {new: true}
+                    ).then(
+                        player => {
+                            if (player) {
+                                let rewardType = RTG && RTG.type ? RTG.type : "Free amount";
 
-                            console.log("checking unlockedType --- yH", unlockType)
-                            dbLogger.createCreditChangeLogWithLockedCredit(rewardGroupData.playerId, rewardGroupData.platformId, rewardAmount, rewardType + ":unlock", player.validCredit, 0, -rewardAmount, null, rewardGroupData);
+                                console.log("checking unlockedType --- yH", unlockType, RTG);
+                                dbLogger.createCreditChangeLogWithLockedCredit(RTG.playerId, RTG.platformId, rewardAmount, rewardType + ":unlock", player.validCredit, 0, -rewardAmount, null, RTG);
 
-                            prohibitWithdrawal(player);
+                                prohibitWithdrawal(player);
+                            }
+                            else {
+                                return Q.reject({name: "DataError", message: "Can't update reward task and player credit"});
+                            }
+                        },
+                        error => {
+                            console.log("Update player credit failed when complete reward task", error, RTG);
+                            return Q.reject({
+                                name: "DBError",
+                                message: "Error updating reward task and player credit",
+                                error: error
+                            });
                         }
-                        else {
-                            return Q.reject({name: "DataError", message: "Can't update reward task and player credit"});
+                    );
+                } else {
+                    // Do nothing first if player is still in game
+                    // This will be triggered again when player transfer out
+                    dbconfig.collection_players.findOne({
+                        _id: RTG.playerId,
+                        platform: RTG.platformId
+                    }).then(
+                        player => {
+                            if (player) {
+                                prohibitWithdrawal(player);
+                            } else {
+                                //
+                            }
                         }
-                    },
-                    error => {
-                        console.log("Update player credit failed when complete reward task", error, rewardGroupData);
-                        return Q.reject({
-                            name: "DBError",
-                            message: "Error updating reward task and player credit",
-                            error: error
-                        });
-                    }
-                );
-            } else {
-                // Do nothing first if player is still in game
-                // This will be triggered again when player transfer out
-                dbconfig.collection_players.findOne({
-                    _id: rewardGroupData.playerId,
-                    platform: rewardGroupData.platformId
-                }).then(
-                    player => {
-                        if (player) {
-                            prohibitWithdrawal(player);
-                        } else {
-                            //
-                        }
-                    }
-                );
+                    );
+                }
             }
         });
     },

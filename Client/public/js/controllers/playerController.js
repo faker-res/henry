@@ -18650,6 +18650,12 @@ define(['js/app'], function (myApp) {
                     }
                 }
 
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerBonus") {
+                    if(vm.selectedProposal.data.creditCharge && vm.selectedProposal.data.oriCreditCharge && vm.selectedProposal.data.creditCharge != vm.selectedProposal.data.oriCreditCharge){
+                        vm.selectedProposal.data.creditCharge = vm.selectedProposal.data.creditCharge + " (" + $translate("original service charge") + vm.selectedProposal.data.oriCreditCharge + ", " + $translate("remove decimal") + ")";
+                    }
+                }
+
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
                         vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)

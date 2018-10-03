@@ -3578,7 +3578,7 @@ let dbPlayerReward = {
             }
         ).then(
             topUpProposal => {
-
+                
                 if (isType2Promo || (topUpProposal && topUpProposal.length > 0)) {
                     if (isType2Promo) {
                         return true;
@@ -3746,6 +3746,7 @@ let dbPlayerReward = {
                     addUsedRewardToTopUpRecord(topUpProp.proposalId, "59ca08a3ef187c1ccec863b9").catch(errorUtils.reportError);
                 }
                 dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
+                return promoCodeObj
 
         }).catch(err=>{
             if (err.status === constServerCode.CONCURRENT_DETECTED) {
