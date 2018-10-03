@@ -1106,6 +1106,9 @@
   "COMPLETED_READ": "Completed(Read)",
   "COMPLETED": "Completed",
   "NOT_EVALUATED": "Not Evaluated",
+  "EDIT_ALL_FEE_RATE": "Edit All Fee Rate",
+  "EDIT_ALL_COMMISSION_RATE": "Edit All Commission Rate",
+  "UPDATE_ALL_COMMISSION_RATE": "Update All Commission Rate",
 
   "TELEMARKETING_TASK": "Telemarketing Task",
   "TELEMARKETING_TASK_OVERVIEW": "Telemarketing Task Overview",

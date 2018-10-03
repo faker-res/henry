@@ -13,7 +13,8 @@ let promoCodeSchema = new Schema({
         required: [
             function() { return this.promoCodeTemplateObjId == null; },
             'promoCodeTypeObjId is required if promoCodeTemplateObjId is unspecified.'
-        ]
+        ],
+        index: true
     },
     // promo code template
     promoCodeTemplateObjId: {
@@ -89,5 +90,6 @@ let promoCodeSchema = new Schema({
 });
 
 promoCodeSchema.index({platformObjId: 1, createTime: 1});
+promoCodeSchema.index({promoCodeTemplateObjId: 1});
 
 module.exports = promoCodeSchema;

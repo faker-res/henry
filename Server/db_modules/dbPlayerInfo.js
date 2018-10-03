@@ -13588,6 +13588,7 @@ let dbPlayerInfo = {
                     dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 }
 
+                console.log('applyRewardEvent error', playerId, err);
                 throw err;
             }
         );
