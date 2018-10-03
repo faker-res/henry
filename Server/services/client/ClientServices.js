@@ -99,7 +99,7 @@
                 "saveClientData",
                 "callBackToUser",
                 "getOMCaptcha",
-                "getReceiveTransferList"
+                "getReceiveTransferList",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -337,7 +337,8 @@
                 "applyPointToCredit",
                 "getMissonList",
                 "applyRewardPoints",
-                "getPointChangeRecord"
+                "getPointChangeRecord",
+                "getSpendRewardRank"
             ];
             addServiceFunctions(sinonet, this, functionNames);
 
