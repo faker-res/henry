@@ -6308,6 +6308,50 @@ let dbPartner = {
         );
     },
 
+    updateAllCustomizeCommissionRate: (partnerObjId, commissionType, oldConfigArr, newConfigArr, adminInfo) => {
+        if (newConfigArr && newConfigArr.length > 0) {
+            newConfigArr.forEach(config => {
+                if (config && config.commissionSetting && config.commissionSetting.length > 0) {
+                    config.commissionSetting.forEach(setting => {
+                        if (setting) {
+                            setting.commissionRate = parseFloat((setting.commissionRate / 100).toFixed(4));
+                        }
+                    });
+                }
+            });
+        }
+
+        return dbconfig.collection_partner.findById(partnerObjId).lean().then(
+            partnerObj => {
+                if (partnerObj) {
+                    let creatorData = adminInfo || {
+                        type: 'partner',
+                        name: partnerObj.partnerName,
+                        id: partnerObj._id
+                    };
+
+                    let proposalData = {
+                        creator: adminInfo || {
+                            type: 'partner',
+                            name: partnerObj.partnerName,
+                            id: partnerObj._id
+                        },
+                        platformObjId: partnerObj.platform,
+                        partnerObjId: partnerObjId,
+                        partnerName: partnerObj.partnerName,
+                        commissionType: commissionType,
+                        remark: localization.localization.translate('commissionRate'),
+                        isEditAll: true,
+                        oldConfigArr: oldConfigArr,
+                        newConfigArr: newConfigArr
+                    };
+
+                    return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {creator: creatorData, data: proposalData});
+                }
+            }
+        )
+    },
+
     resetAllCustomizedCommissionRate: (partnerObjId, field, isResetAll, commissionType, adminInfo) => {
         return dbconfig.collection_partner.findById(partnerObjId).lean().then(
             partnerObj => {

@@ -6922,6 +6922,8 @@ define(['js/app'], function (myApp) {
                             selectedCommissionTab: vm.selectedCommissionTab,
                             customizeCommissionRate: vm.customizeCommissionRate,
                             customizeCommissionRateAll: vm.customizeCommissionRateAll,
+                            isDetectChangeCustomizeCommissionRate: vm.isDetectChangeCustomizeCommissionRate,
+                            updateAllCustomizeCommissionRate: vm.updateAllCustomizeCommissionRate,
                             resetAllCustomizedCommissionRate: vm.resetAllCustomizedCommissionRate,
                             customizePartnerRate: vm.customizePartnerRate,
                             commissionRateEditRow: vm.commissionRateEditRow,
@@ -10870,14 +10872,18 @@ define(['js/app'], function (myApp) {
                 vm.partnerCommission.isEditing = true;
             };
 
-            vm.commissionSettingEditAll = (index, data, flag) => {
-                if (data.hasOwnProperty("showConfig") && data.showConfig.hasOwnProperty("commissionSetting")) {
-                    data.showConfig.commissionSetting.forEach(setting => {
-                        setting.isEditing = flag;
-                    })
-                }
+            vm.commissionSettingEditAll = (data, flag) => {
+                if (data && data.length > 0) {
+                    data.forEach((providerGroup, index) => {
+                        if (providerGroup && providerGroup.showConfig && providerGroup.showConfig.commissionSetting) {
+                            providerGroup.showConfig.commissionSetting.forEach(setting => {
+                                setting.isEditing = flag;
+                            })
+                        }
 
-                vm.commissionSettingIsEditAll[index] = flag
+                        vm.commissionSettingIsEditAll[index] = flag;
+                    });
+                }
             }
 
             vm.getCommissionSettingIsEditAll = (index) => {
@@ -11114,6 +11120,12 @@ define(['js/app'], function (myApp) {
             };
 
             vm.customizeCommissionRate = (idx, setting, newConfig, oldConfig, isRevert = false) => {
+                if (vm.commissionSettingIsEditAll) {
+                    for (let key in vm.commissionSettingIsEditAll) {
+                        vm.commissionSettingIsEditAll[key] = false;
+                    }
+                }
+
                 if (isRevert) {
                     let customCount = newConfig.commissionSetting.filter(e => e.isCustomized).length;
                     newConfig.commissionSetting[idx].commissionRate = parseFloat((oldConfig.commissionSetting[idx].commissionRate * 100).toFixed(2));
@@ -11145,6 +11157,45 @@ define(['js/app'], function (myApp) {
                     });
                 }
             };
+
+            vm.isDetectChangeCustomizeCommissionRate = (setting) => {
+                if (setting) {
+                    setting.isDetectChangeCustomizeRate = true;
+                }
+            };
+
+            vm.updateAllCustomizeCommissionRate = (setting) => {
+                let oldConfigArr = [];
+                let newConfigArr = [];
+                if (setting && setting.length > 0) {
+                    setting.forEach(providerGroup => {
+                        if (providerGroup.showConfig && providerGroup.srcConfig && providerGroup.showConfig.hasOwnProperty('isDetectChangeCustomizeRate')) {
+                            delete providerGroup.showConfig.isDetectChangeCustomizeRate;
+                            oldConfigArr.push(providerGroup.srcConfig);
+                            newConfigArr.push(providerGroup.showConfig);
+                        }
+                    });
+                }
+
+                if (oldConfigArr && newConfigArr && oldConfigArr.length > 0 && newConfigArr.length > 0) {
+                    let sendData = {
+                        partnerObjId: vm.selectedSinglePartner._id,
+                        commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab],
+                        oldConfigArr: oldConfigArr,
+                        newConfigArr: newConfigArr
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'updateAllCustomizeCommissionRate', sendData, function (data) {
+                        $scope.$evalAsync(() => {
+                            vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                            vm.getPlatformPartnersData();
+                        });
+                    }, function (err) {
+                        vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                        vm.getPlatformPartnersData();
+                    });
+                }
+            }
 
             vm.customizeCommissionRateAll = (idx, setting, newConfig, oldConfig) => {
                 // let setting;
