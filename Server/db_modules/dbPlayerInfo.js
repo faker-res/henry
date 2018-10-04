@@ -2768,11 +2768,23 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerObj = data;
-                    db_password = String(data.password);
+                    return dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", true).then(
+                        playerState => {
+                            if (playerState) {
+                                db_password = String(data.password);
 
-                    return dbconfig.collection_platform.findOne({
-                        _id: playerObj.platform
-                    }).lean();
+                                return dbconfig.collection_platform.findOne({
+                                    _id: playerObj.platform
+                                }).lean();
+                            } else {
+                                return Promise.reject({
+                                    name: "DBError",
+                                    status: constServerCode.CONCURRENT_DETECTED,
+                                    message: "Update Password Failed, please try again later"
+                                })
+                            }
+                        }
+                    );
                 } else {
                     return Q.reject({
                         name: "DataError",
@@ -2886,12 +2898,13 @@ let dbPlayerInfo = {
                             );
                         });
                     });
-
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", false).catch(errorUtils.reportError);
                     // playerObj.password = newPassword;
                     // return playerObj.save();
                     return deferred.promise;
                 }
                 else {
+                    dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", false).catch(errorUtils.reportError);
                     return Q.reject({
                         name: "DataError",
                         message: "Password do not match",
@@ -3958,7 +3971,7 @@ let dbPlayerInfo = {
                                 createTime: {$first: "$createTime"}
                             }
                         }
-                    ]).exec().then(promoCodes => {
+                    ]).read("secondaryPreferred").exec().then(promoCodes => {
                         console.log("autofeedback promoCodes record during successful topup",promoCodes);
                         promoCodes.forEach(promoCode => {
                             if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
@@ -5046,6 +5059,7 @@ let dbPlayerInfo = {
                     .populate({path: "partner", model: dbconfig.collection_partner})
                     .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
                     .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints, select: 'points'})
+                    .populate({path: "blacklistIp", model: dbconfig.collection_platformBlacklistIpConfig})
                     .lean().then(
                         playerData => {
                             var players = [];
@@ -5417,7 +5431,7 @@ let dbPlayerInfo = {
                                                 createTime: {$first: "$createTime"}
                                             }
                                         }
-                                    ]).exec().then(promoCodes => {
+                                    ]).read("secondaryPreferred").exec().then(promoCodes => {
                                         console.log("autofeedback promoCodes record during login",promoCodes);
                                         promoCodes.forEach(promoCode => {
                                             if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
@@ -11118,12 +11132,14 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data && data.status != constProposalStatus.SUCCESS && data.status != constProposalStatus.FAIL && data.status != constProposalStatus.CANCEL) {
-                    if (data && data.data && data.data.largeWithdrawalLog) {
+                    if (data && data.data && (data.data.largeWithdrawalLog || data.data.partnerLargeWithdrawalLog)) {
+                        let isPartner = Boolean(data.data.partnerLargeWithdrawalLog);
+                        let logObjId = data.data.largeWithdrawalLog || data.data.partnerLargeWithdrawalLog;
                         if (dbLargeWithdrawal.sendProposalUpdateInfoToRecipients) {
                             dbconfig.collection_proposal.findOne({_id: data._id}).lean().then(proposal => {
-                                return dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposal.data.largeWithdrawalLog, proposal);
+                                return dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(logObjId, proposal, null, isPartner);
                             }).catch(err => {
-                                console.log("Send large withdrawal proposal update info failed", data.data.largeWithdrawalLog, err);
+                                console.log("Send large withdrawal proposal update info failed", logObjId, err);
                                 return errorUtils.reportError(err);
                             });
 
@@ -13575,6 +13591,7 @@ let dbPlayerInfo = {
                     dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 }
 
+                console.log('applyRewardEvent error', playerId, err);
                 throw err;
             }
         );

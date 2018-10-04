@@ -5119,6 +5119,31 @@ define(['js/app'], function (myApp) {
                                         output += vm.credibilityRemarks[i].name;
                                         remarkMatches = true;
                                     }
+
+                                    if (vm.credibilityRemarks[i]._id === remarkId && vm.credibilityRemarks[i].name === '黑名单IP' && vm.credibilityRemarks[i].isFixed === true) {
+                                        output += " <span class='blacklistIpDot'><span class='playerBlacklistIpDetail'>";
+                                        output += "<table class='playerCredibilityBlacklistIpDetailTable'><thead><tr>";
+                                        output += "<th style='width:5%'>" + $translate('SEQUENCE_NO') + "</th>";
+                                        output += "<th style='width:30%'>" + $translate('IP') + "</th>";
+                                        output += "<th style='width:30%'>" + $translate('REMARK') + "</th>";
+                                        output += "<th style='width:10%'>" + $translate('Operator_Name') + "</th>";
+                                        output += "</tr></thead>";
+                                        output += "<tbody>";
+                                        if (row && row.blacklistIp && row.blacklistIp.length > 0) {
+                                            let i = 0;
+                                            row.blacklistIp.forEach(IP => {
+                                                output += "<tr>";
+                                                output += "<td>" + i + "</td>";
+                                                output += "<td>" + IP.ip + "</td>";
+                                                output += "<td>" + IP.remark + "</td>";
+                                                output += "<td>" + IP.adminName + "</td>";
+                                                output += "</tr>";
+                                                i++;
+                                            });
+                                        }
+                                        output += "</tbody>";
+                                        output += "</table></span></span>";
+                                    }
                                 }
                             });
                             output += "</a>";
@@ -13763,7 +13788,6 @@ define(['js/app'], function (myApp) {
                         data: "ipAddress",
                         render: function (data, type, row) {
                             data = data || '0';
-                            vm.blacklistIpRowData = (row && row.ipAddress) ? row.ipAddress : "";
                             let playerIpAddress = (row && row.ipAddress) ? row.ipAddress : "";
 
                             // display text in red if match blacklist ip

@@ -72,7 +72,7 @@
         this.rewardPointsService.getGameRewardPoints.request(data);
         this.rewardPointsService.getGameRewardPoints.once(callback);
 	};
-	
+
     proto.getTopUpRewardPointsEvent = function (callback, requestData) {
         let data = requestData || {};
 
@@ -100,7 +100,7 @@
         this.rewardPointsService.applyPointToCredit.request(data);
         this.rewardPointsService.applyPointToCredit.once(callback);
     };
-    
+
     proto.getMissonList = function (callback, requestData) {
         let data = requestData || {};
 
@@ -113,6 +113,14 @@
 
         this.rewardPointsService.getPointChangeRecord.request(data);
         this.rewardPointsService.getPointChangeRecord.once(callback);
+    };
+
+
+    proto.getSpendRewardRank = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardPointsService.getSpendRewardRank.request(data);
+        this.rewardPointsService.getSpendRewardRank.once(callback);
     };
 
     if (isNode) {

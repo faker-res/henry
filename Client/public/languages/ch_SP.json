@@ -4339,6 +4339,7 @@
   "UNREAD": "未读",
   "EDIT_ALL_FEE_RATE": "编辑所有费用比例",
   "EDIT_ALL_COMMISSION_RATE": "编辑所有佣金比例",
+  "UPDATE_ALL_COMMISSION_RATE": "更新所有佣金比例",
   "phoneFilterConfig": "黑白名单设置",
   "financialSettlementConfig": "财务（结算）系统设置",
   "Use FPMS system to handle all transactions": "使用本系统（FPMS）直接进行财务操作（银行卡、个人支付宝、个人微信、提款将可自行在本系统操作）",
