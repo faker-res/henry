@@ -272,6 +272,7 @@ var proposal = {
     createProposalDataHandler: function (ptProm, ptpProm, plyProm, proposalData, deferred) {
         let bExecute = false;
         let proposalTypeData = null;
+        let pendingProposalData = null;
 
         Q.all([ptProm, ptpProm, plyProm]).then(
             //create proposal with process
@@ -386,8 +387,34 @@ var proposal = {
 
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
                         pendingProposal => {
+                            pendingProposalData = pendingProposal;
+
+                            // for player update bank info, check if first time bound to the bank info
+                            if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType == "UpdatePlayer"
+                                && proposalTypeData._id && proposalTypeData.name == constProposalType.UPDATE_PLAYER_BANK_INFO
+                                && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId && proposalData.data._id) {
+
+                                return dbconfig.collection_proposal.findOne({
+                                    type: proposalTypeData._id,
+                                    'data.platformId': proposalData.data.platformId,
+                                    'data.playerId': proposalData.data.playerId,
+                                    'data.playerName': proposalData.data.playerName,
+                                    'data._id': proposalData.data._id
+                                }).lean().then(bankInfoProposal => {
+                                    if (!bankInfoProposal) {
+                                        return {isFirstBankInfo: true};
+                                    }
+                                });
+
+                            }
+                        }).then(playerBankInfoProposal => {
+                            // add remark if first time bound to the bank info
+                            if (playerBankInfoProposal && playerBankInfoProposal.hasOwnProperty('isFirstBankInfo') && playerBankInfoProposal.isFirstBankInfo) {
+                                proposalData.data.remark = localization.localization.translate("First time bound to the bank info");
+                            }
+
                             //for online top up and player consumption return, there can be multiple pending proposals
-                            if (pendingProposal
+                            if (pendingProposalData
                                 && data[0].name != constProposalType.PLAYER_TOP_UP
                                 //&& data[0].name != constProposalType.PLAYER_CONSUMPTION_RETURN
                                 && data[0].name != constProposalType.PLAYER_REGISTRATION_INTENTION
@@ -911,6 +938,8 @@ var proposal = {
         ).then(
             function(data){
                 let bIsBankInfoMatched = typeof data != "undefined" ? data : true;
+                console.log("LH check bonus ---------- 7", data);
+                console.log("LH check bonus ---------- 8", bIsBankInfoMatched);
                 if(bIsBankInfoMatched == true){
                     if (proposalProcessData && proposalProcessData.currentStep && proposalProcessData.steps) {
                         var curTime = new Date();
@@ -1528,7 +1557,8 @@ var proposal = {
                     }
 
                     if (relateUser) {
-                        queryObj["data.playerName"] = relateUser
+                        queryObj["$and"] = queryObj["$and"] || [];
+                        queryObj["$and"].push({"$or": [{"data.playerName": relateUser}, {"data.partnerName": relateUser}]});
                     }
                     if (credit) {
                         queryObj["$or"] = [
@@ -7584,6 +7614,9 @@ function isBankInfoMatched(proposalData, playerId){
     let playerData = null;
     let platform = null;
 
+    console.log("LH check bonus 1 ----------", proposalData);
+    console.log("LH check bonus 2 ----------", playerId);
+
     return dbconfig.collection_players.findOne({playerId: playerId})
         .populate({path: "platform", model: dbconfig.collection_platform}).lean()
         .then(
@@ -7619,12 +7652,16 @@ function isBankInfoMatched(proposalData, playerId){
             }
         ).then(
             proposals => {
+                console.log("LH check bonus 3 ----------", platform);
+                console.log("LH check bonus 4 ----------", proposals);
                 if(platform && platform.manualAuditAfterBankChanged){
                     if(proposals && proposals.length > 0){
                         let length = proposals.length;
                         for (let i = 0; i < length; i++) {
                             let proposal = proposals[i];
                             if (proposal && proposal.type && proposal.type.name && proposal.status && proposal.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposal.status == constProposalStatus.APPROVED) {
+                                console.log("LH check bonus 5 ----------", proposal.data);
+                                console.log("LH check bonus 6 ----------", playerData);
                                 if (proposal.data) {
                                     if (proposal.data.bankAccount) {
                                         if (!playerData.bankAccount) {
@@ -7635,87 +7672,6 @@ function isBankInfoMatched(proposalData, playerId){
                                     } else if (playerData.bankAccount) {
                                         return false;
                                     }
-
-                                    if (proposal.data.bankAccountName) {
-                                        if (!playerData.bankAccountName) {
-                                            return false;
-                                        } else if (proposal.data.bankAccountName != playerData.bankAccountName) {
-                                            return false;
-                                        }
-                                    } else if (playerData.bankAccountName) {
-                                        return false;
-                                    }
-
-                                    if (proposal.data.bankName) {
-                                        if (!playerData.bankName) {
-                                            return false;
-                                        } else if (proposal.data.bankName != playerData.bankName) {
-                                            return false;
-                                        }
-                                    } else if (playerData.bankName) {
-                                        return false;
-                                    }
-
-                                    if (proposal.data.bankAccountCity) {
-                                        if (!playerData.bankAccountCity) {
-                                            return false;
-                                        } else if (proposal.data.bankAccountCity != playerData.bankAccountCity) {
-                                            return false;
-                                        }
-                                    } else if (playerData.bankAccountCity) {
-                                        return false;
-                                    }
-
-                                    if (proposal.data.bankAccountType) {
-                                        if (!playerData.bankAccountType) {
-                                            return false;
-                                        } else if (proposal.data.bankAccountType != playerData.bankAccountType) {
-                                            return false;
-                                        }
-                                    } else if (playerData.bankAccountType) {
-                                        return false;
-                                    }
-
-                                    if (proposal.data.bankAddress) {
-                                        if (!playerData.bankAddress) {
-                                            return false;
-                                        } else if (proposal.data.bankAddress != playerData.bankAddress) {
-                                            return false;
-                                        }
-                                    } else if (playerData.bankAddress) {
-                                        return false;
-                                    }
-
-                                    if (proposal.data.bankBranch) {
-                                        if (!playerData.bankBranch) {
-                                            return false;
-                                        } else if (proposal.data.bankBranch != playerData.bankBranch) {
-                                            return false;
-                                        }
-                                    } else if (playerData.bankBranch) {
-                                        return false;
-                                    }
-
-                                    if (proposal.data.bankAccountDistrict) {
-                                        if (!playerData.bankAccountDistrict) {
-                                            return false;
-                                        } else if (proposal.data.bankAccountDistrict != playerData.bankAccountDistrict) {
-                                            return false;
-                                        }
-                                    } else if (playerData.bankAccountDistrict) {
-                                        return false;
-                                    }
-
-                                    if (proposal.data.bankAccountProvince) {
-                                        if (!playerData.bankAccountProvince) {
-                                            return false;
-                                        } else if (proposal.data.bankAccountProvince != playerData.bankAccountProvince) {
-                                            return false;
-                                        }
-                                    } else if (playerData.bankAccountProvince) {
-                                        return false;
-                                    }
-
                                 }
 
                                 return true;

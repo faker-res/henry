@@ -1365,9 +1365,9 @@ var proposalExecutor = {
             executePlayerTopUp: function (proposalData, deferred) {
                 let topUpAmount = Number(proposalData.data.amount);
 
-                // if(proposalData.data.hasOwnProperty("actualAmountReceived")){
-                //     topUpAmount = Number(proposalData.data.actualAmountReceived);
-                // }
+                if(proposalData.data.hasOwnProperty("actualAmountReceived")){
+                    topUpAmount = Number(proposalData.data.actualAmountReceived);
+                }
 
                 dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, topUpAmount, "", constPlayerTopUpType.ONLINE, proposalData).then(
                     function (data) {
@@ -3837,7 +3837,7 @@ var proposalExecutor = {
             rejectPartnerBonus: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.partnerLargeWithdrawalLog) {
                     if (dbLargeWithdrawal.sendProposalUpdateInfoToRecipients) {
-                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.partnerLargeWithdrawalLog, proposalData, true).catch(err => {
+                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.partnerLargeWithdrawalLog, proposalData, false, true).catch(err => {
                             console.log("Send large withdrawal proposal update info failed", proposalData.data.partnerLargeWithdrawalLog, err);
                             return errorUtils.reportError(err);
                         });
