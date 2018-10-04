@@ -529,13 +529,13 @@ style.
                     tr(ng-repeat='(i,v) in vm.partnerLargeWithdrawLog.proposalsAfterLastWithdrawal')
                         td {{v.proposalId}}
                         td {{v.creatorName}}
-                        td {{v.inputDevice}}
-                        td {{v.proposalMainType}}
-                        td {{v.proposalType}}
+                        td {{vm.getInputDeviceName(v.inputDevice)}}
+                        td {{v.proposalMainType | translate}}
+                        td {{v.proposalType | translate}}
                         td {{v.status}}
                         td {{v.relatedUser}}
                         td {{$fixTwoDecimalStr(v.amount)}}
-                        td {{v.createTime}}
+                        td {{vm.dateReformat(v.createTime)}}
                         td {{v.remark}}
 
 
