@@ -5847,7 +5847,7 @@ define(['js/app'], function (myApp) {
                     },
                 ],
                 //"autoWidth": false,
-                "scrollX": true,
+                "scrollX": false,
                 "deferRender": true,
                 "bDeferRender": true,
                 "bProcessing": true,

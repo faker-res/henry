@@ -406,7 +406,7 @@ const dbLargeWithdrawal = {
                     proposalsQuery.createTime.$gte = lastWithdrawalDate;
                 }
 
-                return dbconfig.collection_proposal.find(proposalsQuery).populate({path: "type", model: dbconfig.collection_proposalType}).lean();
+                return dbconfig.collection_proposal.find(proposalsQuery).populate({path: "type", model: dbconfig.collection_proposalType}).sort({createTime: -1}).lean();
             }
         ).then(
             periodProposals => {
