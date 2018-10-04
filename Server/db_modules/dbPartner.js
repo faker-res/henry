@@ -6673,12 +6673,19 @@ let dbPartner = {
                         platformFeeRateData.isCustom = partnerCommissionRateConfig.rateAfterRebatePlatformIsCustom;
                     }
                     else {
-                        partnerCommissionRateConfig.rateAfterRebateGameProviderGroup.map(group => {
-                            if (group.name === groupRate.groupName) {
-                                platformFeeRateData.rate = group.rate;
-                                platformFeeRateData.isCustom = Boolean(group.isCustom);
-                            }
-                        });
+                        if (partnerCommissionRateConfig && partnerCommissionRateConfig.rateAfterRebateGameProviderGroup
+                            && typeof partnerCommissionRateConfig.rateAfterRebateGameProviderGroup == 'object') {
+                            partnerCommissionRateConfig.rateAfterRebateGameProviderGroup.map(group => {
+                                if (group.name === groupRate.groupName) {
+                                    platformFeeRateData.rate = group.rate || 0;
+                                    platformFeeRateData.isCustom = Boolean(group.isCustom);
+                                }
+                            });
+                        } else if (partnerCommissionRateConfig && partnerCommissionRateConfig.hasOwnProperty('rateAfterRebateGameProviderGroup')
+                            && typeof partnerCommissionRateConfig.rateAfterRebateGameProviderGroup == 'number') {
+                            platformFeeRateData.rate = 0;
+                            platformFeeRateData.isCustom = false;
+                        }
                     }
 
                     let platformFeeRate = Number(platformFeeRateData.rate);
@@ -10694,12 +10701,12 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
             }
 
             let rateConfig = {
-                rateAfterRebatePromo: rateData.rateAfterRebatePromo,
-                rateAfterRebatePlatform: rateData.rateAfterRebatePlatform,
-                rateAfterRebateGameProviderGroup: rateData.rateAfterRebateGameProviderGroup,
-                rateAfterRebateTotalDeposit: rateData.rateAfterRebateTotalDeposit,
-                rateAfterRebateTotalWithdrawal: rateData.rateAfterRebateTotalWithdrawal,
-                parentCommissionRate: rateData.parentCommissionRate,
+                rateAfterRebatePromo: rateData.rateAfterRebatePromo || 0,
+                rateAfterRebatePlatform: rateData.rateAfterRebatePlatform || 0,
+                rateAfterRebateGameProviderGroup: rateData.rateAfterRebateGameProviderGroup || 0,
+                rateAfterRebateTotalDeposit: rateData.rateAfterRebateTotalDeposit || 0,
+                rateAfterRebateTotalWithdrawal: rateData.rateAfterRebateTotalWithdrawal || 0,
+                parentCommissionRate: rateData.parentCommissionRate || 0,
             };
 
             if (data[1]) {
@@ -10736,19 +10743,21 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
                     rateConfig.rateAfterRebateTotalWithdrawalIsCustom = false;
                 }
 
-                rateConfig.rateAfterRebateGameProviderGroup.map(defaultGroup => {
-                    customRateData.rateAfterRebateGameProviderGroup.map(customGroup => {
-                        if (defaultGroup.name === customGroup.name
-                            && defaultGroup.rate !== customGroup.rate
-                        ) {
-                            defaultGroup.isCustom = true;
-                            defaultGroup.rate = customGroup.rate;
-                        }
-                        else {
-                            defaultGroup.isCustom = false;
-                        }
+                if (rateConfig && rateConfig.rateAfterRebateGameProviderGroup && typeof rateConfig.rateAfterRebateGameProviderGroup == 'object') {
+                    rateConfig.rateAfterRebateGameProviderGroup.map(defaultGroup => {
+                        customRateData.rateAfterRebateGameProviderGroup.map(customGroup => {
+                            if (defaultGroup.name === customGroup.name
+                                && defaultGroup.rate !== customGroup.rate
+                            ) {
+                                defaultGroup.isCustom = true;
+                                defaultGroup.rate = customGroup.rate;
+                            }
+                            else {
+                                defaultGroup.isCustom = false;
+                            }
+                        });
                     });
-                });
+                }
             }
             return rateConfig;
         }
