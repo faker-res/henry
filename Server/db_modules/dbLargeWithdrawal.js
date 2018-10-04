@@ -398,12 +398,12 @@ const dbLargeWithdrawal = {
                     "data.platformId": {$in:[String(log.platform), log.platform]},
                     "data.partnerName": partner.partnerName,
                     createTime: {
-                        $lt: proposal.createTime,
+                        $lte: proposal.createTime,
                     }
                 };
 
                 if (lastWithdrawalDate) {
-                    proposalsQuery.createTime.$gt = lastWithdrawalDate;
+                    proposalsQuery.createTime.$gte = lastWithdrawalDate;
                 }
 
                 return dbconfig.collection_proposal.find(proposalsQuery).populate({path: "type", model: dbconfig.collection_proposalType}).lean();
@@ -1766,11 +1766,9 @@ function appendAuditLinks (html, auditLinks) {
 function getLogDetailEmailSubject (log, isPartner) {
     let withdrawalDate = dbutility.getLocalTimeString(log.withdrawalTime , "YYYY/MM/DD");
     let withdrawalAmount = dbutility.noRoundTwoDecimalPlaces(log.amount);
-    let strTitle = "大额提款";
-    if (isPartner) {
-        strTitle = "代理大额提款"
-    }
-    let str = `${strTitle}（${log.todayLargeAmountNo}）：${withdrawalDate}--${log.playerName}--${withdrawalAmount}- ${log.emailNameExtension}`;
+    let name = isPartner ? log.partnerName : log.playerName;
+    let strTitle = isPartner ? "代理大额提款" : "大额提款";
+    let str = `${strTitle}（${log.todayLargeAmountNo}）：${withdrawalDate}--${name}--${withdrawalAmount}- ${log.emailNameExtension}`;
 
     return str;
 }
