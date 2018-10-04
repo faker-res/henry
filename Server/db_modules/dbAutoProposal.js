@@ -1540,7 +1540,7 @@ function isPaymentInfoMatched(proposals, playerData){
     for (let i = 0; i < length; i++) {
         let proposal = proposals[i];
         if (proposal.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposal.status == constProposalStatus.APPROVED) {
-            console.log("LH check bonus C ----------", roposal.data);
+            console.log("LH check bonus C ----------", proposal.data);
             console.log("LH check bonus D ----------", playerData);
             if(proposal.data){
                 if(proposal.data.bankAccount){
