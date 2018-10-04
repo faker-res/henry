@@ -1543,7 +1543,6 @@ function isPaymentInfoMatched(proposals, playerData){
             console.log("LH check bonus C ----------", roposal.data);
             console.log("LH check bonus D ----------", playerData);
             if(proposal.data){
-
                 if(proposal.data.bankAccount){
                     if(!playerData.bankAccount){
                         return false;
@@ -1553,87 +1552,6 @@ function isPaymentInfoMatched(proposals, playerData){
                 }else if(playerData.bankAccount){
                     return false;
                 }
-
-                if(proposal.data.bankAccountName){
-                    if(!playerData.bankAccountName){
-                        return false;
-                    }else if(proposal.data.bankAccountName != playerData.bankAccountName){
-                        return false;
-                    }
-                }else if(playerData.bankAccountName){
-                    return false;
-                }
-
-                if(proposal.data.bankName){
-                    if(!playerData.bankName){
-                        return false;
-                    }else if(proposal.data.bankName != playerData.bankName){
-                        return false;
-                    }
-                }else if(playerData.bankName){
-                    return false;
-                }
-
-                if(proposal.data.bankAccountCity){
-                    if(!playerData.bankAccountCity){
-                        return false;
-                    }else if(proposal.data.bankAccountCity != playerData.bankAccountCity){
-                        return false;
-                    }
-                }else if(playerData.bankAccountCity){
-                    return false;
-                }
-
-                if(proposal.data.bankAccountType){
-                    if(!playerData.bankAccountType){
-                        return false;
-                    }else if(proposal.data.bankAccountType != playerData.bankAccountType){
-                        return false;
-                    }
-                }else if(playerData.bankAccountType){
-                    return false;
-                }
-
-                if(proposal.data.bankAddress){
-                    if(!playerData.bankAddress){
-                        return false;
-                    }else if(proposal.data.bankAddress != playerData.bankAddress){
-                        return false;
-                    }
-                }else if(playerData.bankAddress){
-                    return false;
-                }
-
-                if(proposal.data.bankBranch){
-                    if(!playerData.bankBranch){
-                        return false;
-                    }else if(proposal.data.bankBranch != playerData.bankBranch){
-                        return false;
-                    }
-                }else if(playerData.bankBranch){
-                    return false;
-                }
-
-                if(proposal.data.bankAccountDistrict){
-                    if(!playerData.bankAccountDistrict){
-                        return false;
-                    }else if(proposal.data.bankAccountDistrict != playerData.bankAccountDistrict){
-                        return false;
-                    }
-                }else if(playerData.bankAccountDistrict){
-                    return false;
-                }
-
-                if(proposal.data.bankAccountProvince){
-                    if(!playerData.bankAccountProvince){
-                        return false;
-                    }else if(proposal.data.bankAccountProvince != playerData.bankAccountProvince){
-                        return false;
-                    }
-                }else if(playerData.bankAccountProvince){
-                    return false;
-                }
-
             }
 
             return true;
