@@ -483,8 +483,8 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 if (platformObj.autoAudit.firstWithdrawDifferentIPCheck
                     && bankProvince
                     && (
-                        (!playerData.phoneProvince || bankProvince !== playerData.phoneProvince)
-                        || (!playerData.province || bankProvince !== playerData.province)
+                        (playerData.phoneProvince && bankProvince !== playerData.phoneProvince)
+                        || (playerData.province && bankProvince !== playerData.province)
                     )
                 ) {
                     checkMsg += ' Denied: FW: Different Province between IP, Phone, And Bank Account;';
