@@ -801,11 +801,41 @@ var proposalExecutor = {
                                 // if(playerUpdate.bankAccountName){
                                 //     playerUpdate.realName = playerUpdate.bankAccountName;
                                 // }
+                                return dbconfig.collection_proposalType.findOne({
+                                    platformId: proposalData.data.platformId,
+                                    name: constProposalType.UPDATE_PLAYER_BANK_INFO
+                                }).lean().then(
+                                    proposalTypeData => {
+                                        if (proposalTypeData && proposalTypeData._id) {
+                                            return dbconfig.collection_proposal.find({
+                                                type: proposalTypeData._id,
+                                                'data.platformId': proposalData.data.platformId,
+                                                'data.playerName': proposalData.data.playerName,
+                                                'data.playerId': proposalData.data.playerId,
+                                                'data._id': proposalData.data._id
+                                            }).count();
+                                        }
+                                    }
+                                ).then(
+                                    proposalCount => {
+                                        if(proposalCount > 1) {
+                                            return dbconfig.collection_players.findOneAndUpdate(
+                                                {_id: data._id, platform: data.platform},
+                                                playerUpdate,
+                                                {returnNewDocument: true}
+                                            );
+                                        } else {
+                                            if(playerUpdate.bankAccountName){
+                                                playerUpdate.realName = playerUpdate.bankAccountName;
+                                            }
 
-                                return dbconfig.collection_players.findOneAndUpdate(
-                                    {_id: data._id, platform: data.platform},
-                                    playerUpdate,
-                                    {returnNewDocument: true}
+                                            return dbconfig.collection_players.findOneAndUpdate(
+                                                {_id: data._id, platform: data.platform},
+                                                playerUpdate,
+                                                {returnNewDocument: true}
+                                            );
+                                        }
+                                    }
                                 );
                             }
                             else {
@@ -872,10 +902,41 @@ var proposalExecutor = {
                                 // if(partnerUpdate.bankAccountName){
                                 //     partnerUpdate.realName = partnerUpdate.bankAccountName;
                                 // }
-                                return dbconfig.collection_partner.findOneAndUpdate(
-                                    {_id: data._id, platform: data.platform},
-                                    partnerUpdate,
-                                    {returnNewDocument: true}
+                                return dbconfig.collection_proposalType.findOne({
+                                    platformId: proposalData.data.platformId,
+                                    name: constProposalType.UPDATE_PARTNER_BANK_INFO
+                                }).lean().then(
+                                    proposalTypeData => {
+                                        if (proposalTypeData && proposalTypeData._id) {
+                                            return dbconfig.collection_proposal.find({
+                                                type: proposalTypeData._id,
+                                                'data.platformId': proposalData.data.platformId,
+                                                'data.partnerName': proposalData.data.partnerName,
+                                                'data.partnerId': proposalData.data.partnerId,
+                                                'data._id': proposalData.data._id
+                                            }).count();
+                                        }
+                                    }
+                                ).then(
+                                    proposalCount => {
+                                        if(proposalCount > 1) {
+                                            return dbconfig.collection_partner.findOneAndUpdate(
+                                                {_id: data._id, platform: data.platform},
+                                                partnerUpdate,
+                                                {returnNewDocument: true}
+                                            );
+                                        } else {
+                                            if(partnerUpdate.bankAccountName){
+                                                partnerUpdate.realName = partnerUpdate.bankAccountName;
+                                            }
+
+                                            return dbconfig.collection_partner.findOneAndUpdate(
+                                                {_id: data._id, platform: data.platform},
+                                                partnerUpdate,
+                                                {returnNewDocument: true}
+                                            );
+                                        }
+                                    }
                                 );
                             }
                             else {
@@ -1792,7 +1853,7 @@ var proposalExecutor = {
             executePlayerBonus: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.largeWithdrawalLog) {
                     if (dbLargeWithdrawal.sendProposalUpdateInfoToRecipients) {
-                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.largeWithdrawalLog, proposalData).catch(err => {
+                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.largeWithdrawalLog, proposalData, true).catch(err => {
                             console.log("Send large withdrawal proposal update info failed", proposalData.data.largeWithdrawalLog, err);
                             return errorUtils.reportError(err);
                         });
@@ -2021,6 +2082,17 @@ var proposalExecutor = {
             },
 
             executePartnerBonus: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.partnerLargeWithdrawalLog) {
+                    if (dbLargeWithdrawal.sendProposalUpdateInfoToRecipients) {
+                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.partnerLargeWithdrawalLog, proposalData, true, true).catch(err => {
+                            console.log("Send large withdrawal proposal update info failed", proposalData.data.partnerLargeWithdrawalLog, err);
+                            return errorUtils.reportError(err);
+                        });
+                    }
+                    else {
+                        console.log('dbLargeWithdrawal', dbLargeWithdrawal)
+                    }
+                }
                 dbconfig.collection_partner.findOne({partnerId: proposalData.data.partnerId})
                     .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
                     partner => {
@@ -3725,7 +3797,7 @@ var proposalExecutor = {
             rejectPlayerBonus: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.largeWithdrawalLog) {
                     if (dbLargeWithdrawal.sendProposalUpdateInfoToRecipients) {
-                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.largeWithdrawalLog, proposalData).catch(err => {
+                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.largeWithdrawalLog, proposalData, false, false).catch(err => {
                             console.log("Send large withdrawal proposal update info failed", proposalData.data.largeWithdrawalLog, err);
                             return errorUtils.reportError(err);
                         });
@@ -3763,6 +3835,18 @@ var proposalExecutor = {
              * reject function for player bonus
              */
             rejectPartnerBonus: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.partnerLargeWithdrawalLog) {
+                    if (dbLargeWithdrawal.sendProposalUpdateInfoToRecipients) {
+                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.partnerLargeWithdrawalLog, proposalData, true).catch(err => {
+                            console.log("Send large withdrawal proposal update info failed", proposalData.data.partnerLargeWithdrawalLog, err);
+                            return errorUtils.reportError(err);
+                        });
+                    }
+                    else {
+                        console.log('dbLargeWithdrawal', dbLargeWithdrawal)
+                    }
+                }
+
                 if (proposalData && proposalData.data && proposalData.data.partnerObjId && proposalData.data.platformId && proposalData.data.amount) {
                     return dbconfig.collection_partner.findOneAndUpdate(
                         {_id: proposalData.data.partnerObjId, platform: proposalData.data.platformId},

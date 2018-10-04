@@ -1064,13 +1064,24 @@ define(['js/app'], function (myApp) {
                                                     if (group.isCustomPlatformFeeRate == true) {
                                                         vm.partnerCommVar.platformFeeTab = idxgroup;
                                                     }
+                                                    group.amount = $noRoundTwoDecimalPlaces(group.amount);
                                                 }
                                             );
+                                        }
+
+                                        // Round to 2 dp
+                                        for (let key in partner) {
+                                            if (partner.hasOwnProperty(key) && typeof partner[key] === 'number') {
+                                                partner[key] = $noRoundTwoDecimalPlaces(partner[key]);
+                                            }
+
+                                            if (key === 'pastNettCommission' && partner.hasOwnProperty(key) && partner[key].length) {
+                                                partner[key] = partner[key].map(val => $noRoundTwoDecimalPlaces(val));
+                                            }
                                         }
                                     }
                                 }
                             );
-                            console.log('partnerCommissionLog', vm.partnerCommissionLog);
                             $('#modalPartnerCommPreview').modal();
                         })
                     }
@@ -5981,7 +5992,7 @@ define(['js/app'], function (myApp) {
                             elem: '.partnerPermissionPopover',
                             onClickAsync: function (showPopover) {
                                 let that = this;
-                                let row = JSON.parse(this.dataset.row);
+                                let row = vm.permissionPartner;
                                 vm.partnerPermissionTypes = {
                                     applyBonus: {
                                         imgType: 'img',
@@ -6008,9 +6019,9 @@ define(['js/app'], function (myApp) {
                                 };
                                 $("#partnerPermissionTable td").removeClass('hide');
 
-                                // Invert second render
-                                row.permission.forbidPartnerFromLogin = !row.permission.forbidPartnerFromLogin;
-                                row.permission.disableCommSettlement = !row.permission.disableCommSettlement;
+                                // // Invert second render
+                                // row.permission.forbidPartnerFromLogin = !row.permission.forbidPartnerFromLogin;
+                                // row.permission.disableCommSettlement = !row.permission.disableCommSettlement;
 
                                 $.each(vm.partnerPermissionTypes, function (key, v) {
                                     if (row.permission && row.permission[key]) {
@@ -6019,6 +6030,7 @@ define(['js/app'], function (myApp) {
                                         $("#partnerPermissionTable .permitOn." + key).addClass('hide');
                                     }
                                 });
+                                $scope.safeApply();
                                 showPopover(that, '#partnerPermissionTable', row);
                             },
                             callback: function () {
@@ -6089,9 +6101,7 @@ define(['js/app'], function (myApp) {
                 $.each(tableOptions.columns, function (i, v) {
                     v.defaultContent = "";
                 });
-                console.log('start datatable')
                 vm.partnerTable = $('#partnerDataTable').DataTable(tableOptions);
-                console.log('end datatable');
                 utilService.setDataTablePageInput('partnerDataTable', vm.partnerTable, $translate);
                 vm.advancedPartnerQueryObj.pageObj.init({maxCount: data.size}, !Boolean(vm.advancedPartnerQueryObj.index));
 
@@ -6137,9 +6147,13 @@ define(['js/app'], function (myApp) {
                 }
             };
             vm.initPermissionPartner = function (partnerObjId) {
+                vm.permissionPartner = {};
                 vm.permissionPartner = vm.partners.find(p => String(p._id) === partnerObjId);
-                vm.permissionPartner.permission.forbidPartnerFromLogin = !vm.permissionPartner.permission.forbidPartnerFromLogin;
-                vm.permissionPlayer.permission.disableCommSettlement = !vm.permissionPlayer.permission.disableCommSettlement;
+
+                if (vm.permissionPartner && vm.permissionPartner.permission) {
+                    vm.permissionPartner.permission.forbidPartnerFromLogin = !vm.permissionPartner.permission.forbidPartnerFromLogin;
+                    vm.permissionPartner.permission.disableCommSettlement = !vm.permissionPartner.permission.disableCommSettlement;
+                }
             }
             vm.sendSMSToPartner = function () {
                 vm.sendSMSResult = {sent: "sending"};

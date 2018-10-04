@@ -11742,7 +11742,7 @@ function createPartnerLargeWithdrawalLog (proposalData, platformObjId) {
         proposalId: proposalData.proposalId
     }).save().then(logData => {
         log = logData;
-        return dbconfig.collection_proposal.findOneAndUpdate({_id: proposalData._id, createTime: proposalData.createTime}, {"data.largeWithdrawalLog": log._id}, {new: true}).lean();
+        return dbconfig.collection_proposal.findOneAndUpdate({_id: proposalData._id, createTime: proposalData.createTime}, {"data.partnerLargeWithdrawalLog": log._id}, {new: true}).lean();
     }).then(
         proposal => {
             if (proposal) {

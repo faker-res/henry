@@ -505,10 +505,10 @@ style.
                     tr(ng-if="vm.partnerLargeWithdrawalSetting.showCurrentCredit")
                         td {{"providerCreditAmount" | translate}}
                         td {{$fixTwoDecimalStr(vm.partnerLargeWithdrawLog.currentCredit)}}
-                    tr(ng-if="vm.partnerLargeWithdrawalSetting.showLastWithdrawalTime")
+                    tr(ng-if="vm.partnerLargeWithdrawalSetting.showTotalDownlinePlayersCount")
                         td {{"TOTAL_DOWNLINE_PLAYERS_COUNT" | translate}}
                         td {{vm.partnerLargeWithdrawLog.downLinePlayerAmount}}
-                    tr(ng-if="vm.partnerLargeWithdrawalSetting.showLastWithdrawalTime")
+                    tr(ng-if="vm.partnerLargeWithdrawalSetting.showTotalDownlinePartnersCount")
                         td {{"TOTAL_DOWNLINE_PARTNERS_COUNT" | translate}}
                         td {{vm.partnerLargeWithdrawLog.downLinePartnerAmount}}
 
@@ -529,13 +529,13 @@ style.
                     tr(ng-repeat='(i,v) in vm.partnerLargeWithdrawLog.proposalsAfterLastWithdrawal')
                         td {{v.proposalId}}
                         td {{v.creatorName}}
-                        td {{v.inputDevice}}
-                        td {{v.proposalMainType}}
-                        td {{v.proposalType}}
+                        td {{vm.getInputDeviceName(v.inputDevice)}}
+                        td {{v.proposalMainType | translate}}
+                        td {{v.proposalType | translate}}
                         td {{v.status}}
                         td {{v.relatedUser}}
-                        td {{v.amount}}
-                        td {{v.createTime}}
+                        td {{$fixTwoDecimalStr(v.amount)}}
+                        td {{vm.dateReformat(v.createTime)}}
                         td {{v.remark}}
 
 
@@ -543,12 +543,12 @@ style.
 
                 textarea.form-control(style="margin-top: 12px;" ng-model="vm.largeWithdrawLog.comment" ng-disabled='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")')
             .modal-footer
-                div(ng-if="vm.isLargeWithdrawalReviewer")
+                div(ng-if="vm.isPartnerLargeWithdrawalReviewer")
                     // is reviewer
                     button.btn.btn-danger.common-button(data-dismiss='modal' ng-click="vm.auditLargeWithdrawal(false, true)" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"Cancel Proposal" | translate}}
                     button.btn.btn-success.common-button(data-dismiss='modal' ng-click="vm.auditLargeWithdrawal(true, true)" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"AUDIT_APPROVAL" | translate}}
                     button.btn.btn-danger.common-button(data-dismiss='modal' ng-if='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")') {{'CANCEL' | translate}}
-                div(ng-if="!vm.isLargeWithdrawalReviewer")
+                div(ng-if="!vm.isPartnerLargeWithdrawalReviewer")
                     // is not reviewer
                     button.btn.btn-danger.common-button(data-dismiss='modal') {{'CANCEL' | translate}}
                     button.btn.btn-success.common-button(ng-click="vm.sendPartnerLargeAmountDetailMail()" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"Send E-mail" | translate}} ({{vm.partnerLargeWithdrawLog.emailSentTimes}})

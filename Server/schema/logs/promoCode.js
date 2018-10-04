@@ -90,5 +90,6 @@ let promoCodeSchema = new Schema({
 });
 
 promoCodeSchema.index({platformObjId: 1, createTime: 1});
+promoCodeSchema.index({promoCodeTemplateObjId: 1});
 
 module.exports = promoCodeSchema;

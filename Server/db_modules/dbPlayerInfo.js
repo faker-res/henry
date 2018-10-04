@@ -3971,7 +3971,7 @@ let dbPlayerInfo = {
                                 createTime: {$first: "$createTime"}
                             }
                         }
-                    ]).exec().then(promoCodes => {
+                    ]).read("secondaryPreferred").exec().then(promoCodes => {
                         console.log("autofeedback promoCodes record during successful topup",promoCodes);
                         promoCodes.forEach(promoCode => {
                             if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
@@ -5059,6 +5059,7 @@ let dbPlayerInfo = {
                     .populate({path: "partner", model: dbconfig.collection_partner})
                     .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
                     .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints, select: 'points'})
+                    .populate({path: "blacklistIp", model: dbconfig.collection_platformBlacklistIpConfig})
                     .lean().then(
                         playerData => {
                             var players = [];
@@ -5430,7 +5431,7 @@ let dbPlayerInfo = {
                                                 createTime: {$first: "$createTime"}
                                             }
                                         }
-                                    ]).exec().then(promoCodes => {
+                                    ]).read("secondaryPreferred").exec().then(promoCodes => {
                                         console.log("autofeedback promoCodes record during login",promoCodes);
                                         promoCodes.forEach(promoCode => {
                                             if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
@@ -11131,12 +11132,14 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data && data.status != constProposalStatus.SUCCESS && data.status != constProposalStatus.FAIL && data.status != constProposalStatus.CANCEL) {
-                    if (data && data.data && data.data.largeWithdrawalLog) {
+                    if (data && data.data && (data.data.largeWithdrawalLog || data.data.partnerLargeWithdrawalLog)) {
+                        let isPartner = Boolean(data.data.partnerLargeWithdrawalLog);
+                        let logObjId = data.data.largeWithdrawalLog || data.data.partnerLargeWithdrawalLog;
                         if (dbLargeWithdrawal.sendProposalUpdateInfoToRecipients) {
                             dbconfig.collection_proposal.findOne({_id: data._id}).lean().then(proposal => {
-                                return dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposal.data.largeWithdrawalLog, proposal);
+                                return dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(logObjId, proposal, null, isPartner);
                             }).catch(err => {
-                                console.log("Send large withdrawal proposal update info failed", data.data.largeWithdrawalLog, err);
+                                console.log("Send large withdrawal proposal update info failed", logObjId, err);
                                 return errorUtils.reportError(err);
                             });
 
