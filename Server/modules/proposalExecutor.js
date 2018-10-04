@@ -3837,7 +3837,7 @@ var proposalExecutor = {
             rejectPartnerBonus: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.partnerLargeWithdrawalLog) {
                     if (dbLargeWithdrawal.sendProposalUpdateInfoToRecipients) {
-                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.partnerLargeWithdrawalLog, proposalData, true).catch(err => {
+                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.partnerLargeWithdrawalLog, proposalData, false, true).catch(err => {
                             console.log("Send large withdrawal proposal update info failed", proposalData.data.partnerLargeWithdrawalLog, err);
                             return errorUtils.reportError(err);
                         });

@@ -1766,11 +1766,9 @@ function appendAuditLinks (html, auditLinks) {
 function getLogDetailEmailSubject (log, isPartner) {
     let withdrawalDate = dbutility.getLocalTimeString(log.withdrawalTime , "YYYY/MM/DD");
     let withdrawalAmount = dbutility.noRoundTwoDecimalPlaces(log.amount);
-    let strTitle = "大额提款";
-    if (isPartner) {
-        strTitle = "代理大额提款"
-    }
-    let str = `${strTitle}（${log.todayLargeAmountNo}）：${withdrawalDate}--${log.playerName}--${withdrawalAmount}- ${log.emailNameExtension}`;
+    let name = isPartner ? log.partnerName : log.playerName;
+    let strTitle = isPartner ? "代理大额提款" : "大额提款";
+    let str = `${strTitle}（${log.todayLargeAmountNo}）：${withdrawalDate}--${name}--${withdrawalAmount}- ${log.emailNameExtension}`;
 
     return str;
 }
