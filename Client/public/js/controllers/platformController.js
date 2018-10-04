@@ -604,18 +604,22 @@ define(['js/app'], function (myApp) {
 
             vm.initThemeSetting = function (){
 
-                utilService.actionAfterLoaded("#playerThemeSelectPanel .playerThemeTable", function () {
+                utilService.actionAfterLoaded("#playerThemeSelectPanel #playerThemeTable", function () {
                     setTimeout(()=>{
                         if (vm.selectedPlatform.data && vm.selectedPlatform.data.playerThemeSetting) {
                             vm.initThemeCheck(vm.selectedPlatform.data.playerThemeSetting, 'player');
                         }
-
+                    }, 100);
+                });
+                
+                utilService.actionAfterLoaded("#partnerThemeSelectPanel #partnerThemeTable", function () {
+                    setTimeout(()=>{
                         if (vm.selectedPlatform.data && vm.selectedPlatform.data.partnerThemeSetting) {
                             vm.initThemeCheck(vm.selectedPlatform.data.partnerThemeSetting, 'partner');
                         }
                     }, 100);
                 });
-            }
+            };
 
             vm.initThemeCheck = function (data, mode){
                 if (mode == 'player'){
