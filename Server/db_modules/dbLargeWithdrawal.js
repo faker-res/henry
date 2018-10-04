@@ -415,9 +415,9 @@ const dbLargeWithdrawal = {
                     detail.proposalId = prop.proposalId;
                     detail.creatorName = prop.creator && prop.creator.name ? prop.creator.name : "";
                     detail.inputDevice = prop.inputDevice || 0;
-                    detail.proposalMailType = prop.mainType;
+                    detail.proposalMainType = prop.mainType;
                     detail.proposalType = prop.type && prop.type.name ? prop.type.name : "";
-                    detail.statys = prop.status;
+                    detail.status = prop.status;
                     detail.relatedUser = partner.partnerName;
                     detail.amount = prop.data && prop.data.amount ? prop.data.amount : 0;
                     detail.createTime = prop.createTime || "";
@@ -654,14 +654,16 @@ const dbLargeWithdrawal = {
                     processStep = proposalProcessData.steps[proposalProcessData.steps.length - 1];
                 }
 
-                let proms = [];
+                // let proms = [];
+                //
+                // setting.recipient.map(recipient => {
+                //     let prom = sendLargeWithdrawalProposalAuditedInfo(proposal, recipient, log, processStep, bSuccess, isPartner);
+                //     proms.push(prom);
+                // });
+                //
+                // return Promise.all(proms);
 
-                setting.recipient.map(recipient => {
-                    let prom = sendLargeWithdrawalProposalAuditedInfo(proposal, recipient, log, processStep, bSuccess, isPartner);
-                    proms.push(prom);
-                });
-
-                return Promise.all(proms);
+                return bulkSendProposalAuditedInfo(proposal, setting.recipient, log, processStep, bSuccess, isPartner);
             }
         );
     },
@@ -885,7 +887,7 @@ function sendPartnerLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawa
 function sendLargeWithdrawalProposalAuditedInfo(proposalData, adminObjId, log, proposalProcessStep, bSuccess, isPartner) {
     let admin, html;
 
-    let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).populate({path: "departments", model: dbconfig.collection_department}).lean();
+    let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
     let auditorProm = dbconfig.collection_admin.findOne({_id: proposalProcessStep.operator}).lean();
     let auditorDepartmentProm = dbconfig.collection_department.findOne({_id: proposalProcessStep.department}).lean();
 
@@ -896,11 +898,45 @@ function sendLargeWithdrawalProposalAuditedInfo(proposalData, adminObjId, log, p
             }
             admin = adminData;
 
-            html = generateLargeWithdrawalAuditedInfoEmail(proposalData, admin, proposalProcessStep, auditorData, auditorDepartmentData, bSuccess);
+            html = generateLargeWithdrawalAuditedInfoEmail(proposalData, proposalProcessStep, auditorData, auditorDepartmentData, bSuccess);
 
             let emailConfig = {
                 sender: "no-reply@snsoft.my", // company email?
                 recipient: admin.email, // admin email
+                subject: getLogDetailEmailSubject(log, isPartner), // title
+                body: html, // html content
+                isHTML: true
+            };
+
+            return emailer.sendEmail(emailConfig);
+        }
+    );
+}
+
+function bulkSendProposalAuditedInfo (proposalData, adminObjIds, log, proposalProcessStep, bSuccess, isPartner) {
+    let admins, html, adminEmails;
+    let adminsProm = dbconfig.collection_admin.find({_id: {$in: adminObjIds}}).lean();
+    let auditorProm = dbconfig.collection_admin.findOne({_id: proposalProcessStep.operator}).lean();
+    let auditorDepartmentProm = dbconfig.collection_department.findOne({_id: proposalProcessStep.department}).lean();
+
+    return Promise.all([adminsProm, auditorProm, auditorDepartmentProm]).then(
+        ([adminsData, auditorData, auditorDepartmentData]) => {
+            if (!adminsData) {
+                return Promise.reject({message: "Admin not found."});
+            }
+            admins = adminsData;
+
+            adminEmails = admins.map(admin => {
+                return admin.email;
+            });
+
+            let adminEmailsStr = adminEmails.join();
+
+            html = generateLargeWithdrawalAuditedInfoEmail(proposalData, proposalProcessStep, auditorData, auditorDepartmentData, bSuccess);
+
+            let emailConfig = {
+                sender: "no-reply@snsoft.my", // company email?
+                recipient: adminEmailsStr, // admin email
                 subject: getLogDetailEmailSubject(log, isPartner), // title
                 body: html, // html content
                 isHTML: true
@@ -1780,7 +1816,7 @@ function createProposalProcessStep (proposal, adminObjId, status, memo) {
     );
 }
 
-function generateLargeWithdrawalAuditedInfoEmail (proposalData, admin, proposalProcessStep, auditor, auditorDepartment, bSuccess) {
+function generateLargeWithdrawalAuditedInfoEmail (proposalData, proposalProcessStep, auditor, auditorDepartment, bSuccess) {
     let lockStatus = proposalData.isLocked && proposalData.isLocked.adminName || "未锁定";
     let status, cancelTime, decisionColor;
     if (proposalData.status == constProposalStatus.PENDING) {
