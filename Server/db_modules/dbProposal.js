@@ -272,6 +272,7 @@ var proposal = {
     createProposalDataHandler: function (ptProm, ptpProm, plyProm, proposalData, deferred) {
         let bExecute = false;
         let proposalTypeData = null;
+        let pendingProposalData = null;
 
         Q.all([ptProm, ptpProm, plyProm]).then(
             //create proposal with process
@@ -386,8 +387,34 @@ var proposal = {
 
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
                         pendingProposal => {
+                            pendingProposalData = pendingProposal;
+
+                            // for player update bank info, check if first time bound to the bank info
+                            if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType == "UpdatePlayer"
+                                && proposalTypeData._id && proposalTypeData.name == constProposalType.UPDATE_PLAYER_BANK_INFO
+                                && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId && proposalData.data._id) {
+
+                                return dbconfig.collection_proposal.findOne({
+                                    type: proposalTypeData._id,
+                                    'data.platformId': proposalData.data.platformId,
+                                    'data.playerId': proposalData.data.playerId,
+                                    'data.playerName': proposalData.data.playerName,
+                                    'data._id': proposalData.data._id
+                                }).lean().then(bankInfoProposal => {
+                                    if (!bankInfoProposal) {
+                                        return {isFirstBankInfo: true};
+                                    }
+                                });
+
+                            }
+                        }).then(playerBankInfoProposal => {
+                            // add remark if first time bound to the bank info
+                            if (playerBankInfoProposal && playerBankInfoProposal.hasOwnProperty('isFirstBankInfo') && playerBankInfoProposal.isFirstBankInfo) {
+                                proposalData.data.remark = localization.localization.translate("First time bound to the bank info");
+                            }
+
                             //for online top up and player consumption return, there can be multiple pending proposals
-                            if (pendingProposal
+                            if (pendingProposalData
                                 && data[0].name != constProposalType.PLAYER_TOP_UP
                                 //&& data[0].name != constProposalType.PLAYER_CONSUMPTION_RETURN
                                 && data[0].name != constProposalType.PLAYER_REGISTRATION_INTENTION

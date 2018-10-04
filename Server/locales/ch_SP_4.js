@@ -479,7 +479,8 @@ var simplifiedChinese = {
     "Spending Times cannot be empty": "解锁流水不能为空",
     "SMS function under maintenance, please try again later.": "短信功能维护中，请稍后再次尝试。",
     "Registration function under maintenance, please try again later.": "注册功能维护中，请稍后再次尝试。",
-    "This reward event is expired": "活动已经结束，感谢您的支持"
+    "This reward event is expired": "活动已经结束，感谢您的支持",
+    "First time bound to the bank info": "首次绑定银行"
 
     //todo::add missing messages here
 
