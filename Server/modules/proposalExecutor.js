@@ -1853,7 +1853,7 @@ var proposalExecutor = {
             executePlayerBonus: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.largeWithdrawalLog) {
                     if (dbLargeWithdrawal.sendProposalUpdateInfoToRecipients) {
-                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.largeWithdrawalLog, proposalData).catch(err => {
+                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.largeWithdrawalLog, proposalData, true).catch(err => {
                             console.log("Send large withdrawal proposal update info failed", proposalData.data.largeWithdrawalLog, err);
                             return errorUtils.reportError(err);
                         });
@@ -2082,6 +2082,17 @@ var proposalExecutor = {
             },
 
             executePartnerBonus: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.partnerLargeWithdrawalLog) {
+                    if (dbLargeWithdrawal.sendProposalUpdateInfoToRecipients) {
+                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.partnerLargeWithdrawalLog, proposalData, true, true).catch(err => {
+                            console.log("Send large withdrawal proposal update info failed", proposalData.data.partnerLargeWithdrawalLog, err);
+                            return errorUtils.reportError(err);
+                        });
+                    }
+                    else {
+                        console.log('dbLargeWithdrawal', dbLargeWithdrawal)
+                    }
+                }
                 dbconfig.collection_partner.findOne({partnerId: proposalData.data.partnerId})
                     .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
                     partner => {
@@ -3786,7 +3797,7 @@ var proposalExecutor = {
             rejectPlayerBonus: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.largeWithdrawalLog) {
                     if (dbLargeWithdrawal.sendProposalUpdateInfoToRecipients) {
-                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.largeWithdrawalLog, proposalData).catch(err => {
+                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.largeWithdrawalLog, proposalData, false, false).catch(err => {
                             console.log("Send large withdrawal proposal update info failed", proposalData.data.largeWithdrawalLog, err);
                             return errorUtils.reportError(err);
                         });
@@ -3824,6 +3835,18 @@ var proposalExecutor = {
              * reject function for player bonus
              */
             rejectPartnerBonus: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.partnerLargeWithdrawalLog) {
+                    if (dbLargeWithdrawal.sendProposalUpdateInfoToRecipients) {
+                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.partnerLargeWithdrawalLog, proposalData, false, true).catch(err => {
+                            console.log("Send large withdrawal proposal update info failed", proposalData.data.partnerLargeWithdrawalLog, err);
+                            return errorUtils.reportError(err);
+                        });
+                    }
+                    else {
+                        console.log('dbLargeWithdrawal', dbLargeWithdrawal)
+                    }
+                }
+
                 if (proposalData && proposalData.data && proposalData.data.partnerObjId && proposalData.data.platformId && proposalData.data.amount) {
                     return dbconfig.collection_partner.findOneAndUpdate(
                         {_id: proposalData.data.partnerObjId, platform: proposalData.data.platformId},

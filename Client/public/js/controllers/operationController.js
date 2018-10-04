@@ -1289,11 +1289,7 @@ define(['js/app'], function (myApp) {
                         title: $translate('INPUT_DEVICE'),
                         data: "inputDevice",
                         render: function (data, type, row) {
-                            for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
-                                if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == data ){
-                                    return $translate(Object.keys(vm.inputDevice)[i]);
-                                }
-                            }
+                            return vm.getInputDeviceName(data);
                         }
                     },
                     {
@@ -1580,6 +1576,14 @@ define(['js/app'], function (myApp) {
                 vm.commonSortChangeHandler(a, 'queryProposal', vm.loadProposalQueryData);
             });
         };
+
+        vm.getInputDeviceName = function (inputDevice) {
+            for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == inputDevice ){
+                    return $translate(Object.keys(vm.inputDevice)[i]);
+                }
+            }
+        }
 
         vm.drawProposalAuditTable = function (data, size, summary, newSearch) {
             console.log("whole data", data);
