@@ -1064,6 +1064,7 @@ define(['js/app'], function (myApp) {
                                                     if (group.isCustomPlatformFeeRate == true) {
                                                         vm.partnerCommVar.platformFeeTab = idxgroup;
                                                     }
+                                                    group.amount = $noRoundTwoDecimalPlaces(group.amount);
                                                 }
                                             );
                                         }
