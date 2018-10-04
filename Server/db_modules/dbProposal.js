@@ -938,6 +938,8 @@ var proposal = {
         ).then(
             function(data){
                 let bIsBankInfoMatched = typeof data != "undefined" ? data : true;
+                console.log("LH check bonus ---------- 7", data);
+                console.log("LH check bonus ---------- 8", bIsBankInfoMatched);
                 if(bIsBankInfoMatched == true){
                     if (proposalProcessData && proposalProcessData.currentStep && proposalProcessData.steps) {
                         var curTime = new Date();
@@ -7611,6 +7613,9 @@ function isBankInfoMatched(proposalData, playerId){
     let playerData = null;
     let platform = null;
 
+    console.log("LH check bonus 1 ----------", proposalData);
+    console.log("LH check bonus 2 ----------", playerId);
+
     return dbconfig.collection_players.findOne({playerId: playerId})
         .populate({path: "platform", model: dbconfig.collection_platform}).lean()
         .then(
@@ -7646,12 +7651,16 @@ function isBankInfoMatched(proposalData, playerId){
             }
         ).then(
             proposals => {
+                console.log("LH check bonus 3 ----------", platform);
+                console.log("LH check bonus 4 ----------", proposals);
                 if(platform && platform.manualAuditAfterBankChanged){
                     if(proposals && proposals.length > 0){
                         let length = proposals.length;
                         for (let i = 0; i < length; i++) {
                             let proposal = proposals[i];
                             if (proposal && proposal.type && proposal.type.name && proposal.status && proposal.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposal.status == constProposalStatus.APPROVED) {
+                                console.log("LH check bonus 5 ----------", proposal.data);
+                                console.log("LH check bonus 6 ----------", playerData);
                                 if (proposal.data) {
                                     if (proposal.data.bankAccount) {
                                         if (!playerData.bankAccount) {
