@@ -1073,6 +1073,10 @@ define(['js/app'], function (myApp) {
                                             if (partner.hasOwnProperty(key) && typeof partner[key] === 'number') {
                                                 partner[key] = $noRoundTwoDecimalPlaces(partner[key]);
                                             }
+
+                                            if (key === 'pastNettCommission' && partner.hasOwnProperty(key) && partner[key].length) {
+                                                partner[key] = partner[key].map(val => $noRoundTwoDecimalPlaces(val));
+                                            }
                                         }
                                     }
                                 }
