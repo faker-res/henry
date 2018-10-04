@@ -9745,8 +9745,108 @@ let dbPlayerInfo = {
         if (providerId != 'all') {
             query.providerId = providerId;
         }
-        return dbconfig.collection_providerDaySummary.find(query);
+
+        let consumptionCredit = dbconfig.collection_providerDaySummary.find(query);
+        let consumptionPlayerCount = dbPlayerInfo.getConsumptionPlayerCount(new Date(startDate), new Date(endDate), period, platformId, providerId);
+        return Promise.all([consumptionCredit, consumptionPlayerCount]).then(
+            consumptionData => {
+                return {
+                    playerConsumption: consumptionData[0]? consumptionData[0]: [],
+                    playerCount: consumptionData[1]? consumptionData[1]: []
+                };
+            }
+        )
     },
+
+    getConsumptionPlayerCount: (startDate, endDate, period, platformId, providerId) => {
+        let promArr = [];
+        var dayStartTime = startDate;
+        var getNextDate;
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+
+        // while (dayStartTime.getTime() < endDate.getTime()) {
+        for ( ; dayStartTime.getTime() < endDate.getTime(); dayStartTime = dayEndTime) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+
+            let nullObj = {
+                totalCount: 0
+            };
+
+            let matchObj = {
+                platformId: ObjectId(platformId),
+                createTime: {$gte: dayStartTime, $lt: dayEndTime},
+            };
+
+            if (platformId != 'all') {
+                matchObj.platformId = platformId;
+            }
+            if (providerId != 'all') {
+                matchObj.providerId = providerId;
+            }
+
+            promArr.push(dbconfig.collection_playerConsumptionRecord.aggregate([
+                {
+                    $match: matchObj
+                },
+                {
+                    $group: {
+                        _id: "$playerId"
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalCount: {$sum: 1}
+                    }
+                }
+            ]).read("secondaryPreferred").then(result => {
+
+                if (result && result.length > 0) {
+                    return result[0];
+                } else {
+                    return nullObj;
+                }
+            }));
+
+        }
+        return Promise.all(promArr).then(consumptionData => {
+            let tempDate = startDate;
+
+            if (consumptionData.length){
+                for (let i = 0; i < consumptionData.length; i++) {  // number of date
+                    consumptionData[i].date = new Date(tempDate);
+                    tempDate = getNextDate(tempDate);
+                }
+            }
+            else{
+                return Q.reject({name: 'DataError', message: 'The data mismatched'})
+            }
+
+            return consumptionData;
+
+        });
+    },
+
     countTopUpByPlatform: function (platformId, startDate, endDate, period) {
         var proms = [];
         var calculation = {$sum: "$amount"};
