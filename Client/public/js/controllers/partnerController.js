@@ -1067,10 +1067,16 @@ define(['js/app'], function (myApp) {
                                                 }
                                             );
                                         }
+
+                                        // Round to 2 dp
+                                        for (let key in partner) {
+                                            if (partner.hasOwnProperty(key) && typeof partner[key] === 'number') {
+                                                partner[key] = $noRoundTwoDecimalPlaces(partner[key]);
+                                            }
+                                        }
                                     }
                                 }
                             );
-                            console.log('partnerCommissionLog', vm.partnerCommissionLog);
                             $('#modalPartnerCommPreview').modal();
                         })
                     }
