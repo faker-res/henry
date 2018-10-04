@@ -1557,7 +1557,8 @@ var proposal = {
                     }
 
                     if (relateUser) {
-                        queryObj["data.playerName"] = relateUser
+                        queryObj["$and"] = queryObj["$and"] || [];
+                        queryObj["$and"].push({"$or": [{"data.playerName": relateUser}, {"data.partnerName": relateUser}]});
                     }
                     if (credit) {
                         queryObj["$or"] = [
