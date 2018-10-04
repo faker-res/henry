@@ -12143,9 +12143,7 @@ let dbPlayerInfo = {
 
                                                         type.status = status;
                                                         type.serviceCharge =
-                                                            localMerchantData && localMerchantData.customizeRate ? localMerchantData.customizeRate :
-                                                                localMerchantData && localMerchantData.rate ? merchant.rate :
-                                                                    paymentData.merchants[i].rate ? paymentData.merchants[i].rate : 0;
+                                                            localMerchantData && localMerchantData.customizeRate ? localMerchantData.customizeRate : 0;
                                                     }
                                                 }
                                             });
@@ -12157,9 +12155,7 @@ let dbPlayerInfo = {
                                                         maxDepositAmount: paymentData.merchants[i].permerchantLimits,
                                                         minDepositAmount: paymentData.merchants[i].permerchantminLimits,
                                                         serviceCharge:
-                                                            localMerchantData && localMerchantData.customizeRate ? localMerchantData.customizeRate :
-                                                                localMerchantData && localMerchantData.rate ? merchant.rate :
-                                                                    paymentData.merchants[i].rate ? paymentData.merchants[i].rate : 0
+                                                            localMerchantData && localMerchantData.customizeRate ? localMerchantData.customizeRate : 0
                                                     });
                                                 }
                                             }
