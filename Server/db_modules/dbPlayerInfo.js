@@ -3704,7 +3704,7 @@ let dbPlayerInfo = {
             platform = platformData;
 
             return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: player._id}).then(
-                rtgData => {
+                rtgData => {             
                     if (rtgData && rtgData.length) {
                         let calCreditArr = [];
 
@@ -18178,11 +18178,11 @@ let dbPlayerInfo = {
                     platformData.gameProviders.sort(sortRankingRecord);
                     
                     for (let i = 0; i < platformData.gameProviders.length; i++) {
+                        gameProviderIdList.push(platformData.gameProviders[i].providerId);
                         // check each of the game provider for the sameLineProvider
                         console.log("checking--Yh groupSameLineProviders", groupSameLineProviders)
                         if (platformData.gameProviders[i] && platformData.gameProviders[i].sameLineProviders && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId] &&
-                            platformData.gameProviders[i].sameLineProviders[playerDetails.platformId] && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId].length) {
-                            gameProviderIdList.push(platformData.gameProviders[i].providerId);
+                            platformData.gameProviders[i].sameLineProviders[playerDetails.platformId].length) {
 
                             if (!groupSameLineProviders.length) {
                                 groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId])
@@ -18216,6 +18216,10 @@ let dbPlayerInfo = {
                                     groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId]);
                                 }
                             }
+                        }
+                        else{
+                            // for those game provider does not have samelineProvider
+                            groupSameLineProviders.push([platformData.gameProviders[i].providerId]);
                         }
                         let nickName = "";
                         let status = platformData.gameProviders[i].status;
@@ -18349,8 +18353,9 @@ let dbPlayerInfo = {
                             providerId: gameCreditList[i].providerId
                         };
                         // check the game credit from the same platform
+                        console.log("checking---yH amountGameProviderList", amountGameProviderList)
                        if (amountGameProviderList.indexOf(gameCreditList[i].providerId) > -1){
-                           totalGameCreditAmount +=  parseFloat(gameCreditList[i].gameCredit) || 0;
+                           totalGameCreditAmount +=  parseInt(gameCreditList[i].gameCredit) || 0;
                        }
                     }
 
@@ -18390,7 +18395,7 @@ let dbPlayerInfo = {
                                 list: listData,
                             });
 
-                            totalLockedCredit += parseFloat(rewardTaskGroup[i].rewardAmt) || 0;
+                            totalLockedCredit += parseInt(rewardTaskGroup[i].rewardAmt) || 0;
                         }
                     }
                 }
@@ -18436,7 +18441,7 @@ let dbPlayerInfo = {
                 }
 
                 // return total amount
-                returnData.finalAmount =  Math.floor((totalLockedCredit + totalGameCreditAmount + parseFloat(returnData.credit)) * 100 ) / 100 ;
+                returnData.finalAmount =  totalLockedCredit + totalGameCreditAmount + parseInt(returnData.credit);
 
                 return returnData;
             });
