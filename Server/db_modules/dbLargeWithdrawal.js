@@ -398,12 +398,12 @@ const dbLargeWithdrawal = {
                     "data.platformId": {$in:[String(log.platform), log.platform]},
                     "data.partnerName": partner.partnerName,
                     createTime: {
-                        $lt: proposal.createTime,
+                        $lte: proposal.createTime,
                     }
                 };
 
                 if (lastWithdrawalDate) {
-                    proposalsQuery.createTime.$gt = lastWithdrawalDate;
+                    proposalsQuery.createTime.$gte = lastWithdrawalDate;
                 }
 
                 return dbconfig.collection_proposal.find(proposalsQuery).populate({path: "type", model: dbconfig.collection_proposalType}).lean();
