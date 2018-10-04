@@ -1365,9 +1365,9 @@ var proposalExecutor = {
             executePlayerTopUp: function (proposalData, deferred) {
                 let topUpAmount = Number(proposalData.data.amount);
 
-                // if(proposalData.data.hasOwnProperty("actualAmountReceived")){
-                //     topUpAmount = Number(proposalData.data.actualAmountReceived);
-                // }
+                if(proposalData.data.hasOwnProperty("actualAmountReceived")){
+                    topUpAmount = Number(proposalData.data.actualAmountReceived);
+                }
 
                 dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, topUpAmount, "", constPlayerTopUpType.ONLINE, proposalData).then(
                     function (data) {

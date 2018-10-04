@@ -1945,7 +1945,7 @@ define(['js/app'], function (myApp) {
             if (currentMerchant && Object.keys(currentMerchant).length) {
                 finalCustomizeRate = curCustomizeRate > 0 ? Number(curCustomizeRate) / 100 : curCustomizeRate;
 
-                if (finalCustomizeRate && currentMerchant && currentMerchant.name && vm.cloneAllMerchantList && vm.cloneAllMerchantList.length > 0) {
+                if (typeof finalCustomizeRate != "undefined" && currentMerchant && currentMerchant.name && vm.cloneAllMerchantList && vm.cloneAllMerchantList.length > 0) {
                     let index = vm.cloneAllMerchantList.findIndex(x => x && x.name && x.merchantNo && x.name == currentMerchant.name && x.merchantNo == currentMerchant.merchantNo);
 
                     if(vm.cloneAllMerchantList[index] && vm.cloneAllMerchantList[index].customizeRate != finalCustomizeRate) {
