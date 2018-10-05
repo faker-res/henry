@@ -63,6 +63,34 @@
                                 td
                                     span {{ vm.platformConsumptionAmountAverage }}
 
+        #playerConsumptionTrendAnalysis(ng-if='vm.showPageName == "PLAYER_EXPENSES"')
+            .row
+                .col-md-6
+                    label.text-primary {{"PLAYER_CONSUMPTION_TREND" | translate}}
+                    .graph
+                        .panel.panel-default
+                            #line-playerConsumptionTrend.lineChart.graphDiv(style='height:600px')
+                .col-md-6
+                    label &nbsp;
+                    .graph
+                        table#playerConsumptionTrendAnalysisTable.display.tableDiv(style='min-width:100%' ng-if='vm.showPageName == "PLAYER_TOPUP"')
+                        table.table-striped.display.tableDiv.no-footer.dataTable.text-center(style='width:100%' ng-if='vm.showPageName == "PLAYER_EXPENSES"')
+                            thead
+                                tr
+                                    th(ng-click='vm.playerConsumptionTrendAnalysisSort.playerCountSort = vm.playerConsumptionTrendAnalysisSort.playerCountSort == "date" ? "-date":"date"') {{ vm.platformConsumptionDataPeriodText | translate}}
+                                    th(ng-click='vm.playerConsumptionTrendAnalysisSort.playerCountSort = vm.playerConsumptionTrendAnalysisSort.playerCountSort == "totalCount" ? "-totalCount":"totalCount"') {{ "amount" | translate}}
+                            tbody
+                                tr(ng-repeat='(i, v) in vm.playerCountConsumption | orderBy: vm.playerConsumptionTrendAnalysisSort.playerCountSort')
+                                    td
+                                        span {{ v.date | date:"yyyy-MM-dd" }}
+                                    td
+                                        span {{ v.totalCount }}
+                                tr
+                                    td
+                                        span {{ "average value" | translate }}
+                                    td
+                                        span {{ vm.playerCountConsumptionAvg }}
+
     #playerCreditCountAnalysis(ng-if='vm.showPageName == "PLAYER_TOPUP"')
         .row
             .col-md-6
