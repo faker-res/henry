@@ -28515,6 +28515,7 @@ define(['js/app'], function (myApp) {
                         showCurrentWithdrawalTime: srcData.showCurrentWithdrawalTime,
                         showLastWithdrawalTime: srcData.showLastWithdrawalTime,
                         showCurrentCredit: srcData.showCurrentCredit,
+                        showProposalId: srcData.showProposalId,
                         allowAdminComment: srcData.allowAdminComment,
                         showPlayerBonusAmount: srcData.showPlayerBonusAmount,
                         showTotalTopUpAmount: srcData.showTotalTopUpAmount,
@@ -28539,7 +28540,7 @@ define(['js/app'], function (myApp) {
                         showLastThreeMonthTopUpWithdrawDifference: srcData.showLastThreeMonthTopUpWithdrawDifference,
                         showLastThreeMonthConsumptionAmount: srcData.showLastThreeMonthConsumptionAmount,
                     }
-                }
+                };
                 socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalSetting', sendData, function (data) {
                     console.log("updateLargeWithdrawalSetting complete")
                 });
@@ -28559,9 +28560,10 @@ define(['js/app'], function (myApp) {
                         showCurrentCredit: srcData.showCurrentCredit,
                         showTotalDownlinePlayersCount: srcData.showTotalDownlinePlayersCount,
                         showTotalDownlinePartnersCount: srcData.showTotalDownlinePartnersCount,
+                        showProposalId: srcData.showProposalId,
                         showAllPartnerRelatedProposal: srcData.showAllPartnerRelatedProposal,
                     }
-                }
+                };
                 socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalPartnerSetting', sendData, function (data) {
                     console.log("updateLargeWithdrawalPartnerSetting complete")
                 });
