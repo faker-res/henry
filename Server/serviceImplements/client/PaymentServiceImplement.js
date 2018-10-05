@@ -62,9 +62,9 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.getPlayerTopUpHistory, [conn.playerId, data.topUpType, data.startTime, data.endTime, data.startIndex, data.requestCount, !data.sort, data.status], isValidData);
     };
 
-    this.getOnlineTopupType.expectsData = 'merchantUse: ?, clientType: ?';
+    this.getOnlineTopupType.expectsData = 'clientType: ?';
     this.getOnlineTopupType.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(conn.playerId && data && data.merchantUse && data.clientType);
+        var isValidData = Boolean(conn.playerId && data && data.clientType);
         let userIp = conn.upgradeReq.connection.remoteAddress || '';
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
@@ -72,7 +72,7 @@ var PaymentServiceImplement = function () {
                 userIp = forwardedIp[0].trim();
             }
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getOnlineTopupType, [conn.playerId, data.merchantUse, data.clientType, data.bPMSGroup, userIp], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getOnlineTopupType, [conn.playerId, data.clientType, data.bPMSGroup, userIp], isValidData);
     };
 
     this.getBonusList.expectsData = '';
