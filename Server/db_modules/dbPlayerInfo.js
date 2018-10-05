@@ -14895,6 +14895,7 @@ let dbPlayerInfo = {
         let endDate = new Date(query.end);
         let getPlayerProm = Promise.resolve("");
         let result = [];
+        let isSinglePlayer = false;
         let resultSum = {
             manualTopUpAmount: 0,
             weChatTopUpAmount: 0,
@@ -14914,19 +14915,28 @@ let dbPlayerInfo = {
         };
 
         if (query.name) {
+            isSinglePlayer = true;
             getPlayerProm = dbconfig.collection_players.findOne({
                 name: query.name,
                 platform: platform,
                 isRealPlayer: true
             }, {_id: 1}).lean();
+        } else if (query.adminIds && query.adminIds.length) {
+            getPlayerProm = dbconfig.collection_players.find({
+                platform: platform,
+                isRealPlayer: true,
+                csOfficer: {$in: query.adminIds}
+            }, {_id: 1}).lean();
         }
 
         return getPlayerProm.then(
-            player => {
+            playerData => {
                 let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}};
 
-                if (player) {
-                    relevantPlayerQuery.playerId = player._id;
+                if (isSinglePlayer) {
+                    relevantPlayerQuery.playerId = playerData._id;
+                } else if (query.adminIds && query.adminIds.length && playerData.length) {
+                    relevantPlayerQuery.playerId = {$in: playerData.map(p => p._id)}
                 }
 
                 // relevant players are the players who played any game within given time period
@@ -14936,7 +14946,6 @@ let dbPlayerInfo = {
                     {$group: {_id: "$playerId"}}
                 ]).read("secondaryPreferred").then(
                     consumptionData => {
-
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
                                 return String(playerIdObj._id);
@@ -14953,6 +14962,13 @@ let dbPlayerInfo = {
                         if (player) {
                             proposalQuery['data.playerObjId'] = player._id;
                         }
+
+                        if (isSinglePlayer) {
+                            proposalQuery['data.playerObjId'] = playerData._id;
+                        } else if (query.adminIds && query.adminIds.length && playerData.length) {
+                            proposalQuery['data.playerObjId'] = {$in: playerData.map(p => p._id)}
+                        }
+
                         return dbconfig.collection_proposal.aggregate([
                             {$match: proposalQuery},
                             {$group: {_id: "$data.playerObjId"}}
