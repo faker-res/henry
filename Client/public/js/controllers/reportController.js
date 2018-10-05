@@ -3548,7 +3548,7 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            console.log(vm.playerQuery);
+
             var sendquery = {
                 platformId: vm.curPlatformId,
                 query: {
@@ -3578,7 +3578,9 @@ define(['js/app'], function (myApp) {
                     topUpAmountValueTwo: vm.playerQuery.topUpAmountValueTwo,
                     csPromoteWay: vm.playerQuery.csPromoteWay,
                     admins: vm.playerQuery.admins && vm.playerQuery.admins.length > 0 ? vm.playerQuery.admins : admins,
-                    adminIds: adminIds
+                    adminIds: vm.playerQuery.admins && vm.playerQuery.admins.length > 0
+                                ? vm.playerQuery.admins.map(adm => vm.queryAdmins.find(e => e.adminName === adm)._id)
+                                : adminIds
                 },
                 index: isExport ? 0 : (newSearch ? 0 : (vm.playerQuery.index || 0)),
                 limit: isExport ? 5000 : (vm.playerQuery.limit || 5000),
