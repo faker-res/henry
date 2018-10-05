@@ -28234,7 +28234,7 @@ define(['js/app'], function (myApp) {
                         if (indexReviewer > -1) {
                             $('#largeWithdrawPartnerRow' + index).removeAttr('style');
                             vm.largeWithdrawalPartnerSetting.reviewer.splice(indexReviewer, 1);
-                            vm.largeWithdrawCheckReviewer[index] = false;
+                            vm.largeWithdrawPartnerCheckReviewer[index] = false;
                         }
                     }
                 }
@@ -28253,19 +28253,6 @@ define(['js/app'], function (myApp) {
                         $('#largeWithdrawPartnerRow' + index).removeAttr('style');
                     }
                 }
-            };
-
-            vm.updateLargeWithdrawalRecipient = function () {
-                let sendData = {
-                    query: {platform: vm.selectedPlatform.id},
-                    updateData: {
-                        recipient: vm.largeWithdrawalSetting.recipient,
-                        reviewer: vm.largeWithdrawalSetting.reviewer
-                    }
-                }
-                socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalSetting', sendData, function (data) {
-                    console.log("updateLargeWithdrawalRecipient complete", data)
-                });
             };
 
             vm.updateLargeWithdrawalPartnerRecipient = function () {
