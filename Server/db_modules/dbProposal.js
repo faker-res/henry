@@ -396,10 +396,10 @@ var proposal = {
 
                                 return dbconfig.collection_proposal.findOne({
                                     type: proposalTypeData._id,
+                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                                     'data.platformId': proposalData.data.platformId,
                                     'data.playerId': proposalData.data.playerId,
-                                    'data.playerName': proposalData.data.playerName,
-                                    'data._id': proposalData.data._id
+                                    'data.playerName': proposalData.data.playerName
                                 }).lean().then(bankInfoProposal => {
                                     if (!bankInfoProposal) {
                                         return {isFirstBankInfo: true};
