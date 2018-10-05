@@ -1952,27 +1952,21 @@ let dbPartner = {
 
                     isVerifiedData = isVerified;
 
-                    return dbconfig.collection_proposalType.findOne({
-                        platformId: platformObjId,
-                        name: constProposalType.UPDATE_PARTNER_BANK_INFO
-                    }).lean().then(
-                        proposalTypeData => {
-                            if (proposalTypeData && proposalTypeData._id) {
-                                return dbconfig.collection_proposal.findOne({
-                                    type: proposalTypeData._id,
-                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-                                    'data.platformId': platformObjId,
-                                    'data.partnerName': partnerData.partnerName,
-                                    'data.partnerId': partnerData.partnerId
-                                }).lean().then(
-                                    proposal => {
-                                        if (!proposal) {
-                                            return {isFirstBankInfo: true};
-                                        }
-                                    }
-                                );
+                    let propQuery = {
+                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                        'data.platformId': partnerData.platform._id,
+                        'data.partnerName': partnerData.partnerName,
+                        'data.partnerId': partnerData.partnerId
+                    };
+
+                    return dbPropUtil.getOneProposalDataOfType(partnerData.platform._id, constProposalType.UPDATE_PARTNER_BANK_INFO, propQuery).then(
+                        proposal => {
+                            if (!proposal) {
+                                return {isFirstBankInfo: true};
                             }
-                        });
+                        }
+                    );
+
             }).then(
                  firstBankInfo => {
 

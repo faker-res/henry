@@ -2994,27 +2994,20 @@ let dbPlayerInfo = {
                     'permission.forbidPlayerFromLogin': false
                 }).lean().count();
 
-                let firstBankInfoProm = dbconfig.collection_proposalType.findOne({
-                    platformId: platformObjId,
-                    name: constProposalType.UPDATE_PLAYER_BANK_INFO
-                }).lean().then(
-                    proposalTypeData => {
-                        if (proposalTypeData && proposalTypeData._id) {
-                            return dbconfig.collection_proposal.findOne({
-                                type: proposalTypeData._id,
-                                'data.platformId': platformObjId,
-                                'data.playerName': playerObj.name,
-                                'data.playerId': playerObj.playerId,
-                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-                            }).lean().then(
-                                proposal => {
-                                    if (!proposal) {
-                                        return {isFirstBankInfo: true};
-                                    }
-                                }
-                            );
+                let propQuery = {
+                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                    'data.platformId': platformObjId,
+                    'data.playerName': playerObj.name,
+                    'data.playerId': playerObj.playerId,
+                };
+
+                let firstBankInfoProm = dbPropUtil.getOneProposalDataOfType(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
+                    proposal => {
+                        if (!proposal) {
+                            return {isFirstBankInfo: true};
                         }
-                });
+                    }
+                );
 
                 return Promise.all([realNameCountProm, sameBankAccountCountProm, firstBankInfoProm]).then(
                     data => {
