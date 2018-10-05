@@ -28114,9 +28114,9 @@ define(['js/app'], function (myApp) {
                vm.largeWithdrawCheckReviewer = {};
                vm.largeWithdrawCheckRecipient = {};
                //to remove duplicate
-                [...new Set(vm.adminList.map(item => item))].forEach((admin, index) => {
-                   vm.largeWithdrawCheckRecipient[index] = vm.getLargeWithdrawIsRecipient(admin._id);
-                   vm.largeWithdrawCheckReviewer[index] = vm.getLargeWithdrawIsReviewer(admin._id);
+                [...new Set(vm.adminList.map(item => item._id))].forEach((admin, index) => {
+                   vm.largeWithdrawCheckRecipient[index] = vm.getLargeWithdrawIsRecipient(admin);
+                   vm.largeWithdrawCheckReviewer[index] = vm.getLargeWithdrawIsReviewer(admin);
                    $('#largeWithdrawRow' + index).removeAttr('style');
                    if (vm.largeWithdrawCheckReviewer[index]) {
                        $('#largeWithdrawRow' + index).css('background-color', 'pink');
@@ -28195,9 +28195,9 @@ define(['js/app'], function (myApp) {
                 vm.largeWithdrawPartnerCheckReviewer = {};
                 vm.largeWithdrawPartnerCheckRecipient = {};
                 // to remove duplicate
-                [...new Set(vm.adminList.map(item => item))].forEach((admin, index) => {
-                    vm.largeWithdrawPartnerCheckRecipient[index] = vm.getLargeWithdrawPartnerIsRecipient(admin._id);
-                    vm.largeWithdrawPartnerCheckReviewer[index] = vm.getLargeWithdrawPartnerIsReviewer(admin._id);
+                [...new Set(vm.adminList.map(item => item._id))].forEach((admin, index) => {
+                    vm.largeWithdrawPartnerCheckRecipient[index] = vm.getLargeWithdrawPartnerIsRecipient(admin);
+                    vm.largeWithdrawPartnerCheckReviewer[index] = vm.getLargeWithdrawPartnerIsReviewer(admin);
                     $('#largeWithdrawPartnerRow' + index).removeAttr('style');
                     if (vm.largeWithdrawPartnerCheckReviewer[index]) {
                         $('#largeWithdrawPartnerRow' + index).css('background-color', 'pink');
@@ -28238,7 +28238,7 @@ define(['js/app'], function (myApp) {
                         if (indexReviewer > -1) {
                             $('#largeWithdrawPartnerRow' + index).removeAttr('style');
                             vm.largeWithdrawalPartnerSetting.reviewer.splice(indexReviewer, 1);
-                            vm.largeWithdrawCheckReviewer[index] = false;
+                            vm.largeWithdrawPartnerCheckReviewer[index] = false;
                         }
                     }
                 }
@@ -28257,19 +28257,6 @@ define(['js/app'], function (myApp) {
                         $('#largeWithdrawPartnerRow' + index).removeAttr('style');
                     }
                 }
-            };
-
-            vm.updateLargeWithdrawalRecipient = function () {
-                let sendData = {
-                    query: {platform: vm.selectedPlatform.id},
-                    updateData: {
-                        recipient: vm.largeWithdrawalSetting.recipient,
-                        reviewer: vm.largeWithdrawalSetting.reviewer
-                    }
-                }
-                socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalSetting', sendData, function (data) {
-                    console.log("updateLargeWithdrawalRecipient complete", data)
-                });
             };
 
             vm.updateLargeWithdrawalPartnerRecipient = function () {

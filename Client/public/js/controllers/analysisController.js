@@ -295,6 +295,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case "PLAYER_EXPENSES":
                         vm.platformConsumptionAnalysisSort = {};
+                        vm.playerConsumptionTrendAnalysisSort = {};
                         vm.initSearchParameter('playerCredit', 'day', 3, function () {
                             vm.queryPara.playerCredit.filterGameProvider = 'all';
                             //vm.drawPlayerCreditLine('PLAYER_EXPENSES');
@@ -5051,7 +5052,8 @@ define(['js/app'], function (myApp) {
                         periodDateData.push(startDate);
                         startDate = dayEndTime;
                     }
-                    vm.platformConsumptionData = data.data;
+
+                    vm.platformConsumptionData = data.data.playerConsumption || [];
                     vm.platformConsumptionAnalysisData = [];
                     for (let i = 0; i < periodDateData.length; i++) {
                         let consumptionWithinPeriod = vm.platformConsumptionData.filter(consumption => new Date(consumption.date).getTime() >= periodDateData[i].getTime() && new Date(consumption.date).getTime() < vm.getNextDateByPeriodAndDate(vm.queryPara.playerCredit.periodText, periodDateData[i]));
@@ -5075,6 +5077,13 @@ define(['js/app'], function (myApp) {
                     vm.platformConsumptionAmountAverage = calculatedConsumptionData.average;
                     vm.plotLineByElementId("#line-playerCredit", calculatedConsumptionData.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.playerCredit.periodText.toUpperCase()));
                     vm.isShowLoadingSpinner('#playerCreditAnalysis', false);
+
+                    if (data && data.data && data.data.playerCount) {
+                        vm.playerCountConsumption = data.data.playerCount;
+                        let calculatedConsumptionPlayerCount = vm.calculateLineDataAndAverage(vm.playerCountConsumption, 'totalCount', 'PLAYER_CONSUMPTION_TREND');
+                        vm.playerCountConsumptionAvg = calculatedConsumptionPlayerCount.average;
+                        vm.plotLineByElementId("#line-playerConsumptionTrend", calculatedConsumptionPlayerCount.lineData, $translate('AMOUNT'), $translate('PERIOD') + ' : ' + $translate(vm.queryPara.playerCredit.periodText.toUpperCase()));
+                    }
                 });
             });
 
