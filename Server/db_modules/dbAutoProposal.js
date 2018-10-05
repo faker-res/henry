@@ -403,7 +403,6 @@ function checkRewardTaskGroup(proposal, platformObj) {
             if (data && data[6] && data[6].provinces && playerData && playerData.bankAccountProvince) {
                 let allProvinces = data[6].provinces;
                 let pIdx = allProvinces.findIndex(d => d.id == playerData.bankAccountProvince);
-                console.log("@@@@@@@@@@@@@@@@@@", allProvinces);
                 if (allProvinces[pIdx] && allProvinces[pIdx].name) {
                     bankProvince = allProvinces[pIdx].name.replace("省", "")
                 }
