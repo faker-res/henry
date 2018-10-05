@@ -100,7 +100,7 @@ const dbLargeWithdrawal = {
                 let gameCreditProm = getTotalUniqueProviderCredit(player);
 
                 let totalTopUpFromLastWithdrawal = Promise.resolve(0); //default amount
-                let totalConsumptionFromLastWithdrawal = Promise.resolve(0);
+                let totalXIMAFromLastWithdrawal = Promise.resolve(0);
                 let totalRewardFromLastWithdrawal = Promise.resolve(0);
                 let consumptionTimesFromLastWithdrawal = Promise.resolve({
                     belowHundred: 0,
@@ -111,14 +111,14 @@ const dbLargeWithdrawal = {
                 let providerInfoFromLastWithdrawal = Promise.resolve([]);
                 if (lastWithdraw && lastWithdraw.createTime) {
                     totalTopUpFromLastWithdrawal = getTotalTopUpByTime(player, lastWithdraw.createTime, proposal.createTime);
-                    totalConsumptionFromLastWithdrawal = getTotalConsumptionByTime(player, lastWithdraw.createTime, proposal.createTime);
+                    totalXIMAFromLastWithdrawal = getTotalXIMAByTime(player, lastWithdraw.createTime, proposal.createTime);
                     totalRewardFromLastWithdrawal = getTotalRewardByTime(player, lastWithdraw.createTime, proposal.createTime);
                     consumptionTimesFromLastWithdrawal = getConsumptionTimesByTime(player, lastWithdraw.createTime, proposal.createTime);
                     providerInfoFromLastWithdrawal = getProviderInfoByTime(player, lastWithdraw.createTime, proposal.createTime);
 
                 }
                 let totalTopUpFromLastTopUp = Promise.resolve(0);
-                let totalConsumptionFromLastTopUp = Promise.resolve(0);
+                let totalXIMAFromLastTopUp = Promise.resolve(0);
                 let totalRewardFromLastTopUp = Promise.resolve(0);
                 let consumptionTimesFromLastTopUp = Promise.resolve({
                     belowHundred: 0,
@@ -147,7 +147,7 @@ const dbLargeWithdrawal = {
 
                 if (lastTopUp && lastTopUp.createTime) {
                     totalTopUpFromLastTopUp = lastTopUp.amount ? lastTopUp.amount : 0;
-                    totalConsumptionFromLastTopUp = getTotalConsumptionByTime(player, lastTopUp.createTime, proposal.createTime);
+                    totalXIMAFromLastTopUp = getTotalXIMAByTime(player, lastTopUp.createTime, proposal.createTime);
                     totalRewardFromLastTopUp = getTotalRewardByTime(player, lastTopUp.createTime, proposal.createTime);
                     consumptionTimesFromLastTopUp = getConsumptionTimesByTime(player, lastTopUp.createTime, proposal.createTime);
                     providerInfoFromLastTopUp = getProviderInfoByTime(player, lastTopUp.createTime, proposal.createTime);
@@ -155,15 +155,15 @@ const dbLargeWithdrawal = {
 
 
                 return Promise.all([largeWithdrawalSettingProm, todayLargeAmountProm, bankCityProm, gameCreditProm, totalTopUpFromLastWithdrawal
-                    , totalConsumptionFromLastWithdrawal, totalRewardFromLastWithdrawal, consumptionTimesFromLastWithdrawal, providerInfoFromLastWithdrawal
-                    , totalTopUpFromLastTopUp, totalConsumptionFromLastTopUp, totalRewardFromLastTopUp, consumptionTimesFromLastTopUp, providerInfoFromLastTopUp
+                    , totalXIMAFromLastWithdrawal, totalRewardFromLastWithdrawal, consumptionTimesFromLastWithdrawal, providerInfoFromLastWithdrawal
+                    , totalTopUpFromLastTopUp, totalXIMAFromLastTopUp, totalRewardFromLastTopUp, consumptionTimesFromLastTopUp, providerInfoFromLastTopUp
                     , todayTopUpAmt, todayWithdrawalAmt, totalTopUpAmt, totalWithdrawalAmt, currentMonthTopUpAmt, lastMonthTopUpAmt, secondLastMonthTopUpAmt
                     , currentMonthWithdrawAmt, lastMonthWithdrawAmt, secondLastMonthWithdrawAmt, currentMonthConsumptionAmt, lastMonthConsumptionAmt, secondLastMonthConsumptionAmt]);
             }
         ).then(
-            ([largeWithdrawalSetting, todayLargeAmountNo, bankCity, gameCredit, topUpAmtFromLastWithdraw, consumptionAmtFromLastWithdraw
+            ([largeWithdrawalSetting, todayLargeAmountNo, bankCity, gameCredit, topUpAmtFromLastWithdraw, totalXIMAFromLastWithdraw
                  , rewardAmtFromLastWithdraw, consumptionTimesFromLastWithdraw, providerInfoFromLastWithdraw, totalTopUpFromLastTopUp
-                 , totalConsumptionFromLastTopUp, totalRewardFromLastTopUp, consumptionTimesFromLastTopUp, providerInfoFromLastTopUp
+                 , totalXIMAFromLastTopUp, totalRewardFromLastTopUp, consumptionTimesFromLastTopUp, providerInfoFromLastTopUp
                  , todayTopUpAmt, todayWithdrawalAmt, totalTopUpAmt, totalWithdrawalAmt, currentMonthTopUpAmt, lastMonthTopUpAmt, secondLastMonthTopUpAmt
                 , currentMonthWithdrawAmt, lastMonthWithdrawAmt, secondLastMonthWithdrawAmt, currentMonthConsumptionAmt, lastMonthConsumptionAmt, secondLastMonthConsumptionAmt]) => {
                 let bankCityName;
@@ -197,7 +197,7 @@ const dbLargeWithdrawal = {
                     currentCredit: currentCredit,
                     playerBonusAmount: currentCredit + withdrawalAmount - topUpAmtFromLastWithdraw,
                     playerTotalTopUpAmount: topUpAmtFromLastWithdraw,
-                    consumptionReturnAmount: consumptionAmtFromLastWithdraw,
+                    consumptionReturnAmount: totalXIMAFromLastWithdraw,
                     rewardAmount: rewardAmtFromLastWithdraw,
                     consumptionAmountTimes: {
                         belowHundred: consumptionTimesFromLastWithdraw.belowHundred || 0,
@@ -209,7 +209,7 @@ const dbLargeWithdrawal = {
                     gameProviderInfo: providerInfoFromLastWithdraw,
                     lastTopUpPlayerBonusAmount: currentCredit + withdrawalAmount - totalTopUpFromLastTopUp,
                     lastTopUpAmount: totalTopUpFromLastTopUp,
-                    lastTopUpConsumptionReturnAmount: totalConsumptionFromLastTopUp,
+                    lastTopUpConsumptionReturnAmount: totalXIMAFromLastTopUp,
                     lastTopUpRewardAmount: totalRewardFromLastTopUp,
                     lastTopUpConsumptionAmountTimes: {
                         belowHundred: consumptionTimesFromLastTopUp.belowHundred || 0,
@@ -2082,6 +2082,44 @@ function getTotalRewardByTime (playerObj, startTime, endTime) {
             }
             if (proposalTypeData) {
                 rewardQuery.type = {$ne: proposalTypeData._id}
+            }
+            return dbconfig.collection_proposal.aggregate([{
+                $match: rewardQuery
+            }, {
+                $group: {
+                    _id: null,
+                    amount: {$sum: "$data.rewardAmount"}
+                }
+            }]).read("secondaryPreferred").then(
+                rewardData => {
+                    let rewardAmount = 0;
+                    if (rewardData && rewardData[0] && rewardData[0].amount) {
+                        rewardAmount = rewardData[0].amount;
+                    }
+                    return rewardAmount;
+                }
+            );
+        }
+    )
+}
+
+function getTotalXIMAByTime (playerObj, startTime, endTime) {
+    return dbconfig.collection_proposalType.findOne({
+        platformId: playerObj.platform,
+        name: constProposalType.PLAYER_CONSUMPTION_RETURN
+    }).lean().then(
+        proposalTypeData => {
+            let rewardQuery = {
+                'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
+                mainType: "Reward",
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                createTime: {
+                    $gte: startTime,
+                    $lt: endTime
+                }
+            }
+            if (proposalTypeData) {
+                rewardQuery.type = proposalTypeData._id
             }
             return dbconfig.collection_proposal.aggregate([{
                 $match: rewardQuery
