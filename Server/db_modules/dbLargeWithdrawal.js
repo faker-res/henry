@@ -320,7 +320,7 @@ const dbLargeWithdrawal = {
                 }
                 log = logData;
 
-                let proposalProm = dbconfig.collection_proposal.findOne({proposalId: log.proposalId}).lean();
+                let proposalProm = dbconfig.collection_proposal.findOne({proposalId: log.proposalId}).read("secondaryPreferred").lean();
                 let settingProm = dbconfig.collection_largeWithdrawalPartnerSetting.findOne({platform: log.platform}).lean();
 
                 return Promise.all([proposalProm, settingProm]);
@@ -360,7 +360,7 @@ const dbLargeWithdrawal = {
                         $gte: todayTime.startTime,
                         $lt: todayTime.endTime
                     },
-                }).count();
+                }).read("secondaryPreferred").count();
 
                 let bankCityProm = pmsAPI.foundation_getCityList({provinceId: partner.bankAccountProvince});
                 let lastWithdrawalProm = dbconfig.collection_proposal.findOne({
@@ -368,10 +368,10 @@ const dbLargeWithdrawal = {
                     mainType: constProposalType.PLAYER_BONUS,
                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                     createTime: {$lt: proposal.createTime}
-                }).sort({createTime: -1}).lean();
+                }).sort({createTime: -1}).read("secondaryPreferred").lean();
 
-                let downLinePlayerProm = dbconfig.collection_players.find({partner: partner._id}, {_id: 1}).lean();
-                let downLinePartnerProm = dbconfig.collection_partner.find({parent: partner._id}, {_id: 1}).lean();
+                let downLinePlayerProm = dbconfig.collection_players.find({partner: partner._id}, {_id: 1}).read("secondaryPreferred").lean();
+                let downLinePartnerProm = dbconfig.collection_partner.find({parent: partner._id}, {_id: 1}).read("secondaryPreferred").lean();
 
                 return Promise.all([todayLargeAmountProm, bankCityProm, lastWithdrawalProm, downLinePlayerProm, downLinePartnerProm]);
             }
@@ -406,7 +406,7 @@ const dbLargeWithdrawal = {
                     proposalsQuery.createTime.$gte = lastWithdrawalDate;
                 }
 
-                return dbconfig.collection_proposal.find(proposalsQuery).populate({path: "type", model: dbconfig.collection_proposalType}).sort({createTime: -1}).lean();
+                return dbconfig.collection_proposal.find(proposalsQuery).populate({path: "type", model: dbconfig.collection_proposalType}).sort({createTime: -1}).read("secondaryPreferred").lean();
             }
         ).then(
             periodProposals => {
@@ -1009,6 +1009,13 @@ function generateLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
             <td style="border: solid 1px black; padding: 3px">${num}</td>
         </tr>`;
     }
+    if (setting.showProposalId) {
+        let num = log.proposalId;
+        html += `<tr>
+            <td style="border: solid 1px black; padding: 3px">提款提案号</td>
+            <td style="border: solid 1px black; padding: 3px">${num}</td>
+        </tr>`;
+    }
 
     html += `</table>`;
 
@@ -1496,6 +1503,13 @@ function generatePartnerLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
         let num = log.downLinePartnerAmount;
         html += `<tr>
             <td style="border: solid 1px black; padding: 3px">下线总玩家数</td>
+            <td style="border: solid 1px black; padding: 3px">${num}</td>
+        </tr>`;
+    }
+    if (setting.showProposalId) {
+        let num = log.proposalId;
+        html += `<tr>
+            <td style="border: solid 1px black; padding: 3px">提款提案号</td>
             <td style="border: solid 1px black; padding: 3px">${num}</td>
         </tr>`;
     }
