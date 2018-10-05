@@ -12180,7 +12180,7 @@ let dbPlayerInfo = {
     /*
      * get player online top up types
      */
-    getOnlineTopupType: function (playerId, merchantUse, clientType, bPMSGroup, userIp) {
+    getOnlineTopupType: function (playerId, clientType, bPMSGroup, userIp) {
         // merchantUse - 1: merchant, 2: bankcard
         // clientType: 1: browser, 2: mobileApp
         var playerData = null;
@@ -12207,7 +12207,7 @@ let dbPlayerInfo = {
                         queryId: serverInstance.getQueryId()
                     };
                     playerData = data;
-                    if (merchantUse == 1) {
+                    //if (merchantUse == 1) {
                         if (bPMSGroup == true || bPMSGroup == "true") {
                             pmsQuery.username = data.name;
                             pmsQuery.ip = userIp;
@@ -12215,10 +12215,10 @@ let dbPlayerInfo = {
                             return pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
                         }
                         return pmsAPI.merchant_getMerchantList(pmsQuery);
-                    }
-                    else {
-                        return pmsAPI.bankcard_getBankcardList(pmsQuery);
-                    }
+                    // }
+                    // else {
+                    //     return pmsAPI.bankcard_getBankcardList(pmsQuery);
+                    // }
                 } else {
                     return Q.reject({name: "DataError", message: "Cannot find player"})
                 }
@@ -12227,7 +12227,7 @@ let dbPlayerInfo = {
             paymentType => {
                 paymentData = paymentType;
                 if(playerData && playerData.merchantGroup && playerData.merchantGroup.merchantNames) {
-                    return dbconfig.collection_platformMerchantList.findOne({
+                    return dbconfig.collection_platformMerchantList.find({
                         name: playerData.merchantGroup.merchantNames,
                         platformId: playerData.platform.platformId
                     }).lean();
@@ -12239,7 +12239,8 @@ let dbPlayerInfo = {
             localMerchantData => {
                 if (paymentData) {
                     var resData = [];
-                    if (merchantUse == 1 && (paymentData.merchants || paymentData.topupTypes)) {
+                    // if (merchantUse == 1 && (paymentData.merchants || paymentData.topupTypes)) {
+                    if (paymentData.merchants || paymentData.topupTypes) {
                         if (paymentData.topupTypes) {
                             resData = paymentData.topupTypes;
                             resData.forEach(merchant => {
@@ -12271,20 +12272,19 @@ let dbPlayerInfo = {
                                                         }
 
                                                         type.status = status;
-                                                        type.serviceCharge =
-                                                            localMerchantData && localMerchantData.customizeRate ? localMerchantData.customizeRate : 0;
                                                     }
                                                 }
                                             });
                                             if (bValidType && playerData.permission.topupOnline && paymentData.merchants[i].name == merchant && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
                                                 if (!playerData.forbidTopUpType || playerData.forbidTopUpType.findIndex(f => f == paymentData.merchants[i].topupType) == -1) {
+                                                    let serviceCharge = localMerchantData ? localMerchantData.find(data => data.name == paymentData.merchants[i].name) : null;
+                                                    serviceCharge = serviceCharge && serviceCharge.customizeRate ? serviceCharge.customizeRate : 0;
                                                     resData.push({
                                                         type: paymentData.merchants[i].topupType,
                                                         status: status,
                                                         maxDepositAmount: paymentData.merchants[i].permerchantLimits,
                                                         minDepositAmount: paymentData.merchants[i].permerchantminLimits,
-                                                        serviceCharge:
-                                                            localMerchantData && localMerchantData.customizeRate ? localMerchantData.customizeRate : 0
+                                                        serviceCharge: serviceCharge
                                                     });
                                                 }
                                             }
@@ -12294,37 +12294,37 @@ let dbPlayerInfo = {
                             }
                         }
                     }
-                    else {
-                        if (paymentData.data && playerData.bankCardGroup && playerData.bankCardGroup.banks && playerData.bankCardGroup.banks.length > 0) {
-                            playerData.bankCardGroup.banks.forEach(
-                                bank => {
-                                    for (let i = 0; i < paymentData.data.length; i++) {
-                                        var status = 2;
-                                        if (paymentData.data[i].accountNumber == bank) {
-                                            status = 1;
-                                        }
-                                        var bValidType = true;
-                                        resData.forEach(type => {
-                                            if (type.type == paymentData.data[i].bankTypeId) {
-                                                bValidType = false;
-                                                if (status == 1 && paymentData.data[i].status == "NORMAL") {
-                                                    type.status = status;
-                                                }
-                                            }
-                                        });
-                                        if (bValidType && playerData.permission.topupManual && paymentData.data[i].status == "NORMAL") {
-                                            if (status == 1) {
-                                                resData.push({
-                                                    type: paymentData.data[i].bankTypeId,
-                                                    status: status
-                                                });
-                                            }
-                                        }
-                                    }
-                                }
-                            );
-                        }
-                    }
+                    // else {
+                    //     if (paymentData.data && playerData.bankCardGroup && playerData.bankCardGroup.banks && playerData.bankCardGroup.banks.length > 0) {
+                    //         playerData.bankCardGroup.banks.forEach(
+                    //             bank => {
+                    //                 for (let i = 0; i < paymentData.data.length; i++) {
+                    //                     var status = 2;
+                    //                     if (paymentData.data[i].accountNumber == bank) {
+                    //                         status = 1;
+                    //                     }
+                    //                     var bValidType = true;
+                    //                     resData.forEach(type => {
+                    //                         if (type.type == paymentData.data[i].bankTypeId) {
+                    //                             bValidType = false;
+                    //                             if (status == 1 && paymentData.data[i].status == "NORMAL") {
+                    //                                 type.status = status;
+                    //                             }
+                    //                         }
+                    //                     });
+                    //                     if (bValidType && playerData.permission.topupManual && paymentData.data[i].status == "NORMAL") {
+                    //                         if (status == 1) {
+                    //                             resData.push({
+                    //                                 type: paymentData.data[i].bankTypeId,
+                    //                                 status: status
+                    //                             });
+                    //                         }
+                    //                     }
+                    //                 }
+                    //             }
+                    //         );
+                    //     }
+                    // }
                     return resData;
                 }
                 else {

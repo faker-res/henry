@@ -403,9 +403,8 @@ function checkRewardTaskGroup(proposal, platformObj) {
             if (data && data[6] && data[6].provinces && playerData && playerData.bankAccountProvince) {
                 let allProvinces = data[6].provinces;
                 let pIdx = allProvinces.findIndex(d => d.id == playerData.bankAccountProvince);
-
                 if (allProvinces[pIdx] && allProvinces[pIdx].name) {
-                    bankProvince = allProvinces[pIdx].name.substring(0, 2);
+                    bankProvince = allProvinces[pIdx].name.replace("省", "")
                 }
             }
 
@@ -478,6 +477,15 @@ function checkRewardTaskGroup(proposal, platformObj) {
                     checkMsg += ' Denied: FW: Low Bet/Top Up Ratio;';
                     checkMsgChinese += ' 失败：首提投注额/存款过低;';
                     canApprove = false;
+                }
+
+                //remove "省" from province variable
+                if(playerData.phoneProvince){
+                    playerData.phoneProvince = playerData.phoneProvince.replace("省", "");
+                }
+
+                if(playerData.province){
+                    playerData.province = playerData.province.replace("省", "");
                 }
 
                 if (platformObj.autoAudit.firstWithdrawDifferentIPCheck
