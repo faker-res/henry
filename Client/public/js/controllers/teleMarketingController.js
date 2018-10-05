@@ -2342,7 +2342,7 @@ define(['js/app'], function (myApp) {
                             item.isArchived =
                                 item.archivedAmt$ == item.availableAmt$ || item.curConsumption$ == item.requiredUnlockAmount$;
 
-                            if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3)){
+                            if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId){
                                 usedTopUp.push(item.topUpProposal)
                             }
 
@@ -3081,7 +3081,7 @@ define(['js/app'], function (myApp) {
                         item.isArchived =
                             item.archivedAmt$ == item.availableAmt$ || item.curConsumption$ == item.requiredUnlockAmount$;
 
-                        if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3)){
+                        if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId){
                             usedTopUp.push(item.topUpProposal)
                         }
 

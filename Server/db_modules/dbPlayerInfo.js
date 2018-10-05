@@ -20549,10 +20549,21 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
         ).then(
             res => {
                 if (res) {
-                    dbconfig.collection_playerTopUpRecord.findOneAndUpdate({_id: topUpRecordObjId}, {
-                        bDirty: true,
-                        $push: {usedEvent: newProp.data.eventId}
-                    }).catch(errorUtils.reportError);
+                    dbUtility.findOneAndUpdateForShard(
+                        dbconfig.collection_playerTopUpRecord,
+                        {_id: ObjectId(topUpRecordObjId)},
+                        {
+                            bDirty: true,
+                            $push: {usedEvent: newProp.data.eventId}
+                        },
+                        constShardKeys.collection_playerTopUpRecord,
+                        true
+                    );
+
+                    // dbconfig.collection_playerTopUpRecord.findOneAndUpdate({_id: topUpRecordObjId}, {
+                    //     bDirty: true,
+                    //     $push: {usedEvent: newProp.data.eventId}
+                    // }).catch(errorUtils.reportError);
 
                     return dbUtility.findOneAndUpdateForShard(
                         dbconfig.collection_proposal,
