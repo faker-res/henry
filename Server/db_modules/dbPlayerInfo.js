@@ -5004,7 +5004,7 @@ let dbPlayerInfo = {
 
                 return dbconfig.collection_players
                     .find(advancedQuery, {similarPlayers: 0})
-                    .sort(sortObj).skip(index).limit(limit).lean().then(
+                    .sort(sortObj).skip(index).limit(limit).read("secondaryPreferred").lean().then(
                         players => {
                             let calculatePlayerValueProms = [];
                             let updatePlayerCredibilityRemarksProm = [];
@@ -5060,6 +5060,7 @@ let dbPlayerInfo = {
                     .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
                     .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints, select: 'points'})
                     .populate({path: "blacklistIp", model: dbconfig.collection_platformBlacklistIpConfig})
+                    .read("secondaryPreferred")
                     .lean().then(
                         playerData => {
                             var players = [];
@@ -9745,8 +9746,108 @@ let dbPlayerInfo = {
         if (providerId != 'all') {
             query.providerId = providerId;
         }
-        return dbconfig.collection_providerDaySummary.find(query);
+
+        let consumptionCredit = dbconfig.collection_providerDaySummary.find(query);
+        let consumptionPlayerCount = dbPlayerInfo.getConsumptionPlayerCount(new Date(startDate), new Date(endDate), period, platformId, providerId);
+        return Promise.all([consumptionCredit, consumptionPlayerCount]).then(
+            consumptionData => {
+                return {
+                    playerConsumption: consumptionData[0]? consumptionData[0]: [],
+                    playerCount: consumptionData[1]? consumptionData[1]: []
+                };
+            }
+        )
     },
+
+    getConsumptionPlayerCount: (startDate, endDate, period, platformId, providerId) => {
+        let promArr = [];
+        var dayStartTime = startDate;
+        var getNextDate;
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+
+        // while (dayStartTime.getTime() < endDate.getTime()) {
+        for ( ; dayStartTime.getTime() < endDate.getTime(); dayStartTime = dayEndTime) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+
+            let nullObj = {
+                totalCount: 0
+            };
+
+            let matchObj = {
+                platformId: ObjectId(platformId),
+                createTime: {$gte: dayStartTime, $lt: dayEndTime},
+            };
+
+            if (platformId != 'all') {
+                matchObj.platformId = platformId;
+            }
+            if (providerId != 'all') {
+                matchObj.providerId = providerId;
+            }
+
+            promArr.push(dbconfig.collection_playerConsumptionRecord.aggregate([
+                {
+                    $match: matchObj
+                },
+                {
+                    $group: {
+                        _id: "$playerId"
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalCount: {$sum: 1}
+                    }
+                }
+            ]).read("secondaryPreferred").then(result => {
+
+                if (result && result.length > 0) {
+                    return result[0];
+                } else {
+                    return nullObj;
+                }
+            }));
+
+        }
+        return Promise.all(promArr).then(consumptionData => {
+            let tempDate = startDate;
+
+            if (consumptionData.length){
+                for (let i = 0; i < consumptionData.length; i++) {  // number of date
+                    consumptionData[i].date = new Date(tempDate);
+                    tempDate = getNextDate(tempDate);
+                }
+            }
+            else{
+                return Q.reject({name: 'DataError', message: 'The data mismatched'})
+            }
+
+            return consumptionData;
+
+        });
+    },
+
     countTopUpByPlatform: function (platformId, startDate, endDate, period) {
         var proms = [];
         var calculation = {$sum: "$amount"};
@@ -14795,6 +14896,7 @@ let dbPlayerInfo = {
         let endDate = new Date(query.end);
         let getPlayerProm = Promise.resolve("");
         let result = [];
+        let isSinglePlayer = false;
         let resultSum = {
             manualTopUpAmount: 0,
             weChatTopUpAmount: 0,
@@ -14814,19 +14916,28 @@ let dbPlayerInfo = {
         };
 
         if (query.name) {
+            isSinglePlayer = true;
             getPlayerProm = dbconfig.collection_players.findOne({
                 name: query.name,
                 platform: platform,
                 isRealPlayer: true
             }, {_id: 1}).lean();
+        } else if (query.adminIds && query.adminIds.length) {
+            getPlayerProm = dbconfig.collection_players.find({
+                platform: platform,
+                isRealPlayer: true,
+                csOfficer: {$in: query.adminIds}
+            }, {_id: 1}).lean();
         }
 
         return getPlayerProm.then(
-            player => {
+            playerData => {
                 let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}};
 
-                if (player) {
-                    relevantPlayerQuery.playerId = player._id;
+                if (isSinglePlayer) {
+                    relevantPlayerQuery.playerId = playerData._id;
+                } else if (query.adminIds && query.adminIds.length && playerData.length) {
+                    relevantPlayerQuery.playerId = {$in: playerData.map(p => p._id)}
                 }
 
                 // relevant players are the players who played any game within given time period
@@ -14836,7 +14947,6 @@ let dbPlayerInfo = {
                     {$group: {_id: "$playerId"}}
                 ]).read("secondaryPreferred").then(
                     consumptionData => {
-
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
                                 return String(playerIdObj._id);
@@ -14850,9 +14960,12 @@ let dbPlayerInfo = {
                             'data.platformId': platform
                         };
 
-                        if (player) {
-                            proposalQuery['data.playerObjId'] = player._id;
+                        if (isSinglePlayer) {
+                            proposalQuery['data.playerObjId'] = playerData._id;
+                        } else if (query.adminIds && query.adminIds.length && playerData.length) {
+                            proposalQuery['data.playerObjId'] = {$in: playerData.map(p => p._id)}
                         }
+
                         return dbconfig.collection_proposal.aggregate([
                             {$match: proposalQuery},
                             {$group: {_id: "$data.playerObjId"}}
@@ -20549,10 +20662,21 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
         ).then(
             res => {
                 if (res) {
-                    dbconfig.collection_playerTopUpRecord.findOneAndUpdate({_id: topUpRecordObjId}, {
-                        bDirty: true,
-                        $push: {usedEvent: newProp.data.eventId}
-                    }).catch(errorUtils.reportError);
+                    dbUtility.findOneAndUpdateForShard(
+                        dbconfig.collection_playerTopUpRecord,
+                        {_id: ObjectId(topUpRecordObjId)},
+                        {
+                            bDirty: true,
+                            $push: {usedEvent: newProp.data.eventId}
+                        },
+                        constShardKeys.collection_playerTopUpRecord,
+                        true
+                    );
+
+                    // dbconfig.collection_playerTopUpRecord.findOneAndUpdate({_id: topUpRecordObjId}, {
+                    //     bDirty: true,
+                    //     $push: {usedEvent: newProp.data.eventId}
+                    // }).catch(errorUtils.reportError);
 
                     return dbUtility.findOneAndUpdateForShard(
                         dbconfig.collection_proposal,

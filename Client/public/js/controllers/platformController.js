@@ -604,18 +604,22 @@ define(['js/app'], function (myApp) {
 
             vm.initThemeSetting = function (){
 
-                utilService.actionAfterLoaded("#playerThemeSelectPanel .playerThemeTable", function () {
+                utilService.actionAfterLoaded("#playerThemeSelectPanel #playerThemeTable", function () {
                     setTimeout(()=>{
                         if (vm.selectedPlatform.data && vm.selectedPlatform.data.playerThemeSetting) {
                             vm.initThemeCheck(vm.selectedPlatform.data.playerThemeSetting, 'player');
                         }
-
+                    }, 100);
+                });
+                
+                utilService.actionAfterLoaded("#partnerThemeSelectPanel #partnerThemeTable", function () {
+                    setTimeout(()=>{
                         if (vm.selectedPlatform.data && vm.selectedPlatform.data.partnerThemeSetting) {
                             vm.initThemeCheck(vm.selectedPlatform.data.partnerThemeSetting, 'partner');
                         }
                     }, 100);
                 });
-            }
+            };
 
             vm.initThemeCheck = function (data, mode){
                 if (mode == 'player'){
@@ -28110,9 +28114,9 @@ define(['js/app'], function (myApp) {
                vm.largeWithdrawCheckReviewer = {};
                vm.largeWithdrawCheckRecipient = {};
                //to remove duplicate
-                [...new Set(vm.adminList.map(item => item))].forEach((admin, index) => {
-                   vm.largeWithdrawCheckRecipient[index] = vm.getLargeWithdrawIsRecipient(admin._id);
-                   vm.largeWithdrawCheckReviewer[index] = vm.getLargeWithdrawIsReviewer(admin._id);
+                [...new Set(vm.adminList.map(item => item._id))].forEach((admin, index) => {
+                   vm.largeWithdrawCheckRecipient[index] = vm.getLargeWithdrawIsRecipient(admin);
+                   vm.largeWithdrawCheckReviewer[index] = vm.getLargeWithdrawIsReviewer(admin);
                    $('#largeWithdrawRow' + index).removeAttr('style');
                    if (vm.largeWithdrawCheckReviewer[index]) {
                        $('#largeWithdrawRow' + index).css('background-color', 'pink');
@@ -28191,9 +28195,9 @@ define(['js/app'], function (myApp) {
                 vm.largeWithdrawPartnerCheckReviewer = {};
                 vm.largeWithdrawPartnerCheckRecipient = {};
                 // to remove duplicate
-                [...new Set(vm.adminList.map(item => item))].forEach((admin, index) => {
-                    vm.largeWithdrawPartnerCheckRecipient[index] = vm.getLargeWithdrawPartnerIsRecipient(admin._id);
-                    vm.largeWithdrawPartnerCheckReviewer[index] = vm.getLargeWithdrawPartnerIsReviewer(admin._id);
+                [...new Set(vm.adminList.map(item => item._id))].forEach((admin, index) => {
+                    vm.largeWithdrawPartnerCheckRecipient[index] = vm.getLargeWithdrawPartnerIsRecipient(admin);
+                    vm.largeWithdrawPartnerCheckReviewer[index] = vm.getLargeWithdrawPartnerIsReviewer(admin);
                     $('#largeWithdrawPartnerRow' + index).removeAttr('style');
                     if (vm.largeWithdrawPartnerCheckReviewer[index]) {
                         $('#largeWithdrawPartnerRow' + index).css('background-color', 'pink');
@@ -28234,7 +28238,7 @@ define(['js/app'], function (myApp) {
                         if (indexReviewer > -1) {
                             $('#largeWithdrawPartnerRow' + index).removeAttr('style');
                             vm.largeWithdrawalPartnerSetting.reviewer.splice(indexReviewer, 1);
-                            vm.largeWithdrawCheckReviewer[index] = false;
+                            vm.largeWithdrawPartnerCheckReviewer[index] = false;
                         }
                     }
                 }
@@ -28253,19 +28257,6 @@ define(['js/app'], function (myApp) {
                         $('#largeWithdrawPartnerRow' + index).removeAttr('style');
                     }
                 }
-            };
-
-            vm.updateLargeWithdrawalRecipient = function () {
-                let sendData = {
-                    query: {platform: vm.selectedPlatform.id},
-                    updateData: {
-                        recipient: vm.largeWithdrawalSetting.recipient,
-                        reviewer: vm.largeWithdrawalSetting.reviewer
-                    }
-                }
-                socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalSetting', sendData, function (data) {
-                    console.log("updateLargeWithdrawalRecipient complete", data)
-                });
             };
 
             vm.updateLargeWithdrawalPartnerRecipient = function () {
@@ -28524,6 +28515,7 @@ define(['js/app'], function (myApp) {
                         showCurrentWithdrawalTime: srcData.showCurrentWithdrawalTime,
                         showLastWithdrawalTime: srcData.showLastWithdrawalTime,
                         showCurrentCredit: srcData.showCurrentCredit,
+                        showProposalId: srcData.showProposalId,
                         allowAdminComment: srcData.allowAdminComment,
                         showPlayerBonusAmount: srcData.showPlayerBonusAmount,
                         showTotalTopUpAmount: srcData.showTotalTopUpAmount,
@@ -28548,7 +28540,7 @@ define(['js/app'], function (myApp) {
                         showLastThreeMonthTopUpWithdrawDifference: srcData.showLastThreeMonthTopUpWithdrawDifference,
                         showLastThreeMonthConsumptionAmount: srcData.showLastThreeMonthConsumptionAmount,
                     }
-                }
+                };
                 socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalSetting', sendData, function (data) {
                     console.log("updateLargeWithdrawalSetting complete")
                 });
@@ -28568,9 +28560,10 @@ define(['js/app'], function (myApp) {
                         showCurrentCredit: srcData.showCurrentCredit,
                         showTotalDownlinePlayersCount: srcData.showTotalDownlinePlayersCount,
                         showTotalDownlinePartnersCount: srcData.showTotalDownlinePartnersCount,
+                        showProposalId: srcData.showProposalId,
                         showAllPartnerRelatedProposal: srcData.showAllPartnerRelatedProposal,
                     }
-                }
+                };
                 socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalPartnerSetting', sendData, function (data) {
                     console.log("updateLargeWithdrawalPartnerSetting complete")
                 });

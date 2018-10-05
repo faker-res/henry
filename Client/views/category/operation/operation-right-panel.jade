@@ -291,6 +291,9 @@ style.
                     tr(ng-if="vm.largeWithdrawalSetting.showCurrentCredit")
                         td {{"providerCreditAmount" | translate}}
                         td {{$fixTwoDecimalStr(vm.largeWithdrawLog.currentCredit)}}
+                    tr(ng-if="vm.largeWithdrawalSetting.showProposalId")
+                        td {{"withdrawalProposalId" | translate}}
+                        td {{vm.largeWithdrawLog.proposalId}}
                 div(style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 38.2%") {{"LAST_TO_CURRENT_WITHDRAWAL" | translate}}
                 table.simple-table(style="margin-top: 12px;")
                     tr(ng-if="vm.largeWithdrawalSetting.showPlayerBonusAmount")
@@ -511,6 +514,9 @@ style.
                     tr(ng-if="vm.partnerLargeWithdrawalSetting.showTotalDownlinePartnersCount")
                         td {{"TOTAL_DOWNLINE_PARTNERS_COUNT" | translate}}
                         td {{vm.partnerLargeWithdrawLog.downLinePartnerAmount}}
+                    tr(ng-if="vm.partnerLargeWithdrawalSetting.showProposalId")
+                        td {{"withdrawalProposalId" | translate}}
+                        td {{vm.partnerLargeWithdrawLog.proposalId}}
 
                 div(style="text-align: left; background-color: #047ea5; color: #FFFFFF; font-weight: bold; padding: 13px; border-radius: 38px; width: 61.8%; margin-top: 38px") B. {{"PROPOSAL_INFO_SECTION" | translate}}
                 div(style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 38.2%") {{"Proposal Data" | translate}}
