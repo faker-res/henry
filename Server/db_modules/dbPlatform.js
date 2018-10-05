@@ -2808,8 +2808,7 @@ var dbPlatform = {
                         console.log("checking --- yH platformData.playerThemeSetting", platformData.playerThemeSetting)
 
                         if (platformData.playerThemeSetting && platformData.playerThemeSetting.themeStyleId && platformData.playerThemeSetting.themeIdObjId) {
-
-
+                            
                             let themeSetting = platformData.playerThemeSetting.themeStyleId;
                             themeStyleObjId = platformData.playerThemeSetting.themeIdObjId;
 
