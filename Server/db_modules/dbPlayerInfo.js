@@ -15156,7 +15156,7 @@ let dbPlayerInfo = {
             getPlayerProm = dbconfig.collection_players.findOne({
                 name: query.name,
                 platform: platformObjId
-            }, {_id: 1}).lean().then(
+            }, {_id: 1}).read("secondaryPreferred").lean().then(
                 player => {
                     if (!player) return Q.reject({
                         name: "DataError",
@@ -15279,7 +15279,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
-                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}}).lean();
+                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}}).read("secondaryPreferred").lean();
                 let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
 
@@ -15503,7 +15503,7 @@ let dbPlayerInfo = {
             startDate = dayEndTime;
         }
 
-        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).lean().then(
+        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).read("secondaryPreferred").lean().then(
             playerData => {
                 if (playerData) {
                     return playerData.name;
@@ -15636,7 +15636,7 @@ let dbPlayerInfo = {
                 name: query.name,
                 platform: platformObjId,
                 isDepositTracked: true
-            }, {_id: 1}).lean().then(
+            }, {_id: 1}).read("secondaryPreferred").lean().then(
                 player => {
                     if (!player) return Q.reject({
                         name: "DataError",
@@ -15650,7 +15650,7 @@ let dbPlayerInfo = {
             getPlayerProm = dbconfig.collection_players.find({
                 platform: platformObjId,
                 isDepositTracked: true
-            }, {_id: 1}).lean().then(
+            }, {_id: 1}).read("secondaryPreferred").lean().then(
                 player => {
                     if (!player) return Q.reject({
                         name: "DataError",
@@ -15662,7 +15662,7 @@ let dbPlayerInfo = {
         }
 
         // find id for promo code type 1, 2, 3
-        dbconfig.collection_promoCodeType.find({platformObjId: platformObjId}).lean().then(
+        dbconfig.collection_promoCodeType.find({platformObjId: platformObjId}).read("secondaryPreferred").lean().then(
             promoCode => {
                 if (promoCode && promoCode.length > 0) {
                     promoCode.forEach(promo => {
@@ -15697,7 +15697,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
-                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}}).lean();
+                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}}).read("secondaryPreferred").lean();
                 let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
 
@@ -15865,7 +15865,7 @@ let dbPlayerInfo = {
 
                     trackingGroupProm.push(dbconfig.collection_players.findOne({_id: player._id})
                         .populate({path: 'depositTrackingGroup', model: dbconfig.collection_playerDepositTrackingGroup})
-                        .lean().then(
+                        .read("secondaryPreferred").lean().then(
                             depositTrackingGroup => {
                                 if (depositTrackingGroup && depositTrackingGroup.depositTrackingGroup && depositTrackingGroup.depositTrackingGroup.name) {
                                     return {
@@ -16031,7 +16031,7 @@ let dbPlayerInfo = {
             platform: platform
         };
 
-        return dbconfig.collection_players.findOne(query).lean().then(
+        return dbconfig.collection_players.findOne(query).read("secondaryPreferred").lean().then(
             playerData => {
                 if (!playerData) return Q.reject({
                     name: "DataError",
@@ -16053,7 +16053,7 @@ let dbPlayerInfo = {
             platform: platform
         };
 
-        return dbconfig.collection_players.findOne(query, {isDepositTracked: 1}).then(
+        return dbconfig.collection_players.findOne(query, {isDepositTracked: 1}).read("secondaryPreferred").lean().then(
             playerData => {
                 if (!playerData) return Q.reject({
                     name: "DataError",
@@ -16097,29 +16097,35 @@ let dbPlayerInfo = {
             timezoneAdjust = {
                 year: {$year: {$subtract: ['$settleTime', positiveTimeOffset]}},
                 month: {$month: {$subtract: ['$settleTime', positiveTimeOffset]}},
+                day: {$dayOfMonth: {$subtract: ['$settleTime', positiveTimeOffset]}},
             }
         } else {
             timezoneAdjust = {
                 year: {$year: {$add: ['$settleTime', positiveTimeOffset]}},
                 month: {$month: {$add: ['$settleTime', positiveTimeOffset]}},
+                day: {$dayOfMonth: {$add: ['$settleTime', positiveTimeOffset]}},
             }
         }
         if (parseInt(timezoneOffset) > 0) {
             timezoneAdjust2 = {
                 year: {$year: {$subtract: ['$createTime', positiveTimeOffset]}},
                 month: {$month: {$subtract: ['$createTime', positiveTimeOffset]}},
+                day: {$dayOfMonth: {$subtract: ['$createTime', positiveTimeOffset]}},
             }
         } else {
             timezoneAdjust2 = {
                 year: {$year: {$add: ['$createTime', positiveTimeOffset]}},
                 month: {$month: {$add: ['$createTime', positiveTimeOffset]}},
+                day: {$dayOfMonth: {$add: ['$createTime', positiveTimeOffset]}},
             }
         }
         console.log('positiveTimeOffset===', positiveTimeOffset);
         console.log('timezoneAdjust.year===', timezoneAdjust.year);
         console.log('timezoneAdjust.month===', timezoneAdjust.month);
+        console.log('timezoneAdjust.day===', timezoneAdjust.day);
         console.log('timezoneAdjust2.year===', timezoneAdjust2.year);
         console.log('timezoneAdjust2.month===', timezoneAdjust2.month);
+        console.log('timezoneAdjust2.day===', timezoneAdjust2.day);
 
         consumptionProm.push(dbconfig.collection_playerConsumptionRecord.aggregate([
             {
@@ -16196,7 +16202,7 @@ let dbPlayerInfo = {
             }
         ]).read("secondaryPreferred"));
 
-        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).lean().then(
+        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).read("secondaryPreferred").lean().then(
             playerData => {
                 if (playerData) {
                     return {playerId: playerData._id, playerName: playerData.name};
@@ -16449,7 +16455,7 @@ let dbPlayerInfo = {
             startDate = dayEndTime;
         }
 
-        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).lean().then(
+        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).read("secondaryPreferred").lean().then(
             playerData => {
                 if (playerData) {
                     return {playerId: playerData._id, playerName: playerData.name};
