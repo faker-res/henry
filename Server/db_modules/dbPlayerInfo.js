@@ -2994,7 +2994,22 @@ let dbPlayerInfo = {
                     'permission.forbidPlayerFromLogin': false
                 }).lean().count();
 
-                return Promise.all([realNameCountProm, sameBankAccountCountProm]).then(
+                let propQuery = {
+                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                    'data.platformId': platformObjId,
+                    'data.playerName': playerObj.name,
+                    'data.playerId': playerObj.playerId,
+                };
+
+                let firstBankInfoProm = dbPropUtil.getOneProposalDataOfType(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
+                    proposal => {
+                        if (!proposal) {
+                            return {isFirstBankInfo: true};
+                        }
+                    }
+                );
+
+                return Promise.all([realNameCountProm, sameBankAccountCountProm, firstBankInfoProm]).then(
                     data => {
                         if (!data){
                             return Promise.reject({
@@ -3005,27 +3020,33 @@ let dbPlayerInfo = {
                         duplicatedRealNameCount = data[0] || 0;
                         sameBankAccountCount = data[1] || 0;
 
-                        if (playerData.bankAccountName) {
-                            delete updateData.bankAccountName;
-                        }
-                        //check if bankAccountName in update data is the same as player's real name
-                        if (updateData.bankAccountName && !playerData.realName) {
-                            // return Q.reject({
-                            //     name: "DataError",
-                            //     code: constServerCode.INVALID_DATA,
-                            //     message: "Bank account name is different from real name"
-                            // });
-                            if (updateData.bankAccountName.indexOf('*') > -1)
-                                delete updateData.bankAccountName;
-                            else
+                        if (data && data[2] && data[2].hasOwnProperty('isFirstBankInfo') && data[2].isFirstBankInfo) {
+                            if (updateData && updateData.bankAccountName) {
                                 updateData.realName = updateData.bankAccountName;
-                        }
-                        if (!updateData.bankAccountName && !playerData.bankAccountName && !playerData.realName) {
-                            return Q.reject({
-                                name: "DataError",
-                                code: constServerCode.INVALID_DATA,
-                                message: "Please enter bank account name or contact cs"
-                            });
+                            }
+                        } else {
+                            if (playerData.bankAccountName) {
+                                delete updateData.bankAccountName;
+                            }
+                            //check if bankAccountName in update data is the same as player's real name
+                            if (updateData.bankAccountName && !playerData.realName) {
+                                // return Q.reject({
+                                //     name: "DataError",
+                                //     code: constServerCode.INVALID_DATA,
+                                //     message: "Bank account name is different from real name"
+                                // });
+                                if (updateData.bankAccountName.indexOf('*') > -1)
+                                    delete updateData.bankAccountName;
+                                else
+                                    updateData.realName = updateData.bankAccountName;
+                            }
+                            if (!updateData.bankAccountName && !playerData.bankAccountName && !playerData.realName) {
+                                return Q.reject({
+                                    name: "DataError",
+                                    code: constServerCode.INVALID_DATA,
+                                    message: "Please enter bank account name or contact cs"
+                                });
+                            }
                         }
 
                         // if (updateData.bankAccountType) {
