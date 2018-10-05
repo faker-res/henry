@@ -1893,6 +1893,7 @@ let dbPartner = {
         let duplicatedRealNameCount = 0;
         let sameBankAccCount = 0;
         let platformObjId;
+        let isVerifiedData;
         return dbconfig.collection_partner.findOne({partnerId: partnerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .then(
@@ -1948,7 +1949,34 @@ let dbPartner = {
                 }
             ).then(
                 isVerified => {
-                    if (isVerified) {
+
+                    isVerifiedData = isVerified;
+
+                    return dbconfig.collection_proposalType.findOne({
+                        platformId: platformObjId,
+                        name: constProposalType.UPDATE_PARTNER_BANK_INFO
+                    }).lean().then(
+                        proposalTypeData => {
+                            if (proposalTypeData && proposalTypeData._id) {
+                                return dbconfig.collection_proposal.findOne({
+                                    type: proposalTypeData._id,
+                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                    'data.platformId': platformObjId,
+                                    'data.partnerName': partnerData.partnerName,
+                                    'data.partnerId': partnerData.partnerId
+                                }).lean().then(
+                                    proposal => {
+                                        if (!proposal) {
+                                            return {isFirstBankInfo: true};
+                                        }
+                                    }
+                                );
+                            }
+                        });
+            }).then(
+                 firstBankInfo => {
+
+                    if (isVerifiedData) {
 
                         updateData.updateData = {};
 
@@ -1964,23 +1992,31 @@ let dbPartner = {
                             updateData.updateData.bankName = updateData.bankName;
                         }
 
-                        if(partnerData.bankAccountName){
-                            delete updateData.bankAccountName;
-                        }
 
-                        if (updateData.bankAccountName && !partnerData.realName) {
-                            if (updateData.bankAccountName.indexOf('*') > -1)
-                                delete updateData.bankAccountName;
-                            else
+                        if (firstBankInfo && firstBankInfo.hasOwnProperty('isFirstBankInfo') && firstBankInfo.isFirstBankInfo) {
+                            if (updateData && updateData.bankAccountName) {
                                 updateData.realName = updateData.bankAccountName;
-                        }
+                            }
 
-                        if (!updateData.bankAccountName && !partnerData.bankAccountName && !partnerData.realName) {
-                            return Q.reject({
-                                name: "DataError",
-                                code: constServerCode.INVALID_DATA,
-                                message: "Please enter bank account name or contact cs"
-                            });
+                        } else {
+                            if(partnerData.bankAccountName){
+                                delete updateData.bankAccountName;
+                            }
+
+                            if (updateData.bankAccountName && !partnerData.realName) {
+                                if (updateData.bankAccountName.indexOf('*') > -1)
+                                    delete updateData.bankAccountName;
+                                else
+                                    updateData.realName = updateData.bankAccountName;
+                            }
+
+                            if (!updateData.bankAccountName && !partnerData.bankAccountName && !partnerData.realName) {
+                                return Q.reject({
+                                    name: "DataError",
+                                    code: constServerCode.INVALID_DATA,
+                                    message: "Please enter bank account name or contact cs"
+                                });
+                            }
                         }
 
                         // if (updateData.bankAccountType) {

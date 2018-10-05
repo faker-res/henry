@@ -809,16 +809,16 @@ var proposalExecutor = {
                                         if (proposalTypeData && proposalTypeData._id) {
                                             return dbconfig.collection_proposal.find({
                                                 type: proposalTypeData._id,
-                                                'data.platformId': proposalData.data.platformId,
+                                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                                'data.platformId': proposalTypeData.platformId,
                                                 'data.playerName': proposalData.data.playerName,
                                                 'data.playerId': proposalData.data.playerId,
-                                                'data._id': proposalData.data._id
                                             }).count();
                                         }
                                     }
                                 ).then(
                                     proposalCount => {
-                                        if(proposalCount > 1) {
+                                        if(proposalCount > 0) {
                                             return dbconfig.collection_players.findOneAndUpdate(
                                                 {_id: data._id, platform: data.platform},
                                                 playerUpdate,
@@ -910,16 +910,16 @@ var proposalExecutor = {
                                         if (proposalTypeData && proposalTypeData._id) {
                                             return dbconfig.collection_proposal.find({
                                                 type: proposalTypeData._id,
-                                                'data.platformId': proposalData.data.platformId,
+                                                status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                                'data.platformId': proposalTypeData.platformId,
                                                 'data.partnerName': proposalData.data.partnerName,
-                                                'data.partnerId': proposalData.data.partnerId,
-                                                'data._id': proposalData.data._id
+                                                'data.partnerId': proposalData.data.partnerId
                                             }).count();
                                         }
                                     }
                                 ).then(
                                     proposalCount => {
-                                        if(proposalCount > 1) {
+                                        if(proposalCount > 0) {
                                             return dbconfig.collection_partner.findOneAndUpdate(
                                                 {_id: data._id, platform: data.platform},
                                                 partnerUpdate,
