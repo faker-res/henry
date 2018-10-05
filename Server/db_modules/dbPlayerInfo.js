@@ -5004,7 +5004,7 @@ let dbPlayerInfo = {
 
                 return dbconfig.collection_players
                     .find(advancedQuery, {similarPlayers: 0})
-                    .sort(sortObj).skip(index).limit(limit).lean().then(
+                    .sort(sortObj).skip(index).limit(limit).read("secondaryPreferred").lean().then(
                         players => {
                             let calculatePlayerValueProms = [];
                             let updatePlayerCredibilityRemarksProm = [];
@@ -5060,6 +5060,7 @@ let dbPlayerInfo = {
                     .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
                     .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints, select: 'points'})
                     .populate({path: "blacklistIp", model: dbconfig.collection_platformBlacklistIpConfig})
+                    .read("secondaryPreferred")
                     .lean().then(
                         playerData => {
                             var players = [];
