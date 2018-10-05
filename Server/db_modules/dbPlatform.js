@@ -2764,13 +2764,11 @@ var dbPlatform = {
             else {
                 return Q.reject({name: "DBError", message: "Missing of default param: 'partner' or 'player'."});
             }
-
             return dbconfig.collection_platform.findOne({platformId: platformId}).populate({path: 'partnerThemeSetting.themeStyleId', model: dbconfig.collection_themeSetting}).populate({path: 'playerThemeSetting.themeStyleId', model: dbconfig.collection_themeSetting}).lean().then(
                 data => {
                     if (data) {
 
                         platformData = data;
-
                         return dbconfig.collection_playerLevel.find({platform: platformData._id}).lean();
                     } else {
                         return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
@@ -2807,8 +2805,10 @@ var dbPlatform = {
                         returnedObj.cdnOrFtpLink = platformData.playerRouteSetting ? platformData.playerRouteSetting : "";
                         // returnedObj.themeStyle = platformData.playerThemeSetting && platformData.playerThemeSetting.themeStyleId && platformData.playerThemeSetting.themeStyleId.themeStyle ? platformData.playerThemeSetting.themeStyleId.themeStyle : "";
                         returnedObj.withdrawFeeNoDecimal = platformData.withdrawalFeeNoDecimal ? 1 : 0;
-                        if (platformData.playerThemeSetting && platformData.playerThemeSetting.themeStyleId && platformData.playerThemeSetting.themeIdObjId) {
+                        console.log("checking --- yH platformData.playerThemeSetting", platformData.playerThemeSetting)
 
+                        if (platformData.playerThemeSetting && platformData.playerThemeSetting.themeStyleId && platformData.playerThemeSetting.themeIdObjId) {
+                            
                             let themeSetting = platformData.playerThemeSetting.themeStyleId;
                             themeStyleObjId = platformData.playerThemeSetting.themeIdObjId;
 
@@ -2825,7 +2825,7 @@ var dbPlatform = {
                                             if (themeSetting.content[i]._id.toString() == themeStyleObjId.toString()) {
                                                 returnedObj.themeID = themeSetting.content[i].themeId;
                                             }
-                                            themeIdList.push({themeID: themeSetting.content[i].themeId});
+                                            themeIdList.push({themeID: themeSetting.content[i].themeId, remark:themeSetting.content[i].remark });
                                         }
                                     }
                                 }
@@ -2852,6 +2852,7 @@ var dbPlatform = {
                         returnedObj.defaultCommissionType = platformData.partnerDefaultCommissionGroup ? platformData.partnerDefaultCommissionGroup : 0;
                         returnedObj.cndOrFtpLink = platformData.partnerRouteSetting ? platformData.partnerRouteSetting : "";
                         // returnedObj.themeStyle = platformData.partnerThemeSetting && platformData.partnerThemeSetting.themeStyleId && platformData.partnerThemeSetting.themeStyleId.themeStyle ? platformData.partnerThemeSetting.themeStyleId.themeStyle : "";
+                        console.log("checking --- yH platformData.partnerThemeSetting", platformData.partnerThemeSetting)
                         if (platformData.partnerThemeSetting && platformData.partnerThemeSetting.themeStyleId && platformData.partnerThemeSetting.themeIdObjId) {
                             let themeSetting = platformData.partnerThemeSetting.themeStyleId;
                             themeStyleObjId = platformData.partnerThemeSetting.themeIdObjId;
@@ -2868,7 +2869,7 @@ var dbPlatform = {
                                             if (themeSetting.content[i]._id.toString() == themeStyleObjId.toString()) {
                                                 returnedObj.themeID = themeSetting.content[i].themeId;
                                             }
-                                            themeIdList.push({themeID: themeSetting.content[i].themeId});
+                                            themeIdList.push({themeID: themeSetting.content[i].themeId, remark:themeSetting.content[i].remark});
                                         }
                                     }
                                 }
