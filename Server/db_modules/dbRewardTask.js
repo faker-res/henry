@@ -577,7 +577,7 @@ const dbRewardTask = {
                 totalAmount = 0;
             }
 
-            if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3)) {
+            if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId) {
                 usedTopUp.push(item.topUpProposal)
             }
 
