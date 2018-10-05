@@ -2352,9 +2352,13 @@ function updateRTG (RTG, incBonusAmt, validAmtToAdd, oldData) {
                                 {
                                     _id: updatedRTG._id
                                 },
-                                statusUpdObj,
-                                {new: true}
-                            ).then(res => dbRewardTask.completeRewardTaskGroup(res, res.status))
+                                statusUpdObj
+                            ).then(res => {
+                                // Concurrency measurement
+                                if (res && res.status === constRewardTaskStatus.STARTED) {
+                                    return dbRewardTask.completeRewardTaskGroup(updatedRTG, statusUpdObj.status)
+                                }
+                            })
                         }
                     }
                 ).catch(errorUtils.reportError);

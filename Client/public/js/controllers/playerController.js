@@ -5847,7 +5847,7 @@ define(['js/app'], function (myApp) {
                     },
                 ],
                 //"autoWidth": false,
-                "scrollX": true,
+                "scrollX": false,
                 "deferRender": true,
                 "bDeferRender": true,
                 "bProcessing": true,
@@ -11339,7 +11339,7 @@ define(['js/app'], function (myApp) {
                             item.isArchived =
                                 item.archivedAmt$ == item.availableAmt$ || item.curConsumption$ == item.requiredUnlockAmount$;
 
-                            if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3)) {
+                            if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId) {
                                 usedTopUp.push(item.topUpProposal)
                             }
 
@@ -12761,7 +12761,8 @@ define(['js/app'], function (myApp) {
                         item.isArchived =
                             item.archivedAmt$ == item.availableAmt$ || item.curConsumption$ == item.requiredUnlockAmount$;
 
-                        if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3)) {
+                        // exclude the proposal to be shown in the progress bar if the proposal is dynamicReward, type c promocode or limitedOffer
+                        if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId) {
                             usedTopUp.push(item.topUpProposal)
                         }
 
