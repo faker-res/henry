@@ -4363,6 +4363,7 @@
   "financialPointsType": "财务点数变化类型",
   "financialPoints": "财务点数",
   "withdrawalProposalId": "提款提案号",
+  "current withdraw proposal ID": "本次提款提案号",
   "createNewPlayerAdvertisementRecord": "创建玩家广告",
   "savePlayerAdvertisementRecordChanges": "编辑玩家广告",
   "createNewPartnerAdvertisementRecord": "创建代理广告",

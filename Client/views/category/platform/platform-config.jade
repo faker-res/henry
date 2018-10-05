@@ -1995,7 +1995,7 @@
                                 th {{'DEFINITION' | translate}}
                         tbody
                             tr
-                                td(rowspan=7, style='background-color:lightblue') {{'BASIC_INFORMATION' | translate}}
+                                td(rowspan=8, style='background-color:lightblue') {{'BASIC_INFORMATION' | translate}}
                                 td                                     
                                     input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showRealName', ng-disabled='!vm.configTableEdit')
                                 td
@@ -2044,6 +2044,13 @@
                                     text {{'providerCreditAmount' | translate}}
                                 td
                                     text {{'local credit + game credit' | translate}}
+                            tr
+                                td
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showProposalId', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'withdrawalProposalId' | translate}}
+                                td
+                                    text {{'current withdraw proposal ID' | translate}}
 
                             tr
                                 td(rowspan=6, style='background-color:lightblue') {{'LAST_TO_CURRENT_WITHDRAWAL' | translate}}
@@ -2272,7 +2279,7 @@
                                 th {{'DEFINITION' | translate}}
                         tbody
                             tr
-                                td(rowspan=9, style='background-color:lightblue') {{'PARTNER_BASIC_INFO' | translate}}
+                                td(rowspan=10, style='background-color:lightblue') {{'PARTNER_BASIC_INFO' | translate}}
                                 td                                     
                                     input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showRealName', ng-disabled='!vm.configTableEdit')
                                 td
@@ -2316,7 +2323,7 @@
                                     text {{'Last apply withdrawal time' | translate}}
                             tr
                                 td                                     
-                                    input(type='checkbox' ng-model='vm.largeWithdrawalSetting.showCurrentCredit', ng-disabled='!vm.configTableEdit')
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showCurrentCredit', ng-disabled='!vm.configTableEdit')
                                 td
                                     text {{'providerCreditAmount' | translate}}
                                 td
@@ -2335,6 +2342,13 @@
                                     text {{'TOTAL_DOWNLINE_PARTNERS_COUNT' | translate}}
                                 td
                                     text {{'Total number of partners' | translate}}
+                            tr
+                                td
+                                    input(type='checkbox' ng-model='vm.largeWithdrawalPartnerSetting.showProposalId', ng-disabled='!vm.configTableEdit')
+                                td
+                                    text {{'withdrawalProposalId' | translate}}
+                                td
+                                    text {{'current withdraw proposal ID' | translate}}
                     br
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
