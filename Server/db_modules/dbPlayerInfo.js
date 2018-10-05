@@ -16076,35 +16076,29 @@ let dbPlayerInfo = {
             timezoneAdjust = {
                 year: {$year: {$subtract: ['$settleTime', positiveTimeOffset]}},
                 month: {$month: {$subtract: ['$settleTime', positiveTimeOffset]}},
-                day: {$dayOfMonth: {$subtract: ['$settleTime', positiveTimeOffset]}},
             }
         } else {
             timezoneAdjust = {
                 year: {$year: {$add: ['$settleTime', positiveTimeOffset]}},
                 month: {$month: {$add: ['$settleTime', positiveTimeOffset]}},
-                day: {$dayOfMonth: {$add: ['$settleTime', positiveTimeOffset]}},
             }
         }
         if (parseInt(timezoneOffset) > 0) {
             timezoneAdjust2 = {
                 year: {$year: {$subtract: ['$createTime', positiveTimeOffset]}},
                 month: {$month: {$subtract: ['$createTime', positiveTimeOffset]}},
-                day: {$dayOfMonth: {$subtract: ['$createTime', positiveTimeOffset]}},
             }
         } else {
             timezoneAdjust2 = {
                 year: {$year: {$add: ['$createTime', positiveTimeOffset]}},
                 month: {$month: {$add: ['$createTime', positiveTimeOffset]}},
-                day: {$dayOfMonth: {$add: ['$createTime', positiveTimeOffset]}},
             }
         }
         console.log('positiveTimeOffset===', positiveTimeOffset);
         console.log('timezoneAdjust.year===', timezoneAdjust.year);
         console.log('timezoneAdjust.month===', timezoneAdjust.month);
-        console.log('timezoneAdjust.day===', timezoneAdjust.day);
         console.log('timezoneAdjust2.year===', timezoneAdjust2.year);
         console.log('timezoneAdjust2.month===', timezoneAdjust2.month);
-        console.log('timezoneAdjust2.day===', timezoneAdjust2.day);
 
         consumptionProm.push(dbconfig.collection_playerConsumptionRecord.aggregate([
             {
