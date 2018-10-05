@@ -101,13 +101,12 @@ let dbRewardTaskGroup = {
                             promArr.push(
                                 dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                                     {_id: RTG._id},
-                                    updObj,
-                                    {new: true}
+                                    updObj
                                 ).then(updatedData => {
-                                    if (updatedData) {
+                                    if (updatedData && updatedData.status === constRewardTaskStatus.STARTED) {
                                         // Transfer amount to player if reward is achieved
-                                        if (updatedData.status === constRewardTaskStatus.ACHIEVED) {
-                                            return dbRewardTask.completeRewardTaskGroup(updatedData, updatedData.status);
+                                        if (updObj.status === constRewardTaskStatus.ACHIEVED) {
+                                            return dbRewardTask.completeRewardTaskGroup(updatedData, updObj.status);
                                         }
                                     }
                                 })
@@ -143,9 +142,13 @@ let dbRewardTaskGroup = {
                         proms.push(
                             dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                                 _id: grp._id
-                            }, updObj).then(
-                                () => dbRewardTask.completeRewardTaskGroup(grp, constRewardTaskStatus.SYSTEM_UNLOCK)
-                            )
+                            }, updObj
+                            ).then(res => {
+                                // Concurrency measurement
+                                if (res && res.status === constRewardTaskStatus.STARTED) {
+                                    return dbRewardTask.completeRewardTaskGroup(res, updObj.status)
+                                }
+                            })
                         );
                     });
                 }
@@ -321,9 +324,12 @@ let dbRewardTaskGroup = {
 
         return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
             _id: rewardTaskGroup._id
-        }, updObj).then(
-            () => dbRewardTask.completeRewardTaskGroup(rewardTaskGroup, constRewardTaskStatus.SYSTEM_UNLOCK)
-        );
+        }, updObj).then(res => {
+            // Concurrency measurement
+            if (res && res.status === constRewardTaskStatus.STARTED) {
+                return dbRewardTask.completeRewardTaskGroup(res, updObj.status)
+            }
+        });
     },
 
     getPrevious10PlayerRTG: (platformId, playerId) => {
