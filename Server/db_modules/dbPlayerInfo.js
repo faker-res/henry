@@ -14959,10 +14959,6 @@ let dbPlayerInfo = {
                             'data.platformId': platform
                         };
 
-                        if (player) {
-                            proposalQuery['data.playerObjId'] = player._id;
-                        }
-
                         if (isSinglePlayer) {
                             proposalQuery['data.playerObjId'] = playerData._id;
                         } else if (query.adminIds && query.adminIds.length && playerData.length) {
