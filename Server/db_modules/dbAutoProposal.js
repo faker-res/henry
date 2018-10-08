@@ -228,7 +228,7 @@ function checkPartnerAutoBonus (proposal, platformObj) {
                 canApprove = false;
             }
 
-            if (todayWithdrawal && todayWithdrawal[0] && totalCommission && totalCommission[0] && (todayWithdrawal[0] - totalCommission[0].amount) >= platformObj.partnerWithdrawalCommissionDifference) {
+            if (todayWithdrawal && todayWithdrawal[0] && totalCommission && totalCommission[0] && (todayWithdrawal[0].amount - totalCommission[0].amount) >= platformObj.partnerWithdrawalCommissionDifference) {
                 checkMsg += " Denied: Withdrawal more than commission amount";
                 checkMsgChinese += " 失败：提款大于佣金";
                 canApprove = false;
