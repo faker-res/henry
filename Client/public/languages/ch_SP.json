@@ -2737,7 +2737,7 @@
   "Player Bonus Auto Approval": "玩家提款自动审核开启",
   "Partner Bonus Auto Approval": "代理提款自动审核开启",
   "TOTAL_DOWNLINE_PLAYERS_COUNT": "下线总玩家数",
-  "TOTAL_DOWNLINE_PARTNERS_COUNT": "下线总玩家数",
+  "TOTAL_DOWNLINE_PARTNERS_COUNT": "下线总代理数",
   "Total number of players": "所有玩家人数",
   "Total number of partners": "所有代理人数",
   "PARTNER_INFO_SECTION": "代理信息区",
@@ -4602,5 +4602,9 @@
   "Withdrawal service charge omit amount after decimal": "提款手续费无条件减免小数点后金额（少扣玩家金额）",
   "original service charge": "原手续费",
   "remove decimal": "删除小数",
+  "game platform (provider)": "游戏平台（供应商）",
+  "platform fee setting %": "平台费用设定％",
+  "platformFeeEstimateSetting": "平台费估算设置",
+  "platformFeeEstimateSetting (show in report)": "平台费估算设置（报表中呈现）",
   "PLAYER_CONSUMPTION_TREND": "投注人数趋势"
 }
