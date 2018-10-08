@@ -372,7 +372,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
             let bNoBonusPermission = false;
             let bPendingPaymentInfo = false;
             let bUpdatePaymentInfo = false;
-            let bIsPaymenyInfoMatched = false;
+            let bIsPaymentInfoMatched = false;
             let withdrawAmount = proposal.data.amount;
             let playerCurrentAmount = 0;
             let playerTotalTopupAmount = 0;
@@ -393,7 +393,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
             }
 
             if(allProposals && playerData){
-                bIsPaymenyInfoMatched = isPaymentInfoMatched(allProposals, playerData);
+                bIsPaymentInfoMatched = isPaymentInfoMatched(allProposals, playerData);
             }
 
             if (data && data[5] && data[5][0] && data[5][0].totalBetAmt) {
@@ -525,12 +525,12 @@ function checkRewardTaskGroup(proposal, platformObj) {
             //     canApprove = false;
             // }
 
-            console.log("LH check bonus E ----------", bIsPaymenyInfoMatched);
+            console.log("LH check bonus E ----------", bIsPaymentInfoMatched);
             console.log("LH check bonus F ----------", platformObj.manualAuditAfterBankChanged);
-            console.log("LH check bonus G ----------", !bIsPaymenyInfoMatched);
+            console.log("LH check bonus G ----------", !bIsPaymentInfoMatched);
             console.log("LH check bonus H ----------", platformObj.manualAuditAfterBankChanged !== false);
-            console.log("LH check bonus I ----------", !bIsPaymenyInfoMatched && platformObj.manualAuditAfterBankChanged !== false);
-            if (!bIsPaymenyInfoMatched && platformObj.manualAuditAfterBankChanged !== false) {
+            console.log("LH check bonus I ----------", !bIsPaymentInfoMatched && platformObj.manualAuditAfterBankChanged !== false);
+            if (!bIsPaymentInfoMatched && platformObj.manualAuditAfterBankChanged !== false) {
                 console.log("LH check bonus J ----------");
                 checkMsg += ' Denied: Bank Info Not Matched;';
                 checkMsgChinese += ' 失败：提款资料与上次银改不符;';
