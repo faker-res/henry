@@ -3725,7 +3725,7 @@ let dbPlayerInfo = {
             platform = platformData;
 
             return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: player._id}).then(
-                rtgData => {             
+                rtgData => {
                     if (rtgData && rtgData.length) {
                         let calCreditArr = [];
 
@@ -13523,13 +13523,12 @@ let dbPlayerInfo = {
                     let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
                     let pendingCount = 0;
-                    if (playerInfo.platform && playerInfo.platform.useLockedCredit) {
-                        pendingCount = dbRewardTask.getPendingRewardTaskCount({
-                            mainType: 'Reward',
-                            "data.playerObjId": playerInfo._id,
-                            status: 'Pending'
-                        }, rewardTaskWithProposalList);
-                    }
+                    
+                    pendingCount = dbRewardTask.getPendingRewardTaskCount({
+                        mainType: 'Reward',
+                        "data.playerObjId": playerInfo._id,
+                        status: 'Pending'
+                    }, rewardTaskWithProposalList);
 
                     let rewardData = {};
 
@@ -18293,7 +18292,7 @@ let dbPlayerInfo = {
 
                     // sorting to reduce chances of getting joint-list
                     platformData.gameProviders.sort(sortRankingRecord);
-                    
+
                     for (let i = 0; i < platformData.gameProviders.length; i++) {
                         gameProviderIdList.push(platformData.gameProviders[i].providerId);
                         // check each of the game provider for the sameLineProvider
