@@ -3584,12 +3584,12 @@ var proposal = {
         ).then(
             ([namedConsumptionData, totalBetData]) => {
                 for(let i = 0; i < namedConsumptionData.length; i++) {
-                    if (!totalBetData[i]) {
+                    if (!totalBetData[i] || totalBetData[i][0]) {
                         break;
                     }
 
-                    namedConsumptionData[i].totalBetCount = totalBetData[i].totalBetCount;
-                    namedConsumptionData[i].totalBetAmt = totalBetData[i].totalBetAmt;
+                    namedConsumptionData[i].totalBetCount = totalBetData[i][0].totalBetCount;
+                    namedConsumptionData[i].totalBetAmt = totalBetData[i][0].totalBetAmt;
                 }
 
                 return namedConsumptionData;
