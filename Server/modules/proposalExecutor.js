@@ -810,9 +810,9 @@ var proposalExecutor = {
                                     'data.playerId': proposalData.data.playerId,
                                 };
 
-                                return dbPropUtil.getOneProposalDataOfType(data.platform, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
+                                return dbPropUtil.getProposalDataOfType(data.platform, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
                                     proposal => {
-                                        if (proposal) {
+                                        if (proposal && proposal.length > 1) {
                                             return dbconfig.collection_players.findOneAndUpdate(
                                                 {_id: data._id, platform: data.platform},
                                                 playerUpdate,
@@ -904,9 +904,9 @@ var proposalExecutor = {
                                     'data.partnerId': proposalData.data.partnerId
                                 };
 
-                                return dbPropUtil.getOneProposalDataOfType(data.platform, constProposalType.UPDATE_PARTNER_BANK_INFO, propQuery).then(
+                                return dbPropUtil.getProposalDataOfType(data.platform, constProposalType.UPDATE_PARTNER_BANK_INFO, propQuery).then(
                                     proposal => {
-                                        if (proposal) {
+                                        if (proposal && proposal.length > 1) {
                                             return dbconfig.collection_partner.findOneAndUpdate(
                                                 {_id: data._id, platform: data.platform},
                                                 partnerUpdate,
