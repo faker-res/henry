@@ -25,7 +25,7 @@ let largeWithdrawalPartnerSettingSchema = new Schema({
     // show current credit (total credit = local credit + game credit)
     showCurrentCredit: {type: Boolean, default: true},
     // show proposal ID
-    showProposalId: {type: String, default: true},
+    showProposalId: {type: Boolean, default: true},
     // show total number of downline players
     showTotalDownlinePlayersCount: {type: Boolean, default: true},
     // show total number of  partners

@@ -5130,7 +5130,7 @@ define(['js/app'], function (myApp) {
                                         output += "</tr></thead>";
                                         output += "<tbody>";
                                         if (row && row.blacklistIp && row.blacklistIp.length > 0) {
-                                            let i = 0;
+                                            let i = 1;
                                             row.blacklistIp.forEach(IP => {
                                                 output += "<tr>";
                                                 output += "<td>" + i + "</td>";

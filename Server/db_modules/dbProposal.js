@@ -392,14 +392,30 @@ var proposal = {
                             // for player update bank info, check if first time bound to the bank info
                             if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType == "UpdatePlayer"
                                 && proposalTypeData._id && proposalTypeData.name == constProposalType.UPDATE_PLAYER_BANK_INFO
-                                && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId && proposalData.data._id) {
+                                && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId) {
 
                                 return dbconfig.collection_proposal.findOne({
                                     type: proposalTypeData._id,
+                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
                                     'data.platformId': proposalData.data.platformId,
                                     'data.playerId': proposalData.data.playerId,
-                                    'data.playerName': proposalData.data.playerName,
-                                    'data._id': proposalData.data._id
+                                    'data.playerName': proposalData.data.playerName
+                                }).lean().then(bankInfoProposal => {
+                                    if (!bankInfoProposal) {
+                                        return {isFirstBankInfo: true};
+                                    }
+                                });
+
+                            } else if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType == "UpdatePartner"
+                                && proposalTypeData._id && proposalTypeData.name == constProposalType.UPDATE_PARTNER_BANK_INFO
+                                && proposalData.data.platformId && proposalData.data.partnerName && proposalData.data.partnerId) {
+
+                                return dbconfig.collection_proposal.findOne({
+                                    type: proposalTypeData._id,
+                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                    'data.platformId': proposalData.data.platformId,
+                                    'data.partnerId': proposalData.data.partnerId,
+                                    'data.partnerName': proposalData.data.partnerName
                                 }).lean().then(bankInfoProposal => {
                                     if (!bankInfoProposal) {
                                         return {isFirstBankInfo: true};
@@ -407,9 +423,9 @@ var proposal = {
                                 });
 
                             }
-                        }).then(playerBankInfoProposal => {
+                        }).then(bankInfoProposal => {
                             // add remark if first time bound to the bank info
-                            if (playerBankInfoProposal && playerBankInfoProposal.hasOwnProperty('isFirstBankInfo') && playerBankInfoProposal.isFirstBankInfo) {
+                            if (bankInfoProposal && bankInfoProposal.hasOwnProperty('isFirstBankInfo') && bankInfoProposal.isFirstBankInfo) {
                                 proposalData.data.remark = localization.localization.translate("First time bound to the bank info");
                             }
 

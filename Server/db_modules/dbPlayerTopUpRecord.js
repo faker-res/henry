@@ -732,6 +732,7 @@ var dbPlayerTopUpRecord = {
         let merchantGroupList = [];
         let rewardEvent;
         let newProposal;
+        let serviceChargeRate = 0;
 
         if (topupRequest.bonusCode && topUpReturnCode) {
             return Q.reject({
@@ -1050,6 +1051,7 @@ var dbPlayerTopUpRecord = {
                 return Promise.all([getRateProm]).then(
                     rate => {
                         if(rate && rate.length > 0 && typeof rate[0] != "undefined"){
+                            serviceCharge = rate[0];
                             updateData.data.rate = rate[0];
                             updateData.data.actualAmountReceived = (topupRequest.amount - (topupRequest.amount * Number(rate[0]))).toFixed(2);
                         }
@@ -1078,7 +1080,8 @@ var dbPlayerTopUpRecord = {
                     amount: topupRequest.amount,
                     createTime: proposalData.createTime,
                     status: proposalData.status,
-                    topupDetail: merchantResponse.result
+                    topupDetail: merchantResponse.result,
+                    serviceCharge: serviceCharge
                     //requestId: merchantResponse.result.requestId,
                     //result: merchantResponse.result,
                 };
@@ -4178,13 +4181,11 @@ function checkApplyTopUpReturn(player, topUpReturnCode, userAgentStr, inputData,
                     ];
 
                     let pendingCount = Promise.resolve(0);
-                    if (player.platform && player.platform.useLockedCredit) {
-                        pendingCount = dbRewardTask.getPendingRewardTaskCount({
-                            mainType: 'Reward',
-                            "data.playerObjId": player._id,
-                            status: 'Pending'
-                        }, rewardTaskWithProposalList);
-                    }
+                    pendingCount = dbRewardTask.getPendingRewardTaskCount({
+                        mainType: 'Reward',
+                        "data.playerObjId": player._id,
+                        status: 'Pending'
+                    }, rewardTaskWithProposalList);
 
                     let rewardData = {};
 

@@ -2994,7 +2994,22 @@ let dbPlayerInfo = {
                     'permission.forbidPlayerFromLogin': false
                 }).lean().count();
 
-                return Promise.all([realNameCountProm, sameBankAccountCountProm]).then(
+                let propQuery = {
+                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                    'data.platformId': platformObjId,
+                    'data.playerName': playerObj.name,
+                    'data.playerId': playerObj.playerId,
+                };
+
+                let firstBankInfoProm = dbPropUtil.getOneProposalDataOfType(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
+                    proposal => {
+                        if (!proposal) {
+                            return {isFirstBankInfo: true};
+                        }
+                    }
+                );
+
+                return Promise.all([realNameCountProm, sameBankAccountCountProm, firstBankInfoProm]).then(
                     data => {
                         if (!data){
                             return Promise.reject({
@@ -3005,27 +3020,33 @@ let dbPlayerInfo = {
                         duplicatedRealNameCount = data[0] || 0;
                         sameBankAccountCount = data[1] || 0;
 
-                        if (playerData.bankAccountName) {
-                            delete updateData.bankAccountName;
-                        }
-                        //check if bankAccountName in update data is the same as player's real name
-                        if (updateData.bankAccountName && !playerData.realName) {
-                            // return Q.reject({
-                            //     name: "DataError",
-                            //     code: constServerCode.INVALID_DATA,
-                            //     message: "Bank account name is different from real name"
-                            // });
-                            if (updateData.bankAccountName.indexOf('*') > -1)
-                                delete updateData.bankAccountName;
-                            else
+                        if (data && data[2] && data[2].hasOwnProperty('isFirstBankInfo') && data[2].isFirstBankInfo) {
+                            if (updateData && updateData.bankAccountName) {
                                 updateData.realName = updateData.bankAccountName;
-                        }
-                        if (!updateData.bankAccountName && !playerData.bankAccountName && !playerData.realName) {
-                            return Q.reject({
-                                name: "DataError",
-                                code: constServerCode.INVALID_DATA,
-                                message: "Please enter bank account name or contact cs"
-                            });
+                            }
+                        } else {
+                            if (playerData.bankAccountName) {
+                                delete updateData.bankAccountName;
+                            }
+                            //check if bankAccountName in update data is the same as player's real name
+                            if (updateData.bankAccountName && !playerData.realName) {
+                                // return Q.reject({
+                                //     name: "DataError",
+                                //     code: constServerCode.INVALID_DATA,
+                                //     message: "Bank account name is different from real name"
+                                // });
+                                if (updateData.bankAccountName.indexOf('*') > -1)
+                                    delete updateData.bankAccountName;
+                                else
+                                    updateData.realName = updateData.bankAccountName;
+                            }
+                            if (!updateData.bankAccountName && !playerData.bankAccountName && !playerData.realName) {
+                                return Q.reject({
+                                    name: "DataError",
+                                    code: constServerCode.INVALID_DATA,
+                                    message: "Please enter bank account name or contact cs"
+                                });
+                            }
                         }
 
                         // if (updateData.bankAccountType) {
@@ -3704,7 +3725,7 @@ let dbPlayerInfo = {
             platform = platformData;
 
             return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: player._id}).then(
-                rtgData => {             
+                rtgData => {
                     if (rtgData && rtgData.length) {
                         let calCreditArr = [];
 
@@ -12152,11 +12173,10 @@ let dbPlayerInfo = {
     /*
      * get player online top up types
      */
-    getOnlineTopupType: function (playerId, merchantUse, clientType, bPMSGroup, userIp) {
+    getOnlineTopupType: function (playerId, clientType, bPMSGroup, userIp) {
         // merchantUse - 1: merchant, 2: bankcard
         // clientType: 1: browser, 2: mobileApp
         var playerData = null;
-        let paymentData = null;
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
         ).populate(
@@ -12179,7 +12199,7 @@ let dbPlayerInfo = {
                         queryId: serverInstance.getQueryId()
                     };
                     playerData = data;
-                    if (merchantUse == 1) {
+                    //if (merchantUse == 1) {
                         if (bPMSGroup == true || bPMSGroup == "true") {
                             pmsQuery.username = data.name;
                             pmsQuery.ip = userIp;
@@ -12187,31 +12207,20 @@ let dbPlayerInfo = {
                             return pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
                         }
                         return pmsAPI.merchant_getMerchantList(pmsQuery);
-                    }
-                    else {
-                        return pmsAPI.bankcard_getBankcardList(pmsQuery);
-                    }
+                    // }
+                    // else {
+                    //     return pmsAPI.bankcard_getBankcardList(pmsQuery);
+                    // }
                 } else {
                     return Q.reject({name: "DataError", message: "Cannot find player"})
                 }
             }
         ).then(
-            paymentType => {
-                paymentData = paymentType;
-                if(playerData && playerData.merchantGroup && playerData.merchantGroup.merchantNames) {
-                    return dbconfig.collection_platformMerchantList.findOne({
-                        name: playerData.merchantGroup.merchantNames,
-                        platformId: playerData.platform.platformId
-                    }).lean();
-                } else {
-                    return null;
-                }
-            }
-        ).then(
-            localMerchantData => {
+            paymentData => {
                 if (paymentData) {
                     var resData = [];
-                    if (merchantUse == 1 && (paymentData.merchants || paymentData.topupTypes)) {
+                    // if (merchantUse == 1 && (paymentData.merchants || paymentData.topupTypes)) {
+                    if (paymentData.merchants || paymentData.topupTypes) {
                         if (paymentData.topupTypes) {
                             resData = paymentData.topupTypes;
                             resData.forEach(merchant => {
@@ -12243,8 +12252,6 @@ let dbPlayerInfo = {
                                                         }
 
                                                         type.status = status;
-                                                        type.serviceCharge =
-                                                            localMerchantData && localMerchantData.customizeRate ? localMerchantData.customizeRate : 0;
                                                     }
                                                 }
                                             });
@@ -12254,9 +12261,7 @@ let dbPlayerInfo = {
                                                         type: paymentData.merchants[i].topupType,
                                                         status: status,
                                                         maxDepositAmount: paymentData.merchants[i].permerchantLimits,
-                                                        minDepositAmount: paymentData.merchants[i].permerchantminLimits,
-                                                        serviceCharge:
-                                                            localMerchantData && localMerchantData.customizeRate ? localMerchantData.customizeRate : 0
+                                                        minDepositAmount: paymentData.merchants[i].permerchantminLimits
                                                     });
                                                 }
                                             }
@@ -12266,37 +12271,37 @@ let dbPlayerInfo = {
                             }
                         }
                     }
-                    else {
-                        if (paymentData.data && playerData.bankCardGroup && playerData.bankCardGroup.banks && playerData.bankCardGroup.banks.length > 0) {
-                            playerData.bankCardGroup.banks.forEach(
-                                bank => {
-                                    for (let i = 0; i < paymentData.data.length; i++) {
-                                        var status = 2;
-                                        if (paymentData.data[i].accountNumber == bank) {
-                                            status = 1;
-                                        }
-                                        var bValidType = true;
-                                        resData.forEach(type => {
-                                            if (type.type == paymentData.data[i].bankTypeId) {
-                                                bValidType = false;
-                                                if (status == 1 && paymentData.data[i].status == "NORMAL") {
-                                                    type.status = status;
-                                                }
-                                            }
-                                        });
-                                        if (bValidType && playerData.permission.topupManual && paymentData.data[i].status == "NORMAL") {
-                                            if (status == 1) {
-                                                resData.push({
-                                                    type: paymentData.data[i].bankTypeId,
-                                                    status: status
-                                                });
-                                            }
-                                        }
-                                    }
-                                }
-                            );
-                        }
-                    }
+                    // else {
+                    //     if (paymentData.data && playerData.bankCardGroup && playerData.bankCardGroup.banks && playerData.bankCardGroup.banks.length > 0) {
+                    //         playerData.bankCardGroup.banks.forEach(
+                    //             bank => {
+                    //                 for (let i = 0; i < paymentData.data.length; i++) {
+                    //                     var status = 2;
+                    //                     if (paymentData.data[i].accountNumber == bank) {
+                    //                         status = 1;
+                    //                     }
+                    //                     var bValidType = true;
+                    //                     resData.forEach(type => {
+                    //                         if (type.type == paymentData.data[i].bankTypeId) {
+                    //                             bValidType = false;
+                    //                             if (status == 1 && paymentData.data[i].status == "NORMAL") {
+                    //                                 type.status = status;
+                    //                             }
+                    //                         }
+                    //                     });
+                    //                     if (bValidType && playerData.permission.topupManual && paymentData.data[i].status == "NORMAL") {
+                    //                         if (status == 1) {
+                    //                             resData.push({
+                    //                                 type: paymentData.data[i].bankTypeId,
+                    //                                 status: status
+                    //                             });
+                    //                         }
+                    //                     }
+                    //                 }
+                    //             }
+                    //         );
+                    //     }
+                    // }
                     return resData;
                 }
                 else {
@@ -13518,13 +13523,12 @@ let dbPlayerInfo = {
                     let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
                     let pendingCount = 0;
-                    if (playerInfo.platform && playerInfo.platform.useLockedCredit) {
-                        pendingCount = dbRewardTask.getPendingRewardTaskCount({
-                            mainType: 'Reward',
-                            "data.playerObjId": playerInfo._id,
-                            status: 'Pending'
-                        }, rewardTaskWithProposalList);
-                    }
+                    
+                    pendingCount = dbRewardTask.getPendingRewardTaskCount({
+                        mainType: 'Reward',
+                        "data.playerObjId": playerInfo._id,
+                        status: 'Pending'
+                    }, rewardTaskWithProposalList);
 
                     let rewardData = {};
 
@@ -15135,7 +15139,7 @@ let dbPlayerInfo = {
             getPlayerProm = dbconfig.collection_players.findOne({
                 name: query.name,
                 platform: platformObjId
-            }, {_id: 1}).lean().then(
+            }, {_id: 1}).read("secondaryPreferred").lean().then(
                 player => {
                     if (!player) return Q.reject({
                         name: "DataError",
@@ -15258,7 +15262,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
-                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}}).lean();
+                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}}).read("secondaryPreferred").lean();
                 let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
 
@@ -15482,7 +15486,7 @@ let dbPlayerInfo = {
             startDate = dayEndTime;
         }
 
-        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).lean().then(
+        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).read("secondaryPreferred").lean().then(
             playerData => {
                 if (playerData) {
                     return playerData.name;
@@ -15615,7 +15619,7 @@ let dbPlayerInfo = {
                 name: query.name,
                 platform: platformObjId,
                 isDepositTracked: true
-            }, {_id: 1}).lean().then(
+            }, {_id: 1}).read("secondaryPreferred").lean().then(
                 player => {
                     if (!player) return Q.reject({
                         name: "DataError",
@@ -15629,7 +15633,7 @@ let dbPlayerInfo = {
             getPlayerProm = dbconfig.collection_players.find({
                 platform: platformObjId,
                 isDepositTracked: true
-            }, {_id: 1}).lean().then(
+            }, {_id: 1}).read("secondaryPreferred").lean().then(
                 player => {
                     if (!player) return Q.reject({
                         name: "DataError",
@@ -15641,7 +15645,7 @@ let dbPlayerInfo = {
         }
 
         // find id for promo code type 1, 2, 3
-        dbconfig.collection_promoCodeType.find({platformObjId: platformObjId}).lean().then(
+        dbconfig.collection_promoCodeType.find({platformObjId: platformObjId}).read("secondaryPreferred").lean().then(
             promoCode => {
                 if (promoCode && promoCode.length > 0) {
                     promoCode.forEach(promo => {
@@ -15676,7 +15680,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
-                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}}).lean();
+                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}}).read("secondaryPreferred").lean();
                 let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
 
@@ -15844,7 +15848,7 @@ let dbPlayerInfo = {
 
                     trackingGroupProm.push(dbconfig.collection_players.findOne({_id: player._id})
                         .populate({path: 'depositTrackingGroup', model: dbconfig.collection_playerDepositTrackingGroup})
-                        .lean().then(
+                        .read("secondaryPreferred").lean().then(
                             depositTrackingGroup => {
                                 if (depositTrackingGroup && depositTrackingGroup.depositTrackingGroup && depositTrackingGroup.depositTrackingGroup.name) {
                                     return {
@@ -16010,7 +16014,7 @@ let dbPlayerInfo = {
             platform: platform
         };
 
-        return dbconfig.collection_players.findOne(query).lean().then(
+        return dbconfig.collection_players.findOne(query).read("secondaryPreferred").lean().then(
             playerData => {
                 if (!playerData) return Q.reject({
                     name: "DataError",
@@ -16032,7 +16036,7 @@ let dbPlayerInfo = {
             platform: platform
         };
 
-        return dbconfig.collection_players.findOne(query, {isDepositTracked: 1}).then(
+        return dbconfig.collection_players.findOne(query, {isDepositTracked: 1}).read("secondaryPreferred").lean().then(
             playerData => {
                 if (!playerData) return Q.reject({
                     name: "DataError",
@@ -16074,24 +16078,24 @@ let dbPlayerInfo = {
         // convert UTC 16h to GMT 24h
         if (parseInt(timezoneOffset) > 0) {
             timezoneAdjust = {
-                year: {$year: {$subtract: ['$settleTime', positiveTimeOffset]}},
-                month: {$month: {$subtract: ['$settleTime', positiveTimeOffset]}},
+                year: {$year: {$subtract: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
+                month: {$month: {$subtract: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
             }
         } else {
             timezoneAdjust = {
-                year: {$year: {$add: ['$settleTime', positiveTimeOffset]}},
-                month: {$month: {$add: ['$settleTime', positiveTimeOffset]}},
+                year: {$year: {$add: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
+                month: {$month: {$add: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
             }
         }
         if (parseInt(timezoneOffset) > 0) {
             timezoneAdjust2 = {
-                year: {$year: {$subtract: ['$createTime', positiveTimeOffset]}},
-                month: {$month: {$subtract: ['$createTime', positiveTimeOffset]}},
+                year: {$year: {$subtract: [ {$ifNull: ['$createTime', 0]}, positiveTimeOffset ]}},
+                month: {$month: {$subtract: [ {$ifNull: ['$createTime', 0]}, positiveTimeOffset ]}},
             }
         } else {
             timezoneAdjust2 = {
-                year: {$year: {$add: ['$createTime', positiveTimeOffset]}},
-                month: {$month: {$add: ['$createTime', positiveTimeOffset]}},
+                year: {$year: {$add: [ {$ifNull: ['$createTime', 0]}, positiveTimeOffset ]}},
+                month: {$month: {$add: [ {$ifNull: ['$createTime', 0]}, positiveTimeOffset ]}},
             }
         }
         console.log('positiveTimeOffset===', positiveTimeOffset);
@@ -16175,7 +16179,7 @@ let dbPlayerInfo = {
             }
         ]).read("secondaryPreferred"));
 
-        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).lean().then(
+        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).read("secondaryPreferred").lean().then(
             playerData => {
                 if (playerData) {
                     return {playerId: playerData._id, playerName: playerData.name};
@@ -16428,7 +16432,7 @@ let dbPlayerInfo = {
             startDate = dayEndTime;
         }
 
-        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).lean().then(
+        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).read("secondaryPreferred").lean().then(
             playerData => {
                 if (playerData) {
                     return {playerId: playerData._id, playerName: playerData.name};
@@ -18288,7 +18292,7 @@ let dbPlayerInfo = {
 
                     // sorting to reduce chances of getting joint-list
                     platformData.gameProviders.sort(sortRankingRecord);
-                    
+
                     for (let i = 0; i < platformData.gameProviders.length; i++) {
                         gameProviderIdList.push(platformData.gameProviders[i].providerId);
                         // check each of the game provider for the sameLineProvider
