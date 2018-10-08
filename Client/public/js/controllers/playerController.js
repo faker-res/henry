@@ -5119,6 +5119,31 @@ define(['js/app'], function (myApp) {
                                         output += vm.credibilityRemarks[i].name;
                                         remarkMatches = true;
                                     }
+
+                                    if (vm.credibilityRemarks[i]._id === remarkId && vm.credibilityRemarks[i].name === '黑名单IP' && vm.credibilityRemarks[i].isFixed === true) {
+                                        output += " <span class='blacklistIpDot'><span class='playerBlacklistIpDetail'>";
+                                        output += "<table class='playerCredibilityBlacklistIpDetailTable'><thead><tr>";
+                                        output += "<th style='width:5%'>" + $translate('SEQUENCE_NO') + "</th>";
+                                        output += "<th style='width:30%'>" + $translate('IP') + "</th>";
+                                        output += "<th style='width:30%'>" + $translate('REMARK') + "</th>";
+                                        output += "<th style='width:10%'>" + $translate('Operator_Name') + "</th>";
+                                        output += "</tr></thead>";
+                                        output += "<tbody>";
+                                        if (row && row.blacklistIp && row.blacklistIp.length > 0) {
+                                            let i = 1;
+                                            row.blacklistIp.forEach(IP => {
+                                                output += "<tr>";
+                                                output += "<td>" + i + "</td>";
+                                                output += "<td>" + IP.ip + "</td>";
+                                                output += "<td>" + IP.remark + "</td>";
+                                                output += "<td>" + IP.adminName + "</td>";
+                                                output += "</tr>";
+                                                i++;
+                                            });
+                                        }
+                                        output += "</tbody>";
+                                        output += "</table></span></span>";
+                                    }
                                 }
                             });
                             output += "</a>";
@@ -5822,7 +5847,7 @@ define(['js/app'], function (myApp) {
                     },
                 ],
                 //"autoWidth": false,
-                "scrollX": true,
+                "scrollX": false,
                 "deferRender": true,
                 "bDeferRender": true,
                 "bProcessing": true,
@@ -9027,8 +9052,11 @@ define(['js/app'], function (myApp) {
                 // "sScrollY": 350,
                 // "scrollCollapse": true,
                 // "destroy": true,
-                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                    $compile(nRow)($scope);
+                // fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                //     $compile(nRow)($scope);
+                // }
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
                 }
             });
             tableOptions.language.emptyTable = $translate("No data available in table");
@@ -11312,7 +11340,7 @@ define(['js/app'], function (myApp) {
                             item.isArchived =
                                 item.archivedAmt$ == item.availableAmt$ || item.curConsumption$ == item.requiredUnlockAmount$;
 
-                            if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3)) {
+                            if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId) {
                                 usedTopUp.push(item.topUpProposal)
                             }
 
@@ -12294,8 +12322,8 @@ define(['js/app'], function (myApp) {
                 "sScrollY": 350,
                 "scrollCollapse": true,
                 "destroy": true,
-                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                    $compile(nRow)($scope);
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
                 }
             });
 
@@ -12733,7 +12761,8 @@ define(['js/app'], function (myApp) {
                         item.isArchived =
                             item.archivedAmt$ == item.availableAmt$ || item.curConsumption$ == item.requiredUnlockAmount$;
 
-                        if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3)) {
+                        // exclude the proposal to be shown in the progress bar if the proposal is dynamicReward, type c promocode or limitedOffer
+                        if (item.data.isDynamicRewardAmount || (item.data.promoCodeTypeValue && item.data.promoCodeTypeValue == 3) || item.data.limitedOfferObjId) {
                             usedTopUp.push(item.topUpProposal)
                         }
 
@@ -13046,13 +13075,17 @@ define(['js/app'], function (myApp) {
                 "sScrollY": 350,
                 "scrollCollapse": true,
                 "destroy": true,
-                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                    $compile(nRow)($scope);
-                    // $(nRow).off('click');
-                    // $(nRow).find('a').on('click', function () {
-                    //     vm.showProposalModal(aData.proposalId, 1);
-                    // });
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
                 }
+
+                // fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                //     $compile(nRow)($scope);
+                //     // $(nRow).off('click');
+                //     // $(nRow).find('a').on('click', function () {
+                //     //     vm.showProposalModal(aData.proposalId, 1);
+                //     // });
+                // }
 
             });
 
@@ -13760,7 +13793,6 @@ define(['js/app'], function (myApp) {
                         data: "ipAddress",
                         render: function (data, type, row) {
                             data = data || '0';
-                            vm.blacklistIpRowData = (row && row.ipAddress) ? row.ipAddress : "";
                             let playerIpAddress = (row && row.ipAddress) ? row.ipAddress : "";
 
                             // display text in red if match blacklist ip
@@ -18648,8 +18680,45 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerBonus") {
-                    if(vm.selectedProposal.data.creditCharge && vm.selectedProposal.data.oriCreditCharge && vm.selectedProposal.data.creditCharge != vm.selectedProposal.data.oriCreditCharge){
-                        vm.selectedProposal.data.creditCharge = vm.selectedProposal.data.creditCharge + " (" + $translate("original service charge") + vm.selectedProposal.data.oriCreditCharge + ", " + $translate("remove decimal") + ")";
+                    if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerBonus") {
+                        let proposalDetail = {};
+                        let bankNameWhenSubmit = "";
+                        let bankNameWhenApprove = "";
+                        if (!vm.selectedProposal.data) {
+                            vm.selectedProposal.data = {};
+                        }
+                        proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
+                        proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                        proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
+                        proposalDetail["proposalPlayerLevel"] = vm.selectedProposal.data.proposalPlayerLevel;
+                        proposalDetail["Credit Charge(Service Charge Deducted)"] = vm.selectedProposal.data.amount;
+                        proposalDetail["ximaWithdrawUsed"] = vm.selectedProposal.data.ximaWithdrawUsed;
+                        if(vm.selectedProposal.data.creditCharge != vm.selectedProposal.data.oriCreditCharge){
+                            proposalDetail["actualCreditCharge"] = vm.selectedProposal.data.creditCharge + " (" + $translate("original service charge") + vm.selectedProposal.data.oriCreditCharge + ", " + $translate("remove decimal") + ")";
+                        }else{
+                            proposalDetail["actualCreditCharge"] = vm.selectedProposal.data.creditCharge
+                        }
+                        proposalDetail["oriCreditCharge"] = vm.selectedProposal.data.oriCreditCharge;
+                        if(typeof vm.selectedProposal.data.isAutoApproval != "undefined"){
+                            proposalDetail["isAutoApproval"] = vm.selectedProposal.data.isAutoApproval ? "开启" : "关闭";
+                        }
+                        proposalDetail["autoAuditTime"] = vm.selectedProposal.data.autoAuditTime;
+                        proposalDetail["autoAuditRemark"] = vm.selectedProposal.data.autoAuditRemarkChinese;
+                        proposalDetail["autoAuditDetail"] = vm.selectedProposal.data.detailChinese;
+
+                        if(vm.selectedProposal.data.bankNameWhenSubmit){
+                            bankNameWhenSubmit = vm.allBankTypeList[vm.selectedProposal.data.bankNameWhenSubmit] || (vm.selectedProposal.data.bankNameWhenSubmit + " ! " + $translate("not in bank type list"));
+                            bankNameWhenSubmit += " / "
+                        }
+                        proposalDetail["bankInfoWhenSubmit"] = bankNameWhenSubmit + $translate("bankcard no:") + vm.selectedProposal.data.bankAccountWhenSubmit;
+
+                        if(vm.selectedProposal.data.bankNameWhenApprove){
+                            bankNameWhenApprove = vm.allBankTypeList[vm.selectedProposal.data.bankNameWhenApprove] || (vm.selectedProposal.data.bankNameWhenApprove + " ! " + $translate("not in bank type list"));
+                            bankNameWhenApprove += " / "
+                        }
+                        proposalDetail["bankInfoWhenApprove"] = bankNameWhenApprove + $translate("bankcard no:") + vm.selectedProposal.data.bankAccountWhenApprove;
+
+                        vm.selectedProposal.data = proposalDetail;
                     }
                 }
 

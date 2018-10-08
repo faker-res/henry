@@ -17,6 +17,7 @@ const ObjectId = require('mongoose').Types.ObjectId;
 const dbUtility = require('./../modules/dbutility');
 const cpmsAPI = require("../externalAPI/cpmsAPI");
 const constProposalMainType = require('../const/constProposalMainType');
+const constPlayerRegistrationInterface = require('../const/constPlayerRegistrationInterface');
 const proposalExecutor = require('./../modules/proposalExecutor');
 
 
@@ -99,7 +100,7 @@ const dbLargeWithdrawal = {
                 let gameCreditProm = getTotalUniqueProviderCredit(player);
 
                 let totalTopUpFromLastWithdrawal = Promise.resolve(0); //default amount
-                let totalConsumptionFromLastWithdrawal = Promise.resolve(0);
+                let totalXIMAFromLastWithdrawal = Promise.resolve(0);
                 let totalRewardFromLastWithdrawal = Promise.resolve(0);
                 let consumptionTimesFromLastWithdrawal = Promise.resolve({
                     belowHundred: 0,
@@ -110,14 +111,14 @@ const dbLargeWithdrawal = {
                 let providerInfoFromLastWithdrawal = Promise.resolve([]);
                 if (lastWithdraw && lastWithdraw.createTime) {
                     totalTopUpFromLastWithdrawal = getTotalTopUpByTime(player, lastWithdraw.createTime, proposal.createTime);
-                    totalConsumptionFromLastWithdrawal = getTotalConsumptionByTime(player, lastWithdraw.createTime, proposal.createTime);
+                    totalXIMAFromLastWithdrawal = getTotalXIMAByTime(player, lastWithdraw.createTime, proposal.createTime);
                     totalRewardFromLastWithdrawal = getTotalRewardByTime(player, lastWithdraw.createTime, proposal.createTime);
                     consumptionTimesFromLastWithdrawal = getConsumptionTimesByTime(player, lastWithdraw.createTime, proposal.createTime);
                     providerInfoFromLastWithdrawal = getProviderInfoByTime(player, lastWithdraw.createTime, proposal.createTime);
 
                 }
                 let totalTopUpFromLastTopUp = Promise.resolve(0);
-                let totalConsumptionFromLastTopUp = Promise.resolve(0);
+                let totalXIMAFromLastTopUp = Promise.resolve(0);
                 let totalRewardFromLastTopUp = Promise.resolve(0);
                 let consumptionTimesFromLastTopUp = Promise.resolve({
                     belowHundred: 0,
@@ -146,7 +147,7 @@ const dbLargeWithdrawal = {
 
                 if (lastTopUp && lastTopUp.createTime) {
                     totalTopUpFromLastTopUp = lastTopUp.amount ? lastTopUp.amount : 0;
-                    totalConsumptionFromLastTopUp = getTotalConsumptionByTime(player, lastTopUp.createTime, proposal.createTime);
+                    totalXIMAFromLastTopUp = getTotalXIMAByTime(player, lastTopUp.createTime, proposal.createTime);
                     totalRewardFromLastTopUp = getTotalRewardByTime(player, lastTopUp.createTime, proposal.createTime);
                     consumptionTimesFromLastTopUp = getConsumptionTimesByTime(player, lastTopUp.createTime, proposal.createTime);
                     providerInfoFromLastTopUp = getProviderInfoByTime(player, lastTopUp.createTime, proposal.createTime);
@@ -154,15 +155,15 @@ const dbLargeWithdrawal = {
 
 
                 return Promise.all([largeWithdrawalSettingProm, todayLargeAmountProm, bankCityProm, gameCreditProm, totalTopUpFromLastWithdrawal
-                    , totalConsumptionFromLastWithdrawal, totalRewardFromLastWithdrawal, consumptionTimesFromLastWithdrawal, providerInfoFromLastWithdrawal
-                    , totalTopUpFromLastTopUp, totalConsumptionFromLastTopUp, totalRewardFromLastTopUp, consumptionTimesFromLastTopUp, providerInfoFromLastTopUp
+                    , totalXIMAFromLastWithdrawal, totalRewardFromLastWithdrawal, consumptionTimesFromLastWithdrawal, providerInfoFromLastWithdrawal
+                    , totalTopUpFromLastTopUp, totalXIMAFromLastTopUp, totalRewardFromLastTopUp, consumptionTimesFromLastTopUp, providerInfoFromLastTopUp
                     , todayTopUpAmt, todayWithdrawalAmt, totalTopUpAmt, totalWithdrawalAmt, currentMonthTopUpAmt, lastMonthTopUpAmt, secondLastMonthTopUpAmt
                     , currentMonthWithdrawAmt, lastMonthWithdrawAmt, secondLastMonthWithdrawAmt, currentMonthConsumptionAmt, lastMonthConsumptionAmt, secondLastMonthConsumptionAmt]);
             }
         ).then(
-            ([largeWithdrawalSetting, todayLargeAmountNo, bankCity, gameCredit, topUpAmtFromLastWithdraw, consumptionAmtFromLastWithdraw
+            ([largeWithdrawalSetting, todayLargeAmountNo, bankCity, gameCredit, topUpAmtFromLastWithdraw, totalXIMAFromLastWithdraw
                  , rewardAmtFromLastWithdraw, consumptionTimesFromLastWithdraw, providerInfoFromLastWithdraw, totalTopUpFromLastTopUp
-                 , totalConsumptionFromLastTopUp, totalRewardFromLastTopUp, consumptionTimesFromLastTopUp, providerInfoFromLastTopUp
+                 , totalXIMAFromLastTopUp, totalRewardFromLastTopUp, consumptionTimesFromLastTopUp, providerInfoFromLastTopUp
                  , todayTopUpAmt, todayWithdrawalAmt, totalTopUpAmt, totalWithdrawalAmt, currentMonthTopUpAmt, lastMonthTopUpAmt, secondLastMonthTopUpAmt
                 , currentMonthWithdrawAmt, lastMonthWithdrawAmt, secondLastMonthWithdrawAmt, currentMonthConsumptionAmt, lastMonthConsumptionAmt, secondLastMonthConsumptionAmt]) => {
                 let bankCityName;
@@ -196,7 +197,7 @@ const dbLargeWithdrawal = {
                     currentCredit: currentCredit,
                     playerBonusAmount: currentCredit + withdrawalAmount - topUpAmtFromLastWithdraw,
                     playerTotalTopUpAmount: topUpAmtFromLastWithdraw,
-                    consumptionReturnAmount: consumptionAmtFromLastWithdraw,
+                    consumptionReturnAmount: totalXIMAFromLastWithdraw,
                     rewardAmount: rewardAmtFromLastWithdraw,
                     consumptionAmountTimes: {
                         belowHundred: consumptionTimesFromLastWithdraw.belowHundred || 0,
@@ -208,7 +209,7 @@ const dbLargeWithdrawal = {
                     gameProviderInfo: providerInfoFromLastWithdraw,
                     lastTopUpPlayerBonusAmount: currentCredit + withdrawalAmount - totalTopUpFromLastTopUp,
                     lastTopUpAmount: totalTopUpFromLastTopUp,
-                    lastTopUpConsumptionReturnAmount: totalConsumptionFromLastTopUp,
+                    lastTopUpConsumptionReturnAmount: totalXIMAFromLastTopUp,
                     lastTopUpRewardAmount: totalRewardFromLastTopUp,
                     lastTopUpConsumptionAmountTimes: {
                         belowHundred: consumptionTimesFromLastTopUp.belowHundred || 0,
@@ -308,6 +309,171 @@ const dbLargeWithdrawal = {
         );
     },
 
+    fillUpPartnerLargeWithdrawalLogDetail: (logObjId) => {
+        let log, partner, proposal, setting, todayLargeAmount, bankCityName, lastWithdrawalDate, downLinePlayerAmount, downlinePartnerAmount;
+        let todayTime = dbUtility.getTodaySGTime();
+        return dbconfig.collection_partnerLargeWithdrawalLog.findOne({_id: logObjId}).lean().then(
+            logData => {
+                if (!logData) {
+                    console.log("no partner large withdrawal log found:", logObjId);
+                    return Promise.reject({message: "no partner large withdrawal log found"});
+                }
+                log = logData;
+
+                let proposalProm = dbconfig.collection_proposal.findOne({proposalId: log.proposalId}).read("secondaryPreferred").lean();
+                let settingProm = dbconfig.collection_largeWithdrawalPartnerSetting.findOne({platform: log.platform}).lean();
+
+                return Promise.all([proposalProm, settingProm]);
+            }
+        ).then(
+            ([proposalData, settingData]) => {
+                if (!proposalData) {
+                    console.log("proposal of partner large withdrawal not found", logObjId);
+                    return Promise.reject({message: "proposal of partner large withdrawal not found"});
+                }
+                proposal = proposalData;
+
+                if (!proposal.data || !proposal.data.partnerObjId) {
+                    console.log("partnerObjId of proposal not found:", log.proposalId);
+                    return Promise.reject({message: "partnerObjId of proposal not found"});
+                }
+
+                if (!settingData) {
+                    return Promise.reject({name: "DataError", message: "Please setup large withdrawal setting."});
+                }
+                setting = settingData;
+
+
+                return dbconfig.collection_partner.findOne({_id: proposal.data.partnerObjId}).lean();
+
+            }
+        ).then(
+            partnerData => {
+                if (!partnerData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find partner"});
+                }
+                partner = partnerData;
+
+                let todayLargeAmountProm = dbconfig.collection_partnerLargeWithdrawalLog.find({
+                    platform: log.platform,
+                    withdrawalTime: {
+                        $gte: todayTime.startTime,
+                        $lt: todayTime.endTime
+                    },
+                }).read("secondaryPreferred").count();
+
+                let bankCityProm = pmsAPI.foundation_getCityList({provinceId: partner.bankAccountProvince});
+                let lastWithdrawalProm = dbconfig.collection_proposal.findOne({
+                    'data.partnerObjId': proposal.data.partnerObjId,
+                    mainType: constProposalType.PLAYER_BONUS,
+                    status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                    createTime: {$lt: proposal.createTime}
+                }).sort({createTime: -1}).read("secondaryPreferred").lean();
+
+                let downLinePlayerProm = dbconfig.collection_players.find({partner: partner._id}, {_id: 1}).read("secondaryPreferred").lean();
+                let downLinePartnerProm = dbconfig.collection_partner.find({parent: partner._id}, {_id: 1}).read("secondaryPreferred").lean();
+
+                return Promise.all([todayLargeAmountProm, bankCityProm, lastWithdrawalProm, downLinePlayerProm, downLinePartnerProm]);
+            }
+        ).then(
+            ([todayLargeAmountData, bankCityData, lastWithdrawalData, downLinePlayerData, downLinePartnerData]) => {
+                todayLargeAmount = todayLargeAmountData || 0;
+
+                bankCityName = "";
+                if (bankCityData && bankCityData.cities && bankCityData.cities.length && partner.bankAccountCity) {
+                    for (let i = 0; i < bankCityData.cities.length; i++) {
+                        if (bankCityData.cities[i].id == partner.bankAccountCity) {
+                            bankCityName = bankCityData.cities[i].name;
+                            break;
+                        }
+                    }
+                }
+
+                lastWithdrawalDate = lastWithdrawalData && lastWithdrawalData.createTime || null;
+
+                downLinePlayerAmount = downLinePlayerData && downLinePlayerData.length || 0;
+                downlinePartnerAmount = downLinePartnerData && downLinePartnerData.length || 0;
+
+                let proposalsQuery = {
+                    "data.platformId": {$in:[String(log.platform), log.platform]},
+                    "data.partnerName": partner.partnerName,
+                    createTime: {
+                        $lte: proposal.createTime,
+                    }
+                };
+
+                if (lastWithdrawalDate) {
+                    proposalsQuery.createTime.$gte = lastWithdrawalDate;
+                }
+
+                return dbconfig.collection_proposal.find(proposalsQuery).populate({path: "type", model: dbconfig.collection_proposalType}).sort({createTime: -1}).read("secondaryPreferred").lean();
+            }
+        ).then(
+            periodProposals => {
+                let proposalsAfterLastWithdrawal = periodProposals.map(prop => {
+                    let detail = {};
+                    detail.proposalId = prop.proposalId;
+                    detail.creatorName = prop.creator && prop.creator.name ? prop.creator.name : "";
+                    detail.inputDevice = prop.inputDevice || 0;
+                    detail.proposalMainType = prop.mainType;
+                    detail.proposalType = prop.type && prop.type.name ? prop.type.name : "";
+                    detail.status = prop.status;
+                    detail.relatedUser = partner.partnerName;
+                    detail.amount = prop.data && prop.data.amount ? prop.data.amount : 0;
+                    detail.createTime = prop.createTime || "";
+                    detail.remark = prop.data && prop.data.remark? prop.data.remark : "";
+                    return detail;
+                });
+
+                let commissionTypeName = "";
+
+                switch (partner.commissionType) {
+                    case 0:
+                        commissionTypeName = "关闭";
+                        break;
+                    case 1:
+                        commissionTypeName = "1天-输赢值";
+                        break;
+                    case 2:
+                        commissionTypeName = "7天-输赢值";
+                        break;
+                    case 3:
+                        commissionTypeName = "半月-输赢值";
+                        break;
+                    case 4:
+                        commissionTypeName = "1月-输赢值";
+                        break;
+                    case 5:
+                        commissionTypeName = "7天-投注额";
+                        break;
+                    case 6:
+                        commissionTypeName = "代理前端自选（未选择）";
+                        break;
+                }
+
+
+                let updateData = {
+                    emailNameExtension: setting.emailNameExtension || "",
+                    todayLargeAmountNo: todayLargeAmount,
+                    partnerName: partner.partnerName,
+                    amount: proposal.data && proposal.data.amount || 0,
+                    realName: partner.realName || "",
+                    commissionTypeName: commissionTypeName,
+                    bankCity: bankCityName,
+                    registrationTime: partner.registrationTime,
+                    withdrawalTime: proposal.createTime,
+                    lastWithdrawalTime: lastWithdrawalDate,
+                    currentCredit: partner.credits || 0,
+                    downLinePlayerAmount: downLinePlayerAmount,
+                    downLinePartnerAmount: downlinePartnerAmount,
+                    proposalsAfterLastWithdrawal: proposalsAfterLastWithdrawal,
+                };
+
+                return dbconfig.collection_partnerLargeWithdrawalLog.findOneAndUpdate({_id: log._id}, updateData, {new: true}).lean();
+            }
+        );
+    },
+
     sendPartnerLargeAmountDetailMail: (largeWithdrawalLogObjId, comment, admin, host) => {
         let largeWithdrawalLog, largeWithdrawalSetting;
         return dbconfig.collection_partnerLargeWithdrawalLog.findOneAndUpdate({_id: largeWithdrawalLogObjId}, {comment: comment}, {new: true}).lean().then(
@@ -327,7 +493,7 @@ const dbLargeWithdrawal = {
                 largeWithdrawalSetting = largeWithdrawalSettingData;
 
 
-                let recipientsProm = Promise.resolve();
+                let recipientsProm = Promise.resolve([]);
                 if (largeWithdrawalSetting.recipient && largeWithdrawalSetting.recipient.length) {
                     recipientsProm = dbconfig.collection_admin.find({_id: {$in: largeWithdrawalSetting.recipient}}).lean();
                 }
@@ -456,28 +622,30 @@ const dbLargeWithdrawal = {
         );
     },
 
-    sendProposalUpdateInfoToRecipients: (largeWithdrawalLogObjId, proposal) => {
-        let largeWithdrawalLog, largeWithdrawalSetting;
-        return dbconfig.collection_largeWithdrawalLog.findOne({_id: largeWithdrawalLogObjId}).lean().then(
-            largeWithdrawalLogData => {
-                if (!largeWithdrawalLogData) {
+    sendProposalUpdateInfoToRecipients: (logObjId, proposal, bSuccess, isPartner) => {
+        let log, setting;
+        let settingModel = isPartner ? dbconfig.collection_largeWithdrawalPartnerSetting : dbconfig.collection_largeWithdrawalSetting;
+        let logModel = isPartner ? dbconfig.collection_partnerLargeWithdrawalLog : dbconfig.collection_largeWithdrawalLog;
+        return logModel.findOne({_id: logObjId}).lean().then(
+            logData => {
+                if (!logData) {
                     return Promise.reject({message: "Large withdrawal log not found"});
                 }
-                largeWithdrawalLog = largeWithdrawalLogData;
+                log = logData;
 
-                let largeWithdrawalSettingProm = dbconfig.collection_largeWithdrawalSetting.findOne({platform: largeWithdrawalLog.platform}).lean();
+                let settingProm = settingModel.findOne({platform: log.platform}).lean();
                 let proposalProcessProm = dbconfig.collection_proposalProcess.findOne({_id: proposal.process}).populate({path: "steps", model: dbconfig.collection_proposalProcessStep}).lean();
 
-                return Promise.all([largeWithdrawalSettingProm, proposalProcessProm]);
+                return Promise.all([settingProm, proposalProcessProm]);
             }
         ).then(
-            ([largeWithdrawalSettingData, proposalProcessData]) => {
-                if (!largeWithdrawalSettingData) {
+            ([settingData, proposalProcessData]) => {
+                if (!settingData) {
                     return Promise.reject({message: "Large withdrawal log not found"});
                 }
-                largeWithdrawalSetting = largeWithdrawalSettingData;
+                setting = settingData;
 
-                if (!largeWithdrawalSetting.recipient || !largeWithdrawalSetting.recipient.length) {
+                if (!setting.recipient || !setting.recipient.length) {
                     return [];
                 }
 
@@ -486,14 +654,16 @@ const dbLargeWithdrawal = {
                     processStep = proposalProcessData.steps[proposalProcessData.steps.length - 1];
                 }
 
-                let proms = [];
+                // let proms = [];
+                //
+                // setting.recipient.map(recipient => {
+                //     let prom = sendLargeWithdrawalProposalAuditedInfo(proposal, recipient, log, processStep, bSuccess, isPartner);
+                //     proms.push(prom);
+                // });
+                //
+                // return Promise.all(proms);
 
-                largeWithdrawalSetting.recipient.map(recipient => {
-                    let prom = sendLargeWithdrawalProposalAuditedInfo(proposal, recipient, largeWithdrawalLog, processStep);
-                    proms.push(prom);
-                });
-
-                return Promise.all(proms);
+                return bulkSendProposalAuditedInfo(proposal, setting.recipient, log, processStep, bSuccess, isPartner);
             }
         );
     },
@@ -582,7 +752,58 @@ function generateAuditDecisionLink(host, proposalId, adminObjId) {
 }
 
 function generatePartnerAuditDecisionLink(host, proposalId, adminObjId) {
-    //todo huat
+    // hash = "largeWithdrawal" + proposalId + adminObjId + "approve"/"reject"
+    let hashContentRaw = "largeWithdrawalSnsoftPartner" + proposalId + adminObjId;
+    let rawLink = "http://" + host + "/auditPartnerLargeWithdrawalProposal?";
+    rawLink += "proposalId=" + proposalId;
+    rawLink += "&adminObjId=" + adminObjId;
+
+    let approveLinkProm = new Promise((resolve, reject) => {
+        let approveLink = rawLink + "&decision=approve";
+        let hashContent = hashContentRaw + "approve";
+        bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
+            if (err) {
+                reject(err);
+            }
+            bcrypt.hash(hashContent, salt, function (err, hash) {
+                if (err) {
+                    reject(err);
+                }
+                approveLink += "&hash=" + hash;
+                resolve(approveLink);
+            });
+        });
+    });
+
+    let rejectLinkProm = new Promise((resolve, reject) => {
+        let rejectLink = rawLink + "&decision=reject";
+        let hashContent = hashContentRaw + "reject";
+        bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
+            if (err) {
+                reject(err);
+            }
+            bcrypt.hash(hashContent, salt, function (err, hash) {
+                if (err) {
+                    reject(err);
+                }
+                rejectLink += "&hash=" + hash;
+                resolve(rejectLink);
+            });
+        });
+    });
+
+    return Promise.all([approveLinkProm, rejectLinkProm]).then(
+        data => {
+            if (!data || !data[0] || !data[1]) {
+                return Promise.reject({message: "Generate decision link failure."});
+            }
+
+            return {
+                approve: data[0],
+                reject: data[1]
+            }
+        }
+    );
 }
 
 function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSetting, adminObjId, isReviewer, host, allRecipientEmail) {
@@ -663,10 +884,10 @@ function sendPartnerLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawa
     );
 }
 
-function sendLargeWithdrawalProposalAuditedInfo(proposalData, adminObjId, log, proposalProcessStep) {
+function sendLargeWithdrawalProposalAuditedInfo(proposalData, adminObjId, log, proposalProcessStep, bSuccess, isPartner) {
     let admin, html;
 
-    let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).populate({path: "departments", model: dbconfig.collection_department}).lean();
+    let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
     let auditorProm = dbconfig.collection_admin.findOne({_id: proposalProcessStep.operator}).lean();
     let auditorDepartmentProm = dbconfig.collection_department.findOne({_id: proposalProcessStep.department}).lean();
 
@@ -677,12 +898,46 @@ function sendLargeWithdrawalProposalAuditedInfo(proposalData, adminObjId, log, p
             }
             admin = adminData;
 
-            html = generateLargeWithdrawalAuditedInfoEmail(proposalData, admin, proposalProcessStep, auditorData, auditorDepartmentData);
+            html = generateLargeWithdrawalAuditedInfoEmail(proposalData, proposalProcessStep, auditorData, auditorDepartmentData, bSuccess);
 
             let emailConfig = {
                 sender: "no-reply@snsoft.my", // company email?
                 recipient: admin.email, // admin email
-                subject: getLogDetailEmailSubject(log), // title
+                subject: getLogDetailEmailSubject(log, isPartner), // title
+                body: html, // html content
+                isHTML: true
+            };
+
+            return emailer.sendEmail(emailConfig);
+        }
+    );
+}
+
+function bulkSendProposalAuditedInfo (proposalData, adminObjIds, log, proposalProcessStep, bSuccess, isPartner) {
+    let admins, html, adminEmails;
+    let adminsProm = dbconfig.collection_admin.find({_id: {$in: adminObjIds}}).lean();
+    let auditorProm = dbconfig.collection_admin.findOne({_id: proposalProcessStep.operator}).lean();
+    let auditorDepartmentProm = dbconfig.collection_department.findOne({_id: proposalProcessStep.department}).lean();
+
+    return Promise.all([adminsProm, auditorProm, auditorDepartmentProm]).then(
+        ([adminsData, auditorData, auditorDepartmentData]) => {
+            if (!adminsData) {
+                return Promise.reject({message: "Admin not found."});
+            }
+            admins = adminsData;
+
+            adminEmails = admins.map(admin => {
+                return admin.email;
+            });
+
+            let adminEmailsStr = adminEmails.join();
+
+            html = generateLargeWithdrawalAuditedInfoEmail(proposalData, proposalProcessStep, auditorData, auditorDepartmentData, bSuccess);
+
+            let emailConfig = {
+                sender: "no-reply@snsoft.my", // company email?
+                recipient: adminEmailsStr, // admin email
+                subject: getLogDetailEmailSubject(log, isPartner), // title
                 body: html, // html content
                 isHTML: true
             };
@@ -751,6 +1006,13 @@ function generateLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
         let num = dbutility.noRoundTwoDecimalPlaces(log.currentCredit);
         html += `<tr>
             <td style="border: solid 1px black; padding: 3px">账户余额</td>
+            <td style="border: solid 1px black; padding: 3px">${num}</td>
+        </tr>`;
+    }
+    if (setting.showProposalId) {
+        let num = log.proposalId;
+        html += `<tr>
+            <td style="border: solid 1px black; padding: 3px">提款提案号</td>
             <td style="border: solid 1px black; padding: 3px">${num}</td>
         </tr>`;
     }
@@ -1169,7 +1431,335 @@ function generateLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
 }
 
 function generatePartnerLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
-    //todo huat
+    let html = ``;
+    if (!setting) {
+        return Promise.reject({message: "Please setup partner large withdrawal setting."});
+    }
+
+    let allEmailStr = allEmailArr && allEmailArr.length ? allEmailArr.join() : "";
+
+    let emailSubject = getLogDetailEmailSubject(log) + " " + dbutility.getLocalTimeString(log.withdrawalTime, "hh:ss A");
+
+    html += `<div style="text-align: left; background-color: #047ea5; color: #FFFFFF; font-weight: bold; padding: 13px; border-radius: 38px; width: 61.8%">A.代理信息区</div>`;
+
+    html += `<div style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 38.2%">代理基本信息</div>`;
+
+    html += `<table style="border: solid; border-collapse: collapse; margin-top: 13px;">`;
+
+    if (setting.showRealName) {
+        html += `<tr>
+            <td style="border: solid 1px black; padding: 3px">真实姓名</td>
+            <td style="border: solid 1px black; padding: 3px">${log.realName}</td>
+        </tr>`;
+    }
+    if (setting.showCommissionType) {
+        html += `<tr>
+            <td style="border: solid 1px black; padding: 3px">佣金模式</td>
+            <td style="border: solid 1px black; padding: 3px">${log.commissionTypeName}</td>
+        </tr>`;
+    }
+    if (setting.showBankCity) {
+        html += `<tr>
+            <td style="border: solid 1px black; padding: 3px">银行城市</td>
+            <td style="border: solid 1px black; padding: 3px">${log.bankCity}</td>
+        </tr>`;
+    }
+    if (setting.showRegisterTime) {
+        let time = dbutility.getLocalTimeString(log.registrationTime, "YYYY/MM/DD HH:mm:ss");
+        html += `<tr>
+            <td style="border: solid 1px black; padding: 3px">注册时间</td>
+            <td style="border: solid 1px black; padding: 3px">${time}</td>
+        </tr>`;
+    }
+    if (setting.showCurrentWithdrawalTime) {
+        let time = dbutility.getLocalTimeString(log.withdrawalTime, "YYYY/MM/DD HH:mm:ss");
+        html += `<tr>
+            <td style="border: solid 1px black; padding: 3px">本次提款时间</td>
+            <td style="border: solid 1px black; padding: 3px">${time}</td>
+        </tr>`;
+    }
+    if (setting.showLastWithdrawalTime) {
+        let time = dbutility.getLocalTimeString(log.lastWithdrawalTime, "YYYY/MM/DD HH:mm:ss");
+        html += `<tr>
+            <td style="border: solid 1px black; padding: 3px">上次提款时间</td>
+            <td style="border: solid 1px black; padding: 3px">${time}</td>
+        </tr>`;
+    }
+    if (setting.showCurrentCredit) {
+        let num = dbutility.noRoundTwoDecimalPlaces(log.currentCredit);
+        html += `<tr>
+            <td style="border: solid 1px black; padding: 3px">账户余额</td>
+            <td style="border: solid 1px black; padding: 3px">${num}</td>
+        </tr>`;
+    }
+    if (setting.showTotalDownlinePlayersCount) {
+        let num = log.downLinePlayerAmount;
+        html += `<tr>
+            <td style="border: solid 1px black; padding: 3px">下线总玩家数</td>
+            <td style="border: solid 1px black; padding: 3px">${num}</td>
+        </tr>`;
+    }
+    if (setting.showTotalDownlinePartnersCount) {
+        let num = log.downLinePartnerAmount;
+        html += `<tr>
+            <td style="border: solid 1px black; padding: 3px">下线总玩家数</td>
+            <td style="border: solid 1px black; padding: 3px">${num}</td>
+        </tr>`;
+    }
+    if (setting.showProposalId) {
+        let num = log.proposalId;
+        html += `<tr>
+            <td style="border: solid 1px black; padding: 3px">提款提案号</td>
+            <td style="border: solid 1px black; padding: 3px">${num}</td>
+        </tr>`;
+    }
+
+    html += `</table>`;
+
+    html += `<div style="text-align: left; background-color: #047ea5; color: #FFFFFF; font-weight: bold; padding: 13px; border-radius: 38px; width: 61.8%; margin-top: 34px;">B.提案数据区</div>`;
+    html += `<div style="text-align: left; background-color: #0b97c4; color: #FFFFFF; padding: 8px; border-radius: 38px; margin-top: 21px; width: 38.2%">提案数据</div>`;
+
+    if (setting.showAllPartnerRelatedProposal) {
+        html += `
+        <table style="border: solid; border-collapse: collapse; margin-top: 13px;">
+            <tr style="background-color: #0b97c4; color: #FFFFFF;">
+                <td style="border: solid 1px black; padding: 3px">提案 ID</td>
+                <td style="border: solid 1px black; padding: 3px">创建者</td>
+                <td style="border: solid 1px black; padding: 3px">入口</td>
+                <td style="border: solid 1px black; padding: 3px">提案类型</td>
+                <td style="border: solid 1px black; padding: 3px">提案子类型</td>
+                <td style="border: solid 1px black; padding: 3px">提案状态</td>
+                <td style="border: solid 1px black; padding: 3px">涉及帐号</td>
+                <td style="border: solid 1px black; padding: 3px">涉及额度</td>
+                <td style="border: solid 1px black; padding: 3px">加入时间</td>
+                <td style="border: solid 1px black; padding: 3px">备注</td>
+            </tr>`;
+        if (log && log.proposalsAfterLastWithdrawal && log.proposalsAfterLastWithdrawal.length) {
+            log.proposalsAfterLastWithdrawal.forEach(proposal => {
+                let amount = dbutility.noRoundTwoDecimalPlaces(proposal.amount);
+                let createTime = proposal.createTime ? dbutility.getLocalTimeString(proposal.createTime, "YYYY/MM/DD HH:mm:ss") : "";
+                let inputDeviceStr = getInputDeviceString(proposal.inputDevice);
+                let proposalStatusStr = getProposalStatusString(proposal.status);
+                let proposalTypeStr = getProposalTypeString(proposal.proposalType);
+                let proposalMainTypeStr = getProposalMainTypeString(proposal.proposalMainType);
+                html += `<tr>
+                <td style="border: solid 1px black; padding: 3px">${proposal.proposalId}</td>
+                <td style="border: solid 1px black; padding: 3px">${proposal.creatorName}</td>
+                <td style="border: solid 1px black; padding: 3px">${inputDeviceStr}</td>
+                <td style="border: solid 1px black; padding: 3px">${proposalMainTypeStr}</td>
+                <td style="border: solid 1px black; padding: 3px">${proposalTypeStr}</td>
+                <td style="border: solid 1px black; padding: 3px">${proposalStatusStr}</td>
+                <td style="border: solid 1px black; padding: 3px">${proposal.relatedUser}</td>
+                <td style="border: solid 1px black; padding: 3px">${amount}</td>
+                <td style="border: solid 1px black; padding: 3px">${createTime}</td>
+                <td style="border: solid 1px black; padding: 3px">${proposal.remark}</td>
+                </tr>`;
+            });
+        }
+        html += `</table>`;
+    }
+
+    let str = log.comment || "无";
+    html += `<div style="text-align: left; background-color: #047ea5; color: #FFFFFF; font-weight: bold; padding: 13px; border-radius: 38px; width: 61.8%; margin-top: 34px;">C.客服备注说明区</div>`;
+
+    html += `<div style="border: solid; border-collapse: collapse; margin-top: 13px; padding: 5px">${str}</div>`;
+
+
+    html += `
+    <div style="margin-top: 38px">
+        <a href="mailto:${allEmailStr}?subject=${emailSubject}" target="_blank" style="margin: 8px;"><span style="display: inline-block; padding: 8px; font-weight: bold; background-color: purple; color: white; border-radius: 8px">发送邮件到给所有收件人</span></a>
+    </div>
+    `;
+
+    return html;
+}
+
+function getProposalMainTypeString(inputData) {
+    let text = "";
+    switch (inputData) {
+        case "TopUp":
+            text = "充值";
+            break;
+        case "PlayerBonus":
+            text = "玩家提款";
+            break;
+        case "Reward":
+            text = "优惠";
+            break;
+        case "UpdatePlayer":
+            text = "玩家资料";
+            break;
+        case "UpdatePartner":
+            text = "代理资料";
+            break;
+        case "Intention":
+            text = "意向";
+            break;
+        case "Others":
+            text = "其它";
+            break;
+    }
+    return text;
+}
+
+
+function getProposalTypeString(inputData) {
+    let text = "";
+    switch(inputData) {
+        case constProposalType.UPDATE_PARTNER_BANK_INFO:
+            text = "编辑代理银行资料";
+            break;
+        case constProposalType.UPDATE_PARTNER_PHONE:
+            text = "编辑代理电话资料";
+            break;
+        case constProposalType.UPDATE_PARTNER_EMAIL:
+            text = "编辑代理电邮资料";
+            break;
+        case constProposalType.UPDATE_PARTNER_QQ:
+            text = "编辑代理QQ资料";
+            break;
+        case constProposalType.UPDATE_PARTNER_WECHAT:
+            text = "编辑代理微信资料";
+            break;
+        case constProposalType.UPDATE_PARTNER_INFO:
+            text = "编辑代理基本资料";
+            break;
+        case constProposalType.UPDATE_PARTNER_COMMISSION_TYPE:
+            text = "编辑代理佣金模式";
+            break;
+        case constProposalType.UPDATE_PARTNER_REAL_NAME:
+            text = "编辑代理真实姓名";
+            break;
+        case constProposalType.CUSTOMIZE_PARTNER_COMM_RATE:
+            text = "客制化代理参数";
+            break;
+        case constProposalType.UPDATE_CHILD_PARTNER:
+            text = "编辑下级代理架构";
+            break;
+        case constProposalType.PARTNER_CREDIT_TRANSFER_TO_DOWNLINE:
+            text = "代理转帐至下线玩家";
+            break;
+        case constProposalType.DOWNLINE_RECEIVE_PARTNER_CREDIT:
+            text = "下线玩家接收代理转帐";
+            break;
+        case constProposalType.UPDATE_PARENT_PARTNER_COMMISSION:
+            text = "一级代理佣金";
+            break;
+        case constProposalType.SETTLE_PARTNER_COMMISSION:
+            text = "代理佣金";
+            break;
+        case constProposalType.PARTNER_CONSUMPTION_RETURN:
+            text = "代理洗码";
+            break;
+        case constProposalType.PARTNER_INCENTIVE_REWARD:
+            text = "代理优惠";
+            break;
+        case constProposalType.PARTNER_REFERRAL_REWARD:
+            text = "代理推荐人优惠";
+            break;
+        case constProposalType.PLATFORM_TRANSACTION_REWARD:
+            text = "银行转账优惠";
+            break;
+        case constProposalType.PARTNER_TOP_UP_RETURN:
+            text = "代理充值优惠";
+            break;
+        case constProposalType.PARTNER_BONUS:
+            text = "代理提款";
+            break;
+        case constProposalType.PARTNER_COMMISSION:
+            text = "代理佣金(旧)";
+            break;
+        case constProposalType.UPDATE_PARTNER_CREDIT:
+            text = "更改代理额度";
+            break;
+    }
+    return text;
+}
+
+function getProposalStatusString(inputData) {
+    let text = "";
+    switch(inputData) {
+        case constProposalStatus.PREPENDING:
+            text = "异常";
+            break;
+        case constProposalStatus.PENDING:
+            text = "待审核";
+            break;
+        case constProposalStatus.AUTOAUDIT:
+            text = "自动审核";
+            break;
+        case constProposalStatus.PROCESSING:
+            text = "处理中";
+            break;
+        case constProposalStatus.APPROVED:
+            text = "成功";
+            break;
+        case constProposalStatus.REJECTED:
+            text = "失败";
+            break;
+        case constProposalStatus.SUCCESS:
+            text = "成功";
+            break;
+        case constProposalStatus.FAIL:
+            text = "失败";
+            break;
+        case constProposalStatus.CANCEL:
+            text = "已取消";
+            break;
+        case constProposalStatus.EXPIRED:
+            text = "过期";
+            break;
+        case constProposalStatus.UNDETERMINED:
+            text = "待定";
+            break;
+        case constProposalStatus.RECOVER:
+            text = "恢复在处理";
+            break;
+        case constProposalStatus.ATTEMPT:
+            text = "尝试";
+            break;
+        case constProposalStatus.MANUAL:
+            text = "手动";
+            break;
+        case constProposalStatus.CSPENDING:
+            text = "待客服审核";
+            break;
+        case constProposalStatus.NOVERIFY:
+            text = "免验";
+            break;
+        case constProposalStatus.APPROVE:
+            text = "已审核";
+            break;
+    }
+    return text;
+}
+
+function getInputDeviceString(inputData) {
+    let text = "";
+    switch(inputData) {
+        case constPlayerRegistrationInterface.BACKSTAGE:
+            text = "后台";
+            break;
+        case constPlayerRegistrationInterface.WEB_PLAYER:
+            text = "WEB玩家";
+            break;
+        case constPlayerRegistrationInterface.WEB_AGENT:
+            text = "WEB代理";
+            break;
+        case constPlayerRegistrationInterface.H5_PLAYER:
+            text = "H5玩家";
+            break;
+        case constPlayerRegistrationInterface.H5_AGENT:
+            text = "H5代理";
+            break;
+        case constPlayerRegistrationInterface.APP_PLAYER:
+            text = "APP玩家";
+            break;
+        case constPlayerRegistrationInterface.APP_AGENT:
+            text = "APP代理";
+            break;
+    }
+    return text;
 }
 
 function appendAuditLinks (html, auditLinks) {
@@ -1190,11 +1780,9 @@ function appendAuditLinks (html, auditLinks) {
 function getLogDetailEmailSubject (log, isPartner) {
     let withdrawalDate = dbutility.getLocalTimeString(log.withdrawalTime , "YYYY/MM/DD");
     let withdrawalAmount = dbutility.noRoundTwoDecimalPlaces(log.amount);
-    let strTitle = "大额提款";
-    if (isPartner) {
-        strTitle = "代理大额提款"
-    }
-    let str = `${strTitle}（${log.todayLargeAmountNo}）：${withdrawalDate}--${log.playerName}--${withdrawalAmount}- ${log.emailNameExtension}`;
+    let name = isPartner ? log.partnerName : log.playerName;
+    let strTitle = isPartner ? "代理大额提款" : "大额提款";
+    let str = `${strTitle}（${log.todayLargeAmountNo}）：${withdrawalDate}--${name}--${withdrawalAmount}- ${log.emailNameExtension}`;
 
     return str;
 }
@@ -1240,9 +1828,13 @@ function createProposalProcessStep (proposal, adminObjId, status, memo) {
     );
 }
 
-function generateLargeWithdrawalAuditedInfoEmail (proposalData, admin, proposalProcessStep, auditor, auditorDepartment) {
+function generateLargeWithdrawalAuditedInfoEmail (proposalData, proposalProcessStep, auditor, auditorDepartment, bSuccess) {
     let lockStatus = proposalData.isLocked && proposalData.isLocked.adminName || "未锁定";
     let status, cancelTime, decisionColor;
+    if (proposalData.status == constProposalStatus.PENDING) {
+        proposalData.status = bSuccess ? constProposalStatus.APPROVED : constProposalStatus.CANCEL;
+    }
+
     switch (proposalData.status) {
         case constProposalStatus.APPROVED:
             status = "已审核";
@@ -1504,6 +2096,44 @@ function getTotalRewardByTime (playerObj, startTime, endTime) {
             }
             if (proposalTypeData) {
                 rewardQuery.type = {$ne: proposalTypeData._id}
+            }
+            return dbconfig.collection_proposal.aggregate([{
+                $match: rewardQuery
+            }, {
+                $group: {
+                    _id: null,
+                    amount: {$sum: "$data.rewardAmount"}
+                }
+            }]).read("secondaryPreferred").then(
+                rewardData => {
+                    let rewardAmount = 0;
+                    if (rewardData && rewardData[0] && rewardData[0].amount) {
+                        rewardAmount = rewardData[0].amount;
+                    }
+                    return rewardAmount;
+                }
+            );
+        }
+    )
+}
+
+function getTotalXIMAByTime (playerObj, startTime, endTime) {
+    return dbconfig.collection_proposalType.findOne({
+        platformId: playerObj.platform,
+        name: constProposalType.PLAYER_CONSUMPTION_RETURN
+    }).lean().then(
+        proposalTypeData => {
+            let rewardQuery = {
+                'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
+                mainType: "Reward",
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                createTime: {
+                    $gte: startTime,
+                    $lt: endTime
+                }
+            }
+            if (proposalTypeData) {
+                rewardQuery.type = proposalTypeData._id
             }
             return dbconfig.collection_proposal.aggregate([{
                 $match: rewardQuery

@@ -1289,11 +1289,7 @@ define(['js/app'], function (myApp) {
                         title: $translate('INPUT_DEVICE'),
                         data: "inputDevice",
                         render: function (data, type, row) {
-                            for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
-                                if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == data ){
-                                    return $translate(Object.keys(vm.inputDevice)[i]);
-                                }
-                            }
+                            return vm.getInputDeviceName(data);
                         }
                     },
                     {
@@ -1580,6 +1576,14 @@ define(['js/app'], function (myApp) {
                 vm.commonSortChangeHandler(a, 'queryProposal', vm.loadProposalQueryData);
             });
         };
+
+        vm.getInputDeviceName = function (inputDevice) {
+            for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == inputDevice ){
+                    return $translate(Object.keys(vm.inputDevice)[i]);
+                }
+            }
+        }
 
         vm.drawProposalAuditTable = function (data, size, summary, newSearch) {
             console.log("whole data", data);
@@ -2699,11 +2703,97 @@ define(['js/app'], function (myApp) {
                 vm.selectedProposalDetailForDisplay = proposalDetail;
             }
 
-            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerBonus") {
-                if(vm.selectedProposalDetailForDisplay.creditCharge && vm.selectedProposalDetailForDisplay.oriCreditCharge
-                    && vm.selectedProposalDetailForDisplay.creditCharge != vm.selectedProposalDetailForDisplay.oriCreditCharge){
-                    vm.selectedProposalDetailForDisplay.creditCharge = vm.selectedProposal.data.creditCharge + " (" + $translate("original service charge") + vm.selectedProposal.data.oriCreditCharge + ", " + $translate("remove decimal") + ")";
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "CustomizePartnerCommRate" && vm.selectedProposal.data && vm.selectedProposal.data.isEditAll) {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
                 }
+                proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
+                proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
+                proposalDetail["oldRate"] = "";
+                if (vm.selectedProposal.data.oldConfigArr && vm.selectedProposal.data.oldConfigArr.length > 0) {
+                    vm.selectedProposal.data.oldConfigArr.forEach(oldConfig => {
+                        if (oldConfig && oldConfig.provider && oldConfig.commissionSetting && oldConfig.commissionSetting.length > 0) {
+                            let providerGroupName = vm.getProviderGroupNameById(oldConfig.provider);
+                            let oldRateArr = [];
+                            let oldRateStr = '';
+                            oldConfig.commissionSetting.forEach(commission => {
+                                if (commission && commission.commissionRate) {
+                                    oldRateArr.push($fixTwoDecimalStr(commission.commissionRate * 100) + '%');
+                                }
+                            });
+
+                            if (oldRateArr && oldRateArr.length > 0) {
+                                oldRateStr = oldRateArr.join(', ');
+                            }
+
+                            proposalDetail["- " + providerGroupName] = oldRateStr;
+                        }
+                    });
+                }
+                proposalDetail["newRate"] = "";
+                if (vm.selectedProposal.data.newConfigArr && vm.selectedProposal.data.newConfigArr.length > 0) {
+                    vm.selectedProposal.data.newConfigArr.forEach(newConfig => {
+                        if (newConfig && newConfig.provider && newConfig.commissionSetting && newConfig.commissionSetting.length > 0) {
+                            let providerGroupName = vm.getProviderGroupNameById(newConfig.provider);
+                            let newRateArr = [];
+                            let newRateStr = '';
+                            newConfig.commissionSetting.forEach(commission => {
+                                if (commission && commission.commissionRate) {
+                                    newRateArr.push($fixTwoDecimalStr(commission.commissionRate * 100) + '%');
+                                }
+                            });
+
+                            if (newRateArr && newRateArr.length > 0) {
+                                newRateStr = newRateArr.join(', ');
+                            }
+
+                            proposalDetail["-  " + providerGroupName] = newRateStr;
+                        }
+                    });
+                }
+                vm.selectedProposalDetailForDisplay = proposalDetail;
+            }
+
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerBonus") {
+                let bankNameWhenSubmit = "";
+                let bankNameWhenApprove = "";
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+                proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
+                proposalDetail["proposalPlayerLevel"] = vm.selectedProposal.data.proposalPlayerLevel;
+                proposalDetail["Credit Charge(Service Charge Deducted)"] = vm.selectedProposal.data.amount;
+                proposalDetail["ximaWithdrawUsed"] = vm.selectedProposal.data.ximaWithdrawUsed;
+                if(vm.selectedProposal.data.creditCharge != vm.selectedProposal.data.oriCreditCharge){
+                    proposalDetail["actualCreditCharge"] = vm.selectedProposal.data.creditCharge + " (" + $translate("original service charge") + vm.selectedProposal.data.oriCreditCharge + ", " + $translate("remove decimal") + ")";
+                }else{
+                    proposalDetail["actualCreditCharge"] = vm.selectedProposal.data.creditCharge
+                }
+                proposalDetail["oriCreditCharge"] = vm.selectedProposal.data.oriCreditCharge;
+                if(typeof vm.selectedProposal.data.isAutoApproval != "undefined"){
+                    proposalDetail["isAutoApproval"] = vm.selectedProposal.data.isAutoApproval ? "开启" : "关闭";
+                }
+                proposalDetail["autoAuditTime"] = vm.selectedProposal.data.autoAuditTime;
+                proposalDetail["autoAuditRemark"] = vm.selectedProposal.data.autoAuditRemarkChinese;
+                proposalDetail["autoAuditDetail"] = vm.selectedProposal.data.detailChinese;
+
+                if(vm.selectedProposal.data.bankNameWhenSubmit){
+                    bankNameWhenSubmit = vm.allBankTypeList[vm.selectedProposal.data.bankNameWhenSubmit] || (vm.selectedProposal.data.bankNameWhenSubmit + " ! " + $translate("not in bank type list"));
+                    bankNameWhenSubmit += " / "
+                }
+                proposalDetail["bankInfoWhenSubmit"] = bankNameWhenSubmit + $translate("bankcard no:") + vm.selectedProposal.data.bankAccountWhenSubmit;
+
+                if(vm.selectedProposal.data.bankNameWhenApprove){
+                    bankNameWhenApprove = vm.allBankTypeList[vm.selectedProposal.data.bankNameWhenApprove] || (vm.selectedProposal.data.bankNameWhenApprove + " ! " + $translate("not in bank type list"));
+                    bankNameWhenApprove += " / "
+                }
+                proposalDetail["bankInfoWhenApprove"] = bankNameWhenApprove + $translate("bankcard no:") + vm.selectedProposal.data.bankAccountWhenApprove;
+
+                vm.selectedProposalDetailForDisplay = proposalDetail;
             }
 
             // Remove fields for detail viewing

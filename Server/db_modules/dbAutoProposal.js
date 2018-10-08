@@ -217,20 +217,20 @@ function checkPartnerAutoBonus (proposal, platformObj) {
         ([todayWithdrawal, totalCommission]) => {
 
             if (withdrawAmount >= platformObj.partnerAutoApproveWhenSingleBonusApplyLessThan) {
-                checkMsg += " Denied: Single limit;";
+                checkMsg += " Denied: Single limit";
                 checkMsgChinese += " 失败：单限;";
                 canApprove = false;
             }
 
             if (todayWithdrawal && todayWithdrawal[0] && todayWithdrawal[0].amount >= platformObj.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan) {
-                checkMsg += " Denied: Daily limit;";
+                checkMsg += " Denied: Daily limit";
                 checkMsgChinese += " 失败：日限;";
                 canApprove = false;
             }
 
-            if (totalCommission && totalCommission[0] && totalCommission[0].amount >= platformObj.partnerWithdrawalCommissionDifference) {
-                checkMsg += " Denied: Commission limit;";
-                checkMsgChinese += " 失败：佣金限;";
+            if (todayWithdrawal && todayWithdrawal[0] && totalCommission && totalCommission[0] && (todayWithdrawal[0].amount - totalCommission[0].amount) >= platformObj.partnerWithdrawalCommissionDifference) {
+                checkMsg += " Denied: Withdrawal more than commission amount";
+                checkMsgChinese += " 失败：提款大于佣金;";
                 canApprove = false;
             }
 
@@ -372,7 +372,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
             let bNoBonusPermission = false;
             let bPendingPaymentInfo = false;
             let bUpdatePaymentInfo = false;
-            let bIsPaymenyInfoMatched = false;
+            let bIsPaymentInfoMatched = false;
             let withdrawAmount = proposal.data.amount;
             let playerCurrentAmount = 0;
             let playerTotalTopupAmount = 0;
@@ -393,7 +393,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
             }
 
             if(allProposals && playerData){
-                bIsPaymenyInfoMatched = isPaymentInfoMatched(allProposals, playerData);
+                bIsPaymentInfoMatched = isPaymentInfoMatched(allProposals, playerData);
             }
 
             if (data && data[5] && data[5][0] && data[5][0].totalBetAmt) {
@@ -403,9 +403,8 @@ function checkRewardTaskGroup(proposal, platformObj) {
             if (data && data[6] && data[6].provinces && playerData && playerData.bankAccountProvince) {
                 let allProvinces = data[6].provinces;
                 let pIdx = allProvinces.findIndex(d => d.id == playerData.bankAccountProvince);
-
                 if (allProvinces[pIdx] && allProvinces[pIdx].name) {
-                    bankProvince = allProvinces[pIdx].name.substring(0, 2);
+                    bankProvince = allProvinces[pIdx].name.replace("省", "")
                 }
             }
 
@@ -480,11 +479,20 @@ function checkRewardTaskGroup(proposal, platformObj) {
                     canApprove = false;
                 }
 
+                //remove "省" from province variable
+                if(playerData.phoneProvince){
+                    playerData.phoneProvince = playerData.phoneProvince.replace("省", "");
+                }
+
+                if(playerData.province){
+                    playerData.province = playerData.province.replace("省", "");
+                }
+
                 if (platformObj.autoAudit.firstWithdrawDifferentIPCheck
                     && bankProvince
                     && (
-                        (!playerData.phoneProvince || bankProvince !== playerData.phoneProvince)
-                        || (!playerData.province || bankProvince !== playerData.province)
+                        (playerData.phoneProvince && bankProvince !== playerData.phoneProvince)
+                        || (playerData.province && bankProvince !== playerData.province)
                     )
                 ) {
                     checkMsg += ' Denied: FW: Different Province between IP, Phone, And Bank Account;';
@@ -516,8 +524,14 @@ function checkRewardTaskGroup(proposal, platformObj) {
             //     checkMsgChinese += ' 失败：银行资料刚改;';
             //     canApprove = false;
             // }
-          
-            if (!bIsPaymenyInfoMatched && platformObj.manualAuditAfterBankChanged !== false) {
+
+            console.log("LH check bonus E ----------", bIsPaymentInfoMatched);
+            console.log("LH check bonus F ----------", platformObj.manualAuditAfterBankChanged);
+            console.log("LH check bonus G ----------", !bIsPaymentInfoMatched);
+            console.log("LH check bonus H ----------", platformObj.manualAuditAfterBankChanged !== false);
+            console.log("LH check bonus I ----------", !bIsPaymentInfoMatched && platformObj.manualAuditAfterBankChanged !== false);
+            if (!bIsPaymentInfoMatched && platformObj.manualAuditAfterBankChanged !== false) {
+                console.log("LH check bonus J ----------");
                 checkMsg += ' Denied: Bank Info Not Matched;';
                 checkMsgChinese += ' 失败：提款资料与上次银改不符;';
                 canApprove = false;
@@ -1529,11 +1543,14 @@ function isFirstWithdrawalAfterPaymentInfoUpdated(proposals) {
 
 function isPaymentInfoMatched(proposals, playerData){
     let length = proposals.length;
+    console.log("LH check bonus A ----------", proposals);
+    console.log("LH check bonus B ----------", playerData);
     for (let i = 0; i < length; i++) {
         let proposal = proposals[i];
         if (proposal.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposal.status == constProposalStatus.APPROVED) {
+            console.log("LH check bonus C ----------", proposal.data);
+            console.log("LH check bonus D ----------", playerData);
             if(proposal.data){
-
                 if(proposal.data.bankAccount){
                     if(!playerData.bankAccount){
                         return false;
@@ -1543,87 +1560,6 @@ function isPaymentInfoMatched(proposals, playerData){
                 }else if(playerData.bankAccount){
                     return false;
                 }
-
-                if(proposal.data.bankAccountName){
-                    if(!playerData.bankAccountName){
-                        return false;
-                    }else if(proposal.data.bankAccountName != playerData.bankAccountName){
-                        return false;
-                    }
-                }else if(playerData.bankAccountName){
-                    return false;
-                }
-
-                if(proposal.data.bankName){
-                    if(!playerData.bankName){
-                        return false;
-                    }else if(proposal.data.bankName != playerData.bankName){
-                        return false;
-                    }
-                }else if(playerData.bankName){
-                    return false;
-                }
-
-                if(proposal.data.bankAccountCity){
-                    if(!playerData.bankAccountCity){
-                        return false;
-                    }else if(proposal.data.bankAccountCity != playerData.bankAccountCity){
-                        return false;
-                    }
-                }else if(playerData.bankAccountCity){
-                    return false;
-                }
-
-                if(proposal.data.bankAccountType){
-                    if(!playerData.bankAccountType){
-                        return false;
-                    }else if(proposal.data.bankAccountType != playerData.bankAccountType){
-                        return false;
-                    }
-                }else if(playerData.bankAccountType){
-                    return false;
-                }
-
-                if(proposal.data.bankAddress){
-                    if(!playerData.bankAddress){
-                        return false;
-                    }else if(proposal.data.bankAddress != playerData.bankAddress){
-                        return false;
-                    }
-                }else if(playerData.bankAddress){
-                    return false;
-                }
-
-                if(proposal.data.bankBranch){
-                    if(!playerData.bankBranch){
-                        return false;
-                    }else if(proposal.data.bankBranch != playerData.bankBranch){
-                        return false;
-                    }
-                }else if(playerData.bankBranch){
-                    return false;
-                }
-
-                if(proposal.data.bankAccountDistrict){
-                    if(!playerData.bankAccountDistrict){
-                        return false;
-                    }else if(proposal.data.bankAccountDistrict != playerData.bankAccountDistrict){
-                        return false;
-                    }
-                }else if(playerData.bankAccountDistrict){
-                    return false;
-                }
-
-                if(proposal.data.bankAccountProvince){
-                    if(!playerData.bankAccountProvince){
-                        return false;
-                    }else if(proposal.data.bankAccountProvince != playerData.bankAccountProvince){
-                        return false;
-                    }
-                }else if(playerData.bankAccountProvince){
-                    return false;
-                }
-
             }
 
             return true;

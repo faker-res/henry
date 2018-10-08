@@ -1064,13 +1064,24 @@ define(['js/app'], function (myApp) {
                                                     if (group.isCustomPlatformFeeRate == true) {
                                                         vm.partnerCommVar.platformFeeTab = idxgroup;
                                                     }
+                                                    group.amount = $noRoundTwoDecimalPlaces(group.amount);
                                                 }
                                             );
+                                        }
+
+                                        // Round to 2 dp
+                                        for (let key in partner) {
+                                            if (partner.hasOwnProperty(key) && typeof partner[key] === 'number') {
+                                                partner[key] = $noRoundTwoDecimalPlaces(partner[key]);
+                                            }
+
+                                            if (key === 'pastNettCommission' && partner.hasOwnProperty(key) && partner[key].length) {
+                                                partner[key] = partner[key].map(val => $noRoundTwoDecimalPlaces(val));
+                                            }
                                         }
                                     }
                                 }
                             );
-                            console.log('partnerCommissionLog', vm.partnerCommissionLog);
                             $('#modalPartnerCommPreview').modal();
                         })
                     }
@@ -5981,7 +5992,7 @@ define(['js/app'], function (myApp) {
                             elem: '.partnerPermissionPopover',
                             onClickAsync: function (showPopover) {
                                 let that = this;
-                                let row = JSON.parse(this.dataset.row);
+                                let row = vm.permissionPartner;
                                 vm.partnerPermissionTypes = {
                                     applyBonus: {
                                         imgType: 'img',
@@ -6008,9 +6019,9 @@ define(['js/app'], function (myApp) {
                                 };
                                 $("#partnerPermissionTable td").removeClass('hide');
 
-                                // Invert second render
-                                row.permission.forbidPartnerFromLogin = !row.permission.forbidPartnerFromLogin;
-                                row.permission.disableCommSettlement = !row.permission.disableCommSettlement;
+                                // // Invert second render
+                                // row.permission.forbidPartnerFromLogin = !row.permission.forbidPartnerFromLogin;
+                                // row.permission.disableCommSettlement = !row.permission.disableCommSettlement;
 
                                 $.each(vm.partnerPermissionTypes, function (key, v) {
                                     if (row.permission && row.permission[key]) {
@@ -6019,6 +6030,7 @@ define(['js/app'], function (myApp) {
                                         $("#partnerPermissionTable .permitOn." + key).addClass('hide');
                                     }
                                 });
+                                $scope.safeApply();
                                 showPopover(that, '#partnerPermissionTable', row);
                             },
                             callback: function () {
@@ -6089,9 +6101,7 @@ define(['js/app'], function (myApp) {
                 $.each(tableOptions.columns, function (i, v) {
                     v.defaultContent = "";
                 });
-                console.log('start datatable')
                 vm.partnerTable = $('#partnerDataTable').DataTable(tableOptions);
-                console.log('end datatable');
                 utilService.setDataTablePageInput('partnerDataTable', vm.partnerTable, $translate);
                 vm.advancedPartnerQueryObj.pageObj.init({maxCount: data.size}, !Boolean(vm.advancedPartnerQueryObj.index));
 
@@ -6137,9 +6147,13 @@ define(['js/app'], function (myApp) {
                 }
             };
             vm.initPermissionPartner = function (partnerObjId) {
+                vm.permissionPartner = {};
                 vm.permissionPartner = vm.partners.find(p => String(p._id) === partnerObjId);
-                vm.permissionPartner.permission.forbidPartnerFromLogin = !vm.permissionPartner.permission.forbidPartnerFromLogin;
-                vm.permissionPlayer.permission.disableCommSettlement = !vm.permissionPlayer.permission.disableCommSettlement;
+
+                if (vm.permissionPartner && vm.permissionPartner.permission) {
+                    vm.permissionPartner.permission.forbidPartnerFromLogin = !vm.permissionPartner.permission.forbidPartnerFromLogin;
+                    vm.permissionPartner.permission.disableCommSettlement = !vm.permissionPartner.permission.disableCommSettlement;
+                }
             }
             vm.sendSMSToPartner = function () {
                 vm.sendSMSResult = {sent: "sending"};
@@ -6922,6 +6936,8 @@ define(['js/app'], function (myApp) {
                             selectedCommissionTab: vm.selectedCommissionTab,
                             customizeCommissionRate: vm.customizeCommissionRate,
                             customizeCommissionRateAll: vm.customizeCommissionRateAll,
+                            isDetectChangeCustomizeCommissionRate: vm.isDetectChangeCustomizeCommissionRate,
+                            updateAllCustomizeCommissionRate: vm.updateAllCustomizeCommissionRate,
                             resetAllCustomizedCommissionRate: vm.resetAllCustomizedCommissionRate,
                             customizePartnerRate: vm.customizePartnerRate,
                             commissionRateEditRow: vm.commissionRateEditRow,
@@ -10870,14 +10886,18 @@ define(['js/app'], function (myApp) {
                 vm.partnerCommission.isEditing = true;
             };
 
-            vm.commissionSettingEditAll = (index, data, flag) => {
-                if (data.hasOwnProperty("showConfig") && data.showConfig.hasOwnProperty("commissionSetting")) {
-                    data.showConfig.commissionSetting.forEach(setting => {
-                        setting.isEditing = flag;
-                    })
-                }
+            vm.commissionSettingEditAll = (data, flag) => {
+                if (data && data.length > 0) {
+                    data.forEach((providerGroup, index) => {
+                        if (providerGroup && providerGroup.showConfig && providerGroup.showConfig.commissionSetting) {
+                            providerGroup.showConfig.commissionSetting.forEach(setting => {
+                                setting.isEditing = flag;
+                            })
+                        }
 
-                vm.commissionSettingIsEditAll[index] = flag
+                        vm.commissionSettingIsEditAll[index] = flag;
+                    });
+                }
             }
 
             vm.getCommissionSettingIsEditAll = (index) => {
@@ -11114,6 +11134,12 @@ define(['js/app'], function (myApp) {
             };
 
             vm.customizeCommissionRate = (idx, setting, newConfig, oldConfig, isRevert = false) => {
+                if (vm.commissionSettingIsEditAll) {
+                    for (let key in vm.commissionSettingIsEditAll) {
+                        vm.commissionSettingIsEditAll[key] = false;
+                    }
+                }
+
                 if (isRevert) {
                     let customCount = newConfig.commissionSetting.filter(e => e.isCustomized).length;
                     newConfig.commissionSetting[idx].commissionRate = parseFloat((oldConfig.commissionSetting[idx].commissionRate * 100).toFixed(2));
@@ -11145,6 +11171,45 @@ define(['js/app'], function (myApp) {
                     });
                 }
             };
+
+            vm.isDetectChangeCustomizeCommissionRate = (setting) => {
+                if (setting) {
+                    setting.isDetectChangeCustomizeRate = true;
+                }
+            };
+
+            vm.updateAllCustomizeCommissionRate = (setting) => {
+                let oldConfigArr = [];
+                let newConfigArr = [];
+                if (setting && setting.length > 0) {
+                    setting.forEach(providerGroup => {
+                        if (providerGroup.showConfig && providerGroup.srcConfig && providerGroup.showConfig.hasOwnProperty('isDetectChangeCustomizeRate')) {
+                            delete providerGroup.showConfig.isDetectChangeCustomizeRate;
+                            oldConfigArr.push(providerGroup.srcConfig);
+                            newConfigArr.push(providerGroup.showConfig);
+                        }
+                    });
+                }
+
+                if (oldConfigArr && newConfigArr && oldConfigArr.length > 0 && newConfigArr.length > 0) {
+                    let sendData = {
+                        partnerObjId: vm.selectedSinglePartner._id,
+                        commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab],
+                        oldConfigArr: oldConfigArr,
+                        newConfigArr: newConfigArr
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'updateAllCustomizeCommissionRate', sendData, function (data) {
+                        $scope.$evalAsync(() => {
+                            vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                            vm.getPlatformPartnersData();
+                        });
+                    }, function (err) {
+                        vm.selectedCommissionTab(vm.commissionSettingTab, vm.selectedSinglePartner._id);
+                        vm.getPlatformPartnersData();
+                    });
+                }
+            }
 
             vm.customizeCommissionRateAll = (idx, setting, newConfig, oldConfig) => {
                 // let setting;

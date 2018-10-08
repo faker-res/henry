@@ -30,6 +30,7 @@ var localization = require("../modules/localization");
 const translate = localization.localization.translate;
 var serverInstance = require("../modules/serverInstance");
 var ObjectId = mongoose.Types.ObjectId;
+const dbLargeWithdrawal = require("../db_modules/dbLargeWithdrawal");
 // db_common
 const dbPropUtil = require("../db_common/dbProposalUtility");
 
@@ -1892,6 +1893,7 @@ let dbPartner = {
         let duplicatedRealNameCount = 0;
         let sameBankAccCount = 0;
         let platformObjId;
+        let isVerifiedData;
         return dbconfig.collection_partner.findOne({partnerId: partnerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .then(
@@ -1947,7 +1949,28 @@ let dbPartner = {
                 }
             ).then(
                 isVerified => {
-                    if (isVerified) {
+
+                    isVerifiedData = isVerified;
+
+                    let propQuery = {
+                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                        'data.platformId': partnerData.platform._id,
+                        'data.partnerName': partnerData.partnerName,
+                        'data.partnerId': partnerData.partnerId
+                    };
+
+                    return dbPropUtil.getOneProposalDataOfType(partnerData.platform._id, constProposalType.UPDATE_PARTNER_BANK_INFO, propQuery).then(
+                        proposal => {
+                            if (!proposal) {
+                                return {isFirstBankInfo: true};
+                            }
+                        }
+                    );
+
+            }).then(
+                 firstBankInfo => {
+
+                    if (isVerifiedData) {
 
                         updateData.updateData = {};
 
@@ -1963,23 +1986,31 @@ let dbPartner = {
                             updateData.updateData.bankName = updateData.bankName;
                         }
 
-                        if(partnerData.bankAccountName){
-                            delete updateData.bankAccountName;
-                        }
 
-                        if (updateData.bankAccountName && !partnerData.realName) {
-                            if (updateData.bankAccountName.indexOf('*') > -1)
-                                delete updateData.bankAccountName;
-                            else
+                        if (firstBankInfo && firstBankInfo.hasOwnProperty('isFirstBankInfo') && firstBankInfo.isFirstBankInfo) {
+                            if (updateData && updateData.bankAccountName) {
                                 updateData.realName = updateData.bankAccountName;
-                        }
+                            }
 
-                        if (!updateData.bankAccountName && !partnerData.bankAccountName && !partnerData.realName) {
-                            return Q.reject({
-                                name: "DataError",
-                                code: constServerCode.INVALID_DATA,
-                                message: "Please enter bank account name or contact cs"
-                            });
+                        } else {
+                            if(partnerData.bankAccountName){
+                                delete updateData.bankAccountName;
+                            }
+
+                            if (updateData.bankAccountName && !partnerData.realName) {
+                                if (updateData.bankAccountName.indexOf('*') > -1)
+                                    delete updateData.bankAccountName;
+                                else
+                                    updateData.realName = updateData.bankAccountName;
+                            }
+
+                            if (!updateData.bankAccountName && !partnerData.bankAccountName && !partnerData.realName) {
+                                return Q.reject({
+                                    name: "DataError",
+                                    code: constServerCode.INVALID_DATA,
+                                    message: "Please enter bank account name or contact cs"
+                                });
+                            }
                         }
 
                         // if (updateData.bankAccountType) {
@@ -2390,7 +2421,7 @@ let dbPartner = {
      */
     applyBonus: function (userAgent, partnerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
 
-
+        let platform;
         let partner = null;
         // let bonusDetail = null;
         let bUpdateCredit = false;
@@ -2427,6 +2458,7 @@ let dbPartner = {
                         let propQ = {
                             "data._id": String(partnerData._id)
                         };
+                        platform = partnerData.platform;
 
                         return dbPropUtil.getProposalDataOfType(partnerData.platform._id, constProposalType.UPDATE_PARTNER_BANK_INFO, propQ).then(
                             proposals => {
@@ -2601,6 +2633,13 @@ let dbPartner = {
             ).then(
                 proposal => {
                     if (proposal) {
+                        if (proposal.data && proposal.data.amount && proposal.data.amount >= platform.partnerAutoApproveWhenSingleBonusApplyLessThan) {
+                            createPartnerLargeWithdrawalLog(proposal, platform._id).catch(err => {
+                                console.log("createLargeWithdrawalLog failed", err);
+                                return errorUtils.reportError(err);
+                            });
+                        }
+
                         if (bUpdateCredit) {
                             //todo::partner credit change log???
                             //dbLogger.createCreditChangeLog(player._id, player.platform._id, -amount * bonusDetail.credit, constProposalType.PLAYER_BONUS, player.validCredit, null, message);
@@ -6308,6 +6347,50 @@ let dbPartner = {
         );
     },
 
+    updateAllCustomizeCommissionRate: (partnerObjId, commissionType, oldConfigArr, newConfigArr, adminInfo) => {
+        if (newConfigArr && newConfigArr.length > 0) {
+            newConfigArr.forEach(config => {
+                if (config && config.commissionSetting && config.commissionSetting.length > 0) {
+                    config.commissionSetting.forEach(setting => {
+                        if (setting) {
+                            setting.commissionRate = parseFloat((setting.commissionRate / 100).toFixed(4));
+                        }
+                    });
+                }
+            });
+        }
+
+        return dbconfig.collection_partner.findById(partnerObjId).lean().then(
+            partnerObj => {
+                if (partnerObj) {
+                    let creatorData = adminInfo || {
+                        type: 'partner',
+                        name: partnerObj.partnerName,
+                        id: partnerObj._id
+                    };
+
+                    let proposalData = {
+                        creator: adminInfo || {
+                            type: 'partner',
+                            name: partnerObj.partnerName,
+                            id: partnerObj._id
+                        },
+                        platformObjId: partnerObj.platform,
+                        partnerObjId: partnerObjId,
+                        partnerName: partnerObj.partnerName,
+                        commissionType: commissionType,
+                        remark: localization.localization.translate('commissionRate'),
+                        isEditAll: true,
+                        oldConfigArr: oldConfigArr,
+                        newConfigArr: newConfigArr
+                    };
+
+                    return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {creator: creatorData, data: proposalData});
+                }
+            }
+        )
+    },
+
     resetAllCustomizedCommissionRate: (partnerObjId, field, isResetAll, commissionType, adminInfo) => {
         return dbconfig.collection_partner.findById(partnerObjId).lean().then(
             partnerObj => {
@@ -6620,12 +6703,19 @@ let dbPartner = {
                         platformFeeRateData.isCustom = partnerCommissionRateConfig.rateAfterRebatePlatformIsCustom;
                     }
                     else {
-                        partnerCommissionRateConfig.rateAfterRebateGameProviderGroup.map(group => {
-                            if (group.name === groupRate.groupName) {
-                                platformFeeRateData.rate = group.rate;
-                                platformFeeRateData.isCustom = Boolean(group.isCustom);
-                            }
-                        });
+                        if (partnerCommissionRateConfig && partnerCommissionRateConfig.rateAfterRebateGameProviderGroup
+                            && typeof partnerCommissionRateConfig.rateAfterRebateGameProviderGroup == 'object') {
+                            partnerCommissionRateConfig.rateAfterRebateGameProviderGroup.map(group => {
+                                if (group.name === groupRate.groupName) {
+                                    platformFeeRateData.rate = group.rate || 0;
+                                    platformFeeRateData.isCustom = Boolean(group.isCustom);
+                                }
+                            });
+                        } else if (partnerCommissionRateConfig && partnerCommissionRateConfig.hasOwnProperty('rateAfterRebateGameProviderGroup')
+                            && typeof partnerCommissionRateConfig.rateAfterRebateGameProviderGroup == 'number') {
+                            platformFeeRateData.rate = 0;
+                            platformFeeRateData.isCustom = false;
+                        }
                     }
 
                     let platformFeeRate = Number(platformFeeRateData.rate);
@@ -10641,12 +10731,12 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
             }
 
             let rateConfig = {
-                rateAfterRebatePromo: rateData.rateAfterRebatePromo,
-                rateAfterRebatePlatform: rateData.rateAfterRebatePlatform,
-                rateAfterRebateGameProviderGroup: rateData.rateAfterRebateGameProviderGroup,
-                rateAfterRebateTotalDeposit: rateData.rateAfterRebateTotalDeposit,
-                rateAfterRebateTotalWithdrawal: rateData.rateAfterRebateTotalWithdrawal,
-                parentCommissionRate: rateData.parentCommissionRate,
+                rateAfterRebatePromo: rateData.rateAfterRebatePromo || 0,
+                rateAfterRebatePlatform: rateData.rateAfterRebatePlatform || 0,
+                rateAfterRebateGameProviderGroup: rateData.rateAfterRebateGameProviderGroup || 0,
+                rateAfterRebateTotalDeposit: rateData.rateAfterRebateTotalDeposit || 0,
+                rateAfterRebateTotalWithdrawal: rateData.rateAfterRebateTotalWithdrawal || 0,
+                parentCommissionRate: rateData.parentCommissionRate || 0,
             };
 
             if (data[1]) {
@@ -10683,19 +10773,21 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
                     rateConfig.rateAfterRebateTotalWithdrawalIsCustom = false;
                 }
 
-                rateConfig.rateAfterRebateGameProviderGroup.map(defaultGroup => {
-                    customRateData.rateAfterRebateGameProviderGroup.map(customGroup => {
-                        if (defaultGroup.name === customGroup.name
-                            && defaultGroup.rate !== customGroup.rate
-                        ) {
-                            defaultGroup.isCustom = true;
-                            defaultGroup.rate = customGroup.rate;
-                        }
-                        else {
-                            defaultGroup.isCustom = false;
-                        }
+                if (rateConfig && rateConfig.rateAfterRebateGameProviderGroup && typeof rateConfig.rateAfterRebateGameProviderGroup == 'object') {
+                    rateConfig.rateAfterRebateGameProviderGroup.map(defaultGroup => {
+                        customRateData.rateAfterRebateGameProviderGroup.map(customGroup => {
+                            if (defaultGroup.name === customGroup.name
+                                && defaultGroup.rate !== customGroup.rate
+                            ) {
+                                defaultGroup.isCustom = true;
+                                defaultGroup.rate = customGroup.rate;
+                            }
+                            else {
+                                defaultGroup.isCustom = false;
+                            }
+                        });
                     });
-                });
+                }
             }
             return rateConfig;
         }
@@ -11678,6 +11770,25 @@ function applyCommissionToPartner (logObjId, settleType, remark, adminInfo) {
             }
 
             return proposal;
+        }
+    );
+}
+
+function createPartnerLargeWithdrawalLog (proposalData, platformObjId) {
+    let log;
+    return dbconfig.collection_partnerLargeWithdrawalLog({
+        platform: platformObjId,
+        proposalId: proposalData.proposalId
+    }).save().then(logData => {
+        log = logData;
+        return dbconfig.collection_proposal.findOneAndUpdate({_id: proposalData._id, createTime: proposalData.createTime}, {"data.partnerLargeWithdrawalLog": log._id}, {new: true}).lean();
+    }).then(
+        proposal => {
+            if (proposal) {
+                return dbLargeWithdrawal.fillUpPartnerLargeWithdrawalLogDetail(log._id);
+            } else {
+                return Promise.reject({message: "Save to proposal failed"}); // the only time here is reach are when there is bug
+            }
         }
     );
 }

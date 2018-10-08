@@ -604,18 +604,22 @@ define(['js/app'], function (myApp) {
 
             vm.initThemeSetting = function (){
 
-                utilService.actionAfterLoaded("#playerThemeSelectPanel .playerThemeTable", function () {
+                utilService.actionAfterLoaded("#playerThemeSelectPanel #playerThemeTable", function () {
                     setTimeout(()=>{
                         if (vm.selectedPlatform.data && vm.selectedPlatform.data.playerThemeSetting) {
                             vm.initThemeCheck(vm.selectedPlatform.data.playerThemeSetting, 'player');
                         }
-
+                    }, 100);
+                });
+                
+                utilService.actionAfterLoaded("#partnerThemeSelectPanel #partnerThemeTable", function () {
+                    setTimeout(()=>{
                         if (vm.selectedPlatform.data && vm.selectedPlatform.data.partnerThemeSetting) {
                             vm.initThemeCheck(vm.selectedPlatform.data.partnerThemeSetting, 'partner');
                         }
                     }, 100);
                 });
-            }
+            };
 
             vm.initThemeCheck = function (data, mode){
                 if (mode == 'player'){
@@ -18531,142 +18535,6 @@ define(['js/app'], function (myApp) {
                 }
                 $scope.safeApply();
             };
-            vm.sendSMSToPartner = function () {
-                vm.sendSMSResult = {sent: "sending"};
-                return $scope.sendSMSToPlayer(vm.smsPartner, function (data) {
-                    vm.sendSMSResult = {sent: true, result: data.success};
-                    $scope.safeApply();
-                });
-            };
-            vm.partnerTableRowClick = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                // Row click
-                $compile(nRow)($scope);
-                vm.currentSelectedPartnerObjId = '';
-                var status = aData && aData.status ? aData.status : 1;
-                if (aData && aData.credits) {
-                    aData.credits = parseFloat(aData.credits);
-                }
-                var statusKey = '';
-                $.each(vm.allPartnersStatusString, function (key, val) {
-                    if (status == val) {
-                        statusKey = key;
-                        return true;
-                    }
-                });
-
-                var colorObj = {
-                    NORMAL: '#337ab7',
-                    FORBID: 'red',
-                    FORBID_GAME: '#D2691E',
-                    CHEAT_NEW_ACCOUNT_REWARD: '#800000',
-                    TOPUP_ATTENTION: '#800000',
-                    HEDGING: '#800000',
-                    TOPUP_BONUS_SPAM: '#800000',
-                    MULTIPLE_ACCOUNT: '#800000',
-                    BANNED: '#800000',
-                    FORBID_ONLINE_TOPUP: '#800000',
-                    BAN_PLAYER_BONUS: '#800000'
-                }
-
-                $(nRow).find('td:contains(' + $translate(statusKey) + ')').each(function (i, v) {
-                    $(v).find('a').eq(0).css('color', colorObj[statusKey]);
-                })
-                $(nRow).off('click');
-                $(nRow).on('click', function () {
-                    $('#partnerDataTable tbody tr').removeClass('selected');
-                    $(this).toggleClass('selected');
-                    vm.partnerTableClickedRow = vm.partnerTable.row(this);
-                    vm.selectedSinglePartner = aData;
-                    vm.isOneSelectedPartner = function () {
-                        return vm.selectedSinglePartner;
-                    };
-                    vm.maskPartnerInfo(vm.selectedSinglePartner);
-                    vm.selectedPartnerCount = 1;
-                    console.log('partner selected', vm.selectedSinglePartner);
-                    vm.getProvince();
-                    vm.getCity();
-                    vm.getDistrict();
-                    vm.currentSelectedPartnerObjId = vm.selectedSinglePartner._id;
-                    vm.editPartner = {
-                        partnerName: vm.selectedSinglePartner.partnerName,
-                        partnerId: vm.selectedSinglePartner.partnerId,
-                        registrationTime: vm.selectedSinglePartner.registrationTime,
-                        email: vm.selectedSinglePartner.email,
-                        realName: vm.selectedSinglePartner.realName,
-                        platform: vm.selectedSinglePartner.platform,
-                        phoneNumber: vm.selectedSinglePartner.phoneNumber,
-                        gender: vm.selectedSinglePartner.gender,
-                        DOB: vm.selectedSinglePartner.DOB,
-                        ownDomain: vm.selectedSinglePartner.ownDomain,
-                        bankAccount: vm.selectedSinglePartner.bankAccount,
-                        bankAccountCity: vm.selectedSinglePartner.bankAccountCity,
-                        bankAccountDistrict: vm.selectedSinglePartner.bankAccountDistrict,
-                        bankAccountProvince: vm.selectedSinglePartner.bankAccountProvince,
-                        commissionType: vm.selectedSinglePartner.commissionType,
-                        player: vm.selectedSinglePartner.player,
-                    };
-                    $scope.safeApply();
-                });
-            };
-            vm.maskPartnerInfo = function (data) {
-                // Mask partners bank account
-                data.encodedBankAccount = data.bankAccount ?
-                    data.bankAccount.slice(0, 6) + "**********" + data.bankAccount.slice(-4) : null;
-
-                if (data.domain && data.domain.length > 35) {
-                    data.$displayDomain = data.domain.substring(0, 30) + "...";
-                } else {
-                    data.$displayDomain = data.domain || null;
-                }
-
-                if (data && data.ownDomain && data.ownDomain.length > 0) {
-                    data.ownDomain$ = data.ownDomain.join('\n');
-                } else {
-                    data.ownDomain$ = null;
-                }
-            }
-            //show partner info modal
-            vm.showPartnerInfoModal = function (partnerName) {
-                $('#modalPartnerInfo').modal().show();
-                $scope.$evalAsync(() => {
-                    vm.selectedPartnerCommissionPreview = false;
-                });
-                $scope.$socketPromise('getSelectedPartnerCommissionPreview', {platformObjId: vm.selectedPlatform.id, partnerName: partnerName}).then(data => {
-                    console.log('getSelectedPartnerCommissionPreview', data);
-                    $scope.$evalAsync(() => {
-                        vm.selectedPartnerCommissionPreview = data && data.data ? data.data : false;
-                    });
-                });
-            };
-
-            vm.showActivePartnerInfoModal = function (partnerObjId, activeType) {
-
-                vm.selectedPartnerObjArr = {}
-                switch(activeType){
-                    case "DAILY_ACTIVE":
-                        vm.selectedPartnerObjArr.title = "Daily Active Player";
-                        vm.selectedPartnerObjArr.data =  vm.partners.find(p => p._id == partnerObjId).dailyActivePlayerObjArr || [];
-                        vm.selectedPartnerObjArr.size = vm.partners.find(p => p._id == partnerObjId).dailyActivePlayerObjArr && vm.partners.find(p => p._id == partnerObjId).dailyActivePlayerObjArr.length ? vm.partners.find(p => p._id == partnerObjId).dailyActivePlayerObjArr.length : 0;
-                        break;
-                    case "WEEKLY_ACTIVE":
-                        vm.selectedPartnerObjArr.title = "Weekly Active Player";
-                        vm.selectedPartnerObjArr.data =  vm.partners.find(p => p._id == partnerObjId).weeklyActivePlayerObjArr || [];
-                        vm.selectedPartnerObjArr.size = vm.partners.find(p => p._id == partnerObjId).weeklyActivePlayerObjArr && vm.partners.find(p => p._id == partnerObjId).weeklyActivePlayerObjArr.length ? vm.partners.find(p => p._id == partnerObjId).weeklyActivePlayerObjArr.length : 0;
-                        break;
-                    case "MONTHLY_ACTIVE":
-                        vm.selectedPartnerObjArr.title = "Monthly Active Player";
-                        vm.selectedPartnerObjArr.data =  vm.partners.find(p => p._id == partnerObjId).monthlyActivePlayerObjArr || [];
-                        vm.selectedPartnerObjArr.size = vm.partners.find(p => p._id == partnerObjId).monthlyActivePlayerObjArr && vm.partners.find(p => p._id == partnerObjId).monthlyActivePlayerObjArr.length ? vm.partners.find(p => p._id == partnerObjId).monthlyActivePlayerObjArr.length : 0;
-                        break;
-                    case "VALID_ACTIVE":
-                        vm.selectedPartnerObjArr.title = "Valid Active Player";
-                        vm.selectedPartnerObjArr.data =  vm.partners.find(p => p._id == partnerObjId).validActivePlayerObjArr || [];
-                        vm.selectedPartnerObjArr.size =  vm.partners.find(p => p._id == partnerObjId).validActivePlayerObjArr && vm.partners.find(p => p._id == partnerObjId).validActivePlayerObjArr.length ? vm.partners.find(p => p._id == partnerObjId).validActivePlayerObjArr.length : 0;
-                        break;
-                }
-
-                $('#modalActivePartnerInfo').modal().show();
-            };
 
             vm.getProvince = function (curProvince) {
                 vm.showProvinceStr = '';
@@ -23532,10 +23400,7 @@ define(['js/app'], function (myApp) {
                         });
 
 
-                        return p.then(ret => {
-                            vm.endLoadWeekDay();
-                            $scope.safeApply();
-                        });
+                        return p.then(vm.endLoadWeekDay);
                     } else {
                         let searchQ = {
                             platformObjId: vm.selectedPlatform.id,
@@ -23649,7 +23514,6 @@ define(['js/app'], function (myApp) {
                             vm.promoCode2HasMoreThanOne = false;
                             vm.promoCode3HasMoreThanOne = false;
                         }
-                        $scope.safeApply();
                     }
                 });
 
@@ -28250,9 +28114,9 @@ define(['js/app'], function (myApp) {
                vm.largeWithdrawCheckReviewer = {};
                vm.largeWithdrawCheckRecipient = {};
                //to remove duplicate
-                [...new Set(vm.adminList.map(item => item))].forEach((admin, index) => {
-                   vm.largeWithdrawCheckRecipient[index] = vm.getLargeWithdrawIsRecipient(admin._id);
-                   vm.largeWithdrawCheckReviewer[index] = vm.getLargeWithdrawIsReviewer(admin._id);
+                [...new Set(vm.adminList.map(item => item._id))].forEach((admin, index) => {
+                   vm.largeWithdrawCheckRecipient[index] = vm.getLargeWithdrawIsRecipient(admin);
+                   vm.largeWithdrawCheckReviewer[index] = vm.getLargeWithdrawIsReviewer(admin);
                    $('#largeWithdrawRow' + index).removeAttr('style');
                    if (vm.largeWithdrawCheckReviewer[index]) {
                        $('#largeWithdrawRow' + index).css('background-color', 'pink');
@@ -28331,9 +28195,9 @@ define(['js/app'], function (myApp) {
                 vm.largeWithdrawPartnerCheckReviewer = {};
                 vm.largeWithdrawPartnerCheckRecipient = {};
                 // to remove duplicate
-                [...new Set(vm.adminList.map(item => item))].forEach((admin, index) => {
-                    vm.largeWithdrawPartnerCheckRecipient[index] = vm.getLargeWithdrawPartnerIsRecipient(admin._id);
-                    vm.largeWithdrawPartnerCheckReviewer[index] = vm.getLargeWithdrawPartnerIsReviewer(admin._id);
+                [...new Set(vm.adminList.map(item => item._id))].forEach((admin, index) => {
+                    vm.largeWithdrawPartnerCheckRecipient[index] = vm.getLargeWithdrawPartnerIsRecipient(admin);
+                    vm.largeWithdrawPartnerCheckReviewer[index] = vm.getLargeWithdrawPartnerIsReviewer(admin);
                     $('#largeWithdrawPartnerRow' + index).removeAttr('style');
                     if (vm.largeWithdrawPartnerCheckReviewer[index]) {
                         $('#largeWithdrawPartnerRow' + index).css('background-color', 'pink');
@@ -28374,7 +28238,7 @@ define(['js/app'], function (myApp) {
                         if (indexReviewer > -1) {
                             $('#largeWithdrawPartnerRow' + index).removeAttr('style');
                             vm.largeWithdrawalPartnerSetting.reviewer.splice(indexReviewer, 1);
-                            vm.largeWithdrawCheckReviewer[index] = false;
+                            vm.largeWithdrawPartnerCheckReviewer[index] = false;
                         }
                     }
                 }
@@ -28393,19 +28257,6 @@ define(['js/app'], function (myApp) {
                         $('#largeWithdrawPartnerRow' + index).removeAttr('style');
                     }
                 }
-            };
-
-            vm.updateLargeWithdrawalRecipient = function () {
-                let sendData = {
-                    query: {platform: vm.selectedPlatform.id},
-                    updateData: {
-                        recipient: vm.largeWithdrawalSetting.recipient,
-                        reviewer: vm.largeWithdrawalSetting.reviewer
-                    }
-                }
-                socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalSetting', sendData, function (data) {
-                    console.log("updateLargeWithdrawalRecipient complete", data)
-                });
             };
 
             vm.updateLargeWithdrawalPartnerRecipient = function () {
@@ -28664,6 +28515,7 @@ define(['js/app'], function (myApp) {
                         showCurrentWithdrawalTime: srcData.showCurrentWithdrawalTime,
                         showLastWithdrawalTime: srcData.showLastWithdrawalTime,
                         showCurrentCredit: srcData.showCurrentCredit,
+                        showProposalId: srcData.showProposalId,
                         allowAdminComment: srcData.allowAdminComment,
                         showPlayerBonusAmount: srcData.showPlayerBonusAmount,
                         showTotalTopUpAmount: srcData.showTotalTopUpAmount,
@@ -28688,7 +28540,7 @@ define(['js/app'], function (myApp) {
                         showLastThreeMonthTopUpWithdrawDifference: srcData.showLastThreeMonthTopUpWithdrawDifference,
                         showLastThreeMonthConsumptionAmount: srcData.showLastThreeMonthConsumptionAmount,
                     }
-                }
+                };
                 socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalSetting', sendData, function (data) {
                     console.log("updateLargeWithdrawalSetting complete")
                 });
@@ -28708,9 +28560,10 @@ define(['js/app'], function (myApp) {
                         showCurrentCredit: srcData.showCurrentCredit,
                         showTotalDownlinePlayersCount: srcData.showTotalDownlinePlayersCount,
                         showTotalDownlinePartnersCount: srcData.showTotalDownlinePartnersCount,
+                        showProposalId: srcData.showProposalId,
                         showAllPartnerRelatedProposal: srcData.showAllPartnerRelatedProposal,
                     }
-                }
+                };
                 socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalPartnerSetting', sendData, function (data) {
                     console.log("updateLargeWithdrawalPartnerSetting complete")
                 });
