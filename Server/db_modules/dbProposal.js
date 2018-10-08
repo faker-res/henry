@@ -392,7 +392,7 @@ var proposal = {
                             // for player update bank info, check if first time bound to the bank info
                             if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType == "UpdatePlayer"
                                 && proposalTypeData._id && proposalTypeData.name == constProposalType.UPDATE_PLAYER_BANK_INFO
-                                && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId && proposalData.data._id) {
+                                && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId) {
 
                                 return dbconfig.collection_proposal.findOne({
                                     type: proposalTypeData._id,
@@ -406,10 +406,26 @@ var proposal = {
                                     }
                                 });
 
+                            } else if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType == "UpdatePartner"
+                                && proposalTypeData._id && proposalTypeData.name == constProposalType.UPDATE_PARTNER_BANK_INFO
+                                && proposalData.data.platformId && proposalData.data.partnerName && proposalData.data.partnerId) {
+
+                                return dbconfig.collection_proposal.findOne({
+                                    type: proposalTypeData._id,
+                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                    'data.platformId': proposalData.data.platformId,
+                                    'data.partnerId': proposalData.data.partnerId,
+                                    'data.partnerName': proposalData.data.partnerName
+                                }).lean().then(bankInfoProposal => {
+                                    if (!bankInfoProposal) {
+                                        return {isFirstBankInfo: true};
+                                    }
+                                });
+
                             }
-                        }).then(playerBankInfoProposal => {
+                        }).then(bankInfoProposal => {
                             // add remark if first time bound to the bank info
-                            if (playerBankInfoProposal && playerBankInfoProposal.hasOwnProperty('isFirstBankInfo') && playerBankInfoProposal.isFirstBankInfo) {
+                            if (bankInfoProposal && bankInfoProposal.hasOwnProperty('isFirstBankInfo') && bankInfoProposal.isFirstBankInfo) {
                                 proposalData.data.remark = localization.localization.translate("First time bound to the bank info");
                             }
 
@@ -444,6 +460,18 @@ var proposal = {
                                                     proposalData.data.remark = proposalData.data.remark? proposalData.data.remark + ", " + localization.localization.translate("Insuficient financial points"): localization.localization.translate("Insuficient financial points");
                                                 }
                                             }
+
+                                            if(data[2]){
+                                                if(data[2].bankAccount){
+                                                    proposalData.data.bankAccountWhenApprove = dbutility.encodeBankAcc(data[2].bankAccount);
+                                                }
+
+                                                if(data[2].bankName){
+                                                    proposalData.data.bankNameWhenApprove = data[2].bankName;
+                                                }
+
+                                            }
+
                                             var proposalProm = proposal.createProposal(proposalData);
                                             var platProm = dbconfig.collection_platform.findOne({_id: data[0].platformId});
                                             return Q.all([proposalProm, platProm, data[0].expirationDuration]);
@@ -859,6 +887,8 @@ var proposal = {
         let proposalObj;
         let proposalProcessData;
         let playerData;
+        let bankAccount = "";
+        let bankName = "";
         //find proposal
         dbconfig.collection_proposal.findOne({_id: proposalId}).populate(
             {
@@ -876,6 +906,12 @@ var proposal = {
                 select: "financialPoints financialSettlement",
                 model: dbconfig.collection_platform
             }
+        ).populate(
+            {
+                path: "data.playerObjId",
+                select: "bankAccount bankName",
+                model: dbconfig.collection_players
+            }
         ).then(
             function (data) {
                 //todo::add proposal or process status check here
@@ -884,6 +920,16 @@ var proposal = {
                 //         $addToSet: {remark: {admin: adminId, content: remark}}
                 //     }, {new: true}).exec();
                 // }
+
+                //save bankAccount and bankName, put back objId to data.data.playerObjId to prevent error
+                if(data && data.data && data.data.playerObjId && data.data.playerObjId.bankAccount){
+                    // bankAccount = data.data.playerObjId.bankAccount;
+                    // bankName = data.data.playerObjId.bankName;
+                    data.data.bankAccountWhenApprove = data.data.playerObjId.bankAccount;
+                    data.data.bankNameWhenApprove = data.data.playerObjId.bankName;
+                    data.data.playerObjId = data.data.playerObjId._id;
+                }
+
                 if (bApprove && data.type && (data.type.name ==  constProposalType.PLAYER_BONUS || data.type.name == constProposalType.PARTNER_BONUS)) {
                     let platformData = data && data.data && data.data.platformId? data.data.platformId: null;
                     if (platformData && platformData.financialSettlement && !platformData.financialSettlement.financialSettlementToggle && platformData.financialSettlement.financialPointsDisableWithdrawal
@@ -7649,6 +7695,23 @@ function isBankInfoMatched(proposalData, playerId){
             },
             error => {
                 return;
+            }
+        ).then(
+            proposalList =>{
+                if(proposalData.data && proposalData.data.bankAccountWhenApprove && proposalData.data.bankNameWhenApprove){
+                    let dataToUpdate = {
+                        "data.bankAccountWhenApprove": proposalData.data.bankAccountWhenApprove || "",
+                        "data.bankNameWhenApprove": proposalData.data.bankNameWhenApprove || ""
+                    };
+
+                    return proposal.updateProposalData({_id: proposalData._id}, dataToUpdate).then(
+                        () => {
+                            return proposalList;
+                        }
+                    ).catch(errorUtils.reportError);
+                }
+
+                return proposalList;
             }
         ).then(
             proposals => {
