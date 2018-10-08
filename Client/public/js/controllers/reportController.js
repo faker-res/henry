@@ -5143,7 +5143,7 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.consumptionModeQuery.aaSorting,
                 aoColumnDefs: [
-                    {'sortCol': 'playerId', 'aTargets': [1]},
+                    // {'sortCol': 'playerId', 'aTargets': [1]},
                     {'sortCol': 'selectedBetTypeAmt', 'aTargets': [2]},
                     {'sortCol': 'totalBetAmt', 'aTargets': [3]},
                     {'sortCol': 'betAmtPercent', 'aTargets': [4]},
