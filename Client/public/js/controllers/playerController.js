@@ -7850,7 +7850,6 @@ define(['js/app'], function (myApp) {
 
                             utilService.createDatatableWithFooter('.topupGroupRecordTable', tableOptions, {});
                             vm.playerTopUpGroupQuery.pageObj.init({maxCount: size}, false);
-                            $scope.safeApply()
                         },
                         checkAdminNameValidity: function (adminName, form) {
                             vm.checkAdminNameValidity(adminName, form);
@@ -7898,7 +7897,6 @@ define(['js/app'], function (myApp) {
                 $('#dialogEditPlayer').focus();
                 vm.getReferralPlayer(option.childScope.playerBeingEdited, "new");
                 vm.getPartnerinPlayer(option.childScope.playerBeingEdited, "new");
-                $scope.safeApply();
             };
 
             $(".topupGroupRecordTablePage").hide();
@@ -12299,7 +12297,6 @@ define(['js/app'], function (myApp) {
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     $compile(nRow)($scope);
                 }
-
             });
 
             let aTable = $("#rewardTaskGroupLogTbl").DataTable(tableOptions);
@@ -13153,7 +13150,6 @@ define(['js/app'], function (myApp) {
                 delete vm.modifyCritical.correctVerifyPhoneNumber;
                 delete vm.modifyCritical.verifyPhoneNumber;
             }
-            $scope.safeApply();
         }
         vm.submitCriticalUpdate = function () {
             console.log('updateData', vm.modifyCritical);
@@ -13258,9 +13254,10 @@ define(['js/app'], function (myApp) {
                 playerObjId: vm.selectedSinglePlayer._id,
                 phoneNumber: vm.modifyCritical.verifyPhoneNumber
             }, function (data) {
-                console.log("verifyPlayerPhoneNumber:", data);
-                vm.correctVerifyPhoneNumber.str = data.data;
-                $scope.safeApply();
+                $scope.$evalAsync(()=>{
+                    console.log("verifyPlayerPhoneNumber:", data);
+                    vm.correctVerifyPhoneNumber.str = data.data;
+                })
             });
         };
 
@@ -13269,16 +13266,16 @@ define(['js/app'], function (myApp) {
                 playerObjId: vm.selectedSinglePlayer._id,
                 bankAccount: testBankAccount
             }, function (data) {
-                console.log("verifyPlayerBankAccount:", data);
-                vm.correctVerifyBankAccount = data.data;
+                $scope.$evalAsync(()=>{
+                    console.log("verifyPlayerBankAccount:", data);
+                    vm.correctVerifyBankAccount = data.data;
 
-                if (vm.correctVerifyBankAccount) {
-                    socketService.showConfirmMessage($translate("Validation succeed."), 10000);
-                } else {
-                    socketService.showErrorMessage($translate("Validation failed.") + " - " + $translate("Bank card number did not match."));
-                }
-
-                $scope.safeApply();
+                    if (vm.correctVerifyBankAccount) {
+                        socketService.showConfirmMessage($translate("Validation succeed."), 10000);
+                    } else {
+                        socketService.showErrorMessage($translate("Validation failed.") + " - " + $translate("Bank card number did not match."));
+                    }
+                });
             });
         };
 
