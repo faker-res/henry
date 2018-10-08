@@ -9054,8 +9054,11 @@ define(['js/app'], function (myApp) {
                 // "sScrollY": 350,
                 // "scrollCollapse": true,
                 // "destroy": true,
-                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                    $compile(nRow)($scope);
+                // fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                //     $compile(nRow)($scope);
+                // }
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
                 }
             });
             tableOptions.language.emptyTable = $translate("No data available in table");
@@ -12321,9 +12324,12 @@ define(['js/app'], function (myApp) {
                 "sScrollY": 350,
                 "scrollCollapse": true,
                 "destroy": true,
-                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                    $compile(nRow)($scope);
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
                 }
+                // fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                //     $compile(nRow)($scope);
+                // }
 
             });
 
@@ -13075,13 +13081,17 @@ define(['js/app'], function (myApp) {
                 "sScrollY": 350,
                 "scrollCollapse": true,
                 "destroy": true,
-                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                    $compile(nRow)($scope);
-                    // $(nRow).off('click');
-                    // $(nRow).find('a').on('click', function () {
-                    //     vm.showProposalModal(aData.proposalId, 1);
-                    // });
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
                 }
+
+                // fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                //     $compile(nRow)($scope);
+                //     // $(nRow).off('click');
+                //     // $(nRow).find('a').on('click', function () {
+                //     //     vm.showProposalModal(aData.proposalId, 1);
+                //     // });
+                // }
 
             });
 
