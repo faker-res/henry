@@ -1227,24 +1227,23 @@ let dbPlayerCreditTransfer = {
                                 _inputRewardAmt: updateObj._inputRewardAmt,
                             },
                             inProvider: false
-                        }, {
-                            new: true
-                        })
-                        //     .then(
-                        //     updatedRewardGroup => {
-                        //         // Check whether provider group has undergo operation
-                        //         if (updatedRewardGroup.status != constRewardTaskStatus.STARTED) {
-                        //             // SYSTEM DEBUG LOG - RTG became no credit after credit change
-                        //             if (updatedRewardGroup.status == constRewardTaskStatus.NO_CREDIT) {
-                        //                 console.log("ERROR - No credit after RTG credit change", playerObjId);
-                        //             }
-                        //
-                        //             return dbRewardTask.completeRewardTaskGroup(updatedRewardGroup, updatedRewardGroup.status);
-                        //         }
-                        //
-                        //         return true;
-                        //     }
-                        // )
+                        }).then(
+                            preRTG => {
+                                // Check if RTG has done operation before setting inProvider = false
+                                if (preRTG.status !== constRewardTaskStatus.STARTED) {
+                                    // Experimental: Log here
+                                    console.log('RT - Unlock after transfer out', preRTG);
+                                    console.log('RT - freeAmt', updateObj.freeAmt);
+
+                                    // Since we are going to unlock this, we set freeAmt to 0 to prevent double addition
+                                    // updateObj.freeAmt = 0;
+                                    //
+                                    // return dbRewardTask.completeRewardTaskGroup(preRTG, preRTG.status);
+                                }
+
+                                return true;
+                            }
+                        )
                     } else {
                         return true;
                     }

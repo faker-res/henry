@@ -3,6 +3,7 @@ var errorUtils = require('../modules/errorUtils');
 
 const constRewardPointsLogCategory = require('../const/constRewardPointsLogCategory');
 const constRewardPointsLogStatus = require('../const/constRewardPointsLogStatus');
+const constProposalStatus = require('../const/constProposalStatus');
 
 var dbConfig = require('../modules/dbproperties');
 var dbLogger = require('../modules/dbLogger');
@@ -75,9 +76,9 @@ var dbRewardPointsLog = {
             return({total: data[0], data: data[1]});
         });
     },
-    getSpendRewardRank:  (platformId, startDate, endDate, currentPage=0, limit=10, sortCol) => {
+    getSpendRewardRank:  (platformId, startDate, endDate, currentPage=1, limit=10, sortCol) => {
         limit = parseInt(limit)
-        index = currentPage * limit;
+        index = (currentPage - 1) * limit;
 
         let platform;
         return dbConfig.collection_platform.findOne({platformId: platformId}).lean().then(
@@ -90,34 +91,35 @@ var dbRewardPointsLog = {
             }
         ).then(() => {
             let query = {
-                platformId:platform._id,
-                createTime: {$gte: new Date(startDate), $lt: new Date(endDate)},
-                category: constRewardPointsLogCategory.GAME_REWARD_POINTS,
-                status: constRewardPointsLogStatus.PROCESSED
+                'data.platformId':platform._id,
+                'createTime': {$gte: new Date(startDate), $lt: new Date(endDate)},
+                'data.category': constRewardPointsLogCategory.POINT_REDUCTION,
+                'status': {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
             }
-            let a = dbConfig.collection_rewardPointsLog.aggregate(
+            let a = dbConfig.collection_proposal.aggregate(
                 {
                     $match: query
                 },
                 {
                     $group: {
-                        _id: '$playerName',
-                        points: {$sum: "$amount"}
+                        _id: '$data.playerName',
+                        points: {$sum: "$data.updateAmount"}
                     }
                 }
             ).read("secondaryPreferred");
-            let b = dbConfig.collection_rewardPointsLog.aggregate(
+            let b = dbConfig.collection_proposal.aggregate(
                 {
                     $match: query
                 },
                 {
                     $group: {
-                        _id: '$playerName',
-                        points: {$sum: "$amount"},
-                        playerLevelName:{ $last: "$playerLevelName" },
+                        _id: '$data.playerName',
+                        points: {$sum: "$data.updateAmount"},
+                        playerLevelName:{ $last: "$data.playerLevelName" },
                         lastUpdate:{ $last: "$createTime"},
                     },
                 },
+                { $sort: {'points': 1}},
                 { $skip: index },
                 { $limit : limit }
             ).read("secondaryPreferred");
@@ -125,7 +127,7 @@ var dbRewardPointsLog = {
        }).then(data => {
                 let rewardPointLogs;
                 let spending = data[0];
-                let totalPoints = 0
+                let totalPoints = 0;
                 let resultData = data[1];
                 let totalPage = spending.length / limit;
 
@@ -143,6 +145,7 @@ var dbRewardPointsLog = {
                         totalPoints += spendData.points;
                     })
                 }
+                totalPoints = Math.abs(totalPoints);
 
                 let statsData = {
                    "totalCount": spending.length,
@@ -156,7 +159,7 @@ var dbRewardPointsLog = {
                         let playerIndex = Math.max(Math.floor((rewardPointLog._id.length - 3) / 2), 0);
                         let playerEncoded = rewardPointLog._id.substr(0, playerIndex) + "***" + rewardPointLog._id.substr(playerIndex + 3);
                         let playerSpend = {
-                            points: rewardPointLog.points,
+                            points:  Math.abs(rewardPointLog.points),
                             playerLevelName: rewardPointLog.playerLevelName,
                             lastUpdate: rewardPointLog.lastUpdate,
                             playerAccount: playerEncoded

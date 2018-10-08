@@ -2994,7 +2994,22 @@ let dbPlayerInfo = {
                     'permission.forbidPlayerFromLogin': false
                 }).lean().count();
 
-                return Promise.all([realNameCountProm, sameBankAccountCountProm]).then(
+                let propQuery = {
+                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                    'data.platformId': platformObjId,
+                    'data.playerName': playerObj.name,
+                    'data.playerId': playerObj.playerId,
+                };
+
+                let firstBankInfoProm = dbPropUtil.getOneProposalDataOfType(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
+                    proposal => {
+                        if (!proposal) {
+                            return {isFirstBankInfo: true};
+                        }
+                    }
+                );
+
+                return Promise.all([realNameCountProm, sameBankAccountCountProm, firstBankInfoProm]).then(
                     data => {
                         if (!data){
                             return Promise.reject({
@@ -3005,27 +3020,33 @@ let dbPlayerInfo = {
                         duplicatedRealNameCount = data[0] || 0;
                         sameBankAccountCount = data[1] || 0;
 
-                        if (playerData.bankAccountName) {
-                            delete updateData.bankAccountName;
-                        }
-                        //check if bankAccountName in update data is the same as player's real name
-                        if (updateData.bankAccountName && !playerData.realName) {
-                            // return Q.reject({
-                            //     name: "DataError",
-                            //     code: constServerCode.INVALID_DATA,
-                            //     message: "Bank account name is different from real name"
-                            // });
-                            if (updateData.bankAccountName.indexOf('*') > -1)
-                                delete updateData.bankAccountName;
-                            else
+                        if (data && data[2] && data[2].hasOwnProperty('isFirstBankInfo') && data[2].isFirstBankInfo) {
+                            if (updateData && updateData.bankAccountName) {
                                 updateData.realName = updateData.bankAccountName;
-                        }
-                        if (!updateData.bankAccountName && !playerData.bankAccountName && !playerData.realName) {
-                            return Q.reject({
-                                name: "DataError",
-                                code: constServerCode.INVALID_DATA,
-                                message: "Please enter bank account name or contact cs"
-                            });
+                            }
+                        } else {
+                            if (playerData.bankAccountName) {
+                                delete updateData.bankAccountName;
+                            }
+                            //check if bankAccountName in update data is the same as player's real name
+                            if (updateData.bankAccountName && !playerData.realName) {
+                                // return Q.reject({
+                                //     name: "DataError",
+                                //     code: constServerCode.INVALID_DATA,
+                                //     message: "Bank account name is different from real name"
+                                // });
+                                if (updateData.bankAccountName.indexOf('*') > -1)
+                                    delete updateData.bankAccountName;
+                                else
+                                    updateData.realName = updateData.bankAccountName;
+                            }
+                            if (!updateData.bankAccountName && !playerData.bankAccountName && !playerData.realName) {
+                                return Q.reject({
+                                    name: "DataError",
+                                    code: constServerCode.INVALID_DATA,
+                                    message: "Please enter bank account name or contact cs"
+                                });
+                            }
                         }
 
                         // if (updateData.bankAccountType) {
@@ -5004,7 +5025,7 @@ let dbPlayerInfo = {
 
                 return dbconfig.collection_players
                     .find(advancedQuery, {similarPlayers: 0})
-                    .sort(sortObj).skip(index).limit(limit).lean().then(
+                    .sort(sortObj).skip(index).limit(limit).read("secondaryPreferred").lean().then(
                         players => {
                             let calculatePlayerValueProms = [];
                             let updatePlayerCredibilityRemarksProm = [];
@@ -5060,6 +5081,7 @@ let dbPlayerInfo = {
                     .populate({path: "referral", model: dbconfig.collection_players, select: 'name'})
                     .populate({path: "rewardPointsObjId", model: dbconfig.collection_rewardPoints, select: 'points'})
                     .populate({path: "blacklistIp", model: dbconfig.collection_platformBlacklistIpConfig})
+                    .read("secondaryPreferred")
                     .lean().then(
                         playerData => {
                             var players = [];
@@ -9745,8 +9767,108 @@ let dbPlayerInfo = {
         if (providerId != 'all') {
             query.providerId = providerId;
         }
-        return dbconfig.collection_providerDaySummary.find(query);
+
+        let consumptionCredit = dbconfig.collection_providerDaySummary.find(query);
+        let consumptionPlayerCount = dbPlayerInfo.getConsumptionPlayerCount(new Date(startDate), new Date(endDate), period, platformId, providerId);
+        return Promise.all([consumptionCredit, consumptionPlayerCount]).then(
+            consumptionData => {
+                return {
+                    playerConsumption: consumptionData[0]? consumptionData[0]: [],
+                    playerCount: consumptionData[1]? consumptionData[1]: []
+                };
+            }
+        )
     },
+
+    getConsumptionPlayerCount: (startDate, endDate, period, platformId, providerId) => {
+        let promArr = [];
+        var dayStartTime = startDate;
+        var getNextDate;
+
+        switch (period) {
+            case 'day':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 1));
+                }
+                break;
+            case 'week':
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(newDate.setDate(newDate.getDate() + 7));
+                }
+                break;
+            case 'month':
+            default:
+                getNextDate = function (date) {
+                    var newDate = new Date(date);
+                    return new Date(new Date(newDate.setMonth(newDate.getMonth() + 1)).setDate(1));
+                }
+        }
+
+        // while (dayStartTime.getTime() < endDate.getTime()) {
+        for ( ; dayStartTime.getTime() < endDate.getTime(); dayStartTime = dayEndTime) {
+            var dayEndTime = getNextDate.call(this, dayStartTime);
+
+            let nullObj = {
+                totalCount: 0
+            };
+
+            let matchObj = {
+                platformId: ObjectId(platformId),
+                createTime: {$gte: dayStartTime, $lt: dayEndTime},
+            };
+
+            if (platformId != 'all') {
+                matchObj.platformId = platformId;
+            }
+            if (providerId != 'all') {
+                matchObj.providerId = providerId;
+            }
+
+            promArr.push(dbconfig.collection_playerConsumptionRecord.aggregate([
+                {
+                    $match: matchObj
+                },
+                {
+                    $group: {
+                        _id: "$playerId"
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalCount: {$sum: 1}
+                    }
+                }
+            ]).read("secondaryPreferred").then(result => {
+
+                if (result && result.length > 0) {
+                    return result[0];
+                } else {
+                    return nullObj;
+                }
+            }));
+
+        }
+        return Promise.all(promArr).then(consumptionData => {
+            let tempDate = startDate;
+
+            if (consumptionData.length){
+                for (let i = 0; i < consumptionData.length; i++) {  // number of date
+                    consumptionData[i].date = new Date(tempDate);
+                    tempDate = getNextDate(tempDate);
+                }
+            }
+            else{
+                return Q.reject({name: 'DataError', message: 'The data mismatched'})
+            }
+
+            return consumptionData;
+
+        });
+    },
+
     countTopUpByPlatform: function (platformId, startDate, endDate, period) {
         var proms = [];
         var calculation = {$sum: "$amount"};
@@ -12051,11 +12173,10 @@ let dbPlayerInfo = {
     /*
      * get player online top up types
      */
-    getOnlineTopupType: function (playerId, merchantUse, clientType, bPMSGroup, userIp) {
+    getOnlineTopupType: function (playerId, clientType, bPMSGroup, userIp) {
         // merchantUse - 1: merchant, 2: bankcard
         // clientType: 1: browser, 2: mobileApp
         var playerData = null;
-        let paymentData = null;
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
         ).populate(
@@ -12078,7 +12199,7 @@ let dbPlayerInfo = {
                         queryId: serverInstance.getQueryId()
                     };
                     playerData = data;
-                    if (merchantUse == 1) {
+                    //if (merchantUse == 1) {
                         if (bPMSGroup == true || bPMSGroup == "true") {
                             pmsQuery.username = data.name;
                             pmsQuery.ip = userIp;
@@ -12086,31 +12207,20 @@ let dbPlayerInfo = {
                             return pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
                         }
                         return pmsAPI.merchant_getMerchantList(pmsQuery);
-                    }
-                    else {
-                        return pmsAPI.bankcard_getBankcardList(pmsQuery);
-                    }
+                    // }
+                    // else {
+                    //     return pmsAPI.bankcard_getBankcardList(pmsQuery);
+                    // }
                 } else {
                     return Q.reject({name: "DataError", message: "Cannot find player"})
                 }
             }
         ).then(
-            paymentType => {
-                paymentData = paymentType;
-                if(playerData && playerData.merchantGroup && playerData.merchantGroup.merchantNames) {
-                    return dbconfig.collection_platformMerchantList.findOne({
-                        name: playerData.merchantGroup.merchantNames,
-                        platformId: playerData.platform.platformId
-                    }).lean();
-                } else {
-                    return null;
-                }
-            }
-        ).then(
-            localMerchantData => {
+            paymentData => {
                 if (paymentData) {
                     var resData = [];
-                    if (merchantUse == 1 && (paymentData.merchants || paymentData.topupTypes)) {
+                    // if (merchantUse == 1 && (paymentData.merchants || paymentData.topupTypes)) {
+                    if (paymentData.merchants || paymentData.topupTypes) {
                         if (paymentData.topupTypes) {
                             resData = paymentData.topupTypes;
                             resData.forEach(merchant => {
@@ -12142,10 +12252,6 @@ let dbPlayerInfo = {
                                                         }
 
                                                         type.status = status;
-                                                        type.serviceCharge =
-                                                            localMerchantData && localMerchantData.customizeRate ? localMerchantData.customizeRate :
-                                                                localMerchantData && localMerchantData.rate ? merchant.rate :
-                                                                    paymentData.merchants[i].rate ? paymentData.merchants[i].rate : 0;
                                                     }
                                                 }
                                             });
@@ -12155,11 +12261,7 @@ let dbPlayerInfo = {
                                                         type: paymentData.merchants[i].topupType,
                                                         status: status,
                                                         maxDepositAmount: paymentData.merchants[i].permerchantLimits,
-                                                        minDepositAmount: paymentData.merchants[i].permerchantminLimits,
-                                                        serviceCharge:
-                                                            localMerchantData && localMerchantData.customizeRate ? localMerchantData.customizeRate :
-                                                                localMerchantData && localMerchantData.rate ? merchant.rate :
-                                                                    paymentData.merchants[i].rate ? paymentData.merchants[i].rate : 0
+                                                        minDepositAmount: paymentData.merchants[i].permerchantminLimits
                                                     });
                                                 }
                                             }
@@ -12169,37 +12271,37 @@ let dbPlayerInfo = {
                             }
                         }
                     }
-                    else {
-                        if (paymentData.data && playerData.bankCardGroup && playerData.bankCardGroup.banks && playerData.bankCardGroup.banks.length > 0) {
-                            playerData.bankCardGroup.banks.forEach(
-                                bank => {
-                                    for (let i = 0; i < paymentData.data.length; i++) {
-                                        var status = 2;
-                                        if (paymentData.data[i].accountNumber == bank) {
-                                            status = 1;
-                                        }
-                                        var bValidType = true;
-                                        resData.forEach(type => {
-                                            if (type.type == paymentData.data[i].bankTypeId) {
-                                                bValidType = false;
-                                                if (status == 1 && paymentData.data[i].status == "NORMAL") {
-                                                    type.status = status;
-                                                }
-                                            }
-                                        });
-                                        if (bValidType && playerData.permission.topupManual && paymentData.data[i].status == "NORMAL") {
-                                            if (status == 1) {
-                                                resData.push({
-                                                    type: paymentData.data[i].bankTypeId,
-                                                    status: status
-                                                });
-                                            }
-                                        }
-                                    }
-                                }
-                            );
-                        }
-                    }
+                    // else {
+                    //     if (paymentData.data && playerData.bankCardGroup && playerData.bankCardGroup.banks && playerData.bankCardGroup.banks.length > 0) {
+                    //         playerData.bankCardGroup.banks.forEach(
+                    //             bank => {
+                    //                 for (let i = 0; i < paymentData.data.length; i++) {
+                    //                     var status = 2;
+                    //                     if (paymentData.data[i].accountNumber == bank) {
+                    //                         status = 1;
+                    //                     }
+                    //                     var bValidType = true;
+                    //                     resData.forEach(type => {
+                    //                         if (type.type == paymentData.data[i].bankTypeId) {
+                    //                             bValidType = false;
+                    //                             if (status == 1 && paymentData.data[i].status == "NORMAL") {
+                    //                                 type.status = status;
+                    //                             }
+                    //                         }
+                    //                     });
+                    //                     if (bValidType && playerData.permission.topupManual && paymentData.data[i].status == "NORMAL") {
+                    //                         if (status == 1) {
+                    //                             resData.push({
+                    //                                 type: paymentData.data[i].bankTypeId,
+                    //                                 status: status
+                    //                             });
+                    //                         }
+                    //                     }
+                    //                 }
+                    //             }
+                    //         );
+                    //     }
+                    // }
                     return resData;
                 }
                 else {
@@ -13421,13 +13523,12 @@ let dbPlayerInfo = {
                     let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
                     let pendingCount = 0;
-                    if (playerInfo.platform && playerInfo.platform.useLockedCredit) {
-                        pendingCount = dbRewardTask.getPendingRewardTaskCount({
-                            mainType: 'Reward',
-                            "data.playerObjId": playerInfo._id,
-                            status: 'Pending'
-                        }, rewardTaskWithProposalList);
-                    }
+                    
+                    pendingCount = dbRewardTask.getPendingRewardTaskCount({
+                        mainType: 'Reward',
+                        "data.playerObjId": playerInfo._id,
+                        status: 'Pending'
+                    }, rewardTaskWithProposalList);
 
                     let rewardData = {};
 
@@ -14799,6 +14900,7 @@ let dbPlayerInfo = {
         let endDate = new Date(query.end);
         let getPlayerProm = Promise.resolve("");
         let result = [];
+        let isSinglePlayer = false;
         let resultSum = {
             manualTopUpAmount: 0,
             weChatTopUpAmount: 0,
@@ -14818,19 +14920,28 @@ let dbPlayerInfo = {
         };
 
         if (query.name) {
+            isSinglePlayer = true;
             getPlayerProm = dbconfig.collection_players.findOne({
                 name: query.name,
                 platform: platform,
                 isRealPlayer: true
             }, {_id: 1}).lean();
+        } else if (query.adminIds && query.adminIds.length) {
+            getPlayerProm = dbconfig.collection_players.find({
+                platform: platform,
+                isRealPlayer: true,
+                csOfficer: {$in: query.adminIds}
+            }, {_id: 1}).lean();
         }
 
         return getPlayerProm.then(
-            player => {
+            playerData => {
                 let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}};
 
-                if (player) {
-                    relevantPlayerQuery.playerId = player._id;
+                if (isSinglePlayer) {
+                    relevantPlayerQuery.playerId = playerData._id;
+                } else if (query.adminIds && query.adminIds.length && playerData.length) {
+                    relevantPlayerQuery.playerId = {$in: playerData.map(p => p._id)}
                 }
 
                 // relevant players are the players who played any game within given time period
@@ -14840,7 +14951,6 @@ let dbPlayerInfo = {
                     {$group: {_id: "$playerId"}}
                 ]).read("secondaryPreferred").then(
                     consumptionData => {
-
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
                                 return String(playerIdObj._id);
@@ -14854,9 +14964,12 @@ let dbPlayerInfo = {
                             'data.platformId': platform
                         };
 
-                        if (player) {
-                            proposalQuery['data.playerObjId'] = player._id;
+                        if (isSinglePlayer) {
+                            proposalQuery['data.playerObjId'] = playerData._id;
+                        } else if (query.adminIds && query.adminIds.length && playerData.length) {
+                            proposalQuery['data.playerObjId'] = {$in: playerData.map(p => p._id)}
                         }
+
                         return dbconfig.collection_proposal.aggregate([
                             {$match: proposalQuery},
                             {$group: {_id: "$data.playerObjId"}}
@@ -15026,7 +15139,7 @@ let dbPlayerInfo = {
             getPlayerProm = dbconfig.collection_players.findOne({
                 name: query.name,
                 platform: platformObjId
-            }, {_id: 1}).lean().then(
+            }, {_id: 1}).read("secondaryPreferred").lean().then(
                 player => {
                     if (!player) return Q.reject({
                         name: "DataError",
@@ -15149,7 +15262,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
-                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}}).lean();
+                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}}).read("secondaryPreferred").lean();
                 let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
 
@@ -15373,7 +15486,7 @@ let dbPlayerInfo = {
             startDate = dayEndTime;
         }
 
-        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).lean().then(
+        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).read("secondaryPreferred").lean().then(
             playerData => {
                 if (playerData) {
                     return playerData.name;
@@ -15506,7 +15619,7 @@ let dbPlayerInfo = {
                 name: query.name,
                 platform: platformObjId,
                 isDepositTracked: true
-            }, {_id: 1}).lean().then(
+            }, {_id: 1}).read("secondaryPreferred").lean().then(
                 player => {
                     if (!player) return Q.reject({
                         name: "DataError",
@@ -15520,7 +15633,7 @@ let dbPlayerInfo = {
             getPlayerProm = dbconfig.collection_players.find({
                 platform: platformObjId,
                 isDepositTracked: true
-            }, {_id: 1}).lean().then(
+            }, {_id: 1}).read("secondaryPreferred").lean().then(
                 player => {
                     if (!player) return Q.reject({
                         name: "DataError",
@@ -15532,7 +15645,7 @@ let dbPlayerInfo = {
         }
 
         // find id for promo code type 1, 2, 3
-        dbconfig.collection_promoCodeType.find({platformObjId: platformObjId}).lean().then(
+        dbconfig.collection_promoCodeType.find({platformObjId: platformObjId}).read("secondaryPreferred").lean().then(
             promoCode => {
                 if (promoCode && promoCode.length > 0) {
                     promoCode.forEach(promo => {
@@ -15567,7 +15680,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
-                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}}).lean();
+                let playerProm = dbconfig.collection_players.find({_id: {$in: playerObjArrData}}).read("secondaryPreferred").lean();
                 let stream = playerProm.cursor({batchSize: 100});
                 let balancer = new SettlementBalancer();
 
@@ -15735,7 +15848,7 @@ let dbPlayerInfo = {
 
                     trackingGroupProm.push(dbconfig.collection_players.findOne({_id: player._id})
                         .populate({path: 'depositTrackingGroup', model: dbconfig.collection_playerDepositTrackingGroup})
-                        .lean().then(
+                        .read("secondaryPreferred").lean().then(
                             depositTrackingGroup => {
                                 if (depositTrackingGroup && depositTrackingGroup.depositTrackingGroup && depositTrackingGroup.depositTrackingGroup.name) {
                                     return {
@@ -15901,7 +16014,7 @@ let dbPlayerInfo = {
             platform: platform
         };
 
-        return dbconfig.collection_players.findOne(query).lean().then(
+        return dbconfig.collection_players.findOne(query).read("secondaryPreferred").lean().then(
             playerData => {
                 if (!playerData) return Q.reject({
                     name: "DataError",
@@ -15923,7 +16036,7 @@ let dbPlayerInfo = {
             platform: platform
         };
 
-        return dbconfig.collection_players.findOne(query, {isDepositTracked: 1}).then(
+        return dbconfig.collection_players.findOne(query, {isDepositTracked: 1}).read("secondaryPreferred").lean().then(
             playerData => {
                 if (!playerData) return Q.reject({
                     name: "DataError",
@@ -15965,24 +16078,24 @@ let dbPlayerInfo = {
         // convert UTC 16h to GMT 24h
         if (parseInt(timezoneOffset) > 0) {
             timezoneAdjust = {
-                year: {$year: {$subtract: ['$settleTime', positiveTimeOffset]}},
-                month: {$month: {$subtract: ['$settleTime', positiveTimeOffset]}},
+                year: {$year: {$subtract: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
+                month: {$month: {$subtract: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
             }
         } else {
             timezoneAdjust = {
-                year: {$year: {$add: ['$settleTime', positiveTimeOffset]}},
-                month: {$month: {$add: ['$settleTime', positiveTimeOffset]}},
+                year: {$year: {$add: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
+                month: {$month: {$add: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
             }
         }
         if (parseInt(timezoneOffset) > 0) {
             timezoneAdjust2 = {
-                year: {$year: {$subtract: ['$createTime', positiveTimeOffset]}},
-                month: {$month: {$subtract: ['$createTime', positiveTimeOffset]}},
+                year: {$year: {$subtract: [ {$ifNull: ['$createTime', 0]}, positiveTimeOffset ]}},
+                month: {$month: {$subtract: [ {$ifNull: ['$createTime', 0]}, positiveTimeOffset ]}},
             }
         } else {
             timezoneAdjust2 = {
-                year: {$year: {$add: ['$createTime', positiveTimeOffset]}},
-                month: {$month: {$add: ['$createTime', positiveTimeOffset]}},
+                year: {$year: {$add: [ {$ifNull: ['$createTime', 0]}, positiveTimeOffset ]}},
+                month: {$month: {$add: [ {$ifNull: ['$createTime', 0]}, positiveTimeOffset ]}},
             }
         }
         console.log('positiveTimeOffset===', positiveTimeOffset);
@@ -16066,7 +16179,7 @@ let dbPlayerInfo = {
             }
         ]).read("secondaryPreferred"));
 
-        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).lean().then(
+        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).read("secondaryPreferred").lean().then(
             playerData => {
                 if (playerData) {
                     return {playerId: playerData._id, playerName: playerData.name};
@@ -16319,7 +16432,7 @@ let dbPlayerInfo = {
             startDate = dayEndTime;
         }
 
-        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).lean().then(
+        let playerProm = dbconfig.collection_players.findOne({_id: playerObjId, platform: platformObjId}).read("secondaryPreferred").lean().then(
             playerData => {
                 if (playerData) {
                     return {playerId: playerData._id, playerName: playerData.name};
@@ -18179,13 +18292,13 @@ let dbPlayerInfo = {
 
                     // sorting to reduce chances of getting joint-list
                     platformData.gameProviders.sort(sortRankingRecord);
-                    
+
                     for (let i = 0; i < platformData.gameProviders.length; i++) {
+                        gameProviderIdList.push(platformData.gameProviders[i].providerId);
                         // check each of the game provider for the sameLineProvider
                         console.log("checking--Yh groupSameLineProviders", groupSameLineProviders)
                         if (platformData.gameProviders[i] && platformData.gameProviders[i].sameLineProviders && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId] &&
-                            platformData.gameProviders[i].sameLineProviders[playerDetails.platformId] && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId].length) {
-                            gameProviderIdList.push(platformData.gameProviders[i].providerId);
+                            platformData.gameProviders[i].sameLineProviders[playerDetails.platformId].length) {
 
                             if (!groupSameLineProviders.length) {
                                 groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId])
@@ -18219,6 +18332,10 @@ let dbPlayerInfo = {
                                     groupSameLineProviders.push(platformData.gameProviders[i].sameLineProviders[playerDetails.platformId]);
                                 }
                             }
+                        }
+                        else{
+                            // for those game provider does not have samelineProvider
+                            groupSameLineProviders.push([platformData.gameProviders[i].providerId]);
                         }
                         let nickName = "";
                         let status = platformData.gameProviders[i].status;
@@ -18352,8 +18469,9 @@ let dbPlayerInfo = {
                             providerId: gameCreditList[i].providerId
                         };
                         // check the game credit from the same platform
+                        console.log("checking---yH amountGameProviderList", amountGameProviderList)
                        if (amountGameProviderList.indexOf(gameCreditList[i].providerId) > -1){
-                           totalGameCreditAmount +=  parseFloat(gameCreditList[i].gameCredit) || 0;
+                           totalGameCreditAmount +=  parseInt(gameCreditList[i].gameCredit) || 0;
                        }
                     }
 
@@ -18393,7 +18511,7 @@ let dbPlayerInfo = {
                                 list: listData,
                             });
 
-                            totalLockedCredit += parseFloat(rewardTaskGroup[i].rewardAmt) || 0;
+                            totalLockedCredit += parseInt(rewardTaskGroup[i].rewardAmt) || 0;
                         }
                     }
                 }
@@ -18439,7 +18557,7 @@ let dbPlayerInfo = {
                 }
 
                 // return total amount
-                returnData.finalAmount =  Math.floor((totalLockedCredit + totalGameCreditAmount + parseFloat(returnData.credit)) * 100 ) / 100 ;
+                returnData.finalAmount =  totalLockedCredit + totalGameCreditAmount + parseInt(returnData.credit);
 
                 return returnData;
             });
@@ -20548,10 +20666,21 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
         ).then(
             res => {
                 if (res) {
-                    dbconfig.collection_playerTopUpRecord.findOneAndUpdate({_id: topUpRecordObjId}, {
-                        bDirty: true,
-                        $push: {usedEvent: newProp.data.eventId}
-                    }).catch(errorUtils.reportError);
+                    dbUtility.findOneAndUpdateForShard(
+                        dbconfig.collection_playerTopUpRecord,
+                        {_id: ObjectId(topUpRecordObjId)},
+                        {
+                            bDirty: true,
+                            $push: {usedEvent: newProp.data.eventId}
+                        },
+                        constShardKeys.collection_playerTopUpRecord,
+                        true
+                    );
+
+                    // dbconfig.collection_playerTopUpRecord.findOneAndUpdate({_id: topUpRecordObjId}, {
+                    //     bDirty: true,
+                    //     $push: {usedEvent: newProp.data.eventId}
+                    // }).catch(errorUtils.reportError);
 
                     return dbUtility.findOneAndUpdateForShard(
                         dbconfig.collection_proposal,

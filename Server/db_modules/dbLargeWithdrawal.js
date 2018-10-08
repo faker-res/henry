@@ -100,7 +100,7 @@ const dbLargeWithdrawal = {
                 let gameCreditProm = getTotalUniqueProviderCredit(player);
 
                 let totalTopUpFromLastWithdrawal = Promise.resolve(0); //default amount
-                let totalConsumptionFromLastWithdrawal = Promise.resolve(0);
+                let totalXIMAFromLastWithdrawal = Promise.resolve(0);
                 let totalRewardFromLastWithdrawal = Promise.resolve(0);
                 let consumptionTimesFromLastWithdrawal = Promise.resolve({
                     belowHundred: 0,
@@ -111,14 +111,14 @@ const dbLargeWithdrawal = {
                 let providerInfoFromLastWithdrawal = Promise.resolve([]);
                 if (lastWithdraw && lastWithdraw.createTime) {
                     totalTopUpFromLastWithdrawal = getTotalTopUpByTime(player, lastWithdraw.createTime, proposal.createTime);
-                    totalConsumptionFromLastWithdrawal = getTotalConsumptionByTime(player, lastWithdraw.createTime, proposal.createTime);
+                    totalXIMAFromLastWithdrawal = getTotalXIMAByTime(player, lastWithdraw.createTime, proposal.createTime);
                     totalRewardFromLastWithdrawal = getTotalRewardByTime(player, lastWithdraw.createTime, proposal.createTime);
                     consumptionTimesFromLastWithdrawal = getConsumptionTimesByTime(player, lastWithdraw.createTime, proposal.createTime);
                     providerInfoFromLastWithdrawal = getProviderInfoByTime(player, lastWithdraw.createTime, proposal.createTime);
 
                 }
                 let totalTopUpFromLastTopUp = Promise.resolve(0);
-                let totalConsumptionFromLastTopUp = Promise.resolve(0);
+                let totalXIMAFromLastTopUp = Promise.resolve(0);
                 let totalRewardFromLastTopUp = Promise.resolve(0);
                 let consumptionTimesFromLastTopUp = Promise.resolve({
                     belowHundred: 0,
@@ -147,7 +147,7 @@ const dbLargeWithdrawal = {
 
                 if (lastTopUp && lastTopUp.createTime) {
                     totalTopUpFromLastTopUp = lastTopUp.amount ? lastTopUp.amount : 0;
-                    totalConsumptionFromLastTopUp = getTotalConsumptionByTime(player, lastTopUp.createTime, proposal.createTime);
+                    totalXIMAFromLastTopUp = getTotalXIMAByTime(player, lastTopUp.createTime, proposal.createTime);
                     totalRewardFromLastTopUp = getTotalRewardByTime(player, lastTopUp.createTime, proposal.createTime);
                     consumptionTimesFromLastTopUp = getConsumptionTimesByTime(player, lastTopUp.createTime, proposal.createTime);
                     providerInfoFromLastTopUp = getProviderInfoByTime(player, lastTopUp.createTime, proposal.createTime);
@@ -155,15 +155,15 @@ const dbLargeWithdrawal = {
 
 
                 return Promise.all([largeWithdrawalSettingProm, todayLargeAmountProm, bankCityProm, gameCreditProm, totalTopUpFromLastWithdrawal
-                    , totalConsumptionFromLastWithdrawal, totalRewardFromLastWithdrawal, consumptionTimesFromLastWithdrawal, providerInfoFromLastWithdrawal
-                    , totalTopUpFromLastTopUp, totalConsumptionFromLastTopUp, totalRewardFromLastTopUp, consumptionTimesFromLastTopUp, providerInfoFromLastTopUp
+                    , totalXIMAFromLastWithdrawal, totalRewardFromLastWithdrawal, consumptionTimesFromLastWithdrawal, providerInfoFromLastWithdrawal
+                    , totalTopUpFromLastTopUp, totalXIMAFromLastTopUp, totalRewardFromLastTopUp, consumptionTimesFromLastTopUp, providerInfoFromLastTopUp
                     , todayTopUpAmt, todayWithdrawalAmt, totalTopUpAmt, totalWithdrawalAmt, currentMonthTopUpAmt, lastMonthTopUpAmt, secondLastMonthTopUpAmt
                     , currentMonthWithdrawAmt, lastMonthWithdrawAmt, secondLastMonthWithdrawAmt, currentMonthConsumptionAmt, lastMonthConsumptionAmt, secondLastMonthConsumptionAmt]);
             }
         ).then(
-            ([largeWithdrawalSetting, todayLargeAmountNo, bankCity, gameCredit, topUpAmtFromLastWithdraw, consumptionAmtFromLastWithdraw
+            ([largeWithdrawalSetting, todayLargeAmountNo, bankCity, gameCredit, topUpAmtFromLastWithdraw, totalXIMAFromLastWithdraw
                  , rewardAmtFromLastWithdraw, consumptionTimesFromLastWithdraw, providerInfoFromLastWithdraw, totalTopUpFromLastTopUp
-                 , totalConsumptionFromLastTopUp, totalRewardFromLastTopUp, consumptionTimesFromLastTopUp, providerInfoFromLastTopUp
+                 , totalXIMAFromLastTopUp, totalRewardFromLastTopUp, consumptionTimesFromLastTopUp, providerInfoFromLastTopUp
                  , todayTopUpAmt, todayWithdrawalAmt, totalTopUpAmt, totalWithdrawalAmt, currentMonthTopUpAmt, lastMonthTopUpAmt, secondLastMonthTopUpAmt
                 , currentMonthWithdrawAmt, lastMonthWithdrawAmt, secondLastMonthWithdrawAmt, currentMonthConsumptionAmt, lastMonthConsumptionAmt, secondLastMonthConsumptionAmt]) => {
                 let bankCityName;
@@ -197,7 +197,7 @@ const dbLargeWithdrawal = {
                     currentCredit: currentCredit,
                     playerBonusAmount: currentCredit + withdrawalAmount - topUpAmtFromLastWithdraw,
                     playerTotalTopUpAmount: topUpAmtFromLastWithdraw,
-                    consumptionReturnAmount: consumptionAmtFromLastWithdraw,
+                    consumptionReturnAmount: totalXIMAFromLastWithdraw,
                     rewardAmount: rewardAmtFromLastWithdraw,
                     consumptionAmountTimes: {
                         belowHundred: consumptionTimesFromLastWithdraw.belowHundred || 0,
@@ -209,7 +209,7 @@ const dbLargeWithdrawal = {
                     gameProviderInfo: providerInfoFromLastWithdraw,
                     lastTopUpPlayerBonusAmount: currentCredit + withdrawalAmount - totalTopUpFromLastTopUp,
                     lastTopUpAmount: totalTopUpFromLastTopUp,
-                    lastTopUpConsumptionReturnAmount: totalConsumptionFromLastTopUp,
+                    lastTopUpConsumptionReturnAmount: totalXIMAFromLastTopUp,
                     lastTopUpRewardAmount: totalRewardFromLastTopUp,
                     lastTopUpConsumptionAmountTimes: {
                         belowHundred: consumptionTimesFromLastTopUp.belowHundred || 0,
@@ -320,7 +320,7 @@ const dbLargeWithdrawal = {
                 }
                 log = logData;
 
-                let proposalProm = dbconfig.collection_proposal.findOne({proposalId: log.proposalId}).lean();
+                let proposalProm = dbconfig.collection_proposal.findOne({proposalId: log.proposalId}).read("secondaryPreferred").lean();
                 let settingProm = dbconfig.collection_largeWithdrawalPartnerSetting.findOne({platform: log.platform}).lean();
 
                 return Promise.all([proposalProm, settingProm]);
@@ -360,7 +360,7 @@ const dbLargeWithdrawal = {
                         $gte: todayTime.startTime,
                         $lt: todayTime.endTime
                     },
-                }).count();
+                }).read("secondaryPreferred").count();
 
                 let bankCityProm = pmsAPI.foundation_getCityList({provinceId: partner.bankAccountProvince});
                 let lastWithdrawalProm = dbconfig.collection_proposal.findOne({
@@ -368,10 +368,10 @@ const dbLargeWithdrawal = {
                     mainType: constProposalType.PLAYER_BONUS,
                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                     createTime: {$lt: proposal.createTime}
-                }).sort({createTime: -1}).lean();
+                }).sort({createTime: -1}).read("secondaryPreferred").lean();
 
-                let downLinePlayerProm = dbconfig.collection_players.find({partner: partner._id}, {_id: 1}).lean();
-                let downLinePartnerProm = dbconfig.collection_partner.find({parent: partner._id}, {_id: 1}).lean();
+                let downLinePlayerProm = dbconfig.collection_players.find({partner: partner._id}, {_id: 1}).read("secondaryPreferred").lean();
+                let downLinePartnerProm = dbconfig.collection_partner.find({parent: partner._id}, {_id: 1}).read("secondaryPreferred").lean();
 
                 return Promise.all([todayLargeAmountProm, bankCityProm, lastWithdrawalProm, downLinePlayerProm, downLinePartnerProm]);
             }
@@ -398,15 +398,15 @@ const dbLargeWithdrawal = {
                     "data.platformId": {$in:[String(log.platform), log.platform]},
                     "data.partnerName": partner.partnerName,
                     createTime: {
-                        $lt: proposal.createTime,
+                        $lte: proposal.createTime,
                     }
                 };
 
                 if (lastWithdrawalDate) {
-                    proposalsQuery.createTime.$gt = lastWithdrawalDate;
+                    proposalsQuery.createTime.$gte = lastWithdrawalDate;
                 }
 
-                return dbconfig.collection_proposal.find(proposalsQuery).populate({path: "type", model: dbconfig.collection_proposalType}).lean();
+                return dbconfig.collection_proposal.find(proposalsQuery).populate({path: "type", model: dbconfig.collection_proposalType}).sort({createTime: -1}).read("secondaryPreferred").lean();
             }
         ).then(
             periodProposals => {
@@ -415,9 +415,9 @@ const dbLargeWithdrawal = {
                     detail.proposalId = prop.proposalId;
                     detail.creatorName = prop.creator && prop.creator.name ? prop.creator.name : "";
                     detail.inputDevice = prop.inputDevice || 0;
-                    detail.proposalMailType = prop.mainType;
+                    detail.proposalMainType = prop.mainType;
                     detail.proposalType = prop.type && prop.type.name ? prop.type.name : "";
-                    detail.statys = prop.status;
+                    detail.status = prop.status;
                     detail.relatedUser = partner.partnerName;
                     detail.amount = prop.data && prop.data.amount ? prop.data.amount : 0;
                     detail.createTime = prop.createTime || "";
@@ -654,14 +654,16 @@ const dbLargeWithdrawal = {
                     processStep = proposalProcessData.steps[proposalProcessData.steps.length - 1];
                 }
 
-                let proms = [];
+                // let proms = [];
+                //
+                // setting.recipient.map(recipient => {
+                //     let prom = sendLargeWithdrawalProposalAuditedInfo(proposal, recipient, log, processStep, bSuccess, isPartner);
+                //     proms.push(prom);
+                // });
+                //
+                // return Promise.all(proms);
 
-                setting.recipient.map(recipient => {
-                    let prom = sendLargeWithdrawalProposalAuditedInfo(proposal, recipient, log, processStep, bSuccess, isPartner);
-                    proms.push(prom);
-                });
-
-                return Promise.all(proms);
+                return bulkSendProposalAuditedInfo(proposal, setting.recipient, log, processStep, bSuccess, isPartner);
             }
         );
     },
@@ -885,7 +887,7 @@ function sendPartnerLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawa
 function sendLargeWithdrawalProposalAuditedInfo(proposalData, adminObjId, log, proposalProcessStep, bSuccess, isPartner) {
     let admin, html;
 
-    let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).populate({path: "departments", model: dbconfig.collection_department}).lean();
+    let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
     let auditorProm = dbconfig.collection_admin.findOne({_id: proposalProcessStep.operator}).lean();
     let auditorDepartmentProm = dbconfig.collection_department.findOne({_id: proposalProcessStep.department}).lean();
 
@@ -896,11 +898,45 @@ function sendLargeWithdrawalProposalAuditedInfo(proposalData, adminObjId, log, p
             }
             admin = adminData;
 
-            html = generateLargeWithdrawalAuditedInfoEmail(proposalData, admin, proposalProcessStep, auditorData, auditorDepartmentData, bSuccess);
+            html = generateLargeWithdrawalAuditedInfoEmail(proposalData, proposalProcessStep, auditorData, auditorDepartmentData, bSuccess);
 
             let emailConfig = {
                 sender: "no-reply@snsoft.my", // company email?
                 recipient: admin.email, // admin email
+                subject: getLogDetailEmailSubject(log, isPartner), // title
+                body: html, // html content
+                isHTML: true
+            };
+
+            return emailer.sendEmail(emailConfig);
+        }
+    );
+}
+
+function bulkSendProposalAuditedInfo (proposalData, adminObjIds, log, proposalProcessStep, bSuccess, isPartner) {
+    let admins, html, adminEmails;
+    let adminsProm = dbconfig.collection_admin.find({_id: {$in: adminObjIds}}).lean();
+    let auditorProm = dbconfig.collection_admin.findOne({_id: proposalProcessStep.operator}).lean();
+    let auditorDepartmentProm = dbconfig.collection_department.findOne({_id: proposalProcessStep.department}).lean();
+
+    return Promise.all([adminsProm, auditorProm, auditorDepartmentProm]).then(
+        ([adminsData, auditorData, auditorDepartmentData]) => {
+            if (!adminsData) {
+                return Promise.reject({message: "Admin not found."});
+            }
+            admins = adminsData;
+
+            adminEmails = admins.map(admin => {
+                return admin.email;
+            });
+
+            let adminEmailsStr = adminEmails.join();
+
+            html = generateLargeWithdrawalAuditedInfoEmail(proposalData, proposalProcessStep, auditorData, auditorDepartmentData, bSuccess);
+
+            let emailConfig = {
+                sender: "no-reply@snsoft.my", // company email?
+                recipient: adminEmailsStr, // admin email
                 subject: getLogDetailEmailSubject(log, isPartner), // title
                 body: html, // html content
                 isHTML: true
@@ -970,6 +1006,13 @@ function generateLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
         let num = dbutility.noRoundTwoDecimalPlaces(log.currentCredit);
         html += `<tr>
             <td style="border: solid 1px black; padding: 3px">账户余额</td>
+            <td style="border: solid 1px black; padding: 3px">${num}</td>
+        </tr>`;
+    }
+    if (setting.showProposalId) {
+        let num = log.proposalId;
+        html += `<tr>
+            <td style="border: solid 1px black; padding: 3px">提款提案号</td>
             <td style="border: solid 1px black; padding: 3px">${num}</td>
         </tr>`;
     }
@@ -1463,6 +1506,13 @@ function generatePartnerLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
             <td style="border: solid 1px black; padding: 3px">${num}</td>
         </tr>`;
     }
+    if (setting.showProposalId) {
+        let num = log.proposalId;
+        html += `<tr>
+            <td style="border: solid 1px black; padding: 3px">提款提案号</td>
+            <td style="border: solid 1px black; padding: 3px">${num}</td>
+        </tr>`;
+    }
 
     html += `</table>`;
 
@@ -1730,11 +1780,9 @@ function appendAuditLinks (html, auditLinks) {
 function getLogDetailEmailSubject (log, isPartner) {
     let withdrawalDate = dbutility.getLocalTimeString(log.withdrawalTime , "YYYY/MM/DD");
     let withdrawalAmount = dbutility.noRoundTwoDecimalPlaces(log.amount);
-    let strTitle = "大额提款";
-    if (isPartner) {
-        strTitle = "代理大额提款"
-    }
-    let str = `${strTitle}（${log.todayLargeAmountNo}）：${withdrawalDate}--${log.playerName}--${withdrawalAmount}- ${log.emailNameExtension}`;
+    let name = isPartner ? log.partnerName : log.playerName;
+    let strTitle = isPartner ? "代理大额提款" : "大额提款";
+    let str = `${strTitle}（${log.todayLargeAmountNo}）：${withdrawalDate}--${name}--${withdrawalAmount}- ${log.emailNameExtension}`;
 
     return str;
 }
@@ -1780,7 +1828,7 @@ function createProposalProcessStep (proposal, adminObjId, status, memo) {
     );
 }
 
-function generateLargeWithdrawalAuditedInfoEmail (proposalData, admin, proposalProcessStep, auditor, auditorDepartment, bSuccess) {
+function generateLargeWithdrawalAuditedInfoEmail (proposalData, proposalProcessStep, auditor, auditorDepartment, bSuccess) {
     let lockStatus = proposalData.isLocked && proposalData.isLocked.adminName || "未锁定";
     let status, cancelTime, decisionColor;
     if (proposalData.status == constProposalStatus.PENDING) {
@@ -2048,6 +2096,44 @@ function getTotalRewardByTime (playerObj, startTime, endTime) {
             }
             if (proposalTypeData) {
                 rewardQuery.type = {$ne: proposalTypeData._id}
+            }
+            return dbconfig.collection_proposal.aggregate([{
+                $match: rewardQuery
+            }, {
+                $group: {
+                    _id: null,
+                    amount: {$sum: "$data.rewardAmount"}
+                }
+            }]).read("secondaryPreferred").then(
+                rewardData => {
+                    let rewardAmount = 0;
+                    if (rewardData && rewardData[0] && rewardData[0].amount) {
+                        rewardAmount = rewardData[0].amount;
+                    }
+                    return rewardAmount;
+                }
+            );
+        }
+    )
+}
+
+function getTotalXIMAByTime (playerObj, startTime, endTime) {
+    return dbconfig.collection_proposalType.findOne({
+        platformId: playerObj.platform,
+        name: constProposalType.PLAYER_CONSUMPTION_RETURN
+    }).lean().then(
+        proposalTypeData => {
+            let rewardQuery = {
+                'data.playerObjId': {$in: [ObjectId(playerObj._id), String(playerObj._id)]},
+                mainType: "Reward",
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+                createTime: {
+                    $gte: startTime,
+                    $lt: endTime
+                }
+            }
+            if (proposalTypeData) {
+                rewardQuery.type = proposalTypeData._id
             }
             return dbconfig.collection_proposal.aggregate([{
                 $match: rewardQuery

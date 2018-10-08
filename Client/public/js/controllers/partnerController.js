@@ -1064,13 +1064,24 @@ define(['js/app'], function (myApp) {
                                                     if (group.isCustomPlatformFeeRate == true) {
                                                         vm.partnerCommVar.platformFeeTab = idxgroup;
                                                     }
+                                                    group.amount = $noRoundTwoDecimalPlaces(group.amount);
                                                 }
                                             );
+                                        }
+
+                                        // Round to 2 dp
+                                        for (let key in partner) {
+                                            if (partner.hasOwnProperty(key) && typeof partner[key] === 'number') {
+                                                partner[key] = $noRoundTwoDecimalPlaces(partner[key]);
+                                            }
+
+                                            if (key === 'pastNettCommission' && partner.hasOwnProperty(key) && partner[key].length) {
+                                                partner[key] = partner[key].map(val => $noRoundTwoDecimalPlaces(val));
+                                            }
                                         }
                                     }
                                 }
                             );
-                            console.log('partnerCommissionLog', vm.partnerCommissionLog);
                             $('#modalPartnerCommPreview').modal();
                         })
                     }

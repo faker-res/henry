@@ -1030,7 +1030,7 @@ let dbPlayerReward = {
 
             // let today = dbUtility.getTodaySGTime();
             let currentDay = dbUtility.getTargetSGTime(startCheckTime);
-            
+
             while (currentDay.startTime <= today.startTime && player) {
                 checkRequirementMeetProms.push(isDayMeetRequirement(event, player, currentDay, requiredBet, requiredDeposit, requireBoth, isCheckToday));
                 currentDay = dbUtility.getTargetSGTime(currentDay.endTime);
@@ -1217,7 +1217,7 @@ let dbPlayerReward = {
                                 break;
                             }
                         }
-                
+
                         if (event.condition.isDynamicRewardAmount){
                             let currentParamNo = Math.min(currentStreak-1, numberOfParam - 1);
                             let currentParam = paramOfLevel[currentParamNo];
@@ -1231,7 +1231,7 @@ let dbPlayerReward = {
                                    result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, forbidWithdrawIfBalanceAfterUnlock, spendingAmount);
                             }
                         }
-                        else{                    
+                        else{
                            let requestedTimes = selectedParam.spendingTimes || 1;
                            if (streakFromPastApplied || currentStreak >= consecutiveNumber) {
                                let bonus = selectedParam.rewardAmount;
@@ -1361,7 +1361,7 @@ let dbPlayerReward = {
             let playerObjId = ObjectId(playerData._id);
             let startTime = new Date(targetDate.startTime);
             let endTime = new Date(targetDate.endTime);
-        
+
             let topUpSumQuery = {
                 playerId: playerObjId,
                 createTime: {$gte: startTime, $lt: endTime}
@@ -1440,7 +1440,7 @@ let dbPlayerReward = {
                         break;
                     }
                 }
-                
+
                 if (totalTopUpAmount >= requiredTopUpAmount) {
                     requiredTopUpMet = true;
                 }
@@ -2579,7 +2579,7 @@ let dbPlayerReward = {
         let query = {
             platformObjId: searchQuery.platformObjId
         };
-        
+
         return expirePromoCode().then(() => {return expirePromoCode(true)}).then(() => {
             return dbConfig.collection_players.findOne({
                 platform: searchQuery.platformObjId,
@@ -3578,7 +3578,7 @@ let dbPlayerReward = {
             }
         ).then(
             topUpProposal => {
-                
+
                 if (isType2Promo || (topUpProposal && topUpProposal.length > 0)) {
                     if (isType2Promo) {
                         return true;
@@ -5807,11 +5807,16 @@ let dbPlayerReward = {
                         useTopUpAmount = 0;
                         useConsumptionAmount = 0;
                         //periodProps.reduce((sum, value) => sum + value, 1);
-
+                        if(topUpRecords.length > 0){
+                            topUpRecords.sort(function(a, b){
+                                return a.amount - b.amount;
+                            })
+                        }
                         if (selectedRewardParam.numberParticipation && applyRewardTimes < selectedRewardParam.numberParticipation) {
                             let meetTopUpCondition = false, meetConsumptionCondition = false;
                             if (topUpAmount >= (selectedRewardParam.requiredTopUpAmount? selectedRewardParam.requiredTopUpAmount: 0)) {
                                 let useTopupRecordAmount = 0;
+
                                 //For set topup bDirty Use
                                 topUpRecords.forEach((topUpRecord) => {
                                     if (useTopupRecordAmount < selectedRewardParam.requiredTopUpAmount) {
