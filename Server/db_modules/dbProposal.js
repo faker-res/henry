@@ -3488,8 +3488,8 @@ var proposal = {
 
         let recordSizeQuery = JSON.parse(JSON.stringify(consumpQuery));
         recordSizeQuery["betDetails.separatedBetType"] = {$in: reqData.betType};
-        let recordSize = dbconfig.collection_playerConsumptionRecord.distinct("playerId", recordSizeQuery)
-        let recordData = dbconfig.collection_playerConsumptionRecord.aggregate([
+        let recordSizeProm = dbconfig.collection_playerConsumptionRecord.distinct("playerId", recordSizeQuery)
+        let recordDataProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {$match: consumpQuery},
             {
                 $project: {
@@ -3498,7 +3498,6 @@ var proposal = {
                     bonusAmount: 1,
                     amount: 1,
                     betDetails: 1,
-                    totalBetCount: {$size:"$betDetails"}
                 }
             },
             {
@@ -3512,8 +3511,6 @@ var proposal = {
                     _id: {"_id":"$_id","playerId":"$playerId"},
                     selectedBetTypeCount: {$sum: 1},
                     selectedBetTypeAmt: {$sum: "$betDetails.separatedBetAmount"},
-                    totalBetCount: {$first: "$totalBetCount"},
-                    totalBetAmt: {$first: "$amount"},
                     bonusAmount: {$first: "$bonusAmount"},
                 }
             },
@@ -3522,8 +3519,6 @@ var proposal = {
                     _id: "$_id.playerId",
                     selectedBetTypeCount: {$sum: "$selectedBetTypeCount"},
                     selectedBetTypeAmt: {$sum: "$selectedBetTypeAmt"},
-                    totalBetCount: {$sum: "$totalBetCount"},
-                    totalBetAmt: {$sum: "$totalBetAmt"},
                     bonusAmount: {$sum: "$bonusAmount"},
                 }
             },
@@ -3532,8 +3527,6 @@ var proposal = {
                     _id: 1,
                     selectedBetTypeCount: 1,
                     selectedBetTypeAmt: 1,
-                    totalBetCount: 1,
-                    totalBetAmt: 1,
                     bonusAmount: 1,
                     betCountPercent: {$divide:["$selectedBetTypeCount","$totalBetCount"]},
                     betAmtPercent: {$divide:["$selectedBetTypeAmt","$totalBetAmt"]}
@@ -3544,15 +3537,48 @@ var proposal = {
             { $limit : count}
         ]).read("secondaryPreferred").then(
             consumptionData => {
-                return dbconfig.collection_players.populate(consumptionData, {
+                let nameProm = dbconfig.collection_players.populate(consumptionData, {
                     path: '_id',
                     model: dbconfig.collection_players,
                     select: "name"
-                })
-            }
-        )
+                });
 
-        let recordSummary = dbconfig.collection_playerConsumptionRecord.aggregate([
+                let totalBetProms = [];
+
+                consumptionData.map(consumption => {
+                    let totalBetQuery = {$and: [{playerId: consumption._id}, consumpQuery]};
+
+                    let totalBetProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+                        {$match: totalBetQuery},
+                        {
+                            $group: {
+                                _id: null,
+                                totalBetCount: {$sum: 1},
+                                totalBetAmt: {$sum: "$validAmount"}
+                            }
+                        }
+                    ]).read("secondaryPreferred");
+                    totalBetProms.push(totalBetProm);
+                });
+
+                return Promise.all([nameProm, Promise.all(totalBetProms)]);
+            }
+        ).then(
+            ([namedConsumptionData, totalBetData]) => {
+                for(let i = 0; i < namedConsumptionData.length; i++) {
+                    if (!totalBetData[i]) {
+                        break;
+                    }
+
+                    namedConsumptionData[i].totalBetCount = totalBetData[i].totalBetCount;
+                    namedConsumptionData[i].totalBetAmt = totalBetData[i].totalBetAmt;
+                }
+
+                return namedConsumptionData;
+            }
+        );
+
+        let recordSummaryPromA = dbconfig.collection_playerConsumptionRecord.aggregate([
             {
                 $match: consumpQuery
             },
@@ -3563,7 +3589,6 @@ var proposal = {
                     bonusAmount: 1,
                     amount: 1,
                     betDetails: 1,
-                    totalBetCount: {$size:"$betDetails"}
                 }
             },
             {
@@ -3577,8 +3602,6 @@ var proposal = {
                     _id: {"_id":"$_id","playerId":"$playerId"},
                     selectedBetTypeCount: {$sum: 1},
                     selectedBetTypeAmt: {$sum: "$betDetails.separatedBetAmount"},
-                    totalBetCount: {$first: "$totalBetCount"},
-                    totalBetAmt: {$first: "$amount"},
                     bonusAmount: {$first: "$bonusAmount"},
                 }
             },
@@ -3587,8 +3610,6 @@ var proposal = {
                     _id: null,
                     selectedBetTypeCount: {$sum: "$selectedBetTypeCount"},
                     selectedBetTypeAmt: {$sum: "$selectedBetTypeAmt"},
-                    totalBetCount: {$sum: "$totalBetCount"},
-                    totalBetAmt: {$sum: "$totalBetAmt"},
                     bonusAmount: {$sum: "$bonusAmount"},
                 }
             },
@@ -3596,8 +3617,6 @@ var proposal = {
                 $project: {
                     selectedBetTypeCount: 1,
                     selectedBetTypeAmt: 1,
-                    totalBetCount: 1,
-                    totalBetAmt: 1,
                     bonusAmount: 1,
                     betCountPercent: {$divide:["$selectedBetTypeCount","$totalBetCount"]},
                     betAmtPercent: {$divide:["$selectedBetTypeAmt","$totalBetAmt"]}
@@ -3605,17 +3624,48 @@ var proposal = {
             },
         ]).read("secondaryPreferred");
 
-        return Promise.all([recordSize, recordData, recordSummary]).then(
-            data => {
-                if (!(data && data[1] && data[2])) {
+        let recordSummaryPromB = dbconfig.collection_playerConsumptionRecord.aggregate([
+            {
+                $match: consumpQuery
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalBetCount: {$sum: 1},
+                    totalBetAmt: {$sum: "$validAmount"}
+                }
+            }
+        ]).read("secondaryPreferred");
+
+        let recordSummaryProm = Promise.all([recordSummaryPromA, recordSummaryPromB]).then(
+            ([dataA, dataB]) => {
+                if (dataA[0] && dataB[0]) {
+                    dataA[0].totalBetCount = dataB[0].totalBetCount;
+                    dataA[0].totalBetAmt = dataB[0].totalBetAmt;
+                }
+
+                return dataA;
+            }
+        );
+
+        let recordSize, record, recordSummary;
+
+        return Promise.all([recordSizeProm, recordDataProm, recordSummaryProm]).then(
+            ([recordSizeData, recordData, recordSummaryData]) => {
+
+                if (!recordSizeData || !recordData) {
                     return Promise.reject({name: "DataError", message: "Error in finding consumption record"});
                 }
 
+                recordSize = recordSizeData || [];
+                record = recordData || [];
+                recordSummary = recordSummaryData || [];
+
                 let res = {
-                    size: data[0].length || 0,
-                    data: data[1],
-                    summary: data[2][0] || {}
-                }
+                    size: recordSize.length || 0,
+                    data: record,
+                    summary: recordSummary[0] || {}
+                };
                 return res;
             }
         )
