@@ -238,7 +238,7 @@ function checkPartnerAutoBonus (proposal, platformObj) {
             if (canApprove) {
                 sendToApprovePartner(proposal._id);
             } else {
-                sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null);
+                sendToAudit(proposal._id, null, proposal.createTime, checkMsg, checkMsgChinese, null);
             }
         }
     )
@@ -547,9 +547,9 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
             // Check consumption approved or not
             if (isApprove && canApprove) {
-                sendToApprove(proposal._id);
+                sendToApprove(proposal._id, playerData);
             } else {
-                sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
+                sendToAudit(proposal._id, playerData, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese);
             }
         }
     )
@@ -1043,11 +1043,11 @@ function checkProposalConsumption(proposal, platformObj) {
                     // Check consumption approved or not
                     if (isApprove || isTypeEApproval) {
                         if (!canApprove) {
-                            sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
+                            sendToAudit(proposal._id, null, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
                         } else {
                             let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
                             let approveRemarkChinese = "成功：流水 " + validConsumptionAmount + "，所需流水 " + spendingAmount;
-                            sendToApprove(proposal._id, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
+                            sendToApprove(proposal._id, null, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
                         }
                     } else {
                         // Consumption not reached; Throw back to loop pool or deny this proposal
@@ -1086,10 +1086,10 @@ function checkProposalConsumption(proposal, platformObj) {
                             // Check if player is VIP - Passed
                             if (proposal.data.proposalPlayerLevelValue == 0) {
                                 //sendToReject(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit", "失败：非VIP：超出回圈次数", checkMsg, abnormalMessage, abnormalMessageChinese);
-                                sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
+                                sendToAudit(proposal._id, null, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
                             } else {
                                 //sendToReject(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit", "失败：VIP：超出回圈次数", checkMsg, abnormalMessage, abnormalMessageChinese);
-                                sendToAudit(proposal._id, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
+                                sendToAudit(proposal._id, null, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
                             }
                         }
 
@@ -1144,7 +1144,7 @@ function sendToApprovePartner (proposalObjId, createTime, remark, remarkChinese)
     )
 };
 
-function sendToApprove(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg) {
+function sendToApprove(proposalObjId, playerData, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg) {
     processRemark = processRemark ? processRemark : "";
     let proposalObj;
 
@@ -1156,22 +1156,33 @@ function sendToApprove(proposalObjId, createTime, remark, remarkChinese, process
             if (proposalData) {
                 return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, true, proposalData, true).then(
                     res => {
+                        let dataToUpdate = {
+                            noSteps: true,
+                            process: null,
+                            status: constProposalStatus.APPROVED,
+                            'data.autoAuditTime': Date.now(),
+                            'data.autoAuditRemark': remark,
+                            'data.autoAuditRemarkChinese': remarkChinese,
+                            'data.autoAuditCheckMsg': processRemark,
+                            'data.detail': abnormalMessage ? abnormalMessage : "",
+                            'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : "",
+                            'data.autoAuditRepeatMsg': repeatMsg,
+                            'data.autoAuditRepeatMsgChinese': repeatMsgChinese,
+                            'data.devCheckMsg': devCheckMsg
+                        }
+
+                        if(playerData && proposalData && proposalData.type && proposalData.type.name == "PlayerBonus"){
+                            if(playerData.bankAccount){
+                                dataToUpdate["data.bankAccountWhenApprove"] = dbUtility.encodeBankAcc(playerData.bankAccount);
+                            }
+                            if(playerData.bankName){
+                                dataToUpdate["data.bankNameWhenApprove"] = playerData.bankName;
+                            }
+                        }
+
                         return dbconfig.collection_proposal.findOneAndUpdate(
                             {_id: proposalData._id, createTime: proposalData.createTime},
-                            {
-                                noSteps: true,
-                                process: null,
-                                status: constProposalStatus.APPROVED,
-                                'data.autoAuditTime': Date.now(),
-                                'data.autoAuditRemark': remark,
-                                'data.autoAuditRemarkChinese': remarkChinese,
-                                'data.autoAuditCheckMsg': processRemark,
-                                'data.detail': abnormalMessage ? abnormalMessage : "",
-                                'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : "",
-                                'data.autoAuditRepeatMsg': repeatMsg,
-                                'data.autoAuditRepeatMsgChinese': repeatMsgChinese,
-                                'data.devCheckMsg': devCheckMsg
-                            },
+                            dataToUpdate,
                             {new: true}
                         );
                     }
@@ -1265,7 +1276,7 @@ function sendToReject(proposalObjId, createTime, remark, remarkChinese, processR
     );
 }
 
-function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg) {
+function sendToAudit(proposalObjId, playerData, createTime, remark, remarkChinese, processRemark, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg) {
     processRemark = processRemark ? processRemark : "";
 
     dbconfig.collection_proposal.findOne({_id: proposalObjId}).populate({
@@ -1275,10 +1286,7 @@ function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRe
         proposalData => {
             if (proposalData) {
                 if (!proposalData.noSteps) {
-                    dbconfig.collection_proposal.findOneAndUpdate({
-                        _id: proposalObjId,
-                        createTime: createTime
-                    }, {
+                    let dataToUpdate = {
                         status: constProposalStatus.PENDING,
                         'data.autoAuditTime': Date.now(),
                         'data.autoAuditRemark': remark,
@@ -1289,24 +1297,51 @@ function sendToAudit(proposalObjId, createTime, remark, remarkChinese, processRe
                         'data.autoAuditRepeatMsg': repeatMsg,
                         'data.autoAuditRepeatMsgChinese': repeatMsgChinese,
                         'data.devCheckMsg': devCheckMsg
-                    }).then();
+                    };
+
+                    if(playerData && proposalData && proposalData.type && proposalData.type.name == "PlayerBonus"){
+                        if(playerData.bankAccount){
+                            dataToUpdate["data.bankAccountWhenApprove"] = dbUtility.encodeBankAcc(playerData.bankAccount);
+                        }
+
+                        if(playerData.bankName){
+                            dataToUpdate["data.bankNameWhenApprove"] = playerData.bankName;
+                        }
+                    }
+
+                    dbconfig.collection_proposal.findOneAndUpdate({
+                        _id: proposalObjId,
+                        createTime: createTime
+                    }, dataToUpdate).then();
                 }
                 else {
                     return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true).then(
                         res => {
+                            let dataToUpdate = {
+                                noSteps: true,
+                                process: null,
+                                status: constProposalStatus.FAIL,
+                                'data.autoAuditTime': Date.now(),
+                                'data.autoAuditRemark': remark,
+                                'data.autoAuditRemarkChinese': remarkChinese,
+                                'data.autoAuditCheckMsg': processRemark,
+                                'data.detail': abnormalMessage ? abnormalMessage : "",
+                                'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : ""
+                            };
+
+                            if(playerData && proposalData && proposalData.type && proposalData.type.name == "PlayerBonus"){
+                                if(playerData.bankAccount){
+                                    dataToUpdate["data.bankAccountWhenApprove"] = dbUtility.encodeBankAcc(playerData.bankAccount);
+                                }
+
+                                if(playerData.bankName){
+                                    dataToUpdate["data.bankNameWhenApprove"] = playerData.bankName;
+                                }
+                            }
+
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalData._id, createTime: proposalData.createTime},
-                                {
-                                    noSteps: true,
-                                    process: null,
-                                    status: constProposalStatus.FAIL,
-                                    'data.autoAuditTime': Date.now(),
-                                    'data.autoAuditRemark': remark,
-                                    'data.autoAuditRemarkChinese': remarkChinese,
-                                    'data.autoAuditCheckMsg': processRemark,
-                                    'data.detail': abnormalMessage ? abnormalMessage : "",
-                                    'data.detailChinese': abnormalMessageChinese ? abnormalMessageChinese : ""
-                                },
+                                dataToUpdate,
                                 {new: true}
                             );
                         })
