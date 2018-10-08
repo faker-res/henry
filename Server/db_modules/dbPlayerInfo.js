@@ -3725,7 +3725,7 @@ let dbPlayerInfo = {
             platform = platformData;
 
             return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: player._id}).then(
-                rtgData => {             
+                rtgData => {
                     if (rtgData && rtgData.length) {
                         let calCreditArr = [];
 
@@ -13523,13 +13523,12 @@ let dbPlayerInfo = {
                     let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
                     let pendingCount = 0;
-                    if (playerInfo.platform && playerInfo.platform.useLockedCredit) {
-                        pendingCount = dbRewardTask.getPendingRewardTaskCount({
-                            mainType: 'Reward',
-                            "data.playerObjId": playerInfo._id,
-                            status: 'Pending'
-                        }, rewardTaskWithProposalList);
-                    }
+                    
+                    pendingCount = dbRewardTask.getPendingRewardTaskCount({
+                        mainType: 'Reward',
+                        "data.playerObjId": playerInfo._id,
+                        status: 'Pending'
+                    }, rewardTaskWithProposalList);
 
                     let rewardData = {};
 
@@ -16079,37 +16078,31 @@ let dbPlayerInfo = {
         // convert UTC 16h to GMT 24h
         if (parseInt(timezoneOffset) > 0) {
             timezoneAdjust = {
-                year: {$year: {$subtract: ['$settleTime', positiveTimeOffset]}},
-                month: {$month: {$subtract: ['$settleTime', positiveTimeOffset]}},
-                day: {$dayOfMonth: {$subtract: ['$settleTime', positiveTimeOffset]}},
+                year: {$year: {$subtract: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
+                month: {$month: {$subtract: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
             }
         } else {
             timezoneAdjust = {
-                year: {$year: {$add: ['$settleTime', positiveTimeOffset]}},
-                month: {$month: {$add: ['$settleTime', positiveTimeOffset]}},
-                day: {$dayOfMonth: {$add: ['$settleTime', positiveTimeOffset]}},
+                year: {$year: {$add: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
+                month: {$month: {$add: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
             }
         }
         if (parseInt(timezoneOffset) > 0) {
             timezoneAdjust2 = {
-                year: {$year: {$subtract: ['$createTime', positiveTimeOffset]}},
-                month: {$month: {$subtract: ['$createTime', positiveTimeOffset]}},
-                day: {$dayOfMonth: {$subtract: ['$createTime', positiveTimeOffset]}},
+                year: {$year: {$subtract: [ {$ifNull: ['$createTime', 0]}, positiveTimeOffset ]}},
+                month: {$month: {$subtract: [ {$ifNull: ['$createTime', 0]}, positiveTimeOffset ]}},
             }
         } else {
             timezoneAdjust2 = {
-                year: {$year: {$add: ['$createTime', positiveTimeOffset]}},
-                month: {$month: {$add: ['$createTime', positiveTimeOffset]}},
-                day: {$dayOfMonth: {$add: ['$createTime', positiveTimeOffset]}},
+                year: {$year: {$add: [ {$ifNull: ['$createTime', 0]}, positiveTimeOffset ]}},
+                month: {$month: {$add: [ {$ifNull: ['$createTime', 0]}, positiveTimeOffset ]}},
             }
         }
         console.log('positiveTimeOffset===', positiveTimeOffset);
         console.log('timezoneAdjust.year===', timezoneAdjust.year);
         console.log('timezoneAdjust.month===', timezoneAdjust.month);
-        console.log('timezoneAdjust.day===', timezoneAdjust.day);
         console.log('timezoneAdjust2.year===', timezoneAdjust2.year);
         console.log('timezoneAdjust2.month===', timezoneAdjust2.month);
-        console.log('timezoneAdjust2.day===', timezoneAdjust2.day);
 
         consumptionProm.push(dbconfig.collection_playerConsumptionRecord.aggregate([
             {
@@ -18299,7 +18292,7 @@ let dbPlayerInfo = {
 
                     // sorting to reduce chances of getting joint-list
                     platformData.gameProviders.sort(sortRankingRecord);
-                    
+
                     for (let i = 0; i < platformData.gameProviders.length; i++) {
                         gameProviderIdList.push(platformData.gameProviders[i].providerId);
                         // check each of the game provider for the sameLineProvider

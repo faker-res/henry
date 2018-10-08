@@ -4181,13 +4181,11 @@ function checkApplyTopUpReturn(player, topUpReturnCode, userAgentStr, inputData,
                     ];
 
                     let pendingCount = Promise.resolve(0);
-                    if (player.platform && player.platform.useLockedCredit) {
-                        pendingCount = dbRewardTask.getPendingRewardTaskCount({
-                            mainType: 'Reward',
-                            "data.playerObjId": player._id,
-                            status: 'Pending'
-                        }, rewardTaskWithProposalList);
-                    }
+                    pendingCount = dbRewardTask.getPendingRewardTaskCount({
+                        mainType: 'Reward',
+                        "data.playerObjId": player._id,
+                        status: 'Pending'
+                    }, rewardTaskWithProposalList);
 
                     let rewardData = {};
 
