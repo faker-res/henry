@@ -12177,7 +12177,6 @@ let dbPlayerInfo = {
         // merchantUse - 1: merchant, 2: bankcard
         // clientType: 1: browser, 2: mobileApp
         var playerData = null;
-        let paymentData = null;
         return dbconfig.collection_players.findOne({playerId: playerId}).populate(
             {path: "platform", model: dbconfig.collection_platform}
         ).populate(
@@ -12217,19 +12216,7 @@ let dbPlayerInfo = {
                 }
             }
         ).then(
-            paymentType => {
-                paymentData = paymentType;
-                if(playerData && playerData.merchantGroup && playerData.merchantGroup.merchantNames) {
-                    return dbconfig.collection_platformMerchantList.find({
-                        name: playerData.merchantGroup.merchantNames,
-                        platformId: playerData.platform.platformId
-                    }).lean();
-                } else {
-                    return null;
-                }
-            }
-        ).then(
-            localMerchantData => {
+            paymentData => {
                 if (paymentData) {
                     var resData = [];
                     // if (merchantUse == 1 && (paymentData.merchants || paymentData.topupTypes)) {
@@ -12270,14 +12257,11 @@ let dbPlayerInfo = {
                                             });
                                             if (bValidType && playerData.permission.topupOnline && paymentData.merchants[i].name == merchant && paymentData.merchants[i].status == "ENABLED" && (paymentData.merchants[i].targetDevices == clientType || paymentData.merchants[i].targetDevices == 3)) {
                                                 if (!playerData.forbidTopUpType || playerData.forbidTopUpType.findIndex(f => f == paymentData.merchants[i].topupType) == -1) {
-                                                    let serviceCharge = localMerchantData ? localMerchantData.find(data => data.name == paymentData.merchants[i].name) : null;
-                                                    serviceCharge = serviceCharge && serviceCharge.customizeRate ? serviceCharge.customizeRate : 0;
                                                     resData.push({
                                                         type: paymentData.merchants[i].topupType,
                                                         status: status,
                                                         maxDepositAmount: paymentData.merchants[i].permerchantLimits,
-                                                        minDepositAmount: paymentData.merchants[i].permerchantminLimits,
-                                                        serviceCharge: serviceCharge
+                                                        minDepositAmount: paymentData.merchants[i].permerchantminLimits
                                                     });
                                                 }
                                             }
