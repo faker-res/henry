@@ -10957,7 +10957,9 @@ let dbPlayerInfo = {
                                                 creditCharge: platform.withdrawalFeeNoDecimal ? creditChargeWithoutDecimal : creditCharge,
                                                 oriCreditCharge: creditCharge,
                                                 ximaWithdrawUsed: ximaWithdrawUsed,
-                                                isAutoApproval: player.platform.enableAutoApplyBonus
+                                                isAutoApproval: player.platform.enableAutoApplyBonus,
+                                                bankAccountWhenSubmit: player && player.bankAccount ? dbUtil.encodeBankAcc(player.bankAccount) : "",
+                                                bankNameWhenSubmit: player && player.bankName ? player.bankName : ""
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                             };
                                             if (!player.permission.applyBonus && player.platform.playerForbidApplyBonusNeedCsApproval) {
