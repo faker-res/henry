@@ -3584,7 +3584,7 @@ var proposal = {
         ).then(
             ([namedConsumptionData, totalBetData]) => {
                 for(let i = 0; i < namedConsumptionData.length; i++) {
-                    if (!totalBetData[i] || totalBetData[i][0]) {
+                    if (!totalBetData[i] || !totalBetData[i][0]) {
                         break;
                     }
 
