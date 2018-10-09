@@ -21795,6 +21795,9 @@ define(['js/app'], function (myApp) {
                     case 'largeWithdrawalSetting':
                         vm.getLargeWithdrawalSetting();
                         break;
+                    case 'platformFeeEstimateSetting':
+                        vm.getPlatformFeeEstimateSetting();
+                        break;
                 }
             };
 
@@ -27113,6 +27116,29 @@ define(['js/app'], function (myApp) {
                 vm.financialSettlementConfig.financialPointsDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.financialPointsDisableWithdrawal? "1": "0";
             }
 
+            vm.getPlatformFeeEstimateSetting = function () {
+                vm.platformFeeEstimateSetting = vm.platformFeeEstimateSetting || {};
+                vm.platformFeeEstimate = vm.platformFeeEstimate || {};
+
+                socketService.$socket($scope.AppSocket, 'getPlatformFeeEstimateSetting', {platform: vm.selectedPlatform.id}, function (data) {
+                    console.log('getPlatformFeeEstimateSetting');
+                    $scope.$evalAsync(() => {
+                        vm.platformFeeEstimateSetting = {};
+                        vm.platformFeeEstimate = {};
+                        if (data && data.data) {
+                            vm.platformFeeEstimateSetting = data.data;
+
+                            if (vm.platformFeeEstimateSetting.platformFee && vm.platformFeeEstimateSetting.platformFee.length) {
+                                vm.platformFeeEstimateSetting.platformFee.forEach(provider => {
+                                    vm.platformFeeEstimate[String(provider.gameProvider)] = provider.feeRate * 100; // * 100 to show percentage
+                                })
+                            }
+
+                        }
+                    })
+                })
+            };
+
             vm.getLargeWithdrawalSetting = function () {
                 vm.largeWithdrawalSetting = vm.largeWithdrawalSetting || {};
                 vm.largeWithdrawalPartnerSetting = vm.largeWithdrawalPartnerSetting || {};
@@ -27662,6 +27688,9 @@ define(['js/app'], function (myApp) {
                     case 'largeWithdrawalSetting':
                         updateLargeWithdrawalSetting(vm.largeWithdrawalSetting);
                         updateLargeWithdrawalPartnerSetting(vm.largeWithdrawalPartnerSetting);
+                        break;
+                    case 'platformFeeEstimateSetting':
+                        updatePlatformFeeEstimateSetting(vm.platformFeeEstimate);
                         break;
 
                 }
@@ -28496,6 +28525,27 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'saveBlacklistIpConfig', sendData, function (data) {
                     loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updatePlatformFeeEstimateSetting(srcData) {
+                let platformFee = [];
+                if (vm.platformFeeEstimate) {
+                    for (let key in vm.platformFeeEstimate) {
+                        platformFee.push({
+                            gameProvider: key,
+                            feeRate: (vm.platformFeeEstimate[key] || 0) / 100
+                        })
+                    }
+                }
+                let sendData = {
+                    query: {platform: vm.selectedPlatform.id},
+                    updateData: {
+                        platformFee: platformFee
+                    }
+                }
+                socketService.$socket($scope.AppSocket, 'updatePlatformFeeEstimateSetting', sendData, function (data) {
+                    console.log("updatePlatformFeeEstimateSetting complete")
                 });
             }
 

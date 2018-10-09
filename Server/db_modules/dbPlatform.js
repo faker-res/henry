@@ -412,6 +412,23 @@ var dbPlatform = {
         return dbconfig.collection_platform.findOne(query).lean()
     },
 
+    getPlatformFeeEstimateSetting: function (platformObjId) {
+    platformObjId = ObjectId(platformObjId);
+    return dbconfig.collection_platformFeeEstimate.findOne({platform: platformObjId}).lean().then(
+        platformFeeData => {
+            if (!platformFeeData) {
+                return dbconfig.collection_platformFeeEstimate({platform: platformObjId}).save();
+            } else {
+                return platformFeeData;
+            }
+        }
+    );
+},
+
+    updatePlatformFeeEstimateSetting: function (query, updateData) {
+        return dbconfig.collection_platformFeeEstimate.findOneAndUpdate(query, updateData, {upsert: true}).lean();
+    },
+
     getLargeWithdrawalSetting: function (platformObjId) {
         platformObjId = ObjectId(platformObjId);
         return dbconfig.collection_largeWithdrawalSetting.findOne({platform: platformObjId}).lean().then(

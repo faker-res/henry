@@ -16760,7 +16760,7 @@ let dbPlayerInfo = {
                                 let qStartTime = new Date(playerData.registrationTime);
                                 let qEndTime = moment(qStartTime).add(query.days, 'day');
 
-                                return getPlayerRecord(playerObjIds[p], qStartTime, qEndTime, playerData.domain);
+                                return getPlayerRecord(playerObjIds[p], qStartTime, qEndTime, playerData.domain, true);
                             }
                         );
 
@@ -16776,7 +16776,7 @@ let dbPlayerInfo = {
                                     feedbackData = JSON.parse(JSON.stringify(data));
                                     let qStartTime = new Date(feedbackData.createTime);
                                     let qEndTime = moment(qStartTime).add(query.days, 'day');
-                                    return getPlayerRecord(feedbackData.playerId, qStartTime, qEndTime);
+                                    return getPlayerRecord(feedbackData.playerId, qStartTime, qEndTime, null, true);
                                 }
                             ).then(
                                 data => {
@@ -16820,7 +16820,7 @@ let dbPlayerInfo = {
             }
         );
 
-        function getPlayerRecord(playerObjId, startTime, endTime, domain) {
+        function getPlayerRecord(playerObjId, startTime, endTime, domain, showPlatformFeeEstimate) {
             let result = {_id: playerObjId};
             playerObjId = {$in: [ObjectId(playerObjId), playerObjId]};
             let onlineTopUpTypeId = "";
@@ -17317,6 +17317,30 @@ let dbPlayerInfo = {
                     result.province = playerDetail.province ? playerDetail.province : null;
                     result.city = playerDetail.city ? playerDetail.city : null;
 
+                    if (showPlatformFeeEstimate) {
+                        result.platformFeeEstimate = {}
+                        result.totalPlatformFeeEstimate = 0;
+                        return dbconfig.collection_platformFeeEstimate.findOne({platform: platformObjId}).populate({
+                            path: 'platformFee.gameProvider',
+                            model: dbconfig.collection_gameProvider
+                        }).then(
+                            feeData => {
+                                if (result.providerDetail && Object.keys(result.providerDetail).length && feeData && feeData.platformFee && feeData.platformFee.length) {
+                                    feeData.platformFee.forEach(provider => {
+                                        if (provider.gameProvider && provider.gameProvider._id && result.providerDetail.hasOwnProperty(String(provider.gameProvider._id))) {
+                                            let gameProviderName = String(provider.gameProvider.name);
+                                            result.platformFeeEstimate[gameProviderName] = (result.providerDetail[String(provider.gameProvider._id)].bonusAmount * -1) * provider.feeRate;
+                                            if (result.platformFeeEstimate[gameProviderName] < 0) {
+                                                result.platformFeeEstimate[gameProviderName] = 0;
+                                            }
+                                            result.totalPlatformFeeEstimate += result.platformFeeEstimate[gameProviderName];
+                                        }
+                                    })
+                                }
+                                return result;
+                            }
+                        )
+                    }
                     return result;
                 }
             );

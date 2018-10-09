@@ -3169,7 +3169,25 @@ define(['js/app'], function (myApp) {
                             return "<a>" + data + "</a>";
                         }
                     },
-                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: "sumFloat"}
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: "sumFloat"},
+                    {title: $translate("Platform Fee"), data: "totalPlatformFeeEstimate",
+                        render: function (data, type, row) {
+                            data = data || 0;
+                            let feeDetails  = "";
+                            if (row && row.platformFeeEstimate) {
+                                for (let key in row.platformFeeEstimate) {
+                                    if (feeDetails) {
+                                        feeDetails += "\n";
+                                    }
+                                    feeDetails += (key + ": " + row.platformFeeEstimate[key]);
+                                }
+                            }
+                            return $('<a data-toggle="tooltip" title=\'' + feeDetails + '\'  data-placement= "left"></a>')
+                                .attr('data-row', JSON.stringify(row))
+                                .text((data))
+                                .prop('outerHTML');
+                        },
+                    }
                 ],
                 "paging": false,
                 "language": {
@@ -4538,6 +4556,24 @@ define(['js/app'], function (myApp) {
                     {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"},
                     {title: $translate("PHONE_LOCATION"), data: "phoneArea$"},
                     {title: $translate("IP_LOCATION"), data: "ipArea$"},
+                    {title: $translate("Platform Fee"), data: "totalPlatformFeeEstimate",
+                        render: function (data, type, row) {
+                            data = data || 0;
+                            let feeDetails  = "";
+                            if (row && row.platformFeeEstimate) {
+                                for (let key in row.platformFeeEstimate) {
+                                    if (feeDetails) {
+                                        feeDetails += "\n";
+                                    }
+                                    feeDetails += (key + ": " + row.platformFeeEstimate[key]);
+                                }
+                            }
+                            return $('<a data-toggle="tooltip" title=\'' + feeDetails + '\'  data-placement= "left"></a>')
+                                .attr('data-row', JSON.stringify(row))
+                                .text((data))
+                                .prop('outerHTML');
+                        },
+                    }
                 ],
                 "paging": false,
                 // "dom": '<"top">rt<"bottom"il><"clear">',
