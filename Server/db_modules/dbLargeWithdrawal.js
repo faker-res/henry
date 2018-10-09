@@ -810,6 +810,8 @@ function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSettin
     let admin, html;
     html = generateLargeWithdrawalDetailEmail(largeWithdrawalLog, largeWithdrawalSetting, allRecipientEmail);
 
+    let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
+
     return dbconfig.collection_admin.findOne({_id: adminObjId}).lean().then(
         adminData => {
             if (!adminData) {
@@ -839,6 +841,10 @@ function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSettin
                 body: html, // html content
                 isHTML: true
             };
+
+            if (allEmailStr) {
+                emailConfig.replyTo = allEmailStr;
+            }
 
             return emailer.sendEmail(emailConfig);
         }
