@@ -16127,8 +16127,19 @@ let dbPlayerInfo = {
                 }
             },
             {
+                $project: {
+                    playerId: 1,
+                    platformId: 1,
+                    createTime: timezoneAdjust2,
+                    count: 1,
+                    amount: 1,
+                    validAmount: 1,
+                    isDuplicate: 1,
+                }
+            },
+            {
                 $group: {
-                    _id: timezoneAdjust2,
+                    _id: "$createTime",
                     count: {$sum: {$cond: ["$count", "$count", 1]}},
                     amount: {$sum: "$amount"},
                     validAmount: {$sum: "$validAmount"},
@@ -16150,8 +16161,20 @@ let dbPlayerInfo = {
                 }
             },
             {
+                $project: {
+                    "data.playerObjId": 1,
+                    "data.platformId": 1,
+                    createTime: 1,
+                    settleTime: timezoneAdjust,
+                    mainType: 1,
+                    status: 1,
+                    type: 1,
+                    "data.amount": 1,
+                }
+            },
+            {
                 $group: {
-                    _id: timezoneAdjust,
+                    _id: "$settleTime",
                     typeId: {$first: "$type"},
                     count: {$sum: 1},
                     amount: {$sum: "$data.amount"},
@@ -16173,8 +16196,19 @@ let dbPlayerInfo = {
                 }
             },
             {
+                $project: {
+                    "data.playerObjId": 1,
+                    "data.platformId": 1,
+                    createTime: 1,
+                    settleTime: timezoneAdjust,
+                    mainType: 1,
+                    status: 1,
+                    "data.amount": 1,
+                }
+            },
+            {
                 $group: {
-                    _id: timezoneAdjust,
+                    _id: "$settleTime",
                     count: {$sum: 1},
                     amount: {$sum: "$data.amount"},
                 }
