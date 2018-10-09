@@ -320,7 +320,7 @@ const dbLargeWithdrawal = {
                 }
                 log = logData;
 
-                let proposalProm = dbconfig.collection_proposal.findOne({proposalId: log.proposalId}).lean();
+                let proposalProm = dbconfig.collection_proposal.findOne({proposalId: log.proposalId}).read("secondaryPreferred").lean();
                 let settingProm = dbconfig.collection_largeWithdrawalPartnerSetting.findOne({platform: log.platform}).lean();
 
                 return Promise.all([proposalProm, settingProm]);
@@ -360,7 +360,7 @@ const dbLargeWithdrawal = {
                         $gte: todayTime.startTime,
                         $lt: todayTime.endTime
                     },
-                }).count();
+                }).read("secondaryPreferred").count();
 
                 let bankCityProm = pmsAPI.foundation_getCityList({provinceId: partner.bankAccountProvince});
                 let lastWithdrawalProm = dbconfig.collection_proposal.findOne({
@@ -368,10 +368,10 @@ const dbLargeWithdrawal = {
                     mainType: constProposalType.PLAYER_BONUS,
                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
                     createTime: {$lt: proposal.createTime}
-                }).sort({createTime: -1}).lean();
+                }).sort({createTime: -1}).read("secondaryPreferred").lean();
 
-                let downLinePlayerProm = dbconfig.collection_players.find({partner: partner._id}, {_id: 1}).lean();
-                let downLinePartnerProm = dbconfig.collection_partner.find({parent: partner._id}, {_id: 1}).lean();
+                let downLinePlayerProm = dbconfig.collection_players.find({partner: partner._id}, {_id: 1}).read("secondaryPreferred").lean();
+                let downLinePartnerProm = dbconfig.collection_partner.find({parent: partner._id}, {_id: 1}).read("secondaryPreferred").lean();
 
                 return Promise.all([todayLargeAmountProm, bankCityProm, lastWithdrawalProm, downLinePlayerProm, downLinePartnerProm]);
             }
@@ -398,15 +398,15 @@ const dbLargeWithdrawal = {
                     "data.platformId": {$in:[String(log.platform), log.platform]},
                     "data.partnerName": partner.partnerName,
                     createTime: {
-                        $lt: proposal.createTime,
+                        $lte: proposal.createTime,
                     }
                 };
 
                 if (lastWithdrawalDate) {
-                    proposalsQuery.createTime.$gt = lastWithdrawalDate;
+                    proposalsQuery.createTime.$gte = lastWithdrawalDate;
                 }
 
-                return dbconfig.collection_proposal.find(proposalsQuery).populate({path: "type", model: dbconfig.collection_proposalType}).lean();
+                return dbconfig.collection_proposal.find(proposalsQuery).populate({path: "type", model: dbconfig.collection_proposalType}).sort({createTime: -1}).read("secondaryPreferred").lean();
             }
         ).then(
             periodProposals => {
@@ -654,14 +654,16 @@ const dbLargeWithdrawal = {
                     processStep = proposalProcessData.steps[proposalProcessData.steps.length - 1];
                 }
 
-                let proms = [];
+                // let proms = [];
+                //
+                // setting.recipient.map(recipient => {
+                //     let prom = sendLargeWithdrawalProposalAuditedInfo(proposal, recipient, log, processStep, bSuccess, isPartner);
+                //     proms.push(prom);
+                // });
+                //
+                // return Promise.all(proms);
 
-                setting.recipient.map(recipient => {
-                    let prom = sendLargeWithdrawalProposalAuditedInfo(proposal, recipient, log, processStep, bSuccess, isPartner);
-                    proms.push(prom);
-                });
-
-                return Promise.all(proms);
+                return bulkSendProposalAuditedInfo(proposal, setting.recipient, log, processStep, bSuccess, isPartner);
             }
         );
     },
@@ -808,6 +810,8 @@ function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSettin
     let admin, html;
     html = generateLargeWithdrawalDetailEmail(largeWithdrawalLog, largeWithdrawalSetting, allRecipientEmail);
 
+    let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
+
     return dbconfig.collection_admin.findOne({_id: adminObjId}).lean().then(
         adminData => {
             if (!adminData) {
@@ -837,6 +841,10 @@ function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSettin
                 body: html, // html content
                 isHTML: true
             };
+
+            if (allEmailStr) {
+                emailConfig.replyTo = allEmailStr;
+            }
 
             return emailer.sendEmail(emailConfig);
         }
@@ -885,7 +893,7 @@ function sendPartnerLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawa
 function sendLargeWithdrawalProposalAuditedInfo(proposalData, adminObjId, log, proposalProcessStep, bSuccess, isPartner) {
     let admin, html;
 
-    let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).populate({path: "departments", model: dbconfig.collection_department}).lean();
+    let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
     let auditorProm = dbconfig.collection_admin.findOne({_id: proposalProcessStep.operator}).lean();
     let auditorDepartmentProm = dbconfig.collection_department.findOne({_id: proposalProcessStep.department}).lean();
 
@@ -896,11 +904,45 @@ function sendLargeWithdrawalProposalAuditedInfo(proposalData, adminObjId, log, p
             }
             admin = adminData;
 
-            html = generateLargeWithdrawalAuditedInfoEmail(proposalData, admin, proposalProcessStep, auditorData, auditorDepartmentData, bSuccess);
+            html = generateLargeWithdrawalAuditedInfoEmail(proposalData, proposalProcessStep, auditorData, auditorDepartmentData, bSuccess);
 
             let emailConfig = {
                 sender: "no-reply@snsoft.my", // company email?
                 recipient: admin.email, // admin email
+                subject: getLogDetailEmailSubject(log, isPartner), // title
+                body: html, // html content
+                isHTML: true
+            };
+
+            return emailer.sendEmail(emailConfig);
+        }
+    );
+}
+
+function bulkSendProposalAuditedInfo (proposalData, adminObjIds, log, proposalProcessStep, bSuccess, isPartner) {
+    let admins, html, adminEmails;
+    let adminsProm = dbconfig.collection_admin.find({_id: {$in: adminObjIds}}).lean();
+    let auditorProm = dbconfig.collection_admin.findOne({_id: proposalProcessStep.operator}).lean();
+    let auditorDepartmentProm = dbconfig.collection_department.findOne({_id: proposalProcessStep.department}).lean();
+
+    return Promise.all([adminsProm, auditorProm, auditorDepartmentProm]).then(
+        ([adminsData, auditorData, auditorDepartmentData]) => {
+            if (!adminsData) {
+                return Promise.reject({message: "Admin not found."});
+            }
+            admins = adminsData;
+
+            adminEmails = admins.map(admin => {
+                return admin.email;
+            });
+
+            let adminEmailsStr = adminEmails.join();
+
+            html = generateLargeWithdrawalAuditedInfoEmail(proposalData, proposalProcessStep, auditorData, auditorDepartmentData, bSuccess);
+
+            let emailConfig = {
+                sender: "no-reply@snsoft.my", // company email?
+                recipient: adminEmailsStr, // admin email
                 subject: getLogDetailEmailSubject(log, isPartner), // title
                 body: html, // html content
                 isHTML: true
@@ -970,6 +1012,13 @@ function generateLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
         let num = dbutility.noRoundTwoDecimalPlaces(log.currentCredit);
         html += `<tr>
             <td style="border: solid 1px black; padding: 3px">账户余额</td>
+            <td style="border: solid 1px black; padding: 3px">${num}</td>
+        </tr>`;
+    }
+    if (setting.showProposalId) {
+        let num = log.proposalId;
+        html += `<tr>
+            <td style="border: solid 1px black; padding: 3px">提款提案号</td>
             <td style="border: solid 1px black; padding: 3px">${num}</td>
         </tr>`;
     }
@@ -1463,6 +1512,13 @@ function generatePartnerLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
             <td style="border: solid 1px black; padding: 3px">${num}</td>
         </tr>`;
     }
+    if (setting.showProposalId) {
+        let num = log.proposalId;
+        html += `<tr>
+            <td style="border: solid 1px black; padding: 3px">提款提案号</td>
+            <td style="border: solid 1px black; padding: 3px">${num}</td>
+        </tr>`;
+    }
 
     html += `</table>`;
 
@@ -1730,11 +1786,9 @@ function appendAuditLinks (html, auditLinks) {
 function getLogDetailEmailSubject (log, isPartner) {
     let withdrawalDate = dbutility.getLocalTimeString(log.withdrawalTime , "YYYY/MM/DD");
     let withdrawalAmount = dbutility.noRoundTwoDecimalPlaces(log.amount);
-    let strTitle = "大额提款";
-    if (isPartner) {
-        strTitle = "代理大额提款"
-    }
-    let str = `${strTitle}（${log.todayLargeAmountNo}）：${withdrawalDate}--${log.playerName}--${withdrawalAmount}- ${log.emailNameExtension}`;
+    let name = isPartner ? log.partnerName : log.playerName;
+    let strTitle = isPartner ? "代理大额提款" : "大额提款";
+    let str = `${strTitle}（${log.todayLargeAmountNo}）：${withdrawalDate}--${name}--${withdrawalAmount}- ${log.emailNameExtension}`;
 
     return str;
 }
@@ -1780,7 +1834,7 @@ function createProposalProcessStep (proposal, adminObjId, status, memo) {
     );
 }
 
-function generateLargeWithdrawalAuditedInfoEmail (proposalData, admin, proposalProcessStep, auditor, auditorDepartment, bSuccess) {
+function generateLargeWithdrawalAuditedInfoEmail (proposalData, proposalProcessStep, auditor, auditorDepartment, bSuccess) {
     let lockStatus = proposalData.isLocked && proposalData.isLocked.adminName || "未锁定";
     let status, cancelTime, decisionColor;
     if (proposalData.status == constProposalStatus.PENDING) {

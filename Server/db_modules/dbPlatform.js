@@ -2721,6 +2721,8 @@ var dbPlatform = {
             let listName;
             let platformData;
             let playerLevels = [];
+            let themeIdList = [];
+            let themeStyleObjId = null;
 
             if (subject == 'player') {
                 returnedObj = {
@@ -2779,13 +2781,11 @@ var dbPlatform = {
             else {
                 return Q.reject({name: "DBError", message: "Missing of default param: 'partner' or 'player'."});
             }
-
             return dbconfig.collection_platform.findOne({platformId: platformId}).populate({path: 'partnerThemeSetting.themeStyleId', model: dbconfig.collection_themeSetting}).populate({path: 'playerThemeSetting.themeStyleId', model: dbconfig.collection_themeSetting}).lean().then(
                 data => {
                     if (data) {
 
                         platformData = data;
-
                         return dbconfig.collection_playerLevel.find({platform: platformData._id}).lean();
                     } else {
                         return Q.reject({name: "DBError", message: "No platform exists with id: " + platformId});
@@ -2820,21 +2820,37 @@ var dbPlatform = {
                         returnedObj.needImageCodeForSendSMSCode = platformData.requireCaptchaInSMS ? 1 : 0;
                         returnedObj.twoStepsForModifyPhoneNumber = platformData.usePhoneNumberTwoStepsVerification ? 1 : 0;
                         returnedObj.cdnOrFtpLink = platformData.playerRouteSetting ? platformData.playerRouteSetting : "";
-                        returnedObj.themeStyle = platformData.playerThemeSetting && platformData.playerThemeSetting.themeStyleId &&  platformData.playerThemeSetting.themeStyleId.themeStyle ? platformData.playerThemeSetting.themeStyleId.themeStyle : "";
-                        returnedObj.withdrawFeeNoDecimal = platformData.withdrawalFeeNoDecimal ? 1: 0
-                        if (platformData.playerThemeSetting && platformData.playerThemeSetting.themeStyleId &&  platformData.playerThemeSetting.themeStyleId.content && platformData.playerThemeSetting.themeStyleId.content.length > 0){
-                            let index = platformData.playerThemeSetting.themeStyleId.content.findIndex(p => p.themeId == platformData.playerThemeSetting.themeId)
-                            if (index != -1){
-                                returnedObj.themeID = platformData.playerThemeSetting.themeId;
-                            }
-                            else{
-                                returnedObj.themeID = "";
-                            }
-                        }
-                        else{
-                            returnedObj.themeID = "";
-                        }
+                        // returnedObj.themeStyle = platformData.playerThemeSetting && platformData.playerThemeSetting.themeStyleId && platformData.playerThemeSetting.themeStyleId.themeStyle ? platformData.playerThemeSetting.themeStyleId.themeStyle : "";
+                        returnedObj.withdrawFeeNoDecimal = platformData.withdrawalFeeNoDecimal ? 1 : 0;
+                        console.log("checking --- yH platformData.playerThemeSetting", platformData.playerThemeSetting)
 
+                        if (platformData.playerThemeSetting && platformData.playerThemeSetting.themeStyleId && platformData.playerThemeSetting.themeIdObjId) {
+                            
+                            let themeSetting = platformData.playerThemeSetting.themeStyleId;
+                            themeStyleObjId = platformData.playerThemeSetting.themeIdObjId;
+
+                            // search for the themeID for player
+                            if (themeSetting && themeSetting.themeStyle) {
+                                returnedObj.themeStyle = themeSetting.themeStyle;
+                                returnedObj.themeID = "";
+                                let themeIdObj = [];
+                                if (themeSetting.content && themeSetting.content.length && themeStyleObjId) {
+
+                                    for (let i = 0; i < themeSetting.content.length; i++) {
+                                        if (themeSetting.content[i]._id && themeSetting.content[i].themeId) {
+
+                                            if (themeSetting.content[i]._id.toString() == themeStyleObjId.toString()) {
+                                                returnedObj.themeID = themeSetting.content[i].themeId;
+                                            }
+                                            themeIdList.push({themeID: themeSetting.content[i].themeId, remark:themeSetting.content[i].remark });
+                                        }
+                                    }
+                                }
+
+                                returnedObj.themeIDList = themeIdList;
+                            }
+
+                        }
                     }
 
                     if (subject === 'partner') {
@@ -2852,18 +2868,32 @@ var dbPlatform = {
                         returnedObj.twoStepsForModifyPhoneNumber = platformData.partnerUsePhoneNumberTwoStepsVerification ? 1 : 0;
                         returnedObj.defaultCommissionType = platformData.partnerDefaultCommissionGroup ? platformData.partnerDefaultCommissionGroup : 0;
                         returnedObj.cndOrFtpLink = platformData.partnerRouteSetting ? platformData.partnerRouteSetting : "";
-                        returnedObj.themeStyle = platformData.partnerThemeSetting && platformData.partnerThemeSetting.themeStyleId &&  platformData.partnerThemeSetting.themeStyleId.themeStyle ? platformData.partnerThemeSetting.themeStyleId.themeStyle : "";
-                        if (platformData.partnerThemeSetting && platformData.partnerThemeSetting.themeStyleId &&  platformData.partnerThemeSetting.themeStyleId.content && platformData.partnerThemeSetting.themeStyleId.content.length > 0){
-                            let index = platformData.partnerThemeSetting.themeStyleId.content.findIndex(p => p.themeId == platformData.partnerThemeSetting.themeId)
-                            if (index != -1){
-                                returnedObj.themeID = platformData.partnerThemeSetting.themeId;
-                            }
-                            else{
+                        // returnedObj.themeStyle = platformData.partnerThemeSetting && platformData.partnerThemeSetting.themeStyleId && platformData.partnerThemeSetting.themeStyleId.themeStyle ? platformData.partnerThemeSetting.themeStyleId.themeStyle : "";
+                        console.log("checking --- yH platformData.partnerThemeSetting", platformData.partnerThemeSetting)
+                        if (platformData.partnerThemeSetting && platformData.partnerThemeSetting.themeStyleId && platformData.partnerThemeSetting.themeIdObjId) {
+                            let themeSetting = platformData.partnerThemeSetting.themeStyleId;
+                            themeStyleObjId = platformData.partnerThemeSetting.themeIdObjId;
+
+                            // search for the themeID for patner
+                            if (themeSetting && themeSetting.themeStyle) {
+                                returnedObj.themeStyle = themeSetting.themeStyle;
                                 returnedObj.themeID = "";
+                                if (themeSetting.content && themeSetting.content.length && themeStyleObjId) {
+
+                                    for (let i = 0; i < themeSetting.content.length; i++) {
+                                        if (themeSetting.content[i]._id && themeSetting.content[i].themeId) {
+
+                                            if (themeSetting.content[i]._id.toString() == themeStyleObjId.toString()) {
+                                                returnedObj.themeID = themeSetting.content[i].themeId;
+                                            }
+                                            themeIdList.push({themeID: themeSetting.content[i].themeId, remark:themeSetting.content[i].remark});
+                                        }
+                                    }
+                                }
+
+                                returnedObj.themeIDList = themeIdList;
                             }
-                        }
-                        else{
-                            returnedObj.themeID = "";
+
                         }
                     }
 

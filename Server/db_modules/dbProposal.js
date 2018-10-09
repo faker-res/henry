@@ -272,6 +272,7 @@ var proposal = {
     createProposalDataHandler: function (ptProm, ptpProm, plyProm, proposalData, deferred) {
         let bExecute = false;
         let proposalTypeData = null;
+        let pendingProposalData = null;
 
         Q.all([ptProm, ptpProm, plyProm]).then(
             //create proposal with process
@@ -386,8 +387,50 @@ var proposal = {
 
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
                         pendingProposal => {
+                            pendingProposalData = pendingProposal;
+
+                            // for player update bank info, check if first time bound to the bank info
+                            if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType == "UpdatePlayer"
+                                && proposalTypeData._id && proposalTypeData.name == constProposalType.UPDATE_PLAYER_BANK_INFO
+                                && proposalData.data.platformId && proposalData.data.playerName && proposalData.data.playerId) {
+
+                                return dbconfig.collection_proposal.findOne({
+                                    type: proposalTypeData._id,
+                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                    'data.platformId': proposalData.data.platformId,
+                                    'data.playerId': proposalData.data.playerId,
+                                    'data.playerName': proposalData.data.playerName
+                                }).lean().then(bankInfoProposal => {
+                                    if (!bankInfoProposal) {
+                                        return {isFirstBankInfo: true};
+                                    }
+                                });
+
+                            } else if (proposalData && proposalData.data && proposalData.mainType && proposalData.mainType == "UpdatePartner"
+                                && proposalTypeData._id && proposalTypeData.name == constProposalType.UPDATE_PARTNER_BANK_INFO
+                                && proposalData.data.platformId && proposalData.data.partnerName && proposalData.data.partnerId) {
+
+                                return dbconfig.collection_proposal.findOne({
+                                    type: proposalTypeData._id,
+                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                    'data.platformId': proposalData.data.platformId,
+                                    'data.partnerId': proposalData.data.partnerId,
+                                    'data.partnerName': proposalData.data.partnerName
+                                }).lean().then(bankInfoProposal => {
+                                    if (!bankInfoProposal) {
+                                        return {isFirstBankInfo: true};
+                                    }
+                                });
+
+                            }
+                        }).then(bankInfoProposal => {
+                            // add remark if first time bound to the bank info
+                            if (bankInfoProposal && bankInfoProposal.hasOwnProperty('isFirstBankInfo') && bankInfoProposal.isFirstBankInfo) {
+                                proposalData.data.remark = localization.localization.translate("First time bound to the bank info");
+                            }
+
                             //for online top up and player consumption return, there can be multiple pending proposals
-                            if (pendingProposal
+                            if (pendingProposalData
                                 && data[0].name != constProposalType.PLAYER_TOP_UP
                                 //&& data[0].name != constProposalType.PLAYER_CONSUMPTION_RETURN
                                 && data[0].name != constProposalType.PLAYER_REGISTRATION_INTENTION
@@ -832,6 +875,8 @@ var proposal = {
         let proposalObj;
         let proposalProcessData;
         let playerData;
+        let bankAccount = "";
+        let bankName = "";
         //find proposal
         dbconfig.collection_proposal.findOne({_id: proposalId}).populate(
             {
@@ -849,6 +894,12 @@ var proposal = {
                 select: "financialPoints financialSettlement",
                 model: dbconfig.collection_platform
             }
+        ).populate(
+            {
+                path: "data.playerObjId",
+                select: "bankAccount bankName",
+                model: dbconfig.collection_players
+            }
         ).then(
             function (data) {
                 //todo::add proposal or process status check here
@@ -857,6 +908,16 @@ var proposal = {
                 //         $addToSet: {remark: {admin: adminId, content: remark}}
                 //     }, {new: true}).exec();
                 // }
+
+                //save bankAccount and bankName, put back objId to data.data.playerObjId to prevent error
+                if(data && data.data && data.data.playerObjId && data.data.playerObjId.bankAccount){
+                    // bankAccount = data.data.playerObjId.bankAccount;
+                    // bankName = data.data.playerObjId.bankName;
+                    data.data.bankAccountWhenApprove = data.data.playerObjId.bankAccount;
+                    data.data.bankNameWhenApprove = data.data.playerObjId.bankName;
+                    data.data.playerObjId = data.data.playerObjId._id;
+                }
+
                 if (bApprove && data.type && (data.type.name ==  constProposalType.PLAYER_BONUS || data.type.name == constProposalType.PARTNER_BONUS)) {
                     let platformData = data && data.data && data.data.platformId? data.data.platformId: null;
                     if (platformData && platformData.financialSettlement && !platformData.financialSettlement.financialSettlementToggle && platformData.financialSettlement.financialPointsDisableWithdrawal
@@ -911,6 +972,8 @@ var proposal = {
         ).then(
             function(data){
                 let bIsBankInfoMatched = typeof data != "undefined" ? data : true;
+                console.log("LH check bonus ---------- 7", data);
+                console.log("LH check bonus ---------- 8", bIsBankInfoMatched);
                 if(bIsBankInfoMatched == true){
                     if (proposalProcessData && proposalProcessData.currentStep && proposalProcessData.steps) {
                         var curTime = new Date();
@@ -1528,7 +1591,8 @@ var proposal = {
                     }
 
                     if (relateUser) {
-                        queryObj["data.playerName"] = relateUser
+                        queryObj["$and"] = queryObj["$and"] || [];
+                        queryObj["$and"].push({"$or": [{"data.playerName": relateUser}, {"data.partnerName": relateUser}]});
                     }
                     if (credit) {
                         queryObj["$or"] = [
@@ -3442,8 +3506,8 @@ var proposal = {
 
         let recordSizeQuery = JSON.parse(JSON.stringify(consumpQuery));
         recordSizeQuery["betDetails.separatedBetType"] = {$in: reqData.betType};
-        let recordSize = dbconfig.collection_playerConsumptionRecord.distinct("playerId", recordSizeQuery)
-        let recordData = dbconfig.collection_playerConsumptionRecord.aggregate([
+        let recordSizeProm = dbconfig.collection_playerConsumptionRecord.distinct("playerId", recordSizeQuery)
+        let recordDataProm = dbconfig.collection_playerConsumptionRecord.aggregate([
             {$match: consumpQuery},
             {
                 $project: {
@@ -3452,7 +3516,6 @@ var proposal = {
                     bonusAmount: 1,
                     amount: 1,
                     betDetails: 1,
-                    totalBetCount: {$size:"$betDetails"}
                 }
             },
             {
@@ -3466,8 +3529,6 @@ var proposal = {
                     _id: {"_id":"$_id","playerId":"$playerId"},
                     selectedBetTypeCount: {$sum: 1},
                     selectedBetTypeAmt: {$sum: "$betDetails.separatedBetAmount"},
-                    totalBetCount: {$first: "$totalBetCount"},
-                    totalBetAmt: {$first: "$amount"},
                     bonusAmount: {$first: "$bonusAmount"},
                 }
             },
@@ -3476,8 +3537,6 @@ var proposal = {
                     _id: "$_id.playerId",
                     selectedBetTypeCount: {$sum: "$selectedBetTypeCount"},
                     selectedBetTypeAmt: {$sum: "$selectedBetTypeAmt"},
-                    totalBetCount: {$sum: "$totalBetCount"},
-                    totalBetAmt: {$sum: "$totalBetAmt"},
                     bonusAmount: {$sum: "$bonusAmount"},
                 }
             },
@@ -3486,8 +3545,6 @@ var proposal = {
                     _id: 1,
                     selectedBetTypeCount: 1,
                     selectedBetTypeAmt: 1,
-                    totalBetCount: 1,
-                    totalBetAmt: 1,
                     bonusAmount: 1,
                     betCountPercent: {$divide:["$selectedBetTypeCount","$totalBetCount"]},
                     betAmtPercent: {$divide:["$selectedBetTypeAmt","$totalBetAmt"]}
@@ -3498,15 +3555,48 @@ var proposal = {
             { $limit : count}
         ]).read("secondaryPreferred").then(
             consumptionData => {
-                return dbconfig.collection_players.populate(consumptionData, {
+                let nameProm = dbconfig.collection_players.populate(consumptionData, {
                     path: '_id',
                     model: dbconfig.collection_players,
                     select: "name"
-                })
-            }
-        )
+                });
 
-        let recordSummary = dbconfig.collection_playerConsumptionRecord.aggregate([
+                let totalBetProms = [];
+
+                consumptionData.map(consumption => {
+                    let totalBetQuery = {$and: [{playerId: consumption._id}, consumpQuery]};
+
+                    let totalBetProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+                        {$match: totalBetQuery},
+                        {
+                            $group: {
+                                _id: null,
+                                totalBetCount: {$sum: 1},
+                                totalBetAmt: {$sum: "$validAmount"}
+                            }
+                        }
+                    ]).read("secondaryPreferred");
+                    totalBetProms.push(totalBetProm);
+                });
+
+                return Promise.all([nameProm, Promise.all(totalBetProms)]);
+            }
+        ).then(
+            ([namedConsumptionData, totalBetData]) => {
+                for(let i = 0; i < namedConsumptionData.length; i++) {
+                    if (!totalBetData[i] || !totalBetData[i][0]) {
+                        break;
+                    }
+
+                    namedConsumptionData[i].totalBetCount = totalBetData[i][0].totalBetCount;
+                    namedConsumptionData[i].totalBetAmt = totalBetData[i][0].totalBetAmt;
+                }
+
+                return namedConsumptionData;
+            }
+        );
+
+        let recordSummaryPromA = dbconfig.collection_playerConsumptionRecord.aggregate([
             {
                 $match: consumpQuery
             },
@@ -3517,7 +3607,6 @@ var proposal = {
                     bonusAmount: 1,
                     amount: 1,
                     betDetails: 1,
-                    totalBetCount: {$size:"$betDetails"}
                 }
             },
             {
@@ -3531,8 +3620,6 @@ var proposal = {
                     _id: {"_id":"$_id","playerId":"$playerId"},
                     selectedBetTypeCount: {$sum: 1},
                     selectedBetTypeAmt: {$sum: "$betDetails.separatedBetAmount"},
-                    totalBetCount: {$first: "$totalBetCount"},
-                    totalBetAmt: {$first: "$amount"},
                     bonusAmount: {$first: "$bonusAmount"},
                 }
             },
@@ -3541,8 +3628,6 @@ var proposal = {
                     _id: null,
                     selectedBetTypeCount: {$sum: "$selectedBetTypeCount"},
                     selectedBetTypeAmt: {$sum: "$selectedBetTypeAmt"},
-                    totalBetCount: {$sum: "$totalBetCount"},
-                    totalBetAmt: {$sum: "$totalBetAmt"},
                     bonusAmount: {$sum: "$bonusAmount"},
                 }
             },
@@ -3550,8 +3635,6 @@ var proposal = {
                 $project: {
                     selectedBetTypeCount: 1,
                     selectedBetTypeAmt: 1,
-                    totalBetCount: 1,
-                    totalBetAmt: 1,
                     bonusAmount: 1,
                     betCountPercent: {$divide:["$selectedBetTypeCount","$totalBetCount"]},
                     betAmtPercent: {$divide:["$selectedBetTypeAmt","$totalBetAmt"]}
@@ -3559,17 +3642,48 @@ var proposal = {
             },
         ]).read("secondaryPreferred");
 
-        return Promise.all([recordSize, recordData, recordSummary]).then(
-            data => {
-                if (!(data && data[1] && data[2])) {
+        let recordSummaryPromB = dbconfig.collection_playerConsumptionRecord.aggregate([
+            {
+                $match: consumpQuery
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalBetCount: {$sum: 1},
+                    totalBetAmt: {$sum: "$validAmount"}
+                }
+            }
+        ]).read("secondaryPreferred");
+
+        let recordSummaryProm = Promise.all([recordSummaryPromA, recordSummaryPromB]).then(
+            ([dataA, dataB]) => {
+                if (dataA[0] && dataB[0]) {
+                    dataA[0].totalBetCount = dataB[0].totalBetCount;
+                    dataA[0].totalBetAmt = dataB[0].totalBetAmt;
+                }
+
+                return dataA;
+            }
+        );
+
+        let recordSize, record, recordSummary;
+
+        return Promise.all([recordSizeProm, recordDataProm, recordSummaryProm]).then(
+            ([recordSizeData, recordData, recordSummaryData]) => {
+
+                if (!recordSizeData || !recordData) {
                     return Promise.reject({name: "DataError", message: "Error in finding consumption record"});
                 }
 
+                recordSize = recordSizeData || [];
+                record = recordData || [];
+                recordSummary = recordSummaryData || [];
+
                 let res = {
-                    size: data[0].length || 0,
-                    data: data[1],
-                    summary: data[2][0] || {}
-                }
+                    size: recordSize.length || 0,
+                    data: record,
+                    summary: recordSummary[0] || {}
+                };
                 return res;
             }
         )
@@ -7584,6 +7698,9 @@ function isBankInfoMatched(proposalData, playerId){
     let playerData = null;
     let platform = null;
 
+    console.log("LH check bonus 1 ----------", proposalData);
+    console.log("LH check bonus 2 ----------", playerId);
+
     return dbconfig.collection_players.findOne({playerId: playerId})
         .populate({path: "platform", model: dbconfig.collection_platform}).lean()
         .then(
@@ -7618,13 +7735,34 @@ function isBankInfoMatched(proposalData, playerId){
                 return;
             }
         ).then(
+            proposalList =>{
+                if(proposalData.data && proposalData.data.bankAccountWhenApprove && proposalData.data.bankNameWhenApprove){
+                    let dataToUpdate = {
+                        "data.bankAccountWhenApprove": proposalData.data.bankAccountWhenApprove || "",
+                        "data.bankNameWhenApprove": proposalData.data.bankNameWhenApprove || ""
+                    };
+
+                    return proposal.updateProposalData({_id: proposalData._id}, dataToUpdate).then(
+                        () => {
+                            return proposalList;
+                        }
+                    ).catch(errorUtils.reportError);
+                }
+
+                return proposalList;
+            }
+        ).then(
             proposals => {
+                console.log("LH check bonus 3 ----------", platform);
+                console.log("LH check bonus 4 ----------", proposals);
                 if(platform && platform.manualAuditAfterBankChanged){
                     if(proposals && proposals.length > 0){
                         let length = proposals.length;
                         for (let i = 0; i < length; i++) {
                             let proposal = proposals[i];
                             if (proposal && proposal.type && proposal.type.name && proposal.status && proposal.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposal.status == constProposalStatus.APPROVED) {
+                                console.log("LH check bonus 5 ----------", proposal.data);
+                                console.log("LH check bonus 6 ----------", playerData);
                                 if (proposal.data) {
                                     if (proposal.data.bankAccount) {
                                         if (!playerData.bankAccount) {
@@ -7635,87 +7773,6 @@ function isBankInfoMatched(proposalData, playerId){
                                     } else if (playerData.bankAccount) {
                                         return false;
                                     }
-
-                                    if (proposal.data.bankAccountName) {
-                                        if (!playerData.bankAccountName) {
-                                            return false;
-                                        } else if (proposal.data.bankAccountName != playerData.bankAccountName) {
-                                            return false;
-                                        }
-                                    } else if (playerData.bankAccountName) {
-                                        return false;
-                                    }
-
-                                    if (proposal.data.bankName) {
-                                        if (!playerData.bankName) {
-                                            return false;
-                                        } else if (proposal.data.bankName != playerData.bankName) {
-                                            return false;
-                                        }
-                                    } else if (playerData.bankName) {
-                                        return false;
-                                    }
-
-                                    if (proposal.data.bankAccountCity) {
-                                        if (!playerData.bankAccountCity) {
-                                            return false;
-                                        } else if (proposal.data.bankAccountCity != playerData.bankAccountCity) {
-                                            return false;
-                                        }
-                                    } else if (playerData.bankAccountCity) {
-                                        return false;
-                                    }
-
-                                    if (proposal.data.bankAccountType) {
-                                        if (!playerData.bankAccountType) {
-                                            return false;
-                                        } else if (proposal.data.bankAccountType != playerData.bankAccountType) {
-                                            return false;
-                                        }
-                                    } else if (playerData.bankAccountType) {
-                                        return false;
-                                    }
-
-                                    if (proposal.data.bankAddress) {
-                                        if (!playerData.bankAddress) {
-                                            return false;
-                                        } else if (proposal.data.bankAddress != playerData.bankAddress) {
-                                            return false;
-                                        }
-                                    } else if (playerData.bankAddress) {
-                                        return false;
-                                    }
-
-                                    if (proposal.data.bankBranch) {
-                                        if (!playerData.bankBranch) {
-                                            return false;
-                                        } else if (proposal.data.bankBranch != playerData.bankBranch) {
-                                            return false;
-                                        }
-                                    } else if (playerData.bankBranch) {
-                                        return false;
-                                    }
-
-                                    if (proposal.data.bankAccountDistrict) {
-                                        if (!playerData.bankAccountDistrict) {
-                                            return false;
-                                        } else if (proposal.data.bankAccountDistrict != playerData.bankAccountDistrict) {
-                                            return false;
-                                        }
-                                    } else if (playerData.bankAccountDistrict) {
-                                        return false;
-                                    }
-
-                                    if (proposal.data.bankAccountProvince) {
-                                        if (!playerData.bankAccountProvince) {
-                                            return false;
-                                        } else if (proposal.data.bankAccountProvince != playerData.bankAccountProvince) {
-                                            return false;
-                                        }
-                                    } else if (playerData.bankAccountProvince) {
-                                        return false;
-                                    }
-
                                 }
 
                                 return true;

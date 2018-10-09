@@ -1893,6 +1893,7 @@ let dbPartner = {
         let duplicatedRealNameCount = 0;
         let sameBankAccCount = 0;
         let platformObjId;
+        let isVerifiedData;
         return dbconfig.collection_partner.findOne({partnerId: partnerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .then(
@@ -1948,7 +1949,28 @@ let dbPartner = {
                 }
             ).then(
                 isVerified => {
-                    if (isVerified) {
+
+                    isVerifiedData = isVerified;
+
+                    let propQuery = {
+                        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                        'data.platformId': partnerData.platform._id,
+                        'data.partnerName': partnerData.partnerName,
+                        'data.partnerId': partnerData.partnerId
+                    };
+
+                    return dbPropUtil.getOneProposalDataOfType(partnerData.platform._id, constProposalType.UPDATE_PARTNER_BANK_INFO, propQuery).then(
+                        proposal => {
+                            if (!proposal) {
+                                return {isFirstBankInfo: true};
+                            }
+                        }
+                    );
+
+            }).then(
+                 firstBankInfo => {
+
+                    if (isVerifiedData) {
 
                         updateData.updateData = {};
 
@@ -1964,23 +1986,31 @@ let dbPartner = {
                             updateData.updateData.bankName = updateData.bankName;
                         }
 
-                        if(partnerData.bankAccountName){
-                            delete updateData.bankAccountName;
-                        }
 
-                        if (updateData.bankAccountName && !partnerData.realName) {
-                            if (updateData.bankAccountName.indexOf('*') > -1)
-                                delete updateData.bankAccountName;
-                            else
+                        if (firstBankInfo && firstBankInfo.hasOwnProperty('isFirstBankInfo') && firstBankInfo.isFirstBankInfo) {
+                            if (updateData && updateData.bankAccountName) {
                                 updateData.realName = updateData.bankAccountName;
-                        }
+                            }
 
-                        if (!updateData.bankAccountName && !partnerData.bankAccountName && !partnerData.realName) {
-                            return Q.reject({
-                                name: "DataError",
-                                code: constServerCode.INVALID_DATA,
-                                message: "Please enter bank account name or contact cs"
-                            });
+                        } else {
+                            if(partnerData.bankAccountName){
+                                delete updateData.bankAccountName;
+                            }
+
+                            if (updateData.bankAccountName && !partnerData.realName) {
+                                if (updateData.bankAccountName.indexOf('*') > -1)
+                                    delete updateData.bankAccountName;
+                                else
+                                    updateData.realName = updateData.bankAccountName;
+                            }
+
+                            if (!updateData.bankAccountName && !partnerData.bankAccountName && !partnerData.realName) {
+                                return Q.reject({
+                                    name: "DataError",
+                                    code: constServerCode.INVALID_DATA,
+                                    message: "Please enter bank account name or contact cs"
+                                });
+                            }
                         }
 
                         // if (updateData.bankAccountType) {
@@ -6673,12 +6703,19 @@ let dbPartner = {
                         platformFeeRateData.isCustom = partnerCommissionRateConfig.rateAfterRebatePlatformIsCustom;
                     }
                     else {
-                        partnerCommissionRateConfig.rateAfterRebateGameProviderGroup.map(group => {
-                            if (group.name === groupRate.groupName) {
-                                platformFeeRateData.rate = group.rate;
-                                platformFeeRateData.isCustom = Boolean(group.isCustom);
-                            }
-                        });
+                        if (partnerCommissionRateConfig && partnerCommissionRateConfig.rateAfterRebateGameProviderGroup
+                            && typeof partnerCommissionRateConfig.rateAfterRebateGameProviderGroup == 'object') {
+                            partnerCommissionRateConfig.rateAfterRebateGameProviderGroup.map(group => {
+                                if (group.name === groupRate.groupName) {
+                                    platformFeeRateData.rate = group.rate || 0;
+                                    platformFeeRateData.isCustom = Boolean(group.isCustom);
+                                }
+                            });
+                        } else if (partnerCommissionRateConfig && partnerCommissionRateConfig.hasOwnProperty('rateAfterRebateGameProviderGroup')
+                            && typeof partnerCommissionRateConfig.rateAfterRebateGameProviderGroup == 'number') {
+                            platformFeeRateData.rate = 0;
+                            platformFeeRateData.isCustom = false;
+                        }
                     }
 
                     let platformFeeRate = Number(platformFeeRateData.rate);
@@ -10694,12 +10731,12 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
             }
 
             let rateConfig = {
-                rateAfterRebatePromo: rateData.rateAfterRebatePromo,
-                rateAfterRebatePlatform: rateData.rateAfterRebatePlatform,
-                rateAfterRebateGameProviderGroup: rateData.rateAfterRebateGameProviderGroup,
-                rateAfterRebateTotalDeposit: rateData.rateAfterRebateTotalDeposit,
-                rateAfterRebateTotalWithdrawal: rateData.rateAfterRebateTotalWithdrawal,
-                parentCommissionRate: rateData.parentCommissionRate,
+                rateAfterRebatePromo: rateData.rateAfterRebatePromo || 0,
+                rateAfterRebatePlatform: rateData.rateAfterRebatePlatform || 0,
+                rateAfterRebateGameProviderGroup: rateData.rateAfterRebateGameProviderGroup || 0,
+                rateAfterRebateTotalDeposit: rateData.rateAfterRebateTotalDeposit || 0,
+                rateAfterRebateTotalWithdrawal: rateData.rateAfterRebateTotalWithdrawal || 0,
+                parentCommissionRate: rateData.parentCommissionRate || 0,
             };
 
             if (data[1]) {
@@ -10736,19 +10773,21 @@ function getPartnerCommissionConfigRate (platformObjId, partnerObjId) {
                     rateConfig.rateAfterRebateTotalWithdrawalIsCustom = false;
                 }
 
-                rateConfig.rateAfterRebateGameProviderGroup.map(defaultGroup => {
-                    customRateData.rateAfterRebateGameProviderGroup.map(customGroup => {
-                        if (defaultGroup.name === customGroup.name
-                            && defaultGroup.rate !== customGroup.rate
-                        ) {
-                            defaultGroup.isCustom = true;
-                            defaultGroup.rate = customGroup.rate;
-                        }
-                        else {
-                            defaultGroup.isCustom = false;
-                        }
+                if (rateConfig && rateConfig.rateAfterRebateGameProviderGroup && typeof rateConfig.rateAfterRebateGameProviderGroup == 'object') {
+                    rateConfig.rateAfterRebateGameProviderGroup.map(defaultGroup => {
+                        customRateData.rateAfterRebateGameProviderGroup.map(customGroup => {
+                            if (defaultGroup.name === customGroup.name
+                                && defaultGroup.rate !== customGroup.rate
+                            ) {
+                                defaultGroup.isCustom = true;
+                                defaultGroup.rate = customGroup.rate;
+                            }
+                            else {
+                                defaultGroup.isCustom = false;
+                            }
+                        });
                     });
-                });
+                }
             }
             return rateConfig;
         }

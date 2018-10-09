@@ -1030,7 +1030,7 @@ let dbPlayerReward = {
 
             // let today = dbUtility.getTodaySGTime();
             let currentDay = dbUtility.getTargetSGTime(startCheckTime);
-            
+
             while (currentDay.startTime <= today.startTime && player) {
                 checkRequirementMeetProms.push(isDayMeetRequirement(event, player, currentDay, requiredBet, requiredDeposit, requireBoth, isCheckToday));
                 currentDay = dbUtility.getTargetSGTime(currentDay.endTime);
@@ -1217,7 +1217,7 @@ let dbPlayerReward = {
                                 break;
                             }
                         }
-                
+
                         if (event.condition.isDynamicRewardAmount){
                             let currentParamNo = Math.min(currentStreak-1, numberOfParam - 1);
                             let currentParam = paramOfLevel[currentParamNo];
@@ -1231,7 +1231,7 @@ let dbPlayerReward = {
                                    result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, forbidWithdrawIfBalanceAfterUnlock, spendingAmount);
                             }
                         }
-                        else{                    
+                        else{
                            let requestedTimes = selectedParam.spendingTimes || 1;
                            if (streakFromPastApplied || currentStreak >= consecutiveNumber) {
                                let bonus = selectedParam.rewardAmount;
@@ -1361,7 +1361,7 @@ let dbPlayerReward = {
             let playerObjId = ObjectId(playerData._id);
             let startTime = new Date(targetDate.startTime);
             let endTime = new Date(targetDate.endTime);
-        
+
             let topUpSumQuery = {
                 playerId: playerObjId,
                 createTime: {$gte: startTime, $lt: endTime}
@@ -1440,7 +1440,7 @@ let dbPlayerReward = {
                         break;
                     }
                 }
-                
+
                 if (totalTopUpAmount >= requiredTopUpAmount) {
                     requiredTopUpMet = true;
                 }
@@ -2579,7 +2579,7 @@ let dbPlayerReward = {
         let query = {
             platformObjId: searchQuery.platformObjId
         };
-        
+
         return expirePromoCode().then(() => {return expirePromoCode(true)}).then(() => {
             return dbConfig.collection_players.findOne({
                 platform: searchQuery.platformObjId,
@@ -3578,7 +3578,7 @@ let dbPlayerReward = {
             }
         ).then(
             topUpProposal => {
-                
+
                 if (isType2Promo || (topUpProposal && topUpProposal.length > 0)) {
                     if (isType2Promo) {
                         return true;
@@ -3746,7 +3746,7 @@ let dbPlayerReward = {
                     addUsedRewardToTopUpRecord(topUpProp.proposalId, "59ca08a3ef187c1ccec863b9").catch(errorUtils.reportError);
                 }
                 dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", false).catch(errorUtils.reportError);
-                return promoCodeObj
+                return promoCodeObj;
 
         }).catch(err=>{
             if (err.status === constServerCode.CONCURRENT_DETECTED) {
@@ -4852,8 +4852,9 @@ let dbPlayerReward = {
      * @param rewardData
      * @returns {Promise.<TResult>}
      */
-    applyGroupReward: (userAgent, playerData, eventData, adminInfo, rewardData) => {
+    applyGroupReward: (userAgent, playerData, eventData, adminInfo, rewardData, isPreview) => {
         rewardData = rewardData || {};
+        console.log("checking --- rewardData.applyTargetDate", rewardData.previewDate)
         let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate) : dbUtility.getTodaySGTime();
         // let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate): dbUtility.getYesterdaySGTime();
         let rewardAmount = 0, spendingAmount = 0, applyAmount = 0;
@@ -4952,6 +4953,7 @@ let dbPlayerReward = {
                 eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
             }
         }
+        console.log("checking --- eventQuery.settleTime", eventQuery.settleTime)
 
         let topupInPeriodProm = dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
         let eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
@@ -5055,6 +5057,22 @@ let dbPlayerReward = {
         if (eventData.type.name == constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
             let promiseUsed = [];
             let calculateLosses;
+
+            // set the settlement date for eventQuery and topupMatchQuery based on intervalTime
+            if(intervalTime){
+                eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
+            }
+
+            // special settlement time handling for for this case: the settlement endTime will be the previewing-time
+            if (rewardData.previewDate) {
+                eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: dbUtility.getSGTimeOf(rewardData.previewDate)};
+                topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lt: dbUtility.getSGTimeOf(rewardData.previewDate)};
+            }
+
+            console.log("checking in PLAYER_LOSE_RETURN_REWARD_GROUP --eventQuery", eventQuery)
+            console.log("checking in PLAYER_LOSE_RETURN_REWARD_GROUP --topupMatchQuery", topupMatchQuery)
+
             switch (eventData.condition.defineLoseValue) {
                 case "1":
                     let bonusQuery = {
@@ -5069,6 +5087,13 @@ let dbPlayerReward = {
                     if (intervalTime) {
                         bonusQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
                     }
+
+                    // if there is
+                    if (rewardData.previewDate){
+                        bonusQuery.settleTime = {$gte: intervalTime.startTime, $lte: dbUtility.getSGTimeOf(rewardData.previewDate)};
+                    }
+
+                    console.log('checking bonusQuery', bonusQuery)
 
 
                     let totalBonusProm = dbConfig.collection_proposal.aggregate(
@@ -5102,6 +5127,13 @@ let dbPlayerReward = {
                         totalTopupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
                     }
 
+                    if (rewardData.previewDate){
+                        totalTopupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: dbUtility.getSGTimeOf(rewardData.previewDate)};
+                    }
+
+                    console.log("checking totalTopupMatchQuery", totalTopupMatchQuery)
+
+
                     let totalTopupProm = dbConfig.collection_playerTopUpRecord.aggregate(
                         {
                             $match: totalTopupMatchQuery
@@ -5132,6 +5164,12 @@ let dbPlayerReward = {
                     if (intervalTime) {
                         creditsDailyLogQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
                     }
+
+                    if (rewardData.previewDate){
+                        creditsDailyLogQuery.createTime = {$gte: intervalTime.startTime, $lte: dbUtility.getSGTimeOf(rewardData.previewDate)};
+                    }
+
+                    console.log("checking creditsDailyLogQuery", creditsDailyLogQuery)
 
                     let totalCreditsDailyProm = dbConfig.collection_playerCreditsDailyLog.aggregate([
                         {"$match": creditsDailyLogQuery},
@@ -5263,6 +5301,19 @@ let dbPlayerReward = {
                             $gte: intervalTime.startTime,
                             $lte: intervalTime.endTime
                         };
+                    }
+                    console.log("checking--- in case 3 consumptionQuery", consumptionQuery)
+                    console.log("checking--- in case 3 allRewardProm", allRewardProm)
+                    if (rewardData.previewDate) {
+                        consumptionQuery.createTime = {$gte: intervalTime.startTime, $lte: dbUtility.getSGTimeOf(rewardData.previewDate)};
+                        if (allRewardProm) allRewardQuery.settleTime = {
+                            $gte: intervalTime.startTime,
+                            $lte:  dbUtility.getSGTimeOf(rewardData.previewDate)
+                        };
+                        console.log("checking---- consumptionQuery in case 3", consumptionQuery)
+                        if (allRewardProm){
+                            console.log("checking---- allRewardQuery in case 3", allRewardQuery)
+                        }
                     }
                     // promArr.push(totalConsumptionAmount);
                     // if (allRewardProm) promArr.push(allRewardProm);
@@ -5807,11 +5858,16 @@ let dbPlayerReward = {
                         useTopUpAmount = 0;
                         useConsumptionAmount = 0;
                         //periodProps.reduce((sum, value) => sum + value, 1);
-
+                        if(topUpRecords.length > 0){
+                            topUpRecords.sort(function(a, b){
+                                return a.amount - b.amount;
+                            })
+                        }
                         if (selectedRewardParam.numberParticipation && applyRewardTimes < selectedRewardParam.numberParticipation) {
                             let meetTopUpCondition = false, meetConsumptionCondition = false;
                             if (topUpAmount >= (selectedRewardParam.requiredTopUpAmount? selectedRewardParam.requiredTopUpAmount: 0)) {
                                 let useTopupRecordAmount = 0;
+
                                 //For set topup bDirty Use
                                 topUpRecords.forEach((topUpRecord) => {
                                     if (useTopupRecordAmount < selectedRewardParam.requiredTopUpAmount) {
@@ -5923,6 +5979,64 @@ let dbPlayerReward = {
                         });
                 }
 
+                //check if it is for preview purpose
+                if (isPreview){
+                    let previewData = {};
+
+                    if (eventData.type.name === constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
+                        if (eventData.condition && eventData.condition.defineLoseValue && typeof(eventData.condition.defineLoseValue) != 'undefined') {
+                            previewData.defineLoseValue = eventData.condition.defineLoseValue;
+
+                            if (eventData.condition.defineLoseValue.indexOf("2") > -1 || eventData.condition.defineLoseValue.indexOf("3") > -1) {
+                                previewData.intervalRewardSum = intervalRewardSum;
+                                previewData.intervalConsumptionSum = intervalConsumptionSum;
+                            } else if (eventData.condition.defineLoseValue.indexOf("1") > -1) {
+                                // if (selectedRewardParam && selectedRewardParam.rewardAmount) {
+                                //     previewData.data.maxReward = selectedRewardParam.rewardAmount;
+                                // }
+                                previewData.intervalTopupSum = intervalTopupSum;
+                                previewData.intervalBonusSum = intervalBonusSum;
+                                previewData.playerCreditLogSum = playerCreditLogSum;
+                            }
+
+                            previewData.defineLoseValue = eventData.condition.defineLoseValue;
+                        }
+
+                        if (selectedRewardParam && selectedRewardParam.maxReward) {
+                            previewData.maxReward = selectedRewardParam.maxReward;
+                        }
+
+                        if (eventData.condition.interval){
+                            previewData.interval = eventData.condition.interval;
+                        }
+
+                        if (selectedRewardParam && selectedRewardParam.rewardPercent) {
+                            previewData.rewardPercent = selectedRewardParam.rewardPercent;
+                        }
+
+                        if (intervalTime){
+                            previewData.startTime = intervalTime.startTime;
+                            previewData.endTime = intervalTime.endTime;
+                        }
+
+                        if(rewardData.previewDate){
+                            previewData.endTime = rewardData.previewDate;
+                        }
+
+                        if(rewardAmount){
+                            previewData.rewardAmount = rewardAmount;
+                        }
+
+                        if(spendingAmount){
+                            previewData.spendingAmount = spendingAmount;
+                        }
+
+                    }
+
+                    return previewData
+                }
+
+
                 // Decide whether deduct player credit
                 if (isUpdateValidCredit && playerData.platform.useProviderGroup) {
                     // Decide whether player has enough free amount to apply
@@ -5968,6 +6082,11 @@ let dbPlayerReward = {
         ).then(
             amountCheckComplete => {
                 if (amountCheckComplete) {
+
+                    if (isPreview){
+                        return amountCheckComplete;
+                    }
+
                     if (isMultiApplication) {
                         let asyncProms = Promise.resolve();
                         for (let i = 0; i < applicationDetails.length; i++) {
@@ -6085,6 +6204,11 @@ let dbPlayerReward = {
                         };
                         proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
 
+                        // Extra required Information for PLAYER_LOSE_RETURN_REWARD_GROUP
+                        if (eventData.type.name == constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP && intervalTime){
+                            proposalData.data.settlementStartTime = intervalTime.startTime;
+                            proposalData.data.settlementEndTime = rewardData.previewDate ? rewardData.previewDate : intervalTime.endTime;
+                        }
                         // Custom proposal data field
                         if (applyAmount > 0) {
                             proposalData.data.applyAmount = applyAmount;
@@ -6099,7 +6223,8 @@ let dbPlayerReward = {
                             proposalData.data.topUpProposalId = rewardData.selectedTopup.proposalId;
                         }
 
-                        if (rewardData.applyTargetDate) {
+                        // PLAYER_LOSE_RETURN_REWARD_GROUP does not require this field
+                        if (rewardData.applyTargetDate && eventData.type.name != constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
                             proposalData.data.applyTargetDate = todayTime.startTime;
                         }
 

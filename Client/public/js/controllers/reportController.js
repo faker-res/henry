@@ -3063,6 +3063,21 @@ define(['js/app'], function (myApp) {
                         item.consumptionBonusAmount ? vm.feedbackDataSum.consumptionBonusAmount += item.consumptionBonusAmount : null;
                         item.consumptionAmount ? vm.feedbackDataSum.consumptionAmount += item.consumptionAmount : null;
 
+                        if (item.onlineTopUpFeeDetail && item.onlineTopUpFeeDetail.length > 0) {
+                            let detailArr = [];
+                            item.onlineTopUpFeeDetail.forEach((detail, index) => {
+                                if (detail && detail.merchantName && detail.hasOwnProperty('onlineToUpFee') && detail.hasOwnProperty('onlineTopUpServiceChargeRate')) {
+                                    let orderNo = index ? index + 1 : 1;
+                                    detailArr.push(orderNo + '. ' + detail.merchantName + ': ' + detail.amount + $translate("YEN") + ' * ' + parseFloat(detail.onlineTopUpServiceChargeRate * 100).toFixed(2) + '%');
+                                }
+                            });
+
+                            item.onlineTopUpFeeDetail$ = detailArr && detailArr.length > 0 ? detailArr.join('\n') : '';
+                        } else {
+                            item.onlineTopUpFeeDetail$ = '';
+                        }
+                        item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
+
                         return item;
                     });
 
@@ -3127,6 +3142,8 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'feedbackAdminName$', 'aTargets': [21], bSortable: true},
                     {'sortCol': 'feedbackTopic$', 'aTargets': [22], bSortable: true},
                     {'sortCol': 'consumptionAmount', 'aTargets': [23], bSortable: true},
+                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [24], bSortable: true},
+                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [25], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -3170,10 +3187,11 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: "sumFloat"},
-                    {title: $translate("Platform Fee"), data: "totalPlatformFeeEstimate",
+                    {
+                        title: $translate("Platform Fee"), data: "totalPlatformFeeEstimate",
                         render: function (data, type, row) {
                             data = data || 0;
-                            let feeDetails  = "";
+                            let feeDetails = "";
                             if (row && row.platformFeeEstimate) {
                                 for (let key in row.platformFeeEstimate) {
                                     if (feeDetails) {
@@ -3186,7 +3204,20 @@ define(['js/app'], function (myApp) {
                                 .attr('data-row', JSON.stringify(row))
                                 .text((data))
                                 .prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate("Online Top Up Fee"), data: "totalOnlineTopUpFee$",
+                        render: function (data, type, row) {
+                            var link = $('<div>', {});
+                            link.append($('<a>', {
+                                'data-toggle': 'tooltip',
+                                'title': row.onlineTopUpFeeDetail$,
+                                'data-placement': 'left',
+                            }).text(data));
+                            return link.prop('outerHTML');
                         },
+                        "sClass": "sumFloat"
                     }
                 ],
                 "paging": false,
@@ -3546,20 +3577,27 @@ define(['js/app'], function (myApp) {
             $('#loadingPlayerReportTableSpin').show();
 
             let admins = [];
+            let adminIds = [];
 
             if (vm.playerQuery.departments) {
                 if (vm.playerQuery.roles) {
                     vm.queryRoles.map(e => {
                         if (e._id && (vm.playerQuery.roles.indexOf(e._id) >= 0)) {
-                            e.users.map(f => admins.push(f.adminName))
+                            e.users.map(f => {
+                                admins.push(f.adminName);
+                                adminIds.push(f._id);
+                            })
                         }
                     })
                 } else {
-                    vm.queryRoles.map(e => e.users.map(f => admins.push(f.adminName)))
+                    vm.queryRoles.map(e => e.users.map(f => {
+                        admins.push(f.adminName);
+                        adminIds.push(f._id);
+                    }))
                 }
             }
 
-            console.log(vm.playerQuery);
+
             var sendquery = {
                 platformId: vm.curPlatformId,
                 query: {
@@ -3589,6 +3627,9 @@ define(['js/app'], function (myApp) {
                     topUpAmountValueTwo: vm.playerQuery.topUpAmountValueTwo,
                     csPromoteWay: vm.playerQuery.csPromoteWay,
                     admins: vm.playerQuery.admins && vm.playerQuery.admins.length > 0 ? vm.playerQuery.admins : admins,
+                    adminIds: vm.playerQuery.admins && vm.playerQuery.admins.length > 0
+                                ? vm.playerQuery.admins.map(adm => vm.queryAdmins.find(e => e.adminName === adm)._id)
+                                : adminIds
                 },
                 index: isExport ? 0 : (newSearch ? 0 : (vm.playerQuery.index || 0)),
                 limit: isExport ? 5000 : (vm.playerQuery.limit || 5000),
@@ -4489,6 +4530,21 @@ define(['js/app'], function (myApp) {
                     item.phoneArea$ = item.phoneProvince + " " + item.phoneCity;
                     item.ipArea$ = item.province + " " + item.city;
 
+                    if (item.onlineTopUpFeeDetail && item.onlineTopUpFeeDetail.length > 0) {
+                        let detailArr = [];
+                        item.onlineTopUpFeeDetail.forEach((detail, index) => {
+                            if (detail && detail.merchantName && detail.hasOwnProperty('onlineToUpFee') && detail.hasOwnProperty('onlineTopUpServiceChargeRate')) {
+                                let orderNo = index ? index + 1 : 1;
+                                detailArr.push(orderNo + '. ' + detail.merchantName + ': ' + detail.amount + $translate("YEN") + ' * ' + parseFloat(detail.onlineTopUpServiceChargeRate * 100).toFixed(2) + '%');
+                            }
+                        });
+
+                        item.onlineTopUpFeeDetail$ = detailArr && detailArr.length > 0 ? detailArr.join('\n') : '';
+                    } else {
+                        item.onlineTopUpFeeDetail$ = '';
+                    }
+                    item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
+
                     return item;
                 }), data.data.size, newSearch, isExport);
                 $scope.safeApply();
@@ -4520,6 +4576,8 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'consumptionAmount', 'aTargets': [18], bSortable: true},
                     {'sortCol': 'phoneArea', 'aTargets': [19], bSortable: true},
                     {'sortCol': 'ipArea', 'aTargets': [20], bSortable: true},
+                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [24], bSortable: true},
+                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [25], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -4556,10 +4614,11 @@ define(['js/app'], function (myApp) {
                     {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"},
                     {title: $translate("PHONE_LOCATION"), data: "phoneArea$"},
                     {title: $translate("IP_LOCATION"), data: "ipArea$"},
-                    {title: $translate("Platform Fee"), data: "totalPlatformFeeEstimate",
+                    {
+                        title: $translate("Platform Fee"), data: "totalPlatformFeeEstimate",
                         render: function (data, type, row) {
                             data = data || 0;
-                            let feeDetails  = "";
+                            let feeDetails = "";
                             if (row && row.platformFeeEstimate) {
                                 for (let key in row.platformFeeEstimate) {
                                     if (feeDetails) {
@@ -4572,7 +4631,20 @@ define(['js/app'], function (myApp) {
                                 .attr('data-row', JSON.stringify(row))
                                 .text((data))
                                 .prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate("Online Top Up Fee"), data: "totalOnlineTopUpFee$",
+                        render: function (data, type, row) {
+                            var link = $('<div>', {});
+                            link.append($('<a>', {
+                                'data-toggle': 'tooltip',
+                                'title': row.onlineTopUpFeeDetail$,
+                                'data-placement': 'left',
+                            }).text(data));
+                            return link.prop('outerHTML');
                         },
+                        "sClass": "sumFloat"
                     }
                 ],
                 "paging": false,
@@ -5169,7 +5241,7 @@ define(['js/app'], function (myApp) {
                 data: data,
                 "order": vm.consumptionModeQuery.aaSorting,
                 aoColumnDefs: [
-                    {'sortCol': 'playerId', 'aTargets': [1]},
+                    // {'sortCol': 'playerId', 'aTargets': [1]},
                     {'sortCol': 'selectedBetTypeAmt', 'aTargets': [2]},
                     {'sortCol': 'totalBetAmt', 'aTargets': [3]},
                     {'sortCol': 'betAmtPercent', 'aTargets': [4]},
@@ -5180,7 +5252,7 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {title: $translate('order'), data: 'indexNo$'},
-                    {title: $translate('PLAYER_NAME'), data: "_id.name", sClass: "sumText"},
+                    {title: $translate('PLAYER_NAME'), data: "_id.name", sClass: "sumText", orderable: false},
                     {title: $translate('BET_TYPE_CONSUMPTION'), data: "selectedBetTypeAmt", sClass: 'sumFloat alignRight'},
                     {title: $translate('GAME_TYPE_CONSUMPTION'), data: "totalBetAmt", sClass: 'sumFloat alignRight'},
                     {title: $translate('GAME_TYPE_CONSUMPTION') + "/ <br>" + $translate('BET_TYPE_CONSUMPTION') + "(%)", data: "betAmtPercent", sClass: 'betAmtPercent alignRight'},
@@ -8277,8 +8349,45 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerBonus") {
-                    if(vm.selectedProposal.data.creditCharge && vm.selectedProposal.data.oriCreditCharge && vm.selectedProposal.data.creditCharge != vm.selectedProposal.data.oriCreditCharge){
-                        vm.selectedProposal.data.creditCharge = vm.selectedProposal.data.creditCharge + " (" + $translate("original service charge") + vm.selectedProposal.data.oriCreditCharge + ", " + $translate("remove decimal") + ")";
+                    if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerBonus") {
+                        let proposalDetail = {};
+                        let bankNameWhenSubmit = "";
+                        let bankNameWhenApprove = "";
+                        if (!vm.selectedProposal.data) {
+                            vm.selectedProposal.data = {};
+                        }
+                        proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
+                        proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                        proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
+                        proposalDetail["proposalPlayerLevel"] = vm.selectedProposal.data.proposalPlayerLevel;
+                        proposalDetail["Credit Charge(Service Charge Deducted)"] = vm.selectedProposal.data.amount;
+                        proposalDetail["ximaWithdrawUsed"] = vm.selectedProposal.data.ximaWithdrawUsed;
+                        if(vm.selectedProposal.data.creditCharge != vm.selectedProposal.data.oriCreditCharge){
+                            proposalDetail["actualCreditCharge"] = vm.selectedProposal.data.creditCharge + " (" + $translate("original service charge") + vm.selectedProposal.data.oriCreditCharge + ", " + $translate("remove decimal") + ")";
+                        }else{
+                            proposalDetail["actualCreditCharge"] = vm.selectedProposal.data.creditCharge
+                        }
+                        proposalDetail["oriCreditCharge"] = vm.selectedProposal.data.oriCreditCharge;
+                        if(typeof vm.selectedProposal.data.isAutoApproval != "undefined"){
+                            proposalDetail["isAutoApproval"] = vm.selectedProposal.data.isAutoApproval ? "开启" : "关闭";
+                        }
+                        proposalDetail["autoAuditTime"] = vm.selectedProposal.data.autoAuditTime;
+                        proposalDetail["autoAuditRemark"] = vm.selectedProposal.data.autoAuditRemarkChinese;
+                        proposalDetail["autoAuditDetail"] = vm.selectedProposal.data.detailChinese;
+
+                        if(vm.selectedProposal.data.bankNameWhenSubmit){
+                            bankNameWhenSubmit = vm.allBankTypeList[vm.selectedProposal.data.bankNameWhenSubmit] || (vm.selectedProposal.data.bankNameWhenSubmit + " ! " + $translate("not in bank type list"));
+                            bankNameWhenSubmit += " / "
+                        }
+                        proposalDetail["bankInfoWhenSubmit"] = bankNameWhenSubmit + $translate("bankcard no:") + vm.selectedProposal.data.bankAccountWhenSubmit;
+
+                        if(vm.selectedProposal.data.bankNameWhenApprove){
+                            bankNameWhenApprove = vm.allBankTypeList[vm.selectedProposal.data.bankNameWhenApprove] || (vm.selectedProposal.data.bankNameWhenApprove + " ! " + $translate("not in bank type list"));
+                            bankNameWhenApprove += " / "
+                        }
+                        proposalDetail["bankInfoWhenApprove"] = bankNameWhenApprove + $translate("bankcard no:") + vm.selectedProposal.data.bankAccountWhenApprove;
+
+                        vm.selectedProposal.data = proposalDetail;
                     }
                 }
 

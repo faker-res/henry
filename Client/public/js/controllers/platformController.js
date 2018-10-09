@@ -604,18 +604,22 @@ define(['js/app'], function (myApp) {
 
             vm.initThemeSetting = function (){
 
-                utilService.actionAfterLoaded("#playerThemeSelectPanel .playerThemeTable", function () {
+                utilService.actionAfterLoaded("#playerThemeSelectPanel #playerThemeTable", function () {
                     setTimeout(()=>{
                         if (vm.selectedPlatform.data && vm.selectedPlatform.data.playerThemeSetting) {
                             vm.initThemeCheck(vm.selectedPlatform.data.playerThemeSetting, 'player');
                         }
-
+                    }, 100);
+                });
+                
+                utilService.actionAfterLoaded("#partnerThemeSelectPanel #partnerThemeTable", function () {
+                    setTimeout(()=>{
                         if (vm.selectedPlatform.data && vm.selectedPlatform.data.partnerThemeSetting) {
                             vm.initThemeCheck(vm.selectedPlatform.data.partnerThemeSetting, 'partner');
                         }
                     }, 100);
                 });
-            }
+            };
 
             vm.initThemeCheck = function (data, mode){
                 if (mode == 'player'){
@@ -28561,6 +28565,7 @@ define(['js/app'], function (myApp) {
                         showCurrentWithdrawalTime: srcData.showCurrentWithdrawalTime,
                         showLastWithdrawalTime: srcData.showLastWithdrawalTime,
                         showCurrentCredit: srcData.showCurrentCredit,
+                        showProposalId: srcData.showProposalId,
                         allowAdminComment: srcData.allowAdminComment,
                         showPlayerBonusAmount: srcData.showPlayerBonusAmount,
                         showTotalTopUpAmount: srcData.showTotalTopUpAmount,
@@ -28585,7 +28590,7 @@ define(['js/app'], function (myApp) {
                         showLastThreeMonthTopUpWithdrawDifference: srcData.showLastThreeMonthTopUpWithdrawDifference,
                         showLastThreeMonthConsumptionAmount: srcData.showLastThreeMonthConsumptionAmount,
                     }
-                }
+                };
                 socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalSetting', sendData, function (data) {
                     console.log("updateLargeWithdrawalSetting complete")
                 });
@@ -28605,9 +28610,10 @@ define(['js/app'], function (myApp) {
                         showCurrentCredit: srcData.showCurrentCredit,
                         showTotalDownlinePlayersCount: srcData.showTotalDownlinePlayersCount,
                         showTotalDownlinePartnersCount: srcData.showTotalDownlinePartnersCount,
+                        showProposalId: srcData.showProposalId,
                         showAllPartnerRelatedProposal: srcData.showAllPartnerRelatedProposal,
                     }
-                }
+                };
                 socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalPartnerSetting', sendData, function (data) {
                     console.log("updateLargeWithdrawalPartnerSetting complete")
                 });

@@ -55,6 +55,7 @@ const moment = require('moment-timezone');
 const ObjectId = mongoose.Types.ObjectId;
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbLargeWithdrawal = require("../db_modules/dbLargeWithdrawal");
+const dbPropUtil = require("../db_common/dbProposalUtility");
 
 /**
  * Proposal executor
@@ -801,24 +802,17 @@ var proposalExecutor = {
                                 // if(playerUpdate.bankAccountName){
                                 //     playerUpdate.realName = playerUpdate.bankAccountName;
                                 // }
-                                return dbconfig.collection_proposalType.findOne({
-                                    platformId: proposalData.data.platformId,
-                                    name: constProposalType.UPDATE_PLAYER_BANK_INFO
-                                }).lean().then(
-                                    proposalTypeData => {
-                                        if (proposalTypeData && proposalTypeData._id) {
-                                            return dbconfig.collection_proposal.find({
-                                                type: proposalTypeData._id,
-                                                'data.platformId': proposalData.data.platformId,
-                                                'data.playerName': proposalData.data.playerName,
-                                                'data.playerId': proposalData.data.playerId,
-                                                'data._id': proposalData.data._id
-                                            }).count();
-                                        }
-                                    }
-                                ).then(
-                                    proposalCount => {
-                                        if(proposalCount > 1) {
+
+                                let propQuery = {
+                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                    'data.platformId': data.platform,
+                                    'data.playerName': proposalData.data.playerName,
+                                    'data.playerId': proposalData.data.playerId,
+                                };
+
+                                return dbPropUtil.getProposalDataOfType(data.platform, constProposalType.UPDATE_PLAYER_BANK_INFO, propQuery).then(
+                                    proposal => {
+                                        if (proposal && proposal.length > 1) {
                                             return dbconfig.collection_players.findOneAndUpdate(
                                                 {_id: data._id, platform: data.platform},
                                                 playerUpdate,
@@ -902,24 +896,17 @@ var proposalExecutor = {
                                 // if(partnerUpdate.bankAccountName){
                                 //     partnerUpdate.realName = partnerUpdate.bankAccountName;
                                 // }
-                                return dbconfig.collection_proposalType.findOne({
-                                    platformId: proposalData.data.platformId,
-                                    name: constProposalType.UPDATE_PARTNER_BANK_INFO
-                                }).lean().then(
-                                    proposalTypeData => {
-                                        if (proposalTypeData && proposalTypeData._id) {
-                                            return dbconfig.collection_proposal.find({
-                                                type: proposalTypeData._id,
-                                                'data.platformId': proposalData.data.platformId,
-                                                'data.partnerName': proposalData.data.partnerName,
-                                                'data.partnerId': proposalData.data.partnerId,
-                                                'data._id': proposalData.data._id
-                                            }).count();
-                                        }
-                                    }
-                                ).then(
-                                    proposalCount => {
-                                        if(proposalCount > 1) {
+
+                                let propQuery = {
+                                    status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                    'data.platformId': data.platform,
+                                    'data.partnerName': proposalData.data.partnerName,
+                                    'data.partnerId': proposalData.data.partnerId
+                                };
+
+                                return dbPropUtil.getProposalDataOfType(data.platform, constProposalType.UPDATE_PARTNER_BANK_INFO, propQuery).then(
+                                    proposal => {
+                                        if (proposal && proposal.length > 1) {
                                             return dbconfig.collection_partner.findOneAndUpdate(
                                                 {_id: data._id, platform: data.platform},
                                                 partnerUpdate,
@@ -1365,9 +1352,9 @@ var proposalExecutor = {
             executePlayerTopUp: function (proposalData, deferred) {
                 let topUpAmount = Number(proposalData.data.amount);
 
-                // if(proposalData.data.hasOwnProperty("actualAmountReceived")){
-                //     topUpAmount = Number(proposalData.data.actualAmountReceived);
-                // }
+                if(proposalData.data.hasOwnProperty("actualAmountReceived")){
+                    topUpAmount = Number(proposalData.data.actualAmountReceived);
+                }
 
                 dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, topUpAmount, "", constPlayerTopUpType.ONLINE, proposalData).then(
                     function (data) {
@@ -3837,7 +3824,7 @@ var proposalExecutor = {
             rejectPartnerBonus: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.partnerLargeWithdrawalLog) {
                     if (dbLargeWithdrawal.sendProposalUpdateInfoToRecipients) {
-                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.partnerLargeWithdrawalLog, proposalData, true).catch(err => {
+                        dbLargeWithdrawal.sendProposalUpdateInfoToRecipients(proposalData.data.partnerLargeWithdrawalLog, proposalData, false, true).catch(err => {
                             console.log("Send large withdrawal proposal update info failed", proposalData.data.partnerLargeWithdrawalLog, err);
                             return errorUtils.reportError(err);
                         });

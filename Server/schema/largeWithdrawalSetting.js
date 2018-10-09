@@ -24,6 +24,8 @@ let largeWithdrawalSettingSchema = new Schema({
     showLastWithdrawalTime: {type: Boolean, default: true},
     // show current credit (total credit = local credit + game credit)
     showCurrentCredit: {type: Boolean, default: true},
+    // show proposal ID
+    showProposalId: {type: Boolean, default: true},
     // customer service comment
     allowAdminComment: {type: Boolean, default: true},
     // show player bonus amount / profit amount (current credit + current withdrawal amount - total top up amount between current withdrawal and last withdrawal)

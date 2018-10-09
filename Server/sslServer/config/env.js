@@ -1,23 +1,35 @@
 // local
-var localConfig = {
+var localConfig = [{
     mode: "local",
     redisUrl : 'fpms_sslserver.neweb.me',
     redisPort : '1802',
-};
+}, {
+    mode: "local",
+    redisUrl : 'fpms_sslserver.neweb.me',
+    redisPort : '1804',
+}];
 
 // dev-test
-var devConfig = {
+var devConfig = [{
     mode: "development",
     redisUrl : 'fpms_sslserver.neweb.me',
     redisPort : '1802',
-};
+}, {
+    mode: "development",
+    redisUrl : 'fpms_sslserver.neweb.me',
+    redisPort : '1804',
+}];
 
 //for release production
-var prodConfig = {
+var prodConfig = [{
     mode: "production",
     redisUrl : 'fpms_sslserver.neweb.me',
     redisPort : '1802',
-};
+}, {
+    mode: "production",
+    redisUrl : 'fpms_sslserver.neweb.me',
+    redisPort : '1804',
+}];
 
 //env parameters
 var env = {
