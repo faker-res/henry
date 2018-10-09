@@ -5212,7 +5212,7 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {title: $translate('order'), data: 'indexNo$'},
-                    {title: $translate('PLAYER_NAME'), data: "_id.name", sClass: "sumText"},
+                    {title: $translate('PLAYER_NAME'), data: "_id.name", sClass: "sumText", orderable: false},
                     {title: $translate('BET_TYPE_CONSUMPTION'), data: "selectedBetTypeAmt", sClass: 'sumFloat alignRight'},
                     {title: $translate('GAME_TYPE_CONSUMPTION'), data: "totalBetAmt", sClass: 'sumFloat alignRight'},
                     {title: $translate('GAME_TYPE_CONSUMPTION') + "/ <br>" + $translate('BET_TYPE_CONSUMPTION') + "(%)", data: "betAmtPercent", sClass: 'betAmtPercent alignRight'},
