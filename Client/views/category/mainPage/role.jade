@@ -5,6 +5,8 @@
                 #roleIcon.fa(class="{{vm.newRole.icon}}")
             input#roleName(ng-if='vm.pageActionStatus=="creatingNewRole"',type="text", placeholder="{{'please input new role name'|translate}}" ,ng-model="vm.newRole.roleName",ng-focus="vm.stopBlink('#roleName')")
         .pull-right
+            button.btn.btn-primary.margin-right-5(ng-click='vm.allRoleSelection(true)') {{"Check All Selection"|translate}}
+            button.btn.btn-primary.margin-right-5(ng-click='vm.allRoleSelection(false)') {{"Remove All Selection"|translate}}
             button.btn.btn-warning.margin-right-5(ng-click="vm.cancelSaveNewRole();") {{"CANCEL_CREATION"|translate}}
             button.btn.btn-success.margin-right-5(ng-click="vm.saveNewRole();") {{"Save"|translate}}
     div(ng-if='vm.pageActionStatus=="editingRole"', style="font-size:12px")
@@ -14,8 +16,10 @@
             text.margin-left-5 {{vm.roleSelected.roleName}}
             input.margin-left-5(type="text", style="width:50%;", ng-model="vm.newRole.roleName")
         .pull-right
-            button.btn.btn-warning.margin-right-5(ng-click='vm.cancelUpdateRole()') {{"CANCEL_EDITING"|translate}}
-            button.btn.btn-success.margin-right-5(ng-click='vm.submitUpdateRole();vm.pageActionStatus="null"') {{"Update"|translate}}
+            button.btn.btn-primary.common-button.margin-right-5(ng-click='vm.allRoleSelection(true)') {{"Check All Selection"|translate}}
+            button.btn.btn-primary.common-button.margin-right-5(ng-click='vm.allRoleSelection(false)') {{"Remove All Selection"|translate}}
+            button.btn.btn-warning.common-button.margin-right-5(ng-click='vm.cancelUpdateRole()') {{"CANCEL_EDITING"|translate}}
+            button.btn.btn-success.common-button.margin-right-5(ng-click='vm.submitUpdateRole();vm.pageActionStatus="null"') {{"Update"|translate}}
     div(ng-if='checkViewPermission("Admin", "Role", "Read") && vm.pageActionStatus!="editingRole" && vm.pageActionStatus!="creatingNewRole"')
         .roleList(ng-if="!vm.allRole || vm.allRole.length==0")
             label(style="margin:10px 5px 5px 10px") {{"NO_ROLE" | translate}}
