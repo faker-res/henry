@@ -5,6 +5,8 @@
                 #roleIcon.fa(class="{{vm.newRole.icon}}")
             input#roleName(ng-if='vm.pageActionStatus=="creatingNewRole"',type="text", placeholder="{{'please input new role name'|translate}}" ,ng-model="vm.newRole.roleName",ng-focus="vm.stopBlink('#roleName')")
         .pull-right
+            button.btn.btn-primary.margin-right-5(ng-click='vm.allRoleSelection(true)') {{"Check All Selection"|translate}}
+            button.btn.btn-primary.margin-right-5(ng-click='vm.allRoleSelection(false)') {{"Remove All Selection"|translate}}
             button.btn.btn-warning.margin-right-5(ng-click="vm.cancelSaveNewRole();") {{"CANCEL_CREATION"|translate}}
             button.btn.btn-success.margin-right-5(ng-click="vm.saveNewRole();") {{"Save"|translate}}
     div(ng-if='vm.pageActionStatus=="editingRole"', style="font-size:12px")
