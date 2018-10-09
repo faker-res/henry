@@ -69,7 +69,7 @@ const dbPlayerUtility = {
             if (bFlag) {
                 matchQ.$or = [];
                 let searchQ1 = {};
-                searchQ1[lastUpdateTime] = {$lt: new Date() - 1200000};
+                searchQ1[lastUpdateTime] = {$lt: new Date() - 300000};
                 matchQ.$or.push(searchQ1);
 
                 let searchQ2 = {};
