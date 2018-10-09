@@ -1325,6 +1325,50 @@
                                 input.form-control(style='width:calc(100% - 20px);display: inline-block', ng-model='vm.playerApplyRewardPara.referralName', ng-change='vm.checkPlayerExist("name",vm.playerApplyRewardPara.referralName)', required)
                                 i#playerValidFalse.margin-left-5.fa.fa-times.text-danger.hidden(style='width:10px;')
                                 i#playerValidTrue.margin-left-5.fa.fa-check.text-success.hidden(style='width:10px;')
+                            .well(ng-if='vm.playerApplyRewardShow.showLoseReturn', style="background: white;")
+                                //label {{'rewardAmount' | translate}} : {{vm.playerApplyRewardShow.showRewardAmount}}
+                                div
+                                    .label-value
+                                        label {{'Define Lose Value' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.playerApplyRewardShow.returnData.defineLoseValue$}}
+                                    .label-value
+                                        label {{'Reward interval' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.playerApplyRewardShow.returnData.interval}}
+                                    .label-value
+                                        label {{'settlementStartTime' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.playerApplyRewardShow.returnData.startTime}}
+                                    .label-value
+                                        label {{'settlementEndTime' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.playerApplyRewardShow.returnData.endTime}}
+                                    .label-value(ng-if="vm.playerApplyRewardShow.returnData.defineLoseValue == 2 || vm.playerApplyRewardShow.returnData.defineLoseValue == 3")
+                                        label {{'intervalConsumptionSum' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.playerApplyRewardShow.returnData.intervalConsumptionSum}}
+                                    .label-value(ng-if="vm.playerApplyRewardShow.returnData.defineLoseValue == 2")
+                                        label {{'intervalRewardSum' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.playerApplyRewardShow.returnData.intervalRewardSum}}
+                                    .label-value(ng-if="vm.playerApplyRewardShow.returnData.defineLoseValue == 1")
+                                        label {{'intervalTopupSum' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.playerApplyRewardShow.returnData.intervalTopupSum}}
+                                    .label-value(ng-if="vm.playerApplyRewardShow.returnData.defineLoseValue == 1")
+                                        label {{'intervalBonusSum' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.playerApplyRewardShow.returnData.intervalBonusSum}}
+                                    .label-value(ng-if="vm.playerApplyRewardShow.returnData.defineLoseValue == 1")
+                                        label {{'playerCreditLogSum' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.playerApplyRewardShow.returnData.playerCreditLogSum}}
+
+                                    .label-value
+                                        label {{'Reward (Amount OR %)' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.playerApplyRewardShow.returnData.rewardPercent}}
+                                    .label-value
+                                        label {{'maxReward' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.playerApplyRewardShow.returnData.maxReward}}
+                                    .label-value
+                                        label {{'Spending times needed' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.playerApplyRewardShow.returnData.spendingAmount}}
+                                    .label-value(style="color:red;")
+                                        label {{'Reward Proposal Amount' | translate}}&nbsp;:&nbsp;
+                                        label {{vm.playerApplyRewardShow.returnData.rewardAmount}}
+
                             .form-group(ng-if='vm.playerApplyRewardShow.showConsumptionReturn')
                                 label {{'rewardAmount' | translate}} : {{vm.playerApplyRewardShow.showRewardAmount}}
                                 table#playerConsumptionReturnsTbl.noWrap.text-center.display(style='min-width:100%;width:100%')

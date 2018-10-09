@@ -307,6 +307,14 @@ define(['js/app'], function (myApp) {
             }
         ];
 
+        vm.rewardInterval = {
+            1: "daily",
+            2: "weekly",
+            3: "Biweekly",
+            4: "Monthly",
+            5: "No Interval"
+        };
+
         // partner advertisement
         vm.currentPartnerImageButtonNo = 2;
         vm.partnerAdvertisementStatus = {
@@ -9993,6 +10001,11 @@ define(['js/app'], function (myApp) {
                     sendQuery.data.isForceApply = isForceApply;
                 }
             }
+
+            if (vm.playerApplyRewardShow && vm.playerApplyRewardShow.returnData && vm.playerApplyRewardShow.returnData.endTime){
+                sendQuery.data.previewDate = new Date(vm.playerApplyRewardShow.returnData.endTime);
+            }
+        
             socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
                 console.log('sent', data);
                 vm.applyXM = false;
@@ -10251,6 +10264,72 @@ define(['js/app'], function (myApp) {
             vm.playerApplyRewardPara.code = rewardObj.code;
             vm.playerApplyRewardShow.TopupRecordSelect = false;
             let type = rewardObj.type ? rewardObj.type.name : null;
+            vm.playerApplyRewardShow.returnData = {};
+
+            if (type == 'PlayerLoseReturnRewardGroup' && rewardObj.type && rewardObj.type._id){
+                vm.playerApplyRewardShow.showLoseReturn = type;
+
+
+                let idArr = [];
+                if (vm.playerApplyRewardShow.topUpRecordIds) {
+                    $.each(vm.playerApplyRewardShow.topUpRecordIds, function (i, v) {
+                        if (v) {
+                            idArr.push(i);
+                        }
+                    })
+                }
+                let sendQuery = {
+                    code: vm.playerApplyRewardPara.code,
+                    playerId: vm.isOneSelectedPlayer().playerId,
+                    data: {
+                        topUpRecordId: vm.playerApplyRewardPara.topUpRecordId,
+                        topUpRecordIds: idArr,
+                        amount: vm.playerApplyRewardPara.amount,
+                        referralName: vm.playerApplyRewardPara.referralName,
+                        previewDate: new Date(),
+                        isPreview: true
+                    },
+
+                };
+                socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
+
+                    if (data && data.data) {
+                        $scope.$evalAsync( () => {
+
+                            vm.playerApplyRewardShow.returnData.defineLoseValue = data.data.defineLoseValue;
+                            vm.playerApplyRewardShow.returnData.defineLoseValue$ = $translate($scope.loseValueType[data.data.defineLoseValue]);
+                            vm.playerApplyRewardShow.returnData.startTime = utilService.$getTimeFromStdTimeFormat(data.data.startTime);
+                            vm.playerApplyRewardShow.returnData.endTime = utilService.$getTimeFromStdTimeFormat(data.data.endTime);
+                            vm.playerApplyRewardShow.returnData.rewardPercent = data.data.rewardPercent || 0;
+                            vm.playerApplyRewardShow.returnData.rewardAmount = data.data.rewardAmount || 0;
+                            vm.playerApplyRewardShow.returnData.maxReward = data.data.maxReward || 0;
+                            vm.playerApplyRewardShow.returnData.spendingAmount = data.data.spendingAmount || 0;
+                            vm.playerApplyRewardShow.returnData.interval = $translate(vm.rewardInterval[data.data.interval]);
+                            if (data.data.hasOwnProperty('intervalTopupSum')){
+                                vm.playerApplyRewardShow.returnData.intervalTopupSum = data.data.intervalTopupSum;
+                            }
+                            if (data.data.hasOwnProperty('intervalBonusSum')){
+                                vm.playerApplyRewardShow.returnData.intervalBonusSum = data.data.intervalBonusSum;
+                            }
+                            if (data.data.hasOwnProperty('playerCreditLogSum')){
+                                vm.playerApplyRewardShow.returnData.playerCreditLogSum = data.data.playerCreditLogSum;
+                            }
+                            if (data.data.hasOwnProperty('intervalRewardSum')){
+                                vm.playerApplyRewardShow.returnData.intervalRewardSum = data.data.intervalRewardSum;
+                            }
+                            if (data.data.hasOwnProperty('intervalConsumptionSum')){
+                                vm.playerApplyRewardShow.returnData.intervalConsumptionSum = data.data.intervalConsumptionSum;
+                            }
+                        })
+
+                    }
+                }, function (err) {
+                    console.log(err);
+                    vm.playerApplyRewardShow.showRewardAmount = 'Error';
+                    $scope.safeApply();
+                });
+            
+            }
 
             if (type == 'FirstTopUp') {
                 vm.playerApplyRewardShow.selectTopupRecordsMulti = true;
