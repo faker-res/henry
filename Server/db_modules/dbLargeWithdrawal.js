@@ -1150,7 +1150,7 @@ function generateLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
             provider.playerBonusAmountByType = provider.playerBonusAmountByType || {};
             html += `<td style="border: solid 1px black; padding: 3px">`;
             Object.keys(provider.playerBonusAmountByType).map(function(key) {
-                let val = provider.consumptionAmountByType[key];
+                let val = provider.playerBonusAmountByType[key];
                 let str = key + ": " + dbutility.noRoundTwoDecimalPlaces(val);
                 html += `<span style="white-space: pre-line"> ${str} </span><br>`;
             });
@@ -1293,7 +1293,7 @@ function generateLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
             provider.playerBonusAmountByType = provider.playerBonusAmountByType || {};
             html += `<td style="border: solid 1px black; padding: 3px">`;
             Object.keys(provider.playerBonusAmountByType).map(function(key) {
-                let val = provider.consumptionAmountByType[key];
+                let val = provider.playerBonusAmountByType[key];
                 let str = key + ": " + dbutility.noRoundTwoDecimalPlaces(val);
                 html += `<span style="white-space: pre-line"> ${str} </span><br>`;
             });
