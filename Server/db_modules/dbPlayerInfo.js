@@ -16158,6 +16158,7 @@ let dbPlayerInfo = {
                     },
                     mainType: "TopUp",
                     status: constProposalStatus.SUCCESS,
+                    settleTime: {$exists: true},
                 }
             },
             {
@@ -16193,6 +16194,7 @@ let dbPlayerInfo = {
                     },
                     mainType: "PlayerBonus",
                     status: constProposalStatus.SUCCESS,
+                    settleTime: {$exists: true},
                 }
             },
             {
