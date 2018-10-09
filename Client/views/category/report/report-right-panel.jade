@@ -176,7 +176,7 @@
                 div
                     label(style='width:150px;') {{"betType"|translate}}
                     select.form-control#selectBetType(multiple="multiple", ng-model='cbc')
-                        option(ng-repeat="(i,v) in vm.gameBetType" value="{{v}}") {{v}}
+                        option(ng-repeat="(i,v) in vm.gameBetType track by $index" value="{{v}}") {{v}}
                 div
                     label {{"Start date"|translate}}
                     .startTime

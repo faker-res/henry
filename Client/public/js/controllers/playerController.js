@@ -307,6 +307,14 @@ define(['js/app'], function (myApp) {
             }
         ];
 
+        vm.rewardInterval = {
+            1: "daily",
+            2: "weekly",
+            3: "Biweekly",
+            4: "Monthly",
+            5: "No Interval"
+        };
+
         // partner advertisement
         vm.currentPartnerImageButtonNo = 2;
         vm.partnerAdvertisementStatus = {
@@ -7875,7 +7883,6 @@ define(['js/app'], function (myApp) {
 
                             utilService.createDatatableWithFooter('.topupGroupRecordTable', tableOptions, {});
                             vm.playerTopUpGroupQuery.pageObj.init({maxCount: size}, false);
-                            $scope.safeApply()
                         },
                         checkAdminNameValidity: function (adminName, form) {
                             vm.checkAdminNameValidity(adminName, form);
@@ -7923,7 +7930,6 @@ define(['js/app'], function (myApp) {
                 $('#dialogEditPlayer').focus();
                 vm.getReferralPlayer(option.childScope.playerBeingEdited, "new");
                 vm.getPartnerinPlayer(option.childScope.playerBeingEdited, "new");
-                $scope.safeApply();
             };
 
             $(".topupGroupRecordTablePage").hide();
@@ -9054,8 +9060,11 @@ define(['js/app'], function (myApp) {
                 // "sScrollY": 350,
                 // "scrollCollapse": true,
                 // "destroy": true,
-                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                    $compile(nRow)($scope);
+                // fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                //     $compile(nRow)($scope);
+                // }
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
                 }
             });
             tableOptions.language.emptyTable = $translate("No data available in table");
@@ -9992,6 +10001,11 @@ define(['js/app'], function (myApp) {
                     sendQuery.data.isForceApply = isForceApply;
                 }
             }
+
+            if (vm.playerApplyRewardShow && vm.playerApplyRewardShow.returnData && vm.playerApplyRewardShow.returnData.endTime){
+                sendQuery.data.previewDate = new Date(vm.playerApplyRewardShow.returnData.endTime);
+            }
+        
             socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
                 console.log('sent', data);
                 vm.applyXM = false;
@@ -10250,6 +10264,72 @@ define(['js/app'], function (myApp) {
             vm.playerApplyRewardPara.code = rewardObj.code;
             vm.playerApplyRewardShow.TopupRecordSelect = false;
             let type = rewardObj.type ? rewardObj.type.name : null;
+            vm.playerApplyRewardShow.returnData = {};
+
+            if (type == 'PlayerLoseReturnRewardGroup' && rewardObj.type && rewardObj.type._id){
+                vm.playerApplyRewardShow.showLoseReturn = type;
+
+
+                let idArr = [];
+                if (vm.playerApplyRewardShow.topUpRecordIds) {
+                    $.each(vm.playerApplyRewardShow.topUpRecordIds, function (i, v) {
+                        if (v) {
+                            idArr.push(i);
+                        }
+                    })
+                }
+                let sendQuery = {
+                    code: vm.playerApplyRewardPara.code,
+                    playerId: vm.isOneSelectedPlayer().playerId,
+                    data: {
+                        topUpRecordId: vm.playerApplyRewardPara.topUpRecordId,
+                        topUpRecordIds: idArr,
+                        amount: vm.playerApplyRewardPara.amount,
+                        referralName: vm.playerApplyRewardPara.referralName,
+                        previewDate: new Date(),
+                        isPreview: true
+                    },
+
+                };
+                socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
+
+                    if (data && data.data) {
+                        $scope.$evalAsync( () => {
+
+                            vm.playerApplyRewardShow.returnData.defineLoseValue = data.data.defineLoseValue;
+                            vm.playerApplyRewardShow.returnData.defineLoseValue$ = $translate($scope.loseValueType[data.data.defineLoseValue]);
+                            vm.playerApplyRewardShow.returnData.startTime = utilService.$getTimeFromStdTimeFormat(data.data.startTime);
+                            vm.playerApplyRewardShow.returnData.endTime = utilService.$getTimeFromStdTimeFormat(data.data.endTime);
+                            vm.playerApplyRewardShow.returnData.rewardPercent = data.data.rewardPercent || 0;
+                            vm.playerApplyRewardShow.returnData.rewardAmount = data.data.rewardAmount || 0;
+                            vm.playerApplyRewardShow.returnData.maxReward = data.data.maxReward || 0;
+                            vm.playerApplyRewardShow.returnData.spendingAmount = data.data.spendingAmount || 0;
+                            vm.playerApplyRewardShow.returnData.interval = $translate(vm.rewardInterval[data.data.interval]);
+                            if (data.data.hasOwnProperty('intervalTopupSum')){
+                                vm.playerApplyRewardShow.returnData.intervalTopupSum = data.data.intervalTopupSum;
+                            }
+                            if (data.data.hasOwnProperty('intervalBonusSum')){
+                                vm.playerApplyRewardShow.returnData.intervalBonusSum = data.data.intervalBonusSum;
+                            }
+                            if (data.data.hasOwnProperty('playerCreditLogSum')){
+                                vm.playerApplyRewardShow.returnData.playerCreditLogSum = data.data.playerCreditLogSum;
+                            }
+                            if (data.data.hasOwnProperty('intervalRewardSum')){
+                                vm.playerApplyRewardShow.returnData.intervalRewardSum = data.data.intervalRewardSum;
+                            }
+                            if (data.data.hasOwnProperty('intervalConsumptionSum')){
+                                vm.playerApplyRewardShow.returnData.intervalConsumptionSum = data.data.intervalConsumptionSum;
+                            }
+                        })
+
+                    }
+                }, function (err) {
+                    console.log(err);
+                    vm.playerApplyRewardShow.showRewardAmount = 'Error';
+                    $scope.safeApply();
+                });
+            
+            }
 
             if (type == 'FirstTopUp') {
                 vm.playerApplyRewardShow.selectTopupRecordsMulti = true;
@@ -12321,10 +12401,9 @@ define(['js/app'], function (myApp) {
                 "sScrollY": 350,
                 "scrollCollapse": true,
                 "destroy": true,
-                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                    $compile(nRow)($scope);
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
                 }
-
             });
 
             let aTable = $("#rewardTaskGroupLogTbl").DataTable(tableOptions);
@@ -13075,13 +13154,17 @@ define(['js/app'], function (myApp) {
                 "sScrollY": 350,
                 "scrollCollapse": true,
                 "destroy": true,
-                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                    $compile(nRow)($scope);
-                    // $(nRow).off('click');
-                    // $(nRow).find('a').on('click', function () {
-                    //     vm.showProposalModal(aData.proposalId, 1);
-                    // });
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
                 }
+
+                // fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                //     $compile(nRow)($scope);
+                //     // $(nRow).off('click');
+                //     // $(nRow).find('a').on('click', function () {
+                //     //     vm.showProposalModal(aData.proposalId, 1);
+                //     // });
+                // }
 
             });
 
@@ -13179,7 +13262,6 @@ define(['js/app'], function (myApp) {
                 delete vm.modifyCritical.correctVerifyPhoneNumber;
                 delete vm.modifyCritical.verifyPhoneNumber;
             }
-            $scope.safeApply();
         }
         vm.submitCriticalUpdate = function () {
             console.log('updateData', vm.modifyCritical);
@@ -13284,9 +13366,10 @@ define(['js/app'], function (myApp) {
                 playerObjId: vm.selectedSinglePlayer._id,
                 phoneNumber: vm.modifyCritical.verifyPhoneNumber
             }, function (data) {
-                console.log("verifyPlayerPhoneNumber:", data);
-                vm.correctVerifyPhoneNumber.str = data.data;
-                $scope.safeApply();
+                $scope.$evalAsync(()=>{
+                    console.log("verifyPlayerPhoneNumber:", data);
+                    vm.correctVerifyPhoneNumber.str = data.data;
+                })
             });
         };
 
@@ -13295,16 +13378,16 @@ define(['js/app'], function (myApp) {
                 playerObjId: vm.selectedSinglePlayer._id,
                 bankAccount: testBankAccount
             }, function (data) {
-                console.log("verifyPlayerBankAccount:", data);
-                vm.correctVerifyBankAccount = data.data;
+                $scope.$evalAsync(()=>{
+                    console.log("verifyPlayerBankAccount:", data);
+                    vm.correctVerifyBankAccount = data.data;
 
-                if (vm.correctVerifyBankAccount) {
-                    socketService.showConfirmMessage($translate("Validation succeed."), 10000);
-                } else {
-                    socketService.showErrorMessage($translate("Validation failed.") + " - " + $translate("Bank card number did not match."));
-                }
-
-                $scope.safeApply();
+                    if (vm.correctVerifyBankAccount) {
+                        socketService.showConfirmMessage($translate("Validation succeed."), 10000);
+                    } else {
+                        socketService.showErrorMessage($translate("Validation failed.") + " - " + $translate("Bank card number did not match."));
+                    }
+                });
             });
         };
 
@@ -18676,8 +18759,45 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerBonus") {
-                    if(vm.selectedProposal.data.creditCharge && vm.selectedProposal.data.oriCreditCharge && vm.selectedProposal.data.creditCharge != vm.selectedProposal.data.oriCreditCharge){
-                        vm.selectedProposal.data.creditCharge = vm.selectedProposal.data.creditCharge + " (" + $translate("original service charge") + vm.selectedProposal.data.oriCreditCharge + ", " + $translate("remove decimal") + ")";
+                    if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerBonus") {
+                        let proposalDetail = {};
+                        let bankNameWhenSubmit = "";
+                        let bankNameWhenApprove = "";
+                        if (!vm.selectedProposal.data) {
+                            vm.selectedProposal.data = {};
+                        }
+                        proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
+                        proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                        proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
+                        proposalDetail["proposalPlayerLevel"] = vm.selectedProposal.data.proposalPlayerLevel;
+                        proposalDetail["Credit Charge(Service Charge Deducted)"] = vm.selectedProposal.data.amount;
+                        proposalDetail["ximaWithdrawUsed"] = vm.selectedProposal.data.ximaWithdrawUsed;
+                        if(vm.selectedProposal.data.creditCharge != vm.selectedProposal.data.oriCreditCharge){
+                            proposalDetail["actualCreditCharge"] = vm.selectedProposal.data.creditCharge + " (" + $translate("original service charge") + vm.selectedProposal.data.oriCreditCharge + ", " + $translate("remove decimal") + ")";
+                        }else{
+                            proposalDetail["actualCreditCharge"] = vm.selectedProposal.data.creditCharge
+                        }
+                        proposalDetail["oriCreditCharge"] = vm.selectedProposal.data.oriCreditCharge;
+                        if(typeof vm.selectedProposal.data.isAutoApproval != "undefined"){
+                            proposalDetail["isAutoApproval"] = vm.selectedProposal.data.isAutoApproval ? "开启" : "关闭";
+                        }
+                        proposalDetail["autoAuditTime"] = vm.selectedProposal.data.autoAuditTime;
+                        proposalDetail["autoAuditRemark"] = vm.selectedProposal.data.autoAuditRemarkChinese;
+                        proposalDetail["autoAuditDetail"] = vm.selectedProposal.data.detailChinese;
+
+                        if(vm.selectedProposal.data.bankNameWhenSubmit){
+                            bankNameWhenSubmit = vm.allBankTypeList[vm.selectedProposal.data.bankNameWhenSubmit] || (vm.selectedProposal.data.bankNameWhenSubmit + " ! " + $translate("not in bank type list"));
+                            bankNameWhenSubmit += " / "
+                        }
+                        proposalDetail["bankInfoWhenSubmit"] = bankNameWhenSubmit + $translate("bankcard no:") + vm.selectedProposal.data.bankAccountWhenSubmit;
+
+                        if(vm.selectedProposal.data.bankNameWhenApprove){
+                            bankNameWhenApprove = vm.allBankTypeList[vm.selectedProposal.data.bankNameWhenApprove] || (vm.selectedProposal.data.bankNameWhenApprove + " ! " + $translate("not in bank type list"));
+                            bankNameWhenApprove += " / "
+                        }
+                        proposalDetail["bankInfoWhenApprove"] = bankNameWhenApprove + $translate("bankcard no:") + vm.selectedProposal.data.bankAccountWhenApprove;
+
+                        vm.selectedProposal.data = proposalDetail;
                     }
                 }
 
