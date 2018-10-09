@@ -13409,6 +13409,7 @@ let dbPlayerInfo = {
 
     applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply) {
         data = data || {};
+        let isPreview = data.isPreview || false;
         let playerInfo = null;
         let adminInfo = '';
         if (adminId && adminName) {
@@ -13435,7 +13436,7 @@ let dbPlayerInfo = {
 
                     let playerState;
 
-                    if (isBulkApply) {
+                    if (isBulkApply || isPreview) {
                         // bypass player state for bulk apply
                         playerState = Promise.resolve(true);
                     } else {
@@ -13655,8 +13656,11 @@ let dbPlayerInfo = {
                                     if (data.applyTargetDate) {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
+                                    if (data.previewDate) {
+                                        rewardData.previewDate = data.previewDate;
+                                    }
                                     rewardData.smsCode = data.smsCode;
-                                    return dbPlayerReward.applyGroupReward(userAgent, playerInfo, rewardEvent, adminInfo, rewardData);
+                                    return dbPlayerReward.applyGroupReward(userAgent, playerInfo, rewardEvent, adminInfo, rewardData, isPreview);
                                     break;
                                 default:
                                     return Q.reject({
@@ -13679,6 +13683,9 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+                if (data && isPreview){
+                    return data;
+                }
                 // Reset BState
                 dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 return data;
