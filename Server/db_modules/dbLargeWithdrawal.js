@@ -823,7 +823,8 @@ function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSettin
 
             if (isReviewer) {
                 // get button html
-                auditLinksProm = generateAuditDecisionLink(host, largeWithdrawalLog.proposalId, adminObjId);
+                let domainUsed = largeWithdrawalSetting.domain || host;
+                auditLinksProm = generateAuditDecisionLink(domainUsed, largeWithdrawalLog.proposalId, adminObjId);
             }
 
             return auditLinksProm;
@@ -866,7 +867,8 @@ function sendPartnerLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawa
 
             if (isReviewer) {
                 // get button html
-                auditLinksProm = generatePartnerAuditDecisionLink(host, largeWithdrawalLog.proposalId, adminObjId);
+                let domainUsed = largeWithdrawalSetting.domain || host;
+                auditLinksProm = generatePartnerAuditDecisionLink(domainUsed, largeWithdrawalLog.proposalId, adminObjId);
             }
 
             return auditLinksProm;
