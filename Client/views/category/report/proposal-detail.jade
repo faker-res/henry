@@ -43,9 +43,10 @@ div
             label {{'DEPARTMENT' | translate}}&nbsp;:&nbsp;
             label {{v.department.departmentName || 'Unknown' | translate}}
         .label-value
-            label {{'Operator' | translate}}&nbsp;:&nbsp;
+            label(ng-if='v.status=="Cancel"') {{'cancelBy' | translate}}&nbsp;:&nbsp;
+            label(ng-if='v.status!="Cancel"') {{'Operator' | translate}}&nbsp;:&nbsp;
             label {{v.operator.adminName || 'Unknown' | translate}}
-        .label-value
+        .label-value(ng-if='v.status!="Cancel"')
             label {{'OperationTime' | translate}}&nbsp;:&nbsp;
             label {{vm.dateReformat(v.operationTime) || 'Unknown' | translate}}
         .label-value(ng-show='v.memo')

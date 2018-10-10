@@ -2792,6 +2792,9 @@ define(['js/app'], function (myApp) {
                     bankNameWhenApprove += " / "
                 }
                 proposalDetail["bankInfoWhenApprove"] = bankNameWhenApprove + $translate("bankcard no:") + vm.selectedProposal.data.bankAccountWhenApprove;
+                if (vm.selectedProposal.data.approvedByCs) {
+                    proposalDetail["Player forbid apply bonus, apply bonus proposal need cs approval"] = vm.selectedProposal.data.approvedByCs;
+                }
 
                 vm.selectedProposalDetailForDisplay = proposalDetail;
             }
