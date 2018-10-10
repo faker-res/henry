@@ -16659,6 +16659,14 @@ define(['js/app'], function (myApp) {
 
             vm.getCtiData = function() {
                 $('#platformFeedbackSpin').show();
+
+                vm.getCtiDataRepeatCount = vm.getCtiDataRepeatCount || 0;
+                if (!vm.selectedPlatform && vm.getCtiDataRepeatCount < 10) {
+                    vm.getCtiDataRepeatCount++;
+                    return setTimeout(vm.getCtiData, 5000);
+                }
+                vm.getCtiDataRepeatCount = 0;
+
                 socketService.$socket($scope.AppSocket, 'getUpdatedAdminMissionStatusFromCti', {
                     platformObjId: vm.selectedPlatform.id,
                     limit: vm.playerFeedbackQuery.limit || 10,
@@ -16848,23 +16856,33 @@ define(['js/app'], function (myApp) {
 
                         vm.queryDepartments.push({_id:'', departmentName:'N/A'});
 
-                        vm.currentPlatformDepartment.map(e => {
-                            // this implies the name has to be exactly the same, case sensitive.
-                            if (e.departmentName == vm.selectedPlatform.data.name) {
-                                vm.queryDepartments.push(e);
-                                parentId = e._id;
-                            }
-                        });
+                        if (!vm.currentPlatformDepartment) {
+                            return vm.loadAlldepartment(getQueryDepartments);
+                        } else {
+                            getQueryDepartments();
+                        }
 
-                        vm.currentPlatformDepartment.map(e => {
-                            if (String(parentId) == String(e.parent)) {
-                                vm.queryDepartments.push(e);
-                            }
-                        });
-                        vm.setupRemarksMultiInputFeedback();
-                        vm.setupRemarksMultiInputFeedbackFilter();
-                        vm.setupGameProviderMultiInputFeedback();
-                        vm.setupMultiInputFeedbackTopicFilter();
+                        function getQueryDepartments () {
+                            vm.currentPlatformDepartment = vm.currentPlatformDepartment || [];
+
+                            vm.currentPlatformDepartment.map(e => {
+                                // this implies the name has to be exactly the same, case sensitive.
+                                if (e.departmentName == vm.selectedPlatform.data.name) {
+                                    vm.queryDepartments.push(e);
+                                    parentId = e._id;
+                                }
+                            });
+
+                            vm.currentPlatformDepartment.map(e => {
+                                if (String(parentId) == String(e.parent)) {
+                                    vm.queryDepartments.push(e);
+                                }
+                            });
+                            vm.setupRemarksMultiInputFeedback();
+                            vm.setupRemarksMultiInputFeedbackFilter();
+                            vm.setupGameProviderMultiInputFeedback();
+                            vm.setupMultiInputFeedbackTopicFilter();
+                        }
                     });
                 utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
                     $('#registerStartTimePicker').datetimepicker({
