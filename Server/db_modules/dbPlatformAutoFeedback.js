@@ -571,6 +571,7 @@ let dbPlatformAutoFeedback = {
                                         stream: stream,
                                         batchSize: constSystemParam.BATCH_SIZE,
                                         makeRequest: function (filteredPlayers, request) {
+                                            console.log("filteredPlayers count",filteredPlayers.length);
                                             let promoCodeProms = [];
                                             feedback.schedule.forEach((item, index) => {
                                                 let curScheduleNumber = index + 1;
