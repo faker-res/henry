@@ -2059,7 +2059,9 @@ function getTotalConsumptionByTime (playerObj, startTime, endTime) {
 
 function getTotalTopUpByTime (playerObj, startTime, endTime) {
     let matchQuery = {
-        playerId: playerObj._id,
+        mainType: "TopUp",
+        'data.playerObjId': playerObj._id,
+        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
     }
     if (startTime && endTime) {
         matchQuery.createTime = {
@@ -2067,12 +2069,13 @@ function getTotalTopUpByTime (playerObj, startTime, endTime) {
             $lt: endTime
         }
     }
-    return dbconfig.collection_playerTopUpRecord.aggregate([{
+
+    return dbconfig.collection_proposal.aggregate([{
         $match: matchQuery
     }, {
         $group: {
             _id: null,
-            amount: {$sum: "$amount"}
+            amount: {$sum: "$data.amount"}
         }
     }]).read("secondaryPreferred").then(
         topUpData => {
