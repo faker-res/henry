@@ -3,6 +3,7 @@ const url = require('url');
 const fs = require('fs');
 const path = require('path');
 const env = require("./config/env").config();
+const port = env.redisPort || 1802;
 
 const privateKeyPath = "./playerPhone.key.pem";
 const replacedPrivateKeyPath = "./playerPhone.key.pem.bak";
@@ -10,8 +11,6 @@ const publicKeyPath = "./playerPhone.pub";
 const replacedPublicKeyPath = "./playerPhone.pub.bak";
 
 let privateKey, publicKey, replacedPrivateKey, replacedPublicKey;
-
-let port = process.env.app_port || 1802;
 
 http.createServer(function (req, res) {
     console.log(`${req.method} ${req.url}`);

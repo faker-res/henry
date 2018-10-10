@@ -1,35 +1,40 @@
-// local
-var localConfig = [{
-    mode: "local",
-    redisUrl : 'fpms_sslserver.neweb.me',
-    redisPort : '1802',
-}, {
-    mode: "local",
-    redisUrl : 'fpms_sslserver.neweb.me',
-    redisPort : '1804',
-}];
+var envConf = {
+    // Local
+    local: {
+        mode: "local",
+        redisUrl : 'fpms_sslserver.neweb.me',
+        redisPort : '1802',
+    },
+    local_2: {
+        mode: "local",
+        redisUrl : 'fpms_sslserver.neweb.me',
+        redisPort : '1804',
+    },
 
-// dev-test
-var devConfig = [{
-    mode: "development",
-    redisUrl : 'fpms_sslserver.neweb.me',
-    redisPort : '1802',
-}, {
-    mode: "development",
-    redisUrl : 'fpms_sslserver.neweb.me',
-    redisPort : '1804',
-}];
+    // Development
+    development: {
+        mode: "development",
+        redisUrl : 'fpms_sslserver.neweb.me',
+        redisPort : '1802',
+    },
+    development_2:{
+        mode: "development",
+        redisUrl : 'fpms_sslserver.neweb.me',
+        redisPort : '1804',
+    },
 
-//for release production
-var prodConfig = [{
-    mode: "production",
-    redisUrl : 'fpms_sslserver.neweb.me',
-    redisPort : '1802',
-}, {
-    mode: "production",
-    redisUrl : 'fpms_sslserver.neweb.me',
-    redisPort : '1804',
-}];
+    // Production
+    production: {
+        mode: "production",
+        redisUrl : 'fpms_sslserver.neweb.me',
+        redisPort : '1802',
+    },
+    production_2: {
+        mode: "production",
+        redisUrl : 'fpms_sslserver.neweb.me',
+        redisPort : '1804',
+    }
+};
 
 //env parameters
 var env = {
@@ -39,20 +44,7 @@ var env = {
     mode : process.env.NODE_ENV || 'local',
 
     config : function() {
-        //config settings
-        switch (this.mode) {
-            case 'local':
-                return localConfig;
-
-            case 'development':
-                return devConfig;
-
-            case 'production':
-                return prodConfig;
-
-            default:
-                return localConfig;
-        }
+        return envConf[this.mode];
     }
 };
 
