@@ -1775,28 +1775,30 @@ define(['js/app'], function (myApp) {
                         console.log('getDepartmentById', data);
                         $scope.$evalAsync(() => {
                             if (data && data.data && data.data.hasOwnProperty('isParentExist') && data.data.hasOwnProperty('views')
-                                && !data.data.isParentExist && !data.data.views) {
+                                && !data.data.isParentExist && (!data.data.views || Object.keys(data.data.views).length == 0)) {
                                 vm.showView = true;
                                 vm.viewList = vm.allView;
 
                                 vm.processSubDepartmentRole(vm.viewList, vm.viewList, vm.viewList, false)
 
                             } else if (data && data.data && data.data.hasOwnProperty('isParentExist') && data.data.hasOwnProperty('views')
-                                && !data.data.isParentExist && data.data.views) {
+                                && !data.data.isParentExist && data.data.views && Object.keys(data.data.views).length > 0) {
                                 vm.showView = true;
                                 vm.viewList = vm.allView;
 
                                 vm.processSubDepartmentRole(vm.viewList, data.data.views, vm.viewList, true);
 
                             } else if (data && data.data && data.data.hasOwnProperty('isParentExist') && data.data.hasOwnProperty('views')
-                                && data.data.isParentExist && data.data.views && !data.data.curViews) {
+                                && data.data.isParentExist && data.data.views && Object.keys(data.data.views).length > 0
+                                && (!data.data.curViews || Object.keys(data.data.curViews).length == 0)) {
                                 vm.showView = true;
                                 vm.viewList = data.data.views;
 
                                 vm.processSubDepartmentRole(vm.viewList, data.data.views, vm.viewList, false)
 
                             } else if (data && data.data && data.data.hasOwnProperty('isParentExist') && data.data.hasOwnProperty('views')
-                                && data.data.isParentExist && data.data.views && data.data.curViews) {
+                                && data.data.isParentExist && data.data.views && data.data.curViews
+                                && Object.keys(data.data.views).length > 0 && Object.keys(data.data.curViews).length > 0) {
                                 vm.showView = true;
                                 vm.viewList = data.data.views;
 
