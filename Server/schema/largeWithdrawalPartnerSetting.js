@@ -32,6 +32,8 @@ let largeWithdrawalPartnerSettingSchema = new Schema({
     showTotalDownlinePartnersCount: {type: Boolean, default: true},
     // show partner all related proposals
     showAllPartnerRelatedProposal: {type: Boolean, default: true},
+    // domain for audit link
+    domain: {type: String},
 });
 
 module.exports = largeWithdrawalPartnerSettingSchema;
