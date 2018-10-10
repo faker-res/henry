@@ -1160,7 +1160,7 @@ var proposal = {
                                         status: constProposalStatus.CANCEL,
                                         "data.cancelBy": "客服：" + adminId
                                     };
-                                    if (proposalData.type.name === constProposalType.PLAYER_BONUS) {
+                                    if (proposalData.type.name == constProposalType.PLAYER_BONUS || proposalData.type.name == constProposalType.PARTNER_BONUS) {
                                         dbProposalUtility.createProposalProcessStep(proposalData, adminObjId, constProposalStatus.CANCEL, remark).catch(errorUtils.reportError);
                                         delete updateData.process;
                                     }
