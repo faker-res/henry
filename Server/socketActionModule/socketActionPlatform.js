@@ -79,6 +79,18 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getOnePlatformSetting, [data], actionName, isValidData);
         },
 
+        getPlatformFeeEstimateSetting: function getPlatformFeeEstimateSetting(data) {
+        var actionName = arguments.callee.name;
+        var isValidData = Boolean(data && data.platform);
+        socketUtil.emitter(self.socket, dbPlatform.getPlatformFeeEstimateSetting, [data.platform], actionName, isValidData);
+        },
+
+        updatePlatformFeeEstimateSetting: function updatePlatformFeeEstimateSetting(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.query.platform && data.updateData);
+            socketUtil.emitter(self.socket, dbPlatform.updatePlatformFeeEstimateSetting, [data.query, data.updateData], actionName, isValidData);
+        },
+
         getLargeWithdrawalSetting: function getLargeWithdrawalSetting(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform);

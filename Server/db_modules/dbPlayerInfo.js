@@ -13411,6 +13411,7 @@ let dbPlayerInfo = {
 
     applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply) {
         data = data || {};
+        let isPreview = data.isPreview || false;
         let playerInfo = null;
         let adminInfo = '';
         if (adminId && adminName) {
@@ -13437,7 +13438,7 @@ let dbPlayerInfo = {
 
                     let playerState;
 
-                    if (isBulkApply) {
+                    if (isBulkApply || isPreview) {
                         // bypass player state for bulk apply
                         playerState = Promise.resolve(true);
                     } else {
@@ -13657,8 +13658,11 @@ let dbPlayerInfo = {
                                     if (data.applyTargetDate) {
                                         rewardData.applyTargetDate = data.applyTargetDate;
                                     }
+                                    if (data.previewDate) {
+                                        rewardData.previewDate = data.previewDate;
+                                    }
                                     rewardData.smsCode = data.smsCode;
-                                    return dbPlayerReward.applyGroupReward(userAgent, playerInfo, rewardEvent, adminInfo, rewardData);
+                                    return dbPlayerReward.applyGroupReward(userAgent, playerInfo, rewardEvent, adminInfo, rewardData, isPreview);
                                     break;
                                 default:
                                     return Q.reject({
@@ -13681,6 +13685,9 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+                if (data && isPreview){
+                    return data;
+                }
                 // Reset BState
                 dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                 return data;
@@ -16127,8 +16134,19 @@ let dbPlayerInfo = {
                 }
             },
             {
+                $project: {
+                    playerId: 1,
+                    platformId: 1,
+                    createTime: timezoneAdjust2,
+                    count: 1,
+                    amount: 1,
+                    validAmount: 1,
+                    isDuplicate: 1,
+                }
+            },
+            {
                 $group: {
-                    _id: timezoneAdjust2,
+                    _id: "$createTime",
                     count: {$sum: {$cond: ["$count", "$count", 1]}},
                     amount: {$sum: "$amount"},
                     validAmount: {$sum: "$validAmount"},
@@ -16147,11 +16165,24 @@ let dbPlayerInfo = {
                     },
                     mainType: "TopUp",
                     status: constProposalStatus.SUCCESS,
+                    settleTime: {$exists: true},
+                }
+            },
+            {
+                $project: {
+                    "data.playerObjId": 1,
+                    "data.platformId": 1,
+                    createTime: 1,
+                    settleTime: timezoneAdjust,
+                    mainType: 1,
+                    status: 1,
+                    type: 1,
+                    "data.amount": 1,
                 }
             },
             {
                 $group: {
-                    _id: timezoneAdjust,
+                    _id: "$settleTime",
                     typeId: {$first: "$type"},
                     count: {$sum: 1},
                     amount: {$sum: "$data.amount"},
@@ -16170,11 +16201,23 @@ let dbPlayerInfo = {
                     },
                     mainType: "PlayerBonus",
                     status: constProposalStatus.SUCCESS,
+                    settleTime: {$exists: true},
+                }
+            },
+            {
+                $project: {
+                    "data.playerObjId": 1,
+                    "data.platformId": 1,
+                    createTime: 1,
+                    settleTime: timezoneAdjust,
+                    mainType: 1,
+                    status: 1,
+                    "data.amount": 1,
                 }
             },
             {
                 $group: {
-                    _id: timezoneAdjust,
+                    _id: "$settleTime",
                     count: {$sum: 1},
                     amount: {$sum: "$data.amount"},
                 }
@@ -16760,82 +16803,105 @@ let dbPlayerInfo = {
         option = option || {};
         let proms = [];
         let proposalType = [];
+        let merchantList;
 
-        return dbconfig.collection_proposalType.find({platformId: platformObjId}, {name: 1}).lean().then(
-            proposalTypeData => {
-                proposalType = proposalTypeData;
-                for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
-                    let prom;
+        return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
+            platformData => {
 
-                    if (option.isDX) {
-                        prom = dbconfig.collection_players.findOne({
-                            _id: playerObjIds[p]
-                        }, 'registrationTime domain').lean().then(
-                            playerData => {
-                                let qStartTime = new Date(playerData.registrationTime);
-                                let qEndTime = moment(qStartTime).add(query.days, 'day');
-
-                                return getPlayerRecord(playerObjIds[p], qStartTime, qEndTime, playerData.domain);
-                            }
-                        );
-
-                        proms.push(prom);
-                    } else if (option.isFeedback) {
-                        let feedBackIds = playerObjIds;
-                        let feedbackData;
-
-                        prom = dbconfig.collection_playerFeedback.findById(feedBackIds[p], 'createTime playerId adminId topic result content')
-                            .populate({path: 'adminId', select: '_id adminName', model: dbconfig.collection_admin})
-                            .lean().then(
-                                data => {
-                                    feedbackData = JSON.parse(JSON.stringify(data));
-                                    let qStartTime = new Date(feedbackData.createTime);
-                                    let qEndTime = moment(qStartTime).add(query.days, 'day');
-                                    return getPlayerRecord(feedbackData.playerId, qStartTime, qEndTime);
-                                }
-                            ).then(
-                                data => {
-                                    let playerRecord = JSON.parse(JSON.stringify(data));
-                                    if (typeof playerRecord === "object") {
-                                        playerRecord.feedback = feedbackData;
-                                    }
-                                    return playerRecord;
-                                }
-                            );
-                        proms.push(prom);
-                    }
-                    else {
-                        if (isPromoteWay) { // for search with filter promote way
-                            prom = dbconfig.collection_players.findOne({
-                                _id: playerObjIds[p]
-                            }, 'domain').then(
-                                playerData => {
-                                    return getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime), playerData.domain);
-                                }
-                            );
-                        } else {
-                            prom = getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime));
+                if (platformData && platformData.platformId) {
+                    return pmsAPI.merchant_getMerchantList(
+                        {
+                            platformId: platformData.platformId,
+                            queryId: serverInstance.getQueryId()
                         }
-                        // proms.push(getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime)));
-                        proms.push(prom);
-                    }
-
+                    ).then(
+                        data => {
+                            return data.merchants || [];
+                        }
+                    )
                 }
-
-                return Promise.all(proms);
-            },
-            error => {
-                return Promise.reject(error)
             }
         ).then(
-            data => {
-                return data.filter(result => {
-                    return result !== "";
-                });
+            merchantData => {
+                merchantList = merchantData;
+
+                return dbconfig.collection_proposalType.find({platformId: platformObjId}, {name: 1}).lean().then(
+                    proposalTypeData => {
+                        proposalType = proposalTypeData;
+                        for (let p = 0, pLength = playerObjIds.length; p < pLength; p++) {
+                            let prom;
+
+                            if (option.isDX) {
+                                prom = dbconfig.collection_players.findOne({
+                                    _id: playerObjIds[p]
+                                }, 'registrationTime domain').lean().then(
+                                    playerData => {
+                                        let qStartTime = new Date(playerData.registrationTime);
+                                        let qEndTime = moment(qStartTime).add(query.days, 'day');
+
+                                        return getPlayerRecord(playerObjIds[p], qStartTime, qEndTime, playerData.domain, true);
+                                    }
+                                );
+
+                                proms.push(prom);
+                            } else if (option.isFeedback) {
+                                let feedBackIds = playerObjIds;
+                                let feedbackData;
+
+                                prom = dbconfig.collection_playerFeedback.findById(feedBackIds[p], 'createTime playerId adminId topic result content')
+                                    .populate({path: 'adminId', select: '_id adminName', model: dbconfig.collection_admin})
+                                    .lean().then(
+                                        data => {
+                                            feedbackData = JSON.parse(JSON.stringify(data));
+                                            let qStartTime = new Date(feedbackData.createTime);
+                                            let qEndTime = moment(qStartTime).add(query.days, 'day');
+                                            return getPlayerRecord(feedbackData.playerId, qStartTime, qEndTime, null, true);
+                                        }
+                                    ).then(
+                                        data => {
+                                            let playerRecord = JSON.parse(JSON.stringify(data));
+                                            if (typeof playerRecord === "object") {
+                                                playerRecord.feedback = feedbackData;
+                                            }
+                                            return playerRecord;
+                                        }
+                                    );
+                                proms.push(prom);
+                            }
+                            else {
+                                if (isPromoteWay) { // for search with filter promote way
+                                    prom = dbconfig.collection_players.findOne({
+                                        _id: playerObjIds[p]
+                                    }, 'domain').then(
+                                        playerData => {
+                                            return getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime), playerData.domain);
+                                        }
+                                    );
+                                } else {
+                                    prom = getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime));
+                                }
+                                // proms.push(getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime)));
+                                proms.push(prom);
+                            }
+
+                        }
+
+                        return Promise.all(proms);
+                    },
+                    error => {
+                        return Promise.reject(error)
+                    }
+                ).then(
+                    data => {
+                        return data.filter(result => {
+                            return result !== "";
+                        });
+                    }
+                );
             }
         );
 
-        function getPlayerRecord(playerObjId, startTime, endTime, domain) {
+        function getPlayerRecord(playerObjId, startTime, endTime, domain, showPlatformFeeEstimate) {
             let result = {_id: playerObjId};
             playerObjId = {$in: [ObjectId(playerObjId), playerObjId]};
             let onlineTopUpTypeId = "";
@@ -16983,6 +17049,38 @@ let dbPlayerInfo = {
                 }
             ]).read("secondaryPreferred");
 
+            let onlineTopUpByMerchantProm = dbconfig.collection_proposal.aggregate([
+                {
+                    "$match": {
+                        "type": ObjectId(onlineTopUpTypeId),
+                        "data.playerObjId": playerObjId,
+                        "createTime": {
+                            "$gte": new Date(startTime),
+                            "$lte": new Date(endTime)
+                        },
+                        "mainType": "TopUp",
+                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                    }
+                },
+                {
+                    "$group": {
+                        "_id": {
+                            "merchantName": "$data.merchantName",
+                            "merchantNo": "$data.merchantNo"
+                        },
+                        "amount": {"$sum": "$data.amount"}
+                    }
+                },
+                {
+                    "$project": {
+                        _id: 0,
+                        merchantName: "$_id.merchantName",
+                        merchantNo: "$_id.merchantNo",
+                        amount: 1
+                    }
+                }
+            ]).read("secondaryPreferred");
+
             let playerQuery = {_id: playerObjId};
             if (query.playerLevel) {
                 playerQuery.playerLevel = query.playerLevel;
@@ -17090,7 +17188,7 @@ let dbPlayerInfo = {
                     model: dbconfig.collection_admin
                 }).lean() : Promise.resolve(false);
 
-            return Promise.all([consumptionProm, topUpProm, bonusProm, consumptionReturnProm, rewardProm, playerProm, promoteWayProm]).then(
+            return Promise.all([consumptionProm, topUpProm, bonusProm, consumptionReturnProm, rewardProm, playerProm, promoteWayProm, onlineTopUpByMerchantProm]).then(
                 data => {
                     if (!data[5]) {
                         return "";
@@ -17332,6 +17430,63 @@ let dbPlayerInfo = {
                     result.province = playerDetail.province ? playerDetail.province : null;
                     result.city = playerDetail.city ? playerDetail.city : null;
 
+                    let onlineTopUpDetailByMerchant = data && data[7] ? data[7] : [];
+                    let totalOnlineTopUpFee = 0;
+                    if (onlineTopUpDetailByMerchant && onlineTopUpDetailByMerchant.length > 0 && merchantList && merchantList.length > 0) {
+                        for (let i = 0, len = onlineTopUpDetailByMerchant.length; i < len; i++) {
+                            let onlineTopUpDetail = onlineTopUpDetailByMerchant[i];
+
+                            if (onlineTopUpDetail && onlineTopUpDetail.merchantNo && onlineTopUpDetail.merchantName) {
+                                let index = merchantList.findIndex(x => x && x.merchantNo && x.name && x.merchantNo == onlineTopUpDetail.merchantNo && x.name == onlineTopUpDetail.merchantName);
+                                let onlineTopUpAmount = onlineTopUpDetail && onlineTopUpDetail.amount ? onlineTopUpDetail.amount : 0;
+                                let rate = 0;
+                                let onlineTopUpFee = 0;
+
+                                if (index != -1) {
+                                    rate = merchantList[index] && merchantList[index].rate ? merchantList[index].rate : 0;
+                                    onlineTopUpFee = onlineTopUpAmount * rate;
+
+                                    onlineTopUpDetail.onlineToUpFee = onlineTopUpFee;
+                                    onlineTopUpDetail.onlineTopUpServiceChargeRate = rate;
+                                } else {
+                                    onlineTopUpFee = onlineTopUpAmount * rate;
+
+                                    onlineTopUpDetail.onlineToUpFee = onlineTopUpFee;
+                                    onlineTopUpDetail.onlineTopUpServiceChargeRate = rate;
+                                }
+                            }
+                        }
+
+                        totalOnlineTopUpFee = onlineTopUpDetailByMerchant.reduce((sum, value) => sum + value.onlineToUpFee, 0);
+                    }
+
+                    result.onlineTopUpFeeDetail = onlineTopUpDetailByMerchant && onlineTopUpDetailByMerchant.length > 0 ? onlineTopUpDetailByMerchant : [];
+                    result.totalOnlineTopUpFee = totalOnlineTopUpFee;
+
+                    if (showPlatformFeeEstimate) {
+                        result.platformFeeEstimate = {}
+                        result.totalPlatformFeeEstimate = 0;
+                        return dbconfig.collection_platformFeeEstimate.findOne({platform: platformObjId}).populate({
+                            path: 'platformFee.gameProvider',
+                            model: dbconfig.collection_gameProvider
+                        }).then(
+                            feeData => {
+                                if (result.providerDetail && Object.keys(result.providerDetail).length && feeData && feeData.platformFee && feeData.platformFee.length) {
+                                    feeData.platformFee.forEach(provider => {
+                                        if (provider.gameProvider && provider.gameProvider._id && result.providerDetail.hasOwnProperty(String(provider.gameProvider._id))) {
+                                            let gameProviderName = String(provider.gameProvider.name);
+                                            result.platformFeeEstimate[gameProviderName] = (result.providerDetail[String(provider.gameProvider._id)].bonusAmount * -1) * provider.feeRate;
+                                            if (result.platformFeeEstimate[gameProviderName] < 0) {
+                                                result.platformFeeEstimate[gameProviderName] = 0;
+                                            }
+                                            result.totalPlatformFeeEstimate += result.platformFeeEstimate[gameProviderName];
+                                        }
+                                    })
+                                }
+                                return result;
+                            }
+                        )
+                    }
                     return result;
                 }
             );

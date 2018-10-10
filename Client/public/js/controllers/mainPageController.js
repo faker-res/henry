@@ -1294,6 +1294,18 @@ define(['js/app'], function (myApp) {
                 vm.processRoleData();
             };
 
+            vm.allRoleSelection = function (flag) {
+                vm.showRoleFlag = $.extend(true, {}, vm.allView);
+                $.each(vm.showRoleFlag, function (cate, cateData) {
+                    $.each(cateData, function (sectionName, sectionData) {
+                        $.each(sectionData, function (viewName, viewData) {
+                            vm.showRoleFlag[cate][sectionName][viewName] = flag;
+                        });
+                        vm.policytoggle[cate][sectionName].all = flag;
+                    });
+                });
+            };
+
             //if there are selected users, for button status such as delete, move etc
             vm.isUserSelected = function () {
                 for (var k in vm.userTableRowSelected) {

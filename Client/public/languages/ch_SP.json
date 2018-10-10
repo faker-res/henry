@@ -117,6 +117,7 @@
   "Topup Proposal": "充值提案",
   "Bonus Proposal": "提款提案",
   "Reward Proposal": "优惠提案",
+  "Reward Proposal Amount": "优惠提案金额",
   "ReturnFix Proposal": "返单提案",
   "# of % selected": "选中# / 全部%",
   "ADMIN_ACTIONS": "用户行为",
@@ -1162,6 +1163,9 @@
   "Show Options": "显示选项",
   "settlementStartTime": "结算开始时间",
   "settlementEndTime": "结算截至时间",
+  "intervalTopupSum": "周期内总存款",
+  "intervalBonusSum": "周期内总提款",
+  "playerCreditLogSum": "玩家0点余额",
   "consumptionAmount": "总有效投注额",
   "OVERVIEW": "总览",
   "ALL_PLATFORM": "全部平台",
@@ -4240,6 +4244,7 @@
   "Not send": "未发送",
   "Sent": "已发送",
 
+  "Reward (Amount OR %)" : "优惠（金额 OR %）",
   "TOTAL_REWARD_FEE" : "需扣除的优惠",
   "TOTAL_PLATFORM_FEE" :  "需扣除的平台费",
   "TOTAL_TOPUP_FEE" : "需扣除的总存款手续费",
@@ -4609,7 +4614,6 @@
   "platformFeeEstimateSetting": "平台费估算设置",
   "platformFeeEstimateSetting (show in report)": "平台费估算设置（报表中呈现）",
   "PLAYER_CONSUMPTION_TREND": "投注人数趋势",
-  "remove decimal": "删除小数",
   "Credit Charge(Service Charge Deducted)": "提款金额（已扣手续费）",
   "ximaWithdrawUsed": "提款洗码金额",
   "actualCreditCharge": "实际手续费",
@@ -4617,5 +4621,7 @@
   "autoAuditDetail": "自动审核详情",
   "bankInfoWhenSubmit": "提交瞬间银行卡",
   "bankInfoWhenApprove": "审核瞬间银行卡",
-  "bankcard no:": "卡号: "
+  "bankcard no:": "卡号: ",
+  "Online Top Up Fee": "在线充值费用",
+  "Check All Selection": "全部勾选"
 }

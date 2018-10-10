@@ -810,6 +810,8 @@ function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSettin
     let admin, html;
     html = generateLargeWithdrawalDetailEmail(largeWithdrawalLog, largeWithdrawalSetting, allRecipientEmail);
 
+    let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
+
     return dbconfig.collection_admin.findOne({_id: adminObjId}).lean().then(
         adminData => {
             if (!adminData) {
@@ -839,6 +841,10 @@ function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSettin
                 body: html, // html content
                 isHTML: true
             };
+
+            if (allEmailStr) {
+                emailConfig.replyTo = allEmailStr;
+            }
 
             return emailer.sendEmail(emailConfig);
         }
@@ -1144,7 +1150,7 @@ function generateLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
             provider.playerBonusAmountByType = provider.playerBonusAmountByType || {};
             html += `<td style="border: solid 1px black; padding: 3px">`;
             Object.keys(provider.playerBonusAmountByType).map(function(key) {
-                let val = provider.consumptionAmountByType[key];
+                let val = provider.playerBonusAmountByType[key];
                 let str = key + ": " + dbutility.noRoundTwoDecimalPlaces(val);
                 html += `<span style="white-space: pre-line"> ${str} </span><br>`;
             });
@@ -1287,7 +1293,7 @@ function generateLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
             provider.playerBonusAmountByType = provider.playerBonusAmountByType || {};
             html += `<td style="border: solid 1px black; padding: 3px">`;
             Object.keys(provider.playerBonusAmountByType).map(function(key) {
-                let val = provider.consumptionAmountByType[key];
+                let val = provider.playerBonusAmountByType[key];
                 let str = key + ": " + dbutility.noRoundTwoDecimalPlaces(val);
                 html += `<span style="white-space: pre-line"> ${str} </span><br>`;
             });
@@ -2053,7 +2059,9 @@ function getTotalConsumptionByTime (playerObj, startTime, endTime) {
 
 function getTotalTopUpByTime (playerObj, startTime, endTime) {
     let matchQuery = {
-        playerId: playerObj._id,
+        mainType: "TopUp",
+        'data.playerObjId': playerObj._id,
+        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
     }
     if (startTime && endTime) {
         matchQuery.createTime = {
@@ -2061,12 +2069,13 @@ function getTotalTopUpByTime (playerObj, startTime, endTime) {
             $lt: endTime
         }
     }
-    return dbconfig.collection_playerTopUpRecord.aggregate([{
+
+    return dbconfig.collection_proposal.aggregate([{
         $match: matchQuery
     }, {
         $group: {
             _id: null,
-            amount: {$sum: "$amount"}
+            amount: {$sum: "$data.amount"}
         }
     }]).read("secondaryPreferred").then(
         topUpData => {

@@ -1036,6 +1036,7 @@ var dbPlayerTopUpRecord = {
                 updateData.data = Object.assign({}, proposal.data);
                 updateData.data.requestId = merchantResponse.result ? merchantResponse.result.requestId : "";
                 updateData.data.merchantNo = merchantResponse.result ? merchantResponse.result.merchantNo : "";
+                updateData.data.merchantName = merchantResponse.result ? merchantResponse.result.merchantName : "";
                 if (res[0]) {
                     updateData.data.cardQuota = res[0].totalAmount;
                 }
