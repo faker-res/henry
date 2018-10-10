@@ -224,6 +224,12 @@ function socketActionDepartment(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data && data.departmentIds);
             socketUtil.emitter(self.socket, dbDepartment.getDepartmentTreeByIds, [data.departmentIds], actionName, isDataValid);
+        },
+
+        getDepartmentById: function getDepartmentById(data) {
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data && data.departmentObjId);
+            socketUtil.emitter(self.socket, dbDepartment.getDepartmentById, [data.departmentObjId], actionName, isDataValid);
         }
     };
 

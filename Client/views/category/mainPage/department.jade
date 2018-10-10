@@ -30,6 +30,9 @@
                     button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'Department', 'Update')" ng-disabled="!vm.SelectedDepartmentNode || vm.pageActionStatus!='null'", data-toggle="{{vm.SelectedDepartmentNode ? 'modal' : ''}}", data-target='#modalUpdateDepartment', ng-click="vm.newDepartmentName=vm.SelectedDepartmentNode.text;vm.newDepartment.icon=vm.SelectedDepartmentNode.departData.icon;vm.getIconList();")
                         text {{'UPDATE' | translate}}
                         img.img-edit
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'Department', 'Update')" ng-disabled="!vm.SelectedDepartmentNode || vm.pageActionStatus!='null'", data-toggle="{{vm.SelectedDepartmentNode ? 'modal' : ''}}", data-target='#modalUpdateSubDepartmentPermission', ng-click="vm.showManageSubDepartmentPermissionModal(vm.allView);vm.newDepartmentName=vm.SelectedDepartmentNode.text;")
+                        text {{'Manage Sub Department Permission' | translate}}
+                        img.img-edit
                     //a.btn.btn-primary.common-button(ng-disabled="!vm.SelectedDepartmentNode || vm.pageActionStatus!='null'",, data-toggle="modal", data-target='#modalDepartmentPlatform')
                         text {{'PLATFORM' | translate}}
                         img.img-platform
@@ -160,6 +163,44 @@
                                     //li {{"DELETE_DEPARTMENT_CONFIRM" | translate}}
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.deleteDepartment();") {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalUpdateSubDepartmentPermission.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title  {{"Manage Sub Department Permission" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        #permission.col-sm-12
+                            .panel.panel-primary(style="min-height: 620px;")
+                                .panel-heading.padding-all-5
+                                    .text-center
+                                        .panel-title {{'PERMISSION' | translate}}
+                                .panel-body
+                                    span(ng-if='!vm.showView') {{'Do not have permission setting' | translate}}
+                                    #adminPolicy(ng-if='vm.showView')
+                                        .btn-group.btn-group-vertical
+                                            button.btn.btn-default(class='{{vm.subRoleCategory[i]}}', ng-repeat=("(i,v) in vm.viewList"), ng-click='vm.expandSubPolicySection(i)') {{i|translate}}
+                                        .panel.panel-primary(style="min-height: 550px;")
+                                            .panel-heading.panel-heading-sm
+                                                .panel-title(ng-if='!vm.subPolicyCategory.title') {{"Please select a category" |translate}}
+                                                .panel-title(ng-if='vm.subPolicyCategory.title') {{vm.subPolicyCategory.title | translate}}
+                                            .panel-body(style='height:500px;overflow-y:auto', ng-class='vm.subShowRoleFlag[vm.subPolicyCategory.title].all ? "subDisabled":"" ')
+                                                .panel.panel-info(ng-repeat='(sectionName,sectionData) in vm.viewList[vm.subPolicyCategory.title]')
+                                                    .panel-heading.panel-heading-sm
+                                                        .panel-title {{sectionName | translate}}
+                                                            label.pull-right {{'ALL' | translate}}
+                                                                input(type='checkbox', ng-change='vm.toggleSubGroupPermissionCheckbox(vm.subPolicytoggle[vm.subPolicyCategory.title][sectionName].all,vm.subPolicyCategory.title,sectionName)', ng-model='vm.subPolicytoggle[vm.subPolicyCategory.title][sectionName].all')
+                                                    .panel-body.adminleafPanel
+                                                        div(ng-repeat='(propName,propV) in sectionData')
+                                                            label {{propName | translate}}
+                                                                input.pull-left(type='checkbox', ng-model='vm.subShowRoleFlag[vm.subPolicyCategory.title][sectionName][propName]', ng-change='vm.subPolicyToggleCheck(vm.subShowRoleFlag[vm.subPolicyCategory.title][sectionName].all,vm.subPolicyCategory.title,sectionName,propName)')
+
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.submitUpdateSubDepartmentPermission();") {{"UPDATE" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
 //#modalDepartmentPlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
