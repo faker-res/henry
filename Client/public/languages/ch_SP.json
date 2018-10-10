@@ -4624,5 +4624,7 @@
   "bankInfoWhenApprove": "审核瞬间银行卡",
   "bankcard no:": "卡号: ",
   "Online Top Up Fee": "在线充值费用",
-  "Check All Selection": "全部勾选"
+  "Check All Selection": "全部勾选",
+  "Manage Sub Department Permission": "赋予下级部门权限",
+  "Do not have permission setting": "请设置部门权限"
 }
