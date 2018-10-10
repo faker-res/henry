@@ -6,6 +6,7 @@ module.exports = new dbLargeWithdrawalFunc();
 
 const dbconfig = require("./../modules/dbproperties");
 const dbutility = require("./../modules/dbutility");
+const dbProposalUtility = require("./../db_common/dbProposalUtility");
 const emailer = require("./../modules/emailer");
 const constSystemParam = require('./../const/constSystemParam');
 const constProposalStatus = require('./../const/constProposalStatus');
@@ -613,7 +614,7 @@ const dbLargeWithdrawal = {
                 }
                 proposal = proposalData;
 
-                return createProposalProcessStep(proposal, adminObjId, status, memo).catch(errorUtils.reportError);
+                return dbProposalUtility.createProposalProcessStep(proposal, adminObjId, status, memo).catch(errorUtils.reportError);
             }
         ).then(
             () => {
@@ -1793,46 +1794,7 @@ function getLogDetailEmailSubject (log, isPartner) {
     return str;
 }
 
-function createProposalProcessStep (proposal, adminObjId, status, memo) {
-    let proposalTypeProm = dbconfig.collection_proposalType.findOne({_id: proposal.type}).populate({path: "process", model: dbconfig.collection_proposalTypeProcess}).lean();
-    let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
 
-    return Promise.all([proposalTypeProm, adminProm]).then(
-        ([proposalType, admin]) => {
-            if (!proposalType || !admin) {
-                return Promise.resolve();
-            }
-
-            if (!proposalType.process || !proposalType.process.steps || !proposalType.process.steps.length) {
-                return Promise.resolve();
-            }
-
-            let proposalTypeProcessStepId = proposalType.process.steps[0] || ObjectId();
-
-            let proposalProcessStepData = {
-                status,
-                memo,
-                operator: adminObjId,
-                operationTime: new Date(),
-                type: proposalTypeProcessStepId,
-                department: admin.departments && admin.departments[0] || undefined,
-                role: admin.roles && admin.roles[0] || undefined,
-                createTime: new Date()
-            };
-
-            let proposalProcessStep = new dbconfig.collection_proposalProcessStep(proposalProcessStepData);
-            return proposalProcessStep.save();
-        }
-    ).then(
-        stepObj => {
-            if (!stepObj) {
-                return Promise.resolve();
-            }
-
-            return dbconfig.collection_proposalProcess.findOneAndUpdate({_id: proposal.process}, {$addToSet: {steps: stepObj._id}}, {new: true}).lean();
-        }
-    );
-}
 
 function generateLargeWithdrawalAuditedInfoEmail (proposalData, proposalProcessStep, auditor, auditorDepartment, bSuccess) {
     let lockStatus = proposalData.isLocked && proposalData.isLocked.adminName || "未锁定";
