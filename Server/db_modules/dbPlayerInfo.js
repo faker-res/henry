@@ -13662,7 +13662,7 @@ let dbPlayerInfo = {
                                         rewardData.previewDate = data.previewDate;
                                     }
                                     rewardData.smsCode = data.smsCode;
-                                    return dbPlayerReward.applyGroupReward(userAgent, playerInfo, rewardEvent, adminInfo, rewardData, isPreview);
+                                    return dbPlayerReward.applyGroupReward(userAgent, playerInfo, rewardEvent, adminInfo, rewardData, isPreview, isBulkApply);
                                     break;
                                 default:
                                     return Q.reject({
