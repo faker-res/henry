@@ -1204,6 +1204,8 @@ define(['js/app'], function (myApp) {
 
             //search and select platform node
             function searchAndSelectPlatform (text, option) {
+                text = text.replace("(", "\\(");
+                text = text.replace(")", "\\)");
                 var findNodes = $('#platformTree').treeview('search', [text, {
                     ignoreCase: false,
                     exactMatch: true
