@@ -4243,6 +4243,7 @@
   "Mailing Status:": "邮件状态：",
   "Not send": "未发送",
   "Sent": "已发送",
+  "audit link domain": "审核链接域名",
 
   "Reward (Amount OR %)" : "优惠（金额 OR %）",
   "TOTAL_REWARD_FEE" : "需扣除的优惠",

@@ -28607,6 +28607,7 @@ define(['js/app'], function (myApp) {
                         showLastThreeMonthWithdraw: srcData.showLastThreeMonthWithdraw,
                         showLastThreeMonthTopUpWithdrawDifference: srcData.showLastThreeMonthTopUpWithdrawDifference,
                         showLastThreeMonthConsumptionAmount: srcData.showLastThreeMonthConsumptionAmount,
+                        domain: srcData.domain,
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalSetting', sendData, function (data) {
@@ -28630,6 +28631,7 @@ define(['js/app'], function (myApp) {
                         showTotalDownlinePartnersCount: srcData.showTotalDownlinePartnersCount,
                         showProposalId: srcData.showProposalId,
                         showAllPartnerRelatedProposal: srcData.showAllPartnerRelatedProposal,
+                        domain: srcData.domain,
                     }
                 };
                 socketService.$socket($scope.AppSocket, 'updateLargeWithdrawalPartnerSetting', sendData, function (data) {
