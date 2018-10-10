@@ -3,7 +3,7 @@ const url = require('url');
 const fs = require('fs');
 const path = require('path');
 const env = require("./config/env").config();
-const port = env.redisPort || 1702;
+const port = env.redisPort || 1802;
 
 const privateKeyPath = "./playerPhone.key.pem";
 const replacedPrivateKeyPath = "./playerPhone.key.pem.bak";

@@ -147,6 +147,9 @@ var clientQnATemplateModel = db_admin.model('clientQnATemplate', clientQnATempla
 var clientQnATemplateConfigSchema = require('../schema/clientQnATemplateConfig');
 var clientQnATemplateConfigModel = db_admin.model('clientQnATemplateConfig', clientQnATemplateConfigSchema, 'clientQnATemplateConfig');
 
+var platformFeeEstimateSchema = require('../schema/platformFeeEstimate');
+var platformFeeEstimateModel = db_admin.model('platformFeeEstimate', platformFeeEstimateSchema, 'platformFeeEstimate');
+
 var platformBankCardListSchema = require('./../schema/platformBankCardList');
 var platformBankCardListModel = db_admin.model('platformBankCardList', platformBankCardListSchema, 'platformBankCardList');
 
@@ -523,6 +526,7 @@ var dbProperties = {
     collection_clientQnATemplate: clientQnATemplateModel,
     collection_clientQnATemplateConfig: clientQnATemplateConfigModel,
     collection_resetPasswordVerification: resetPasswordVerificationModel,
+    collection_platformFeeEstimate: platformFeeEstimateModel,
     collection_platformBankCardList: platformBankCardListModel,
     collection_platformMerchantGroup: platformMerchantGroupModel,
     collection_platformMerchantList: platformMerchantListModel,

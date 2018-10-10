@@ -26,6 +26,7 @@ var proposalExecutor = require('./../modules/proposalExecutor');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var dbutility = require('./../modules/dbutility');
+var dbProposalUtility = require('./../db_common/dbProposalUtility');
 var pmsAPI = require('../externalAPI/pmsAPI');
 var moment = require('moment-timezone');
 var errorUtils = require("../modules/errorUtils.js");
@@ -1136,7 +1137,7 @@ var proposal = {
         return deferred.promise;
     },
 
-    cancelProposal: function (proposalId, adminId, remark) {
+    cancelProposal: function (proposalId, adminId, remark, adminObjId) {
         return dbconfig.collection_proposal.findOne({_id: proposalId})
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
             .populate({path: "type", model: dbconfig.collection_proposalType})
@@ -1151,16 +1152,21 @@ var proposal = {
                                 && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT))) {
                             return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true)
                                 .then(successData => {
+                                    let updateData = {
+                                        "data.lastSettleTime": Date.now(),
+                                        settleTime: Date.now(),
+                                        noSteps: true,
+                                        process: null,
+                                        status: constProposalStatus.CANCEL,
+                                        "data.cancelBy": "客服：" + adminId
+                                    };
+                                    if (proposalData.type.name == constProposalType.PLAYER_BONUS || proposalData.type.name == constProposalType.PARTNER_BONUS) {
+                                        dbProposalUtility.createProposalProcessStep(proposalData, adminObjId, constProposalStatus.CANCEL, remark).catch(errorUtils.reportError);
+                                        delete updateData.process;
+                                    }
                                     return dbconfig.collection_proposal.findOneAndUpdate(
                                         {_id: proposalData._id, createTime: proposalData.createTime},
-                                        {
-                                            "data.lastSettleTime": Date.now(),
-                                            settleTime: Date.now(),
-                                            noSteps: true,
-                                            process: null,
-                                            status: constProposalStatus.CANCEL,
-                                            "data.cancelBy": "客服：" + adminId
-                                        },
+                                        updateData,
                                         {new: true}
                                     );
                                 })

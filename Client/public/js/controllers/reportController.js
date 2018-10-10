@@ -3063,6 +3063,21 @@ define(['js/app'], function (myApp) {
                         item.consumptionBonusAmount ? vm.feedbackDataSum.consumptionBonusAmount += item.consumptionBonusAmount : null;
                         item.consumptionAmount ? vm.feedbackDataSum.consumptionAmount += item.consumptionAmount : null;
 
+                        if (item.onlineTopUpFeeDetail && item.onlineTopUpFeeDetail.length > 0) {
+                            let detailArr = [];
+                            item.onlineTopUpFeeDetail.forEach((detail, index) => {
+                                if (detail && detail.merchantName && detail.hasOwnProperty('onlineToUpFee') && detail.hasOwnProperty('onlineTopUpServiceChargeRate')) {
+                                    let orderNo = index ? index + 1 : 1;
+                                    detailArr.push(orderNo + '. ' + detail.merchantName + ': ' + detail.amount + $translate("YEN") + ' * ' + parseFloat(detail.onlineTopUpServiceChargeRate * 100).toFixed(2) + '%');
+                                }
+                            });
+
+                            item.onlineTopUpFeeDetail$ = detailArr && detailArr.length > 0 ? detailArr.join('\n') : '';
+                        } else {
+                            item.onlineTopUpFeeDetail$ = '';
+                        }
+                        item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
+
                         return item;
                     });
 
@@ -3127,6 +3142,8 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'feedbackAdminName$', 'aTargets': [21], bSortable: true},
                     {'sortCol': 'feedbackTopic$', 'aTargets': [22], bSortable: true},
                     {'sortCol': 'consumptionAmount', 'aTargets': [23], bSortable: true},
+                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [24], bSortable: true},
+                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [25], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -3169,7 +3186,39 @@ define(['js/app'], function (myApp) {
                             return "<a>" + data + "</a>";
                         }
                     },
-                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: "sumFloat"}
+                    {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: "sumFloat"},
+                    {
+                        title: $translate("Platform Fee"), data: "totalPlatformFeeEstimate",
+                        render: function (data, type, row) {
+                            data = data || 0;
+                            let feeDetails = "";
+                            if (row && row.platformFeeEstimate) {
+                                for (let key in row.platformFeeEstimate) {
+                                    if (feeDetails) {
+                                        feeDetails += "\n";
+                                    }
+                                    feeDetails += (key + ": " + row.platformFeeEstimate[key]);
+                                }
+                            }
+                            return $('<a data-toggle="tooltip" title=\'' + feeDetails + '\'  data-placement= "left"></a>')
+                                .attr('data-row', JSON.stringify(row))
+                                .text((data))
+                                .prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate("Online Top Up Fee"), data: "totalOnlineTopUpFee$",
+                        render: function (data, type, row) {
+                            var link = $('<div>', {});
+                            link.append($('<a>', {
+                                'data-toggle': 'tooltip',
+                                'title': row.onlineTopUpFeeDetail$,
+                                'data-placement': 'left',
+                            }).text(data));
+                            return link.prop('outerHTML');
+                        },
+                        "sClass": "sumFloat"
+                    }
                 ],
                 "paging": false,
                 "language": {
@@ -4481,6 +4530,21 @@ define(['js/app'], function (myApp) {
                     item.phoneArea$ = item.phoneProvince + " " + item.phoneCity;
                     item.ipArea$ = item.province + " " + item.city;
 
+                    if (item.onlineTopUpFeeDetail && item.onlineTopUpFeeDetail.length > 0) {
+                        let detailArr = [];
+                        item.onlineTopUpFeeDetail.forEach((detail, index) => {
+                            if (detail && detail.merchantName && detail.hasOwnProperty('onlineToUpFee') && detail.hasOwnProperty('onlineTopUpServiceChargeRate')) {
+                                let orderNo = index ? index + 1 : 1;
+                                detailArr.push(orderNo + '. ' + detail.merchantName + ': ' + detail.amount + $translate("YEN") + ' * ' + parseFloat(detail.onlineTopUpServiceChargeRate * 100).toFixed(2) + '%');
+                            }
+                        });
+
+                        item.onlineTopUpFeeDetail$ = detailArr && detailArr.length > 0 ? detailArr.join('\n') : '';
+                    } else {
+                        item.onlineTopUpFeeDetail$ = '';
+                    }
+                    item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
+
                     return item;
                 }), data.data.size, newSearch, isExport);
                 $scope.safeApply();
@@ -4512,6 +4576,8 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'consumptionAmount', 'aTargets': [18], bSortable: true},
                     {'sortCol': 'phoneArea', 'aTargets': [19], bSortable: true},
                     {'sortCol': 'ipArea', 'aTargets': [20], bSortable: true},
+                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [24], bSortable: true},
+                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [25], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -4548,6 +4614,38 @@ define(['js/app'], function (myApp) {
                     {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"},
                     {title: $translate("PHONE_LOCATION"), data: "phoneArea$"},
                     {title: $translate("IP_LOCATION"), data: "ipArea$"},
+                    {
+                        title: $translate("Platform Fee"), data: "totalPlatformFeeEstimate",
+                        render: function (data, type, row) {
+                            data = data || 0;
+                            let feeDetails = "";
+                            if (row && row.platformFeeEstimate) {
+                                for (let key in row.platformFeeEstimate) {
+                                    if (feeDetails) {
+                                        feeDetails += "\n";
+                                    }
+                                    feeDetails += (key + ": " + row.platformFeeEstimate[key]);
+                                }
+                            }
+                            return $('<a data-toggle="tooltip" title=\'' + feeDetails + '\'  data-placement= "left"></a>')
+                                .attr('data-row', JSON.stringify(row))
+                                .text((data))
+                                .prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate("Online Top Up Fee"), data: "totalOnlineTopUpFee$",
+                        render: function (data, type, row) {
+                            var link = $('<div>', {});
+                            link.append($('<a>', {
+                                'data-toggle': 'tooltip',
+                                'title': row.onlineTopUpFeeDetail$,
+                                'data-placement': 'left',
+                            }).text(data));
+                            return link.prop('outerHTML');
+                        },
+                        "sClass": "sumFloat"
+                    }
                 ],
                 "paging": false,
                 // "dom": '<"top">rt<"bottom"il><"clear">',
@@ -5154,7 +5252,7 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {title: $translate('order'), data: 'indexNo$'},
-                    {title: $translate('PLAYER_NAME'), data: "_id.name", sClass: "sumText"},
+                    {title: $translate('PLAYER_NAME'), data: "_id.name", sClass: "sumText", orderable: false},
                     {title: $translate('BET_TYPE_CONSUMPTION'), data: "selectedBetTypeAmt", sClass: 'sumFloat alignRight'},
                     {title: $translate('GAME_TYPE_CONSUMPTION'), data: "totalBetAmt", sClass: 'sumFloat alignRight'},
                     {title: $translate('GAME_TYPE_CONSUMPTION') + "/ <br>" + $translate('BET_TYPE_CONSUMPTION') + "(%)", data: "betAmtPercent", sClass: 'betAmtPercent alignRight'},
