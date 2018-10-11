@@ -3202,7 +3202,8 @@ define(['js/app'], function (myApp) {
                                 return true;
                             }
                             var newObj = v.game;
-                            newObj.index = (v && v.index) ? v.index : 1;
+                            // if there is no index, assign to the last index according to the total length
+                            newObj.index = (v && v.index) ? v.index : data2.data.games.length + 1;
                             if(newObj.changedName && newObj.changedName.hasOwnProperty(vm.selectedPlatform.data.platformId)){
                                 newObj.name$ = newObj.changedName[vm.selectedPlatform.data.platformId] || newObj.name;
                                 newObj.isDefaultName = newObj.changedName[vm.selectedPlatform.data.platformId] && newObj.changedName[vm.selectedPlatform.data.platformId] != ''
@@ -3335,36 +3336,71 @@ define(['js/app'], function (myApp) {
                 });
             }
 
-            vm.updateGameIndexGameGroup = function (newIndex) {
+            vm.updateGameIndexGameGroup = function (newIndex, gamesGroup) {
                 var gameId = vm.curGame._id;
                 var sendData = {
                     query: {
                         platform: vm.selectedPlatform.id,
                         groupId: vm.SelectedGameGroupNode.groupData.groupId
                     },
-                    update: {
-                        "$pull": {
-                            'games': {game: gameId}
-                        }
-                    }
+                    // update: {
+                    //     "$pull": {
+                    //         'games': {game: gameId}
+                    //     }
+                    // },
+                    gamesGroup: gamesGroup,
+                    newIndex: newIndex,
+                    gameObjId: gameId
                 }
                 socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, success);
 
                 function success(data) {
-                    sendData.update = {
-                        "$addToSet": {
-                            games: {
-                                index: newIndex,
-                                game: gameId,
-                            }
-                        }
-                    }
-                    socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, function (newData) {
+                    // sendData.update = {
+                    //     "$addToSet": {
+                    //         games: {
+                    //             index: newIndex,
+                    //             game: gameId,
+                    //         }
+                    //     }
+                    // }
+                    // socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, function (newData) {
                         vm.curGame = null;
                         vm.gameGroupClicked(0, vm.SelectedGameGroupNode);
-                    });
+                    // });
                 }
             }
+
+            // vm.updateGameIndexGameGroup = function (newIndex, gamesGroup) {
+            //     var gameId = vm.curGame._id;
+            //     var sendData = {
+            //         query: {
+            //             platform: vm.selectedPlatform.id,
+            //             groupId: vm.SelectedGameGroupNode.groupData.groupId
+            //         },
+            //         update: {
+            //             "$pull": {
+            //                 'games': {game: gameId}
+            //             }
+            //         },
+            //         data: gamesGroup
+            //     }
+            //     socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, success);
+            //
+            //     function success(data) {
+            //         sendData.update = {
+            //             "$addToSet": {
+            //                 games: {
+            //                     index: newIndex,
+            //                     game: gameId,
+            //                 }
+            //             }
+            //         }
+            //         socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, function (newData) {
+            //             vm.curGame = null;
+            //             vm.gameGroupClicked(0, vm.SelectedGameGroupNode);
+            //         });
+            //     }
+            // }
 
             vm.initRenameGameGroup = function () {
                 vm.newGameGroup = {};

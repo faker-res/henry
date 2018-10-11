@@ -70,8 +70,8 @@ function socketActionGameGroup(socketIO, socket) {
          */
         updatePlatformGameGroup: function updatePlatformGameGroup(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.query && data.update);
-            socketUtil.emitter(self.socket, dbPlatformGameGroup.updatePlatformGameGroup, [data.query, data.update], actionName, isValidData);
+            var isValidData = Boolean(data && data.query && data.hasOwnProperty('newIndex') && data.gamesGroup && data.gameObjId);
+            socketUtil.emitter(self.socket, dbPlatformGameGroup.updatePlatformGameGroup, [data.query, data.newIndex, data.gamesGroup, data.gameObjId], actionName, isValidData);
         },
         /**
          * Update gameGroup's parent / Move game group to another parent group
