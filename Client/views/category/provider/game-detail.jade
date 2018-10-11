@@ -9,7 +9,7 @@
                     .row
                         .gameBigIcon
                             img.thumb(ng-if='vm.bigPicFile', ngf-thumbnail='vm.bigPicFile')
-                            img.thumb(ng-if='!vm.bigPicFile', src='{{vm.showGame.bigIcon}}')
+                            img.thumb(ng-if='!vm.bigPicFile', ng-src='{{vm.showGame.bigIcon}}')
                             .text-center
                                 a(ng-if='vm.gameEditStatus!="delete" && (!vm.changeBigPic || !vm.bigPicFile)', ng-click='vm.triggerUploadFile("big");vm.changeBigPic=true') {{"CHANGE_PIC" | translate}}
                             a.fa.fa-2x.fa-check-circle(ng-if='vm.bigPicFile && vm.changeBigPic', ng-click='vm.uploadPic(vm.bigPicFile,"big");vm.changeBigPic=false') {{"UPLOAD" | translate}}
@@ -26,7 +26,7 @@
                                         span(ng-show='vm.bigPicFile.result') Upload Successful
                         .gameSmallIcon
                             img.thumb(ng-if='vm.smallPicFile', ngf-thumbnail='vm.smallPicFile')
-                            img.thumb(ng-if='!vm.smallPicFile', src='{{vm.showGame.smallIcon}}')
+                            img.thumb(ng-if='!vm.smallPicFile', ng-src='{{vm.showGame.smallIcon}}')
                             .text-center
                                 a(ng-if='vm.gameEditStatus!="delete" && (!vm.changeSmallPic || !vm.smallPicFile)', ng-click='vm.triggerUploadFile("small");vm.changeSmallPic=true') {{"CHANGE_PIC" | translate}}
                             a.fa.fa-2x.fa-check-circle(ng-if='vm.smallPicFile && vm.changeSmallPic', ng-click='vm.uploadPic(vm.smallPicFile,"small");vm.changeSmallPic=false') {{"UPLOAD" | translate}}

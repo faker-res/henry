@@ -8,7 +8,7 @@
                     button.fa.fa-check.gameStat(ng-show='vm.changingStatus[v._id]', ng-click="vm.changeGameStatus(v,vm.allGameStatusString.ENABLE);vm.changingStatus[v._id]=false;")
                     button.fa.fa-times.gameStat(ng-show='vm.changingStatus[v._id]', ng-click="vm.changeGameStatus(v,vm.allGameStatusString.DISABLE);vm.changingStatus[v._id]=false;")
                 td(style='width:160px;', ng-click='vm.gameClicked(i,v)')
-                    img.thumb(ng-if="v.bigShow$" src='{{v.bigShow$}}')
+                    img.thumb(ng-if="v.bigShow$" ng-src='{{v.bigShow$}}')
                     img.fa.fa-times.thumb(ng-if="!v.bigShow$")
                 td(style='width:30px')
         label(title='{{v.name}}', class='{{vm.getGameStatusColorClass(v)}}') &nbsp;&nbsp;&nbsp;&nbsp;{{"GAME_TITLE" | translate}} :&nbsp;
