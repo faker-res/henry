@@ -526,13 +526,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
             //     canApprove = false;
             // }
 
-            console.log("LH check bonus E ----------", bIsPaymentInfoMatched);
-            console.log("LH check bonus F ----------", platformObj.manualAuditAfterBankChanged);
-            console.log("LH check bonus G ----------", !bIsPaymentInfoMatched);
-            console.log("LH check bonus H ----------", platformObj.manualAuditAfterBankChanged !== false);
-            console.log("LH check bonus I ----------", !bIsPaymentInfoMatched && platformObj.manualAuditAfterBankChanged !== false);
             if (!bIsPaymentInfoMatched && platformObj.manualAuditAfterBankChanged !== false) {
-                console.log("LH check bonus J ----------");
                 checkMsg += ' Denied: Bank Info Not Matched;';
                 checkMsgChinese += ' 失败：提款资料与上次银改不符;';
                 canApprove = false;
@@ -1579,13 +1573,9 @@ function isFirstWithdrawalAfterPaymentInfoUpdated(proposals) {
 
 function isPaymentInfoMatched(proposals, playerData){
     let length = proposals.length;
-    console.log("LH check bonus A ----------", proposals);
-    console.log("LH check bonus B ----------", playerData);
     for (let i = 0; i < length; i++) {
         let proposal = proposals[i];
         if (proposal.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposal.status == constProposalStatus.APPROVED) {
-            console.log("LH check bonus C ----------", proposal.data);
-            console.log("LH check bonus D ----------", playerData);
             if(proposal.data){
                 if(proposal.data.bankAccount){
                     if(!playerData.bankAccount){
