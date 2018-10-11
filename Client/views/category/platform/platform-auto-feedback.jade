@@ -379,8 +379,10 @@
                             td
                                 a(ng-click="vm.autoFeedbackShowPromoCodeDetail(vm.autoFeedbackSearchDetailResult[1][i].data)" data-toggle="modal" data-target="#modalAutoFeedbackPromoCodeDetail") {{v.data.length}}
                             td {{v.acceptedCount}}
-                            td {{v.loginCount}}
-                            td {{v.topUpCount}}
+                            td
+                                a(ng-click="vm.autoFeedbackShowLoginPlayers(vm.autoFeedbackSearchDetailResult[1][i].loginPlayers)" data-toggle="modal" data-target="#modalAutoFeedbackLoginPlayers") {{v.loginCount}}
+                            td
+                                a(ng-click="vm.autoFeedbackShowTopUpPlayers(vm.autoFeedbackSearchDetailResult[1][i].topUpPlayers)" data-toggle="modal" data-target="#modalAutoFeedbackTopUpPlayers") {{v.topUpCount}}
                 br
                 table#autoFeedbackDetailTableSecond.simple-table.display(style="min-width:100%;" ng-show="vm.autoFeedbackSearchDetailResult[2]")
                     thead
@@ -395,8 +397,11 @@
                             td
                                 a(ng-click="vm.autoFeedbackShowPromoCodeDetail(vm.autoFeedbackSearchDetailResult[2][i].data)" data-toggle="modal" data-target="#modalAutoFeedbackPromoCodeDetail") {{v.data.length}}
                             td {{v.acceptedCount}}
-                            td {{v.loginCount}}
-                            td {{v.topUpCount}}
+                            td
+                                a(ng-click="vm.autoFeedbackShowLoginPlayers(vm.autoFeedbackSearchDetailResult[2][i].loginPlayers)" data-toggle="modal" data-target="#modalAutoFeedbackLoginPlayers") {{v.loginCount}}
+                            td
+                                a(ng-click="vm.autoFeedbackShowTopUpPlayers(vm.autoFeedbackSearchDetailResult[2][i].topUpPlayers)" data-toggle="modal" data-target="#modalAutoFeedbackTopUpPlayers") {{v.topUpCount}}
+
                 br
                 table#autoFeedbackDetailTableThird.simple-table.display(style="min-width:100%;" ng-show="vm.autoFeedbackSearchDetailResult[3]")
                     thead
@@ -411,8 +416,10 @@
                             td
                                 a(ng-click="vm.autoFeedbackShowPromoCodeDetail(vm.autoFeedbackSearchDetailResult[3][i].data)" data-toggle="modal" data-target="#modalAutoFeedbackPromoCodeDetail") {{v.data.length}}
                             td {{v.acceptedCount}}
-                            td {{v.loginCount}}
-                            td {{v.topUpCount}}
+                            td
+                                a(ng-click="vm.autoFeedbackShowLoginPlayers(vm.autoFeedbackSearchDetailResult[3][i].loginPlayers)" data-toggle="modal" data-target="#modalAutoFeedbackLoginPlayers") {{v.loginCount}}
+                            td
+                                a(ng-click="vm.autoFeedbackShowTopUpPlayers(vm.autoFeedbackSearchDetailResult[3][i].topUpPlayers)" data-toggle="modal" data-target="#modalAutoFeedbackTopUpPlayers") {{v.topUpCount}}
 
 #modalAutoFeedbackPromoCodeDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style="width:95%;")
@@ -463,3 +470,26 @@
                             td {{v.proposalId}}
                             td {{v.adminName$}}
                             td {{v.remark}}
+
+
+
+  #modalAutoFeedbackLoginPlayers.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+      .modal-dialog(style="width:95%;")
+          .modal-content
+              .modal-header
+                  a.fa.fa-times.close(type='button' data-dismiss='modal')
+                  h4.modal-title {{'Login Count At Schedule' | translate}}
+              .modal-body
+                  table#autoFeedbackLoginPlayersTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                      #autoFeedbackLoginPlayersTablePage.col-md-12
+
+
+  #modalAutoFeedbackTopUpPlayers.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+      .modal-dialog(style="width:95%;")
+          .modal-content
+              .modal-header
+                  a.fa.fa-times.close(type='button' data-dismiss='modal')
+                  h4.modal-title {{'Top Up Count At Schedule' | translate}}
+              .modal-body
+                  table#autoFeedbackTopUpPlayersTable.common-table.display(style="min-width:100% ;overflow: scroll")
+                      #autoFeedbackTopUpPlayersTablePage.col-md-12

@@ -4459,6 +4459,8 @@
   "Delete Mission": "删除任务",
   "First Schedule Send Count": "第一次发送数量",
   "First Schedule Claimed Count": "第一次领取数量",
+  "Login Count At Schedule":"发送后成功登入人数",
+  "Top Up Count At Schedule": "发送后成功存款人数",
   "Login Count Before Second Schedule": "发送后成功登入人数（第二次前）",
   "Top Up Count Before Second Schedule": "发送后成功存款人数（第二次前）",
   "Second Schedule Send Count": "第二次发送数量",
