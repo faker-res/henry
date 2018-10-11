@@ -3357,52 +3357,12 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, success);
 
                 function success(data) {
-                    // sendData.update = {
-                    //     "$addToSet": {
-                    //         games: {
-                    //             index: newIndex,
-                    //             game: gameId,
-                    //         }
-                    //     }
-                    // }
-                    // socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, function (newData) {
-                        vm.curGame = null;
-                        vm.gameGroupClicked(0, vm.SelectedGameGroupNode);
-                    // });
+
+                    vm.curGame = null;
+                    vm.gameGroupClicked(0, vm.SelectedGameGroupNode);
+
                 }
             }
-
-            // vm.updateGameIndexGameGroup = function (newIndex, gamesGroup) {
-            //     var gameId = vm.curGame._id;
-            //     var sendData = {
-            //         query: {
-            //             platform: vm.selectedPlatform.id,
-            //             groupId: vm.SelectedGameGroupNode.groupData.groupId
-            //         },
-            //         update: {
-            //             "$pull": {
-            //                 'games': {game: gameId}
-            //             }
-            //         },
-            //         data: gamesGroup
-            //     }
-            //     socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, success);
-            //
-            //     function success(data) {
-            //         sendData.update = {
-            //             "$addToSet": {
-            //                 games: {
-            //                     index: newIndex,
-            //                     game: gameId,
-            //                 }
-            //             }
-            //         }
-            //         socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, function (newData) {
-            //             vm.curGame = null;
-            //             vm.gameGroupClicked(0, vm.SelectedGameGroupNode);
-            //         });
-            //     }
-            // }
 
             vm.initRenameGameGroup = function () {
                 vm.newGameGroup = {};

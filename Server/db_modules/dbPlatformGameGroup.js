@@ -39,35 +39,36 @@ var dbPlatformGameGroup = {
             })
         }
 
+        if (gamesGroup.length) {
+            let fromIndex = gamesGroup.findIndex( game => {
+                if (game && game._id){
+                    return game._id.toString() == gameObjId.toString()
+                }
+            });
 
-        let fromIndex = gamesGroup.findIndex( game => {
-            if (game && game._id){
-                return game._id.toString() == gameObjId.toString()
-            }
-        });
+            if (fromIndex != -1) {
+                let updateList = [];
+                let element = gamesGroup[fromIndex];
 
-        if (fromIndex != -1) {
-            let element = gamesGroup[fromIndex];
-            gamesGroup.splice(fromIndex, 1);
-            gamesGroup.splice(newIndex - 1, 0, element);
+                gamesGroup.splice(fromIndex, 1);
+                gamesGroup.splice(newIndex - 1, 0, element);
 
-            let updateList = [];
-
-            if (gamesGroup.length) {
                 gamesGroup.forEach((game, index) => {
                     updateList.push({game: ObjectId(game._id), index: index + 1})
                 })
+
+                let updateData = {
+                    "$set": {
+                        'games': updateList
+                    },
+                }
+
+                return dbconfig.collection_platformGameGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
+
             }
-
-            let updateData = {
-                "$set": {
-                    'games': updateList
-                },
-            }
-
-            return dbconfig.collection_platformGameGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
-
         }
+
+
     },
 
     /**
