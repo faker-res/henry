@@ -3142,7 +3142,8 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'feedbackAdminName$', 'aTargets': [21], bSortable: true},
                     {'sortCol': 'feedbackTopic$', 'aTargets': [22], bSortable: true},
                     {'sortCol': 'consumptionAmount', 'aTargets': [23], bSortable: true},
-                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [24], bSortable: true},
+                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [24], bSortable: true},
+                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [25], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -3186,6 +3187,25 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: "sumFloat"},
+                    {
+                        title: $translate("Platform Fee"), data: "totalPlatformFeeEstimate",
+                        render: function (data, type, row) {
+                            data = data || 0;
+                            let feeDetails = "";
+                            if (row && row.platformFeeEstimate) {
+                                for (let key in row.platformFeeEstimate) {
+                                    if (feeDetails) {
+                                        feeDetails += "\n";
+                                    }
+                                    feeDetails += (key + ": " + row.platformFeeEstimate[key]);
+                                }
+                            }
+                            return $('<a data-toggle="tooltip" title=\'' + feeDetails + '\'  data-placement= "left"></a>')
+                                .attr('data-row', JSON.stringify(row))
+                                .text((data))
+                                .prop('outerHTML');
+                        }
+                    },
                     {
                         title: $translate("Online Top Up Fee"), data: "totalOnlineTopUpFee$",
                         render: function (data, type, row) {
@@ -4556,7 +4576,8 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'consumptionAmount', 'aTargets': [18], bSortable: true},
                     {'sortCol': 'phoneArea', 'aTargets': [19], bSortable: true},
                     {'sortCol': 'ipArea', 'aTargets': [20], bSortable: true},
-                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [21], bSortable: true},
+                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [24], bSortable: true},
+                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [25], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -4593,6 +4614,25 @@ define(['js/app'], function (myApp) {
                     {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$"},
                     {title: $translate("PHONE_LOCATION"), data: "phoneArea$"},
                     {title: $translate("IP_LOCATION"), data: "ipArea$"},
+                    {
+                        title: $translate("Platform Fee"), data: "totalPlatformFeeEstimate",
+                        render: function (data, type, row) {
+                            data = data || 0;
+                            let feeDetails = "";
+                            if (row && row.platformFeeEstimate) {
+                                for (let key in row.platformFeeEstimate) {
+                                    if (feeDetails) {
+                                        feeDetails += "\n";
+                                    }
+                                    feeDetails += (key + ": " + row.platformFeeEstimate[key]);
+                                }
+                            }
+                            return $('<a data-toggle="tooltip" title=\'' + feeDetails + '\'  data-placement= "left"></a>')
+                                .attr('data-row', JSON.stringify(row))
+                                .text((data))
+                                .prop('outerHTML');
+                        }
+                    },
                     {
                         title: $translate("Online Top Up Fee"), data: "totalOnlineTopUpFee$",
                         render: function (data, type, row) {
@@ -5212,7 +5252,7 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {title: $translate('order'), data: 'indexNo$'},
-                    {title: $translate('PLAYER_NAME'), data: "_id.name", sClass: "sumText"},
+                    {title: $translate('PLAYER_NAME'), data: "_id.name", sClass: "sumText", orderable: false},
                     {title: $translate('BET_TYPE_CONSUMPTION'), data: "selectedBetTypeAmt", sClass: 'sumFloat alignRight'},
                     {title: $translate('GAME_TYPE_CONSUMPTION'), data: "totalBetAmt", sClass: 'sumFloat alignRight'},
                     {title: $translate('GAME_TYPE_CONSUMPTION') + "/ <br>" + $translate('BET_TYPE_CONSUMPTION') + "(%)", data: "betAmtPercent", sClass: 'betAmtPercent alignRight'},

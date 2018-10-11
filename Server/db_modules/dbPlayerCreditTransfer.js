@@ -1015,7 +1015,7 @@ let dbPlayerCreditTransfer = {
                         //change player credit back if transfer failed
                         if (bTransfered) {
                             console.error(err);
-                            if (err && err.errorMessage && err.errorMessage.indexOf('Request timeout') > -1) {
+                            if (err && err.errorMessage && (err.errorMessage.indexOf('Request timeout') > -1 || err.message.indexOf('Game is not available') > -1)) {
                                 // Log credit change also when request timeout since amount already deducted
                                 dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, -validTransferAmount, constPlayerCreditChangeType.TRANSFER_IN_FAILED, playerCredit, 0, -lockedTransferAmount, null, {
                                     providerId: providerShortId,
@@ -1236,9 +1236,9 @@ let dbPlayerCreditTransfer = {
                                     console.log('RT - freeAmt', updateObj.freeAmt);
 
                                     // Since we are going to unlock this, we set freeAmt to 0 to prevent double addition
-                                    // updateObj.freeAmt = 0;
-                                    //
-                                    // return dbRewardTask.completeRewardTaskGroup(preRTG, preRTG.status);
+                                    updateObj.freeAmt = 0;
+
+                                    return dbRewardTask.completeRewardTaskGroup(preRTG, preRTG.status);
                                 }
 
                                 return true;

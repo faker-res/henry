@@ -864,7 +864,7 @@ let dbPlayerReward = {
     },
 
     //isCheckToday only for getRewardApplicationData, to check today consecutive reward only
-    getPlayerConsecutiveRewardDetail: (playerId, code, isApply, platform, applyTargetTime, isCheckToday) => {
+    getPlayerConsecutiveRewardDetail: (playerId, code, isApply, platform, applyTargetTime, isCheckToday, isBulkApply) => {
         // reward event code is an optional value, getting the latest relevant event by default
         let currentTime = applyTargetTime || new Date();
         let today = applyTargetTime ? dbUtility.getDayTime(applyTargetTime) : dbUtility.getTodaySGTime();
@@ -1004,15 +1004,24 @@ let dbPlayerReward = {
             if (isCheckToday) {
                 startCheckTime = today.startTime;
             } else {
-                if (!rewardProposalData || rewardProposalData.length === 0) {
-                    startCheckTime = event.validStartTime > intervalTime.startTime ? event.validStartTime : intervalTime.startTime;
-                } else {
-                    latestRewardProposal = rewardProposalData[0];
-                    let lastRewardDate = dbUtility.getTargetSGTime(latestRewardProposal.data.applyTargetDate).startTime;
-                    let nextDay = lastRewardDate.setDate(lastRewardDate.getDate() + 1);
-                    startCheckTime = nextDay;
-                    consecutiveNumber = latestRewardProposal.data.consecutiveNumber + 1;
+                startCheckTime = event.validStartTime > intervalTime.startTime ? event.validStartTime : intervalTime.startTime;
+                // if bulkApply, ignore the lastReward data as it should not be taken into consideration of the next cycle
+                if (!isBulkApply && rewardProposalData && rewardProposalData.length ){
+                        latestRewardProposal = rewardProposalData[0];
+                        let lastRewardDate = dbUtility.getTargetSGTime(latestRewardProposal.data.applyTargetDate).startTime;
+                        let nextDay = lastRewardDate.setDate(lastRewardDate.getDate() + 1);
+                        startCheckTime = nextDay;
+                        consecutiveNumber = latestRewardProposal.data.consecutiveNumber + 1;
                 }
+                // if (!rewardProposalData || rewardProposalData.length === 0) {
+                //     startCheckTime = event.validStartTime > intervalTime.startTime ? event.validStartTime : intervalTime.startTime;
+                // } else {
+                //     latestRewardProposal = rewardProposalData[0];
+                //     let lastRewardDate = dbUtility.getTargetSGTime(latestRewardProposal.data.applyTargetDate).startTime;
+                //     let nextDay = lastRewardDate.setDate(lastRewardDate.getDate() + 1);
+                //     startCheckTime = nextDay;
+                //     consecutiveNumber = latestRewardProposal.data.consecutiveNumber + 1;
+                // }
             }
 
             selectedParam = paramOfLevel[Math.min(consecutiveNumber - 1, paramOfLevel.length - 1)];
@@ -1076,6 +1085,8 @@ let dbPlayerReward = {
                 let consumptionResults = checkAllResults[1];
                 let topUpResults = checkAllResults[2];
 
+                console.log("yH checking-- checkResults", checkResults)
+
                 let consumptionAmount = 0;
                 let totalTopUpAmount = 0;
                 let usedTopUpRecord = [];
@@ -1116,7 +1127,7 @@ let dbPlayerReward = {
 
                             if(consumptionAmount >= selectedParam.totalConsumptionInInterval){
                                 let bonus = result.topUpDayAmount * selectedParam.rewardPercentage;
-                                let requestedTimes =  selectedParam.spendingTimes || 1;
+                                let requestedTimes =  selectedParam.hasOwnProperty('spendingTimes') ? selectedParam.spendingTimes : 1;
 
                                 bonus = checkRewardBonusLimit(bonus, event, selectedParam.maxRewardInSingleTopUp);
 
@@ -1173,13 +1184,13 @@ let dbPlayerReward = {
                                     // special handing for Settlement case - JBL
                                     topupAmount = totalTopUpAmount;
                                 }
-
+                            
                                 if(consumptionAmount >= currentParam.totalConsumptionInInterval) {
                                     let bonus = topupAmount* currentParam.rewardPercentage;
                                     bonus = checkRewardBonusLimit(bonus, event, currentParam.maxRewardInSingleTopUp);
-                                    let requestedTimes = currentParam.spendingTimes || 1;
+                                    let requestedTimes = currentParam.hasOwnProperty('spendingTimes') ? currentParam.spendingTimes : 1;
                                     let spendingAmount = (bonus + topupAmount) * requestedTimes;
-
+                                   
                                     insertOutputList(1, step, bonus, requestedTimes, targetDate,
                                         currentParam.forbidWithdrawAfterApply, currentParam.remark, isSharedWithXIMA,
                                         result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, forbidWithdrawIfBalanceAfterUnlock, spendingAmount);
@@ -1224,7 +1235,7 @@ let dbPlayerReward = {
                             if ((streakFromPastApplied || currentStreak >= consecutiveNumber) && consumptionAmount >= currentParam.totalConsumptionInInterval) {
                                 let bonus = totalTopUpAmount * currentParam.rewardPercentage;
                                 bonus = checkRewardBonusLimit(bonus, event, currentParam.maxRewardInSingleTopUp);
-                                let requestedTimes = currentParam.spendingTimes || 1 ;
+                                let requestedTimes = currentParam.hasOwnProperty('spendingTimes') ? currentParam.spendingTimes : 1;
                                 let spendingAmount = (bonus + totalTopUpAmount) * requestedTimes;
                                 insertOutputList(1, consecutiveNumber, bonus, requestedTimes, targetDate,
                                     currentParam.forbidWithdrawAfterApply, currentParam.remark, isSharedWithXIMA,
@@ -1256,7 +1267,7 @@ let dbPlayerReward = {
                                     if(consumptionAmount >= currentParam.totalConsumptionInInterval) {
                                         let bonus = result.topUpDayAmount * currentParam.rewardPercentage;
                                         bonus = checkRewardBonusLimit(bonus, event, currentParam.maxRewardInSingleTopUp);
-                                        let requestedTimes = currentParam.spendingTimes || 1;
+                                        let requestedTimes = currentParam.hasOwnProperty('spendingTimes') ? currentParam.spendingTimes : 1;
                                         let spendingAmount = (bonus + result.topUpDayAmount) * requestedTimes;
 
                                         insertOutputList(1, currentStreak + 1, bonus, requestedTimes, result.targetDate,
@@ -1292,7 +1303,7 @@ let dbPlayerReward = {
                                 if(consumptionAmount >= selectedParam.totalConsumptionInInterval) {
                                     let bonus = result.topUpDayAmount * selectedParam.rewardPercentage;
                                     bonus = checkRewardBonusLimit(bonus, event, selectedParam.maxRewardInSingleTopUp);
-                                    let requestedTimes = selectedParam.spendingTimes || 1;
+                                    let requestedTimes = selectedParam.hasOwnProperty('spendingTimes') ? selectedParam.spendingTimes : 1;
                                     let spendingAmount = (bonus + result.topUpDayAmount) * requestedTimes;
 
                                     insertOutputList(1, consecutiveNumber, bonus, requestedTimes, result.targetDate,
@@ -1314,15 +1325,15 @@ let dbPlayerReward = {
                 }
             }
 
-            // for not dynamic case
-            if (!event.condition.isDynamicRewardAmount) {
-                for (let i = outputList.length; i < paramOfLevel.length; i++) {
-                    let bonus = paramOfLevel[i].rewardAmount;
-                    let requestedTimes = paramOfLevel[i].spendingTimes || 1;
+            // // for not dynamic case
+            // if (!event.condition.isDynamicRewardAmount) {
+            for (let i = outputList.length; i < paramOfLevel.length; i++) {
+                let bonus = paramOfLevel[i].rewardAmount;
+                let requestedTimes = paramOfLevel[i].spendingTimes || 1;
 
-                    insertOutputList(0, i + 1, bonus, requestedTimes);
-                }
+                insertOutputList(0, i + 1, bonus, requestedTimes);
             }
+            // }
 
             if (isCheckToday) {
                 return {
@@ -4852,7 +4863,7 @@ let dbPlayerReward = {
      * @param rewardData
      * @returns {Promise.<TResult>}
      */
-    applyGroupReward: (userAgent, playerData, eventData, adminInfo, rewardData, isPreview) => {
+    applyGroupReward: (userAgent, playerData, eventData, adminInfo, rewardData, isPreview, isBulkApply) => {
         rewardData = rewardData || {};
         console.log("checking --- rewardData.applyTargetDate", rewardData.previewDate)
         let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate) : dbUtility.getTodaySGTime();
@@ -4976,7 +4987,7 @@ let dbPlayerReward = {
         }
 
         if (eventData.type.name === constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP) {
-            let playerRewardDetailProm = dbPlayerReward.getPlayerConsecutiveRewardDetail(playerData.playerId, eventData.code, true, null, rewardData.applyTargetDate);
+            let playerRewardDetailProm = dbPlayerReward.getPlayerConsecutiveRewardDetail(playerData.playerId, eventData.code, true, null, rewardData.applyTargetDate, null, isBulkApply);
             promArr.push(playerRewardDetailProm);
         }
 
@@ -5625,6 +5636,8 @@ let dbPlayerReward = {
 
                         let rewardInfoList = playerRewardDetail.list;
 
+                        console.log("yH checking--- rewardInfoList", rewardInfoList)
+                        
                         for (let i = 0; i < rewardInfoList.length; i++) {
                             let listItem = rewardInfoList[i];
 
@@ -6088,7 +6101,7 @@ let dbPlayerReward = {
                     }
 
                     if (isMultiApplication) {
-                        let asyncProms = Promise.resolve();
+                        let asyncProms = Promise.resolve(); 
                         for (let i = 0; i < applicationDetails.length; i++) {
                             let applyDetail = applicationDetails[i];
                             let proposalData = {

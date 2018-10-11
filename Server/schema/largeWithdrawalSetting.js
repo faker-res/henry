@@ -72,6 +72,8 @@ let largeWithdrawalSettingSchema = new Schema({
     showLastThreeMonthTopUpWithdrawDifference: {type: Boolean, default: true},
     // show last 3 month consumption amount (separated by each month)
     showLastThreeMonthConsumptionAmount: {type: Boolean, default: true},
+    // domain for audit link
+    domain: {type: String},
 });
 
 module.exports = largeWithdrawalSettingSchema;

@@ -49,7 +49,7 @@ form(name="form_editing_player", novalidate)
     .row.margin-left-5.margin-right-5
         .form-group.col-md-12
             label.control-label {{"ICON" | translate}}
-            img.margin-left-5(ng-if='playerBeingEdited.photoUrl', src="{{playerBeingEdited.photoUrl}}", style='width:40px;height:40px;')
+            img.margin-left-5(ng-if='playerBeingEdited.photoUrl', ng-src="{{playerBeingEdited.photoUrl}}", style='width:40px;height:40px;')
             br
             input.form-control(type="text", placeholder='{{"URL" | translate}}', ng-model="playerBeingEdited.photoUrl", style='width:100%;display:inline-block')
 

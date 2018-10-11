@@ -26,6 +26,7 @@ var proposalExecutor = require('./../modules/proposalExecutor');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
 var dbutility = require('./../modules/dbutility');
+var dbProposalUtility = require('./../db_common/dbProposalUtility');
 var pmsAPI = require('../externalAPI/pmsAPI');
 var moment = require('moment-timezone');
 var errorUtils = require("../modules/errorUtils.js");
@@ -972,8 +973,6 @@ var proposal = {
         ).then(
             function(data){
                 let bIsBankInfoMatched = typeof data != "undefined" ? data : true;
-                console.log("LH check bonus ---------- 7", data);
-                console.log("LH check bonus ---------- 8", bIsBankInfoMatched);
                 if(bIsBankInfoMatched == true){
                     if (proposalProcessData && proposalProcessData.currentStep && proposalProcessData.steps) {
                         var curTime = new Date();
@@ -1136,7 +1135,7 @@ var proposal = {
         return deferred.promise;
     },
 
-    cancelProposal: function (proposalId, adminId, remark) {
+    cancelProposal: function (proposalId, adminId, remark, adminObjId) {
         return dbconfig.collection_proposal.findOne({_id: proposalId})
             .populate({path: "process", model: dbconfig.collection_proposalProcess})
             .populate({path: "type", model: dbconfig.collection_proposalType})
@@ -1151,16 +1150,21 @@ var proposal = {
                                 && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT))) {
                             return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true)
                                 .then(successData => {
+                                    let updateData = {
+                                        "data.lastSettleTime": Date.now(),
+                                        settleTime: Date.now(),
+                                        noSteps: true,
+                                        process: null,
+                                        status: constProposalStatus.CANCEL,
+                                        "data.cancelBy": "客服：" + adminId
+                                    };
+                                    if (proposalData.type.name == constProposalType.PLAYER_BONUS || proposalData.type.name == constProposalType.PARTNER_BONUS) {
+                                        dbProposalUtility.createProposalProcessStep(proposalData, adminObjId, constProposalStatus.CANCEL, remark).catch(errorUtils.reportError);
+                                        delete updateData.process;
+                                    }
                                     return dbconfig.collection_proposal.findOneAndUpdate(
                                         {_id: proposalData._id, createTime: proposalData.createTime},
-                                        {
-                                            "data.lastSettleTime": Date.now(),
-                                            settleTime: Date.now(),
-                                            noSteps: true,
-                                            process: null,
-                                            status: constProposalStatus.CANCEL,
-                                            "data.cancelBy": "客服：" + adminId
-                                        },
+                                        updateData,
                                         {new: true}
                                     );
                                 })
@@ -7698,8 +7702,6 @@ function isBankInfoMatched(proposalData, playerId){
     let playerData = null;
     let platform = null;
 
-    console.log("LH check bonus 1 ----------", proposalData);
-    console.log("LH check bonus 2 ----------", playerId);
 
     return dbconfig.collection_players.findOne({playerId: playerId})
         .populate({path: "platform", model: dbconfig.collection_platform}).lean()
@@ -7753,16 +7755,12 @@ function isBankInfoMatched(proposalData, playerId){
             }
         ).then(
             proposals => {
-                console.log("LH check bonus 3 ----------", platform);
-                console.log("LH check bonus 4 ----------", proposals);
                 if(platform && platform.manualAuditAfterBankChanged){
                     if(proposals && proposals.length > 0){
                         let length = proposals.length;
                         for (let i = 0; i < length; i++) {
                             let proposal = proposals[i];
                             if (proposal && proposal.type && proposal.type.name && proposal.status && proposal.type.name == constProposalType.UPDATE_PLAYER_BANK_INFO && proposal.status == constProposalStatus.APPROVED) {
-                                console.log("LH check bonus 5 ----------", proposal.data);
-                                console.log("LH check bonus 6 ----------", playerData);
                                 if (proposal.data) {
                                     if (proposal.data.bankAccount) {
                                         if (!playerData.bankAccount) {

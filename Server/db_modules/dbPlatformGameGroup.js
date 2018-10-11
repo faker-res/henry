@@ -25,13 +25,54 @@ var dbPlatformGameGroup = {
         });
     },
 
+    renamePlatformGameGroup: function (query, updateData) {
+        return dbconfig.collection_platformGameGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
+    },
+
     /**
      * Update the  game group
      * @param {json}  query - queryData
      * @param {json}  updateData -  updateData
      */
-    updatePlatformGameGroup: function (query, updateData) {
-        return dbconfig.collection_platformGameGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
+    updatePlatformGameGroup: function (query, newIndex, gamesGroup, gameObjId) {
+
+        if (newIndex <= 0){
+            return Promise.reject({
+                name: "DataError",
+                message: "Index cannot set to 0 or smaller than 0"
+            })
+        }
+
+        if (gamesGroup.length) {
+            let fromIndex = gamesGroup.findIndex( game => {
+                if (game && game._id){
+                    return game._id.toString() == gameObjId.toString()
+                }
+            });
+
+            if (fromIndex != -1) {
+                let updateList = [];
+                let element = gamesGroup[fromIndex];
+
+                gamesGroup.splice(fromIndex, 1);
+                gamesGroup.splice(newIndex - 1, 0, element);
+
+                gamesGroup.forEach((game, index) => {
+                    updateList.push({game: ObjectId(game._id), index: index + 1})
+                })
+
+                let updateData = {
+                    "$set": {
+                        'games': updateList
+                    },
+                }
+
+                return dbconfig.collection_platformGameGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
+
+            }
+        }
+
+
     },
 
     /**

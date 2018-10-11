@@ -470,7 +470,7 @@ var playerPostFindUpdate = function (result, bOne) {
     }
 
     // Prevent very small value when reading valid credit
-    if (result && result.validCredit && result.validCredit < 0.001) {
+    if (result && result.validCredit && result.validCredit > 0 && result.validCredit < 0.001) {
         result.validCredit = 0;
     }
 };

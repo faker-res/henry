@@ -4243,6 +4243,7 @@
   "Mailing Status:": "邮件状态：",
   "Not send": "未发送",
   "Sent": "已发送",
+  "audit link domain": "审核链接域名",
 
   "Reward (Amount OR %)" : "优惠（金额 OR %）",
   "TOTAL_REWARD_FEE" : "需扣除的优惠",
@@ -4464,6 +4465,8 @@
   "Delete Mission": "删除任务",
   "First Schedule Send Count": "第一次发送数量",
   "First Schedule Claimed Count": "第一次领取数量",
+  "Login Count At Schedule":"发送后成功登入人数",
+  "Top Up Count At Schedule": "发送后成功存款人数",
   "Login Count Before Second Schedule": "发送后成功登入人数（第二次前）",
   "Top Up Count Before Second Schedule": "发送后成功存款人数（第二次前）",
   "Second Schedule Send Count": "第二次发送数量",
@@ -4622,5 +4625,8 @@
   "bankInfoWhenSubmit": "提交瞬间银行卡",
   "bankInfoWhenApprove": "审核瞬间银行卡",
   "bankcard no:": "卡号: ",
-  "Online Top Up Fee": "在线充值费用"
+  "Online Top Up Fee": "在线充值费用",
+  "Check All Selection": "全部勾选",
+  "Manage Sub Department Permission": "赋予下级部门权限",
+  "Do not have permission setting": "请设置部门权限"
 }

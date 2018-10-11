@@ -337,6 +337,7 @@ define(['js/app'], function (myApp) {
                     vm.getDepartmentFullData(vm.activatePlatformTab);
                     vm.getFullDepartmentPath();
                     vm.activatePlatformTab();
+                    vm.setDepartViewList();
                     $scope.safeApply();
                 });
                 //$('#departmentTree').on('searchComplete', function (event, data) {
@@ -358,6 +359,15 @@ define(['js/app'], function (myApp) {
                 //    $('#departmentTree').treeview('selectNode', [parentFindNode[0], {silent: true}]);
                 //}
             };
+
+            vm.setDepartViewList = function (){
+                if(vm.SelectedDepartmentNode.parent){
+                    vm.departMaxViewList = vm.SelectedDepartmentNode.departData && vm.SelectedDepartmentNode.departData.views ? vm.SelectedDepartmentNode.departData.views : {};
+                }else{
+                    vm.departMaxViewList = vm.allView;
+                }
+            };
+
             vm.getFullDepartmentPath = function () {
                 vm.fullDepartmentPath = [];
                 getParent(vm.SelectedDepartmentNode);
@@ -1294,6 +1304,18 @@ define(['js/app'], function (myApp) {
                 vm.processRoleData();
             };
 
+            vm.allRoleSelection = function (flag) {
+                vm.showRoleFlag = $.extend(true, {}, vm.departMaxViewList);
+                $.each(vm.showRoleFlag, function (cate, cateData) {
+                    $.each(cateData, function (sectionName, sectionData) {
+                        $.each(sectionData, function (viewName, viewData) {
+                            vm.showRoleFlag[cate][sectionName][viewName] = flag;
+                        });
+                        vm.policytoggle[cate][sectionName].all = flag;
+                    });
+                });
+            };
+
             //if there are selected users, for button status such as delete, move etc
             vm.isUserSelected = function () {
                 for (var k in vm.userTableRowSelected) {
@@ -1497,7 +1519,7 @@ define(['js/app'], function (myApp) {
                 //vm.actionFlag = {};
                 vm.showRole = {};
 
-                vm.showRoleFlag = $.extend(true, {}, vm.allView);
+                vm.showRoleFlag = $.extend(true, {}, vm.departMaxViewList);
                 $.each(vm.showRoleFlag, function (cate, cateData) {
                     $.each(cateData, function (sectionName, sectionData) {
                         $.each(sectionData, function (viewName, viewData) {
@@ -1505,7 +1527,7 @@ define(['js/app'], function (myApp) {
                         });
                     });
                 });
-                vm.policytoggle = $.extend(true, {}, vm.allView);
+                vm.policytoggle = $.extend(true, {}, vm.departMaxViewList);
                 vm.getIconList();
                 vm.newRole.icon = vm.defaultRoleIcon;
                 vm.startBlink('#roleName');
@@ -1532,7 +1554,7 @@ define(['js/app'], function (myApp) {
                 clearInterval(vm.blinkObj[id]);
             }
             vm.saveNewRole = function () {
-                vm.processRoleForUpdate();
+                vm.processRoleForUpdate(vm.showRoleFlag);
                 console.log('saveNewRole', vm.showRoleFlag);
 
                 var sendData = {
@@ -1582,23 +1604,23 @@ define(['js/app'], function (myApp) {
             };
 
             //process role data for update, remove all false and empty object
-            vm.processRoleForUpdate = function () {
-                if (vm.showRoleFlag) {
-                    for (var category in vm.showRoleFlag) {
-                        for (var subCategory in vm.showRoleFlag[category]) {
-                            vm.compactObject(vm.showRoleFlag[category][subCategory]);
+            vm.processRoleForUpdate = function (roles) {
+                if (roles) {
+                    for (var category in roles) {
+                        for (var subCategory in roles[category]) {
+                            vm.compactObject(roles[category][subCategory]);
                         }
                     }
-                    for (var category in vm.showRoleFlag) {
-                        vm.compactObject(vm.showRoleFlag[category]);
+                    for (var category in roles) {
+                        vm.compactObject(roles[category]);
                     }
-                    vm.compactObject(vm.showRoleFlag);
+                    vm.compactObject(roles);
                 }
             };
 
             vm.submitUpdateRole = function () {
                 //var datacontent = processRoleBeforeSubmit("update");
-                vm.processRoleForUpdate();
+                vm.processRoleForUpdate(vm.showRoleFlag);
                 console.log('submitUpdateRole', vm.showRoleFlag);
                 var para = {
                     query: {
@@ -1624,10 +1646,10 @@ define(['js/app'], function (myApp) {
             }
 
             vm.processRoleData = function () {
-                console.log("vm.allView", vm.allView);
+                console.log("vm.departMaxViewList", vm.departMaxViewList);
                 console.log('vm.showRole', vm.showRole);
                 // vm.showRoleFlag = {};
-                vm.showRoleFlag = $.extend(true, {}, vm.allView);
+                vm.showRoleFlag = $.extend(true, {}, vm.departMaxViewList);
                 $.each(vm.showRoleFlag, function (cate, cateData) {
                     $.each(cateData, function (sectionName, sectionData) {
                         $.each(sectionData, function (viewName, viewData) {
@@ -1635,14 +1657,14 @@ define(['js/app'], function (myApp) {
                         });
                     });
                 });
-                vm.policytoggle = $.extend(true, {}, vm.allView);
+                vm.policytoggle = $.extend(true, {}, vm.departMaxViewList);
                 if (!vm.showRole) return;
 
                 // vm.policytoggle = $.extend(true, {}, vm.allView);
 
                 //if role data is all, set all views to true
                 if (vm.showRole.all) {
-                    vm.showRole = $.extend(true, {}, vm.allView);
+                    vm.showRole = $.extend(true, {}, vm.departMaxViewList);
 
                     $.each(vm.showRole, function (cate, cateData) {
                         if (cateData) {
@@ -1654,7 +1676,7 @@ define(['js/app'], function (myApp) {
                 }
 
                 vm.showRoleFlag = {};
-                $.each(vm.allView, function (cate, cateData) {
+                $.each(vm.departMaxViewList, function (cate, cateData) {
                     if (cateData) {
                         $.each(cateData, function (sectionName, sectionData) {
                             if (sectionData) {
@@ -1725,7 +1747,7 @@ define(['js/app'], function (myApp) {
 
             vm.toggleGroupPermissionCheckbox = function (value, cate, section) {
                 console.log('toggleGroupPermissionCheckbox', value, cate, section);
-                $.each(vm.allView[cate][section], function (i, v) {
+                $.each(vm.departMaxViewList[cate][section], function (i, v) {
                     if (vm.showRoleFlag[cate]) {
                         // If the section is missing, create it
                         vm.showRoleFlag[cate][section] = vm.showRoleFlag[cate][section] || {};
@@ -1742,6 +1764,136 @@ define(['js/app'], function (myApp) {
             }
 
 //=============end role function
+
+            //Give sub department permission
+            vm.showManageSubDepartmentPermissionModal = function () {
+                vm.subRoleCategory = {};
+                vm.subPolicyCategory = {};
+                vm.subPolicytoggle = {};
+                vm.subShowRole = null;
+                vm.subShowRoleFlag = null;
+                vm.currentDepartmentViews = {};
+                vm.viewList = {};
+                vm.showView = false;
+
+                if (vm.SelectedDepartmentNode && vm.SelectedDepartmentNode.id) {
+                    let sendData = {
+                        departmentObjId: vm.SelectedDepartmentNode.id
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'getDepartmentById', sendData, function (data) {
+                        console.log('getDepartmentById', data);
+                        $scope.$evalAsync(() => {
+                            if (data && data.data && data.data.hasOwnProperty('isParentExist') && data.data.hasOwnProperty('views')
+                                && !data.data.isParentExist && (!data.data.views || Object.keys(data.data.views).length == 0)) {
+                                vm.showView = true;
+                                vm.viewList = vm.allView;
+
+                                vm.processSubDepartmentRole(vm.viewList, vm.viewList, vm.viewList, false)
+
+                            } else if (data && data.data && data.data.hasOwnProperty('isParentExist') && data.data.hasOwnProperty('views')
+                                && !data.data.isParentExist && data.data.views && Object.keys(data.data.views).length > 0) {
+                                vm.showView = true;
+                                vm.viewList = vm.allView;
+
+                                vm.processSubDepartmentRole(vm.viewList, data.data.views, vm.viewList, true);
+
+                            } else if (data && data.data && data.data.hasOwnProperty('isParentExist') && data.data.hasOwnProperty('views')
+                                && data.data.isParentExist && data.data.views && Object.keys(data.data.views).length > 0
+                                && (!data.data.curViews || Object.keys(data.data.curViews).length == 0)) {
+                                vm.showView = true;
+                                vm.viewList = data.data.views;
+
+                                vm.processSubDepartmentRole(vm.viewList, data.data.views, vm.viewList, false)
+
+                            } else if (data && data.data && data.data.hasOwnProperty('isParentExist') && data.data.hasOwnProperty('views')
+                                && data.data.isParentExist && data.data.views && data.data.curViews
+                                && Object.keys(data.data.views).length > 0 && Object.keys(data.data.curViews).length > 0) {
+                                vm.showView = true;
+                                vm.viewList = data.data.views;
+
+                                vm.processSubDepartmentRole(vm.viewList, data.data.curViews, vm.viewList, true)
+
+                            } else {
+                                vm.viewList = {};
+                            }
+                        });
+                    });
+                }
+            };
+
+            vm.processSubDepartmentRole = function (policyObj, showRolesObj, rolesObj, flag) {
+
+                vm.subPolicytoggle = $.extend(true, {}, policyObj);
+                vm.subShowRoleFlag = $.extend(true, {}, showRolesObj);
+
+                $.each(rolesObj , function (cate, cateData) {
+                    if (cateData) {
+                        $.each(cateData, function (sectionName, sectionData) {
+                            if (sectionData) {
+                                $.each(sectionData, function (viewName, viewData) {
+                                    if (vm.subShowRoleFlag[cate] && vm.subShowRoleFlag[cate][sectionName] && vm.subShowRoleFlag[cate][sectionName][viewName]) {
+                                        vm.subShowRoleFlag[cate][sectionName][viewName] = flag;
+                                    }
+
+                                });
+                            }
+                        });
+                    }
+                });
+            };
+
+            vm.expandSubPolicySection = function (i) {
+                vm.subRoleCategory = {};
+                vm.subRoleCategory[i] = 'bg-pale';
+                vm.subPolicyCategory.title = i;
+                $scope.$evalAsync();
+            };
+
+            vm.toggleSubGroupPermissionCheckbox = function (value, cate, section) {
+                $.each(vm.viewList[cate][section], function (i, v) {
+                    if (vm.subShowRoleFlag[cate]) {
+                        // If the section is missing, create it
+                        vm.subShowRoleFlag[cate][section] = vm.subShowRoleFlag[cate][section] || {};
+                        vm.subShowRoleFlag[cate][section][i] = value;
+                    } else {
+                        // If the cate and section is missing, create it
+                        vm.subShowRoleFlag[cate] = vm.subShowRoleFlag[cate] || {};
+                        vm.subShowRoleFlag[cate][section] = vm.subShowRoleFlag[cate][section] || {};
+                        vm.subShowRoleFlag[cate][section][i] = value;
+                    }
+                });
+                $scope.$evalAsync();
+            };
+
+            vm.submitUpdateSubDepartmentPermission = function () {
+                vm.processRoleForUpdate(vm.subShowRoleFlag);
+                console.log('vm.subShowRoleFlag', vm.subShowRoleFlag);
+                var para = {
+                    query: {
+                        _id: vm.SelectedDepartmentNode.id
+                    },
+                    updateData: {
+                        views: vm.subShowRoleFlag
+                    }
+                };
+
+                socketService.$socket($scope.AppSocket, 'updateDepartment', para, success);
+                function success(data) {
+                    $scope.$evalAsync(() => {
+                        vm.subShowRole = vm.subShowRoleFlag;
+                        vm.getDepartmentFullData();
+                        vm.getDepartmentUsersData();
+                    });
+                }
+            };
+
+            vm.subPolicyToggleCheck = function (bool, cate, section, leaf) {
+                if (!bool && vm.subPolicytoggle[cate][section]) {
+                    vm.subPolicytoggle[cate][section].all = false;
+                }
+            }
+            //End of give sub department permission
 
 //##Mark view and button related functions
 // platform functions

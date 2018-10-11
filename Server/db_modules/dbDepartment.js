@@ -667,6 +667,48 @@ var dbDepartment = {
         });
     },
 
+    /**
+     * get department views by id
+     * @param departmentObjId
+     * @returns {Query|*}
+     */
+    getDepartmentById: function(departmentObjId){
+        let currentDepartmentViews;
+
+        return dbconfig.collection_department.findOne(
+            {
+                _id: departmentObjId
+            }, {
+                views: 1,
+                parent: 1,
+            }
+        ).lean().then(data => {
+            if (data && !data.parent) {
+                let views = data.views ? data.views : null;
+
+                return {views: views, isParentExist: false};
+            } else {
+                currentDepartmentViews = data.views ? data.views : null;
+
+                return dbconfig.collection_department.findOne(
+                    {
+                        _id: data.parent
+                    }, {
+                        views: 1
+                    }
+                ).lean().then(
+                    parentViewSetting => {
+                        if (parentViewSetting && parentViewSetting.views) {
+                            let views = parentViewSetting.views ? parentViewSetting.views : null;
+
+                            return {views: views, curViews: currentDepartmentViews, isParentExist: true};
+                        }
+                    }
+                )
+            }
+        });
+    }
+
 };
 
 module.exports = dbDepartment;

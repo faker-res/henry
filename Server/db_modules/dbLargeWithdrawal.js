@@ -6,6 +6,7 @@ module.exports = new dbLargeWithdrawalFunc();
 
 const dbconfig = require("./../modules/dbproperties");
 const dbutility = require("./../modules/dbutility");
+const dbProposalUtility = require("./../db_common/dbProposalUtility");
 const emailer = require("./../modules/emailer");
 const constSystemParam = require('./../const/constSystemParam');
 const constProposalStatus = require('./../const/constProposalStatus');
@@ -613,7 +614,7 @@ const dbLargeWithdrawal = {
                 }
                 proposal = proposalData;
 
-                return createProposalProcessStep(proposal, adminObjId, status, memo).catch(errorUtils.reportError);
+                return dbProposalUtility.createProposalProcessStep(proposal, adminObjId, status, memo).catch(errorUtils.reportError);
             }
         ).then(
             () => {
@@ -810,6 +811,8 @@ function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSettin
     let admin, html;
     html = generateLargeWithdrawalDetailEmail(largeWithdrawalLog, largeWithdrawalSetting, allRecipientEmail);
 
+    let allEmailStr = allRecipientEmail && allRecipientEmail.length ? allRecipientEmail.join() : "";
+
     return dbconfig.collection_admin.findOne({_id: adminObjId}).lean().then(
         adminData => {
             if (!adminData) {
@@ -821,7 +824,8 @@ function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSettin
 
             if (isReviewer) {
                 // get button html
-                auditLinksProm = generateAuditDecisionLink(host, largeWithdrawalLog.proposalId, adminObjId);
+                let domainUsed = largeWithdrawalSetting.domain || host;
+                auditLinksProm = generateAuditDecisionLink(domainUsed, largeWithdrawalLog.proposalId, adminObjId);
             }
 
             return auditLinksProm;
@@ -839,6 +843,10 @@ function sendLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawalSettin
                 body: html, // html content
                 isHTML: true
             };
+
+            if (allEmailStr) {
+                emailConfig.replyTo = allEmailStr;
+            }
 
             return emailer.sendEmail(emailConfig);
         }
@@ -860,7 +868,8 @@ function sendPartnerLargeWithdrawalDetailMail(largeWithdrawalLog, largeWithdrawa
 
             if (isReviewer) {
                 // get button html
-                auditLinksProm = generatePartnerAuditDecisionLink(host, largeWithdrawalLog.proposalId, adminObjId);
+                let domainUsed = largeWithdrawalSetting.domain || host;
+                auditLinksProm = generatePartnerAuditDecisionLink(domainUsed, largeWithdrawalLog.proposalId, adminObjId);
             }
 
             return auditLinksProm;
@@ -1144,7 +1153,7 @@ function generateLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
             provider.playerBonusAmountByType = provider.playerBonusAmountByType || {};
             html += `<td style="border: solid 1px black; padding: 3px">`;
             Object.keys(provider.playerBonusAmountByType).map(function(key) {
-                let val = provider.consumptionAmountByType[key];
+                let val = provider.playerBonusAmountByType[key];
                 let str = key + ": " + dbutility.noRoundTwoDecimalPlaces(val);
                 html += `<span style="white-space: pre-line"> ${str} </span><br>`;
             });
@@ -1287,7 +1296,7 @@ function generateLargeWithdrawalDetailEmail (log, setting, allEmailArr) {
             provider.playerBonusAmountByType = provider.playerBonusAmountByType || {};
             html += `<td style="border: solid 1px black; padding: 3px">`;
             Object.keys(provider.playerBonusAmountByType).map(function(key) {
-                let val = provider.consumptionAmountByType[key];
+                let val = provider.playerBonusAmountByType[key];
                 let str = key + ": " + dbutility.noRoundTwoDecimalPlaces(val);
                 html += `<span style="white-space: pre-line"> ${str} </span><br>`;
             });
@@ -1787,46 +1796,7 @@ function getLogDetailEmailSubject (log, isPartner) {
     return str;
 }
 
-function createProposalProcessStep (proposal, adminObjId, status, memo) {
-    let proposalTypeProm = dbconfig.collection_proposalType.findOne({_id: proposal.type}).populate({path: "process", model: dbconfig.collection_proposalTypeProcess}).lean();
-    let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
 
-    return Promise.all([proposalTypeProm, adminProm]).then(
-        ([proposalType, admin]) => {
-            if (!proposalType || !admin) {
-                return Promise.resolve();
-            }
-
-            if (!proposalType.process || !proposalType.process.steps || !proposalType.process.steps.length) {
-                return Promise.resolve();
-            }
-
-            let proposalTypeProcessStepId = proposalType.process.steps[0] || ObjectId();
-
-            let proposalProcessStepData = {
-                status,
-                memo,
-                operator: adminObjId,
-                operationTime: new Date(),
-                type: proposalTypeProcessStepId,
-                department: admin.departments && admin.departments[0] || undefined,
-                role: admin.roles && admin.roles[0] || undefined,
-                createTime: new Date()
-            };
-
-            let proposalProcessStep = new dbconfig.collection_proposalProcessStep(proposalProcessStepData);
-            return proposalProcessStep.save();
-        }
-    ).then(
-        stepObj => {
-            if (!stepObj) {
-                return Promise.resolve();
-            }
-
-            return dbconfig.collection_proposalProcess.findOneAndUpdate({_id: proposal.process}, {$addToSet: {steps: stepObj._id}}, {new: true}).lean();
-        }
-    );
-}
 
 function generateLargeWithdrawalAuditedInfoEmail (proposalData, proposalProcessStep, auditor, auditorDepartment, bSuccess) {
     let lockStatus = proposalData.isLocked && proposalData.isLocked.adminName || "未锁定";
@@ -2053,7 +2023,9 @@ function getTotalConsumptionByTime (playerObj, startTime, endTime) {
 
 function getTotalTopUpByTime (playerObj, startTime, endTime) {
     let matchQuery = {
-        playerId: playerObj._id,
+        mainType: "TopUp",
+        'data.playerObjId': playerObj._id,
+        status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
     }
     if (startTime && endTime) {
         matchQuery.createTime = {
@@ -2061,12 +2033,13 @@ function getTotalTopUpByTime (playerObj, startTime, endTime) {
             $lt: endTime
         }
     }
-    return dbconfig.collection_playerTopUpRecord.aggregate([{
+
+    return dbconfig.collection_proposal.aggregate([{
         $match: matchQuery
     }, {
         $group: {
             _id: null,
-            amount: {$sum: "$amount"}
+            amount: {$sum: "$data.amount"}
         }
     }]).read("secondaryPreferred").then(
         topUpData => {
