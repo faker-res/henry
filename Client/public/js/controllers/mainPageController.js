@@ -1831,12 +1831,16 @@ define(['js/app'], function (myApp) {
                     if (cateData) {
                         $.each(cateData, function (sectionName, sectionData) {
                             if (sectionData) {
+                                let isAll = true;
                                 $.each(sectionData, function (viewName, viewData) {
                                     if (vm.subShowRoleFlag[cate] && vm.subShowRoleFlag[cate][sectionName] && vm.subShowRoleFlag[cate][sectionName][viewName]) {
                                         vm.subShowRoleFlag[cate][sectionName][viewName] = flag;
                                     }
-
+                                    if (!vm.subShowRoleFlag[cate] || !vm.subShowRoleFlag[cate][sectionName] || !vm.subShowRoleFlag[cate][sectionName][viewName] ) {
+                                        isAll = false;
+                                    }
                                 });
+                                vm.subPolicytoggle[cate][sectionName].all = isAll;
                             }
                         });
                     }
