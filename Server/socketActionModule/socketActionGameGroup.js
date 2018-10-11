@@ -40,7 +40,7 @@ function socketActionGameGroup(socketIO, socket) {
         renamePlatformGameGroup: function renamePlatformGameGroup(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.update);
-            socketUtil.emitter(self.socket, dbPlatformGameGroup.updatePlatformGameGroup, [data.query, data.update], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformGameGroup.renamePlatformGameGroup, [data.query, data.update], actionName, isValidData);
         },
 
         /**
