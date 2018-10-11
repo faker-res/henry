@@ -15,7 +15,9 @@ var departmentSchema = new Schema({
     //parent department
     parent: {type: Schema.ObjectId, ref: 'department', default: null},
     //platforms this department has
-    platforms: [{type: Schema.ObjectId, ref: 'platform'}]
+    platforms: [{type: Schema.ObjectId, ref: 'platform'}],
+    //access level info for front end web
+    views: {type: JSON, default: null},
 });
 
 module.exports = departmentSchema;
