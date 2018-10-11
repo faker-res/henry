@@ -30,7 +30,7 @@
                     button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'Department', 'Update')" ng-disabled="!vm.SelectedDepartmentNode || vm.pageActionStatus!='null'", data-toggle="{{vm.SelectedDepartmentNode ? 'modal' : ''}}", data-target='#modalUpdateDepartment', ng-click="vm.newDepartmentName=vm.SelectedDepartmentNode.text;vm.newDepartment.icon=vm.SelectedDepartmentNode.departData.icon;vm.getIconList();")
                         text {{'UPDATE' | translate}}
                         img.img-edit
-                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'Department', 'Update')" ng-disabled="!vm.SelectedDepartmentNode || vm.pageActionStatus!='null'", data-toggle="{{vm.SelectedDepartmentNode ? 'modal' : ''}}", data-target='#modalUpdateSubDepartmentPermission', ng-click="vm.showManageSubDepartmentPermissionModal(vm.allView);vm.newDepartmentName=vm.SelectedDepartmentNode.text;")
+                    button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'Department', 'Update')" ng-disabled="!vm.SelectedDepartmentNode || vm.pageActionStatus!='null'", data-toggle="{{vm.SelectedDepartmentNode ? 'modal' : ''}}", data-target='#modalUpdateSubDepartmentPermission', ng-click="vm.showManageSubDepartmentPermissionModal();vm.newDepartmentName=vm.SelectedDepartmentNode.text;")
                         text {{'Manage Sub Department Permission' | translate}}
                         img.img-edit
                     //a.btn.btn-primary.common-button(ng-disabled="!vm.SelectedDepartmentNode || vm.pageActionStatus!='null'",, data-toggle="modal", data-target='#modalDepartmentPlatform')
