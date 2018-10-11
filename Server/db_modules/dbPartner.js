@@ -9958,15 +9958,13 @@ function getCommissionRateTable (platformObjId, commissionType, partnerObjId, pr
 
     return Promise.all([platformConfigProm, customConfigProm]).then(
         data => {
-            if (!data || !data[0]) {
-                return Promise.reject({
-                    code: constServerCode.INVALID_PARAM,
-                    name: "DataError",
-                    message: "Cannot find commission rate, please ensure that you had configure the setting properly."
-                });
-            }
+            let platformConfig = {};
 
-            let platformConfig = data[0];
+            if (!data[0]) {
+                platformConfig.commissionSetting = [];
+            } else {
+                platformConfig = data[0];
+            }
 
             if (data[1]) {
                 let customConfig = data[1];
