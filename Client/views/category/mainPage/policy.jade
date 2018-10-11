@@ -1,12 +1,12 @@
 #adminPolicy
     .btn-group.btn-group-vertical
-        button.btn.btn-default(class='{{vm.roleCategory[i]}}', ng-repeat=("(i,v) in vm.allView"),ng-if='vm.checkWhetherShow(i,null)', ng-click='vm.expandPolicySection(i)') {{i|translate}}
+        button.btn.btn-default(class='{{vm.roleCategory[i]}}', ng-repeat=("(i,v) in vm.departMaxViewList"),ng-if='vm.checkWhetherShow(i,null)', ng-click='vm.expandPolicySection(i)') {{i|translate}}
     .panel.panel-primary(style="min-height: 550px;")
         .panel-heading.panel-heading-sm
             .panel-title(ng-if='!vm.policyCategory.title') {{"Please select a category" |translate}}
             .panel-title(ng-if='vm.policyCategory.title') {{vm.policyCategory.title | translate}}
         .panel-body(style='height:500px;overflow-y:auto', ng-class='vm.showRoleFlag[vm.policyCategory.title].all ? "subDisabled":"" ')
-            .panel.panel-info(ng-repeat='(sectionName,sectionData) in vm.allView[vm.policyCategory.title]', ng-if='vm.checkWhetherShow(vm.policyCategory.title,sectionName)')
+            .panel.panel-info(ng-repeat='(sectionName,sectionData) in vm.departMaxViewList[vm.policyCategory.title]', ng-if='vm.checkWhetherShow(vm.policyCategory.title,sectionName)')
                 .panel-heading.panel-heading-sm
                     .panel-title {{sectionName | translate}}
                         label.pull-right(ng-show="vm.pageActionStatus=='creatingNewRole' || vm.pageActionStatus=='editingRole'") {{'ALL' | translate}}

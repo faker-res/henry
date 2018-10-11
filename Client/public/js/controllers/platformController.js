@@ -611,7 +611,7 @@ define(['js/app'], function (myApp) {
                         }
                     }, 100);
                 });
-                
+
                 utilService.actionAfterLoaded("#partnerThemeSelectPanel #partnerThemeTable", function () {
                     setTimeout(()=>{
                         if (vm.selectedPlatform.data && vm.selectedPlatform.data.partnerThemeSetting) {
@@ -34232,6 +34232,8 @@ define(['js/app'], function (myApp) {
                             vm.autoFeedbackSearchDetailResult[scheduleNumber][date].acceptedCount = 0;
                             vm.autoFeedbackSearchDetailResult[scheduleNumber][date].loginCount = 0;
                             vm.autoFeedbackSearchDetailResult[scheduleNumber][date].topUpCount = 0;
+                            vm.autoFeedbackSearchDetailResult[scheduleNumber][date].loginPlayers = [];
+                            vm.autoFeedbackSearchDetailResult[scheduleNumber][date].topUpPlayers = [];
                             vm.autoFeedbackSearchDetailResult[scheduleNumber][date].data = [];
                         }
                     };
@@ -34254,9 +34256,12 @@ define(['js/app'], function (myApp) {
                                 }
                                 if(item.autoFeedbackMissionLogin) {
                                     vm.autoFeedbackSearchDetailResult[scheduleNumber][date].loginCount++;
+                                    vm.autoFeedbackSearchDetailResult[scheduleNumber][date].loginPlayers.push(item.playerName);
+
                                 }
                                 if(item.autoFeedbackMissionTopUp) {
                                     vm.autoFeedbackSearchDetailResult[scheduleNumber][date].topUpCount++;
+                                    vm.autoFeedbackSearchDetailResult[scheduleNumber][date].topUpPlayers.push(item.playerName);
                                 }
                                 vm.autoFeedbackSearchDetailResult[scheduleNumber][date].data.push(item);
                             }
@@ -34274,6 +34279,56 @@ define(['js/app'], function (myApp) {
                     $('#autoFeedbackDetailSpin').hide();
                 });
             };
+            vm.autoFeedbackShowLoginPlayers = function(data){
+
+                    var playerData = data.map((item, index)=>{ return { "no":index + 1,"playerName":item} })
+                    let tableOptions = {
+                        data: playerData,
+                        aoColumnDefs: [
+                            {targets: '_all', defaultContent: ' ', bSortable: false}
+                        ],
+                        columns: [
+                            {
+                                title: $translate('order'),
+                                data: "no"
+                            },
+                            {
+                                title: $translate('Account'),
+                                data: "playerName"
+                            }],
+                            "paging": true,
+                        };
+                        tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
+                        utilService.createDatatableWithFooter('#autoFeedbackLoginPlayersTable', tableOptions, {}, true);
+                        utilService.actionAfterLoaded("#autoFeedbackLoginPlayersTable", function () {
+                            $('#autoFeedbackLoginPlayersTable').resize();
+                        })
+
+            };
+            vm.autoFeedbackShowTopUpPlayers = function(data){
+                    var playerData = data.map((item, index)=>{ return { "no":index + 1,"playerName":item} })
+                    let tableOptions = {
+                        data: playerData,
+                        aoColumnDefs: [
+                            {targets: '_all', defaultContent: ' ', bSortable: false}
+                        ],
+                        columns: [
+                            {
+                                title: $translate('order'),
+                                data: "no",
+                            },
+                            {
+                              title: $translate('Account'),
+                                data: "playerName"
+                            }],
+                            "paging": true,
+                        };
+                        tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
+                        utilService.createDatatableWithFooter('#autoFeedbackTopUpPlayersTable', tableOptions, {}, true);
+                        utilService.actionAfterLoaded("#autoFeedbackTopUpPlayersTable", function () {
+                          $('#autoFeedbackTopUpPlayersTable').resize();
+                        })
+            }
             vm.autoFeedbackShowPromoCodeDetail = function(data) {
                 console.log(data);
                 vm.autoFeedbackPromoCodeDetail = data;
