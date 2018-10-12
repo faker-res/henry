@@ -625,6 +625,16 @@ function socketActionPartner(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId && data.partnerObjId);
             socketUtil.emitter(self.socket, dbPartner.getDownlinePlayersRecord, [data.platformId, data.partnerObjId, data.playerName, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
+        /**
+         * get permission change history for partner
+         * @param {json} data - contains partnerObjId, platform
+         */
+        getPartnerPermissionLog: function getPartnerPermissionLog(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform && data.partnerObjId);
+            socketUtil.emitter(self.socket, dbPartner.getPartnerPermissionLog, [ObjectId(data.platform), ObjectId(data.partnerObjId), data.createTime], actionName, isValidData);
         }
     };
 
