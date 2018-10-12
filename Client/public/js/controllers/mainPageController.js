@@ -1905,6 +1905,7 @@ define(['js/app'], function (myApp) {
                         vm.subShowRole = vm.subShowRoleFlag;
                         vm.getDepartmentFullData();
                         vm.getDepartmentUsersData();
+                        vm.getAllDepartmentData();
                     });
                 }
             };
