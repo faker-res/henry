@@ -1695,5 +1695,12 @@
   "EditAdminRole": "Edit Admin Role",
   "Calculated According to Promo Code Sent (Promo code sent to a same player twice will be calculated as 2) Eg. Send(1st) --> login --> send(2nd) = total count of 2":
   "Calculated According to Promo Code Sent (Promo code sent to a same player twice will be calculated as 2) Eg. Send(1st) ——＞ login ——＞ send(2nd) = total count of 2",
-  "SKIP_CURRENT_PERIOD": "Skip Current Period"
+  "SKIP_CURRENT_PERIOD": "Skip Current Period",
+  "oldFeeRate": "Previous Commission Fee Rate",
+  "newFeeRate": "New Commission Fee Rate",
+  "rateAfterRebatePromo": "Rate of the reward fee to be deducted (preset value)",
+  "rateAfterRebatePlatform": "Rate of the platform fee to be deducted (preset value)",
+  "rateAfterRebateTotalDeposit": "Rate of the total deposit fee to be deducted (preset value)",
+  "rateAfterRebateTotalWithdrawal": "Rate of the total withdrawal fee to be deducted (preset value)",
+  "isResetAll": "Reset All Commission Rate"
 }

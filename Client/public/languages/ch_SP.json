@@ -4628,5 +4628,12 @@
   "Online Top Up Fee": "在线充值费用",
   "Check All Selection": "全部勾选",
   "Manage Sub Department Permission": "赋予下级部门权限",
-  "Do not have permission setting": "请设置部门权限"
+  "Do not have permission setting": "请设置部门权限",
+  "oldFeeRate": "原费用比例",
+  "newFeeRate": "更新后费用比例",
+  "rateAfterRebatePromo": "佣金需扣除的优惠比例（预设值）",
+  "rateAfterRebatePlatform": "佣金需扣除的平台费比例（预设值）",
+  "rateAfterRebateTotalDeposit": "佣金需扣除的『总存款』手续费比例（预设值）",
+  "rateAfterRebateTotalWithdrawal": "佣金需扣除的『总取款』手续费比例（预设值）",
+  "isResetAll": "恢复所有佣金比例"
 }

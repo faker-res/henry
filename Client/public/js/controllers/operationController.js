@@ -2703,54 +2703,131 @@ define(['js/app'], function (myApp) {
                 vm.selectedProposalDetailForDisplay = proposalDetail;
             }
 
-            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "CustomizePartnerCommRate" && vm.selectedProposal.data && vm.selectedProposal.data.isEditAll) {
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "CustomizePartnerCommRate" && vm.selectedProposal.data) {
                 proposalDetail = {};
                 if (!vm.selectedProposal.data) {
                     vm.selectedProposal.data = {};
                 }
                 proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
                 proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
-                proposalDetail["oldRate"] = "";
-                if (vm.selectedProposal.data.oldConfigArr && vm.selectedProposal.data.oldConfigArr.length > 0) {
-                    vm.selectedProposal.data.oldConfigArr.forEach(oldConfig => {
-                        if (oldConfig && oldConfig.provider && oldConfig.commissionSetting && oldConfig.commissionSetting.length > 0) {
-                            let providerGroupName = vm.getProviderGroupNameById(oldConfig.provider);
-                            let oldRateArr = [];
-                            let oldRateStr = '';
-                            oldConfig.commissionSetting.forEach(commission => {
-                                if (commission && commission.commissionRate) {
-                                    oldRateArr.push($fixTwoDecimalStr(commission.commissionRate * 100) + '%');
+                if (vm.selectedProposal.data.isEditAll) {
+                    proposalDetail["oldRate"] = "";
+                    if (vm.selectedProposal.data.oldConfigArr && vm.selectedProposal.data.oldConfigArr.length > 0) {
+                        vm.selectedProposal.data.oldConfigArr.forEach(oldConfig => {
+                            if (oldConfig && oldConfig.provider && oldConfig.commissionSetting && oldConfig.commissionSetting.length > 0) {
+                                let providerGroupName = vm.getProviderGroupNameById(oldConfig.provider);
+                                let oldRateArr = [];
+                                let oldRateStr = '';
+                                oldConfig.commissionSetting.forEach(commission => {
+                                    if (commission && commission.commissionRate) {
+                                        oldRateArr.push($fixTwoDecimalStr(commission.commissionRate * 100) + '%');
+                                    }
+                                });
+
+                                if (oldRateArr && oldRateArr.length > 0) {
+                                    oldRateStr = oldRateArr.join(', ');
                                 }
-                            });
 
-                            if (oldRateArr && oldRateArr.length > 0) {
-                                oldRateStr = oldRateArr.join(', ');
+                                proposalDetail["- " + providerGroupName] = oldRateStr;
                             }
+                        });
+                    }
+                    proposalDetail["newRate"] = "";
+                    if (vm.selectedProposal.data.newConfigArr && vm.selectedProposal.data.newConfigArr.length > 0) {
+                        vm.selectedProposal.data.newConfigArr.forEach(newConfig => {
+                            if (newConfig && newConfig.provider && newConfig.commissionSetting && newConfig.commissionSetting.length > 0) {
+                                let providerGroupName = vm.getProviderGroupNameById(newConfig.provider);
+                                let newRateArr = [];
+                                let newRateStr = '';
+                                newConfig.commissionSetting.forEach(commission => {
+                                    if (commission && commission.commissionRate) {
+                                        newRateArr.push($fixTwoDecimalStr(commission.commissionRate * 100) + '%');
+                                    }
+                                });
 
-                            proposalDetail["- " + providerGroupName] = oldRateStr;
-                        }
-                    });
-                }
-                proposalDetail["newRate"] = "";
-                if (vm.selectedProposal.data.newConfigArr && vm.selectedProposal.data.newConfigArr.length > 0) {
-                    vm.selectedProposal.data.newConfigArr.forEach(newConfig => {
-                        if (newConfig && newConfig.provider && newConfig.commissionSetting && newConfig.commissionSetting.length > 0) {
-                            let providerGroupName = vm.getProviderGroupNameById(newConfig.provider);
-                            let newRateArr = [];
-                            let newRateStr = '';
-                            newConfig.commissionSetting.forEach(commission => {
-                                if (commission && commission.commissionRate) {
-                                    newRateArr.push($fixTwoDecimalStr(commission.commissionRate * 100) + '%');
+                                if (newRateArr && newRateArr.length > 0) {
+                                    newRateStr = newRateArr.join(', ');
                                 }
-                            });
 
-                            if (newRateArr && newRateArr.length > 0) {
-                                newRateStr = newRateArr.join(', ');
+                                proposalDetail["-  " + providerGroupName] = newRateStr;
                             }
-
-                            proposalDetail["-  " + providerGroupName] = newRateStr;
+                        });
+                    }
+                } else if (vm.selectedProposal.data.isPlatformRate) {
+                    if (vm.selectedProposal.data.isRevert) {
+                        proposalDetail["Commission Customization Revert"] = vm.selectedProposal.data.isRevert;
+                    }
+                    proposalDetail["oldFeeRate"] = "";
+                    if (vm.selectedProposal.data.oldRate) {
+                        let oldRate = vm.selectedProposal.data.oldRate;
+                        proposalDetail["Rate After Rebate Promo"] = oldRate.rateAfterRebatePromo + '%';
+                        proposalDetail["Rate After Rebate Platform"] = oldRate.rateAfterRebatePlatform + '%';
+                        if (oldRate.rateAfterRebateGameProviderGroup && oldRate.rateAfterRebateGameProviderGroup.length > 0) {
+                            oldRate.rateAfterRebateGameProviderGroup.forEach(rate => {
+                                if (rate && rate.name) {
+                                    proposalDetail["- " + rate.name] = rate.rate + '%';
+                                }
+                            })
                         }
-                    });
+                        proposalDetail["Rate After Rebate Total Deposit"] = oldRate.rateAfterRebateTotalDeposit + '%';
+                        proposalDetail["Rate After Rebate Total Withdrawal"] = oldRate.rateAfterRebateTotalWithdrawal + '%';
+                    }
+                    proposalDetail["newFeeRate"] = "";
+                    if (vm.selectedProposal.data.newRate) {
+                        let newRate = vm.selectedProposal.data.newRate;
+                        proposalDetail["rateAfterRebatePromo"] = newRate.rateAfterRebatePromo + '%';
+                        proposalDetail["rateAfterRebatePlatform"] = newRate.rateAfterRebatePlatform + '%';
+                        if (newRate.rateAfterRebateGameProviderGroup && newRate.rateAfterRebateGameProviderGroup.length > 0) {
+                            newRate.rateAfterRebateGameProviderGroup.forEach(rate => {
+                                if (rate && rate.name) {
+                                    proposalDetail["-  " + rate.name] = rate.rate + '%';
+                                }
+                            })
+                        }
+                        proposalDetail["rateAfterRebateTotalDeposit"] = newRate.rateAfterRebateTotalDeposit + '%';
+                        proposalDetail["rateAfterRebateTotalWithdrawal"] = newRate.rateAfterRebateTotalWithdrawal + '%';
+                    }
+                } else if (!vm.selectedProposal.data.isPlatformRate && vm.selectedProposal.data.oldRate && vm.selectedProposal.data.newRate
+                    && vm.selectedProposal.data.oldRate.hasOwnProperty('commissionSetting') && vm.selectedProposal.data.newRate.hasOwnProperty('commissionSetting')){
+                    if (vm.selectedProposal.data.isRevert) {
+                        proposalDetail["Commission Customization Revert"] = vm.selectedProposal.data.isRevert;
+                    }
+                    proposalDetail["oldRate"] = "";
+                    if (vm.selectedProposal.data.oldRate.provider && vm.selectedProposal.data.oldRate.commissionSetting && vm.selectedProposal.data.oldRate.commissionSetting.length > 0) {
+                        let providerGroupName = vm.getProviderGroupNameById(vm.selectedProposal.data.oldRate.provider);
+                        let oldRateArr = [];
+                        let oldRateStr = '';
+                        vm.selectedProposal.data.oldRate.commissionSetting.forEach(commission => {
+                            if (commission && commission.commissionRate) {
+                                oldRateArr.push($fixTwoDecimalStr(commission.commissionRate * 100) + '%');
+                            }
+                        });
+
+                        if (oldRateArr && oldRateArr.length > 0) {
+                            oldRateStr = oldRateArr.join(', ');
+                        }
+
+                        proposalDetail["- " + providerGroupName] = oldRateStr;
+                    }
+                    proposalDetail["newRate"] = "";
+                    if (vm.selectedProposal.data.newRate.provider && vm.selectedProposal.data.newRate.commissionSetting && vm.selectedProposal.data.newRate.commissionSetting.length > 0) {
+                        let providerGroupName = vm.getProviderGroupNameById(vm.selectedProposal.data.newRate.provider);
+                        let oldRateArr = [];
+                        let oldRateStr = '';
+                        vm.selectedProposal.data.newRate.commissionSetting.forEach(commission => {
+                            if (commission && commission.commissionRate) {
+                                oldRateArr.push($fixTwoDecimalStr(commission.commissionRate * 100) + '%');
+                            }
+                        });
+
+                        if (oldRateArr && oldRateArr.length > 0) {
+                            oldRateStr = oldRateArr.join(', ');
+                        }
+
+                        proposalDetail["-  " + providerGroupName] = oldRateStr;
+                    }
+                } else if (vm.selectedProposal.data.isResetAll) {
+                    proposalDetail["isResetAll"] = vm.selectedProposal.data.isResetAll;
                 }
                 vm.selectedProposalDetailForDisplay = proposalDetail;
             }
