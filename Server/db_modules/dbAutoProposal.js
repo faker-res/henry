@@ -535,8 +535,8 @@ function checkRewardTaskGroup(proposal, platformObj) {
             console.log('initialAmount - RTX', initialAmount);
             console.log('totalTopUpAmount - RTX', totalTopUpAmount);
 
-            if (totalBonusAmount > 0 && proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
-                && (totalBonusAmount / (initialAmount + totalTopUpAmount) >= platformObj.autoApproveProfitTimes)) {
+            if (proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
+                && (proposal.data.amount / (initialAmount + totalTopUpAmount) >= platformObj.autoApproveProfitTimes)) {
                 checkMsg += ' Denied: Max profit times;';
                 checkMsgChinese += ' 失败：盈利十倍;';
                 canApprove = false;
