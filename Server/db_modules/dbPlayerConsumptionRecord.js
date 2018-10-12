@@ -2374,7 +2374,7 @@ function findRTGToUpdate (oldData, newData) {
         incBonusAmt = newData.bonusAmount - oldData.bonusAmount || 0;
         incValidAmt = newData.validAmount - oldData.validAmount || 0;
 
-        return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: oldData.playerId}).then(
+        return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: oldData.playerId}, newData.updateTime).then(
             RTGs => {
                 if (RTGs && RTGs.length) {
                     let validAmtToAdd = 0;
