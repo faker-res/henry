@@ -229,7 +229,7 @@ function socketActionDepartment(socketIO, socket) {
         getDepartmentById: function getDepartmentById(data) {
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data && data.departmentObjId);
-            socketUtil.emitter(self.socket, dbDepartment.getDepartmentById, [data.departmentObjId], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbDepartment.getDepartmentById, [data.departmentObjId, data.departmentIds], actionName, isDataValid);
         }
     };
 

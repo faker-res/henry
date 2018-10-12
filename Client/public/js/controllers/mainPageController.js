@@ -1775,10 +1775,13 @@ define(['js/app'], function (myApp) {
                 vm.currentDepartmentViews = {};
                 vm.viewList = {};
                 vm.showView = false;
+                vm.notAllowToEditPermission = false;
+                let departmentIds = authService.departmentIds();
 
                 if (vm.SelectedDepartmentNode && vm.SelectedDepartmentNode.id) {
                     let sendData = {
-                        departmentObjId: vm.SelectedDepartmentNode.id
+                        departmentObjId: vm.SelectedDepartmentNode.id,
+                        departmentIds: departmentIds
                     };
 
                     socketService.$socket($scope.AppSocket, 'getDepartmentById', sendData, function (data) {
@@ -1801,18 +1804,32 @@ define(['js/app'], function (myApp) {
                             } else if (data && data.data && data.data.hasOwnProperty('isParentExist') && data.data.hasOwnProperty('views')
                                 && data.data.isParentExist && data.data.views && Object.keys(data.data.views).length > 0
                                 && (!data.data.curViews || Object.keys(data.data.curViews).length == 0)) {
-                                vm.showView = true;
-                                vm.viewList = data.data.views;
 
-                                vm.processSubDepartmentRole(vm.viewList, data.data.views, vm.viewList, false)
+                                if(data.data.isParentsInDepartmentIdList){
+                                    vm.showView = true;
+                                    vm.viewList = data.data.views;
+
+                                    vm.processSubDepartmentRole(vm.viewList, data.data.views, vm.viewList, false)
+                                }else{
+                                    vm.showView = false;
+                                }
+
 
                             } else if (data && data.data && data.data.hasOwnProperty('isParentExist') && data.data.hasOwnProperty('views')
                                 && data.data.isParentExist && data.data.views && data.data.curViews
                                 && Object.keys(data.data.views).length > 0 && Object.keys(data.data.curViews).length > 0) {
-                                vm.showView = true;
-                                vm.viewList = data.data.views;
 
-                                vm.processSubDepartmentRole(vm.viewList, data.data.curViews, vm.viewList, true)
+                                vm.showView = true;
+
+                                if(data.data.isParentsInDepartmentIdList){
+                                    vm.viewList = data.data.views;
+
+                                    vm.processSubDepartmentRole(vm.viewList, data.data.curViews, vm.viewList, true)
+                                }else{
+                                    vm.notAllowToEditPermission = true;
+                                    vm.viewList = data.data.curViews;
+                                    vm.processSubDepartmentRole(data.data.curViews,data.data.curViews, data.data.curViews, true)
+                                }
 
                             } else {
                                 vm.viewList = {};
