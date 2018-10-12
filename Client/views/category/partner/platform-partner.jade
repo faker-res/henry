@@ -723,8 +723,49 @@ p
                         a.text-danger.togglePartner(data-which='{{key}}', data-on=false) {{"OFF" | translate}}
         .textareaDetail.margin-top-bottom-small
             textarea.permissionRemark(placeholder='{{"Please add remark." | translate}}')
-        .text-center
+        .text-left(style="position:relative;")
             button.btn.btn-primary.submit {{'CONFIRM' | translate}}
+            button#permissionRecordButtonByPartnerTab.btn.btn-primary(style="right:0px;position:absolute",ng-if="checkViewPermission('Partner', 'Partner', 'PermissionHistory')", data-toggle="modal", ng-click='vm.getPartnerPermissionChangeByPartnerTab("new")', data-target='#modalPartnerPermissionChangeLog') {{"Permission History" | translate}}
+
+#modalPartnerPermissionChangeLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:60%;')
+        #partnerPermissionHistory.modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Partner' | translate}} : {{vm.popOverPartnerPermission.partnerName}}
+            .modal-body
+                .well.searchDiv
+                    .inlineBlk
+                        label {{"Start date"|translate}}
+                        .startTime
+                    .inlineBlk
+                        label {{"End date"|translate}}
+                        .endTime
+                    .inlineBlk
+                        button.common-button.btn.btn-primary(ng-click='vm.getPartnerPermissionChangeByPartnerTab("update")') {{'FILTER' | translate}}
+                        i.fa.fa-spinner.fa-spin(ng-if='vm.partnerPermissionQuery.searching')
+                label(ng-if='!vm.partnerPermissionQuery.searching') {{'total' | translate}} {{vm.partnerPermissionHistory.length || 0}} {{'records' | translate}}
+                .panel.panel-primary
+                    .panel-head
+                        .panel-title
+                            .text-center
+                                .col-md-2 {{"date" | translate}}
+                                .col-md-5 {{"CONTENT" | translate}}
+                                .col-md-2 {{"ADMIN" | translate}}
+                                .col-md-3 {{"remark" | translate}}
+                    .panel-body(style='max-height:400px;overflow-y:auto')
+                        .row(ng-repeat='(i,v) in vm.partnerPermissionHistory', class='{{i%2==0 ? "bg-grey":""}}')
+                            .col-md-2 {{vm.dateReformat(v.createTime)}}
+                            .col-md-5
+                                ul.list-unstyled(ng-repeat='(k,l) in v.oldData', style='margin-bottom:0;')
+                                    li
+                                        label {{k | translate}}
+                                        .pull-right
+                                            text(class='{{l ? "text-primary" : "text-danger"}}') {{l}}
+                                            text &nbsp;-->&nbsp;
+                                            text(class='{{v.newData[k] ? "text-primary" : "text-danger"}}') {{v.newData[k]}}
+                            .col-md-2.text-center {{v.admin.adminName || ' '}}
+                            .col-md-3.text-center {{v.remark}}
 
 #modalPartnerPasswordReset.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:60%;')

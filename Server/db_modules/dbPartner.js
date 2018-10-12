@@ -9893,6 +9893,20 @@ let dbPartner = {
             }
 
         })
+    },
+
+    getPartnerPermissionLog: function (platform, id, createTime) {
+        var query = {
+            platform: platform,
+            partner: id
+        }
+        if (createTime) {
+            query.createTime = createTime;
+        }
+        return dbconfig.collection_partnerPermissionLog.find(query).populate({
+            path: "admin",
+            model: dbconfig.collection_admin
+        })
     }
 };
 
