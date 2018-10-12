@@ -1848,12 +1848,16 @@ define(['js/app'], function (myApp) {
                     if (cateData) {
                         $.each(cateData, function (sectionName, sectionData) {
                             if (sectionData) {
+                                let isAll = true;
                                 $.each(sectionData, function (viewName, viewData) {
                                     if (vm.subShowRoleFlag[cate] && vm.subShowRoleFlag[cate][sectionName] && vm.subShowRoleFlag[cate][sectionName][viewName]) {
                                         vm.subShowRoleFlag[cate][sectionName][viewName] = flag;
                                     }
-
+                                    if (!vm.subShowRoleFlag[cate] || !vm.subShowRoleFlag[cate][sectionName] || !vm.subShowRoleFlag[cate][sectionName][viewName] ) {
+                                        isAll = false;
+                                    }
                                 });
+                                vm.subPolicytoggle[cate][sectionName].all = isAll;
                             }
                         });
                     }
@@ -1909,7 +1913,19 @@ define(['js/app'], function (myApp) {
                 if (!bool && vm.subPolicytoggle[cate][section]) {
                     vm.subPolicytoggle[cate][section].all = false;
                 }
-            }
+            };
+
+            vm.allSubRoleSelection = function (flag) {
+                vm.subShowRoleFlag = $.extend(true, {}, vm.viewList);
+                $.each(vm.subShowRoleFlag, function (cate, cateData) {
+                    $.each(cateData, function (sectionName, sectionData) {
+                        $.each(sectionData, function (viewName, viewData) {
+                            vm.subShowRoleFlag[cate][sectionName][viewName] = flag;
+                        });
+                        vm.subPolicytoggle[cate][sectionName].all = flag;
+                    });
+                });
+            };
             //End of give sub department permission
 
 //##Mark view and button related functions

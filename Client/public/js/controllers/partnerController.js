@@ -11184,7 +11184,8 @@ define(['js/app'], function (myApp) {
                         oldConfig: oldConfig,
                         newConfig: newConfig,
                         isRevert: isRevert,
-                        isPlatformRate: false
+                        isPlatformRate: false,
+                        commissionType: setting.srcConfig.commissionType
                     };
 
                     socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
@@ -11254,7 +11255,8 @@ define(['js/app'], function (myApp) {
                         oldConfig: oldConfig,
                         newConfig: newConfig,
                         isRevert: false,
-                        isPlatformRate: false
+                        isPlatformRate: false,
+                        commissionType: setting.srcConfig.commissionType,
                     };
 
                     socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {
@@ -11336,7 +11338,8 @@ define(['js/app'], function (myApp) {
                     newConfig: config,
                     isRevert: isRevert,
                     isPlatformRate: true,
-                    isDelete: isDelete
+                    isDelete: isDelete,
+                    commissionType: vm.constPartnerCommisionType[vm.commissionSettingTab]
                 };
 
                 socketService.$socket($scope.AppSocket, 'customizePartnerCommission', sendData, function (data) {

@@ -6314,7 +6314,7 @@ let dbPartner = {
         }
     },
 
-    customizePartnerCommission: (partnerObjId, settingObjId, field, oldConfig, newConfig, isPlatformRate, isRevert, isDelete, adminInfo) => {
+    customizePartnerCommission: (partnerObjId, settingObjId, field, oldConfig, newConfig, isPlatformRate, isRevert, isDelete, adminInfo, commissionType) => {
         return dbconfig.collection_partner.findById(partnerObjId).lean().then(
             partnerObj => {
                 if (partnerObj) {
@@ -6339,7 +6339,8 @@ let dbPartner = {
                         remark: localization.localization.translate(field),
                         isRevert: isRevert,
                         isPlatformRate: isPlatformRate,
-                        isDelete: isDelete
+                        isDelete: isDelete,
+                        commissionType: commissionType
                     };
                     return dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.CUSTOMIZE_PARTNER_COMM_RATE, {creator: creatorData, data: proposalData});
                 }
@@ -9958,15 +9959,13 @@ function getCommissionRateTable (platformObjId, commissionType, partnerObjId, pr
 
     return Promise.all([platformConfigProm, customConfigProm]).then(
         data => {
-            if (!data || !data[0]) {
-                return Promise.reject({
-                    code: constServerCode.INVALID_PARAM,
-                    name: "DataError",
-                    message: "Cannot find commission rate, please ensure that you had configure the setting properly."
-                });
-            }
+            let platformConfig = {};
 
-            let platformConfig = data[0];
+            if (!data[0]) {
+                platformConfig.commissionSetting = [];
+            } else {
+                platformConfig = data[0];
+            }
 
             if (data[1]) {
                 let customConfig = data[1];
