@@ -1125,7 +1125,7 @@ let dbDXMission = {
             result => {
                 if(result){
                     let size = result[0] ? result[0] : 0;
-                    let dxPhoneData = result[1] ? result[1] : {};
+                    let dxPhoneData = result[1] ? result[1] : [];
                     let phoneDataWithAlert = dxPhoneData.filter(d => d.alerted == true);
                     let phoneDataWithoutAlert = dxPhoneData.filter(d => d.alerted == false);
 
@@ -1454,6 +1454,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
     let playerPassword = dxPhone.dxMission.password || "888888";
     let isNew = false;
     let newData = {};
+    let filteredDomain = null;
 
     if (!dxPhone.dxMission) {
         dxPhone.dxMission = {
@@ -1490,7 +1491,21 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
             }
 
             if (domain) {
-                playerData.domain = domain;
+                filteredDomain = dbUtility.getDomainName(domain);
+
+                while (filteredDomain.indexOf("/") !== -1) {
+                    filteredDomain = filteredDomain.replace("/", "");
+                }
+
+                if (filteredDomain.indexOf("?") !== -1) {
+                    filteredDomain = filteredDomain.split("?")[0];
+                }
+
+                if (filteredDomain.indexOf("#") !== -1) {
+                    filteredDomain = filteredDomain.split("#")[0];
+                }
+
+                playerData.domain = filteredDomain;
             }
 
             return dbPlayerInfo.createPlayerInfo(playerData,null, null, null, null, true);
@@ -1544,7 +1559,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 newData.phoneNumber = dbUtil.encodePhoneNum(dxPhone.phoneNumber);
                 newData.platform = newPlayerData.platform;
                 newData.name = newPlayerData.name;
-                newData.promoteWay = '电销触击开户';
+                newData.promoteWay = newPlayerData.promoteWay;
             }
 
             if (dxPhone.phoneNumber) {
@@ -1558,15 +1573,21 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
 
             let playerLevelProm = dbconfig.collection_playerLevel.findOne({_id: newPlayerData.playerLevel}, {name: 1}).lean();
             let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
-                domain: domain,
+                domain: filteredDomain,
                 platform: newPlayerData.platform
-            }).populate({path: "admin", model: dbconfig.collection_admin}).lean();
+            }).lean().then(data => {
+                if (data) {
+                    let adminId = data.admin ? data.admin : "";
+
+                    return dbconfig.collection_admin.findOne({_id: adminId}).lean();
+                }
+            });
 
             return Promise.all([playerLevelProm, promoteWayProm]).then(
                 data => {
                     if (data) {
-                        newData.playerLevelName = data[0].name;
-                        newData.csOfficer = data[1].admin.adminName;
+                        newData.playerLevelName = data[0] && data[0].name ? data[0].name : "";
+                        newData.csOfficer = data[1] && data[1].adminName ? data[1].adminName : "";
 
                         let proposalData = {
                             creator: newData.adminInfo || {
