@@ -3173,7 +3173,7 @@ define(['js/app'], function (myApp) {
                         gameGroupIconUrl: vm.newGameGroup.gameGroupIconUrl
                     }
                 }
-                socketService.$socket($scope.AppSocket, 'renamePlatformGameGroup', sendData, function (data) {
+                socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, function (data) {
                     console.log(data.data);
                     vm.loadGameGroupData();
                 })
@@ -3354,7 +3354,7 @@ define(['js/app'], function (myApp) {
                     newIndex: newIndex,
                     gameObjId: gameId
                 }
-                socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, success);
+                socketService.$socket($scope.AppSocket, 'updateGameIndexGameGroup', sendData, success);
 
                 function success(data) {
 
@@ -28962,31 +28962,31 @@ define(['js/app'], function (myApp) {
                 }
                 else {
                     vm.providerGroupConfig.showWarning = false;
-                    vm.configTableEdit = false;
-
-                    vm.removeProviderGroup();
-
-                    let sendData = {
-                        platformObjId: vm.selectedPlatform.id,
-                        gameProviderGroup: vm.gameProviderGroup.map(e => {
-                            let gameProviderGroupData = {
-                                providerGroupId: e.providerGroupId,
-                                name: e.name,
-                                providers: e.providers
-                            };
-                            if(e.hasOwnProperty('ebetWallet')) {
-                                gameProviderGroupData.ebetWallet = e.ebetWallet;
-                            }
-                            return gameProviderGroupData;
-                        })
-                    };
-
-                    console.log('sendData2', sendData);
-
-                    socketService.$socket($scope.AppSocket, 'updatePlatformProviderGroup', sendData, function (data) {
-                        console.log('updatePlatformProviderGroup', data);
-                    });
                 }
+                vm.configTableEdit = false;
+
+                vm.removeProviderGroup();
+
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    gameProviderGroup: vm.gameProviderGroup.map(e => {
+                        let gameProviderGroupData = {
+                            providerGroupId: e.providerGroupId,
+                            name: e.name,
+                            providers: e.providers
+                        };
+                        if(e.hasOwnProperty('ebetWallet')) {
+                            gameProviderGroupData.ebetWallet = e.ebetWallet;
+                        }
+                        return gameProviderGroupData;
+                    })
+                };
+
+                console.log('sendData2', sendData);
+
+                socketService.$socket($scope.AppSocket, 'updatePlatformProviderGroup', sendData, function (data) {
+                    console.log('updatePlatformProviderGroup', data);
+                });
             }
 
             vm.removeProviderGroup = () => {

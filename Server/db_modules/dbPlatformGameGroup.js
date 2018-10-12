@@ -25,7 +25,7 @@ var dbPlatformGameGroup = {
         });
     },
 
-    renamePlatformGameGroup: function (query, updateData) {
+    updatePlatformGameGroup: function (query, updateData) {
         return dbconfig.collection_platformGameGroup.findOneAndUpdate(query, updateData, {upsert: true, new: true});
     },
 
@@ -34,7 +34,7 @@ var dbPlatformGameGroup = {
      * @param {json}  query - queryData
      * @param {json}  updateData -  updateData
      */
-    updatePlatformGameGroup: function (query, newIndex, gamesGroup, gameObjId) {
+    updateGameIndexGameGroup: function (query, newIndex, gamesGroup, gameObjId) {
 
         if (newIndex <= 0){
             return Promise.reject({
