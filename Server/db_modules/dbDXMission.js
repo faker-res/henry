@@ -10,6 +10,7 @@ var smsAPI = require('../externalAPI/smsAPI');
 const jwt = require('jsonwebtoken');
 const rsaCrypto = require("../modules/rsaCrypto");
 const localization = require("./../modules/localization").localization;
+const queryPhoneLocation = require('query-mobile-phone-area');
 
 
 const constSystemParam = require('../const/constSystemParam');
@@ -18,9 +19,11 @@ const constProposalType = require('../const/constProposalType');
 const constProposalUserType = require('../const/constProposalUserType');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalStatus = require('../const/constProposalStatus');
+const constRegistrationIntentRecordStatus = require("../const/constRegistrationIntentRecordStatus.js");
 const dbProposal = require('./../db_modules/dbProposal');
 const dbUtility = require('./../modules/dbutility');
 const bcrypt = require('bcrypt');
+const dbPlayerRegistrationIntentRecord = require('./../db_modules/dbPlayerRegistrationIntentRecord');
 
 
 const mongoose = require('mongoose');
@@ -1450,6 +1453,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
     let platform = dxPhone.platform;
     let playerPassword = dxPhone.dxMission.password || "888888";
     let isNew = false;
+    let newData = {};
 
     if (!dxPhone.dxMission) {
         dxPhone.dxMission = {
@@ -1521,9 +1525,83 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 updateDxPhoneBUsed(dxPhone, playerData._id).catch(errorUtils.reportError);
             }
 
-            return {
-                redirect: dxMission.loginUrl + "?playerId=" + playerData.playerId + "&token=" + token
+            if (deviceData) {
+                newData.ipArea = {
+                    province: deviceData.province,
+                    city: deviceData.city,
+                    country: deviceData.country
+                };
+                newData.loginIps = deviceData.loginIps;
+                newData.lastLoginIp = deviceData.lastLoginIp;
             }
+
+            if (newPlayerData) {
+                newData.userAgent = newPlayerData.userAgent;
+                newData.purpose = 'registration';
+                newData.remarks = '';
+                newData.gender = newPlayerData.gender ? 1 : 0;
+                newData.email = newPlayerData.email ? dbUtil.encodeEmail(newPlayerData.email) : "";
+                newData.phoneNumber = dbUtil.encodePhoneNum(dxPhone.phoneNumber);
+                newData.platform = newPlayerData.platform;
+                newData.name = newPlayerData.name;
+                newData.promoteWay = '电销触击开户';
+            }
+
+            if (dxPhone.phoneNumber) {
+                let queryRes = queryPhoneLocation(dxPhone.phoneNumber);
+                if (queryRes) {
+                    newData.phoneProvince = queryRes.province;
+                    newData.phoneCity = queryRes.city;
+                    newData.phoneType = queryRes.type;
+                }
+            }
+
+            let playerLevelProm = dbconfig.collection_playerLevel.findOne({_id: newPlayerData.playerLevel}, {name: 1}).lean();
+            let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
+                domain: domain,
+                platform: newPlayerData.platform
+            }).populate({path: "admin", model: dbconfig.collection_admin}).lean();
+
+            return Promise.all([playerLevelProm, promoteWayProm]).then(
+                data => {
+                    if (data) {
+                        newData.playerLevelName = data[0].name;
+                        newData.csOfficer = data[1].admin.adminName;
+
+                        let proposalData = {
+                            creator: newData.adminInfo || {
+                                type: 'player',
+                                name: newPlayerData.name,
+                                id: newPlayerData.playerId ? newPlayerData.playerId : ""
+                            }
+                        };
+
+                        let newProposal = {
+                            creator: proposalData.creator,
+                            data: newData,
+                            entryType: newPlayerData.adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                            userType: newPlayerData.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                            inputDevice: newPlayerData.inputDevice ? newPlayerData.inputDevice : 0,
+                            status: constProposalStatus.SUCCESS
+                        };
+
+                        dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(newPlayerData.platform, newProposal, constProposalStatus.SUCCESS);
+
+                        let newIntentData = {
+                            data: newData,
+                            status: constRegistrationIntentRecordStatus.SUCCESS,
+                            name: newPlayerData.name
+                        };
+
+                        let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);
+                        newRecord.save().catch(errorUtils.reportError);
+
+                        return {
+                            redirect: dxMission.loginUrl + "?playerId=" + playerData.playerId + "&token=" + token
+                        }
+                    }
+                }
+            )
         }
     ).catch(
         err => {

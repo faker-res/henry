@@ -672,8 +672,9 @@ var dbDepartment = {
      * @param departmentObjId
      * @returns {Query|*}
      */
-    getDepartmentById: function(departmentObjId){
+    getDepartmentById: function(departmentObjId, departmentIdList){
         let currentDepartmentViews;
+        let views;
 
         return dbconfig.collection_department.findOne(
             {
@@ -684,7 +685,7 @@ var dbDepartment = {
             }
         ).lean().then(data => {
             if (data && !data.parent) {
-                let views = data.views ? data.views : null;
+                views = data.views ? data.views : null;
 
                 return {views: views, isParentExist: false};
             } else {
@@ -699,14 +700,38 @@ var dbDepartment = {
                 ).lean().then(
                     parentViewSetting => {
                         if (parentViewSetting && parentViewSetting.views) {
-                            let views = parentViewSetting.views ? parentViewSetting.views : null;
-
-                            return {views: views, curViews: currentDepartmentViews, isParentExist: true};
+                            views = parentViewSetting.views ? parentViewSetting.views : null;
+                            return Promise.all([dbDepartment.checkIfParentsInDepartmentIdList(departmentObjId, departmentIdList)]);
+                        }
+                    }
+                ).then(
+                    isParentsInDepartmentIdList => {
+                        if(isParentsInDepartmentIdList && isParentsInDepartmentIdList.length > 0 && typeof isParentsInDepartmentIdList[0] != "undefined"){
+                            return {views: views, curViews: currentDepartmentViews, isParentExist: true, parentObjId: data.parent, isParentsInDepartmentIdList: isParentsInDepartmentIdList[0]};
+                        }else{
+                            return {views: views, curViews: currentDepartmentViews, isParentExist: true, parentObjId: data.parent, isParentsInDepartmentIdList: false};
                         }
                     }
                 )
             }
         });
+    },
+
+    checkIfParentsInDepartmentIdList: function(departmentObjId, departmentIdList){
+        return dbconfig.collection_department.findOne({_id: departmentObjId}).then(
+            department =>{
+                if(department && department.parent){
+                    let indexNo = departmentIdList.findIndex(d => d._id == department.parent);
+                    if(indexNo > -1){
+                        return true;
+                    }else{
+                        return dbDepartment.checkIfParentsInDepartmentIdList(department.parent, departmentIdList);
+                    }
+                }else{
+                    return false;
+                }
+            }
+        )
     }
 
 };
