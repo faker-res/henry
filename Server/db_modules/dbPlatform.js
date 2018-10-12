@@ -3235,12 +3235,46 @@ var dbPlatform = {
         )
     },
 
-    getClickCountDevice: (platformId) => {
+    deleteClickCountRecord: (query) => {
+        return dbconfig.collection_clickCount.remove(query);
+    },
+
+    getClickCountDeviceAndPage: (platformId) => {
         let matchObj = {
             platform: platformId
         };
-
-        return dbconfig.collection_clickCount.distinct("device", matchObj);
+        let returnData = {
+            device: [],
+            devicePage: {}
+        }
+        return dbconfig.collection_clickCount.distinct("device", matchObj).then(
+            deviceArr => {
+                if (deviceArr && deviceArr.length) {
+                    returnData.device = deviceArr;
+                    let promArr = [];
+                    deviceArr.forEach(device => {
+                        promArr.push(dbconfig.collection_clickCount.distinct("pageName", {
+                            platform: platformId,
+                            device: device
+                        }))
+                    });
+                    return Promise.all(promArr).then(
+                        resData => {
+                            if (resData && resData.length == returnData.device.length) {
+                                returnData.device.forEach(
+                                    (deviceName, index) => {
+                                        returnData.devicePage[deviceName] = resData[index];
+                                    }
+                                )
+                            }
+                            return returnData;
+                        }
+                    )
+                } else {
+                    return returnData;
+                }
+            }
+        );
     },
 
     getClickCountPageName: (platformId, device) => {

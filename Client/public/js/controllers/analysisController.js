@@ -411,7 +411,7 @@ define(['js/app'], function (myApp) {
                         vm.initSearchParameter('clickCount', 'day', 3, function () {
 
                         });
-                        vm.getClickCountDevice();
+                        vm.getClickCountDeviceAndPage();
                         // vm.getClickCountPageName();
                         vm.clickCountTimes = 1;
                         break;
@@ -2984,15 +2984,69 @@ define(['js/app'], function (myApp) {
         // demo player END   ====================================================
 
         // click count START ====================================================
-        vm.getClickCountDevice = function () {
+        vm.initDeleteClickCountModal = function () {
+            vm.clicksCountPageLength = Object.keys(vm.clickCountPageName).length || 0;
+            vm.deleteClickCountDevice = {};
+            vm.deleteClickCountPage = {};
+            $("#modalDeleteClickCount").modal('show');
+        }
+
+        vm.selectDevicePage = function (device) {
+            if (vm.deleteClickCountDevice.hasOwnProperty(device) && vm.pageNameDataObj[device]) {
+                let isSelect = false;
+                if (vm.deleteClickCountDevice[device]) {
+                    isSelect = true
+                }
+                for (let i = 0; i < vm.pageNameDataObj[device].length; i++) {
+                    vm.deleteClickCountPage[vm.pageNameDataObj[device][i]] = isSelect;
+                }
+            }
+        }
+
+        vm.deleteClickCountRecord = function () {
+            let isDelete = false; // to avoid delete all data when no data is select
+            let sendData = {
+                platform: vm.selectedPlatform._id
+            };
+            for (let key in vm.deleteClickCountDevice) {
+                if (vm.deleteClickCountDevice[key] && vm.pageNameDataObj[key] && vm.pageNameDataObj[key].length) {
+                    let selectedPage = [];
+                    vm.pageNameDataObj[key].forEach(pageName => {
+                        if (vm.deleteClickCountPage[pageName]) {
+                            selectedPage.push(pageName)
+                        }
+                    })
+
+                    if (selectedPage && selectedPage.length) {
+                        isDelete = true
+                        if (!sendData["$or"]) {
+                            sendData["$or"] = [];
+                        }
+                        sendData["$or"].push({
+                            device: key,
+                            pageName: {"$in": selectedPage}
+                        })
+                    }
+                }
+            }
+
+            if (isDelete) {
+                socketService.$socket($scope.AppSocket, 'deleteClickCountRecord', sendData, function () {
+                    console.log("click count record delete success")
+                })
+            }
+        }
+
+        vm.getClickCountDeviceAndPage = function () {
             let sendData = {
                 platformId: vm.selectedPlatform._id
             };
 
-            socketService.$socket($scope.AppSocket, 'getClickCountDevice', sendData, function (data) {
+            socketService.$socket($scope.AppSocket, 'getClickCountDeviceAndPage', sendData, function (data) {
                 $scope.$evalAsync(() => {
                     vm.clickCountDevice = {};
-                    vm.deviceData = data.data;
+                    vm.deviceData = data.data.device;
+                    vm.pageNameDataObj = data.data.devicePage;
 
                     // replace object key with device name
                     for (let i = 0; i < Object.keys(vm.deviceData).length; i++) {
@@ -3009,28 +3063,39 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getClickCountPageName = function (device) {
-            let sendData = {
-                platformId: vm.selectedPlatform._id,
-                device: device
-            };
+            vm.clickCountPageName = {};
+            vm.pageNameData = vm.pageNameDataObj[device] || [];
 
-            socketService.$socket($scope.AppSocket, 'getClickCountPageName', sendData, function (data) {
-                $scope.$evalAsync(() => {
-                    vm.clickCountPageName = {};
-                    vm.pageNameData = data.data;
+            for (let i = 0; i < vm.pageNameData.length; i++) {
+                vm.clickCountPageName[vm.pageNameData[i]] = vm.pageNameData[i];
+            }
 
-                    // replace object key with page name
-                    for (let i = 0; i < Object.keys(vm.pageNameData).length; i++) {
-                        vm.clickCountPageName[vm.pageNameData[Object.keys(vm.pageNameData)[i]]] = vm.pageNameData[Object.keys(vm.pageNameData)[i]];
-                    }
+            // set first page name as default selected page name
+            vm.queryPara.clickCount.pageName = vm.clickCountPageName[Object.keys(vm.clickCountPageName)[0]] || "";
+            vm.getClickCountDomain(vm.queryPara.clickCount.inputDevice, vm.queryPara.clickCount.pageName);
 
-                    // set first page name as default selected page name
-                    vm.queryPara.clickCount.pageName = vm.clickCountPageName[Object.keys(vm.clickCountPageName)[0]] || "";
-                    vm.getClickCountDomain(vm.queryPara.clickCount.inputDevice, vm.queryPara.clickCount.pageName);
-                });
-            }, function (data) {
-                console.log("clickCount page name data not found?", data);
-            });
+            // let sendData = {
+            //     platformId: vm.selectedPlatform._id,
+            //     device: device
+            // };
+            //
+            // socketService.$socket($scope.AppSocket, 'getClickCountPageName', sendData, function (data) {
+            //     $scope.$evalAsync(() => {
+            //         vm.clickCountPageName = {};
+            //         vm.pageNameData = data.data;
+            //
+            //         // replace object key with page name
+            //         for (let i = 0; i < Object.keys(vm.pageNameData).length; i++) {
+            //             vm.clickCountPageName[vm.pageNameData[Object.keys(vm.pageNameData)[i]]] = vm.pageNameData[Object.keys(vm.pageNameData)[i]];
+            //         }
+            //
+            //         // set first page name as default selected page name
+            //         vm.queryPara.clickCount.pageName = vm.clickCountPageName[Object.keys(vm.clickCountPageName)[0]] || "";
+            //         vm.getClickCountDomain(vm.queryPara.clickCount.inputDevice, vm.queryPara.clickCount.pageName);
+            //     });
+            // }, function (data) {
+            //     console.log("clickCount page name data not found?", data);
+            // });
         };
         
         vm.getClickCountDomain = function (device, pageName) {
