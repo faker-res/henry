@@ -192,18 +192,18 @@
                                                 .panel.panel-info(ng-repeat='(sectionName,sectionData) in vm.viewList[vm.subPolicyCategory.title]')
                                                     .panel-heading.panel-heading-sm
                                                         .panel-title {{sectionName | translate}}
-                                                            label.pull-right {{'ALL' | translate}}
-                                                                input(type='checkbox', ng-change='vm.toggleSubGroupPermissionCheckbox(vm.subPolicytoggle[vm.subPolicyCategory.title][sectionName].all,vm.subPolicyCategory.title,sectionName)', ng-model='vm.subPolicytoggle[vm.subPolicyCategory.title][sectionName].all')
+                                                            label.pull-right(ng-hide="vm.notAllowToEditPermission") {{'ALL' | translate}}
+                                                                input(type='checkbox',ng-hide="vm.notAllowToEditPermission", ng-change='vm.toggleSubGroupPermissionCheckbox(vm.subPolicytoggle[vm.subPolicyCategory.title][sectionName].all,vm.subPolicyCategory.title,sectionName)', ng-model='vm.subPolicytoggle[vm.subPolicyCategory.title][sectionName].all')
                                                     .panel-body.adminleafPanel
                                                         div(ng-repeat='(propName,propV) in sectionData')
                                                             label {{propName | translate}}
-                                                                input.pull-left(type='checkbox', ng-model='vm.subShowRoleFlag[vm.subPolicyCategory.title][sectionName][propName]', ng-change='vm.subPolicyToggleCheck(vm.subShowRoleFlag[vm.subPolicyCategory.title][sectionName].all,vm.subPolicyCategory.title,sectionName,propName)')
+                                                                input.pull-left(type='checkbox',ng-hide="vm.notAllowToEditPermission", ng-model='vm.subShowRoleFlag[vm.subPolicyCategory.title][sectionName][propName]', ng-change='vm.subPolicyToggleCheck(vm.subShowRoleFlag[vm.subPolicyCategory.title][sectionName].all,vm.subPolicyCategory.title,sectionName,propName)')
 
             .modal-footer
-                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.submitUpdateSubDepartmentPermission();") {{"UPDATE" | translate}}
-                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
-                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.allSubRoleSelection(false)') {{"Remove All Selection"|translate}}
-                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.allSubRoleSelection(true)') {{"Check All Selection"|translate}}
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.submitUpdateSubDepartmentPermission();", ng-hide="vm.notAllowToEditPermission") {{"UPDATE" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal', ng-hide="vm.notAllowToEditPermission") {{"CANCEL" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.allSubRoleSelection(false)', ng-hide="vm.notAllowToEditPermission") {{"Remove All Selection"|translate}}
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(ng-click='vm.allSubRoleSelection(true)', ng-hide="vm.notAllowToEditPermission") {{"Check All Selection"|translate}}
 //#modalDepartmentPlatform.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
         .modal-content

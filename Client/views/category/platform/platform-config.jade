@@ -1737,7 +1737,7 @@
                             img.img-edit
                         button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("providerGroup")') {{"CANCEL" | translate}}
                         button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configSubmitUpdate("providerGroup")') {{"CONFIRM" | translate}}
-                        label(ng-if="vm.providerGroupConfig.showWarning") {{"There are unallocated providers" | translate}}
+                        label(ng-if="vm.providerGroupConfig.showWarning") {{"Update successful, unallocated providers exist" | translate}}
                 div(ng-if='vm.selectedConfigTab=="smsGroup"')
                     .col-md-4
                         table.common-table.playerLvlTable

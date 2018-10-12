@@ -28962,31 +28962,31 @@ define(['js/app'], function (myApp) {
                 }
                 else {
                     vm.providerGroupConfig.showWarning = false;
-                    vm.configTableEdit = false;
-
-                    vm.removeProviderGroup();
-
-                    let sendData = {
-                        platformObjId: vm.selectedPlatform.id,
-                        gameProviderGroup: vm.gameProviderGroup.map(e => {
-                            let gameProviderGroupData = {
-                                providerGroupId: e.providerGroupId,
-                                name: e.name,
-                                providers: e.providers
-                            };
-                            if(e.hasOwnProperty('ebetWallet')) {
-                                gameProviderGroupData.ebetWallet = e.ebetWallet;
-                            }
-                            return gameProviderGroupData;
-                        })
-                    };
-
-                    console.log('sendData2', sendData);
-
-                    socketService.$socket($scope.AppSocket, 'updatePlatformProviderGroup', sendData, function (data) {
-                        console.log('updatePlatformProviderGroup', data);
-                    });
                 }
+                vm.configTableEdit = false;
+
+                vm.removeProviderGroup();
+
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    gameProviderGroup: vm.gameProviderGroup.map(e => {
+                        let gameProviderGroupData = {
+                            providerGroupId: e.providerGroupId,
+                            name: e.name,
+                            providers: e.providers
+                        };
+                        if(e.hasOwnProperty('ebetWallet')) {
+                            gameProviderGroupData.ebetWallet = e.ebetWallet;
+                        }
+                        return gameProviderGroupData;
+                    })
+                };
+
+                console.log('sendData2', sendData);
+
+                socketService.$socket($scope.AppSocket, 'updatePlatformProviderGroup', sendData, function (data) {
+                    console.log('updatePlatformProviderGroup', data);
+                });
             }
 
             vm.removeProviderGroup = () => {
