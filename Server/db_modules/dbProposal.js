@@ -2948,11 +2948,11 @@ var proposal = {
         }
 
         if (reqData.status) {
-            if (reqData.status == constProposalStatus.SUCCESS) {
-                reqData.status = {
-                    $in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]
-                };
-            }
+            // if (reqData.status == constProposalStatus.SUCCESS) {
+            //     reqData.status = {
+            //         $in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]
+            //     };
+            // }
             if (reqData.status == constProposalStatus.FAIL) {
                 reqData.status = {
                     $in: [constProposalStatus.FAIL, constProposalStatus.REJECTED]
@@ -3334,6 +3334,7 @@ var proposal = {
                     }
                 }
                 let total = 0;
+
                 if (summary[0]) {
                     total += summary[0].totalAmount;
                     total += summary[0].totalRewardAmount;

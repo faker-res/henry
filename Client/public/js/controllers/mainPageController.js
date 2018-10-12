@@ -1003,6 +1003,7 @@ define(['js/app'], function (myApp) {
                                 Status: false,
                                 Message: 'Live800 Account already exist!'
                             };
+                            vm.getAllDepartmentData();
                             $scope.safeApply();
                         } else {
                             vm.createUserForDepartment();
@@ -1031,7 +1032,7 @@ define(['js/app'], function (myApp) {
                     vm.getDepartmentFullData(vm.activatePlatformTab);
                     vm.getFullDepartmentPath();
                     vm.activatePlatformTab();
-
+                    vm.getAllDepartmentData();
                     $scope.safeApply();
                 });
             }
