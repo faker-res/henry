@@ -192,12 +192,12 @@
                                                 .panel.panel-info(ng-repeat='(sectionName,sectionData) in vm.viewList[vm.subPolicyCategory.title]')
                                                     .panel-heading.panel-heading-sm
                                                         .panel-title {{sectionName | translate}}
-                                                            label.pull-right {{'ALL' | translate}}
-                                                                input(type='checkbox', ng-change='vm.toggleSubGroupPermissionCheckbox(vm.subPolicytoggle[vm.subPolicyCategory.title][sectionName].all,vm.subPolicyCategory.title,sectionName)', ng-model='vm.subPolicytoggle[vm.subPolicyCategory.title][sectionName].all')
+                                                            label.pull-right(ng-hide="vm.notAllowToEditPermission") {{'ALL' | translate}}
+                                                                input(type='checkbox',ng-hide="vm.notAllowToEditPermission", ng-change='vm.toggleSubGroupPermissionCheckbox(vm.subPolicytoggle[vm.subPolicyCategory.title][sectionName].all,vm.subPolicyCategory.title,sectionName)', ng-model='vm.subPolicytoggle[vm.subPolicyCategory.title][sectionName].all')
                                                     .panel-body.adminleafPanel
                                                         div(ng-repeat='(propName,propV) in sectionData')
                                                             label {{propName | translate}}
-                                                                input.pull-left(type='checkbox', ng-model='vm.subShowRoleFlag[vm.subPolicyCategory.title][sectionName][propName]', ng-change='vm.subPolicyToggleCheck(vm.subShowRoleFlag[vm.subPolicyCategory.title][sectionName].all,vm.subPolicyCategory.title,sectionName,propName)')
+                                                                input.pull-left(type='checkbox',ng-hide="vm.notAllowToEditPermission", ng-model='vm.subShowRoleFlag[vm.subPolicyCategory.title][sectionName][propName]', ng-change='vm.subPolicyToggleCheck(vm.subShowRoleFlag[vm.subPolicyCategory.title][sectionName].all,vm.subPolicyCategory.title,sectionName,propName)')
 
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.submitUpdateSubDepartmentPermission();") {{"UPDATE" | translate}}
