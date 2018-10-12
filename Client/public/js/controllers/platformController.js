@@ -3173,7 +3173,7 @@ define(['js/app'], function (myApp) {
                         gameGroupIconUrl: vm.newGameGroup.gameGroupIconUrl
                     }
                 }
-                socketService.$socket($scope.AppSocket, 'renamePlatformGameGroup', sendData, function (data) {
+                socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, function (data) {
                     console.log(data.data);
                     vm.loadGameGroupData();
                 })
@@ -3354,7 +3354,7 @@ define(['js/app'], function (myApp) {
                     newIndex: newIndex,
                     gameObjId: gameId
                 }
-                socketService.$socket($scope.AppSocket, 'updatePlatformGameGroup', sendData, success);
+                socketService.$socket($scope.AppSocket, 'updateGameIndexGameGroup', sendData, success);
 
                 function success(data) {
 
