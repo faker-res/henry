@@ -462,7 +462,7 @@ function socketActionPartner(socketIO, socket) {
                 type: "admin",
                 name: getAdminName(),
                 id: getAdminId()
-            }], actionName, isValidData);
+            }, data.commissionType], actionName, isValidData);
         },
 
         updateAllCustomizeCommissionRate: function updateAllCustomizeCommissionRate (data) {

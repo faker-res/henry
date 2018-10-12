@@ -666,10 +666,16 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getClickCountAnalysis, [ObjectId(data.platformId), new Date(data.startDate), new Date(data.endDate), data.period, data.device, data.pageName, data.domain], actionName, isValidData);
         },
 
-        getClickCountDevice: function getClickCountDevice(data) {
+        getClickCountDeviceAndPage: function getClickCountDeviceAndPage(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId);
-            socketUtil.emitter(self.socket, dbPlatform.getClickCountDevice, [ObjectId(data.platformId)], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.getClickCountDeviceAndPage, [ObjectId(data.platformId)], actionName, isValidData);
+        },
+
+        deleteClickCountRecord: function deleteClickCountRecord(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPlatform.deleteClickCountRecord, [data], actionName, isValidData);
         },
 
         getClickCountPageName: function getClickCountPageName(data) {

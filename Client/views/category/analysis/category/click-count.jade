@@ -33,6 +33,9 @@
             div
                 label &nbsp;
                 button.btn.btn-primary.common-button(ng-click='vm.getClickCountAnalysis(vm.queryPara.clickCount.inputDevice, vm.queryPara.clickCount.pageName, vm.queryPara.clickCount.domain)') {{'SEARCH' | translate}}
+            div
+                label &nbsp;
+                button.btn.btn-primary.common-button(ng-if="checkViewPermission('Analysis','Analysis','DeleteClickCount')" ng-click='vm.initDeleteClickCountModal()') {{'DELETE' | translate}}
 
         label.text-primary {{'clickCount' | translate}}: {{'DEVICE' | translate}}, {{'PAGE_NAME' | translate}}, {{'DOMAIN NAME' | translate}} VS {{vm.queryPara.clickCount.periodText | translate}}
         .row
@@ -48,5 +51,41 @@
             //        .panel.panel-default
             //            .pieChart
             //                div.graphDiv
+
+#modalDeleteClickCount.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style="width:80%")
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Delete click count record' | translate}}
+            .modal-body
+                table.simple-table(style='max-width:100%;text-align:left')
+                    thead
+                        tr
+                            th(colspan='2') {{'Please select click count option to delete (Attention! all related record will be delete)' | translate}}
+                            //- th {{'USER_NAME' | translate}}
+                            //- th {{'EMAIL' | translate}}
+                            //- th {{'DEPARTMENT' | translate}}
+                            //- th {{'ROLE' | translate}}
+                            //- th {{'EMAIL_EXECUTE_PERMISSION' | translate}}
+                        tr
+                            th(style='background-color:#0b97c4;color: #FFFFFF;') {{'DEVICE' | translate}}
+                            th(style='background-color:#0b97c4;color: #FFFFFF;') {{'PAGE_NAME' | translate}}
+                    tbody(ng-repeat='(i,device) in vm.clickCountDevice')
+                        tr(ng-repeat='(k,page) in vm.pageNameDataObj[device]')
+                            td(rowspan='{{vm.clicksCountPageLength}}' ng-if="$index===0") 
+                                input(type='checkbox' ng-model='vm.deleteClickCountDevice[device]' ng-change='vm.selectDevicePage(device)')
+                                text {{device}}
+                            td
+                                input(type='checkbox' ng-model='vm.deleteClickCountPage[page]' ng-change='vm.deleteClickCountDevice[device]=true')
+                                text {{page}}
+                        
+                                
+                           
+
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal' ng-click='vm.deleteClickCountRecord()') {{"CONFIRM" | translate}}
+                button.btn.btn-success.common-button(data-dismiss='modal') {{"CLOSE" | translate}}
+
 
 p(ng-init="vm.loadPageFunc(vm.showPageName)")
