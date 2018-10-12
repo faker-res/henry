@@ -1561,6 +1561,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 newData.platform = newPlayerData.platform;
                 newData.name = playerNameWithPrefix;
                 newData.promoteWay = newPlayerData.promoteWay;
+                newData.registrationTime = newPlayerData.registrationTime;
             }
 
             if (dxPhone.phoneNumber) {
