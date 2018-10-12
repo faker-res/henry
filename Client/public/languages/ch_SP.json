@@ -3630,6 +3630,7 @@
   "ANY_PAGE": "任一页面",
   "EMPTY": "空白（无）",
   "There are unallocated providers": "还有未分配的提供商",
+  "Update successful, unallocated providers exist": "已保存，但还有未分配的提供商。",
   "xima required N time withdraw":"洗码流水要求N倍提款",
   "below X amount auto execute reward":"X 元以下优惠自动执行（忽略审核部)",
   "Display imageUrl":"前端展示图片网址/imageUrl",
