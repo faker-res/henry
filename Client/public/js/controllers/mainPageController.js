@@ -275,6 +275,13 @@ define(['js/app'], function (myApp) {
                         }
                         buildSubTreeForNode(finalNodeTree[i]);
                     }
+                }else if(finalNodeTree && finalNodeTree.length > 0){
+                    for (let i = 0, len = finalNodeTree.length; i < len; i++) {
+                        if (finalNodeTree[i]) {
+                            vm.departmentNodes["root"] = finalNodeTree[i];
+                            buildSubTreeForNode(finalNodeTree[i]);
+                        }
+                    }
                 }else {
                     vm.departmentNodes["root"] = finalNodeTree[0];
                     buildSubTreeForNode(finalNodeTree[0]);
