@@ -1125,7 +1125,7 @@ let dbDXMission = {
             result => {
                 if(result){
                     let size = result[0] ? result[0] : 0;
-                    let dxPhoneData = result[1] ? result[1] : {};
+                    let dxPhoneData = result[1] ? result[1] : [];
                     let phoneDataWithAlert = dxPhoneData.filter(d => d.alerted == true);
                     let phoneDataWithoutAlert = dxPhoneData.filter(d => d.alerted == false);
 
