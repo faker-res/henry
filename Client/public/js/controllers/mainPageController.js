@@ -9,7 +9,7 @@ define(['js/app'], function (myApp) {
             var vm = this;
 
             // This next line should be commented.  Uncomment temporarily for debugging only.
-            // window.vm = vm;
+            window.vm = vm;
 
             vm.userTableRowSelected = {};
             vm.selectedUsers = {};
@@ -2124,6 +2124,15 @@ define(['js/app'], function (myApp) {
                 );
 
             });
+
+            $(function(){
+                setTimeout(() => {
+                    vm.getAllDepartmentData();
+                },1000)
+
+                // $scope.$evalAsync(vm.getAllDepartmentData());
+            });
+
         };
         mainPageController.$inject = injectParams;
         myApp.register.controller('mainPageCtrl', mainPageController);
