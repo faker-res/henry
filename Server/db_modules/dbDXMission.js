@@ -1517,6 +1517,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
             let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
 
             let newPlayerData = JSON.parse(JSON.stringify(playerData));
+            let playerNameWithPrefix = newPlayerData.name || "";
 
             if (loginDetails) {
                 newPlayerData.password = playerPassword ? playerPassword : (newPlayerData.password || "");
@@ -1558,8 +1559,9 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 newData.email = newPlayerData.email ? dbUtil.encodeEmail(newPlayerData.email) : "";
                 newData.phoneNumber = dbUtil.encodePhoneNum(dxPhone.phoneNumber);
                 newData.platform = newPlayerData.platform;
-                newData.name = newPlayerData.name;
+                newData.name = playerNameWithPrefix;
                 newData.promoteWay = newPlayerData.promoteWay;
+                newData.registrationTime = newPlayerData.registrationTime;
             }
 
             if (dxPhone.phoneNumber) {
@@ -1592,7 +1594,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                         let proposalData = {
                             creator: newData.adminInfo || {
                                 type: 'player',
-                                name: newPlayerData.name,
+                                name: newData.name,
                                 id: newPlayerData.playerId ? newPlayerData.playerId : ""
                             }
                         };
@@ -1611,7 +1613,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                         let newIntentData = {
                             data: newData,
                             status: constRegistrationIntentRecordStatus.SUCCESS,
-                            name: newPlayerData.name
+                            name: newData.name
                         };
 
                         let newRecord = new dbconfig.collection_playerRegistrationIntentRecord(newIntentData);

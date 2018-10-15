@@ -5410,6 +5410,7 @@ let dbPartner = {
             () => dbPartner.changePartnerCredit(partnerObjId, platformObjId, -updateAmount, reasonType, data)
         ).then(
             partner => {
+                /*
                 if (partner.credits < 0) {
                     // First reset the deduction, then report the problem
                     return Q.resolve().then(
@@ -5423,6 +5424,7 @@ let dbPartner = {
                         })
                     );
                 }
+                */
             }
         ).then(
             () => true
@@ -9892,6 +9894,20 @@ let dbPartner = {
                 }
             }
 
+        })
+    },
+
+    getPartnerPermissionLog: function (platform, id, createTime) {
+        var query = {
+            platform: platform,
+            partner: id
+        }
+        if (createTime) {
+            query.createTime = createTime;
+        }
+        return dbconfig.collection_partnerPermissionLog.find(query).populate({
+            path: "admin",
+            model: dbconfig.collection_admin
         })
     }
 };

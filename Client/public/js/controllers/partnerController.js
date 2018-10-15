@@ -6043,6 +6043,8 @@ define(['js/app'], function (myApp) {
                                 };
                                 $("#partnerPermissionTable td").removeClass('hide');
 
+                                vm.popOverPartnerPermission = row;
+
                                 // // Invert second render
                                 // row.permission.forbidPartnerFromLogin = !row.permission.forbidPartnerFromLogin;
                                 // row.permission.disableCommSettlement = !row.permission.disableCommSettlement;
@@ -15912,6 +15914,49 @@ define(['js/app'], function (myApp) {
             };
 
             // end of Transfer Partner Credit to Player
+
+            // Partner Main Permission Log
+            $('body').on('click', '#permissionRecordButtonByPartnerTab', function () {
+                vm.getPartnerPermissionChangeByPartnerTab("new")
+            });
+
+            vm.getPartnerPermissionChangeByPartnerTab = function (flag) {
+                $('.partnerPermissionPopover').popover('hide');
+                vm.partnerPermissionQuery = vm.partnerPermissionQuery || {};
+                vm.partnerPermissionQuery.searching = true;
+                vm.partnerPermissionHistory = [];
+                $scope.$evalAsync();
+                if (flag == 'new') {
+                    utilService.actionAfterLoaded('#modalPartnerPermissionChangeLog .searchDiv .startTime', function () {
+                        vm.partnerPermissionQuery.startTime = utilService.createDatePicker('#modalPartnerPermissionChangeLog .searchDiv .startTime');
+                        vm.partnerPermissionQuery.endTime = utilService.createDatePicker('#modalPartnerPermissionChangeLog .searchDiv .endTime');
+                        vm.partnerPermissionQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 180)));
+                        vm.partnerPermissionQuery.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                    });
+                }
+
+                let tempPartnerObjId = vm.popOverPartnerPermission && vm.popOverPartnerPermission._id ? vm.popOverPartnerPermission._id :
+                    vm.selectedSinglePartner && vm.selectedSinglePartner._id ? vm.selectedSinglePartner._id : null;
+
+                let sendData = {
+                    partnerObjId: tempPartnerObjId,
+                    platform: vm.selectedPlatform.id,
+                    createTime: {
+                        $gte: new Date(vm.partnerPermissionQuery.startTime.data('datetimepicker').getLocalDate()),
+                        $lt: new Date(vm.partnerPermissionQuery.endTime.data('datetimepicker').getLocalDate())
+                    }
+                }
+
+                socketService.$socket($scope.AppSocket, 'getPartnerPermissionLog', sendData, function (data) {
+                    data.data.forEach(row => {
+                        row.admin = row.isSystem ? {adminName: "System"} : row.admin;
+                    });
+                    vm.partnerPermissionHistory = data.data || [];
+                    vm.partnerPermissionQuery.searching = false;
+                    $scope.$evalAsync();
+                });
+            };
+            // end of Partner Permission Log
         };
 
         let injectParams = [

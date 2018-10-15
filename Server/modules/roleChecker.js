@@ -281,7 +281,8 @@ var roleChecker = {
                 partnerApiLog: [],
                 CreditAdjustment: ['createUpdatePartnerCreditProposal'],
                 SettleCommission: ['getAllPartnerCommSettPreview'],
-                PartnerCreditTransferToDownline: ['transferPartnerCreditToPlayer']
+                PartnerCreditTransferToDownline: ['transferPartnerCreditToPlayer'],
+                PermissionHistory: ['getPartnerPermissionLog'],
             },
             "Feedback": {
                 AddFeedback: ['getAllPartnerFeedbackResults', 'getAllPartnerFeedbackTopics'],

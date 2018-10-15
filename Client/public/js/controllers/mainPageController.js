@@ -275,6 +275,13 @@ define(['js/app'], function (myApp) {
                         }
                         buildSubTreeForNode(finalNodeTree[i]);
                     }
+                }else if(finalNodeTree && finalNodeTree.length > 0){
+                    for (let i = 0, len = finalNodeTree.length; i < len; i++) {
+                        if (finalNodeTree[i]) {
+                            vm.departmentNodes["root"] = finalNodeTree[i];
+                            buildSubTreeForNode(finalNodeTree[i]);
+                        }
+                    }
                 }else {
                     vm.departmentNodes["root"] = finalNodeTree[0];
                     buildSubTreeForNode(finalNodeTree[0]);
@@ -996,6 +1003,7 @@ define(['js/app'], function (myApp) {
                                 Status: false,
                                 Message: 'Live800 Account already exist!'
                             };
+                            vm.getAllDepartmentData();
                             $scope.safeApply();
                         } else {
                             vm.createUserForDepartment();
@@ -1024,7 +1032,7 @@ define(['js/app'], function (myApp) {
                     vm.getDepartmentFullData(vm.activatePlatformTab);
                     vm.getFullDepartmentPath();
                     vm.activatePlatformTab();
-
+                    vm.getAllDepartmentData();
                     $scope.safeApply();
                 });
             }
@@ -2116,6 +2124,13 @@ define(['js/app'], function (myApp) {
                 );
 
             });
+
+            $(function(){
+                setTimeout(() => {
+                    $scope.$evalAsync(vm.getAllDepartmentData());
+                },1000)
+            });
+
         };
         mainPageController.$inject = injectParams;
         myApp.register.controller('mainPageCtrl', mainPageController);
