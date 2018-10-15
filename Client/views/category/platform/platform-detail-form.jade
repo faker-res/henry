@@ -47,7 +47,9 @@ form(name="form_new_platform" ,novalidate)
                     label.control-label {{"QI Department" | translate}}
                     input.form-control(type="text", ng-model="vm.showPlatform.qiDepartmentTXT", ng-blur="vm.isValidQIDepartment(vm.showPlatform.qiDepartmentTXT)", ng-disabled="vm.isNotAllowEdit")
                     div(ng-if="vm.qiDepartmentError", style='color:red') {{vm.qiDepartmentError}}
-
+                div.form-group.col-md-6
+                    label.control-label {{"Frontend Configuration Domain Name" | translate}}
+                    input.form-control(type="text", ng-model="vm.showPlatform.frontendConfigurationDomainName", ng-disabled="vm.isNotAllowEdit")
 
 
         div(name="player-display-data", ng-show="vm.selectedPlatformDetailTab == 'player-display-data'")
