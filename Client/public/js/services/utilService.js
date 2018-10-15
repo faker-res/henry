@@ -1021,7 +1021,17 @@ define([], function () {
             );
 
             return allProposalType;
-        }
+        };
+
+        this.getPlayerFeedbackResultName = function(allPlayerFeedbackResults, key) {
+            let resultName;
+            allPlayerFeedbackResults.forEach(feedbackResult => {
+                if(feedbackResult.key == key) {
+                    resultName = feedbackResult.value;
+                }
+            });
+            return resultName;
+        };
     };
 
 
