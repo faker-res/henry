@@ -3334,6 +3334,7 @@ var proposal = {
                     }
                 }
                 let total = 0;
+
                 if (summary[0]) {
                     total += summary[0].totalAmount;
                     total += summary[0].totalRewardAmount;
