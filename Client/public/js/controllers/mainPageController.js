@@ -9,7 +9,7 @@ define(['js/app'], function (myApp) {
             var vm = this;
 
             // This next line should be commented.  Uncomment temporarily for debugging only.
-            window.vm = vm;
+            // window.vm = vm;
 
             vm.userTableRowSelected = {};
             vm.selectedUsers = {};
