@@ -422,7 +422,7 @@ let dbPlayerInfo = {
                     if (!platformData) {
                         return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
-                    if(!inputData.phoneNumber || (inputData.phoneNumber && inputData.phoneNumber.toString().length != 11)){
+                    if(inputData.phoneNumber && inputData.phoneNumber.toString().length != 11){
                         return Q.reject({
                             name: "DataError",
                             message: localization.localization.translate("phone number is invalid")
