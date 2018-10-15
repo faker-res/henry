@@ -1078,7 +1078,7 @@ let dbPlayerReward = {
             }
 
             return Promise.all([Promise.all(checkRequirementMeetProms), consumptionIntervalProm, topUpIntervalProm]);
-        }).then(checkAllResults => {
+        }).then(checkAllResults => {          
             if (checkAllResults && checkAllResults.length == 3) {
 
                 let checkResults = checkAllResults[0];
@@ -6146,18 +6146,38 @@ let dbPlayerReward = {
 
                             let addUsedEventToConsumptionProm = Promise.resolve([]);
                             if (applyDetail.requiredConsumptionMet) {
-                                addUsedEventToConsumptionProm = dbPlayerConsumptionRecord.assignConsumptionUsedEvent(
-                                    playerData.platform._id, playerData._id, eventData._id, eventData.param.requiredConsumptionAmount,
-                                    applyDetail.targetDate.startTime, applyDetail.targetDate.endTime, eventData.condition.consumptionProvider
-                                )
+                                // special handling for PLAYER_CONSECUTIVE_REWARD_GROUP with settlement -> set all the consumption to be dirty to prevent redundant reward proposal
+                                // being generated when clicking settlement more than one time
+                                if (eventData.type.name == constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP && eventData.condition.applyType == 3 && i == applicationDetails.length-1){
+                                    addUsedEventToConsumptionProm = dbPlayerConsumptionRecord.assignConsumptionUsedEvent(
+                                        playerData.platform._id, playerData._id, eventData._id, eventData.param.requiredConsumptionAmount,
+                                        intervalTime.startTime, intervalTime.endTime, eventData.condition.consumptionProvider, null, null, true
+                                    )
+                                }
+                                else {
+                                    addUsedEventToConsumptionProm = dbPlayerConsumptionRecord.assignConsumptionUsedEvent(
+                                        playerData.platform._id, playerData._id, eventData._id, eventData.param.requiredConsumptionAmount,
+                                        applyDetail.targetDate.startTime, applyDetail.targetDate.endTime, eventData.condition.consumptionProvider
+                                    )
+                                }
                             }
 
                             let addUsedEventToTopUpProm = Promise.resolve([]);
                             if (applyDetail.requiredTopUpMet) {
-                                addUsedEventToTopUpProm = dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(
-                                    playerData.platform._id, playerData._id, eventData._id, eventData.param.requiredTopUpMet,
-                                    applyDetail.targetDate.startTime, applyDetail.targetDate.endTime, eventData.condition.ignoreAllTopUpDirtyCheckForReward
-                                )
+                                // special handling for PLAYER_CONSECUTIVE_REWARD_GROUP with settlement -> set all the top up to be dirty to prevent redundant reward proposal
+                                // being generated when clicking settlement more than one time
+                                if (eventData.type.name == constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP && eventData.condition.applyType == 3 && i == applicationDetails.length-1){
+                                    addUsedEventToTopUpProm = dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(
+                                        playerData.platform._id, playerData._id, eventData._id, eventData.param.requiredTopUpAmount,
+                                        intervalTime.startTime, intervalTime.endTime, eventData.condition.ignoreAllTopUpDirtyCheckForReward, null, null, true
+                                    )
+                                }
+                                else {
+                                    addUsedEventToTopUpProm = dbPlayerTopUpRecord.assignTopUpRecordUsedEvent(
+                                        playerData.platform._id, playerData._id, eventData._id, eventData.param.requiredTopUpAmount,
+                                        applyDetail.targetDate.startTime, applyDetail.targetDate.endTime, eventData.condition.ignoreAllTopUpDirtyCheckForReward
+                                    )
+                                }
                             }
 
                             asyncProms = asyncProms.then(() => {

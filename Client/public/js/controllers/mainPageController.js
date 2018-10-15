@@ -2124,6 +2124,13 @@ define(['js/app'], function (myApp) {
                 );
 
             });
+
+            $(function(){
+                setTimeout(() => {
+                    $scope.$evalAsync(vm.getAllDepartmentData());
+                },1000)
+            });
+
         };
         mainPageController.$inject = injectParams;
         myApp.register.controller('mainPageCtrl', mainPageController);
