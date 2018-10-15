@@ -1106,11 +1106,6 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerCredibilityRemark, [data.admin, data.platformObjId, data.playerObjId, data.remarks, data.comment], actionName, isValidData);
         },
         updateBatchPlayerCredibilityRemark: function updateBatchPlayerCredibilityRemark(data) {
-            console.log('data===', data);
-            console.log('data.admin===', data.admin);
-            console.log('data.platformObjId===', data.platformObjId);
-            console.log('data.playerNames===', data.playerNames);
-            console.log('data.remarks===', data.remarks);
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.admin && data.platformObjId && data.playerNames && data.remarks);
             socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerCredibilityRemark, [data.admin, data.platformObjId, data.playerNames, data.remarks, data.comment], actionName, isValidData);
@@ -1249,8 +1244,6 @@ function socketActionPlayer(socketIO, socket) {
             let isValidData = Boolean(data && data.platform && data.playerId);
             let platform = ObjectId(data.platform);
             let playerId = ObjectId(data.playerId);
-            console.log('platform===1', platform);
-            console.log('playerId===1', playerId);
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDepositTrackingMonthlyDetails, [platform, playerId], actionName, isValidData);
         },
 
@@ -1259,9 +1252,6 @@ function socketActionPlayer(socketIO, socket) {
             let isValidData = Boolean(data && data.platform && data.playerId && data.date);
             let platform = ObjectId(data.platform);
             let playerId = ObjectId(data.playerId);
-            console.log('platform===2', platform);
-            console.log('playerId===2', playerId);
-            console.log('data.date===2', data.date);
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDepositTrackingDailyDetails, [platform, playerId, data.date], actionName, isValidData);
         },
 
