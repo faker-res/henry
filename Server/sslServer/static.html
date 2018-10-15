@@ -59,18 +59,36 @@
 </body>
 </html>
 
+<script type='text/javascript' src='../config/webEnv.js'></script>
 <script>
     function saveKey(e, url, textId, statusId) {
         e.preventDefault();
-        $.ajax({
-            url: url,
-            data: $(textId).val(),
-            method: "POST",
-            success: (data) => {
-                console.log(data);
-                $(statusId).removeClass('hide');
+
+
+        webEnv.forEach(env => {
+            let ajaxUrl = 'http://' + env.nodeUrl;
+
+            if (env.nodePort) {
+                ajaxUrl += ':' + env.nodePort + '/' + url;
+            } else {
+                ajaxUrl += '/' + url;
             }
-        });
+
+            // Multiple ajax
+            $.ajax({
+                url: ajaxUrl,
+                headers: {  'Access-Control-Allow-Origin': '*' },
+                data: $(textId).val(),
+                method: "POST",
+                beforeSend: (xhr) => {
+                    xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
+                },
+                success: (data) => {
+                    console.log(env.nodeUrl, env.nodePort, data);
+                    $(statusId).removeClass('hide');
+                }
+            })
+        })
     }
 
     function migrateKey(e, targetId, originId) {

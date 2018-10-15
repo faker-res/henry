@@ -18760,46 +18760,65 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerBonus") {
-                    if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerBonus") {
-                        let proposalDetail = {};
-                        let bankNameWhenSubmit = "";
-                        let bankNameWhenApprove = "";
-                        if (!vm.selectedProposal.data) {
-                            vm.selectedProposal.data = {};
-                        }
-                        proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
-                        proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
-                        proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
-                        proposalDetail["proposalPlayerLevel"] = vm.selectedProposal.data.proposalPlayerLevel;
-                        proposalDetail["Credit Charge(Service Charge Deducted)"] = vm.selectedProposal.data.amount;
-                        proposalDetail["ximaWithdrawUsed"] = vm.selectedProposal.data.ximaWithdrawUsed;
-                        if(vm.selectedProposal.data.creditCharge != vm.selectedProposal.data.oriCreditCharge){
-                            proposalDetail["actualCreditCharge"] = vm.selectedProposal.data.creditCharge + " (" + $translate("original service charge") + vm.selectedProposal.data.oriCreditCharge + ", " + $translate("remove decimal") + ")";
-                        }else{
-                            proposalDetail["actualCreditCharge"] = vm.selectedProposal.data.creditCharge
-                        }
-                        proposalDetail["oriCreditCharge"] = vm.selectedProposal.data.oriCreditCharge;
-                        if(typeof vm.selectedProposal.data.isAutoApproval != "undefined"){
-                            proposalDetail["isAutoApproval"] = vm.selectedProposal.data.isAutoApproval ? "开启" : "关闭";
-                        }
-                        proposalDetail["autoAuditTime"] = vm.selectedProposal.data.autoAuditTime;
-                        proposalDetail["autoAuditRemark"] = vm.selectedProposal.data.autoAuditRemarkChinese;
-                        proposalDetail["autoAuditDetail"] = vm.selectedProposal.data.detailChinese;
-
-                        if(vm.selectedProposal.data.bankNameWhenSubmit){
-                            bankNameWhenSubmit = vm.allBankTypeList[vm.selectedProposal.data.bankNameWhenSubmit] || (vm.selectedProposal.data.bankNameWhenSubmit + " ! " + $translate("not in bank type list"));
-                            bankNameWhenSubmit += " / "
-                        }
-                        proposalDetail["bankInfoWhenSubmit"] = bankNameWhenSubmit + $translate("bankcard no:") + vm.selectedProposal.data.bankAccountWhenSubmit;
-
-                        if(vm.selectedProposal.data.bankNameWhenApprove){
-                            bankNameWhenApprove = vm.allBankTypeList[vm.selectedProposal.data.bankNameWhenApprove] || (vm.selectedProposal.data.bankNameWhenApprove + " ! " + $translate("not in bank type list"));
-                            bankNameWhenApprove += " / "
-                        }
-                        proposalDetail["bankInfoWhenApprove"] = bankNameWhenApprove + $translate("bankcard no:") + vm.selectedProposal.data.bankAccountWhenApprove;
-
-                        vm.selectedProposal.data = proposalDetail;
+                    let proposalDetail = {};
+                    let bankNameWhenSubmit = "";
+                    let bankNameWhenApprove = "";
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
                     }
+                    proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
+                    proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                    proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
+                    proposalDetail["proposalPlayerLevel"] = vm.selectedProposal.data.proposalPlayerLevel;
+                    proposalDetail["Credit Charge(Service Charge Deducted)"] = vm.selectedProposal.data.amount;
+                    proposalDetail["ximaWithdrawUsed"] = vm.selectedProposal.data.ximaWithdrawUsed;
+                    if(vm.selectedProposal.data.creditCharge != vm.selectedProposal.data.oriCreditCharge){
+                        proposalDetail["actualCreditCharge"] = vm.selectedProposal.data.creditCharge + " (" + $translate("original service charge") + vm.selectedProposal.data.oriCreditCharge + ", " + $translate("remove decimal") + ")";
+                    }else{
+                        proposalDetail["actualCreditCharge"] = vm.selectedProposal.data.creditCharge
+                    }
+                    proposalDetail["oriCreditCharge"] = vm.selectedProposal.data.oriCreditCharge;
+                    if(typeof vm.selectedProposal.data.isAutoApproval != "undefined"){
+                        proposalDetail["isAutoApproval"] = vm.selectedProposal.data.isAutoApproval ? "开启" : "关闭";
+                    }
+                    proposalDetail["autoAuditTime"] = vm.selectedProposal.data.autoAuditTime;
+                    proposalDetail["autoAuditRemark"] = vm.selectedProposal.data.autoAuditRemarkChinese;
+                    proposalDetail["autoAuditDetail"] = vm.selectedProposal.data.detailChinese;
+
+                    if(vm.selectedProposal.data.bankNameWhenSubmit){
+                        bankNameWhenSubmit = vm.allBankTypeList[vm.selectedProposal.data.bankNameWhenSubmit] || (vm.selectedProposal.data.bankNameWhenSubmit + " ! " + $translate("not in bank type list"));
+                        bankNameWhenSubmit += " / "
+                    }
+                    proposalDetail["bankInfoWhenSubmit"] = bankNameWhenSubmit + $translate("bankcard no:") + vm.selectedProposal.data.bankAccountWhenSubmit;
+
+                    if(vm.selectedProposal.data.bankNameWhenApprove){
+                        bankNameWhenApprove = vm.allBankTypeList[vm.selectedProposal.data.bankNameWhenApprove] || (vm.selectedProposal.data.bankNameWhenApprove + " ! " + $translate("not in bank type list"));
+                        bankNameWhenApprove += " / "
+                    }
+                    proposalDetail["bankInfoWhenApprove"] = bankNameWhenApprove + $translate("bankcard no:") + vm.selectedProposal.data.bankAccountWhenApprove;
+                    proposalDetail["playerCancelRemark"] = vm.selectedProposal.data.playerCancelRemark
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
+
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PartnerBonus") {
+                    let proposalDetail = {};
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+                    proposalDetail["partnerRealName"] = vm.selectedProposal.data.realNameBeforeEdit;
+                    proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
+                    proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
+                    proposalDetail["Withdrawal amount (system does not support transaction fee)"] = vm.selectedProposal.data.amount;
+                    if(typeof vm.selectedProposal.data.isAutoApproval != "undefined"){
+                        proposalDetail["isAutoApproval"] = vm.selectedProposal.data.isAutoApproval ? $translate("Open") : $translate("Closed");
+                    }
+                    proposalDetail["autoAuditTime"] = vm.selectedProposal.data.autoAuditTime;
+                    proposalDetail["autoAuditRemark"] = vm.selectedProposal.data.autoAuditRemarkChinese;
+                    proposalDetail["autoAuditDetail"] = vm.selectedProposal.data.detailChinese;
+                    proposalDetail["Total commission since the last withdrawal (include first level partner commission)"] = vm.selectedProposal.data.lastWithdrawalTotalCommission;
+
+                    vm.selectedProposal.data = proposalDetail;
                 }
 
                 if (vm.selectedProposal.data.inputData) {

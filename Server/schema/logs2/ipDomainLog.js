@@ -9,7 +9,9 @@ let ipDomainLogSchema = new Schema({
     // Domain
     domain: {type: String, index: true},
     // IP Address
-    ipAddress: {type: String, index: true}
+    ipAddress: {type: String, index: true},
+    // Source before domain site
+    sourceUrl: {type: String, index: true}
 });
 
 module.exports = ipDomainLogSchema;

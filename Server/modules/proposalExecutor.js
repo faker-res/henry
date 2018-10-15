@@ -62,16 +62,16 @@ const dbPropUtil = require("../db_common/dbProposalUtility");
  ***/
 var proposalExecutor = {
 
-        /**
-         * get all execution types
-         */
-        getAllExecutionTypes: function () {
-            var types = {};
-            for (var key in proposalExecutor.executions) {
-                types[key] = proposalExecutor.executions[key].des;
-            }
-            return types;
-        },
+    /**
+     * get all execution types
+     */
+    getAllExecutionTypes: function () {
+        var types = {};
+        for (var key in proposalExecutor.executions) {
+            types[key] = proposalExecutor.executions[key].des;
+        }
+        return types;
+    },
 
     /**
      * get all rejection types
@@ -88,7 +88,10 @@ var proposalExecutor = {
         const isNewFunc =
             executionType === 'executeFixPlayerCreditTransfer'
             || executionType === 'executeUpdatePlayerCredit'
-            || executionType === 'executePlayerConsumptionReturn';
+            || executionType === 'executePlayerConsumptionReturn'
+
+            // Group reward
+            || executionType === 'executePlayerLoseReturnRewardGroup';
 
         if (isNewFunc) {
             return proposalExecutor.approveOrRejectProposal2(executionType, rejectionType, bApprove, proposalData, rejectIfMissing);
@@ -2915,8 +2918,9 @@ var proposalExecutor = {
                 }
             },
 
-            executePlayerLoseReturnRewardGroup: function (proposalData, deferred) {
+            executePlayerLoseReturnRewardGroup: function (proposalData) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                    let rtgData;
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
                         type: constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,
@@ -2931,41 +2935,35 @@ var proposalExecutor = {
                         providerGroup: proposalData.data.providerGroup
                     };
 
-                    let deferred1 = Q.defer();
-                    createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP, proposalData);
-                    deferred1.promise.then(
+                    return createRTGForProposal(proposalData, taskData, constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP, proposalData).then(
                         data => {
+                            rtgData = data;
                             let updateData = {$set: {}};
 
                             if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
                                 updateData.$set["permission.applyBonus"] = false;
                             }
 
-                            dbconfig.collection_players.findOneAndUpdate(
+                            return dbconfig.collection_players.findOneAndUpdate(
                                 {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
                                 updateData
-                            ).then(
-                                playerData => {
-                                    if(proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply){
-                                        let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
-                                        let newPermissionObj = {applyBonus: false};
-                                        let remark = "优惠提案：" + proposalData.proposalId +  "(领取优惠后禁用提款)";
-                                        dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj);
-                                    }
-                                    return playerData;
-                                }
-                            ).then(
-                                () => {
-                                    deferred.resolve(data);
-                                },
-                                deferred.reject
-                            );
-                        },
-                        deferred.reject
-                    );
+                            )
+                        }
+                    ).then(
+                        playerData => {
+                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
+                                let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
+                                let newPermissionObj = {applyBonus: false};
+                                let remark = "优惠提案：" + proposalData.proposalId + "(领取优惠后禁用提款)";
+                                dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj);
+                            }
+
+                            return rtgData;
+                        }
+                    )
                 }
                 else {
-                    deferred.reject({name: "DataError", message: "Incorrect player lose return group proposal data"});
+                    return Promise.reject({name: "DataError", message: "Incorrect player lose return group proposal data"});
                 }
             },
 
@@ -4128,6 +4126,7 @@ function changePlayerCredit(playerObjId, platformId, updateAmount, reasonType, d
 }
 
 /**
+ * DEPRECATING: Moving to createRTGForProposal
  * @param proposalData
  * @param taskData
  * @param deferred
@@ -4371,6 +4370,181 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             );
         }
     });
+}
+
+/**
+ * createRewardTaskForProposal without deferred
+ * @param proposalData
+ * @param taskData
+ * @param rewardType
+ * @param [resolveValue] - Optional.  Without this, resolves with the newly created reward task.
+ */
+function createRTGForProposal(proposalData, taskData, rewardType, resolveValue) {
+    let rewardTask, platform, gameProviderGroup, playerRecord;
+    //check if player object id is in the proposal data
+    if (!(proposalData && proposalData.data && proposalData.data.playerObjId)) {
+        return Promise.reject({name: "DBError", message: "Invalid reward proposal data"});
+    }
+
+    // Add proposalId in reward data
+    taskData.proposalId = proposalData.proposalId;
+
+    let gameProviderGroupProm = Promise.resolve(false);
+    let platformProm = dbconfig.collection_platform.findOne({_id: proposalData.data.platformId})
+        .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean();
+    let playerProm = dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean();
+
+    // Check whether game provider group exist
+    if (proposalData.data.providerGroup && proposalData.data.providerGroup.toString().length === 24) {
+        gameProviderGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: proposalData.data.providerGroup})
+            .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean();
+    }
+
+    return Promise.all([gameProviderGroupProm, platformProm, playerProm]).then(
+        res => {
+            [gameProviderGroup, platform, playerRecord] = res;
+
+            return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: playerRecord._id})
+        }
+    ).then(
+        rtgData => {
+            let calCreditArr = [];
+
+            if (rtgData && rtgData.length) {
+                rtgData.forEach(rtg => {
+                    if(rtg){
+                        if (rtg.providerGroup && rtg.providerGroup._id) {
+                            rtg.totalCredit = rtg.rewardAmt || 0;
+
+                            let calCreditProm = dbconfig.collection_gameProviderGroup.findOne({_id: rtg.providerGroup._id})
+                                .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean().then(
+                                    providerGroup => {
+                                        if (providerGroup && providerGroup.providers && providerGroup.providers.length) {
+                                            return getProviderCredit(providerGroup.providers, playerRecord.name, platform.platformId).then(
+                                                credit => {
+                                                    if (credit) {
+                                                        rtg.totalCredit += credit
+                                                    }
+
+                                                    return rtg;
+                                                }
+                                            );
+                                        }
+                                    }
+                                );
+
+                            calCreditArr.push(calCreditProm);
+                        } else if (!rtg.providerGroup) {
+                            rtg.totalCredit = playerRecord && playerRecord.validCredit ? playerRecord.validCredit : 0;
+                            let calCreditProm = getProviderCredit(platform.gameProviders, playerRecord.name, platform.platformId).then(
+                                credit => {
+                                    if(credit){
+                                        rtg.totalCredit += credit;
+                                    }
+
+                                    return rtg;
+                                }
+                            );
+
+                            calCreditArr.push(calCreditProm);
+                        }
+                    }
+                });
+
+                return Promise.all(calCreditArr).then(data => data, err => err);
+            }
+        }
+    ).then(
+        rewardTaskGroup => {
+            if(rewardTaskGroup){
+                let rtgArr = [];
+
+                rewardTaskGroup.forEach(
+                    rtg => {
+                        if(rtg && platform && rtg._id && rtg.totalCredit && platform.autoUnlockWhenInitAmtLessThanLostThreshold
+                            && platform.autoApproveLostThreshold && rtg.totalCredit <= platform.autoApproveLostThreshold){
+                            rtgArr.push(dbRewardTaskGroup.unlockRewardTaskGroupByObjId(rtg));
+                            dbRewardTask.unlockRewardTaskInRewardTaskGroup(rtg, rtg.playerId).then( rewards => {
+                                if (rewards){
+                                    return dbRewardTask.getRewardTasksRecord(rewards, rtg, proposalData);
+                                }
+                            }).then( records => {
+
+                                if (records){
+
+                                    return dbRewardTask.updateUnlockedRewardTasksRecord(records, "NoCredit", rtg.playerId, rtg.platformId).catch(errorUtils.reportError);
+                                }
+                            })
+
+                        }
+                    }
+                )
+
+                return Promise.all(rtgArr).catch(err => {
+                    // without current catch, the then chain might be broken
+                    return errorUtils.reportError(err)
+                });
+            }
+        }
+    ).then(() => {
+        // Done pre-checking
+        if (proposalData.data.providerGroup && gameProviderGroup) {
+            let deductFreeAmtProm = Promise.resolve();
+            if (proposalData.data.isDynamicRewardAmount || (proposalData.data.promoCode && proposalData.data.promoCodeTypeValue && proposalData.data.promoCodeTypeValue == 3)
+                || proposalData.data.limitedOfferObjId) {
+                deductFreeAmtProm = dbRewardTask.deductTargetConsumptionFromFreeAmountProviderGroup(taskData, proposalData);
+            }
+
+            return deductFreeAmtProm.then(
+                () => dbRewardTask.createRewardTaskWithProviderGroup(taskData, proposalData),
+                error => {
+                    console.error("Error deduct target consumption from free amount provider group", error);
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Error deduct target consumption from free amount provider group",
+                        error: error
+                    })
+                }
+            ).then(
+                output => {
+                    if (!output) {
+                        return;
+                    }
+                    dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
+                    sendMessageToPlayer(proposalData, rewardType, {rewardTask: taskData});
+                    return resolveValue || taskData;
+                },
+                error => {
+                    console.error("Error creating reward task with provider group", error);
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Error creating reward task with provider group",
+                        error: error
+                    });
+                }
+            );
+        } else {
+            // No provider group
+            return dbRewardTask.insertConsumptionValueIntoFreeAmountProviderGroup(taskData, proposalData, rewardType).then(
+                data => {
+                    rewardTask = data;
+                    dbConsumptionReturnWithdraw.clearXimaWithdraw(proposalData.data.playerObjId).catch(errorUtils.reportError);
+                    sendMessageToPlayer(proposalData, rewardType, {rewardTask: taskData});
+                    return resolveValue || taskData;
+                }
+            ).catch(
+                error => {
+                    console.error("Error adding consumption value into free amount provider group", error);
+                    return Promise.reject({
+                        name: "DBError",
+                        message: "Error adding consumption value into free amount provider group",
+                        error: error
+                    });
+                }
+            );
+        }
+
+    })
 }
 
 function sendMessageToPlayer (proposalData,type,metaDataObj) {

@@ -2988,6 +2988,11 @@ define(['js/app'], function (myApp) {
             vm.clicksCountPageLength = Object.keys(vm.clickCountPageName).length || 0;
             vm.deleteClickCountDevice = {};
             vm.deleteClickCountPage = {};
+            if (vm.clickCountDevice) {
+                for (let key in vm.clickCountDevice) {
+                    vm.deleteClickCountPage[vm.clickCountDevice[key]] = {};
+                }
+            }
             $("#modalDeleteClickCount").modal('show');
         }
 
@@ -2998,7 +3003,7 @@ define(['js/app'], function (myApp) {
                     isSelect = true
                 }
                 for (let i = 0; i < vm.pageNameDataObj[device].length; i++) {
-                    vm.deleteClickCountPage[vm.pageNameDataObj[device][i]] = isSelect;
+                    vm.deleteClickCountPage[device][vm.pageNameDataObj[device][i]] = isSelect;
                 }
             }
         }
@@ -3012,7 +3017,7 @@ define(['js/app'], function (myApp) {
                 if (vm.deleteClickCountDevice[key] && vm.pageNameDataObj[key] && vm.pageNameDataObj[key].length) {
                     let selectedPage = [];
                     vm.pageNameDataObj[key].forEach(pageName => {
-                        if (vm.deleteClickCountPage[pageName]) {
+                        if (vm.deleteClickCountPage[key][pageName]) {
                             selectedPage.push(pageName)
                         }
                     })
@@ -3033,6 +3038,7 @@ define(['js/app'], function (myApp) {
             if (isDelete) {
                 socketService.$socket($scope.AppSocket, 'deleteClickCountRecord', sendData, function () {
                     console.log("click count record delete success")
+                    vm.getClickCountDeviceAndPage();
                 })
             }
         }

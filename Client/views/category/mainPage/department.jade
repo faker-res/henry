@@ -57,7 +57,8 @@
                                     form(name="form_new_department", novalidate)
                                         div.form-group
                                             label.control-label *{{"DEPARTMENT_NAME" | translate}}
-                                            input.form-control(type="text", placeholder="Department Name", ng-model="vm.newDepartment.departmentName", required)
+                                            input.form-control(type="text", placeholder="Department Name", ng-model="vm.newDepartment.departmentName", ng-change="vm.isSpecialCharacter()", required)
+                                            label.text-danger(ng-if="vm.specialCharacter") *{{"Please avoid the using of special character" | translate}}
                         .well
                             .row
                                 div.form-group

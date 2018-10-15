@@ -538,6 +538,12 @@ define([], () => {
                 }
             })
         };
+
+        this.isSpecialChar = (string) => {
+            let format = /[ !@#$%^&*_+\-=\[\]{};':"\\|,.<>\/?]/;
+
+            return format.test(string);
+        };
     };
 
     let commonServiceApp = angular.module('commonService', []);
