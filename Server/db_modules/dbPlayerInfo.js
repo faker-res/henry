@@ -14630,11 +14630,14 @@ let dbPlayerInfo = {
                 $lt: new Date(to)
             }
         }
+        console.log('queryObj===', queryObj);
         var a = dbconfig.collection_playerCreditsDailyLog.find(queryObj).count();
         var b = dbconfig.collection_playerCreditsDailyLog.find(queryObj).sort(sortCol).skip(index).limit(limit).lean();
 
         return Q.all([a, b]).then(
             data => {
+                console.log('data===00', data[0]);
+                console.log('data===11', data[1]);
                 return {size: data[0], data: data[1]}
             }
         )
