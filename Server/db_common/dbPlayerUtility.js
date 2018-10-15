@@ -106,7 +106,7 @@ const dbPlayerUtility = {
             },
             err => {
                 // errorUtils.reportError(err);
-                console.log("Player B state error", playerObjId, stateName);
+                console.log("Player B state error", playerObjId, stateName, err);
                 return false;
             }
         );
