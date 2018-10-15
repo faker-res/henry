@@ -3570,7 +3570,7 @@ var dbPlayerTopUpRecord = {
                         let recordProm = dbconfig.collection_playerTopUpRecord.find({
                             playerId: playerObj._id,
                             platformId: playerObj.platform,
-                            // amount: amount,
+                            amount: amount,
                             createTime: {$gte: currentTime}
                         }).sort({createTime: -1}).limit(1).lean().then(
                             recordData => {
