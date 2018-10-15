@@ -1035,6 +1035,7 @@ function socketActionPlayer(socketIO, socket) {
         getPlayerCreditsDaily: function getPlayerCreditsDaily(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId);
+            console.log('SOCKET===', data);
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerCreditsDaily, [data.playerId, data.from, data.to, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
 
