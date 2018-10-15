@@ -4227,7 +4227,7 @@
   "Validation failed.": "验证失败",
   "Bank card number did not match.": "银行卡号对不上",
   "Can't find provider or provider is not ready": "找不到游戏提供商 或 游戏提供商的结算状态暂时不允许指定结算。若有『重试日结算』按钮，请点击后，等个五～十分钟后刷新页面看看结算状态是否已显示绿色。显示绿色后再度尝试指定结算。",
-  "This proposal require PMS to approve.": "只有PMS才能通过提款提案",
+  "This proposal require PMS to approve.": "只有PMS才能通过充值提案",
 
   "Please insert bank account name.": "请填入银行户口姓名",
   "Please insert bank account.": "请填入银行帐号",
