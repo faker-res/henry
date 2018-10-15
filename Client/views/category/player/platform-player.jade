@@ -542,7 +542,7 @@ include modalGameCreditLog
             td(style='text-align:left')
                 label {{"ForbidTopupTypes" | translate}}
                 div(ng-repeat='(i,v) in merchantTopupTypeJson')
-                    label {{v}}
+                    label {{v | translate}} ({{v}}): {{i}}
                         input.playerTopUpTypeForbid.pull-left.margin-right-5(type='checkbox', data-provider='{{i}}',ng-change='vm.forbidModification(i, isTrue, "forbidTopUpAddList", "forbidTopUpRemoveList")', ng-model="isTrue", ng-checked='vm.forbidTopUpPopover.forbidTopUpType.indexOf(i)>-1')
                         span(id="{{'c-'+i}}")
                 .textareaDetail.margin-top-bottom-small

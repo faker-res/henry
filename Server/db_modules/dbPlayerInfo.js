@@ -12202,6 +12202,7 @@ let dbPlayerInfo = {
                     };
                     playerData = data;
                     //if (merchantUse == 1) {
+                    console.log("yH checking --- bPMSGroup", bPMSGroup)
                         if (bPMSGroup == true || bPMSGroup == "true") {
                             pmsQuery.username = data.name;
                             pmsQuery.ip = userIp;
@@ -12220,6 +12221,7 @@ let dbPlayerInfo = {
         ).then(
             paymentData => {
                 if (paymentData) {
+                    console.log('yH checking --- paymentData', paymentData)
                     var resData = [];
                     // if (merchantUse == 1 && (paymentData.merchants || paymentData.topupTypes)) {
                     if (paymentData.merchants || paymentData.topupTypes) {
@@ -12229,6 +12231,19 @@ let dbPlayerInfo = {
                                 merchant.type = Number(merchant.type);
                                 merchant.status = Number(merchant.status);
                             })
+
+                            console.log("yH checking --- paymentData.topupTypes", resData)
+
+                            if (playerData.forbidTopUpType && playerData.forbidTopUpType.length){
+                                playerData.forbidTopUpType.forEach(
+                                    topupType => {
+                                        let index = resData.findIndex( p => p.type == topupType);
+                                        if (index != -1){
+                                            resData.splice(index, 1)
+                                        }
+                                    }
+                                )
+                            }
                         } else {
                             if (playerData.merchantGroup && playerData.merchantGroup.merchantNames && playerData.merchantGroup.merchantNames.length > 0) {
                                 playerData.merchantGroup.merchantNames.forEach(
