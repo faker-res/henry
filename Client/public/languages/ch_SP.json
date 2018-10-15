@@ -4639,5 +4639,6 @@
   "rateAfterRebatePlatform": "佣金需扣除的平台费比例（预设值）",
   "rateAfterRebateTotalDeposit": "佣金需扣除的『总存款』手续费比例（预设值）",
   "rateAfterRebateTotalWithdrawal": "佣金需扣除的『总取款』手续费比例（预设值）",
-  "isResetAll": "恢复所有佣金比例"
+  "isResetAll": "恢复所有佣金比例",
+  "playerCancelRemark": "备注"
 }
