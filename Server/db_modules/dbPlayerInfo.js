@@ -1346,7 +1346,7 @@ let dbPlayerInfo = {
         let platformData = null;
         let pPrefix = null;
         let pName = null;
-        let csOfficer, promoteWay, ipDomain;
+        let csOfficer, promoteWay, ipDomain, ipDomainSourceUrl;
 
         playerdata.name = playerdata.name.toLowerCase();
 
@@ -1702,6 +1702,7 @@ let dbPlayerInfo = {
                         ipDomainLog => {
                             if (ipDomainLog && ipDomainLog[0] && ipDomainLog[0].domain) {
                                 ipDomain = ipDomainLog[0].domain;
+                                ipDomainSourceUrl = ipDomainLog[0].sourceUrl;
 
                                 // force using csOfficerUrl admin and way
                                 return dbconfig.collection_csOfficerUrl.findOne({
@@ -1775,8 +1776,8 @@ let dbPlayerInfo = {
                     }
 
                     // add ip domain to sourceUrl
-                    if (ipDomain) {
-                        playerUpdateData.sourceUrl = ipDomain
+                    if (ipDomainSourceUrl) {
+                        playerUpdateData.sourceUrl = ipDomainSourceUrl
                     }
 
                     proms.push(
