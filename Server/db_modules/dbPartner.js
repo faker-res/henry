@@ -2622,7 +2622,11 @@ let dbPartner = {
                                     };
                                     newProposal.inputDevice = dbUtil.getInputDevice(userAgent, false, adminInfo);
 
-                                    return dbProposal.createProposalWithTypeName(partner.platform._id, constProposalType.PARTNER_BONUS, newProposal);
+                                    return getPartnerAllCommissionAmount(partner.platform._id, partner._id, new Date()).then(
+                                        partnerCommission => {
+                                            newProposal.data.lastWithdrawalTotalCommission = partnerCommission && partnerCommission[0] && partnerCommission[0].amount || 0;
+                                            return dbProposal.createProposalWithTypeName(partner.platform._id, constProposalType.PARTNER_BONUS, newProposal);
+                                        });
                                 }
                             })
                     }
@@ -11791,4 +11795,56 @@ function createPartnerLargeWithdrawalLog (proposalData, platformObjId) {
             }
         }
     );
+}
+
+// partner all commission amount (include first level partner commission)
+function getPartnerAllCommissionAmount (platformObjId, partnerObjId, currentWithdrawCreateTime) {
+    return  dbconfig.collection_proposalType.findOne({
+        platformId: platformObjId,
+        name: constProposalType.PARTNER_BONUS
+    }).lean().then(
+        proposalType => {
+            return dbconfig.collection_proposal.findOne({
+                'data.partnerObjId': partnerObjId,
+                type: proposalType._id,
+                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+            }).sort({createTime: -1}).lean();
+        }).then(
+        withdrawalData => {
+            if (!withdrawalData) {
+                return Promise.reject({name: "DataError", message: "Cannot find proposals"})
+            }
+
+            return dbconfig.collection_proposalType.find({
+                platformId: platformObjId,
+                name: {$in: [constProposalType.UPDATE_PARENT_PARTNER_COMMISSION, constProposalType.SETTLE_PARTNER_COMMISSION]}
+            }, {_id: 1}).lean().then(
+                proposalType => {
+                    if (!(proposalType && proposalType.length)) {
+                        return Promise.reject({name: "DataError", message: "Cannot find proposal type"});
+                    }
+
+                    return dbconfig.collection_proposal.aggregate(
+                        {
+                            $match: {
+                                type: {$in: proposalType.map(item => item._id)},
+                                createTime: {
+                                    $gte: withdrawalData.createTime,
+                                    $lt: currentWithdrawCreateTime
+                                },
+                                'data.partnerObjId': partnerObjId,
+                                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
+                            }
+                        },
+                        {
+                            $group: {
+                                _id: "$data.partnerObjId",
+                                amount: {$sum: "$data.amount"}
+                            }
+                        }
+                    );
+                }
+            );
+        }
+    ).catch(errorUtils.reportError);
 }
