@@ -3,6 +3,7 @@ const url = require('url');
 const fs = require('fs');
 const path = require('path');
 const env = require("./config/env").config();
+const webEnv = require('./config/webEnv');
 const port = env.redisPort || 1802;
 
 const privateKeyPath = "./playerPhone.key.pem";
@@ -14,6 +15,11 @@ let privateKey, publicKey, replacedPrivateKey, replacedPublicKey;
 
 http.createServer(function (req, res) {
     console.log(`${req.method} ${req.url}`);
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Request-Method', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET');
+    res.setHeader('Access-Control-Allow-Headers', '*');
 
     // parse URL
     const parsedUrl = url.parse(req.url);
