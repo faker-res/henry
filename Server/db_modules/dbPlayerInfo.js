@@ -12366,7 +12366,10 @@ let dbPlayerInfo = {
                 if (proposal) {
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
-                        {"data.cancelBy": "玩家：" + proposal.data.playerName}
+                        {
+                            "data.cancelBy": "玩家：" + proposal.data.playerName,
+                            "data.playerCancelRemark": proposal.data.playerName + "（玩家自助取消）"
+                        }
                     );
                 }
 
