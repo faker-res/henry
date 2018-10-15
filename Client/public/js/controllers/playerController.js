@@ -13734,6 +13734,7 @@ define(['js/app'], function (myApp) {
                 limit: newSearch ? vm.playerCreditLog.limit : (vm.playerCreditLog.limit || 50),
                 sortCol: vm.playerCreditLog.sortCol || null
             };
+            console.log('sendQuery===', sendQuery);
             socketService.$socket($scope.AppSocket, 'getPlayerCreditsDaily', sendQuery, function (data) {
                 console.log('getPlayerDailyCredit', data);
                 var tblData = data && data.data ? data.data.data.map(item => {
@@ -18799,6 +18800,26 @@ define(['js/app'], function (myApp) {
 
                         vm.selectedProposal.data = proposalDetail;
                     }
+                }
+
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PartnerBonus") {
+                    let proposalDetail = {};
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+                    proposalDetail["partnerRealName"] = vm.selectedProposal.data.realNameBeforeEdit;
+                    proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
+                    proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
+                    proposalDetail["Withdrawal amount (system does not support transaction fee)"] = vm.selectedProposal.data.amount;
+                    if(typeof vm.selectedProposal.data.isAutoApproval != "undefined"){
+                        proposalDetail["isAutoApproval"] = vm.selectedProposal.data.isAutoApproval ? $translate("Open") : $translate("Closed");
+                    }
+                    proposalDetail["autoAuditTime"] = vm.selectedProposal.data.autoAuditTime;
+                    proposalDetail["autoAuditRemark"] = vm.selectedProposal.data.autoAuditRemarkChinese;
+                    proposalDetail["autoAuditDetail"] = vm.selectedProposal.data.detailChinese;
+                    proposalDetail["Total commission since the last withdrawal (include first level partner commission)"] = vm.selectedProposal.data.lastWithdrawalTotalCommission;
+
+                    vm.selectedProposal.data = proposalDetail;
                 }
 
                 if (vm.selectedProposal.data.inputData) {
