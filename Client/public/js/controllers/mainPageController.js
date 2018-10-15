@@ -2127,10 +2127,8 @@ define(['js/app'], function (myApp) {
 
             $(function(){
                 setTimeout(() => {
-                    vm.getAllDepartmentData();
+                    $scope.$evalAsync(vm.getAllDepartmentData());
                 },1000)
-
-                // $scope.$evalAsync(vm.getAllDepartmentData());
             });
 
         };
