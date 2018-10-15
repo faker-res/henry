@@ -422,7 +422,7 @@ let dbPlayerInfo = {
                     if (!platformData) {
                         return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
-                    if(!inputData.phoneNumber || (inputData.phoneNumber && inputData.phoneNumber.toString().length != 11)){
+                    if(inputData.phoneNumber && inputData.phoneNumber.toString().length != 11){
                         return Q.reject({
                             name: "DataError",
                             message: localization.localization.translate("phone number is invalid")
@@ -12379,7 +12379,10 @@ let dbPlayerInfo = {
                 if (proposal) {
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
-                        {"data.cancelBy": "玩家：" + proposal.data.playerName}
+                        {
+                            "data.cancelBy": "玩家：" + proposal.data.playerName,
+                            "data.playerCancelRemark": proposal.data.playerName + "（玩家自助取消）"
+                        }
                     );
                 }
 
