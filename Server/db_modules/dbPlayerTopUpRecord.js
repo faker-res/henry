@@ -96,7 +96,7 @@ var dbPlayerTopUpRecord = {
         ).allowDiskUse(true).exec();
     },
 
-    assignTopUpRecordUsedEvent: function (platformObjId, playerObjId, eventObjId, spendingAmount, startTime, endTime, byPassedEvent, usedProposal, rewardType) {
+    assignTopUpRecordUsedEvent: function (platformObjId, playerObjId, eventObjId, spendingAmount, startTime, endTime, byPassedEvent, usedProposal, rewardType, isNoLimit) {
         let topUpQuery = {
             platformId: platformObjId,
             playerId: playerObjId,
@@ -146,7 +146,8 @@ var dbPlayerTopUpRecord = {
                     let record = toUpRecords[i];
                     recordIds.push(record._id);
                     curAmount += record.amount;
-                    if (curAmount >= spendingAmount) {
+
+                    if (!isNoLimit && curAmount >= spendingAmount) {
                         break;
                     }
                 }

@@ -67,18 +67,18 @@ const dbPlayerUtility = {
         //update time when set flag to false only
         if (lastUpdateTime) {
             if (bFlag) {
-                matchQ.$or = [];
-                let searchQ1 = {};
-                searchQ1[lastUpdateTime] = {$lt: new Date() - 300000};
-                matchQ.$or.push(searchQ1);
-
-                let searchQ2 = {};
-                searchQ2[lastUpdateTime] = {$exists: false};
-                matchQ.$or.push(searchQ2);
-
-                let searchQ3 = {};
-                searchQ3[stateName] = false;
-                matchQ.$or.push(searchQ3);
+                // matchQ.$or = [];
+                // let searchQ1 = {};
+                // searchQ1[lastUpdateTime] = {$lt: new Date() - 300000};
+                // matchQ.$or.push(searchQ1);
+                //
+                // let searchQ2 = {};
+                // searchQ2[lastUpdateTime] = {$exists: false};
+                // matchQ.$or.push(searchQ2);
+                //
+                // let searchQ3 = {};
+                // searchQ3[stateName] = false;
+                // matchQ.$or.push(searchQ3);
 
                 updateQ.$currentDate = {};
                 updateQ.$currentDate[lastUpdateTime] = true;
@@ -97,8 +97,8 @@ const dbPlayerUtility = {
             beforeRec => {
                 if (beforeRec && beforeRec[stateName] === bFlag) {
                     allowExec = false;
-                    // if state locked more than 20 minutes, allow execute (prevent state locked forever)
-                    if (lastUpdateTime && bFlag && beforeRec[lastUpdateTime] && (beforeRec[lastUpdateTime].getTime() <= new Date() - 1200000)) {
+                    // if state locked more than 5 minutes, allow execute (prevent state locked forever)
+                    if (lastUpdateTime && bFlag && beforeRec[lastUpdateTime] && (beforeRec[lastUpdateTime].getTime() <= new Date() - 300000)) {
                         allowExec = true;
                     }
                 }
@@ -106,6 +106,7 @@ const dbPlayerUtility = {
             },
             err => {
                 // errorUtils.reportError(err);
+                console.log("Player B state error", playerObjId, stateName, err);
                 return false;
             }
         );
