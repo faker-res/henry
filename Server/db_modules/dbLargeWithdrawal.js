@@ -253,7 +253,7 @@ const dbLargeWithdrawal = {
                     }
                 };
 
-                return dbconfig.collection_largeWithdrawalLog.findOneAndUpdate({_id: largeWithdrawalLogObjId}, updateObj, {new: true})
+                return dbconfig.collection_largeWithdrawalLog.findOneAndUpdate({_id: largeWithdrawalLogObjId}, updateObj, {new: true}).lean();
             }
         );
     },
