@@ -1916,7 +1916,7 @@ function getProviderInfoByTime (playerObj, startTime, endTime) {
                                 provider.validAmount += cpGame.validAmount;
                                 provider.consumptionAmountByType[cpGame._id.cpGameType] = cpGame.validAmount;
                                 provider.playerBonusAmountByType[cpGame._id.cpGameType] = cpGame.bonusAmount;
-                                provider.siteBonusRatio += provider.bonusAmount / provider.validAmount;
+                                provider.siteBonusRatio += (provider.bonusAmount / provider.validAmount) || 0;
                             }
                         })
                     })
