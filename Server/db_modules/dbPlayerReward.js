@@ -4893,7 +4893,7 @@ let dbPlayerReward = {
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
         // reject the reward application if it is applied from front-end but the setting is settlement (back-end)
-        if (dbUtility.getInputDevice(userAgent, false, adminInfo) != 0 && eventData.condition.applyType == 3){
+        if (dbUtility.getInputDevice(userAgent, false, adminInfo) != 0 && eventData.condition && eventData.condition.applyType && eventData.condition.applyType == 3){
             return Promise.reject({
                 name: "DataError",
                 message: "The way of applying this reward is not correct."
