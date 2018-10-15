@@ -12250,16 +12250,16 @@ let dbPlayerInfo = {
 
                             console.log("yH checking --- paymentData.topupTypes", resData)
 
-                            if (playerData.forbidTopUpType && playerData.forbidTopUpType.length){
-                                playerData.forbidTopUpType.forEach(
-                                    topupType => {
-                                        let index = resData.findIndex( p => p.type == topupType);
-                                        if (index != -1){
-                                            resData.splice(index, 1)
-                                        }
-                                    }
-                                )
-                            }
+                            // if (playerData.forbidTopUpType && playerData.forbidTopUpType.length){
+                            //     playerData.forbidTopUpType.forEach(
+                            //         topupType => {
+                            //             let index = resData.findIndex( p => p.type == topupType);
+                            //             if (index != -1){
+                            //                 resData.splice(index, 1)
+                            //             }
+                            //         }
+                            //     )
+                            // }
                         } else {
                             if (playerData.merchantGroup && playerData.merchantGroup.merchantNames && playerData.merchantGroup.merchantNames.length > 0) {
                                 playerData.merchantGroup.merchantNames.forEach(
