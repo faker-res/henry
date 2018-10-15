@@ -21362,7 +21362,9 @@ function createLargeWithdrawalLog (proposalData, platformObjId) {
     }).then(
         proposal => {
             if (proposal) {
-                return dbLargeWithdrawal.fillUpLargeWithdrawalLogDetail(largeWithdrawalLog._id);
+                return dbLargeWithdrawal.fillUpLargeWithdrawalLogDetail(largeWithdrawalLog._id).catch(err => {
+                    console.log("Error fill up large withdrawal log:", largeWithdrawalLog._id, err);
+                });
             } else {
                 return Promise.reject({message: "Save to proposal failed"}); // the only time here is reach are when there is bug
             }

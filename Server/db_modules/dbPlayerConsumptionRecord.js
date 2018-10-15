@@ -1483,7 +1483,7 @@ var dbPlayerConsumptionRecord = {
     /**
      *  Add usedEvent to consumption record
      */
-    assignConsumptionUsedEvent: function (platformObjId, playerObjId, eventObjId, spendingAmount, startTime, endTime, providers, usedProposal, rewardType) {
+    assignConsumptionUsedEvent: function (platformObjId, playerObjId, eventObjId, spendingAmount, startTime, endTime, providers, usedProposal, rewardType, isNoLimit) {
         // providers have to be an array
         let consumptionQuery = {
             platformId: platformObjId,
@@ -1525,7 +1525,7 @@ var dbPlayerConsumptionRecord = {
                     let record = consumptionRecords[i];
                     recordIds.push(record._id);
                     curAmount += record.amount;
-                    if (curAmount >= spendingAmount) {
+                    if (!isNoLimit && curAmount >= spendingAmount) {
                         break;
                     }
                 }
