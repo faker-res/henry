@@ -422,6 +422,12 @@ let dbPlayerInfo = {
                     if (!platformData) {
                         return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
+                    if(inputData.phoneNumber && inputData.phoneNumber.toString().length != 11){
+                        return Q.reject({
+                            name: "DataError",
+                            message: localization.localization.translate("phone number is invalid")
+                        });
+                    }
 
                     if (inputData.lastLoginIp) {
                         return dbPlatform.getBlacklistIpIsEffective(inputData.lastLoginIp).then(
@@ -457,21 +463,31 @@ let dbPlayerInfo = {
                     platformObj = platformData;
                     platformObjId = platformData._id;
                     // platformPrefix = platformData.prefix;
-
                     //check if manual player creation from FPMS, return true (manual creation from FPMS do not have userAgent)
                     if (inputData.userAgent) {
-                        if (!platformObj.requireSMSVerification || bypassSMSVerify) {
-                            return true;
-                        } else if (platformObj.requireSMSVerification) {
+                        // *** new logic:(based on platform setting)
+                        // sms(require)                                => verifySMS -> sms correct / incorrect
+                        // sms(not require) && captchaCode (correct)   => return true
+                        // sms(not require) && captchaCode (incorrect) => invalid image
+                        if (platformObj.requireSMSVerification) {
                             return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode);
                         }
-                        else if (!bypassSMSVerify) {
+                        else if (!platformObj.requireSMSVerification && bypassSMSVerify) {
+                            return true;
+                        }
+                        else if (!platformObj.requireSMSVerification && !bypassSMSVerify) {
+                            console.log('invalid captcha')
                             return Q.reject({
-                                status: constServerCode.VALIDATION_CODE_INVALID,
+                                status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
                                 name: "ValidationError",
                                 message: "Invalid image captcha"
                             });
                         }
+                        else{
+                            // display if anything out of the scope.
+                            console.log('=mark=debug=', inputData, platformObj.requireSMSVerification, bypassSMSVerify);
+                        }
+
                     } else {
                         return true;
                     }
@@ -12229,6 +12245,19 @@ let dbPlayerInfo = {
                                 merchant.type = Number(merchant.type);
                                 merchant.status = Number(merchant.status);
                             })
+
+                            console.log("yH checking --- paymentData.topupTypes", resData)
+
+                            if (playerData.forbidTopUpType && playerData.forbidTopUpType.length){
+                                playerData.forbidTopUpType.forEach(
+                                    topupType => {
+                                        let index = resData.findIndex( p => p.type == topupType);
+                                        if (index != -1){
+                                            resData.splice(index, 1)
+                                        }
+                                    }
+                                )
+                            }
                         } else {
                             if (playerData.merchantGroup && playerData.merchantGroup.merchantNames && playerData.merchantGroup.merchantNames.length > 0) {
                                 playerData.merchantGroup.merchantNames.forEach(
@@ -12350,7 +12379,10 @@ let dbPlayerInfo = {
                 if (proposal) {
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
-                        {"data.cancelBy": "玩家：" + proposal.data.playerName}
+                        {
+                            "data.cancelBy": "玩家：" + proposal.data.playerName,
+                            "data.playerCancelRemark": proposal.data.playerName + "（玩家自助取消）"
+                        }
                     );
                 }
 
@@ -13526,7 +13558,7 @@ let dbPlayerInfo = {
                     let lastTopUpProm = dbconfig.collection_playerTopUpRecord.findOne({_id: data.topUpRecordId});
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
                     let pendingCount = 0;
-                    
+
                     pendingCount = dbRewardTask.getPendingRewardTaskCount({
                         mainType: 'Reward',
                         "data.playerObjId": playerInfo._id,
@@ -14630,11 +14662,14 @@ let dbPlayerInfo = {
                 $lt: new Date(to)
             }
         }
+        console.log('queryObj===', queryObj);
         var a = dbconfig.collection_playerCreditsDailyLog.find(queryObj).count();
         var b = dbconfig.collection_playerCreditsDailyLog.find(queryObj).sort(sortCol).skip(index).limit(limit).lean();
 
         return Q.all([a, b]).then(
             data => {
+                console.log('data===00', data[0]);
+                console.log('data===11', data[1]);
                 return {size: data[0], data: data[1]}
             }
         )
@@ -21359,7 +21394,9 @@ function createLargeWithdrawalLog (proposalData, platformObjId) {
     }).then(
         proposal => {
             if (proposal) {
-                return dbLargeWithdrawal.fillUpLargeWithdrawalLogDetail(largeWithdrawalLog._id);
+                return dbLargeWithdrawal.fillUpLargeWithdrawalLogDetail(largeWithdrawalLog._id).catch(err => {
+                    console.log("Error fill up large withdrawal log:", largeWithdrawalLog._id, err);
+                });
             } else {
                 return Promise.reject({message: "Save to proposal failed"}); // the only time here is reach are when there is bug
             }

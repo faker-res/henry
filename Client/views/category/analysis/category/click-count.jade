@@ -77,7 +77,7 @@
                                 input(type='checkbox' ng-model='vm.deleteClickCountDevice[device]' ng-change='vm.selectDevicePage(device)')
                                 text {{device}}
                             td
-                                input(type='checkbox' ng-model='vm.deleteClickCountPage[page]' ng-change='vm.deleteClickCountDevice[device]=true')
+                                input(type='checkbox' ng-model='vm.deleteClickCountPage[device][page]' ng-change='vm.deleteClickCountDevice[device]=true')
                                 text {{page}}
                         
                                 

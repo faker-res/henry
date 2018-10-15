@@ -26,6 +26,9 @@ div
     .label-value
         label {{'cancelTime' | translate}}&nbsp;:&nbsp;
         label(ng-if = "vm.selectedProposal.settleTime && vm.selectedProposal.status == vm.proposalStatusList.CANCEL") {{vm.dateReformat(vm.selectedProposal.settleTime) || 'none'}}
+    .label-value
+        label {{'REMARKS' | translate}}&nbsp;:&nbsp;
+        label(ng-if = "vm.selectedProposal.type && vm.selectedProposal.type.name === 'PlayerBonus'") {{vm.selectedProposal.data.playerCancelRemark || 'none'}}
 
     //.titleBackground.margin-bottom-5.text-center
     div(style='min-height:30px')

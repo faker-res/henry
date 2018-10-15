@@ -32,6 +32,9 @@ div
         label(ng-if = "vm.selectedProposal.type.name == 'PlayerBonus' && vm.selectedProposal.status.toLowerCase() == 'rejected'") {{vm.dateReformat(vm.selectedProposal.process.steps[0].operationTime) || 'none'}}
         label(ng-if = "vm.selectedProposal.type.name == 'PlayerBonus' && vm.selectedProposal.status.toLowerCase() == 'fail'") {{vm.dateReformat(vm.selectedProposal.data.lastSettleTime) || 'none'}}
         label(ng-if = "vm.selectedProposal.type.name != 'PlayerBonus' && vm.selectedProposal.settleTime && vm.selectedProposal.status == vm.proposalStatusList.CANCEL") {{vm.dateReformat(vm.selectedProposal.settleTime) || 'none'}}
+    .label-value
+        label {{'REMARKS' | translate}}&nbsp;:&nbsp;
+        label(ng-if = "vm.selectedProposal.type && vm.selectedProposal.type.name === 'PlayerBonus'") {{vm.selectedProposal.data.playerCancelRemark || 'none'}}
 
 
     .titleBackground.margin-bottom-5.text-center {{'Proposal History Process' | translate}}
