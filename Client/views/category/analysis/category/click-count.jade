@@ -71,13 +71,13 @@
                         tr
                             th(style='background-color:#0b97c4;color: #FFFFFF;') {{'DEVICE' | translate}}
                             th(style='background-color:#0b97c4;color: #FFFFFF;') {{'PAGE_NAME' | translate}}
-                    tbody(ng-repeat='(i,device) in vm.clickCountDevice')
+                    tbody(ng-repeat='(i,device) in vm.clickCountDevice' ng-init='vm.deleteClickCountPage[device]={}')
                         tr(ng-repeat='(k,page) in vm.pageNameDataObj[device]')
                             td(rowspan='{{vm.clicksCountPageLength}}' ng-if="$index===0") 
                                 input(type='checkbox' ng-model='vm.deleteClickCountDevice[device]' ng-change='vm.selectDevicePage(device)')
                                 text {{device}}
                             td
-                                input(type='checkbox' ng-model='vm.deleteClickCountPage[page]' ng-change='vm.deleteClickCountDevice[device]=true')
+                                input(type='checkbox' ng-model='vm.deleteClickCountPage[device][page]' ng-change='vm.deleteClickCountDevice[device]=true')
                                 text {{page}}
                         
                                 
