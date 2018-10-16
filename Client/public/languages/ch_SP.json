@@ -4629,6 +4629,7 @@
   "Delete click count record": "删除埋点记录",
   "DeleteClickCount": "删除埋点",
   "partnerRealName": "代理姓名",
+  "Select domain to delete record": "选择删除数据的域名",
   "Withdrawal amount (system does not support transaction fee)": "提款金额（系统无支援手续费）",
   "Please select click count option to delete (Attention! all related record will be delete)": "请选择需要删除的埋点项目（注意！该项目数据全数删除）",
   "Manage Sub Department Permission": "赋予下级部门权限",
