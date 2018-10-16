@@ -8462,7 +8462,8 @@ define(['js/app'], function (myApp) {
                         bankNameWhenApprove += " / "
                     }
                     proposalDetail["bankInfoWhenApprove"] = bankNameWhenApprove + $translate("bankcard no:") + vm.selectedProposal.data.bankAccountWhenApprove;
-                    proposalDetail["playerCancelRemark"] = vm.selectedProposal.data.playerCancelRemark
+                    proposalDetail["playerCancelRemark"] = vm.selectedProposal.data.playerCancelRemark;
+                    proposalDetail["lastSettleTime"] = vm.selectedProposal.data.lastSettleTime;
 
                     vm.selectedProposal.data = proposalDetail;
                 }
