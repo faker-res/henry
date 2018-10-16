@@ -20476,7 +20476,9 @@ let dbPlayerInfo = {
                 playerLevelMigration: false,
                 convertRewardPointsToCredit: false,
                 generatePromoCode: false,
-                applyXIMAFrontEnd: false
+                applyXIMAFrontEnd: false,
+                ApplyPromoCode: false,
+                updatePassword: false
             }
         })
     },
