@@ -2137,7 +2137,21 @@ define(['js/app'], function (myApp) {
 
             $(function(){
                 setTimeout(() => {
-                    $scope.$evalAsync(vm.getAllDepartmentData());
+                    $scope.$evalAsync(() => {
+                        //if it is super admin, get all views permission
+                        //else only get current role views permission
+                        if (authService.isAdmin() && authService.roleData[0] && authService.checkViewPermission('Admin', 'Department', 'Read')) {
+                            socketService.$socket($scope.AppSocket, 'getAllViews', '', function (data) {
+                                vm.allView = data.data;
+                                console.log('allview', vm.allView);
+                                vm.getAllDepartmentData();
+                            });
+                        }
+                        else {
+                            vm.allView = authService.roleData[0] ? authService.roleData[0].views : {};
+                            vm.getAllDepartmentData();
+                        }
+                    });
                 },1000)
             });
 
