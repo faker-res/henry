@@ -362,6 +362,54 @@
     </div>
 </div>
 
+<h3>Save FrontEnd Data (前端保存数据接口)</h3>
+<div class="test-container">
+    <div>
+    <label>Platform ID
+        <input name="platformId" type="number">
+    </label>
+    </div>
+    <div>
+        <label>Token
+            <input name="token" type="text">
+        </label>
+    </div>
+    <div>
+        <label>Page
+            <input name="page" type="number">
+        </label>
+    </div>
+    <div>
+        <label>Data
+            <input name="data" type="text">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="saveFrontEndData">Save</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
+<h3>Get Frontend Data (前端获取数据接口)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform ID
+            <input name="platformId" type="number">
+        </label>
+    </div>
+    <div>
+        <label>Page
+            <input name="page" type="number">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="getFrontEndData">Get</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlatformAPITest','testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlatformAPITest, ClientConnectionAPITest) {

@@ -4961,6 +4961,55 @@ var dbPlatform = {
             }
         );
     },
+
+    saveFrontEndData: function (platformId, token, page, data) {
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData && platformData._id) {
+                    let query = {
+                        platform: platformData._id,
+                        page: page
+                    };
+
+                    let updateData = {
+                        platform: platformData._id,
+                        page: page,
+                        data: data
+                    };
+
+                    return dbconfig.collection_frontendData.findOneAndUpdate(query, updateData,  {upsert: true, new: true}).lean();
+
+                } else {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_PARAM,
+                        name: "DataError",
+                        errorMessage: "Cannot find platform"
+                    });
+                }
+            }
+        );
+    },
+
+    getFrontEndData: function (platformId, page) {
+        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+            platformData => {
+                if (platformData && platformData._id) {
+                    return dbconfig.collection_frontendData.findOne({platform: platformData._id, page: page}).lean().then(
+                        frontendData => {
+                            return frontendData && frontendData.data ? frontendData.data : "";
+                        }
+                    );
+                } else {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_PARAM,
+                        name: "DataError",
+                        errorMessage: "Cannot find platform"
+                    });
+                }
+            }
+        )
+
+    },
 };
 
 function getPlatformStringForCallback(platformStringArray, playerId, lineId) {

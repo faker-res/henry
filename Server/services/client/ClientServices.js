@@ -135,7 +135,9 @@
                 "getTemplateSetting",
                 "addIpDomainLog",
                 "getIDCIpDetail",
-                "getLockedLobbyConfig"
+                "getLockedLobbyConfig",
+                "saveFrontEndData",
+                "getFrontEndData"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
