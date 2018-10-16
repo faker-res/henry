@@ -3245,7 +3245,8 @@ var dbPlatform = {
         };
         let returnData = {
             device: [],
-            devicePage: {}
+            devicePage: {},
+            domain: {}
         }
         return dbconfig.collection_clickCount.distinct("device", matchObj).then(
             deviceArr => {
@@ -3259,11 +3260,40 @@ var dbPlatform = {
                         }))
                     });
                     return Promise.all(promArr).then(
-                        resData => {
-                            if (resData && resData.length == returnData.device.length) {
+                        deviceData => {
+                            if (deviceData && deviceData.length == returnData.device.length) {
+                                let pageNamePromArr = [];
                                 returnData.device.forEach(
                                     (deviceName, index) => {
-                                        returnData.devicePage[deviceName] = resData[index];
+                                        returnData.devicePage[deviceName] = deviceData[index];
+                                        if (deviceData[index] && deviceData[index].length) {
+                                            deviceData[index].forEach(pageName=> {
+                                                pageNamePromArr.push(dbconfig.collection_clickCount.distinct("domain", {
+                                                    platform: platformId,
+                                                    device: deviceName,
+                                                    pageName: pageName
+                                                }))
+                                            });
+                                        }
+                                    }
+                                )
+
+                                return Promise.all(pageNamePromArr).then(
+                                    domainData => {
+                                        if (domainData && domainData.length == pageNamePromArr.length) {
+                                            let index = 0;
+                                            returnData.device.forEach(
+                                                (deviceName) => {
+                                                    returnData.devicePage[deviceName].forEach((pageName) => {
+                                                        returnData.domain[deviceName] = returnData.domain[deviceName] || {};
+                                                        returnData.domain[deviceName][pageName] = domainData[index];
+                                                        index++;
+                                                    });
+
+                                                }
+                                            )
+                                        }
+                                        return returnData;
                                     }
                                 )
                             }

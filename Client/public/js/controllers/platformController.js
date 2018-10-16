@@ -34467,9 +34467,14 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initFrontendConfiguration = function() {
-                vm.frontendConfigurationDomainName = "";
-                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.frontendConfigurationDomainName) {
-                    vm.frontendConfigurationDomainName = $sce.trustAsResourceUrl(vm.selectedPlatform.data.frontendConfigurationDomainName);
+                vm.frontendConfigurationUrl = "";
+                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.frontendConfigurationDomainName && vm.selectedPlatform.data.platformId && authService.token) {
+                    let domainName = vm.selectedPlatform.data.frontendConfigurationDomainName.trim();
+                    let token = authService.token;
+                    let platformId = vm.selectedPlatform.data.platformId;
+                    let url = domainName + '?token=' + token + '&platformId=' + platformId;
+
+                    vm.frontendConfigurationUrl = $sce.trustAsResourceUrl(url);
                 }
             };
         };
