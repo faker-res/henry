@@ -3984,6 +3984,7 @@ let dbPlayerInfo = {
 
                                     if (proposalData.data.topUpReturnCode) {
                                         let requiredData = {topUpRecordId: topupRecordData._id};
+                                        console.log('Apply reward after top up', proposalData.data.playerId, proposalData.data.topUpReturnCode);
                                         dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
                                             , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
                                     }
@@ -16121,17 +16122,17 @@ let dbPlayerInfo = {
         let timezoneAdjust2 = {}; //for consumption
 
         // convert UTC 16h to GMT 24h
-        if (parseInt(timezoneOffset) > 0) {
-            timezoneAdjust = {
-                year: {$year: {$subtract: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
-                month: {$month: {$subtract: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
-            }
-        } else {
-            timezoneAdjust = {
-                year: {$year: {$add: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
-                month: {$month: {$add: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
-            }
-        }
+        // if (parseInt(timezoneOffset) > 0) {
+        //     timezoneAdjust = {
+        //         year: {$year: {$subtract: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
+        //         month: {$month: {$subtract: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
+        //     }
+        // } else {
+        //     timezoneAdjust = {
+        //         year: {$year: {$add: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
+        //         month: {$month: {$add: [ {$ifNull: ['$settleTime', 0]}, positiveTimeOffset ]}},
+        //     }
+        // }
         if (parseInt(timezoneOffset) > 0) {
             timezoneAdjust2 = {
                 year: {$year: {$subtract: [ {$ifNull: ['$createTime', 0]}, positiveTimeOffset ]}},
@@ -16201,24 +16202,12 @@ let dbPlayerInfo = {
                     },
                     mainType: "TopUp",
                     status: constProposalStatus.SUCCESS,
-                    settleTime: {$exists: true},
-                }
-            },
-            {
-                $project: {
-                    "data.playerObjId": 1,
-                    "data.platformId": 1,
-                    createTime: 1,
-                    settleTime: timezoneAdjust,
-                    mainType: 1,
-                    status: 1,
-                    type: 1,
-                    "data.amount": 1,
+                    // settleTime: {$exists: true},
                 }
             },
             {
                 $group: {
-                    _id: "$settleTime",
+                    _id: timezoneAdjust2,
                     typeId: {$first: "$type"},
                     count: {$sum: 1},
                     amount: {$sum: "$data.amount"},
@@ -16237,23 +16226,12 @@ let dbPlayerInfo = {
                     },
                     mainType: "PlayerBonus",
                     status: constProposalStatus.SUCCESS,
-                    settleTime: {$exists: true},
-                }
-            },
-            {
-                $project: {
-                    "data.playerObjId": 1,
-                    "data.platformId": 1,
-                    createTime: 1,
-                    settleTime: timezoneAdjust,
-                    mainType: 1,
-                    status: 1,
-                    "data.amount": 1,
+                    // settleTime: {$exists: true},
                 }
             },
             {
                 $group: {
-                    _id: "$settleTime",
+                    _id: timezoneAdjust2,
                     count: {$sum: 1},
                     amount: {$sum: "$data.amount"},
                 }
@@ -16408,19 +16386,19 @@ let dbPlayerInfo = {
             let timezoneAdjust2 = {}; //for consumption
 
             // convert UTC 16h to GMT 24h
-            if (parseInt(timezoneOffset) > 0) {
-                timezoneAdjust = {
-                    year: {$year: {$subtract: ['$settleTime', positiveTimeOffset]}},
-                    month: {$month: {$subtract: ['$settleTime', positiveTimeOffset]}},
-                    day: {$dayOfMonth: {$subtract: ['$settleTime', positiveTimeOffset]}},
-                }
-            } else {
-                timezoneAdjust = {
-                    year: {$year: {$add: ['$settleTime', positiveTimeOffset]}},
-                    month: {$month: {$add: ['$settleTime', positiveTimeOffset]}},
-                    day: {$dayOfMonth: {$add: ['$settleTime', positiveTimeOffset]}},
-                }
-            }
+            // if (parseInt(timezoneOffset) > 0) {
+            //     timezoneAdjust = {
+            //         year: {$year: {$subtract: ['$settleTime', positiveTimeOffset]}},
+            //         month: {$month: {$subtract: ['$settleTime', positiveTimeOffset]}},
+            //         day: {$dayOfMonth: {$subtract: ['$settleTime', positiveTimeOffset]}},
+            //     }
+            // } else {
+            //     timezoneAdjust = {
+            //         year: {$year: {$add: ['$settleTime', positiveTimeOffset]}},
+            //         month: {$month: {$add: ['$settleTime', positiveTimeOffset]}},
+            //         day: {$dayOfMonth: {$add: ['$settleTime', positiveTimeOffset]}},
+            //     }
+            // }
             if (parseInt(timezoneOffset) > 0) {
                 timezoneAdjust2 = {
                     year: {$year: {$subtract: ['$createTime', positiveTimeOffset]}},
@@ -16480,7 +16458,7 @@ let dbPlayerInfo = {
                 },
                 {
                     $group: {
-                        _id: timezoneAdjust,
+                        _id: timezoneAdjust2,
                         typeId: {$first: "$type"},
                         count: {$sum: 1},
                         amount: {$sum: "$data.amount"},
@@ -16503,7 +16481,7 @@ let dbPlayerInfo = {
                 },
                 {
                     $group: {
-                        _id: timezoneAdjust,
+                        _id: timezoneAdjust2,
                         count: {$sum: 1},
                         amount: {$sum: "$data.amount"},
                     }

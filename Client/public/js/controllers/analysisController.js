@@ -2984,13 +2984,100 @@ define(['js/app'], function (myApp) {
         // demo player END   ====================================================
 
         // click count START ====================================================
+        vm.initSelectButtonClickCount = function (device, pageName) {
+            vm.selectedDeleteButton = {};
+            vm.selectedDeleteButton.device = device;
+            vm.selectedDeleteButton.page = pageName;
+            vm.deleteClickCountButton[pageName] = vm.deleteClickCountButton[pageName] || {};
+            // for cancel use - before edit
+            vm.deleteClickCountButtonCopy = JSON.parse(JSON.stringify(vm.deleteClickCountButton));
+            vm.deleteClickCountPageCopy = JSON.parse(JSON.stringify(vm.deleteClickCountPage));
+
+            $("#modalSelectClickCountDomain").modal('show');
+        }
+
+        vm.cancelSelectDomainClickCount = function () {
+            vm.deleteClickCountButton = JSON.parse(JSON.stringify(vm.deleteClickCountButtonCopy));
+            vm.deleteClickCountPage = JSON.parse(JSON.stringify(vm.deleteClickCountPageCopy));
+        }
+
+        vm.selectPageButton = function (device, pageName) {
+            if (vm.deleteClickCountPage[device] && vm.deleteClickCountPage[device].hasOwnProperty(pageName)) {
+                let isSelect = false;
+                if (vm.deleteClickCountPage[device][pageName]) {
+                    isSelect = true
+                }
+
+                if (vm.clickCountDevice) {
+                    if (vm.clickCountButtonNameObj[device] && vm.clickCountButtonNameObj[device][pageName] && vm.clickCountButtonNameObj[device][pageName].length) {
+                        vm.clickCountButtonNameObj[device][pageName].forEach(domainName => {
+                            vm.deleteClickCountButton[device][pageName][domainName] = isSelect;
+                        })
+                    }
+                }
+            }
+        }
+
+        vm.clickCountDeleteCheckParent = function (device, pageName, domain) {
+            if (domain && pageName && device) {
+                if (vm.deleteClickCountButton[device][pageName][domain]) {
+                    vm.deleteClickCountPage[device][pageName] = true;
+                    vm.deleteClickCountDevice[device] = true;
+                } else {
+                    let isCheckPage = false;
+                    let isCheckDevice = false;
+                    for (let key in vm.deleteClickCountButton[device][pageName]) {
+                        if (vm.deleteClickCountButton[device][pageName][key]) {
+                            isCheckPage = true;
+                            break;
+                        }
+                    }
+                    if (!isCheckPage) {
+                        vm.deleteClickCountPage[device][pageName] = false;
+                        for (let key in  vm.deleteClickCountPage[device]) {
+                            if (vm.deleteClickCountPage[device][key]) {
+                                isCheckDevice = true;
+                                break;
+                            }
+                        }
+                        if (!isCheckDevice) {
+                            vm.deleteClickCountDevice[device] = false;
+                        }
+                    }
+                }
+            } else if (pageName && device) {
+                if (vm.deleteClickCountPage[device][pageName]) {
+                    vm.deleteClickCountDevice[device] = true;
+                } else {
+                    let isCheckDevice = false;
+                    for (let key in  vm.deleteClickCountPage[device]) {
+                        if (vm.deleteClickCountPage[device][key]) {
+                            isCheckDevice = true;
+                            break;
+                        }
+                    }
+                    if (!isCheckDevice) {
+                        vm.deleteClickCountDevice[device] = false;
+                    }
+                }
+            }
+
+        }
+
         vm.initDeleteClickCountModal = function () {
-            vm.clicksCountPageLength = Object.keys(vm.clickCountPageName).length || 0;
             vm.deleteClickCountDevice = {};
             vm.deleteClickCountPage = {};
+            vm.deleteClickCountButton = {};
             if (vm.clickCountDevice) {
                 for (let key in vm.clickCountDevice) {
-                    vm.deleteClickCountPage[vm.clickCountDevice[key]] = {};
+                    let device = vm.clickCountDevice[key];
+                    vm.deleteClickCountPage[device] = {};
+                    if (vm.pageNameDataObj && vm.pageNameDataObj[device] && vm.pageNameDataObj[device].length) {
+                        vm.pageNameDataObj[device].forEach(pageName => {
+                            vm.deleteClickCountButton[device] = vm.deleteClickCountButton[device] || {};
+                            vm.deleteClickCountButton[device][pageName] = vm.deleteClickCountButton[device][pageName] || {};
+                        })
+                    };
                 }
             }
             $("#modalDeleteClickCount").modal('show');
@@ -3004,6 +3091,7 @@ define(['js/app'], function (myApp) {
                 }
                 for (let i = 0; i < vm.pageNameDataObj[device].length; i++) {
                     vm.deleteClickCountPage[device][vm.pageNameDataObj[device][i]] = isSelect;
+                    vm.selectPageButton(device, vm.pageNameDataObj[device][i]);
                 }
             }
         }
@@ -3013,23 +3101,32 @@ define(['js/app'], function (myApp) {
             let sendData = {
                 platform: vm.selectedPlatform._id
             };
-            for (let key in vm.deleteClickCountDevice) {
-                if (vm.deleteClickCountDevice[key] && vm.pageNameDataObj[key] && vm.pageNameDataObj[key].length) {
+            for (let device in vm.deleteClickCountDevice) {
+                if (vm.deleteClickCountDevice[device] && vm.deleteClickCountPage[device]) {
                     let selectedPage = [];
-                    vm.pageNameDataObj[key].forEach(pageName => {
-                        if (vm.deleteClickCountPage[key][pageName]) {
-                            selectedPage.push(pageName)
+                    let selectedButtonName = [];
+                    for (let page in vm.deleteClickCountPage[device]) {
+                        if (vm.deleteClickCountPage[device][page]) {
+                            selectedPage.push(page);
+                            if (vm.deleteClickCountButton[device][page]) {
+                                for (let domain in vm.deleteClickCountButton[device][page]) {
+                                    if (vm.deleteClickCountButton[device][page][domain]) {
+                                        selectedButtonName.push(domain);
+                                    }
+                                }
+                            }
                         }
-                    })
+                    }
 
-                    if (selectedPage && selectedPage.length) {
-                        isDelete = true
+                    if (selectedPage && selectedPage.length && selectedButtonName && selectedButtonName.length) {
+                        isDelete = true;
                         if (!sendData["$or"]) {
                             sendData["$or"] = [];
                         }
                         sendData["$or"].push({
-                            device: key,
-                            pageName: {"$in": selectedPage}
+                            device: device,
+                            pageName: {"$in": selectedPage},
+                            buttonName: {"$in": selectedButtonName}
                         })
                     }
                 }
@@ -3053,6 +3150,8 @@ define(['js/app'], function (myApp) {
                     vm.clickCountDevice = {};
                     vm.deviceData = data.data.device;
                     vm.pageNameDataObj = data.data.devicePage;
+                    vm.clickCountDomainObj = data.data.domain;
+                    vm.clickCountButtonNameObj = data.data.buttonName;
 
                     // replace object key with device name
                     for (let i = 0; i < Object.keys(vm.deviceData).length; i++) {
@@ -3105,29 +3204,42 @@ define(['js/app'], function (myApp) {
         };
         
         vm.getClickCountDomain = function (device, pageName) {
-            let sendData = {
-                platformId: vm.selectedPlatform._id,
-                device: device,
-                pageName: pageName
-            };
+            vm.clickCountDomain = {};
+            vm.domainData = vm.clickCountDomainObj[device][pageName] || [];
 
-            socketService.$socket($scope.AppSocket, 'getClickCountDomain', sendData, function (data) {
-                $scope.$evalAsync(() => {
-                    vm.clickCountDomain = {};
-                    vm.domainData = data.data;
+            //replace object key with domain
+            for (let i = 0; i < vm.domainData.length; i++) {
+                vm.clickCountDomain[vm.domainData[i]] = vm.domainData[i];
+            }
 
-                    // replace object key with domain
-                    for (let i = 0; i < Object.keys(vm.domainData).length; i++) {
-                        vm.clickCountDomain[vm.domainData[Object.keys(vm.domainData)[i]]] = vm.domainData[Object.keys(vm.domainData)[i]];
-                    }
+            // set first domain as default selected domain
+            vm.queryPara.clickCount.domain = vm.clickCountDomain[Object.keys(vm.clickCountDomain)[0]] || "";
+            vm.getClickCountButtonName(vm.queryPara.clickCount.inputDevice, vm.queryPara.clickCount.pageName, vm.queryPara.clickCount.domain);
 
-                    // set first domain as default selected domain
-                    vm.queryPara.clickCount.domain = vm.clickCountDomain[Object.keys(vm.clickCountDomain)[0]] || "";
-                    vm.getClickCountButtonName(vm.queryPara.clickCount.inputDevice, vm.queryPara.clickCount.pageName, vm.queryPara.clickCount.domain);
-                });
-            }, function (data) {
-                console.log("clickCount domain data not found?", data);
-            });
+
+            // let sendData = {
+            //     platformId: vm.selectedPlatform._id,
+            //     device: device,
+            //     pageName: pageName
+            // };
+            //
+            // socketService.$socket($scope.AppSocket, 'getClickCountDomain', sendData, function (data) {
+            //     $scope.$evalAsync(() => {
+            //         vm.clickCountDomain = {};
+            //         vm.domainData = data.data;
+            //
+            //         // replace object key with domain
+            //         for (let i = 0; i < Object.keys(vm.domainData).length; i++) {
+            //             vm.clickCountDomain[vm.domainData[Object.keys(vm.domainData)[i]]] = vm.domainData[Object.keys(vm.domainData)[i]];
+            //         }
+            //
+            //         // set first domain as default selected domain
+            //         vm.queryPara.clickCount.domain = vm.clickCountDomain[Object.keys(vm.clickCountDomain)[0]] || "";
+            //         vm.getClickCountButtonName(vm.queryPara.clickCount.inputDevice, vm.queryPara.clickCount.pageName, vm.queryPara.clickCount.domain);
+            //     });
+            // }, function (data) {
+            //     console.log("clickCount domain data not found?", data);
+            // });
         };
 
         vm.getClickCountButtonName = function (device, pageName, domain) {

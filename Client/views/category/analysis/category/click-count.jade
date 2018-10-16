@@ -63,22 +63,18 @@
                     thead
                         tr
                             th(colspan='2') {{'Please select click count option to delete (Attention! all related record will be delete)' | translate}}
-                            //- th {{'USER_NAME' | translate}}
-                            //- th {{'EMAIL' | translate}}
-                            //- th {{'DEPARTMENT' | translate}}
-                            //- th {{'ROLE' | translate}}
-                            //- th {{'EMAIL_EXECUTE_PERMISSION' | translate}}
                         tr
                             th(style='background-color:#0b97c4;color: #FFFFFF;') {{'DEVICE' | translate}}
                             th(style='background-color:#0b97c4;color: #FFFFFF;') {{'PAGE_NAME' | translate}}
                     tbody(ng-repeat='(i,device) in vm.clickCountDevice')
                         tr(ng-repeat='(k,page) in vm.pageNameDataObj[device]')
-                            td(rowspan='{{vm.clicksCountPageLength}}' ng-if="$index===0") 
+                            td(rowspan='{{vm.pageNameDataObj[device].length}}' ng-if="$index===0") 
                                 input(type='checkbox' ng-model='vm.deleteClickCountDevice[device]' ng-change='vm.selectDevicePage(device)')
                                 text {{device}}
                             td
-                                input(type='checkbox' ng-model='vm.deleteClickCountPage[device][page]' ng-change='vm.deleteClickCountDevice[device]=true')
-                                text {{page}}
+                                input(type='checkbox' ng-model='vm.deleteClickCountPage[device][page]' ng-change='vm.clickCountDeleteCheckParent(device,page);vm.selectPageButton(device,page)')
+                                a(ng-click='vm.initSelectButtonClickCount(device, page)') {{page}}
+                            
                         
                                 
                            
@@ -86,6 +82,34 @@
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal' ng-click='vm.deleteClickCountRecord()') {{"CONFIRM" | translate}}
                 button.btn.btn-success.common-button(data-dismiss='modal') {{"CLOSE" | translate}}
+
+#modalSelectClickCountDomain.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style="width:65%")
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'Select domain to delete record' | translate}}
+            .modal-body
+                table.simple-table(style='max-width:100%;text-align:left')
+                    thead
+                        tr
+                            th(colspan='2') {{'Please select click count option to delete (Attention! all record related to the button will be delete)' | translate}}
+                        tr
+                            th(style='background-color:#0b97c4;color: #FFFFFF;') {{'PAGE_NAME' | translate}}
+                            th(style='background-color:#0b97c4;color: #FFFFFF;') {{'BUTTON NAME' | translate}}
+                    tbody
+                        tr(ng-repeat='(k,domain) in vm.clickCountButtonNameObj[vm.selectedDeleteButton.device][vm.selectedDeleteButton.page]')
+                            td(rowspan='{{vm.clickCountButtonNameObj[vm.selectedDeleteButton.device][vm.selectedDeleteButton.page].length}}' ng-if="$index===0") 
+                                input(type='checkbox' ng-model='vm.deleteClickCountPage[vm.selectedDeleteButton.device][vm.selectedDeleteButton.page]' ng-change='vm.selectPageButton(vm.selectedDeleteButton.device, vm.selectedDeleteButton.page);vm.clickCountDeleteCheckParent(vm.selectedDeleteButton.device, vm.selectedDeleteButton.page)')
+                                text {{vm.selectedDeleteButton.page}}
+                            td
+                                input(type='checkbox' ng-model='vm.deleteClickCountButton[vm.selectedDeleteButton.device][vm.selectedDeleteButton.page][domain]' ng-change='vm.clickCountDeleteCheckParent(vm.selectedDeleteButton.device,vm.selectedDeleteButton.page, domain)')
+                                text {{domain}}
+                            
+
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal') {{"CONFIRM" | translate}}
+                button.btn.btn-success.common-button(data-dismiss='modal' ng-click='vm.cancelSelectDomainClickCount()') {{"CLOSE" | translate}}
 
 
 p(ng-init="vm.loadPageFunc(vm.showPageName)")
