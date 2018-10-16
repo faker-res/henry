@@ -422,7 +422,7 @@ let dbPlayerInfo = {
                     if (!platformData) {
                         return Q.reject({name: "DataError", message: "Cannot find platform"});
                     }
-                    if(!inputData.phoneNumber || (inputData.phoneNumber && inputData.phoneNumber.toString().length != 11)){
+                    if(inputData.phoneNumber && inputData.phoneNumber.toString().length != 11){
                         return Q.reject({
                             name: "DataError",
                             message: localization.localization.translate("phone number is invalid")
@@ -1346,7 +1346,7 @@ let dbPlayerInfo = {
         let platformData = null;
         let pPrefix = null;
         let pName = null;
-        let csOfficer, promoteWay, ipDomain;
+        let csOfficer, promoteWay, ipDomain, ipDomainSourceUrl;
 
         playerdata.name = playerdata.name.toLowerCase();
 
@@ -1702,6 +1702,7 @@ let dbPlayerInfo = {
                         ipDomainLog => {
                             if (ipDomainLog && ipDomainLog[0] && ipDomainLog[0].domain) {
                                 ipDomain = ipDomainLog[0].domain;
+                                ipDomainSourceUrl = ipDomainLog[0].sourceUrl;
 
                                 // force using csOfficerUrl admin and way
                                 return dbconfig.collection_csOfficerUrl.findOne({
@@ -1775,8 +1776,8 @@ let dbPlayerInfo = {
                     }
 
                     // add ip domain to sourceUrl
-                    if (ipDomain) {
-                        playerUpdateData.sourceUrl = ipDomain
+                    if (ipDomainSourceUrl) {
+                        playerUpdateData.sourceUrl = ipDomainSourceUrl
                     }
 
                     proms.push(
@@ -12245,6 +12246,19 @@ let dbPlayerInfo = {
                                 merchant.type = Number(merchant.type);
                                 merchant.status = Number(merchant.status);
                             })
+
+                            console.log("yH checking --- paymentData.topupTypes", resData)
+
+                            if (playerData.forbidTopUpType && playerData.forbidTopUpType.length){
+                                playerData.forbidTopUpType.forEach(
+                                    topupType => {
+                                        let index = resData.findIndex( p => p.type == topupType);
+                                        if (index != -1){
+                                            resData.splice(index, 1)
+                                        }
+                                    }
+                                )
+                            }
                         } else {
                             if (playerData.merchantGroup && playerData.merchantGroup.merchantNames && playerData.merchantGroup.merchantNames.length > 0) {
                                 playerData.merchantGroup.merchantNames.forEach(
@@ -12366,7 +12380,10 @@ let dbPlayerInfo = {
                 if (proposal) {
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: proposal._id, createTime: proposal.createTime},
-                        {"data.cancelBy": "玩家：" + proposal.data.playerName}
+                        {
+                            "data.cancelBy": "玩家：" + proposal.data.playerName,
+                            "data.playerCancelRemark": proposal.data.playerName + "（玩家自助取消）"
+                        }
                     );
                 }
 

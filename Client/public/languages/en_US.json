@@ -1702,5 +1702,6 @@
   "rateAfterRebatePlatform": "Rate of the platform fee to be deducted (preset value)",
   "rateAfterRebateTotalDeposit": "Rate of the total deposit fee to be deducted (preset value)",
   "rateAfterRebateTotalWithdrawal": "Rate of the total withdrawal fee to be deducted (preset value)",
-  "isResetAll": "Reset All Commission Rate"
+  "isResetAll": "Reset All Commission Rate",
+  "FrontendConfiguration": "Frontend Configuration"
 }

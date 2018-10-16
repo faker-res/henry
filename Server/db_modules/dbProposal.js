@@ -910,6 +910,10 @@ var proposal = {
                 //     }, {new: true}).exec();
                 // }
 
+                if (bApprove && data && data.mainType == "TopUp") {
+                    return Promise.reject({name: "DataError", message: "This proposal require PMS to approve."});
+                }
+
                 //save bankAccount and bankName, put back objId to data.data.playerObjId to prevent error
                 if(data && data.data && data.data.playerObjId && data.data.playerObjId.bankAccount){
                     // bankAccount = data.data.playerObjId.bankAccount;
@@ -968,7 +972,7 @@ var proposal = {
                 }
             },
             function (err) {
-                deferred.reject({name: "DBError", message: "Error finding proposal process", error: err});
+                deferred.reject({name: "DBError", message: err && err.message || "Error finding proposal process", error: err});
             }
         ).then(
             function(data){

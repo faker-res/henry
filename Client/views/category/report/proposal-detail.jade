@@ -19,7 +19,7 @@ div
         label {{vm.selectedProposal.creator.name || 'System' | translate}}
     .label-value
         label {{'CREATION_TIME' | translate}}&nbsp;:&nbsp;
-        label {{ vm.selectedProposal.createTime | date : 'yyyy-MM-dd HH:mm:ss'}}
+        label {{ vm.dateReformat(vm.selectedProposal.createTime) }}
     .label-value
         label {{'LastSettlementTime' | translate}}&nbsp;:&nbsp;
         label(ng-if = "vm.selectedProposal.settleTime && vm.selectedProposal.status != vm.proposalStatusList.CANCEL && " +
@@ -32,10 +32,10 @@ div
         label(ng-if = "vm.selectedProposal.type.name == 'PlayerBonus' && vm.selectedProposal.status.toLowerCase() == 'rejected'") {{vm.dateReformat(vm.selectedProposal.process.steps[0].operationTime) || 'none'}}
         label(ng-if = "vm.selectedProposal.type.name == 'PlayerBonus' && vm.selectedProposal.status.toLowerCase() == 'fail'") {{vm.dateReformat(vm.selectedProposal.data.lastSettleTime) || 'none'}}
         label(ng-if = "vm.selectedProposal.type.name != 'PlayerBonus' && vm.selectedProposal.settleTime && vm.selectedProposal.status == vm.proposalStatusList.CANCEL") {{vm.dateReformat(vm.selectedProposal.settleTime) || 'none'}}
+    .label-value
+        label {{'REMARKS' | translate}}&nbsp;:&nbsp;
+        label(ng-if = "vm.selectedProposal.type && vm.selectedProposal.type.name === 'PlayerBonus'") {{vm.selectedProposal.data.playerCancelRemark || 'none'}}
 
-    //.titleBackground.margin-bottom-5.text-center
-    //div(style='min-height:30px')
-    //    hr
 
     .titleBackground.margin-bottom-5.text-center {{'Proposal History Process' | translate}}
     div(ng-repeat='(i,v) in vm.selectedProposal.process.steps', ng-show='v.operator')
