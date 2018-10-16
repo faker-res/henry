@@ -4963,7 +4963,7 @@ var dbPlatform = {
     },
 
     saveFrontEndData: function (platformId, token, page, data) {
-        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+        return dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
             platformData => {
                 if (platformData && platformData._id) {
                     let query = {
@@ -4991,7 +4991,7 @@ var dbPlatform = {
     },
 
     getFrontEndData: function (platformId, page) {
-        return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
+        return dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
             platformData => {
                 if (platformData && platformData._id) {
                     return dbconfig.collection_frontendData.findOne({platform: platformData._id, page: page}).lean().then(
