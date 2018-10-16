@@ -2677,12 +2677,15 @@ let dbPlayerReward = {
         ).then(
             res => {
                 if (res && res.length == 2){
-                    if(res[0].promoCodeTemplateObjId) {
-                        res[0].promoCodeTypeObjId = res[0].promoCodeTemplateObjId;
-                    }
-
-                    let f1 = searchQuery.promoCodeType ? res[0].filter(e => e.promoCodeTypeObjId.type == searchQuery.promoCodeType) : res[0];
-                    let f2 = searchQuery.promoCodeSubType ? f1.filter(e => e.promoCodeTypeObjId.name == searchQuery.promoCodeSubType) : f1;
+                 
+                    let f1 = searchQuery.promoCodeType ? res[0].filter(e =>
+                        (e.promoCodeTypeObjId &&  e.promoCodeTypeObjId.type && e.promoCodeTypeObjId.type == searchQuery.promoCodeType) ||
+                        (e.promoCodeTemplateObjId &&  e.promoCodeTemplateObjId.type && e.promoCodeTemplateObjId.type == searchQuery.promoCodeType)
+                    ) : res[0];
+                    let f2 = searchQuery.promoCodeSubType ? f1.filter(e =>
+                        (e.promoCodeTypeObjId &&  e.promoCodeTypeObjId.name && e.promoCodeTypeObjId.name == searchQuery.promoCodeSubType) ||
+                        (e.promoCodeTemplateObjId &&  e.promoCodeTemplateObjId.name && e.promoCodeTemplateObjId.name == searchQuery.promoCodeSubType)
+                    ) : f1;
 
                     // special handling for openPromoCode as its structure is different
                     let f1Open = searchQuery.promoCodeType ? res[1].filter(e => e.data.promoCodeTypeValue == searchQuery.promoCodeType) : res[1];
