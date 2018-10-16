@@ -3246,7 +3246,8 @@ var dbPlatform = {
         let returnData = {
             device: [],
             devicePage: {},
-            domain: {}
+            domain: {},
+            buttonName: {}
         }
         return dbconfig.collection_clickCount.distinct("device", matchObj).then(
             deviceArr => {
@@ -3263,6 +3264,7 @@ var dbPlatform = {
                         deviceData => {
                             if (deviceData && deviceData.length == returnData.device.length) {
                                 let pageNamePromArr = [];
+                                let buttonNamePromArr = [];
                                 returnData.device.forEach(
                                     (deviceName, index) => {
                                         returnData.devicePage[deviceName] = deviceData[index];
@@ -3272,21 +3274,28 @@ var dbPlatform = {
                                                     platform: platformId,
                                                     device: deviceName,
                                                     pageName: pageName
-                                                }))
+                                                }));
+                                                buttonNamePromArr.push(dbconfig.collection_clickCount.distinct("buttonName", {
+                                                    platform: platformId,
+                                                    device: deviceName,
+                                                    pageName: pageName
+                                                }));
                                             });
                                         }
                                     }
-                                )
+                                );
 
-                                return Promise.all(pageNamePromArr).then(
-                                    domainData => {
-                                        if (domainData && domainData.length == pageNamePromArr.length) {
+                                return Promise.all([Promise.all(pageNamePromArr), Promise.all(buttonNamePromArr)]).then(
+                                    ([domainData, buttonNameData]) => {
+                                        if (domainData && domainData.length == pageNamePromArr.length && buttonNameData && buttonNameData.length == buttonNamePromArr.length) {
                                             let index = 0;
                                             returnData.device.forEach(
                                                 (deviceName) => {
                                                     returnData.devicePage[deviceName].forEach((pageName) => {
                                                         returnData.domain[deviceName] = returnData.domain[deviceName] || {};
                                                         returnData.domain[deviceName][pageName] = domainData[index];
+                                                        returnData.buttonName[deviceName] = returnData.buttonName[deviceName] || {};
+                                                        returnData.buttonName[deviceName][pageName] = buttonNameData[index];
                                                         index++;
                                                     });
 

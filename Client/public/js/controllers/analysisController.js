@@ -2984,24 +2984,24 @@ define(['js/app'], function (myApp) {
         // demo player END   ====================================================
 
         // click count START ====================================================
-        vm.initSelectDomainClickCount = function (device, pageName) {
-            vm.selectedDeleteDomain = {};
-            vm.selectedDeleteDomain.device = device;
-            vm.selectedDeleteDomain.page = pageName;
-            vm.deleteClickCountDomain[pageName] = vm.deleteClickCountDomain[pageName] || {};
+        vm.initSelectButtonClickCount = function (device, pageName) {
+            vm.selectedDeleteButton = {};
+            vm.selectedDeleteButton.device = device;
+            vm.selectedDeleteButton.page = pageName;
+            vm.deleteClickCountButton[pageName] = vm.deleteClickCountButton[pageName] || {};
             // for cancel use - before edit
-            vm.deleteClickCountDomainCopy = JSON.parse(JSON.stringify(vm.deleteClickCountDomain));
+            vm.deleteClickCountButtonCopy = JSON.parse(JSON.stringify(vm.deleteClickCountButton));
             vm.deleteClickCountPageCopy = JSON.parse(JSON.stringify(vm.deleteClickCountPage));
 
             $("#modalSelectClickCountDomain").modal('show');
         }
 
         vm.cancelSelectDomainClickCount = function () {
-            vm.deleteClickCountDomain = JSON.parse(JSON.stringify(vm.deleteClickCountDomainCopy));
+            vm.deleteClickCountButton = JSON.parse(JSON.stringify(vm.deleteClickCountButtonCopy));
             vm.deleteClickCountPage = JSON.parse(JSON.stringify(vm.deleteClickCountPageCopy));
         }
 
-        vm.selectPageDomain = function (device, pageName) {
+        vm.selectPageButton = function (device, pageName) {
             if (vm.deleteClickCountPage[device] && vm.deleteClickCountPage[device].hasOwnProperty(pageName)) {
                 let isSelect = false;
                 if (vm.deleteClickCountPage[device][pageName]) {
@@ -3009,9 +3009,9 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.clickCountDevice) {
-                    if (vm.clickCountDomainObj[device] && vm.clickCountDomainObj[device][pageName] && vm.clickCountDomainObj[device][pageName].length) {
-                        vm.clickCountDomainObj[device][pageName].forEach(domainName => {
-                            vm.deleteClickCountDomain[device][pageName][domainName] = isSelect;
+                    if (vm.clickCountButtonNameObj[device] && vm.clickCountButtonNameObj[device][pageName] && vm.clickCountButtonNameObj[device][pageName].length) {
+                        vm.clickCountButtonNameObj[device][pageName].forEach(domainName => {
+                            vm.deleteClickCountButton[device][pageName][domainName] = isSelect;
                         })
                     }
                 }
@@ -3020,14 +3020,14 @@ define(['js/app'], function (myApp) {
 
         vm.clickCountDeleteCheckParent = function (device, pageName, domain) {
             if (domain && pageName && device) {
-                if (vm.deleteClickCountDomain[device][pageName][domain]) {
+                if (vm.deleteClickCountButton[device][pageName][domain]) {
                     vm.deleteClickCountPage[device][pageName] = true;
                     vm.deleteClickCountDevice[device] = true;
                 } else {
                     let isCheckPage = false;
                     let isCheckDevice = false;
-                    for (let key in vm.deleteClickCountDomain[device][pageName]) {
-                        if (vm.deleteClickCountDomain[device][pageName][key]) {
+                    for (let key in vm.deleteClickCountButton[device][pageName]) {
+                        if (vm.deleteClickCountButton[device][pageName][key]) {
                             isCheckPage = true;
                             break;
                         }
@@ -3067,15 +3067,15 @@ define(['js/app'], function (myApp) {
         vm.initDeleteClickCountModal = function () {
             vm.deleteClickCountDevice = {};
             vm.deleteClickCountPage = {};
-            vm.deleteClickCountDomain = {};
+            vm.deleteClickCountButton = {};
             if (vm.clickCountDevice) {
                 for (let key in vm.clickCountDevice) {
                     let device = vm.clickCountDevice[key];
                     vm.deleteClickCountPage[device] = {};
                     if (vm.pageNameDataObj && vm.pageNameDataObj[device] && vm.pageNameDataObj[device].length) {
                         vm.pageNameDataObj[device].forEach(pageName => {
-                            vm.deleteClickCountDomain[device] = vm.deleteClickCountDomain[device] || {};
-                            vm.deleteClickCountDomain[device][pageName] = vm.deleteClickCountDomain[device][pageName] || {};
+                            vm.deleteClickCountButton[device] = vm.deleteClickCountButton[device] || {};
+                            vm.deleteClickCountButton[device][pageName] = vm.deleteClickCountButton[device][pageName] || {};
                         })
                     };
                 }
@@ -3091,7 +3091,7 @@ define(['js/app'], function (myApp) {
                 }
                 for (let i = 0; i < vm.pageNameDataObj[device].length; i++) {
                     vm.deleteClickCountPage[device][vm.pageNameDataObj[device][i]] = isSelect;
-                    vm.selectPageDomain(device, vm.pageNameDataObj[device][i]);
+                    vm.selectPageButton(device, vm.pageNameDataObj[device][i]);
                 }
             }
         }
@@ -3108,9 +3108,9 @@ define(['js/app'], function (myApp) {
                     for (let page in vm.deleteClickCountPage[device]) {
                         if (vm.deleteClickCountPage[device][page]) {
                             selectedPage.push(page);
-                            if (vm.deleteClickCountDomain[device][page]) {
-                                for (let domain in vm.deleteClickCountDomain[device][page]) {
-                                    if (vm.deleteClickCountDomain[device][page][domain]) {
+                            if (vm.deleteClickCountButton[device][page]) {
+                                for (let domain in vm.deleteClickCountButton[device][page]) {
+                                    if (vm.deleteClickCountButton[device][page][domain]) {
                                         selectedDomain.push(domain);
                                     }
                                 }
@@ -3126,7 +3126,7 @@ define(['js/app'], function (myApp) {
                         sendData["$or"].push({
                             device: device,
                             pageName: {"$in": selectedPage},
-                            domain: {"$in": selectedDomain}
+                            buttonName: {"$in": selectedDomain}
                         })
                     }
                 }
@@ -3151,6 +3151,7 @@ define(['js/app'], function (myApp) {
                     vm.deviceData = data.data.device;
                     vm.pageNameDataObj = data.data.devicePage;
                     vm.clickCountDomainObj = data.data.domain;
+                    vm.clickCountButtonNameObj = data.data.buttonName;
 
                     // replace object key with device name
                     for (let i = 0; i < Object.keys(vm.deviceData).length; i++) {
