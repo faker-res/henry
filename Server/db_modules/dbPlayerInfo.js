@@ -11265,7 +11265,7 @@ let dbPlayerInfo = {
                     {
                         status: bSuccess ? constProposalStatus.SUCCESS : bCancel ? constProposalStatus.CANCEL : constProposalStatus.FAIL,
                         "data.lastSettleTime": new Date(),
-                        // "data.remark": remark
+                        "data.remarkPMS": remark
                     }
                 );
             }
