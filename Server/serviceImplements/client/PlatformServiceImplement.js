@@ -161,6 +161,16 @@ var PlatformServiceImplement = function () {
         let isValidData = Boolean(data && data.platformId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getLockedLobbyConfig, [data.platformId], isValidData, null, null, true);
     };
+
+    this.saveFrontEndData.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && data.token && data.page && data.data && typeof data.data == "string");
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.saveFrontEndData, [data.platformId, data.token, data.page, data.data], isValidData, null, null, true);
+    };
+
+    this.getFrontEndData.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data.platformId && data.page);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.getFrontEndData, [data.platformId, data.page], isValidData, null, null, true);
+    };
 };
 
 var proto = PlatformServiceImplement.prototype = Object.create(PlatformService.prototype);
