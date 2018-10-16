@@ -4825,7 +4825,7 @@ var dbPlatform = {
         );
     },
 
-    addIpDomainLog: function (platformId, domain, ipAddress) {
+    addIpDomainLog: function (platformId, domain, ipAddress, sourceUrl) {
         let platformObjId;
         let todayTime = dbUtility.getTodaySGTime();
 
@@ -4840,8 +4840,9 @@ var dbPlatform = {
                         platform: platformObjId,
                         domain: domain,
                         ipAddress: ipAddress,
+                        sourceUrl: sourceUrl,
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
-                    });
+                    }).lean();
                 }
             }
         ).then(
@@ -4855,6 +4856,7 @@ var dbPlatform = {
                         platform: platformObjId,
                         domain: domain,
                         ipAddress: ipAddress,
+                        sourceUrl: sourceUrl,
                         createTime: new Date()
                     };
 

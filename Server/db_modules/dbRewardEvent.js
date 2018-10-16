@@ -447,6 +447,7 @@ var dbRewardEvent = {
         let selectedTopUp;
         let showRewardPeriod = {};
         let intervalRewardSum = 0, intervalConsumptionSum = 0, intervalTopupSum = 0, intervalBonusSum = 0, playerCreditLogSum = 0;
+        let ignoreTopUpBdirtyEvent = eventData && eventData.condition && eventData.condition.ignoreAllTopUpDirtyCheckForReward || {};
 
         let returnData = {
             status: 1,  // 1: success, 2: fail
