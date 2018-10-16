@@ -3245,7 +3245,8 @@ var dbPlatform = {
         };
         let returnData = {
             device: [],
-            devicePage: {}
+            devicePage: {},
+            domain: {}
         }
         return dbconfig.collection_clickCount.distinct("device", matchObj).then(
             deviceArr => {
@@ -3259,11 +3260,40 @@ var dbPlatform = {
                         }))
                     });
                     return Promise.all(promArr).then(
-                        resData => {
-                            if (resData && resData.length == returnData.device.length) {
+                        deviceData => {
+                            if (deviceData && deviceData.length == returnData.device.length) {
+                                let pageNamePromArr = [];
                                 returnData.device.forEach(
                                     (deviceName, index) => {
-                                        returnData.devicePage[deviceName] = resData[index];
+                                        returnData.devicePage[deviceName] = deviceData[index];
+                                        if (deviceData[index] && deviceData[index].length) {
+                                            deviceData[index].forEach(pageName=> {
+                                                pageNamePromArr.push(dbconfig.collection_clickCount.distinct("domain", {
+                                                    platform: platformId,
+                                                    device: deviceName,
+                                                    pageName: pageName
+                                                }))
+                                            });
+                                        }
+                                    }
+                                )
+
+                                return Promise.all(pageNamePromArr).then(
+                                    domainData => {
+                                        if (domainData && domainData.length == pageNamePromArr.length) {
+                                            let index = 0;
+                                            returnData.device.forEach(
+                                                (deviceName) => {
+                                                    returnData.devicePage[deviceName].forEach((pageName) => {
+                                                        returnData.domain[deviceName] = returnData.domain[deviceName] || {};
+                                                        returnData.domain[deviceName][pageName] = domainData[index];
+                                                        index++;
+                                                    });
+
+                                                }
+                                            )
+                                        }
+                                        return returnData;
                                     }
                                 )
                             }
@@ -4836,13 +4866,18 @@ var dbPlatform = {
                 if (platform && platform._id) {
                     platformObjId = platform._id;
 
-                    return dbconfig.collection_ipDomainLog.findOne({
+                    let logQ = {
                         platform: platformObjId,
                         domain: domain,
                         ipAddress: ipAddress,
-                        sourceUrl: sourceUrl,
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
-                    }).lean();
+                    };
+
+                    if (sourceUrl) {
+                        logQ.sourceUrl = sourceUrl;
+                    }
+
+                    return dbconfig.collection_ipDomainLog.findOne(logQ).lean();
                 }
             }
         ).then(
@@ -4856,9 +4891,12 @@ var dbPlatform = {
                         platform: platformObjId,
                         domain: domain,
                         ipAddress: ipAddress,
-                        sourceUrl: sourceUrl,
                         createTime: new Date()
                     };
+
+                    if (sourceUrl) {
+                        newLog.sourceUrl = sourceUrl;
+                    }
 
                     dbconfig.collection_ipDomainLog(newLog).save().catch(errorUtils.reportError);
                 }

@@ -9184,8 +9184,14 @@ define(['js/app'], function (myApp) {
 
                 var tableData = vm.playerFeedbackData.map(
                     record => {
+                        let resultName;
+                        if(!record.resultName) {
+                            resultName = utilService.getPlayerFeedbackResultName(vm.allPlayerFeedbackResults, record.result);
+                        }
+
                         record.createTime = (record && record.createTime) ? vm.dateReformat(record.createTime) : "";
-                        record.result = (record && record.resultName) ? record.resultName : $translate(record.result);
+                        record.result = (record && record.resultName) ? record.resultName :
+                            (resultName ? resultName : $translate(record.result));
                         record.content = (record && record.content) ? record.content : "";
                         record.adminName = (record && record.adminId && record.adminId.adminName) ? record.adminId.adminName : "";
                         record.topic = (record && record.topic) ? record.topic : "";
@@ -22215,8 +22221,23 @@ define(['js/app'], function (myApp) {
                     item.createTime$ = vm.dateReformat(item.createTime);
                     item.curAmount$ = item.data && item.data.curAmount ? item.data.curAmount.toFixed(2) : 0;
                     for (let i = 0; i < item.forbidTopUpNames.length; i++) {
-                        if (i > 0)
-                            item.forbidTopUpNames[i] = " " + item.forbidTopUpNames[i];
+                        if (i > 0){
+
+                            let key = commonService.getKeyFromValue(vm.merchantTopupTypeJson, item.forbidTopUpNames[i])
+                            if (key) {
+                                item.forbidTopUpNames[i] = " " + $translate(item.forbidTopUpNames[i]) + "(" + item.forbidTopUpNames[i] +")" + ": " + key;
+                            }
+                            else {
+                                item.forbidTopUpNames[i] = " " + item.forbidTopUpNames[i];
+                            }
+                        }
+                        else{
+
+                            let key = commonService.getKeyFromValue(vm.merchantTopupTypeJson, item.forbidTopUpNames[0]);
+                            if (key){
+                                item.forbidTopUpNames[0] = $translate(item.forbidTopUpNames[0]) + "(" + item.forbidTopUpNames[0] +")" + ": " + key;
+                            }
+                        }
                     }
                     return item;
                 }) : [];
@@ -22227,7 +22248,8 @@ define(['js/app'], function (myApp) {
                 vm.forbidTopUpLog.isSearching = false;
                 $scope.safeApply();
             });
-        }
+        };
+
         vm.drawForbidTopUpLogTbl = function (showData, size, newSearch, summary) {
             var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                 data: showData,

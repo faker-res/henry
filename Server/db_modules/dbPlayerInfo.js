@@ -3984,6 +3984,7 @@ let dbPlayerInfo = {
 
                                     if (proposalData.data.topUpReturnCode) {
                                         let requiredData = {topUpRecordId: topupRecordData._id};
+                                        console.log('Apply reward after top up', proposalData.data.playerId, proposalData.data.topUpReturnCode);
                                         dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
                                             , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
                                     }
@@ -11266,7 +11267,7 @@ let dbPlayerInfo = {
                     {
                         status: bSuccess ? constProposalStatus.SUCCESS : bCancel ? constProposalStatus.CANCEL : constProposalStatus.FAIL,
                         "data.lastSettleTime": new Date(),
-                        // "data.remark": remark
+                        "data.remarkPMS": remark
                     }
                 );
             }
@@ -20453,7 +20454,9 @@ let dbPlayerInfo = {
                 playerLevelMigration: false,
                 convertRewardPointsToCredit: false,
                 generatePromoCode: false,
-                applyXIMAFrontEnd: false
+                applyXIMAFrontEnd: false,
+                ApplyPromoCode: false,
+                updatePassword: false
             }
         })
     },

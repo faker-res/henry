@@ -1394,6 +1394,8 @@ define(['js/app'], function (myApp) {
                     // }, 300);
                     case "externalUserInfo":
                         vm.initExternalUserInfo();
+                    case "FrontendConfiguration":
+                        vm.initFrontendConfiguration();
                 }
 
                 commonService.updatePageTile($translate, "platform", tabName);
@@ -3621,6 +3623,9 @@ define(['js/app'], function (myApp) {
                 //console.log("getGames", gameIds);
                 socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
                     console.log('getPlatform', data.data);
+                    if (data && data.data && data.data.frontendConfigurationDomainName && vm.selectedPlatform && vm.selectedPlatform.data){
+                        vm.selectedPlatform.data.frontendConfigurationDomainName = data.data.frontendConfigurationDomainName;
+                    }
                     //provider list init
                     vm.platformProviderList = data.data.gameProviders;
                     vm.platformProviderList.forEach(item => {
@@ -34458,6 +34463,18 @@ define(['js/app'], function (myApp) {
                     vm.providerClicked(1, vm.SelectedProvider);
                 } else {
                     vm.uploadImageMsg = "Please choose an image first";
+                }
+            };
+
+            vm.initFrontendConfiguration = function() {
+                vm.frontendConfigurationUrl = "";
+                if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.frontendConfigurationDomainName && vm.selectedPlatform.data.platformId && authService.token) {
+                    let domainName = vm.selectedPlatform.data.frontendConfigurationDomainName.trim();
+                    let token = authService.token;
+                    let platformId = vm.selectedPlatform.data.platformId;
+                    let url = domainName + '?token=' + token + '&platformId=' + platformId;
+
+                    vm.frontendConfigurationUrl = $sce.trustAsResourceUrl(url);
                 }
             };
         };

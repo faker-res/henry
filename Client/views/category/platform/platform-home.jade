@@ -149,6 +149,10 @@
                             a.common-tab(data-toggle="tab", href="#ClientAutoQnA", ng-click="vm.loadTab('ClientQnA');vm.buildClientQnATypeList();")
                                 .fa.fa-file-text-o.margin-right-5
                                 text.span {{"ClientQnA" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'Platform', 'FrontendConfiguration')")
+                            a.common-tab(data-toggle="tab", href="#frontendConfiguration", ng-click="vm.loadTab('FrontendConfiguration');")
+                                .fa.fa-file-text-o.margin-right-5
+                                text.span {{"FrontendConfiguration" | translate}}
 
                 .panel-body.common-right-panel-body
                     div.tab-content
@@ -202,6 +206,8 @@
                             include ./platform-platform-setting
                         #externalUserInfo.tab-pane.fade
                             include ./platform-externalUserInfo
+                        #frontendConfiguration.tab-pane.fade
+                            iframe(ng-src="{{vm.frontendConfigurationUrl}}", width="100%", height="680px", frameborder="0")
 
                             //ui-view
                         //#bankCardGroup.tab-pane.fade
