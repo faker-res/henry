@@ -22223,7 +22223,7 @@ define(['js/app'], function (myApp) {
                     for (let i = 0; i < item.forbidTopUpNames.length; i++) {
                         if (i > 0){
 
-                            let key = vm.getKeyFromValue(vm.merchantTopupTypeJson, item.forbidTopUpNames[i])
+                            let key = commonService.getKeyFromValue(vm.merchantTopupTypeJson, item.forbidTopUpNames[i])
                             if (key) {
                                 item.forbidTopUpNames[i] = " " + $translate(item.forbidTopUpNames[i]) + "(" + item.forbidTopUpNames[i] +")" + ": " + key;
                             }
@@ -22233,7 +22233,7 @@ define(['js/app'], function (myApp) {
                         }
                         else{
 
-                            let key = vm.getKeyFromValue(vm.merchantTopupTypeJson, item.forbidTopUpNames[0]);
+                            let key = commonService.getKeyFromValue(vm.merchantTopupTypeJson, item.forbidTopUpNames[0]);
                             if (key){
                                 item.forbidTopUpNames[0] = $translate(item.forbidTopUpNames[0]) + "(" + item.forbidTopUpNames[0] +")" + ": " + key;
                             }
@@ -22248,20 +22248,6 @@ define(['js/app'], function (myApp) {
                 vm.forbidTopUpLog.isSearching = false;
                 $scope.safeApply();
             });
-        };
-
-        vm.getKeyFromValue = function (object, value) {
-            let refKey = null;
-            if (object && value){
-
-                for (let key in object){
-                    if (object[key] == value) {
-                        refKey = key
-                        break;
-                    }
-                }
-            }
-            return refKey
         };
 
         vm.drawForbidTopUpLogTbl = function (showData, size, newSearch, summary) {

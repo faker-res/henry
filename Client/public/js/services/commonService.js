@@ -80,6 +80,20 @@ define([], () => {
             )
         };
 
+        self.getKeyFromValue = function (object, value) {
+            let refKey = null;
+            if (object && value){
+
+                for (let key in object){
+                    if (object[key] == value) {
+                        refKey = key
+                        break;
+                    }
+                }
+            }
+            return refKey
+        };
+
         self.getPlatformProvider = function ($scope, id) {
             if (!id) return;
 
