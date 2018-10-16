@@ -4836,13 +4836,18 @@ var dbPlatform = {
                 if (platform && platform._id) {
                     platformObjId = platform._id;
 
-                    return dbconfig.collection_ipDomainLog.findOne({
+                    let logQ = {
                         platform: platformObjId,
                         domain: domain,
                         ipAddress: ipAddress,
-                        sourceUrl: sourceUrl,
                         createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
-                    }).lean();
+                    };
+
+                    if (sourceUrl) {
+                        logQ.sourceUrl = sourceUrl;
+                    }
+
+                    return dbconfig.collection_ipDomainLog.findOne(logQ).lean();
                 }
             }
         ).then(
@@ -4856,9 +4861,12 @@ var dbPlatform = {
                         platform: platformObjId,
                         domain: domain,
                         ipAddress: ipAddress,
-                        sourceUrl: sourceUrl,
                         createTime: new Date()
                     };
+
+                    if (sourceUrl) {
+                        newLog.sourceUrl = sourceUrl;
+                    }
 
                     dbconfig.collection_ipDomainLog(newLog).save().catch(errorUtils.reportError);
                 }
