@@ -4648,5 +4648,6 @@
   "Please avoid the using of special character": "请避免使用特殊符号",
   "Department failed to create, please avoid the using of special character": "部门创建失败，请避免使用特殊符号",
   "Frontend Configuration Domain Name": "前端配置域名",
-  "FrontendConfiguration": "前端配置"
+  "FrontendConfiguration": "前端配置",
+  "Financial History Process (PMS)": "财务历史过程（PMS）"
 }

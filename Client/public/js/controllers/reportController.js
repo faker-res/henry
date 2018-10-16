@@ -8429,6 +8429,8 @@ define(['js/app'], function (myApp) {
                     let proposalDetail = {};
                     let bankNameWhenSubmit = "";
                     let bankNameWhenApprove = "";
+                    let pmsRemark = "";
+                    let indexOfDivider = -1;
                     if (!vm.selectedProposal.data) {
                         vm.selectedProposal.data = {};
                     }
@@ -8463,6 +8465,16 @@ define(['js/app'], function (myApp) {
                     }
                     proposalDetail["bankInfoWhenApprove"] = bankNameWhenApprove + $translate("bankcard no:") + vm.selectedProposal.data.bankAccountWhenApprove;
                     proposalDetail["playerCancelRemark"] = vm.selectedProposal.data.playerCancelRemark
+
+                    if(vm.selectedProposal.data.remarkPMS){
+                        pmsRemark = vm.selectedProposal.data.remarkPMS;
+                        indexOfDivider = pmsRemark.indexOf("#");
+
+                        if(indexOfDivider > -1){
+                            proposalDetail["pmsRemark"] = pmsRemark.substring(0, indexOfDivider);
+                            proposalDetail["pmsOperator"] = pmsRemark.substring(indexOfDivider + 1, pmsRemark.length);
+                        }
+                    }
 
                     vm.selectedProposal.data = proposalDetail;
                 }
