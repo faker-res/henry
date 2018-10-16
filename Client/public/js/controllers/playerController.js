@@ -9184,8 +9184,14 @@ define(['js/app'], function (myApp) {
 
                 var tableData = vm.playerFeedbackData.map(
                     record => {
+                        let resultName;
+                        if(!record.resultName) {
+                            resultName = utilService.getPlayerFeedbackResultName(vm.allPlayerFeedbackResults, record.result);
+                        }
+
                         record.createTime = (record && record.createTime) ? vm.dateReformat(record.createTime) : "";
-                        record.result = (record && record.resultName) ? record.resultName : $translate(record.result);
+                        record.result = (record && record.resultName) ? record.resultName :
+                            (resultName ? resultName : $translate(record.result));
                         record.content = (record && record.content) ? record.content : "";
                         record.adminName = (record && record.adminId && record.adminId.adminName) ? record.adminId.adminName : "";
                         record.topic = (record && record.topic) ? record.topic : "";

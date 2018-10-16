@@ -308,7 +308,8 @@ var roleChecker = {
                 PlayerConsumptionIncentiveSettlement: ['startPlatformPlayerConsumptionIncentiveSettlement'],
                 PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement', 'getYesterdayConsumptionReturnSGTime'],
                 PlayerLevelSettlement: ['startPlatformPlayerLevelSettlement'],
-                PlayerConsecutiveConsumptionSettlement: ['startPlayerConsecutiveConsumptionSettlement']
+                PlayerConsecutiveConsumptionSettlement: ['startPlayerConsecutiveConsumptionSettlement'],
+                FrontendConfiguration: []
             },
             // "Player": {
             //     Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList', "getDepartmentTreeById",

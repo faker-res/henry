@@ -2,9 +2,9 @@
 
 define(['js/app'], function (myApp) {
 
-        var injectParams = ['$scope', '$filter', '$location', '$log', 'socketService', 'authService', 'utilService', 'CONFIG'];
+        var injectParams = ['$scope', '$filter', '$location', '$log', 'socketService', 'authService', 'utilService', 'commonService', 'CONFIG'];
 
-        var mainPageController = function ($scope, $filter, $location, $log, socketService, authService, utilService, CONFIG) {
+        var mainPageController = function ($scope, $filter, $location, $log, socketService, authService, utilService, commonService, CONFIG) {
             var $translate = $filter('translate');
             var vm = this;
 
@@ -87,12 +87,22 @@ define(['js/app'], function (myApp) {
             };
 
             vm.createDepartment = function () {
+                if(commonService.isSpecialChar(vm.newDepartment.departmentName)){
+                    socketService.showErrorMessage($translate("Department failed to create, please avoid the using of special character"));
+                    return;
+                }
+
                 vm.createNewDepartment(vm.newDepartment.departmentName, vm.SelectedDepartmentNode.id, success);
                 function success(data) {
                     console.log("new data", data);
                     vm.getAllDepartmentData();
                     //addNewDepartmentNode(vm.SelectedDepartmentNode.id, data);
                 }
+            };
+
+            vm.isSpecialCharacter = function (){
+                vm.specialCharacter = commonService.isSpecialChar(vm.newDepartment.departmentName);
+                $scope.$evalAsync();
             };
 
             vm.createNewDepartment = function (departmentName, parentId, callback) {
@@ -2127,7 +2137,21 @@ define(['js/app'], function (myApp) {
 
             $(function(){
                 setTimeout(() => {
-                    $scope.$evalAsync(vm.getAllDepartmentData());
+                    $scope.$evalAsync(() => {
+                        //if it is super admin, get all views permission
+                        //else only get current role views permission
+                        if (authService.isAdmin() && authService.roleData[0] && authService.checkViewPermission('Admin', 'Department', 'Read')) {
+                            socketService.$socket($scope.AppSocket, 'getAllViews', '', function (data) {
+                                vm.allView = data.data;
+                                console.log('allview', vm.allView);
+                                vm.getAllDepartmentData();
+                            });
+                        }
+                        else {
+                            vm.allView = authService.roleData[0] ? authService.roleData[0].views : {};
+                            vm.getAllDepartmentData();
+                        }
+                    });
                 },1000)
             });
 

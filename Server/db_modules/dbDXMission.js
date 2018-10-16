@@ -1523,7 +1523,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 newPlayerData.password = playerPassword ? playerPassword : (newPlayerData.password || "");
                 newPlayerData.inputDevice = loginDetails.inputDevice ? loginDetails.inputDevice : (newPlayerData.inputDevice || "");
                 newPlayerData.platformId = platform.platformId ? platform.platformId : (newPlayerData.platformId || "");
-                newPlayerData.name = platformPrefix ? newPlayerData.name.replace(platformPrefix, '') : (newPlayerData.name || "");
+                newPlayerData.name = newPlayerData.name || "";
                 newPlayerData.ua = loginDetails.ua ? loginDetails.ua : (newPlayerData.userAgent || "");
                 newPlayerData.mobileDetect = loginDetails.md ? loginDetails.md : (newPlayerData.mobileDetect || "");
                 //after created new player, need to create login record and apply login reward

@@ -480,7 +480,8 @@ var platformSchema = new Schema({
         themeStyleId: {type: Schema.ObjectId, ref: 'themeSetting', index: true},
         themeId: {type: String},
         themeIdObjId: {type: Schema.ObjectId, index: true}
-    }
+    },
+    frontendConfigurationDomainName: {type: String}
 });
 
 //add platform id before save
