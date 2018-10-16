@@ -1236,9 +1236,9 @@ let dbPlayerCreditTransfer = {
                                     console.log('RT - freeAmt', updateObj.freeAmt);
 
                                     // Since we are going to unlock this, we set freeAmt to 0 to prevent double addition
-                                    updateObj.freeAmt = 0;
+                                    // updateObj.freeAmt = 0;
 
-                                    return dbRewardTask.completeRewardTaskGroup(preRTG, preRTG.status);
+                                    return dbRewardTask.completeRewardTaskGroup(preRTG, preRTG.status).then(() => true);
                                 }
 
                                 return true;
