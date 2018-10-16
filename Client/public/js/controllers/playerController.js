@@ -22221,8 +22221,23 @@ define(['js/app'], function (myApp) {
                     item.createTime$ = vm.dateReformat(item.createTime);
                     item.curAmount$ = item.data && item.data.curAmount ? item.data.curAmount.toFixed(2) : 0;
                     for (let i = 0; i < item.forbidTopUpNames.length; i++) {
-                        if (i > 0)
-                            item.forbidTopUpNames[i] = " " + item.forbidTopUpNames[i];
+                        if (i > 0){
+
+                            let key = commonService.getKeyFromValue(vm.merchantTopupTypeJson, item.forbidTopUpNames[i])
+                            if (key) {
+                                item.forbidTopUpNames[i] = " " + $translate(item.forbidTopUpNames[i]) + "(" + item.forbidTopUpNames[i] +")" + ": " + key;
+                            }
+                            else {
+                                item.forbidTopUpNames[i] = " " + item.forbidTopUpNames[i];
+                            }
+                        }
+                        else{
+
+                            let key = commonService.getKeyFromValue(vm.merchantTopupTypeJson, item.forbidTopUpNames[0]);
+                            if (key){
+                                item.forbidTopUpNames[0] = $translate(item.forbidTopUpNames[0]) + "(" + item.forbidTopUpNames[0] +")" + ": " + key;
+                            }
+                        }
                     }
                     return item;
                 }) : [];
@@ -22233,7 +22248,8 @@ define(['js/app'], function (myApp) {
                 vm.forbidTopUpLog.isSearching = false;
                 $scope.safeApply();
             });
-        }
+        };
+
         vm.drawForbidTopUpLogTbl = function (showData, size, newSearch, summary) {
             var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                 data: showData,
