@@ -3104,21 +3104,21 @@ define(['js/app'], function (myApp) {
             for (let device in vm.deleteClickCountDevice) {
                 if (vm.deleteClickCountDevice[device] && vm.deleteClickCountPage[device]) {
                     let selectedPage = [];
-                    let selectedDomain = [];
+                    let selectedButtonName = [];
                     for (let page in vm.deleteClickCountPage[device]) {
                         if (vm.deleteClickCountPage[device][page]) {
                             selectedPage.push(page);
                             if (vm.deleteClickCountButton[device][page]) {
                                 for (let domain in vm.deleteClickCountButton[device][page]) {
                                     if (vm.deleteClickCountButton[device][page][domain]) {
-                                        selectedDomain.push(domain);
+                                        selectedButtonName.push(domain);
                                     }
                                 }
                             }
                         }
                     }
 
-                    if (selectedPage && selectedPage.length && selectedDomain && selectedDomain.length) {
+                    if (selectedPage && selectedPage.length && selectedButtonName && selectedButtonName.length) {
                         isDelete = true;
                         if (!sendData["$or"]) {
                             sendData["$or"] = [];
@@ -3126,7 +3126,7 @@ define(['js/app'], function (myApp) {
                         sendData["$or"].push({
                             device: device,
                             pageName: {"$in": selectedPage},
-                            buttonName: {"$in": selectedDomain}
+                            buttonName: {"$in": selectedButtonName}
                         })
                     }
                 }
