@@ -16386,19 +16386,19 @@ let dbPlayerInfo = {
             let timezoneAdjust2 = {}; //for consumption
 
             // convert UTC 16h to GMT 24h
-            if (parseInt(timezoneOffset) > 0) {
-                timezoneAdjust = {
-                    year: {$year: {$subtract: ['$settleTime', positiveTimeOffset]}},
-                    month: {$month: {$subtract: ['$settleTime', positiveTimeOffset]}},
-                    day: {$dayOfMonth: {$subtract: ['$settleTime', positiveTimeOffset]}},
-                }
-            } else {
-                timezoneAdjust = {
-                    year: {$year: {$add: ['$settleTime', positiveTimeOffset]}},
-                    month: {$month: {$add: ['$settleTime', positiveTimeOffset]}},
-                    day: {$dayOfMonth: {$add: ['$settleTime', positiveTimeOffset]}},
-                }
-            }
+            // if (parseInt(timezoneOffset) > 0) {
+            //     timezoneAdjust = {
+            //         year: {$year: {$subtract: ['$settleTime', positiveTimeOffset]}},
+            //         month: {$month: {$subtract: ['$settleTime', positiveTimeOffset]}},
+            //         day: {$dayOfMonth: {$subtract: ['$settleTime', positiveTimeOffset]}},
+            //     }
+            // } else {
+            //     timezoneAdjust = {
+            //         year: {$year: {$add: ['$settleTime', positiveTimeOffset]}},
+            //         month: {$month: {$add: ['$settleTime', positiveTimeOffset]}},
+            //         day: {$dayOfMonth: {$add: ['$settleTime', positiveTimeOffset]}},
+            //     }
+            // }
             if (parseInt(timezoneOffset) > 0) {
                 timezoneAdjust2 = {
                     year: {$year: {$subtract: ['$createTime', positiveTimeOffset]}},
@@ -16458,7 +16458,7 @@ let dbPlayerInfo = {
                 },
                 {
                     $group: {
-                        _id: timezoneAdjust,
+                        _id: timezoneAdjust2,
                         typeId: {$first: "$type"},
                         count: {$sum: 1},
                         amount: {$sum: "$data.amount"},
@@ -16481,7 +16481,7 @@ let dbPlayerInfo = {
                 },
                 {
                     $group: {
-                        _id: timezoneAdjust,
+                        _id: timezoneAdjust2,
                         count: {$sum: 1},
                         amount: {$sum: "$data.amount"},
                     }
