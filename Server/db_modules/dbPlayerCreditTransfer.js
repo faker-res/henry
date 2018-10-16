@@ -1000,10 +1000,10 @@ let dbPlayerCreditTransfer = {
 		                            rewardCredit: parseFloat(rewardAmount).toFixed(2)
 		                        }
 		                    };
-		
+
 		                    return responseData;
                         });
-                        
+
                 }
                 else {
                     return Q.reject({name: "DataError", message: "Error transfer player credit to provider."});
@@ -1015,7 +1015,7 @@ let dbPlayerCreditTransfer = {
                         //change player credit back if transfer failed
                         if (bTransfered) {
                             console.error(err);
-                            if (err && err.errorMessage && (err.errorMessage.indexOf('Request timeout') > -1 || err.message.indexOf('Game is not available') > -1)) {
+                            if ( (err && err.errorMessage && err.errorMessage.indexOf('Request timeout') > -1) || (err && err.message && err.message.indexOf('Game is not available') > -1 ) ){
                                 // Log credit change also when request timeout since amount already deducted
                                 dbLogger.createCreditChangeLogWithLockedCredit(playerObjId, platform, -validTransferAmount, constPlayerCreditChangeType.TRANSFER_IN_FAILED, playerCredit, 0, -lockedTransferAmount, null, {
                                     providerId: providerShortId,
