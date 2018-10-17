@@ -6169,7 +6169,7 @@ define(['js/app'], function (myApp) {
                     columnDefs: [
                         {targets: '_all', defaultContent: ' '}
                     ],
-                    "order": vm.playerTableQuery.aaSorting || [[8, 'desc']],
+                    "order": vm.playerTableQuery.aaSorting || [[9, 'desc']], // sort by lastAccessTime
                     columns: [
                         // {title: $translate('PLAYER_ID'), data: "playerId", advSearch: true},
                         {
