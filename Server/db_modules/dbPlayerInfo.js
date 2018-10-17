@@ -16888,7 +16888,7 @@ let dbPlayerInfo = {
                                         _id: playerObjIds[p]
                                     }, 'domain').then(
                                         playerData => {
-                                            return getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime), playerData.domain);
+                                            return getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime), playerData.domain, true);
                                         }
                                     );
                                 } else {
