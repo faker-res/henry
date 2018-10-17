@@ -415,6 +415,9 @@ let openPromoCodeTemplateModel = dbLogs2.model('openPromoCodeTemplate', openProm
 let dxPhoneSchema = require('./../schema/logs2/dxPhone');
 let dxPhoneModel = dbLogs2.model('dxPhone', dxPhoneSchema, 'dxPhone');
 
+let playerConsumptionSlipRewardGroupRecordSchema = require('./../schema/logs2/playerConsumptionSlipRewardGroupRecord');
+let playerConsumptionSlipRewardGroupRecordModel = dbLogs2.model('playerConsumptionSlipRewardGroupRecord', playerConsumptionSlipRewardGroupRecordSchema, 'playerConsumptionSlipRewardGroupRecord');
+
 let actionLogSchema = require('./../schema/logs2/actionLog');
 let actionLogModel = dbLogs2.model('actionLog', actionLogSchema, 'actionLog');
 
@@ -565,6 +568,7 @@ var dbProperties = {
 
     collection_dxMission: dxMissionModel,
     collection_dxPhone: dxPhoneModel,
+    collection_playerConsumptionSlipRewardGroupRecord: playerConsumptionSlipRewardGroupRecordModel,
 
     collection_largeWithdrawalSetting: largeWithdrawalSettingModel,
     collection_largeWithdrawalPartnerSetting: largeWithdrawalPartnerSettingModel,
