@@ -3708,6 +3708,20 @@ define(['js/app'], function (myApp) {
                         item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
                     }
 
+                    if (item.onlineTopUpFeeDetail && item.onlineTopUpFeeDetail.length > 0) {
+                        let detailArr = [];
+                        item.onlineTopUpFeeDetail.forEach((detail, index) => {
+                            if (detail && detail.merchantName && detail.hasOwnProperty('onlineToUpFee') && detail.hasOwnProperty('onlineTopUpServiceChargeRate')) {
+                                let orderNo = index ? index + 1 : 1;
+                                detailArr.push(orderNo + '. ' + detail.merchantName + ': ' + detail.amount + $translate("YEN") + ' * ' + parseFloat(detail.onlineTopUpServiceChargeRate * 100).toFixed(2) + '%');
+                            }
+                        });
+
+                        item.onlineTopUpFeeDetail$ = detailArr && detailArr.length > 0 ? detailArr.join('\n') : '';
+                    } else {
+                        item.onlineTopUpFeeDetail$ = '';
+                    }
+                    item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
 
                     return item;
                 }), data.data.total, data.data.size, newSearch, isExport);
@@ -3739,6 +3753,8 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'validConsumptionAmount', 'aTargets': [16], bSortable: true},
                     {'sortCol': 'consumptionBonusAmount', 'aTargets': [17], bSortable: true},
                     {'sortCol': 'consumptionAmount', 'aTargets': [19], bSortable: true},
+                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [21], bSortable: true},
+                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [22], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -3779,7 +3795,38 @@ define(['js/app'], function (myApp) {
                     },
                     {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: 'playerReportProfit alignRight'},
                     {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: 'sumFloat alignRight'},
-                    {title: $translate('Registration Agent'), data: "registrationAgent$"}
+                    {title: $translate('Registration Agent'), data: "registrationAgent$"},
+                    {
+                        title: $translate("Platform Fee"), data: "totalPlatformFeeEstimate",
+                        render: function (data, type, row) {
+                            data = data || 0;
+                            let feeDetails = "";
+                            if (row && row.platformFeeEstimate) {
+                                for (let key in row.platformFeeEstimate) {
+                                    if (feeDetails) {
+                                        feeDetails += "\n";
+                                    }
+                                    feeDetails += (key + ": " + row.platformFeeEstimate[key]);
+                                }
+                            }
+                            return $('<a data-toggle="tooltip" title=\'' + feeDetails + '\'  data-placement= "left"></a>')
+                                .attr('data-row', JSON.stringify(row))
+                                .text((data))
+                                .prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate("Online Top Up Fee"), data: "totalOnlineTopUpFee$",
+                        render: function (data, type, row) {
+                            var link = $('<div>', {});
+                            link.append($('<a>', {
+                                'data-toggle': 'tooltip',
+                                'title': row.onlineTopUpFeeDetail$,
+                                'data-placement': 'left',
+                            }).text(data));
+                            return link.prop('outerHTML');
+                        }
+                    }
                 ],
                 "paging": false,
                 // "dom": '<"top">rt<"bottom"il><"clear">',
