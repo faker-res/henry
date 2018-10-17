@@ -4655,5 +4655,16 @@
   "Department failed to create, please avoid the using of special character": "部门创建失败，请避免使用特殊符号",
   "Frontend Configuration Domain Name": "前端配置域名",
   "FrontendConfiguration": "前端配置",
-  "Financial History Process (PMS)": "财务历史过程（PMS）"
+  "Financial History Process (PMS)": "财务历史过程（PMS）",
+  "Apply Reward limit in interval": "周期内申请次数",
+  "Check consumption slip source by provider": "注单来源大厅",
+  "Consumption Slip Ending Digit": "注单尾号号码（不填则所有注单皆合格）",
+  "Bonus Ratio": "该局派彩/下注金额 ≥ X 倍",
+  "Minimum consumption slip amount": "* 该局最低下注金额（非有效投注额）",
+  "Top Up Amount Period": "周期内总存款金额（上述选中的方式）",
+  "Consumption Slip Reward Amount": "* 优惠金额（下注金额的 X 倍）",
+  "Max Reward Amount In Single Reward": "单笔最高优惠上限",
+  "PlayerConsumptionSlipRewardGroup": "幸运注单（组）",
+  "* required": "*星号必填",
+  "Min Consumption Amount, Reward Amount is required": "必填该局最低下注金额、优惠金额"
 }
