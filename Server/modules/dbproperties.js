@@ -372,6 +372,9 @@ let callOutMissionCalleeModel = dbLogs2.model('callOutMissionCallee', callOutMis
 let clientQnASchema = require('./../schema/logs2/clientQnA');
 let clientQnAModel = dbLogs2.model('clientQnA', clientQnASchema, 'clientQnA');
 
+let frontendDataSchema = require('./../schema/logs2/frontendData');
+let frontendDataModel = dbLogs2.model('frontendData', frontendDataSchema, 'frontendData');
+
 let resetPasswordVerificationSchema = require('./../schema/logs2/resetPasswordVerification');
 let resetPasswordVerificationModel = dbLogs2.model('resetPasswordVerification', resetPasswordVerificationSchema, 'resetPasswordVerification');
 
@@ -661,6 +664,7 @@ var dbProperties = {
     collection_callOutMissionCallee: callOutMissionCalleeModel,
     collection_tsPhoneList: tsPhoneListModel,
     collection_tsPhone: tsPhoneModel,
+    collection_frontendData: frontendDataModel,
 
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,
