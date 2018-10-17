@@ -471,6 +471,8 @@ let dbPlayerInfo = {
                         // sms(not require) && captchaCode (incorrect) => invalid image
 
                         // check if the create function initiated by a partner -> yes - check captcha only
+                        console.log("yH checking---connPartnerId", connPartnerId)
+                        console.log("yH checking---bypassSMSVerify", bypassSMSVerify)
                         if (connPartnerId){
                             if (bypassSMSVerify){
                                 return true;

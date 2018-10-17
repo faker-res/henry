@@ -96,6 +96,7 @@ let PlayerServiceImplement = function () {
         conn.captchaCode = null;
         data.isOnline = true;
 
+        console.log("yH checking---conn", conn)
         if (conn.partnerId){
             connPartnerId = conn.partnerId;
         }
