@@ -58,6 +58,7 @@ const constProposalMainType = {
     "PlayerLoseReturnRewardGroup": constMainType.REWARD,
     "PlayerConsumptionRewardGroup": constMainType.REWARD,
     "PlayerConsecutiveRewardGroup": constMainType.REWARD,
+    "PlayerConsumptionSlipRewardGroup": constMainType.REWARD,
 
     //UPDATE_PLAYER
     "UpdatePlayerInfo" : constMainType.UPDATE_PLAYER,

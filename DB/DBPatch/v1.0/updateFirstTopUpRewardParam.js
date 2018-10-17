@@ -899,3 +899,55 @@ var param105 = param105Cursor.next();
 
 db.rewardType.update({"name": type105}, {$set: {params: param105._id, des: type105, isGrouped: true}}, {upsert: true});
 
+
+// 幸运注单（组）
+var type106 = "PlayerConsumptionSlipRewardGroup";
+db.rewardParam.update({
+    "name": type106
+}, {
+    $set: {
+        condition: {
+            generalCond: generalCond,
+            topUpCond: topUpCond,
+            periodCond: periodCond,
+            consumptionCond: consumptionCond,
+            customCond: {
+                consumptionSlipProviderSource: {
+                    index: 42,
+                    type: "multiSelect",
+                    des: "Check consumption slip source by provider",
+                    options: "gameProviders"
+                },
+                countInRewardInterval: {index: 43, type: "number", des: "Apply Reward limit in interval"},
+            }
+        },
+        param: {
+            tblOptFixed: {
+                rewardParam: {
+                    consumptionSlipEndingDigit: {type: "text", des: "Consumption Slip Ending Digit"},
+                    bonusRatio: {type: "number", des: "Bonus Ratio"},
+                    minConsumptionAmount: {type: "number", des: "Minimum consumption slip amount"},
+                    topUpAmount: {type: "number", des: "Top Up Amount Period"},
+                    rewardAmount: {type: "number", des: "Consumption Slip Reward Amount"},
+                    maxRewardAmountInSingleReward: {type: "number", des: "Max Reward Amount In Single Reward"},
+                    spendingTimes: {type: "number", des: "Spending times on reward"},
+                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+                    forbidWithdrawIfBalanceAfterUnlock: {
+                        type: "number",
+                        des: "Forbid withdraw if there is balance after unlock"
+                    },
+                    remark: {type: "text", des: "Remark"},
+                }
+            },
+            tblOptDynamic: {}
+        }
+    }
+}, {
+    upsert: true
+});
+
+
+var param106Cursor = db.rewardParam.find({"name": type106});
+var param106 = param106Cursor.next();
+
+db.rewardType.update({"name": type106}, {$set: {params: param106._id, des: type106, isGrouped: true}}, {upsert: true});

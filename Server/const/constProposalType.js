@@ -76,7 +76,8 @@ const constProposalType = {
     BULK_EXPORT_PLAYERS_DATA: "BulkExportPlayerData",
     PLAYER_LOSE_RETURN_REWARD_GROUP: "PlayerLoseReturnRewardGroup",
     FINANCIAL_POINTS_ADD: "FinancialPointsAdd",
-    FINANCIAL_POINTS_DEDUCT: "FinancialPointsDeduct"
+    FINANCIAL_POINTS_DEDUCT: "FinancialPointsDeduct",
+    PLAYER_CONSUMPTION_SLIP_REWARD_GROUP: "PlayerConsumptionSlipRewardGroup"
 };
 
 module.exports = constProposalType;
