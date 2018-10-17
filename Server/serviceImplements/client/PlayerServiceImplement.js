@@ -49,6 +49,8 @@ let PlayerServiceImplement = function () {
         data.md = md;
         data.inputDevice = inputDevice;
 
+        let connPartnerId = null;
+
         if (data.phoneNumber) {
             var queryRes = queryPhoneLocation(data.phoneNumber);
             if (queryRes) {
@@ -93,8 +95,13 @@ let PlayerServiceImplement = function () {
         let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
         conn.captchaCode = null;
         data.isOnline = true;
+
+        if (conn.partnerId){
+            connPartnerId = conn.partnerId;
+        }
+
         let inputData = Object.assign({}, data);
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode, null, null, data.isAutoCreate], isValidData, true, true, true).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createPlayerInfoAPI, [inputData, byPassSMSCode, null, null, data.isAutoCreate, connPartnerId], isValidData, true, true, true).then(
             (playerData) => {
                 data.playerId = data.playerId ? data.playerId : playerData.playerId;
                 data.remarks = playerData.partnerName ? localization.translate("PARTNER", conn.lang, conn.platformId) + ": " + playerData.partnerName : "";
