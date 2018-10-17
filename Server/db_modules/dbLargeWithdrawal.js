@@ -378,7 +378,7 @@ const dbLargeWithdrawal = {
             }
         ).then(
             ([todayLargeAmountData, bankCityData, lastWithdrawalData, downLinePlayerData, downLinePartnerData]) => {
-                todayLargeAmount = todayLargeAmountData || 0;
+                todayLargeAmount = (todayLargeAmountData || 0) + 1;
 
                 bankCityName = "";
                 if (bankCityData && bankCityData.cities && bankCityData.cities.length && partner.bankAccountCity) {

@@ -4228,6 +4228,10 @@
   "Bank card number did not match.": "银行卡号对不上",
   "Can't find provider or provider is not ready": "找不到游戏提供商 或 游戏提供商的结算状态暂时不允许指定结算。若有『重试日结算』按钮，请点击后，等个五～十分钟后刷新页面看看结算状态是否已显示绿色。显示绿色后再度尝试指定结算。",
   "This proposal require PMS to approve.": "只有PMS才能通过充值提案",
+  "Recalculating...": "重算中……",
+  "Recalculate successful": "重算成功",
+  "Recalculate failed": "重算失败",
+  "Recalculate": "重新计算",
 
   "Please insert bank account name.": "请填入银行户口姓名",
   "Please insert bank account.": "请填入银行帐号",
@@ -4636,6 +4640,7 @@
   "Select domain to delete record": "选择删除数据的域名",
   "Withdrawal amount (system does not support transaction fee)": "提款金额（系统无支援手续费）",
   "Please select click count option to delete (Attention! all related record will be delete)": "请选择需要删除的埋点项目（注意！该项目数据全数删除）",
+  "Please select click count option to delete (Attention! all record related to the button will be delete)": "请选择需要删除的埋点项目（注意！该按钮数据全数删除）",
   "Manage Sub Department Permission": "赋予下级部门权限",
   "Do not have permission setting": "请设置部门权限",
   "oldFeeRate": "原费用比例",

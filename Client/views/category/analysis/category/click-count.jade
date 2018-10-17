@@ -72,8 +72,8 @@
                                 input(type='checkbox' ng-model='vm.deleteClickCountDevice[device]' ng-change='vm.selectDevicePage(device)')
                                 text {{device}}
                             td
-                                input(type='checkbox' ng-model='vm.deleteClickCountPage[device][page]' ng-change='vm.clickCountDeleteCheckParent(device,page);vm.selectPageDomain(device,page)')
-                                a(ng-click='vm.initSelectDomainClickCount(device, page)') {{page}}
+                                input(type='checkbox' ng-model='vm.deleteClickCountPage[device][page]' ng-change='vm.clickCountDeleteCheckParent(device,page);vm.selectPageButton(device,page)')
+                                a(ng-click='vm.initSelectButtonClickCount(device, page)') {{page}}
                             
                         
                                 
@@ -93,17 +93,17 @@
                 table.simple-table(style='max-width:100%;text-align:left')
                     thead
                         tr
-                            th(colspan='2') {{'Please select click count option to delete (Attention! all related record will be delete)' | translate}}
+                            th(colspan='2') {{'Please select click count option to delete (Attention! all record related to the button will be delete)' | translate}}
                         tr
                             th(style='background-color:#0b97c4;color: #FFFFFF;') {{'PAGE_NAME' | translate}}
-                            th(style='background-color:#0b97c4;color: #FFFFFF;') {{'DOMAIN NAME' | translate}}
+                            th(style='background-color:#0b97c4;color: #FFFFFF;') {{'BUTTON NAME' | translate}}
                     tbody
-                        tr(ng-repeat='(k,domain) in vm.clickCountDomainObj[vm.selectedDeleteDomain.device][vm.selectedDeleteDomain.page]')
-                            td(rowspan='{{vm.clickCountDomainObj[vm.selectedDeleteDomain.device][vm.selectedDeleteDomain.page].length}}' ng-if="$index===0") 
-                                input(type='checkbox' ng-model='vm.deleteClickCountPage[vm.selectedDeleteDomain.device][vm.selectedDeleteDomain.page]' ng-change='vm.selectPageDomain(vm.selectedDeleteDomain.device, vm.selectedDeleteDomain.page);vm.clickCountDeleteCheckParent(vm.selectedDeleteDomain.device, vm.selectedDeleteDomain.page)')
-                                text {{vm.selectedDeleteDomain.page}}
+                        tr(ng-repeat='(k,domain) in vm.clickCountButtonNameObj[vm.selectedDeleteButton.device][vm.selectedDeleteButton.page]')
+                            td(rowspan='{{vm.clickCountButtonNameObj[vm.selectedDeleteButton.device][vm.selectedDeleteButton.page].length}}' ng-if="$index===0") 
+                                input(type='checkbox' ng-model='vm.deleteClickCountPage[vm.selectedDeleteButton.device][vm.selectedDeleteButton.page]' ng-change='vm.selectPageButton(vm.selectedDeleteButton.device, vm.selectedDeleteButton.page);vm.clickCountDeleteCheckParent(vm.selectedDeleteButton.device, vm.selectedDeleteButton.page)')
+                                text {{vm.selectedDeleteButton.page}}
                             td
-                                input(type='checkbox' ng-model='vm.deleteClickCountDomain[vm.selectedDeleteDomain.device][vm.selectedDeleteDomain.page][domain]' ng-change='vm.clickCountDeleteCheckParent(vm.selectedDeleteDomain.device,vm.selectedDeleteDomain.page, domain)')
+                                input(type='checkbox' ng-model='vm.deleteClickCountButton[vm.selectedDeleteButton.device][vm.selectedDeleteButton.page][domain]' ng-change='vm.clickCountDeleteCheckParent(vm.selectedDeleteButton.device,vm.selectedDeleteButton.page, domain)')
                                 text {{domain}}
                             
 

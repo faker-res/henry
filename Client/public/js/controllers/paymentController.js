@@ -286,6 +286,7 @@ define(['js/app'], function (myApp) {
                     console.log('getPMSPaymentGroup', data)
                     data = data.data;
                     vm.platformBankCardGroupList = [];
+                    vm.allPMSBankCardGroup = [];
                     if (data && data.map && data.map["银行卡"]) {
                         Object.entries(data.map["银行卡"]).forEach(([groupName, value]) => {
                             let groupData = {
@@ -324,6 +325,7 @@ define(['js/app'], function (myApp) {
                                 });
                             }
                             vm.platformBankCardGroupList.push(groupData);
+                            vm.allPMSBankCardGroup.push(groupData);
                         });
                     }
                     $scope.$evalAsync();
@@ -542,18 +544,28 @@ define(['js/app'], function (myApp) {
         vm.playerPMSBankCardGroupSearch = () => {
             return $scope.$socketPromise('getPMSUserPaymentGroup', {platformId: vm.selectedPlatform.data.platformId, playerName: vm.pmsGroupPlayerName}).then(data => {
                 console.log('getPMSUserPaymentGroup', data)
-                if (data && data.data && data.data.map && data.data.map["银行卡"]) {
-                    let groupName = Object.entries(data.data.map["银行卡"])[0][0];
-                    if (vm.platformBankCardGroupList && vm.platformBankCardGroupList.length) {
-                        for (let i = 0; i < vm.platformBankCardGroupList.length; i++) {
-                            if (vm.platformBankCardGroupList[i].code == groupName) {
-                                vm.bankCardGroupClicked(i, vm.platformBankCardGroupList[i]);
+
+                vm.platformBankCardGroupList = [];
+                if (!(data && data.data && data.data.map && data.data.map["银行卡"])) {
+                    return;
+                }
+
+                let bankCardGroups = data.data.map["银行卡"] || {};
+                let firstGroupData = "";
+
+                Object.keys(bankCardGroups).forEach(
+                    groupName => {
+                        for (let i = 0; i < vm.allPMSBankCardGroup.length; i++) {
+                            if (vm.allPMSBankCardGroup[i].code == groupName) {
+                                vm.platformBankCardGroupList.push(vm.allPMSBankCardGroup[i]);
+                                firstGroupData = firstGroupData || vm.allPMSBankCardGroup[i];
                             }
                         }
                     }
-                }
-                else {
+                );
 
+                if (firstGroupData) {
+                    vm.bankCardGroupClicked(0, firstGroupData);
                 }
             });
         };

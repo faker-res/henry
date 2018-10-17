@@ -3246,7 +3246,8 @@ var dbPlatform = {
         let returnData = {
             device: [],
             devicePage: {},
-            domain: {}
+            domain: {},
+            buttonName: {}
         }
         return dbconfig.collection_clickCount.distinct("device", matchObj).then(
             deviceArr => {
@@ -3263,6 +3264,7 @@ var dbPlatform = {
                         deviceData => {
                             if (deviceData && deviceData.length == returnData.device.length) {
                                 let pageNamePromArr = [];
+                                let buttonNamePromArr = [];
                                 returnData.device.forEach(
                                     (deviceName, index) => {
                                         returnData.devicePage[deviceName] = deviceData[index];
@@ -3272,21 +3274,28 @@ var dbPlatform = {
                                                     platform: platformId,
                                                     device: deviceName,
                                                     pageName: pageName
-                                                }))
+                                                }));
+                                                buttonNamePromArr.push(dbconfig.collection_clickCount.distinct("buttonName", {
+                                                    platform: platformId,
+                                                    device: deviceName,
+                                                    pageName: pageName
+                                                }));
                                             });
                                         }
                                     }
-                                )
+                                );
 
-                                return Promise.all(pageNamePromArr).then(
-                                    domainData => {
-                                        if (domainData && domainData.length == pageNamePromArr.length) {
+                                return Promise.all([Promise.all(pageNamePromArr), Promise.all(buttonNamePromArr)]).then(
+                                    ([domainData, buttonNameData]) => {
+                                        if (domainData && domainData.length == pageNamePromArr.length && buttonNameData && buttonNameData.length == buttonNamePromArr.length) {
                                             let index = 0;
                                             returnData.device.forEach(
                                                 (deviceName) => {
                                                     returnData.devicePage[deviceName].forEach((pageName) => {
                                                         returnData.domain[deviceName] = returnData.domain[deviceName] || {};
                                                         returnData.domain[deviceName][pageName] = domainData[index];
+                                                        returnData.buttonName[deviceName] = returnData.buttonName[deviceName] || {};
+                                                        returnData.buttonName[deviceName][pageName] = buttonNameData[index];
                                                         index++;
                                                     });
 
@@ -4576,7 +4585,10 @@ var dbPlatform = {
             // rewardEvent (ignore provider group setting, fix reward event inter-relationship)
             let oldNewEventObjId = {};
             let copyRewardEventProm = dbconfig.collection_rewardEvent.remove({platform: replicateTo._id}).then(
-                () => dbconfig.collection_rewardEvent.find({platform: replicateFrom._id}).lean()
+                () => dbconfig.collection_rewardEvent.find({platform: replicateFrom._id}).populate({
+                    path: "executeProposal",
+                    model: dbconfig.collection_proposalType
+                }).lean()
             ).then(
                 rewardEvents => {
                     let proms = [];
@@ -4585,10 +4597,21 @@ var dbPlatform = {
                         delete rewardEvent._id;
                         if (rewardEvent.condition) delete rewardEvent.condition.providerGroup;
                         rewardEvent.platform = replicateTo._id;
-                        let prom = dbconfig.collection_rewardEvent(rewardEvent).save().then(newRewardEvent => {
-                            oldNewEventObjId[rewardEventId] = String(newRewardEvent._id);
-                            return newRewardEvent;
-                        }).catch(errorUtils.reportError);
+
+                        let prom = dbconfig.collection_proposalType.findOne({
+                            platformId: replicateTo._id, name: rewardEvent.executeProposal.name
+                        }).lean().then(
+                            replToPropType => {
+                                if (replToPropType && replToPropType._id) {
+                                    rewardEvent.executeProposal = replToPropType._id;
+
+                                    dbconfig.collection_rewardEvent(rewardEvent).save().then(newRewardEvent => {
+                                        oldNewEventObjId[rewardEventId] = String(newRewardEvent._id);
+                                        return newRewardEvent;
+                                    }).catch(errorUtils.reportError);
+                                }
+                            }
+                        );
                         proms.push(prom);
                     });
 
@@ -4951,6 +4974,55 @@ var dbPlatform = {
                 return gameProviderGroupData ? gameProviderGroupData : [];
             }
         );
+    },
+
+    saveFrontEndData: function (platformId, token, page, data) {
+        return dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
+            platformData => {
+                if (platformData && platformData._id) {
+                    let query = {
+                        platform: platformData._id,
+                        page: page
+                    };
+
+                    let updateData = {
+                        platform: platformData._id,
+                        page: page,
+                        data: data
+                    };
+
+                    return dbconfig.collection_frontendData.findOneAndUpdate(query, updateData,  {upsert: true, new: true}).lean();
+
+                } else {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_PARAM,
+                        name: "DataError",
+                        errorMessage: "Cannot find platform"
+                    });
+                }
+            }
+        );
+    },
+
+    getFrontEndData: function (platformId, page) {
+        return dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
+            platformData => {
+                if (platformData && platformData._id) {
+                    return dbconfig.collection_frontendData.findOne({platform: platformData._id, page: page}).lean().then(
+                        frontendData => {
+                            return frontendData && frontendData.data ? frontendData.data : "";
+                        }
+                    );
+                } else {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_PARAM,
+                        name: "DataError",
+                        errorMessage: "Cannot find platform"
+                    });
+                }
+            }
+        )
+
     },
 };
 

@@ -408,7 +408,7 @@ let dbPlayerInfo = {
      * Create a new player user
      * @param {Object} inputData - The data of the player user. Refer to playerInfo schema.
      */
-    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate) {
+    createPlayerInfoAPI: function (inputData, bypassSMSVerify, adminName, adminId, isAutoCreate, connPartnerId) {
         let platformObjId = null;
         let platformPrefix = "";
         let platformObj = null;
@@ -469,6 +469,23 @@ let dbPlayerInfo = {
                         // sms(require)                                => verifySMS -> sms correct / incorrect
                         // sms(not require) && captchaCode (correct)   => return true
                         // sms(not require) && captchaCode (incorrect) => invalid image
+
+                        // check if the create function initiated by a partner -> yes - check captcha only
+                        console.log("yH checking---connPartnerId", connPartnerId)
+                        console.log("yH checking---bypassSMSVerify", bypassSMSVerify)
+                        if (connPartnerId){
+                            if (bypassSMSVerify){
+                                return true;
+                            }
+                            else{
+                                return Promise.reject({
+                                    name: "ValidationError",
+                                    message: "Invalid image captcha"
+                                })
+                            }
+
+                        }
+
                         if (platformObj.requireSMSVerification) {
                             return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode);
                         }
@@ -10934,7 +10951,7 @@ let dbPlayerInfo = {
                                                 });
                                             }
                                             //check if player's credit is correct after update
-                                            if (amountAfterUpdate != newPlayerData.validCredit) {
+                                            if (parseInt(amountAfterUpdate) != parseInt(newPlayerData.validCredit)) {
                                                 console.log("PlayerBonus: Update player credit failed", amountAfterUpdate, newPlayerData.validCredit);
                                                 return Q.reject({
                                                     status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
@@ -13444,6 +13461,7 @@ let dbPlayerInfo = {
     },
 
     applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply) {
+        console.log('Apply reward event', playerId, code);
         data = data || {};
         let isPreview = data.isPreview || false;
         let playerInfo = null;
@@ -13529,7 +13547,8 @@ let dbPlayerInfo = {
                     let curTime = new Date();
                     if ((rewardEvent.validStartTime && curTime.getTime() < rewardEvent.validStartTime.getTime()) ||
                         (rewardEvent.validEndTime && curTime.getTime() > rewardEvent.validEndTime.getTime())) {
-                        return Q.reject({
+                        console.log('RT -- Apply reward failed after top up', rewardEvent);
+                        return Promise.reject({
                             status: constServerCode.REWARD_EVENT_INVALID,
                             name: "DataError",
                             message: "This reward event is not valid anymore"
@@ -16888,7 +16907,7 @@ let dbPlayerInfo = {
                                         _id: playerObjIds[p]
                                     }, 'domain').then(
                                         playerData => {
-                                            return getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime), playerData.domain);
+                                            return getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime), playerData.domain, true);
                                         }
                                     );
                                 } else {

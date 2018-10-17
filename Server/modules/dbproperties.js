@@ -372,6 +372,9 @@ let callOutMissionCalleeModel = dbLogs2.model('callOutMissionCallee', callOutMis
 let clientQnASchema = require('./../schema/logs2/clientQnA');
 let clientQnAModel = dbLogs2.model('clientQnA', clientQnASchema, 'clientQnA');
 
+let frontendDataSchema = require('./../schema/logs2/frontendData');
+let frontendDataModel = dbLogs2.model('frontendData', frontendDataSchema, 'frontendData');
+
 let resetPasswordVerificationSchema = require('./../schema/logs2/resetPasswordVerification');
 let resetPasswordVerificationModel = dbLogs2.model('resetPasswordVerification', resetPasswordVerificationSchema, 'resetPasswordVerification');
 
@@ -411,6 +414,9 @@ let openPromoCodeTemplateModel = dbLogs2.model('openPromoCodeTemplate', openProm
 
 let dxPhoneSchema = require('./../schema/logs2/dxPhone');
 let dxPhoneModel = dbLogs2.model('dxPhone', dxPhoneSchema, 'dxPhone');
+
+let playerConsumptionSlipRewardGroupRecordSchema = require('./../schema/logs2/playerConsumptionSlipRewardGroupRecord');
+let playerConsumptionSlipRewardGroupRecordModel = dbLogs2.model('playerConsumptionSlipRewardGroupRecord', playerConsumptionSlipRewardGroupRecordSchema, 'playerConsumptionSlipRewardGroupRecord');
 
 let actionLogSchema = require('./../schema/logs2/actionLog');
 let actionLogModel = dbLogs2.model('actionLog', actionLogSchema, 'actionLog');
@@ -562,6 +568,7 @@ var dbProperties = {
 
     collection_dxMission: dxMissionModel,
     collection_dxPhone: dxPhoneModel,
+    collection_playerConsumptionSlipRewardGroupRecord: playerConsumptionSlipRewardGroupRecordModel,
 
     collection_largeWithdrawalSetting: largeWithdrawalSettingModel,
     collection_largeWithdrawalPartnerSetting: largeWithdrawalPartnerSettingModel,
@@ -657,6 +664,7 @@ var dbProperties = {
     collection_callOutMissionCallee: callOutMissionCalleeModel,
     collection_tsPhoneList: tsPhoneListModel,
     collection_tsPhone: tsPhoneModel,
+    collection_frontendData: frontendDataModel,
 
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,
