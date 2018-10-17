@@ -23,65 +23,56 @@ var PartnerServiceImplement = function () {
 
     this.register.expectsData = 'name: String, realName: String, platformId: String, password: String';
     this.register.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data.name && data.platformId && data.password /*&& (data.password.length >= constSystemParam.PASSWORD_LENGTH)*/);
-        if (data.smsCode || (conn.captchaCode && (conn.captchaCode == data.captcha))) {
-            data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
-            var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
-            if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-                data.lastLoginIp = forwardedIp[0].trim();
-            }
-            data.loginIps = [data.lastLoginIp];
-            var uaString = conn.upgradeReq.headers['user-agent'];
-            var ua = uaParser(uaString);
-            data.userAgent = [{
-                browser: ua.browser.name || '',
-                device: ua.device.name || '',
-                os: ua.os.name || ''
-            }];
-            var geo = dbUtility.getIpLocationByIPIPDotNet(data.lastLoginIp);
-            if (geo) {
-                data.country = geo.country;
-                data.city = geo.city;
-                data.province = geo.province;
-                data.longitude = geo.ll ? geo.ll[1] : null;
-                data.latitude = geo.ll ? geo.ll[0] : null;
-            }
-            if (data.phoneNumber) {
-                var queryRes = queryPhoneLocation(data.phoneNumber);
-                if (queryRes) {
-                    data.phoneProvince = queryRes.province;
-                    data.phoneCity = queryRes.city;
-                    data.phoneType = queryRes.type;
-                }
-            }
-            let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
-            conn.captchaCode = null;
-            data.partnerName = data.name;
-            WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.createPartnerAPI, [data, byPassSMSCode], isValidData, true, false, true).then(
-                partnerData => {
-                    if (data.phoneNumber){
-                        partnerData.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
-                    }
-                    conn.partnerId = partnerData.partnerId;
-                    conn.partnerObjId = partnerData._id;
-                    var profile = {name: partnerData.name, password: partnerData.password};
-                    var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
-                    wsFunc.response(conn, {
-                        status: constServerCode.SUCCESS,
-                        data: partnerData,
-                        token: token,
-                    }, data);
-                }
-            );
+        var isValidData = Boolean(data.name && data.platformId && data.password && data.phoneNumber /*&& (data.password.length >= constSystemParam.PASSWORD_LENGTH)*/);
+        data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
+        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            data.lastLoginIp = forwardedIp[0].trim();
         }
-        else {
-            conn.captchaCode = null;
-            wsFunc.response(conn, {
-                status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
-                errorMessage: localization.translate("Verification code invalid", conn.lang, conn.platformId),
-                data: null
-            }, data);
+        data.loginIps = [data.lastLoginIp];
+        var uaString = conn.upgradeReq.headers['user-agent'];
+        var ua = uaParser(uaString);
+        data.userAgent = [{
+            browser: ua.browser.name || '',
+            device: ua.device.name || '',
+            os: ua.os.name || ''
+        }];
+        var geo = dbUtility.getIpLocationByIPIPDotNet(data.lastLoginIp);
+        if (geo) {
+            data.country = geo.country;
+            data.city = geo.city;
+            data.province = geo.province;
+            data.longitude = geo.ll ? geo.ll[1] : null;
+            data.latitude = geo.ll ? geo.ll[0] : null;
         }
+        if (data.phoneNumber) {
+            var queryRes = queryPhoneLocation(data.phoneNumber);
+            if (queryRes) {
+                data.phoneProvince = queryRes.province;
+                data.phoneCity = queryRes.city;
+                data.phoneType = queryRes.type;
+            }
+        }
+        let byPassSMSCode = Boolean(conn.captchaCode && (conn.captchaCode == data.captcha));
+        conn.captchaCode = null;
+        data.partnerName = data.name;
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPartner.createPartnerAPI, [data, byPassSMSCode], isValidData, true, false, true).then(
+            partnerData => {
+                if (data.phoneNumber){
+                    partnerData.phoneNumber = dbUtility.encodePhoneNum(data.phoneNumber);
+                }
+                conn.partnerId = partnerData.partnerId;
+                conn.partnerObjId = partnerData._id;
+                var profile = {name: partnerData.name, password: partnerData.password};
+                var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+                wsFunc.response(conn, {
+                    status: constServerCode.SUCCESS,
+                    data: partnerData,
+                    token: token,
+                }, data);
+            }
+        );
+
     };
 
     this.isValidUsername.expectsData = 'name: String, platformId: String';
@@ -544,4 +535,3 @@ var proto = PartnerServiceImplement.prototype = Object.create(PartnerService.pro
 proto.constructor = PartnerServiceImplement;
 
 module.exports = PartnerServiceImplement;
-

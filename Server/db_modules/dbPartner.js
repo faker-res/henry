@@ -68,10 +68,39 @@ let dbPartner = {
                         }
                     }
 
-                    if (!platformData.partnerRequireSMSVerification || bypassSMSVerify || partnerData.parent) {
+                    if(partnerData.phoneNumber && partnerData.phoneNumber.toString().length != 11){
+                        return Q.reject({
+                            name: "DataError",
+                            message: localization.localization.translate("phone number is invalid")
+                        });
+                    }
+
+                    // *** new logic:(based on platform setting)
+                    // sms(require)                                => verifySMS -> sms correct / incorrect
+                    // sms(not require) && captchaCode (correct)   => return true
+                    // sms(not require) && captchaCode (incorrect) => invalid image
+                    if (partnerData.parent) {
+                        return true
+                    }
+                    else if (platformData.partnerRequireSMSVerification) {
+                        // return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode);
+                        return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, platformData, partnerData.smsCode, partnerData.partnerName, true);
+                    }
+                    else if (!platformData.partnerRequireSMSVerification && bypassSMSVerify) {
                         return true;
                     }
-                    return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, platformData, partnerData.smsCode, partnerData.partnerName, true);
+                    else if (!platformData.partnerRequireSMSVerification && !bypassSMSVerify) {
+                        console.log('invalid captcha')
+                        return Q.reject({
+                            status: constServerCode.GENERATE_VALIDATION_CODE_ERROR,
+                            name: "ValidationError",
+                            message: "Invalid image captcha"
+                        });
+                    }
+                    else{
+                        // display if anything out of the scope.
+                        console.log('=mark=debug=', partnerData, platformData.partnerRequireSMSVerification, bypassSMSVerify);
+                    }
                 } else {
                     return Q.reject({name: "DataError", message: "Cannot find platform"});
                 }
@@ -93,6 +122,8 @@ let dbPartner = {
                         return {isPhoneNumberValid: true};
 
                     if(phoneNumber){
+
+
                         if (platformData.partnerAllowSamePhoneNumberToRegister === true) {
                             return dbPartner.isExceedPhoneNumberValidToRegister({
                                 phoneNumber: {$in: [rsaCrypto.encrypt(phoneNumber), rsaCrypto.oldEncrypt(phoneNumber)]},
