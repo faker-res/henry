@@ -4576,7 +4576,10 @@ var dbPlatform = {
             // rewardEvent (ignore provider group setting, fix reward event inter-relationship)
             let oldNewEventObjId = {};
             let copyRewardEventProm = dbconfig.collection_rewardEvent.remove({platform: replicateTo._id}).then(
-                () => dbconfig.collection_rewardEvent.find({platform: replicateFrom._id}).lean()
+                () => dbconfig.collection_rewardEvent.find({platform: replicateFrom._id}).populate({
+                    path: "executeProposal",
+                    model: dbconfig.collection_proposalType
+                }).lean()
             ).then(
                 rewardEvents => {
                     let proms = [];
@@ -4585,10 +4588,21 @@ var dbPlatform = {
                         delete rewardEvent._id;
                         if (rewardEvent.condition) delete rewardEvent.condition.providerGroup;
                         rewardEvent.platform = replicateTo._id;
-                        let prom = dbconfig.collection_rewardEvent(rewardEvent).save().then(newRewardEvent => {
-                            oldNewEventObjId[rewardEventId] = String(newRewardEvent._id);
-                            return newRewardEvent;
-                        }).catch(errorUtils.reportError);
+
+                        let prom = dbconfig.collection_proposalType.findOne({
+                            platformId: replicateTo._id, name: rewardEvent.executeProposal.name
+                        }).lean().then(
+                            replToPropType => {
+                                if (replToPropType && replToPropType._id) {
+                                    rewardEvent.executeProposal = replToPropType._id;
+
+                                    dbconfig.collection_rewardEvent(rewardEvent).save().then(newRewardEvent => {
+                                        oldNewEventObjId[rewardEventId] = String(newRewardEvent._id);
+                                        return newRewardEvent;
+                                    }).catch(errorUtils.reportError);
+                                }
+                            }
+                        );
                         proms.push(prom);
                     });
 
