@@ -13459,6 +13459,7 @@ let dbPlayerInfo = {
     },
 
     applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply) {
+        console.log('Apply reward event', playerId, code);
         data = data || {};
         let isPreview = data.isPreview || false;
         let playerInfo = null;
@@ -13544,7 +13545,8 @@ let dbPlayerInfo = {
                     let curTime = new Date();
                     if ((rewardEvent.validStartTime && curTime.getTime() < rewardEvent.validStartTime.getTime()) ||
                         (rewardEvent.validEndTime && curTime.getTime() > rewardEvent.validEndTime.getTime())) {
-                        return Q.reject({
+                        console.log('RT -- Apply reward failed after top up', rewardEvent);
+                        return Promise.reject({
                             status: constServerCode.REWARD_EVENT_INVALID,
                             name: "DataError",
                             message: "This reward event is not valid anymore"
@@ -16903,7 +16905,7 @@ let dbPlayerInfo = {
                                         _id: playerObjIds[p]
                                     }, 'domain').then(
                                         playerData => {
-                                            return getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime), playerData.domain);
+                                            return getPlayerRecord(playerObjIds[p], new Date(startTime), new Date(endTime), playerData.domain, true);
                                         }
                                     );
                                 } else {

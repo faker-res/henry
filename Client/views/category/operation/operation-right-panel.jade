@@ -467,6 +467,7 @@ style.
 
                 textarea.form-control(ng-if="vm.largeWithdrawalSetting.allowAdminComment" style="margin-top: 12px;" ng-model="vm.largeWithdrawLog.comment" ng-disabled='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")')
             .modal-footer
+                button.btn.btn-warning.common-button(data-dismiss='modal' ng-click="vm.recalculateLargeWithdrawal()" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"Recalculate" | translate}}
                 div(ng-if="vm.isLargeWithdrawalReviewer")
                     // is reviewer
                     button.btn.btn-danger.common-button(data-dismiss='modal' ng-click="vm.auditLargeWithdrawal()" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"Cancel Proposal" | translate}}
