@@ -3855,7 +3855,6 @@ let dbPlayerInfo = {
         }
 
         let player = {};
-        let useProviderGroup = false;
         let platform;
 
         return dbUtility.findOneAndUpdateForShard(
@@ -3897,10 +3896,6 @@ let dbPlayerInfo = {
                                 platformData => {
                                     if (platformData) {
                                         platform = platformData;
-
-                                        if (platformData.useProviderGroup) {
-                                            useProviderGroup = platformData.useProviderGroup;
-                                        }
                                     }
 
                                     return data;
@@ -3977,38 +3972,38 @@ let dbPlayerInfo = {
                 if (data && data[0]) {
                     let topupRecordData = data[0];
                     topupRecordData.topUpRecordId = topupRecordData._id;
-                    // Async - Check reward group task to apply on player top up
-                    dbPlayerReward.checkAvailableRewardGroupTaskToApply(player.platform, player, topupRecordData).catch(errorUtils.reportError);
                     checkLimitedOfferToApply(proposalData, topupRecordData._id);
                     dbConsumptionReturnWithdraw.clearXimaWithdraw(player._id).catch(errorUtils.reportError);
                     dbPlayerInfo.checkPlayerLevelUp(playerId, player.platform).catch(console.log);
 
-                    if (useProviderGroup) {
-                        topupUpdateRTG(player, platform, amount).then(
-                            () => {
-                                if (proposalData && proposalData.data) {
-                                    // Move bonus code and apply top up promo here
-                                    if (proposalData.data.bonusCode) {
-                                        let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3;
-                                        if (isOpenPromoCode) {
-                                            dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode, null, null, proposalData.data.lastLoginIp).catch(errorUtils.reportError);
-                                        }
-                                        else {
-                                            dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
-                                        }
-
+                    topupUpdateRTG(player, platform, amount).then(
+                        () => {
+                            if (proposalData && proposalData.data) {
+                                // Move bonus code and apply top up promo here
+                                if (proposalData.data.bonusCode) {
+                                    let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3;
+                                    if (isOpenPromoCode) {
+                                        dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode, null, null, proposalData.data.lastLoginIp).catch(errorUtils.reportError);
+                                    }
+                                    else {
+                                        dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
                                     }
 
-                                    if (proposalData.data.topUpReturnCode) {
-                                        let requiredData = {topUpRecordId: topupRecordData._id};
-                                        console.log('Apply reward after top up', proposalData.data.playerId, proposalData.data.topUpReturnCode);
-                                        dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
-                                            , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
-                                    }
+                                }
+
+                                if (proposalData.data.topUpReturnCode) {
+                                    let requiredData = {topUpRecordId: topupRecordData._id};
+                                    console.log('Apply reward after top up', proposalData.data.playerId, proposalData.data.topUpReturnCode);
+                                    dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
+                                        , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
+                                } else {
+                                    // Check reward group task to apply on player top up
+                                    // Only happen when no top up return reward selected during top up
+                                    dbPlayerReward.checkAvailableRewardGroupTaskToApply(player.platform, player, topupRecordData).catch(errorUtils.reportError);
                                 }
                             }
-                        );
-                    }
+                        }
+                    );
 
                     //check and set promo code autoFeedbackMissionTopUp to true;
                     dbconfig.collection_promoCode.aggregate([
