@@ -4194,6 +4194,13 @@ table.simple-table.platformFrontEndDisplayTable tbody td {
 .playerCredibilityBlacklistIpDetailTable > tbody > tr > td {
     color: black;
 }
+
+.frontendConfigurationNoPadding {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
 .navbar-right {
     padding-right: 10px !important;
 }
