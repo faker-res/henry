@@ -35,6 +35,7 @@ const constRewardType = {
     PLAYER_LOSE_RETURN_REWARD_GROUP: "PlayerLoseReturnRewardGroup",
     PLAYER_EARLY_POINT_CONVERSION: "PlayerEarlyPointConversion",
     PLAYER_PERIOD_POINT_CONVERSION: "PlayerPeriodPointConversion",
+    PLAYER_CONSUMPTION_SLIP_REWARD_GROUP: "PlayerConsumptionSlipRewardGroup",
 
 };
 

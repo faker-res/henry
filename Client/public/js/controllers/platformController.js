@@ -6169,7 +6169,7 @@ define(['js/app'], function (myApp) {
                     columnDefs: [
                         {targets: '_all', defaultContent: ' '}
                     ],
-                    "order": vm.playerTableQuery.aaSorting || [[8, 'desc']],
+                    "order": vm.playerTableQuery.aaSorting || [[9, 'desc']], // sort by lastAccessTime
                     columns: [
                         // {title: $translate('PLAYER_ID'), data: "playerId", advSearch: true},
                         {
@@ -20538,6 +20538,13 @@ define(['js/app'], function (myApp) {
                                     }
                                 });
 
+                                if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerConsumptionSlipRewardGroup' && el == "applyType"
+                                && vm.rewardMainCondition[cond.index] && vm.rewardMainCondition[cond.index].options) {
+                                    //this reward group does not provide second selection
+                                    vm.rewardMainCondition[cond.index].options[2] = undefined;
+                                    vm.rewardMainCondition[cond.index].options = JSON.parse(JSON.stringify(vm.rewardMainCondition[cond.index].options));
+                                }
+
                             })
                         });
 
@@ -20555,6 +20562,20 @@ define(['js/app'], function (myApp) {
                                 // Get multi step reward flag
                                 if (el == "isMultiStepReward" && vm.showReward && vm.showReward.param && vm.showReward.param[el] === true) {
                                     vm.isMultiStepReward = true;
+                                }
+
+                                if (el == "consumptionSlipProviderSource") {
+                                    console.log('xx');
+                                    let gameProviders = {};
+                                    if (vm.allGameProviders) {
+                                        for (let i = 0; i < vm.allGameProviders.length; i++) {
+                                            let provider = vm.allGameProviders[i];
+                                            gameProviders[provider._id] = provider.name;
+                                        }
+console.log('typeof ',typeof gameProviders);
+                                        vm.rewardMainParam[el].options = {};
+                                        vm.rewardMainParam[el].options = gameProviders;
+                                    }
                                 }
                             });
 
@@ -21492,6 +21513,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.editReward = function (i) {
+                let isValid = true;
                 console.log('vm.showReward', vm.showReward);
 
                 if (vm.showReward && vm.showReward.type && vm.showReward.type.name
@@ -21566,6 +21588,15 @@ define(['js/app'], function (myApp) {
 
                     // Set param table
                     Object.keys(vm.rewardMainParamTable).forEach((e, idx) => {
+                        if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerConsumptionSlipRewardGroup'
+                            && vm.rewardMainParamTable[e] && vm.rewardMainParamTable[e].value && vm.rewardMainParamTable[e].value.length > 0) {
+                            vm.rewardMainParamTable[e].value.forEach(el => {
+                                if (Object.keys(el) && Object.keys(el).length > 0 && (!el.minConsumptionAmount || !el.rewardAmount)) {
+                                    isValid = false;
+                                }
+                            })
+                        }
+
                         let levelParam = {
                             levelId: vm.allPlayerLvl[idx]._id,
                             value: vm.rewardMainParamTable[e].value
@@ -21594,15 +21625,21 @@ define(['js/app'], function (myApp) {
                 };
 
                 console.log('editReward sendData', sendData);
-
-                socketService.$socket($scope.AppSocket, 'updateRewardEvent', sendData, function (data) {
-                    vm.rewardTabClicked();
-                    vm.platformRewardPageName = 'showReward';
-                    console.log('ok');
-                }, function (data) {
-                    console.log("created not", data);
-                    vm.rewardTabClicked();
-                });
+                if (isValid) {
+                    socketService.$socket($scope.AppSocket, 'updateRewardEvent', sendData, function (data) {
+                        vm.rewardTabClicked();
+                        vm.platformRewardPageName = 'showReward';
+                        console.log('ok');
+                    }, function (data) {
+                        console.log("created not", data);
+                        vm.rewardTabClicked();
+                    });
+                } else {
+                    socketService.showErrorMessage($translate('Min Consumption Amount, Reward Amount is required'));
+                    $scope.$evalAsync(() => {
+                        vm.disableAllRewardInput(false);
+                    });
+                }
             }
             vm.deleteReward = function (data) {
                 console.log('vm.showReward', vm.showReward);
@@ -21618,6 +21655,7 @@ define(['js/app'], function (myApp) {
                 });
             }
             vm.submitReward = function () {
+                let isValid = true;
                 let sendData = {
                     platform: vm.selectedPlatform.id,
                     type: vm.showRewardTypeData._id,
@@ -21673,6 +21711,15 @@ define(['js/app'], function (myApp) {
 
                     // Set param table
                     Object.keys(vm.rewardMainParamTable).forEach((e, idx) => {
+                        if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerConsumptionSlipRewardGroup'
+                            && vm.rewardMainParamTable[e] && vm.rewardMainParamTable[e].value && vm.rewardMainParamTable[e].value.length > 0) {
+                            vm.rewardMainParamTable[e].value.forEach(el => {
+                                if (Object.keys(el) && Object.keys(el).length > 0 && (!el.minConsumptionAmount || !el.rewardAmount)) {
+                                    isValid = false;
+                                }
+                            })
+                        }
+
                         let levelParam = {
                             levelId: vm.allPlayerLvl[idx]._id,
                             value: vm.rewardMainParamTable[e].value
@@ -21714,15 +21761,20 @@ define(['js/app'], function (myApp) {
                 console.log('vm.rewardMainCondition', vm.rewardMainCondition);
                 console.log("newReward", sendData);
                 console.log("newReward2", vm.showReward.validStartTime);
-                socketService.$socket($scope.AppSocket, 'createRewardEvent', sendData, function (data) {
-                    //vm.allGameProvider = data.data;
-                    vm.rewardTabClicked();
-                    vm.rewardEventClicked(0, data.data);
-                    vm.platformRewardPageName = 'showReward';
-                    $scope.safeApply();
-                }, function (data) {
-                    console.log("created not", data);
-                });
+                console.log("isValid", vm.isValid);
+                if (isValid) {
+                    socketService.$socket($scope.AppSocket, 'createRewardEvent', sendData, function (data) {
+                        //vm.allGameProvider = data.data;
+                        vm.rewardTabClicked();
+                        vm.rewardEventClicked(0, data.data);
+                        vm.platformRewardPageName = 'showReward';
+                        $scope.safeApply();
+                    }, function (data) {
+                        console.log("created not", data);
+                    });
+                } else  {
+                    socketService.showErrorMessage($translate('Min Consumption Amount, Reward Amount is required'));
+                }
             };
 
             // platform-reward end =============================================================================
