@@ -3855,7 +3855,6 @@ let dbPlayerInfo = {
         }
 
         let player = {};
-        let useProviderGroup = false;
         let platform;
 
         return dbUtility.findOneAndUpdateForShard(
@@ -3897,10 +3896,6 @@ let dbPlayerInfo = {
                                 platformData => {
                                     if (platformData) {
                                         platform = platformData;
-
-                                        if (platformData.useProviderGroup) {
-                                            useProviderGroup = platformData.useProviderGroup;
-                                        }
                                     }
 
                                     return data;
@@ -3977,38 +3972,38 @@ let dbPlayerInfo = {
                 if (data && data[0]) {
                     let topupRecordData = data[0];
                     topupRecordData.topUpRecordId = topupRecordData._id;
-                    // Async - Check reward group task to apply on player top up
-                    dbPlayerReward.checkAvailableRewardGroupTaskToApply(player.platform, player, topupRecordData).catch(errorUtils.reportError);
                     checkLimitedOfferToApply(proposalData, topupRecordData._id);
                     dbConsumptionReturnWithdraw.clearXimaWithdraw(player._id).catch(errorUtils.reportError);
                     dbPlayerInfo.checkPlayerLevelUp(playerId, player.platform).catch(console.log);
 
-                    if (useProviderGroup) {
-                        topupUpdateRTG(player, platform, amount).then(
-                            () => {
-                                if (proposalData && proposalData.data) {
-                                    // Move bonus code and apply top up promo here
-                                    if (proposalData.data.bonusCode) {
-                                        let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3;
-                                        if (isOpenPromoCode) {
-                                            dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode, null, null, proposalData.data.lastLoginIp).catch(errorUtils.reportError);
-                                        }
-                                        else {
-                                            dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
-                                        }
-
+                    topupUpdateRTG(player, platform, amount).then(
+                        () => {
+                            if (proposalData && proposalData.data) {
+                                // Move bonus code and apply top up promo here
+                                if (proposalData.data.bonusCode) {
+                                    let isOpenPromoCode = proposalData.data.bonusCode.toString().length == 3;
+                                    if (isOpenPromoCode) {
+                                        dbPlayerReward.applyOpenPromoCode(proposalData.data.playerId, proposalData.data.bonusCode, null, null, proposalData.data.lastLoginIp).catch(errorUtils.reportError);
+                                    }
+                                    else {
+                                        dbPlayerReward.applyPromoCode(proposalData.data.playerId, proposalData.data.bonusCode).catch(errorUtils.reportError);
                                     }
 
-                                    if (proposalData.data.topUpReturnCode) {
-                                        let requiredData = {topUpRecordId: topupRecordData._id};
-                                        console.log('Apply reward after top up', proposalData.data.playerId, proposalData.data.topUpReturnCode);
-                                        dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
-                                            , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
-                                    }
+                                }
+
+                                if (proposalData.data.topUpReturnCode) {
+                                    let requiredData = {topUpRecordId: topupRecordData._id};
+                                    console.log('Apply reward after top up', proposalData.data.playerId, proposalData.data.topUpReturnCode);
+                                    dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
+                                        , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
+                                } else {
+                                    // Check reward group task to apply on player top up
+                                    // Only happen when no top up return reward selected during top up
+                                    dbPlayerReward.checkAvailableRewardGroupTaskToApply(player.platform, player, topupRecordData).catch(errorUtils.reportError);
                                 }
                             }
-                        );
-                    }
+                        }
+                    );
 
                     //check and set promo code autoFeedbackMissionTopUp to true;
                     dbconfig.collection_promoCode.aggregate([
@@ -14982,6 +14977,8 @@ let dbPlayerInfo = {
             consumptionBonusAmount: 0,
             profit: 0,
             consumptionAmount: 0,
+            totalPlatformFeeEstimate: 0,
+            totalOnlineTopUpFee: 0,
         };
 
         if (query.name) {
@@ -15162,6 +15159,10 @@ let dbPlayerInfo = {
                     resultSum.consumptionBonusAmount += result[z].consumptionBonusAmount;
                     // resultSum.profit += (result[z].consumptionBonusAmount / result[z].validConsumptionAmount * -100).toFixed(2) / 1;
                     resultSum.consumptionAmount += result[z].consumptionAmount;
+                    if (result[z].totalPlatformFeeEstimate) {
+                        resultSum.totalPlatformFeeEstimate += result[z].totalPlatformFeeEstimate;
+                    }
+                    resultSum.totalOnlineTopUpFee += result[z].totalOnlineTopUpFee;
                 }
                 resultSum.profit += (resultSum.consumptionBonusAmount / resultSum.validConsumptionAmount * -100).toFixed(2) / 1;
 
@@ -17469,8 +17470,10 @@ let dbPlayerInfo = {
                         for (let i = 0, len = onlineTopUpDetailByMerchant.length; i < len; i++) {
                             let onlineTopUpDetail = onlineTopUpDetailByMerchant[i];
 
-                            if (onlineTopUpDetail && onlineTopUpDetail.merchantNo && onlineTopUpDetail.merchantName) {
-                                let index = merchantList.findIndex(x => x && x.merchantNo && x.name && x.merchantNo == onlineTopUpDetail.merchantNo && x.name == onlineTopUpDetail.merchantName);
+                            if (onlineTopUpDetail && onlineTopUpDetail.hasOwnProperty('merchantNo') && onlineTopUpDetail.merchantNo
+                                && onlineTopUpDetail.hasOwnProperty('merchantName') && onlineTopUpDetail.merchantName) {
+                                let index = merchantList.findIndex(x => x && x.hasOwnProperty('merchantNo') && x.hasOwnProperty('name') && x.merchantNo && x.name && (x.merchantNo == onlineTopUpDetail.merchantNo) && (x.name == onlineTopUpDetail.merchantName));
+
                                 let onlineTopUpAmount = onlineTopUpDetail && onlineTopUpDetail.amount ? onlineTopUpDetail.amount : 0;
                                 let rate = 0;
                                 let onlineTopUpFee = 0;
@@ -17490,7 +17493,7 @@ let dbPlayerInfo = {
                             }
                         }
 
-                        totalOnlineTopUpFee = onlineTopUpDetailByMerchant.reduce((sum, value) => sum + value.onlineToUpFee, 0);
+                        totalOnlineTopUpFee = onlineTopUpDetailByMerchant.reduce((sum, value) => sum + (value.hasOwnProperty('onlineToUpFee') && value.onlineToUpFee ? value.onlineToUpFee : 0), 0);
                     }
 
                     result.onlineTopUpFeeDetail = onlineTopUpDetailByMerchant && onlineTopUpDetailByMerchant.length > 0 ? onlineTopUpDetailByMerchant : [];

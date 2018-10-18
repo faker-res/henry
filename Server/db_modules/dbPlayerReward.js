@@ -6413,17 +6413,22 @@ let dbPlayerReward = {
                         platform: platformObjId,
                         type: {$in: rewardTypes.map(e => e._id)},
                         "condition.applyType": constRewardApplyType.AUTO_APPLY,
+                        validStartTime: {$lte: new Date()},
+                        validEndTime: {$gt: new Date()}
                     }).lean();
                 }
             }
         ).then(
             rewardEvents => {
                 if (rewardEvents && rewardEvents.length > 0 && playerObj && playerObj.playerId && data) {
+                    let p = Promise.resolve();
                     rewardEvents.forEach(event => {
                         if (event && event.code) {
-                            dbPlayerInfo.applyRewardEvent(null, playerObj.playerId, event.code, data).catch(errorUtils.reportError);
+                            p = p.then(() => dbPlayerInfo.applyRewardEvent(null, playerObj.playerId, event.code, data))
                         }
                     });
+
+                    return p;
                 }
             }
         )
