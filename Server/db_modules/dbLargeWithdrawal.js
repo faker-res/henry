@@ -253,7 +253,11 @@ const dbLargeWithdrawal = {
                     }
                 };
 
-                return dbconfig.collection_largeWithdrawalLog.findOneAndUpdate({_id: largeWithdrawalLogObjId}, updateObj, {new: true}).lean();
+                return dbconfig.collection_largeWithdrawalLog.findOneAndUpdate({_id: largeWithdrawalLogObjId}, updateObj, {new: true}).lean().catch(err => {
+                    // debug use
+                    console.log("fill up failure", largeWithdrawalLogObjId, updateObj);
+                    return Promise.reject(err);
+                });
             }
         );
     },
