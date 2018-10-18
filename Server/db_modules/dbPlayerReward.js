@@ -6436,7 +6436,41 @@ let dbPlayerReward = {
 
     checkConsumptionSlipRewardGroup: function (playerData, consumptionRecord) {
 
-        let rewardEventProm = [];
+        // check zor the consumptionSlipRewardEvent
+        return dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP}).then(
+            rewardType => {
+                if (!rewardType){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "reward type is not found"
+                    })
+                }
+                // if there is more than one rewardEvent with the same rewardEvent type
+                return dbConfig.collection_rewardEvent.find({platform: playerData.platform, type: rewardType._id})
+            }
+        ).then(
+            rewardEvent => {
+
+                console.log("yH checking---rewardEvent.length", rewardEvent.length)
+                // check if more than one of the rewardEvent with the same type
+                if(rewardEvent && rewardEvent.length){
+                    rewardEvent.forEach(
+                        reward => {
+                            if(reward){
+                                checkAvailableConsumptionRecord(reward, consumptionRecord, playerData);
+                            }
+                        }
+                    )
+                }
+                else{
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "reward event is not found"
+                    })
+                }
+
+            }
+        )
 
         function checkRequirementMatched (consumptionRecord, endingDigit, refBonusRatio, refMinConsumption, refGameProvider){
             let isEndingDigitMatched = false;
@@ -6554,42 +6588,6 @@ let dbPlayerReward = {
             }
             return Promise.all(newRecordProm);
         }
-
-        // check for the consumptionSlipRewardEvent
-        return dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP}).then(
-            rewardType => {
-                if (!rewardType){
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "reward type is not found"
-                    })
-                }
-                // if there is more than one rewardEvent with the same rewardEvent type
-                return dbConfig.collection_rewardEvent.find({platform: playerData.platform, type: rewardType._id})
-            }
-        ).then(
-            rewardEvent => {
-
-                console.log("yH checking---rewardEvent.length", rewardEvent.length)
-                // check if more than one of the rewardEvent with the same type
-                if(rewardEvent && rewardEvent.length){
-                    rewardEvent.forEach(
-                        reward => {
-                            if(reward){
-                                checkAvailableConsumptionRecord(reward, consumptionRecord, playerData);
-                            }
-                        }
-                    )
-                }
-                else{
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "reward event is not found"
-                    })
-                }
-
-            }
-        )
     },
 
     markPromoCodeAsViewed: function (playerId, promoCode) {
