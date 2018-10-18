@@ -17503,13 +17503,14 @@ let dbPlayerInfo = {
                                     feeData.platformFee.forEach(provider => {
                                         if (provider.gameProvider && provider.gameProvider._id && result.providerDetail.hasOwnProperty(String(provider.gameProvider._id))) {
                                             let gameProviderName = String(provider.gameProvider.name);
-                                            result.platformFeeEstimate[gameProviderName] = (result.providerDetail[String(provider.gameProvider._id)].bonusAmount * -1) * provider.feeRate;
+                                            result.platformFeeEstimate[gameProviderName] = ((result.providerDetail[String(provider.gameProvider._id)].bonusAmount * -1) * provider.feeRate).toFixed(2);
                                             if (result.platformFeeEstimate[gameProviderName] < 0) {
                                                 result.platformFeeEstimate[gameProviderName] = 0;
                                             }
                                             result.totalPlatformFeeEstimate += result.platformFeeEstimate[gameProviderName];
                                         }
                                     })
+                                    result.totalPlatformFeeEstimate = result.totalPlatformFeeEstimate.toFixed(2)
                                 }
                                 return result;
                             }
