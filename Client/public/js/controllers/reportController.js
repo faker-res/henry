@@ -3082,7 +3082,7 @@ define(['js/app'], function (myApp) {
                         }
                         item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
 
-                        if (item.totalPlatformFeeEstimate) {
+                        if (item.hasOwnProperty("totalPlatformFeeEstimate")) {
                             item.totalPlatformFeeEstimate$ = item.totalPlatformFeeEstimate.toFixed(2);
                         }
 
@@ -3733,7 +3733,7 @@ define(['js/app'], function (myApp) {
                     }
                     item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
 
-                    if (item.totalPlatformFeeEstimate) {
+                    if (item.hasOwnProperty("totalPlatformFeeEstimate")) {
                         item.totalPlatformFeeEstimate$ = item.totalPlatformFeeEstimate.toFixed(2);
                     }
 
@@ -4610,7 +4610,7 @@ define(['js/app'], function (myApp) {
                     }
                     item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
 
-                    if (item.totalPlatformFeeEstimate) {
+                    if (item.hasOwnProperty("totalPlatformFeeEstimate")) {
                         item.totalPlatformFeeEstimate$ = item.totalPlatformFeeEstimate.toFixed(2);
                     }
 
