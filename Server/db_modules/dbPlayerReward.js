@@ -6429,6 +6429,164 @@ let dbPlayerReward = {
         )
     },
 
+    checkConsumptionSlipRewardGroup: function (playerData, consumptionRecord) {
+
+        let rewardEventProm = [];
+
+        function checkRequirementMatched (consumptionRecord, endingDigit, refBonusRatio, refMinConsumption, refGameProvider){
+            let isEndingDigitMatched = false;
+            let isBonusRatioMatched = false;
+            let isMinConsumptionMatched = false;
+            let isGameProviderMatched = false;
+
+            let bonusAmount = consumptionRecord.bonusAmount || 0;
+            let amount = consumptionRecord.amount || 0;
+
+            // check if the orderNo ending digits are matched
+            if (!endingDigit || (endingDigit && consumptionRecord.orderNo.toString().endsWith(endingDigit.toString()))){
+                isEndingDigitMatched = true;
+            }
+
+            // check the bonus ratio matched with the application requirement
+            let checkBonusRatio = 0;
+
+            if (bonusAmount && amount){
+                checkBonusRatio = bonusAmount/amount;
+            }
+
+            if(!refBonusRatio || checkBonusRatio >= refBonusRatio){
+                isBonusRatioMatched = true;
+            }
+
+            // check if amount matched with the application requirement
+            if (amount >= refMinConsumption){
+                isMinConsumptionMatched = true;
+            }
+
+            // check if gameProvider matched with the application requirement
+            let index = null;
+            if (refGameProvider.length){
+                index = refGameProvider.indexOf(consumptionRecord.providerId.toString())
+            }
+
+            if (!refGameProvider.length || index != -1){
+                isGameProviderMatched = true;
+            }
+
+            return (isEndingDigitMatched && isBonusRatioMatched && isMinConsumptionMatched && isGameProviderMatched)
+
+        };
+
+        // function to check if the consumption record is valid for the application
+        function checkAvailableConsumptionRecord(rewardEvent, consumptionRecord, playerData) {
+
+            let newRecordProm = [];
+            let paramOfLevel = null;
+
+            // 1st, getting rewardParamLevel
+            if (rewardEvent.condition.isPlayerLevelDiff) {
+                let rewardParam = rewardEvent.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel));
+                if (rewardParam && rewardParam[0] && rewardParam[0].value) {
+                    paramOfLevel = rewardParam[0].value.reverse();
+                }
+            }
+            else{
+                paramOfLevel = rewardEvent.param.rewardParam[0].value.reverse();
+            }
+
+            console.log("yH checking--- paramOfLevel", paramOfLevel)
+            //2nd, fit the consumption record into each rewardParamLevel, if match the condition -> save into the recordDB
+            if (paramOfLevel && paramOfLevel.length){
+
+                for (let i=0; i < paramOfLevel.length; i ++){
+                    let eachLevel = paramOfLevel[i];
+                    console.log("yH checking---eachLevel", eachLevel)
+                    let bonusRatio = eachLevel && eachLevel.hasOwnProperty('bonusRatio') ? eachLevel.bonusRatio : 0;
+                    let consumptionSlipEndingDigit = eachLevel && eachLevel.hasOwnProperty('consumptionSlipEndingDigit') ? eachLevel.consumptionSlipEndingDigit : null;
+                    if (eachLevel.consumptionSlipEndingDigit == ""){
+                        eachLevel.consumptionSlipEndingDigit = null;
+                    }
+                    let minConsumptionAmount = eachLevel && eachLevel.hasOwnProperty('minConsumptionAmount') ? eachLevel.minConsumptionAmount : 0;
+                    let spendingTimes = eachLevel && eachLevel.hasOwnProperty('spendingTimes') ? eachLevel.spendingTimes : 1;
+                    let maxRewardAmountInSingleReward = eachLevel && eachLevel.hasOwnProperty('maxRewardAmountInSingleReward') ? eachLevel.maxRewardAmountInSingleReward : 0;
+                    let topUpAmount = eachLevel && eachLevel.hasOwnProperty('topUpAmount') ? eachLevel.topUpAmount : 0;
+                    let gameProvider = rewardEvent.condition && rewardEvent.condition.consumptionSlipProviderSource ? rewardEvent.condition.consumptionSlipProviderSource : [];
+                    let rewardMultiplier = eachLevel && eachLevel.hasOwnProperty('rewardAmount') ? eachLevel.rewardAmount : 1;
+
+                    if (consumptionRecord && consumptionRecord.orderNo){
+
+                        let isMatched = checkRequirementMatched (consumptionRecord, consumptionSlipEndingDigit, bonusRatio, minConsumptionAmount, gameProvider);
+                        if (isMatched){
+
+                            let rewardAmount = (consumptionRecord.amount || 0)* rewardMultiplier;
+                            let record = {
+                                rewardEventObjId: rewardEvent._id,
+                                platformObjId: playerData.platform,
+                                playerObjId: playerData._id,
+                                consumptionSlipNo: consumptionRecord.orderNo,
+                                bonusAmount: consumptionRecord.bonusAmount || 0,
+                                consumptionAmount: consumptionRecord.amount || 0,
+                                bonusRatio: bonusRatio,
+                                requiredTopUpAmount: topUpAmount,
+                                requiredConsumption: minConsumptionAmount,
+                                consumptionCreateTime: consumptionRecord.createTime,
+                                rewardMultiplier: rewardMultiplier,
+                                rewardAmount: (maxRewardAmountInSingleReward && rewardAmount >= maxRewardAmountInSingleReward ) ? maxRewardAmountInSingleReward: rewardAmount,
+                                consumptionRecordObjId: consumptionRecord._id,
+                                gameProvider: consumptionRecord.providerId,
+                                spendingTimes: spendingTimes,
+                                maxRewardAmount: maxRewardAmountInSingleReward,
+
+                            };
+
+                            let newRecord = new dbConfig.collection_playerConsumptionSlipRewardGroupRecord(record);
+
+                            newRecordProm.push(newRecord.save());
+                            break;
+                        }
+                    }
+                }
+            }
+            return Promise.all(newRecordProm);
+        }
+
+        // check for the consumptionSlipRewardEvent
+        return dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP}).then(
+            rewardType => {
+                if (!rewardType){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "reward type is not found"
+                    })
+                }
+                // if there is more than one rewardEvent with the same rewardEvent type
+                return dbConfig.collection_rewardEvent.find({platform: playerData.platform, type: rewardType._id})
+            }
+        ).then(
+            rewardEvent => {
+
+                console.log("yH checking---rewardEvent.length", rewardEvent.length)
+                // check if more than one of the rewardEvent with the same type
+                if(rewardEvent && rewardEvent.length){
+                    rewardEvent.forEach(
+                        reward => {
+                            if(reward){
+                                checkAvailableConsumptionRecord(reward, consumptionRecord, playerData);
+                            }
+                        }
+                    )
+                }
+                else{
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "reward event is not found"
+                    })
+                }
+
+            }
+        )
+    },
+
     markPromoCodeAsViewed: function (playerId, promoCode) {
         return dbConfig.collection_players.findOne({playerId: playerId}, {platform: 1}).lean().then(
             playerData => {

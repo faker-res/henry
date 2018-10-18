@@ -634,6 +634,9 @@ var dbPlayerConsumptionRecord = {
             () => {
                 if (playerData) {
                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, {}).catch(errorUtils.reportError);
+                    // check for the consumptionSlip rewardEvent
+                    dbPlayerReward.checkConsumptionSlipRewardGroup(playerData, record).catch(errorUtils.reportError);
+
 
                 }
                 if (record) {
