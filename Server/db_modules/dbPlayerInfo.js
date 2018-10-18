@@ -17470,8 +17470,10 @@ let dbPlayerInfo = {
                         for (let i = 0, len = onlineTopUpDetailByMerchant.length; i < len; i++) {
                             let onlineTopUpDetail = onlineTopUpDetailByMerchant[i];
 
-                            if (onlineTopUpDetail && onlineTopUpDetail.merchantNo && onlineTopUpDetail.merchantName) {
-                                let index = merchantList.findIndex(x => x && x.merchantNo && x.name && x.merchantNo == onlineTopUpDetail.merchantNo && x.name == onlineTopUpDetail.merchantName);
+                            if (onlineTopUpDetail && onlineTopUpDetail.hasOwnProperty('merchantNo') && onlineTopUpDetail.merchantNo
+                                && onlineTopUpDetail.hasOwnProperty('merchantName') && onlineTopUpDetail.merchantName) {
+                                let index = merchantList.findIndex(x => x && x.hasOwnProperty('merchantNo') && x.hasOwnProperty('name') && x.merchantNo && x.name && (x.merchantNo == onlineTopUpDetail.merchantNo) && (x.name == onlineTopUpDetail.merchantName));
+
                                 let onlineTopUpAmount = onlineTopUpDetail && onlineTopUpDetail.amount ? onlineTopUpDetail.amount : 0;
                                 let rate = 0;
                                 let onlineTopUpFee = 0;
@@ -17491,7 +17493,7 @@ let dbPlayerInfo = {
                             }
                         }
 
-                        totalOnlineTopUpFee = onlineTopUpDetailByMerchant.reduce((sum, value) => sum + value.onlineToUpFee, 0);
+                        totalOnlineTopUpFee = onlineTopUpDetailByMerchant.reduce((sum, value) => sum + (value.hasOwnProperty('onlineToUpFee') && value.onlineToUpFee ? value.onlineToUpFee : 0), 0);
                     }
 
                     result.onlineTopUpFeeDetail = onlineTopUpDetailByMerchant && onlineTopUpDetailByMerchant.length > 0 ? onlineTopUpDetailByMerchant : [];
