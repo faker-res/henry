@@ -20541,8 +20541,10 @@ define(['js/app'], function (myApp) {
                                 if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerConsumptionSlipRewardGroup' && el == "applyType"
                                 && vm.rewardMainCondition[cond.index] && vm.rewardMainCondition[cond.index].options) {
                                     //this reward group does not provide second selection
-                                    vm.rewardMainCondition[cond.index].options[2] = undefined;
-                                    vm.rewardMainCondition[cond.index].options = JSON.parse(JSON.stringify(vm.rewardMainCondition[cond.index].options));
+                                    let tempApplyType = JSON.parse(JSON.stringify(vm.rewardMainCondition[cond.index].options));
+                                    tempApplyType[2] = undefined;
+
+                                    vm.rewardMainCondition[cond.index].options = JSON.parse(JSON.stringify(tempApplyType));
                                 }
 
                             })
