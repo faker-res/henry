@@ -83,7 +83,6 @@ let dbPartner = {
                         return true
                     }
                     else if (platformData.partnerRequireSMSVerification) {
-                        // return dbPlayerMail.verifySMSValidationCode(inputData.phoneNumber, platformData, inputData.smsCode);
                         return dbPlayerMail.verifySMSValidationCode(partnerData.phoneNumber, platformData, partnerData.smsCode, partnerData.partnerName, true);
                     }
                     else if (!platformData.partnerRequireSMSVerification && bypassSMSVerify) {
