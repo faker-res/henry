@@ -4700,7 +4700,7 @@ define(['js/app'], function (myApp) {
                                 .attr('data-row', JSON.stringify(row))
                                 .text((data))
                                 .prop('outerHTML');
-                        }
+                        }, "sClass": "sumFloat"
                     },
                     {
                         title: $translate("Online Top Up Fee"), data: "totalOnlineTopUpFee$",
