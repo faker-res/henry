@@ -14926,6 +14926,8 @@ let dbPlayerInfo = {
             consumptionBonusAmount: 0,
             profit: 0,
             consumptionAmount: 0,
+            totalPlatformFeeEstimate: 0,
+            totalOnlineTopUpFee: 0,
         };
 
         if (query.name) {
@@ -15106,6 +15108,10 @@ let dbPlayerInfo = {
                     resultSum.consumptionBonusAmount += result[z].consumptionBonusAmount;
                     // resultSum.profit += (result[z].consumptionBonusAmount / result[z].validConsumptionAmount * -100).toFixed(2) / 1;
                     resultSum.consumptionAmount += result[z].consumptionAmount;
+                    if (result[z].totalPlatformFeeEstimate) {
+                        resultSum.totalPlatformFeeEstimate += result[z].totalPlatformFeeEstimate;
+                    }
+                    resultSum.totalOnlineTopUpFee += result[z].totalOnlineTopUpFee;
                 }
                 resultSum.profit += (resultSum.consumptionBonusAmount / resultSum.validConsumptionAmount * -100).toFixed(2) / 1;
 
@@ -17480,11 +17486,9 @@ let dbPlayerInfo = {
                                                 result.platformFeeEstimate[gameProviderName] = 0;
                                             }
                                             result.totalPlatformFeeEstimate += result.platformFeeEstimate[gameProviderName];
-                                            result.platformFeeEstimate[gameProviderName] = result.platformFeeEstimate[gameProviderName].toFixed(2);
                                         }
                                     })
                                 }
-                                result.totalPlatformFeeEstimate = result.totalPlatformFeeEstimate.toFixed(2)
                                 return result;
                             }
                         )
