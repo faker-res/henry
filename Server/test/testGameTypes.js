@@ -14,7 +14,7 @@ const testGameTypes = { CASUAL: "1", CARD: "2", SPORTS: "3" };
 // So let's load the real gametypes from the DB and fix the values above, as soon as possible.
 // This means testGameTypes might be incorrect for a few seconds, while the real types load from the DB.
 // But for now, that is easier than refactoring!  :-p
-dbGameType.getGameTypeList().sort('gameTypeId').then(
+dbGameType.getGameTypeList().then(
     allGameTypes => {
         const realGameTypes = {};
         allGameTypes.forEach(gameType => {

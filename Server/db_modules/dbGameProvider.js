@@ -34,7 +34,7 @@ var dbGameProvider = {
      * Get the information of all the gameProviders
      */
     getAllGameProviders: function () {
-        return dbconfig.collection_gameProvider.find().exec();
+        return dbconfig.collection_gameProvider.find({name: {$exists: true}}).sort({name: 1}).exec();
     },
 
     /**
