@@ -154,7 +154,7 @@
                                 .fa.fa-file-text-o.margin-right-5
                                 text.span {{"FrontendConfiguration" | translate}}
 
-                .panel-body.common-right-panel-body
+                .panel-body.common-right-panel-body(style="position: relative;")
                     div.tab-content
                         #Game.tab-pane.fade
                             include ./platform-game
@@ -206,7 +206,7 @@
                             include ./platform-platform-setting
                         #externalUserInfo.tab-pane.fade
                             include ./platform-externalUserInfo
-                        #frontendConfiguration.tab-pane.fade
+                        #frontendConfiguration.tab-pane.fade.frontendConfigurationNoPadding
                             iframe(ng-src="{{vm.frontendConfigurationUrl}}", width="100%", height="680px", frameborder="0")
 
                             //ui-view

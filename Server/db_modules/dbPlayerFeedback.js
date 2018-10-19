@@ -531,7 +531,7 @@ var dbPlayerFeedback = {
         let playerResult;
         let player = dbconfig.collection_players.find(query).skip(index).limit(1)
             .populate({path: "partner", model: dbconfig.collection_partner})
-            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean().then(
+            .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).sort({lastAccessTime: -1}).lean().then(
                 player => {
                     if(player && player.length > 0) {
                         playerResult = player[0];
