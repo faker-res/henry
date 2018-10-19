@@ -516,7 +516,11 @@ const dbRewardTask = {
                         }
                         item.data.topUpAmount= 0;
                         if (item.data) {
-                            item.data.topUpAmount = item.data.topUpRecordId && item.data.applyAmount ? item.data.applyAmount:item.data.amount? item.data.amount : 0;
+                            if(typeof item.data.actualAmountReceived != "undefined"){
+                                item.data.topUpAmount = item.data.actualAmountReceived;
+                            }else{
+                                item.data.topUpAmount = item.data.topUpRecordId && item.data.applyAmount ? item.data.applyAmount:item.data.amount? item.data.amount : 0;
+                            }
                         }
                         if(rewardTaskGroup.providerGroup === ''){
                             item.data.providerGroup = null;
@@ -533,7 +537,6 @@ const dbRewardTask = {
             });
     },
     getRewardTasksRecord: function (rewards, rewardTaskGroup, proposalData) {
-
         if (!rewards && !rewardTaskGroup) {
             return Q.reject("Record is not found");
         }
@@ -552,7 +555,7 @@ const dbRewardTask = {
         rewards.forEach(item => {
             item.topUpProposal = item.data.topUpProposalId ? item.data.topUpProposalId : item.data.topUpProposal;
 
-            let requiredUnlockedConsumption = item.data.amount ?  item.data.amount : item.data.spendingAmount || item.data.requiredUnlockAmount; // amount from topUp Type; spendingAmount from reward Type
+            let requiredUnlockedConsumption = item.data.actualAmountReceived ? item.data.actualAmountReceived :  item.data.amount ?  item.data.amount : item.data.spendingAmount || item.data.requiredUnlockAmount; // amount from topUp Type; spendingAmount from reward Type
             let applyAmount = item.data.applyAmount || item.data.amount;
             let bonusAmount = item.data.rewardAmount;
             let requiredUnlockedAmount = (applyAmount || 0) +  (bonusAmount || 0);
@@ -560,7 +563,7 @@ const dbRewardTask = {
             // check if consumption reached unlocked limit
             if (totalConsumption >= requiredUnlockedConsumption){
                 item.data.consumptionProgress = requiredUnlockedConsumption;
-                totalConsumption -= requiredUnlockedConsumption;
+                //totalConsumption -= requiredUnlockedConsumption;
             }
             else{
                 item.data.consumptionProgress = totalConsumption;
@@ -2489,7 +2492,6 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                                 //     {new: true}
                                 // ).then(
                                     res => {
-
                                         if (res[1]) {
                                             dbRewardTask.completeRewardTaskGroup(res[1], res[1].status).catch(errorUtils.reportError);
                                             console.log("checking---UnlockedRewardTasksRecord", res[0] || "could not find the record");
