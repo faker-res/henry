@@ -2556,7 +2556,8 @@ let dbPlayerInfo = {
                 }
                 return dbconfig.collection_players.find({
                     platform: platformObj._id,
-                    phoneNumber: {$in: [rsaCrypto.encrypt(phoneNumber), rsaCrypto.oldEncrypt(phoneNumber)]}
+                    phoneNumber: {$in: [rsaCrypto.encrypt(phoneNumber), rsaCrypto.oldEncrypt(phoneNumber)]},
+                    $or: [{isTestPlayer: false}, {isTestPlayer: {$exists: false}}]
                 }).lean();
             }
         ).then(
