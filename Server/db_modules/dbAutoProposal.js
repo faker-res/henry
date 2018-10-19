@@ -54,8 +54,7 @@ let dbAutoProposal = {
                                 makeRequest: function (proposals, request) {
                                     request("player", "processAutoProposals", {
                                         proposals: proposals,
-                                        platformObj: platformData,
-                                        useProviderGroup: platformData.useProviderGroup
+                                        platformObj: platformData
                                     });
                                 }
                             }
@@ -87,7 +86,6 @@ let dbAutoProposal = {
                     let stream = dbconfig.collection_proposal.find({
                         type: proposalTypeObjId,
                         status: constProposalStatus.AUTOAUDIT,
-                        // $or: [{"data.nextCheckTime": {$exists: false}}, {"data.nextCheckTime": {$lte: checkTime}}]
                     }).cursor({batchSize: 10000});
 
                     let balancer = new SettlementBalancer();
@@ -111,11 +109,9 @@ let dbAutoProposal = {
         )
     },
 
-    processAutoProposals: (proposals, platformObj, useProviderGroup) => {
+    processAutoProposals: (proposals, platformObj) => {
         if (proposals && proposals.length > 0) {
-            return Promise.all(proposals.map(proposal => {
-                return (platformObj.useProviderGroup || useProviderGroup)  ? checkRewardTaskGroup(proposal, platformObj) : checkProposalConsumption(proposal, platformObj)
-            }));
+            return Promise.all(proposals.map(proposal => checkRewardTaskGroup(proposal, platformObj)));
         }
     },
 
@@ -250,7 +246,7 @@ function checkPartnerAutoBonus (proposal, platformObj) {
 function checkRewardTaskGroup(proposal, platformObj) {
     let todayBonusAmount = 0;
     let bFirstWithdraw = false;
-    let initialAmount = 0, totalTopUpAmount = 0, totalBonusAmount = 0;
+    // let initialAmount = 0, totalTopUpAmount = 0, totalBonusAmount = 0;
     let dLastWithdraw, initialTransferTime;
     let abnormalMessage = "";
     let abnormalMessageChinese = "";
@@ -261,7 +257,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
         bonusRecord => {
             todayBonusAmount = bonusRecord && bonusRecord[0] && bonusRecord[0].amount ? bonusRecord[0].amount : 0;
 
-            return getPlayerLastProposalDateOfType(proposal.data.playerObjId, proposal.type);
+            return getLastValidWithdrawTime(platformObj, proposal.data.playerObjId, proposal.createTime);
         }
     ).then(
         lastWithdrawDate => {
@@ -325,7 +321,8 @@ function checkRewardTaskGroup(proposal, platformObj) {
             }, {
                 $group: {
                     _id: null,
-                    totalBetAmt: {$sum: "$validAmount"}
+                    totalBetAmt: {$sum: "$validAmount"},
+                    totalBonusAmount: {$sum: "$bonusAmount"}
                 }
             });
 
@@ -341,12 +338,12 @@ function checkRewardTaskGroup(proposal, platformObj) {
         data => {
             // Check abnormal transfer in and out amount
             if (data && data[1] && data[4]) {
-                let transferInRec = data[1].filter(rec => rec.type == "TransferIn");
+                // let transferInRec = data[1].filter(rec => rec.type == "TransferIn");
 
-                if (transferInRec && transferInRec[0]) {
-                    initialAmount = transferInRec[0].amount;
-                    initialTransferTime = transferInRec[0].createTime;
-                }
+                // if (transferInRec && transferInRec[0]) {
+                //     initialAmount = transferInRec[0].amount;
+                //     initialTransferTime = transferInRec[0].createTime;
+                // }
 
                 let transferLogs = data[1];
                 let creditChangeLogs = data[4];
@@ -371,19 +368,20 @@ function checkRewardTaskGroup(proposal, platformObj) {
         data => {
             let RTGs, allProposals, playerData;
             let bNoBonusPermission = false;
-            let bPendingPaymentInfo = false;
-            let bUpdatePaymentInfo = false;
+            // let bPendingPaymentInfo = false;
+            // let bUpdatePaymentInfo = false;
             let bIsPaymentInfoMatched = false;
             let withdrawAmount = proposal.data.amount;
             let playerCurrentAmount = 0;
             let playerTotalTopupAmount = 0;
             let playerTotalBets = 0;
+            let playerTotalBonus = 0;
             let bankProvince = "";
 
             if (data && data[3]) {
                 allProposals = data[3];
-                bPendingPaymentInfo = hasPendingPaymentInfoChanges(allProposals);
-                bUpdatePaymentInfo = isFirstWithdrawalAfterPaymentInfoUpdated(allProposals);
+                // bPendingPaymentInfo = hasPendingPaymentInfoChanges(allProposals);
+                // bUpdatePaymentInfo = isFirstWithdrawalAfterPaymentInfoUpdated(allProposals);
                 playerTotalTopupAmount = calcPlayerTotalTopupAmount(allProposals);
             }
 
@@ -399,6 +397,10 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
             if (data && data[5] && data[5][0] && data[5][0].totalBetAmt) {
                 playerTotalBets = data[5][0].totalBetAmt;
+
+                if (Number.isFinite(data[5][0].totalBonusAmount)) {
+                    playerTotalBonus = data[5][0].totalBonusAmount;
+                }
             }
 
             if (data && data[6] && data[6].provinces && playerData && playerData.bankAccountProvince) {
@@ -445,13 +447,6 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 }
             }
 
-            // First withdrawal checks
-            // if (bFirstWithdraw && platformObj.manualAuditFirstWithdrawal !== false) {
-            //     checkMsg += " Denied: First withdrawal;";
-            //     checkMsgChinese += " 失败：首提;";
-            //     canApprove = false;
-            // }
-
             if (bFirstWithdraw && platformObj.autoAudit) {
                 if (platformObj.autoAudit.firstWithdrawExceedAmount
                     && withdrawAmount >= platformObj.autoAudit.firstWithdrawExceedAmount
@@ -481,11 +476,11 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 }
 
                 //remove "省" from province variable
-                if(playerData.phoneProvince){
+                if (playerData.phoneProvince) {
                     playerData.phoneProvince = playerData.phoneProvince.replace("省", "");
                 }
 
-                if(playerData.province){
+                if (playerData.province) {
                     playerData.province = playerData.province.replace("省", "");
                 }
 
@@ -508,35 +503,14 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 canApprove = false;
             }
 
-            // if (bPendingPaymentInfo) {
-            //     checkMsg += ' Denied: Rebank;';
-            //     checkMsgChinese += ' 失败：银改;';
-            //     canApprove = false;
-            // }
-
-            // if (bUpdatePaymentInfo && platformObj.manualAuditAfterBankChanged !== false) {
-            //     checkMsg += ' Denied: Bank Info Changed;';
-            //     checkMsgChinese += ' 失败：银行资料刚改;';
-            //     canApprove = false;
-            // }
-
-            // if (bUpdatePaymentInfo && platformObj.manualAuditAfterBankChanged !== false) {
-            //     checkMsg += ' Denied: Bank Info Changed;';
-            //     checkMsgChinese += ' 失败：银行资料刚改;';
-            //     canApprove = false;
-            // }
-
             if (!bIsPaymentInfoMatched && platformObj.manualAuditAfterBankChanged !== false) {
                 checkMsg += ' Denied: Bank Info Not Matched;';
                 checkMsgChinese += ' 失败：提款资料与上次银改不符;';
                 canApprove = false;
             }
 
-            console.log('initialAmount - RTX', initialAmount);
-            console.log('totalTopUpAmount - RTX', playerTotalTopupAmount);
-
             if (proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
-                && (proposal.data.amount / (initialAmount + playerTotalTopupAmount) >= platformObj.autoApproveProfitTimes)) {
+                && ((playerTotalBonus / playerTotalTopupAmount) >= platformObj.autoApproveProfitTimes)) {
                 checkMsg += ' Denied: Max profit times;';
                 checkMsgChinese += ' 失败：盈利十倍;';
                 canApprove = false;
@@ -560,549 +534,549 @@ function checkRewardTaskGroup(proposal, platformObj) {
  * @param platformObj
  * @returns {Promise}
  */
-function checkProposalConsumption(proposal, platformObj) {
-    let repeatCount = platformObj.autoApproveRepeatCount;
-    let todayBonusAmount = 0;
-    let bFirstWithdraw = false;
-    let initialAmount = 0, totalTopUpAmount = 0, totalBonusAmount = 0;
-    let dLastWithdraw, initialTransferTime;
-    let abnormalMessage = "";
-    let abnormalMessageChinese = "";
-    let bTransferAbnormal = false;
-
-    return getBonusRecordsOfPlayer(proposal.data.playerObjId, proposal.type).then(
-        bonusRecord => {
-            todayBonusAmount = bonusRecord && bonusRecord[0] && bonusRecord[0].amount ? bonusRecord[0].amount : 0;
-
-            return getPlayerLastProposalDateOfType(proposal.data.playerObjId, proposal.type);
-        }
-    ).then(
-        lastWithdrawDate => {
-            // settleTime of last withdraw proposal
-            bFirstWithdraw = !lastWithdrawDate;
-
-            let proposalQuery = {
-                'data.platformId': {$in: [ObjectId(proposal.data.platformId), String(proposal.data.platformId)]},
-                'data.playerObjId': {$in: [ObjectId(proposal.data.playerObjId), String(proposal.data.playerObjId)]},
-                createTime: {$lt: proposal.createTime},
-                status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
-                mainType: {$in: ["TopUp", "Reward"]}
-            };
-
-            let transferLogQuery = {
-                platformObjId: ObjectId(proposal.data.platformId),
-                playerObjId: ObjectId(proposal.data.playerObjId),
-                createTime: {$lt: proposal.createTime},
-                status: constPlayerCreditTransferStatus.SUCCESS.toString()
-            };
-
-            let playerQuery = {
-                _id: ObjectId(proposal.data.playerObjId),
-                platform: ObjectId(proposal.data.platformId)
-            };
-
-            let allProposalQuery = {
-                'data.platformId': ObjectId(proposal.data.platformId),
-                createTime: {$lt: proposal.createTime},
-                $or: [{'data.playerObjId': ObjectId(proposal.data.playerObjId)}]
-            };
-
-            let creditLogQuery = {
-                platformId: ObjectId(proposal.data.platformId),
-                playerId: ObjectId(proposal.data.playerObjId),
-                operationTime: {$lt: proposal.createTime},
-            };
-
-            if (lastWithdrawDate) {
-                dLastWithdraw = lastWithdrawDate;
-                proposalQuery.createTime["$gt"] = lastWithdrawDate;
-                transferLogQuery.createTime["$gt"] = lastWithdrawDate;
-                allProposalQuery.createTime["$gt"] = lastWithdrawDate;
-                creditLogQuery.operationTime["$gt"] = lastWithdrawDate;
-            }
-
-            let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find(proposalQuery).populate(
-                {path: "type", model: dbconfig.collection_proposalType}
-            ).sort({settleTime: -1, createTime: -1}).lean();
-            let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).sort({createTime: 1}).lean();
-            let playerInfoPromise = dbconfig.collection_players.findOne(playerQuery, {similarPlayers: 0}).lean();
-            let creditLogPromise = dbconfig.collection_creditChangeLog.find(creditLogQuery).sort({operationTime: 1}).lean();
-
-            if (proposal.data.playerId) {
-                allProposalQuery["$or"].push({'data.playerId': proposal.data.playerId});
-            }
-            if (proposal.data.playerName) {
-                allProposalQuery["$or"].push({'data.playerName': proposal.data.playerName});
-            }
-            let proposalsPromise = dbconfig.collection_proposal.find(allProposalQuery).populate(
-                {path: "type", model: dbconfig.collection_proposalType}
-            ).sort({createTime: -1}).lean();
-
-            let promises = [proposalsWithinPeriodPromise, transferLogsWithinPeriodPromise, playerInfoPromise, proposalsPromise, creditLogPromise];
-            return Promise.all(promises);
-        }
-    ).then(
-        data => {
-            if (data && data[1] && data[4]) {
-                let transferInRec = data[1].filter(rec => rec.type == "TransferIn");
-
-                if (transferInRec && transferInRec[0]) {
-                    initialAmount = transferInRec[0].amount;
-                    initialTransferTime = transferInRec[0].createTime;
-                }
-
-                let transferLogs = data[1];
-                let creditChangeLogs = data[4];
-                return findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, proposal.data.playerObjId).then(
-                    transferAbnormalities => {
-                        if (transferAbnormalities) {
-                            for (let i = 0; i < transferAbnormalities.length; i++) {
-                                abnormalMessage += transferAbnormalities[i].en + "; ";
-                                abnormalMessageChinese += transferAbnormalities[i].ch + "; ";
-                                bTransferAbnormal = true;
-                            }
-                        }
-                        return data;
-                    }
-                )
-            }
-
-            return data;
-        }
-    ).then(
-        data => {
-            let proposals, allProposals, playerData;
-            let bNoBonusPermission = false;
-            let bPendingPaymentInfo = false;
-
-            if (data && data[0]) {
-                proposals = data[0];
-            }
-
-            if (data && data[3]) {
-                allProposals = data[3];
-                bPendingPaymentInfo = hasPendingPaymentInfoChanges(allProposals);
-            }
-
-            if (data && data[2]) {
-                playerData = data[2];
-                bNoBonusPermission = !playerData.permission.applyBonus;
-            }
-
-            let isApprove = true, proms = [], repeatMsg = "", repeatMsgChinese = "";
-            let lostThreshold = platformObj.autoApproveLostThreshold ? platformObj.autoApproveLostThreshold : 0;
-            let consumptionOffset = platformObj.autoApproveConsumptionOffset ? platformObj.autoApproveConsumptionOffset : 0;
-            let countProposals = 0;
-            let isTypeEApproval = false, isCheckedInitialAmount = false;
-            let dateTo = proposal.settleTime ? proposal.settleTime : proposal.createTime;
-
-            let checkResult = [], checkMsg = "", checkMsgChinese = "";
-            let devCheckMsg = "";
-
-            if (proposals && !proposals.length && !bFirstWithdraw && !bNoBonusPermission && !bTransferAbnormal) {
-                // There is no other proposal between this withdrawal and last withdrawal
-                proms.push(
-                    getPlayerConsumptionSummary(proposal.data.platformId, proposal.data.playerObjId, new Date(dLastWithdraw), new Date(dateTo)).then(
-                        record => {
-                            let curConsumption = 0, bonusAmount = 0, initBonusAmount = 0;
-
-                            if (record && record[0]) {
-                                curConsumption = record[0].validAmount;
-                                bonusAmount = record[0].bonusAmount;
-                            }
-
-                            checkResult.push({
-                                sequence: 0,
-                                proposalId: null,
-                                initBonusAmount: initBonusAmount,
-                                requiredConsumption: 0,
-                                curConsumption: curConsumption,
-                                bonusAmount: bonusAmount
-                            });
-
-                        }
-                    )
-                );
-            }
-            else {
-                try {
-                    while (proposals && proposals.length > 0) {
-                        // FIFO dequeue from nearest date proposal
-                        let getProp = proposals.shift();
-
-                        // Set query date from checking proposal -> current proposal
-                        // Use settleTime instead of createTime for more accurate consumption calculation
-                        let queryDateFrom = new Date(getProp.settleTime ? getProp.settleTime : getProp.createTime);
-                        let queryDateTo = new Date(dateTo);
-
-                        let checkingNo = countProposals;
-                        switch (getProp.mainType) {
-                            case "TopUp":
-                                // Get real amount left before top up, if there's any top up before transfer in after last withdrawal
-                                if (!isCheckedInitialAmount && initialTransferTime && initialTransferTime.getTime() > getProp.settleTime.getTime() && Number(initialAmount) >= Number(getProp.data.amount)) {
-                                    initialAmount -= getProp.data.amount;
-                                    isCheckedInitialAmount = true;
-                                }
-
-                                proms.push(
-                                    getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, queryDateFrom, queryDateTo).then(
-                                        record => {
-                                            let curConsumption = 0, bonusAmount = 0;
-                                            if (record && record[0]) {
-                                                curConsumption = record[0].validAmount;
-                                                bonusAmount = record[0].bonusAmount;
-                                            }
-
-                                            checkResult.push({
-                                                sequence: checkingNo,
-                                                proposalId: getProp.proposalId,
-                                                initBonusAmount: getProp.data.amount,
-                                                requiredConsumption: getProp.data.amount,
-                                                curConsumption: curConsumption,
-                                                bonusAmount: bonusAmount,
-                                                settleTime: new Date(queryDateFrom),
-                                                isTopUp: true
-                                            });
-                                        }
-                                    )
-                                );
-                                break;
-                            case "Reward":
-                                // Get list of restricted providers
-                                let providerArr;
-
-                                if (getProp.data.providers && getProp.data.providers.length > 0) {
-                                    providerArr = getProp.data.providers.map(e => ObjectId(e));
-                                }
-
-                                // Consumption return proposal does not need to check consumption
-                                if (getProp.type == constProposalType.PLAYER_CONSUMPTION_RETURN
-                                    || getProp.type == constProposalType.PARTNER_CONSUMPTION_RETURN) {
-                                    // return > bonus, and it's the nearest proposal
-                                    if (getProp.data.amount >= proposal.data.amount && countProposals == 0) {
-                                        // Flag for force approve
-                                        isTypeEApproval = true;
-                                    }
-                                }
-                                else {
-                                    // Only check rewards that require consumption
-                                    proms.push(
-                                        getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, new Date(queryDateFrom), new Date(queryDateTo), providerArr).then(
-                                            record => {
-                                                let curConsumption = 0, bonusAmount = 0;
-                                                let initBonusAmount = 0;
-                                                let isIncludePreviousConsumption = false;
-                                                let isTopUpPromo = false;
-                                                let spendingAmount = getProp.data.spendingAmount ? getProp.data.spendingAmount : getProp.data.requiredUnlockAmount;
-
-                                                if (getProp.type.executionType == "executePlayerTopUpReturn" || getProp.type.executionType == "executeFirstTopUp") {
-                                                    initBonusAmount = getProp.data.rewardAmount;
-                                                    isIncludePreviousConsumption = true;
-                                                } else {
-                                                    initBonusAmount = getProp.data.rewardAmount ? getProp.data.rewardAmount : getProp.data.initAmount;
-                                                }
-
-                                                // Handling for top up promo reward
-                                                // Flag to include reward consumption into last top up
-                                                if (getProp.type.executionType == "executePlayerTopUpPromo" || getProp.type.executionType == "executePlatformTransactionReward") {
-                                                    isTopUpPromo = true;
-                                                }
-
-                                                if (record && record[0]) {
-                                                    curConsumption = record[0].validAmount;
-                                                    bonusAmount = record[0].bonusAmount;
-                                                }
-
-                                                // Skip applyAmount if reward is consumption return
-                                                let applyAmount = 0;
-
-                                                if (getProp.data.applyAmount) {
-                                                    applyAmount = getProp.data.returnDetail ? 0 : getProp.data.applyAmount;
-
-                                                    // Special Handling - Old EU Migration XI MA proposal
-                                                    if (getProp.type.executionType == "executePlayerConsumptionReturn" && getProp.from_old_system) {
-                                                        applyAmount = 0;
-                                                    }
-                                                }
-
-                                                checkResult.push({
-                                                    sequence: checkingNo,
-                                                    proposalId: getProp.proposalId,
-                                                    initBonusAmount: initBonusAmount,
-                                                    requiredConsumption: spendingAmount - applyAmount,
-                                                    curConsumption: curConsumption,
-                                                    bonusAmount: bonusAmount,
-                                                    settleTime: new Date(queryDateFrom),
-                                                    isIncludePreviousConsumption: isIncludePreviousConsumption,
-                                                    isTopUpPromo: isTopUpPromo
-                                                });
-
-                                            }
-                                        )
-                                    )
-                                }
-
-                                break;
-                        }
-
-                        // After push the action promise, set next dateTo to this checking proposal createTime
-                        dateTo = queryDateFrom;
-
-                        countProposals++;
-                    }
-                }
-                catch (ex) {
-                    devCheckMsg += "ERROR: " + ex.toString() + "; ";
-                }
-            }
-
-            Promise.all(proms).then(
-                () => {
-                    let isClearCycle = false;
-                    let validConsumptionAmount = 0, spendingAmount = 0, bonusAmount = 0, initBonusAmount = 0;
-                    let totalConsumptionAmount = 0, totalSpendingAmount = 0;
-                    let lastTopUpResult = {};
-                    let currentProposal = null;
-
-                    // Make sure the check result is in correct order
-                    checkResult.sort((a, b) => a.settleTime.getTime() - b.settleTime.getTime());
-
-                    // Compare consumption and spendingAmount
-                    try {
-                        for (let i = 0; i < checkResult.length; i++) {
-                            // reset the amounts if consumption > spending or lost all credit in previous cycle
-                            // do not reset if this reward require previous top up's consumption
-                            if (isClearCycle) {
-                                validConsumptionAmount = 0;
-                                spendingAmount = 0;
-                                bonusAmount = 0;
-                                initBonusAmount = 0;
-                                totalBonusAmount = 0;
-                                totalTopUpAmount = 0;
-                            }
-
-                            currentProposal = checkResult[i].proposalId;
-
-                            validConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
-                            spendingAmount += checkResult[i].requiredConsumption ? checkResult[i].requiredConsumption : 0;
-
-                            totalConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
-                            totalSpendingAmount += checkResult[i].requiredConsumption ? checkResult[i].requiredConsumption : 0;
-
-                            if (checkResult[i].initBonusAmount) {
-                                initBonusAmount += checkResult[i].initBonusAmount ? checkResult[i].initBonusAmount : 0;
-                                bonusAmount += checkResult[i].bonusAmount ? checkResult[i].bonusAmount : 0;
-                            }
-
-                            // include previous top up record result if required
-                            if (checkResult[i].isIncludePreviousConsumption) {
-                                currentProposal = lastTopUpResult.proposalId ? lastTopUpResult.proposalId : currentProposal;
-
-                                // Include consumptions from previous top up if it is cleared before reward
-                                if (lastTopUpResult && lastTopUpResult.isCleared) {
-                                    validConsumptionAmount += lastTopUpResult.curConsumption ? lastTopUpResult.curConsumption : 0;
-                                    spendingAmount += lastTopUpResult.requiredConsumption ? lastTopUpResult.requiredConsumption : 0;
-                                    initBonusAmount += lastTopUpResult.initBonusAmount ? lastTopUpResult.initBonusAmount : 0;
-                                    bonusAmount += lastTopUpResult.bonusAmount ? lastTopUpResult.bonusAmount : 0;
-                                }
-                            }
-
-                            // Include top up promo reward to previous last top up consumptions
-                            if (lastTopUpResult && checkResult[i].isTopUpPromo) {
-                                lastTopUpResult.curConsumption += checkResult[i].curConsumption;
-                                lastTopUpResult.requiredConsumption += checkResult[i].requiredConsumption;
-                                lastTopUpResult.initBonusAmount += checkResult[i].initBonusAmount;
-                                lastTopUpResult.bonusAmount += checkResult[i].bonusAmount;
-                                lastTopUpResult.isCleared = isClearCycle;
-                            }
-
-                            // Check consumption for each cycle
-                            if (initBonusAmount && initBonusAmount != 0 && initBonusAmount + bonusAmount <= lostThreshold) {
-                                // User lost all bonus amount
-                                isApprove = true;
-                                isClearCycle = true;
-                                checkMsg = "";
-                                checkMsgChinese = "";
-                            }
-                            else if (validConsumptionAmount + consumptionOffset < spendingAmount) {
-                                isApprove = false;
-                                isClearCycle = false;
-
-                                if (checkMsg == "") {
-                                    checkMsg += "LOW Bet from " + currentProposal + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
-                                    checkMsgChinese += "提案 " + currentProposal + "：流水 " + validConsumptionAmount + " ，所需流水 " + spendingAmount + "; ";
-                                }
-                            }
-                            else {
-                                // Consumption has fulfilled requirement during this cycle
-                                // reset from current cycle
-                                isApprove = true;
-                                isClearCycle = true;
-                                checkMsg = "";
-                                checkMsgChinese = "";
-                            }
-
-                            // Sum up bonus amount for overall profit calculation
-                            totalBonusAmount += checkResult[i].bonusAmount;
-
-                            // save current checkResult if it is top up
-                            if (checkResult[i].isTopUp) {
-                                totalTopUpAmount += checkResult[i].initBonusAmount;
-                                lastTopUpResult = {
-                                    proposalId: checkResult[i].proposalId,
-                                    curConsumption: checkResult[i].curConsumption,
-                                    requiredConsumption: checkResult[i].requiredConsumption,
-                                    initBonusAmount: checkResult[i].initBonusAmount,
-                                    bonusAmount: checkResult[i].bonusAmount,
-                                    isCleared: isClearCycle
-                                }
-                            }
-
-                            // If there is lastTopUpResult but cleared before reaching related reward, set the flag to true
-                            // to get back missing consumption requirement
-                            if (isClearCycle && lastTopUpResult) {
-                                lastTopUpResult.isCleared = isClearCycle;
-                            }
-
-                            // dev log for debugging auto audit
-                            devCheckMsg += currentProposal + ": " + "Bonus: " + bonusAmount + "/" + initBonusAmount + ", Consumption: " + validConsumptionAmount + "/" + spendingAmount
-                                + ", isClearCycle:" + isClearCycle + "; ";
-                        }
-                    }
-                    catch (ex) {
-                        devCheckMsg += "ERROR (2): " + ex.toString() + "; ";
-                    }
-
-                    if (proposal.data.ximaWithdrawUsed && proposal.data.amount && proposal.data.amount <= proposal.data.ximaWithdrawUsed) {
-                        isApprove = true;
-                        repeatMsg = "Withdrawal amount is within the ximaWithdraw amount: ximaWithdraw " + proposal.data.ximaWithdrawUsed;
-                        repeatMsgChinese = "提款额在洗码提款额内：洗码提款额" + proposal.data.ximaWithdrawUsed;
-                        checkMsg += "Withdrawal amount is within the ximaWithdraw amount: ximaWithdraw " + proposal.data.ximaWithdrawUsed;
-                        checkMsgChinese += "提款额在洗码提款额内：洗码提款额" + proposal.data.ximaWithdrawUsed;
-                    }
-                    else if (!platformObj.enableAutoApplyBonus && ((validConsumptionAmount + lostThreshold) < spendingAmount)) {
-                        isApprove = false;
-                        repeatMsg = "Insufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
-                        repeatMsgChinese = "总投注额不足：流水 " + totalConsumptionAmount + " ，所需流水 " + totalSpendingAmount + "; ";
-                        checkMsg += "Insufficient consumption: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
-                        checkMsgChinese += "投注额不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
-                    }
-                    else {
-                        repeatMsg += "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
-                        repeatMsgChinese += "总投注额满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
-                        checkMsg = "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
-                        checkMsgChinese = "总投注额满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
-                    }
-
-                    let canApprove = true;
-                    // Consumption reached, check for other conditions
-                    if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
-                        checkMsg += " Denied: Single limit;";
-                        checkMsgChinese += " 失败：单限;";
-                        canApprove = false;
-                    }
-                    if (todayBonusAmount >= platformObj.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
-                        checkMsg += " Denied: Daily limit;";
-                        checkMsgChinese += " 失败：日限;";
-                        canApprove = false;
-                    }
-
-                    if (bNoBonusPermission) {
-                        checkMsg += " Denied: Not allowed;";
-                        checkMsgChinese += " 失败：禁提;";
-                        canApprove = false;
-                    }
-
-                    if (bFirstWithdraw) {
-                        checkMsg += " Denied: First withdrawal;";
-                        checkMsgChinese += " 失败：首提;";
-                        canApprove = false;
-                    }
-
-                    if (bTransferAbnormal) {
-                        checkMsg += ' Denied: Abnormal Transfer;';
-                        checkMsgChinese += ' 失败：转账异常;';
-                        canApprove = false;
-                    }
-
-                    if (bPendingPaymentInfo) {
-                        checkMsg += ' Denied: Rebank;';
-                        checkMsgChinese += ' 失败：银改;';
-                        canApprove = false;
-                    }
-                    if (totalBonusAmount > 0 && proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
-                        && (totalBonusAmount / (initialAmount + totalTopUpAmount) >= platformObj.autoApproveProfitTimes)) {
-                        checkMsg += ' Denied: Max profit times;';
-                        checkMsgChinese += ' 失败：盈利十倍;';
-                        canApprove = false;
-                    }
-
-                    // Check consumption approved or not
-                    if (isApprove || isTypeEApproval) {
-                        if (!canApprove) {
-                            sendToAudit(proposal._id, null, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
-                        } else {
-                            let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
-                            let approveRemarkChinese = "成功：流水 " + validConsumptionAmount + "，所需流水 " + spendingAmount;
-                            sendToApprove(proposal._id, null, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
-                        }
-                    } else {
-                        // Consumption not reached; Throw back to loop pool or deny this proposal
-                        proposal.data.autoApproveRepeatCount =
-                            proposal.data.autoApproveRepeatCount || proposal.data.autoApproveRepeatCount == 0 ?
-                                proposal.data.autoApproveRepeatCount - 1
-                                : repeatCount - 1;
-
-                        let updObj = {
-                            'data.autoApproveRepeatCount': proposal.data.autoApproveRepeatCount,
-                            'data.autoAuditTime': Date.now()
-                        };
-
-                        if (repeatMsg.length > 0 || repeatMsgChinese.length > 0) {
-                            updObj['data.autoAuditRepeatMsg'] = repeatMsg;
-                            updObj['data.autoAuditRepeatMsgChinese'] = repeatMsgChinese;
-                        }
-
-                        if (checkMsg.length > 0 || checkMsgChinese.length > 0) {
-                            updObj['data.autoAuditCheckMsg'] = checkMsg;
-                            updObj['data.autoAuditCheckMsgChinese'] = checkMsgChinese;
-                        }
-
-                        if (abnormalMessage.length > 0 || abnormalMessageChinese.length > 0) {
-                            updObj['data.detail'] = abnormalMessage;
-                            updObj['data.detailChinese'] = abnormalMessageChinese;
-                        }
-
-                        if (proposal.data.autoApproveRepeatCount > 0) {
-                            let nextCheckTime = new Date();
-                            nextCheckTime.setMinutes(nextCheckTime.getMinutes() + platformObj.autoApproveRepeatDelay);
-                            updObj['data.nextCheckTime'] = nextCheckTime;
-                        } else {
-                            updObj['data.nextCheckTime'] = undefined;
-
-                            // Check if player is VIP - Passed
-                            if (proposal.data.proposalPlayerLevelValue == 0) {
-                                //sendToReject(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit", "失败：非VIP：超出回圈次数", checkMsg, abnormalMessage, abnormalMessageChinese);
-                                sendToAudit(proposal._id, null, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
-                            } else {
-                                //sendToReject(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit", "失败：VIP：超出回圈次数", checkMsg, abnormalMessage, abnormalMessageChinese);
-                                sendToAudit(proposal._id, null, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
-                            }
-                        }
-
-                        return dbconfig.collection_proposal.findOneAndUpdate({
-                            _id: proposal._id,
-                            createTime: proposal.createTime
-                        }, updObj).exec();
-                    }
-                }
-            );
-        },
-        error => {
-            // do nothing
-        }
-    )
-}
+// function checkProposalConsumption(proposal, platformObj) {
+//     let repeatCount = platformObj.autoApproveRepeatCount;
+//     let todayBonusAmount = 0;
+//     let bFirstWithdraw = false;
+//     let initialAmount = 0, totalTopUpAmount = 0, totalBonusAmount = 0;
+//     let dLastWithdraw, initialTransferTime;
+//     let abnormalMessage = "";
+//     let abnormalMessageChinese = "";
+//     let bTransferAbnormal = false;
+//
+//     return getBonusRecordsOfPlayer(proposal.data.playerObjId, proposal.type).then(
+//         bonusRecord => {
+//             todayBonusAmount = bonusRecord && bonusRecord[0] && bonusRecord[0].amount ? bonusRecord[0].amount : 0;
+//
+//             return getPlayerLastProposalDateOfType(proposal.data.playerObjId, proposal.type);
+//         }
+//     ).then(
+//         lastWithdrawDate => {
+//             // settleTime of last withdraw proposal
+//             bFirstWithdraw = !lastWithdrawDate;
+//
+//             let proposalQuery = {
+//                 'data.platformId': {$in: [ObjectId(proposal.data.platformId), String(proposal.data.platformId)]},
+//                 'data.playerObjId': {$in: [ObjectId(proposal.data.playerObjId), String(proposal.data.playerObjId)]},
+//                 createTime: {$lt: proposal.createTime},
+//                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]},
+//                 mainType: {$in: ["TopUp", "Reward"]}
+//             };
+//
+//             let transferLogQuery = {
+//                 platformObjId: ObjectId(proposal.data.platformId),
+//                 playerObjId: ObjectId(proposal.data.playerObjId),
+//                 createTime: {$lt: proposal.createTime},
+//                 status: constPlayerCreditTransferStatus.SUCCESS.toString()
+//             };
+//
+//             let playerQuery = {
+//                 _id: ObjectId(proposal.data.playerObjId),
+//                 platform: ObjectId(proposal.data.platformId)
+//             };
+//
+//             let allProposalQuery = {
+//                 'data.platformId': ObjectId(proposal.data.platformId),
+//                 createTime: {$lt: proposal.createTime},
+//                 $or: [{'data.playerObjId': ObjectId(proposal.data.playerObjId)}]
+//             };
+//
+//             let creditLogQuery = {
+//                 platformId: ObjectId(proposal.data.platformId),
+//                 playerId: ObjectId(proposal.data.playerObjId),
+//                 operationTime: {$lt: proposal.createTime},
+//             };
+//
+//             if (lastWithdrawDate) {
+//                 dLastWithdraw = lastWithdrawDate;
+//                 proposalQuery.createTime["$gt"] = lastWithdrawDate;
+//                 transferLogQuery.createTime["$gt"] = lastWithdrawDate;
+//                 allProposalQuery.createTime["$gt"] = lastWithdrawDate;
+//                 creditLogQuery.operationTime["$gt"] = lastWithdrawDate;
+//             }
+//
+//             let proposalsWithinPeriodPromise = dbconfig.collection_proposal.find(proposalQuery).populate(
+//                 {path: "type", model: dbconfig.collection_proposalType}
+//             ).sort({settleTime: -1, createTime: -1}).lean();
+//             let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).sort({createTime: 1}).lean();
+//             let playerInfoPromise = dbconfig.collection_players.findOne(playerQuery, {similarPlayers: 0}).lean();
+//             let creditLogPromise = dbconfig.collection_creditChangeLog.find(creditLogQuery).sort({operationTime: 1}).lean();
+//
+//             if (proposal.data.playerId) {
+//                 allProposalQuery["$or"].push({'data.playerId': proposal.data.playerId});
+//             }
+//             if (proposal.data.playerName) {
+//                 allProposalQuery["$or"].push({'data.playerName': proposal.data.playerName});
+//             }
+//             let proposalsPromise = dbconfig.collection_proposal.find(allProposalQuery).populate(
+//                 {path: "type", model: dbconfig.collection_proposalType}
+//             ).sort({createTime: -1}).lean();
+//
+//             let promises = [proposalsWithinPeriodPromise, transferLogsWithinPeriodPromise, playerInfoPromise, proposalsPromise, creditLogPromise];
+//             return Promise.all(promises);
+//         }
+//     ).then(
+//         data => {
+//             if (data && data[1] && data[4]) {
+//                 let transferInRec = data[1].filter(rec => rec.type == "TransferIn");
+//
+//                 if (transferInRec && transferInRec[0]) {
+//                     initialAmount = transferInRec[0].amount;
+//                     initialTransferTime = transferInRec[0].createTime;
+//                 }
+//
+//                 let transferLogs = data[1];
+//                 let creditChangeLogs = data[4];
+//                 return findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, proposal.data.playerObjId).then(
+//                     transferAbnormalities => {
+//                         if (transferAbnormalities) {
+//                             for (let i = 0; i < transferAbnormalities.length; i++) {
+//                                 abnormalMessage += transferAbnormalities[i].en + "; ";
+//                                 abnormalMessageChinese += transferAbnormalities[i].ch + "; ";
+//                                 bTransferAbnormal = true;
+//                             }
+//                         }
+//                         return data;
+//                     }
+//                 )
+//             }
+//
+//             return data;
+//         }
+//     ).then(
+//         data => {
+//             let proposals, allProposals, playerData;
+//             let bNoBonusPermission = false;
+//             let bPendingPaymentInfo = false;
+//
+//             if (data && data[0]) {
+//                 proposals = data[0];
+//             }
+//
+//             if (data && data[3]) {
+//                 allProposals = data[3];
+//                 bPendingPaymentInfo = hasPendingPaymentInfoChanges(allProposals);
+//             }
+//
+//             if (data && data[2]) {
+//                 playerData = data[2];
+//                 bNoBonusPermission = !playerData.permission.applyBonus;
+//             }
+//
+//             let isApprove = true, proms = [], repeatMsg = "", repeatMsgChinese = "";
+//             let lostThreshold = platformObj.autoApproveLostThreshold ? platformObj.autoApproveLostThreshold : 0;
+//             let consumptionOffset = platformObj.autoApproveConsumptionOffset ? platformObj.autoApproveConsumptionOffset : 0;
+//             let countProposals = 0;
+//             let isTypeEApproval = false, isCheckedInitialAmount = false;
+//             let dateTo = proposal.settleTime ? proposal.settleTime : proposal.createTime;
+//
+//             let checkResult = [], checkMsg = "", checkMsgChinese = "";
+//             let devCheckMsg = "";
+//
+//             if (proposals && !proposals.length && !bFirstWithdraw && !bNoBonusPermission && !bTransferAbnormal) {
+//                 // There is no other proposal between this withdrawal and last withdrawal
+//                 proms.push(
+//                     getPlayerConsumptionSummary(proposal.data.platformId, proposal.data.playerObjId, new Date(dLastWithdraw), new Date(dateTo)).then(
+//                         record => {
+//                             let curConsumption = 0, bonusAmount = 0, initBonusAmount = 0;
+//
+//                             if (record && record[0]) {
+//                                 curConsumption = record[0].validAmount;
+//                                 bonusAmount = record[0].bonusAmount;
+//                             }
+//
+//                             checkResult.push({
+//                                 sequence: 0,
+//                                 proposalId: null,
+//                                 initBonusAmount: initBonusAmount,
+//                                 requiredConsumption: 0,
+//                                 curConsumption: curConsumption,
+//                                 bonusAmount: bonusAmount
+//                             });
+//
+//                         }
+//                     )
+//                 );
+//             }
+//             else {
+//                 try {
+//                     while (proposals && proposals.length > 0) {
+//                         // FIFO dequeue from nearest date proposal
+//                         let getProp = proposals.shift();
+//
+//                         // Set query date from checking proposal -> current proposal
+//                         // Use settleTime instead of createTime for more accurate consumption calculation
+//                         let queryDateFrom = new Date(getProp.settleTime ? getProp.settleTime : getProp.createTime);
+//                         let queryDateTo = new Date(dateTo);
+//
+//                         let checkingNo = countProposals;
+//                         switch (getProp.mainType) {
+//                             case "TopUp":
+//                                 // Get real amount left before top up, if there's any top up before transfer in after last withdrawal
+//                                 if (!isCheckedInitialAmount && initialTransferTime && initialTransferTime.getTime() > getProp.settleTime.getTime() && Number(initialAmount) >= Number(getProp.data.amount)) {
+//                                     initialAmount -= getProp.data.amount;
+//                                     isCheckedInitialAmount = true;
+//                                 }
+//
+//                                 proms.push(
+//                                     getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, queryDateFrom, queryDateTo).then(
+//                                         record => {
+//                                             let curConsumption = 0, bonusAmount = 0;
+//                                             if (record && record[0]) {
+//                                                 curConsumption = record[0].validAmount;
+//                                                 bonusAmount = record[0].bonusAmount;
+//                                             }
+//
+//                                             checkResult.push({
+//                                                 sequence: checkingNo,
+//                                                 proposalId: getProp.proposalId,
+//                                                 initBonusAmount: getProp.data.amount,
+//                                                 requiredConsumption: getProp.data.amount,
+//                                                 curConsumption: curConsumption,
+//                                                 bonusAmount: bonusAmount,
+//                                                 settleTime: new Date(queryDateFrom),
+//                                                 isTopUp: true
+//                                             });
+//                                         }
+//                                     )
+//                                 );
+//                                 break;
+//                             case "Reward":
+//                                 // Get list of restricted providers
+//                                 let providerArr;
+//
+//                                 if (getProp.data.providers && getProp.data.providers.length > 0) {
+//                                     providerArr = getProp.data.providers.map(e => ObjectId(e));
+//                                 }
+//
+//                                 // Consumption return proposal does not need to check consumption
+//                                 if (getProp.type == constProposalType.PLAYER_CONSUMPTION_RETURN
+//                                     || getProp.type == constProposalType.PARTNER_CONSUMPTION_RETURN) {
+//                                     // return > bonus, and it's the nearest proposal
+//                                     if (getProp.data.amount >= proposal.data.amount && countProposals == 0) {
+//                                         // Flag for force approve
+//                                         isTypeEApproval = true;
+//                                     }
+//                                 }
+//                                 else {
+//                                     // Only check rewards that require consumption
+//                                     proms.push(
+//                                         getPlayerConsumptionSummary(getProp.data.platformId, getProp.data.playerObjId, new Date(queryDateFrom), new Date(queryDateTo), providerArr).then(
+//                                             record => {
+//                                                 let curConsumption = 0, bonusAmount = 0;
+//                                                 let initBonusAmount = 0;
+//                                                 let isIncludePreviousConsumption = false;
+//                                                 let isTopUpPromo = false;
+//                                                 let spendingAmount = getProp.data.spendingAmount ? getProp.data.spendingAmount : getProp.data.requiredUnlockAmount;
+//
+//                                                 if (getProp.type.executionType == "executePlayerTopUpReturn" || getProp.type.executionType == "executeFirstTopUp") {
+//                                                     initBonusAmount = getProp.data.rewardAmount;
+//                                                     isIncludePreviousConsumption = true;
+//                                                 } else {
+//                                                     initBonusAmount = getProp.data.rewardAmount ? getProp.data.rewardAmount : getProp.data.initAmount;
+//                                                 }
+//
+//                                                 // Handling for top up promo reward
+//                                                 // Flag to include reward consumption into last top up
+//                                                 if (getProp.type.executionType == "executePlayerTopUpPromo" || getProp.type.executionType == "executePlatformTransactionReward") {
+//                                                     isTopUpPromo = true;
+//                                                 }
+//
+//                                                 if (record && record[0]) {
+//                                                     curConsumption = record[0].validAmount;
+//                                                     bonusAmount = record[0].bonusAmount;
+//                                                 }
+//
+//                                                 // Skip applyAmount if reward is consumption return
+//                                                 let applyAmount = 0;
+//
+//                                                 if (getProp.data.applyAmount) {
+//                                                     applyAmount = getProp.data.returnDetail ? 0 : getProp.data.applyAmount;
+//
+//                                                     // Special Handling - Old EU Migration XI MA proposal
+//                                                     if (getProp.type.executionType == "executePlayerConsumptionReturn" && getProp.from_old_system) {
+//                                                         applyAmount = 0;
+//                                                     }
+//                                                 }
+//
+//                                                 checkResult.push({
+//                                                     sequence: checkingNo,
+//                                                     proposalId: getProp.proposalId,
+//                                                     initBonusAmount: initBonusAmount,
+//                                                     requiredConsumption: spendingAmount - applyAmount,
+//                                                     curConsumption: curConsumption,
+//                                                     bonusAmount: bonusAmount,
+//                                                     settleTime: new Date(queryDateFrom),
+//                                                     isIncludePreviousConsumption: isIncludePreviousConsumption,
+//                                                     isTopUpPromo: isTopUpPromo
+//                                                 });
+//
+//                                             }
+//                                         )
+//                                     )
+//                                 }
+//
+//                                 break;
+//                         }
+//
+//                         // After push the action promise, set next dateTo to this checking proposal createTime
+//                         dateTo = queryDateFrom;
+//
+//                         countProposals++;
+//                     }
+//                 }
+//                 catch (ex) {
+//                     devCheckMsg += "ERROR: " + ex.toString() + "; ";
+//                 }
+//             }
+//
+//             Promise.all(proms).then(
+//                 () => {
+//                     let isClearCycle = false;
+//                     let validConsumptionAmount = 0, spendingAmount = 0, bonusAmount = 0, initBonusAmount = 0;
+//                     let totalConsumptionAmount = 0, totalSpendingAmount = 0;
+//                     let lastTopUpResult = {};
+//                     let currentProposal = null;
+//
+//                     // Make sure the check result is in correct order
+//                     checkResult.sort((a, b) => a.settleTime.getTime() - b.settleTime.getTime());
+//
+//                     // Compare consumption and spendingAmount
+//                     try {
+//                         for (let i = 0; i < checkResult.length; i++) {
+//                             // reset the amounts if consumption > spending or lost all credit in previous cycle
+//                             // do not reset if this reward require previous top up's consumption
+//                             if (isClearCycle) {
+//                                 validConsumptionAmount = 0;
+//                                 spendingAmount = 0;
+//                                 bonusAmount = 0;
+//                                 initBonusAmount = 0;
+//                                 totalBonusAmount = 0;
+//                                 totalTopUpAmount = 0;
+//                             }
+//
+//                             currentProposal = checkResult[i].proposalId;
+//
+//                             validConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
+//                             spendingAmount += checkResult[i].requiredConsumption ? checkResult[i].requiredConsumption : 0;
+//
+//                             totalConsumptionAmount += checkResult[i].curConsumption ? checkResult[i].curConsumption : 0;
+//                             totalSpendingAmount += checkResult[i].requiredConsumption ? checkResult[i].requiredConsumption : 0;
+//
+//                             if (checkResult[i].initBonusAmount) {
+//                                 initBonusAmount += checkResult[i].initBonusAmount ? checkResult[i].initBonusAmount : 0;
+//                                 bonusAmount += checkResult[i].bonusAmount ? checkResult[i].bonusAmount : 0;
+//                             }
+//
+//                             // include previous top up record result if required
+//                             if (checkResult[i].isIncludePreviousConsumption) {
+//                                 currentProposal = lastTopUpResult.proposalId ? lastTopUpResult.proposalId : currentProposal;
+//
+//                                 // Include consumptions from previous top up if it is cleared before reward
+//                                 if (lastTopUpResult && lastTopUpResult.isCleared) {
+//                                     validConsumptionAmount += lastTopUpResult.curConsumption ? lastTopUpResult.curConsumption : 0;
+//                                     spendingAmount += lastTopUpResult.requiredConsumption ? lastTopUpResult.requiredConsumption : 0;
+//                                     initBonusAmount += lastTopUpResult.initBonusAmount ? lastTopUpResult.initBonusAmount : 0;
+//                                     bonusAmount += lastTopUpResult.bonusAmount ? lastTopUpResult.bonusAmount : 0;
+//                                 }
+//                             }
+//
+//                             // Include top up promo reward to previous last top up consumptions
+//                             if (lastTopUpResult && checkResult[i].isTopUpPromo) {
+//                                 lastTopUpResult.curConsumption += checkResult[i].curConsumption;
+//                                 lastTopUpResult.requiredConsumption += checkResult[i].requiredConsumption;
+//                                 lastTopUpResult.initBonusAmount += checkResult[i].initBonusAmount;
+//                                 lastTopUpResult.bonusAmount += checkResult[i].bonusAmount;
+//                                 lastTopUpResult.isCleared = isClearCycle;
+//                             }
+//
+//                             // Check consumption for each cycle
+//                             if (initBonusAmount && initBonusAmount != 0 && initBonusAmount + bonusAmount <= lostThreshold) {
+//                                 // User lost all bonus amount
+//                                 isApprove = true;
+//                                 isClearCycle = true;
+//                                 checkMsg = "";
+//                                 checkMsgChinese = "";
+//                             }
+//                             else if (validConsumptionAmount + consumptionOffset < spendingAmount) {
+//                                 isApprove = false;
+//                                 isClearCycle = false;
+//
+//                                 if (checkMsg == "") {
+//                                     checkMsg += "LOW Bet from " + currentProposal + ": Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
+//                                     checkMsgChinese += "提案 " + currentProposal + "：流水 " + validConsumptionAmount + " ，所需流水 " + spendingAmount + "; ";
+//                                 }
+//                             }
+//                             else {
+//                                 // Consumption has fulfilled requirement during this cycle
+//                                 // reset from current cycle
+//                                 isApprove = true;
+//                                 isClearCycle = true;
+//                                 checkMsg = "";
+//                                 checkMsgChinese = "";
+//                             }
+//
+//                             // Sum up bonus amount for overall profit calculation
+//                             totalBonusAmount += checkResult[i].bonusAmount;
+//
+//                             // save current checkResult if it is top up
+//                             if (checkResult[i].isTopUp) {
+//                                 totalTopUpAmount += checkResult[i].initBonusAmount;
+//                                 lastTopUpResult = {
+//                                     proposalId: checkResult[i].proposalId,
+//                                     curConsumption: checkResult[i].curConsumption,
+//                                     requiredConsumption: checkResult[i].requiredConsumption,
+//                                     initBonusAmount: checkResult[i].initBonusAmount,
+//                                     bonusAmount: checkResult[i].bonusAmount,
+//                                     isCleared: isClearCycle
+//                                 }
+//                             }
+//
+//                             // If there is lastTopUpResult but cleared before reaching related reward, set the flag to true
+//                             // to get back missing consumption requirement
+//                             if (isClearCycle && lastTopUpResult) {
+//                                 lastTopUpResult.isCleared = isClearCycle;
+//                             }
+//
+//                             // dev log for debugging auto audit
+//                             devCheckMsg += currentProposal + ": " + "Bonus: " + bonusAmount + "/" + initBonusAmount + ", Consumption: " + validConsumptionAmount + "/" + spendingAmount
+//                                 + ", isClearCycle:" + isClearCycle + "; ";
+//                         }
+//                     }
+//                     catch (ex) {
+//                         devCheckMsg += "ERROR (2): " + ex.toString() + "; ";
+//                     }
+//
+//                     if (proposal.data.ximaWithdrawUsed && proposal.data.amount && proposal.data.amount <= proposal.data.ximaWithdrawUsed) {
+//                         isApprove = true;
+//                         repeatMsg = "Withdrawal amount is within the ximaWithdraw amount: ximaWithdraw " + proposal.data.ximaWithdrawUsed;
+//                         repeatMsgChinese = "提款额在洗码提款额内：洗码提款额" + proposal.data.ximaWithdrawUsed;
+//                         checkMsg += "Withdrawal amount is within the ximaWithdraw amount: ximaWithdraw " + proposal.data.ximaWithdrawUsed;
+//                         checkMsgChinese += "提款额在洗码提款额内：洗码提款额" + proposal.data.ximaWithdrawUsed;
+//                     }
+//                     else if (!platformObj.enableAutoApplyBonus && ((validConsumptionAmount + lostThreshold) < spendingAmount)) {
+//                         isApprove = false;
+//                         repeatMsg = "Insufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
+//                         repeatMsgChinese = "总投注额不足：流水 " + totalConsumptionAmount + " ，所需流水 " + totalSpendingAmount + "; ";
+//                         checkMsg += "Insufficient consumption: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount + "; ";
+//                         checkMsgChinese += "投注额不足：投注额 " + validConsumptionAmount + " ，需求投注额 " + spendingAmount + "; ";
+//                     }
+//                     else {
+//                         repeatMsg += "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
+//                         repeatMsgChinese += "总投注额满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
+//                         checkMsg = "Sufficient overall consumption: Consumption " + totalConsumptionAmount + ", Required Bet " + totalSpendingAmount + "; ";
+//                         checkMsgChinese = "总投注额满足：投注额 " + totalConsumptionAmount + " ，需求投注额 " + totalSpendingAmount + "; ";
+//                     }
+//
+//                     let canApprove = true;
+//                     // Consumption reached, check for other conditions
+//                     if (proposal.data.amount >= platformObj.autoApproveWhenSingleBonusApplyLessThan) {
+//                         checkMsg += " Denied: Single limit;";
+//                         checkMsgChinese += " 失败：单限;";
+//                         canApprove = false;
+//                     }
+//                     if (todayBonusAmount >= platformObj.autoApproveWhenSingleDayTotalBonusApplyLessThan) {
+//                         checkMsg += " Denied: Daily limit;";
+//                         checkMsgChinese += " 失败：日限;";
+//                         canApprove = false;
+//                     }
+//
+//                     if (bNoBonusPermission) {
+//                         checkMsg += " Denied: Not allowed;";
+//                         checkMsgChinese += " 失败：禁提;";
+//                         canApprove = false;
+//                     }
+//
+//                     if (bFirstWithdraw) {
+//                         checkMsg += " Denied: First withdrawal;";
+//                         checkMsgChinese += " 失败：首提;";
+//                         canApprove = false;
+//                     }
+//
+//                     if (bTransferAbnormal) {
+//                         checkMsg += ' Denied: Abnormal Transfer;';
+//                         checkMsgChinese += ' 失败：转账异常;';
+//                         canApprove = false;
+//                     }
+//
+//                     if (bPendingPaymentInfo) {
+//                         checkMsg += ' Denied: Rebank;';
+//                         checkMsgChinese += ' 失败：银改;';
+//                         canApprove = false;
+//                     }
+//                     if (totalBonusAmount > 0 && proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
+//                         && (totalBonusAmount / (initialAmount + totalTopUpAmount) >= platformObj.autoApproveProfitTimes)) {
+//                         checkMsg += ' Denied: Max profit times;';
+//                         checkMsgChinese += ' 失败：盈利十倍;';
+//                         canApprove = false;
+//                     }
+//
+//                     // Check consumption approved or not
+//                     if (isApprove || isTypeEApproval) {
+//                         if (!canApprove) {
+//                             sendToAudit(proposal._id, null, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
+//                         } else {
+//                             let approveRemark = "Success: Consumption " + validConsumptionAmount + ", Required Bet " + spendingAmount;
+//                             let approveRemarkChinese = "成功：流水 " + validConsumptionAmount + "，所需流水 " + spendingAmount;
+//                             sendToApprove(proposal._id, null, proposal.createTime, approveRemark, approveRemarkChinese, checkMsg, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
+//                         }
+//                     } else {
+//                         // Consumption not reached; Throw back to loop pool or deny this proposal
+//                         proposal.data.autoApproveRepeatCount =
+//                             proposal.data.autoApproveRepeatCount || proposal.data.autoApproveRepeatCount == 0 ?
+//                                 proposal.data.autoApproveRepeatCount - 1
+//                                 : repeatCount - 1;
+//
+//                         let updObj = {
+//                             'data.autoApproveRepeatCount': proposal.data.autoApproveRepeatCount,
+//                             'data.autoAuditTime': Date.now()
+//                         };
+//
+//                         if (repeatMsg.length > 0 || repeatMsgChinese.length > 0) {
+//                             updObj['data.autoAuditRepeatMsg'] = repeatMsg;
+//                             updObj['data.autoAuditRepeatMsgChinese'] = repeatMsgChinese;
+//                         }
+//
+//                         if (checkMsg.length > 0 || checkMsgChinese.length > 0) {
+//                             updObj['data.autoAuditCheckMsg'] = checkMsg;
+//                             updObj['data.autoAuditCheckMsgChinese'] = checkMsgChinese;
+//                         }
+//
+//                         if (abnormalMessage.length > 0 || abnormalMessageChinese.length > 0) {
+//                             updObj['data.detail'] = abnormalMessage;
+//                             updObj['data.detailChinese'] = abnormalMessageChinese;
+//                         }
+//
+//                         if (proposal.data.autoApproveRepeatCount > 0) {
+//                             let nextCheckTime = new Date();
+//                             nextCheckTime.setMinutes(nextCheckTime.getMinutes() + platformObj.autoApproveRepeatDelay);
+//                             updObj['data.nextCheckTime'] = nextCheckTime;
+//                         } else {
+//                             updObj['data.nextCheckTime'] = undefined;
+//
+//                             // Check if player is VIP - Passed
+//                             if (proposal.data.proposalPlayerLevelValue == 0) {
+//                                 //sendToReject(proposal._id, proposal.createTime, "Denied: Non-VIP: Exceed Auto Approval Repeat Limit", "失败：非VIP：超出回圈次数", checkMsg, abnormalMessage, abnormalMessageChinese);
+//                                 sendToAudit(proposal._id, null, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
+//                             } else {
+//                                 //sendToReject(proposal._id, proposal.createTime, "Denied: VIP: Exceed Auto Approval Repeat Limit", "失败：VIP：超出回圈次数", checkMsg, abnormalMessage, abnormalMessageChinese);
+//                                 sendToAudit(proposal._id, null, proposal.createTime, checkMsg, checkMsgChinese, null, abnormalMessage, abnormalMessageChinese, repeatMsg, repeatMsgChinese, devCheckMsg);
+//                             }
+//                         }
+//
+//                         return dbconfig.collection_proposal.findOneAndUpdate({
+//                             _id: proposal._id,
+//                             createTime: proposal.createTime
+//                         }, updObj).exec();
+//                     }
+//                 }
+//             );
+//         },
+//         error => {
+//             // do nothing
+//         }
+//     )
+// }
 
 function sendToApprovePartner (proposalObjId, createTime, remark, remarkChinese) {
     // processRemark = processRemark ? processRemark : "";
@@ -1384,6 +1358,43 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
             }
         }
     );
+}
+
+/**
+ * Get last withdrawal proposal that has top up after withdraw
+ * @param platform
+ * @param playerObjId
+ * @param thisWithdrawTime
+ * @returns {Promise}
+ */
+function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
+    let thisWithdrawTime = new Date(thisWithdrawTime);
+
+    // TODO:: May be enhanced to limit search to 1 year time
+
+    return dbconfig.collection_proposal.find({
+        'data.platformId': platform._id,
+        'data.playerObjId': playerObjId,
+        mainType: 'TopUp',
+        createTime: {$lt: thisWithdrawTime}
+    }, {createTime: 1}).sort({createTime: -1}).limit(1).lean().then(
+        lastTopUpProp => {
+            if (lastTopUpProp && lastTopUpProp[0] && lastTopUpProp[0].createTime) {
+                return dbconfig.collection_proposal.find({
+                    'data.playerObjId': ObjectId(playerObjId),
+                    type: constProposalType.PLAYER_BONUS,
+                    $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}],
+                    createTime: {$lt: lastTopUpProp[0].createTime}
+                }, {createTime: 1}).sort({createTime: -1}).limit(1).lean().then(
+                    retData => {
+                        if (retData && retData[0]) {
+                            return retData[0].createTime;
+                        }
+                    }
+                );
+            }
+        }
+    )
 }
 
 function getPlayerConsumptionSummary(platformId, playerId, dateFrom, dateTo, providerIdArr) {

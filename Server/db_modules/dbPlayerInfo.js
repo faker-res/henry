@@ -11044,7 +11044,7 @@ let dbPlayerInfo = {
                             if (platform && platform.useProviderGroup && proposal.status == constProposalStatus.AUTOAUDIT) {
                                 let proposals = [];
                                 proposals.push(proposal);
-                                dbAutoProposal.processAutoProposals(proposals, platform, platform.useProviderGroup);
+                                dbAutoProposal.processAutoProposals(proposals, platform);
                             }
                             return data;
                         },
@@ -17440,8 +17440,6 @@ let dbPlayerInfo = {
                     result.endTime = endTime;
 
                     let csOfficerDetail = data[6];
-                    console.log("checking---yH--csOfficerDetail", csOfficerDetail)
-                    console.log("checking---yH--playerDetail.accAdmin", playerDetail && playerDetail.accAdmin ? playerDetail.accAdmin : "NONE")
 
                     // related admin
                     if (playerDetail.accAdmin) {
