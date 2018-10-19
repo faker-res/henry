@@ -512,7 +512,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
             if (proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
                 && ((playerTotalBonus / playerTotalTopupAmount) >= platformObj.autoApproveProfitTimes)) {
                 checkMsg += ' Denied: Max profit times;';
-                checkMsgChinese += ' 失败：盈利十倍;';
+                checkMsgChinese += ' 失败：二提款间（输赢/存款）过高;';
                 canApprove = false;
             }
 
