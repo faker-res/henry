@@ -3754,7 +3754,7 @@ let dbPlayerInfo = {
      * @param {number} amount
      * @param {String} paymentChannelName
      */
-    playerTopUp: function (playerId, amount, paymentChannelName, topUpType, proposalData) {
+    playerTopUp: function (playerId, amount, paymentChannelName, topUpType, proposalData, oriAmount) {
         function topupUpdateRTG(playerData, platformData, amount) {
             player = playerData;
             platform = platformData;
@@ -3916,6 +3916,7 @@ let dbPlayerInfo = {
                         playerId: player._id,
                         platformId: player.platform,
                         amount: amount,
+                        oriAmount: oriAmount,
                         topUpType: topUpType,
                         createTime: proposalData ? proposalData.createTime : new Date(),
                         bDirty: false
