@@ -603,7 +603,7 @@ define(['js/app'], function (myApp) {
             };
 
             vm.clearAllCheckedDepartment = function() {
-                $('#departmentTreeForUpdate').treeview('uncheckAll', { silent: true });
+                $('#departmentTreeForUpdate').treeview('uncheckAll', { silent: false });
             };
 
             vm.submitMoveDepartment = function (sendData) {
