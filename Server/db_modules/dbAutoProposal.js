@@ -1370,7 +1370,7 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
 function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
     thisWithdrawTime = new Date(thisWithdrawTime);
 
-    // TODO:: May be enhanced to limit search to 1 year time
+    // TODO:: May be enhanced to limit search to 1 year time -
 
     return dbconfig.collection_proposal.find({
         'data.platformId': platform._id,
