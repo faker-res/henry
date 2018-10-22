@@ -2324,9 +2324,10 @@ define(['js/app'], function (myApp) {
 
             vm.cancelUpdatePlatformConfig = function () {
                 vm.isNotAllowEdit = true;
-                if (vm.isCreateNewPlatform) {
-                    vm.bindSelectedPlatformData();
-                }
+                vm.bindSelectedPlatformData();
+                // if (vm.isCreateNewPlatform) {
+                //     vm.bindSelectedPlatformData();
+                // }
                 vm.isCreateNewPlatform = false;
                 if (vm.selectedPlatform && vm.selectedPlatform.data) {
                     if (vm.showPlatform) {
