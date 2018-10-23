@@ -2917,6 +2917,12 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerObj = data;
+                    if (playerObj.guestDeviceId) {
+                        return Promise.reject({
+                            name: "DBError",
+                            message: "Guest ID cannot update password"
+                        })
+                    }
                     return dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", true).then(
                         playerState => {
                             if (playerState) {
@@ -3868,7 +3874,7 @@ let dbPlayerInfo = {
      * @param {number} amount
      * @param {String} paymentChannelName
      */
-    playerTopUp: function (playerId, amount, paymentChannelName, topUpType, proposalData) {
+    playerTopUp: function (playerId, amount, paymentChannelName, topUpType, proposalData, oriAmount) {
         function topupUpdateRTG(playerData, platformData, amount) {
             player = playerData;
             platform = platformData;
@@ -4030,6 +4036,7 @@ let dbPlayerInfo = {
                         playerId: player._id,
                         platformId: player.platform,
                         amount: amount,
+                        oriAmount: oriAmount,
                         topUpType: topUpType,
                         createTime: proposalData ? proposalData.createTime : new Date(),
                         bDirty: false
@@ -20923,25 +20930,48 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
     if (proposalData && proposalData.data && proposalData.data.limitedOfferObjId) {
         let topupProposal = proposalData;
         let newProp;
+        let amountToDeduct = 0;
+        let updateObj = {
+            'data.topUpProposalObjId': proposalData._id,
+            'data.topUpProposalId': proposalData.proposalId,
+            'data.topUpAmount': proposalData.data.amount
+        }
 
-        return dbUtility.findOneAndUpdateForShard(
-            dbconfig.collection_proposal,
-            {_id: proposalData.data.limitedOfferObjId},
-            {
-                $set: {
-                    'data.topUpProposalObjId': proposalData._id,
-                    'data.topUpProposalId': proposalData.proposalId,
-                    'data.topUpAmount': proposalData.data.amount
-                },
-                $currentDate: {settleTime: true}
-            },
-            constShardKeys.collection_proposal,
-            true
+        if(proposalData.data.actualAmountReceived){
+            updateObj["data.actualAmount"] = proposalData.data.actualAmountReceived;
+        }
+
+        return dbconfig.collection_proposal.findOne({_id: proposalData.data.limitedOfferObjId}).then(
+            limitedOfferProposal => {
+                if(limitedOfferProposal && typeof limitedOfferProposal.data.spendingTimes != "undefined" && typeof limitedOfferProposal.data.rewardAmount != "undefined"
+                    && proposalData.data.actualAmountReceived){
+                    updateObj["data.spendingAmount"] = (proposalData.data.actualAmountReceived + limitedOfferProposal.data.rewardAmount) * limitedOfferProposal.data.spendingTimes;
+                }
+                return;
+            }
+        ).then(
+            () => {
+                return dbUtility.findOneAndUpdateForShard(
+                    dbconfig.collection_proposal,
+                    {_id: proposalData.data.limitedOfferObjId},
+                    {
+                        $set: updateObj,
+                        $currentDate: {settleTime: true}
+                    },
+                    constShardKeys.collection_proposal,
+                    true
+                )
+            }
         ).then(
             res => {
                 newProp = res;
+                if(proposalData.data.actualAmountReceived){
+                    amountToDeduct = proposalData.data.actualAmountReceived
+                }else{
+                    amountToDeduct = res.data.applyAmount;
+                }
 
-                return dbPlayerUtil.tryToDeductCreditFromPlayer(res.data.playerObjId, res.data.platformId, res.data.applyAmount, res.data.limitedOfferName + ":Deduction", res.data);
+                return dbPlayerUtil.tryToDeductCreditFromPlayer(res.data.playerObjId, res.data.platformId, amountToDeduct, res.data.limitedOfferName + ":Deduction", res.data);
             }
         ).then(
             res => {

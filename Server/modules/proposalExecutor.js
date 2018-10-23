@@ -1354,12 +1354,14 @@ var proposalExecutor = {
              */
             executePlayerTopUp: function (proposalData, deferred) {
                 let topUpAmount = Number(proposalData.data.amount);
+                let oriAmount = 0;
 
                 if(proposalData.data.hasOwnProperty("actualAmountReceived")){
                     topUpAmount = Number(proposalData.data.actualAmountReceived);
+                    oriAmount = Number(proposalData.data.amount);
                 }
 
-                dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, topUpAmount, "", constPlayerTopUpType.ONLINE, proposalData).then(
+                dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, topUpAmount, "", constPlayerTopUpType.ONLINE, proposalData, oriAmount).then(
                     function (data) {
                         var wsMessageClient = serverInstance.getWebSocketMessageClient();
                         if (wsMessageClient) {
@@ -2724,6 +2726,7 @@ var proposalExecutor = {
 
             executePlayerLimitedOfferReward: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                    let amount = proposalData.data.actualAmount ? proposalData.data.actualAmount : proposalData.data.applyAmount;
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
                         type: constRewardType.PLAYER_LIMITED_OFFERS_REWARD,
@@ -2731,8 +2734,8 @@ var proposalExecutor = {
                         platformId: proposalData.data.platformId,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
                         applyAmount: proposalData.data.applyAmount,
-                        currentAmount: proposalData.data.applyAmount + proposalData.data.rewardAmount,
-                        initAmount: proposalData.data.applyAmount + proposalData.data.rewardAmount,
+                        currentAmount: amount + proposalData.data.rewardAmount,
+                        initAmount: amount + proposalData.data.rewardAmount,
                         eventId: proposalData.data.eventId
                     };
 
@@ -2740,6 +2743,10 @@ var proposalExecutor = {
                         taskData.targetProviders = proposalData.data.providers;
                     } else {
                         taskData.providerGroup = proposalData.data.providerGroup;
+                    }
+
+                    if(proposalData.data.actualAmount){
+                        taskData.actualAmount = proposalData.data.actualAmount;
                     }
 
                     proposalData.data.proposalId = proposalData.proposalId;
@@ -2755,19 +2762,24 @@ var proposalExecutor = {
 
             executePlayerTopUpReturnGroup: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && (proposalData.data.rewardAmount || (proposalData.data.applyAmount && proposalData.data.isDynamicRewardAmount))) {
+                    let amount = proposalData.data.actualAmount ? proposalData.data.actualAmount : proposalData.data.applyAmount;
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
                         type: constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
                         rewardType: constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
                         platformId: proposalData.data.platformId,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
-                        currentAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + proposalData.data.applyAmount : proposalData.data.rewardAmount,
-                        initAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + proposalData.data.applyAmount : proposalData.data.rewardAmount,
+                        currentAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + amount : proposalData.data.rewardAmount,
+                        initAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + amount : proposalData.data.rewardAmount,
                         useConsumption: Boolean(proposalData.data.useConsumption),
                         eventId: proposalData.data.eventId,
                         applyAmount: proposalData.data.applyAmount,
                         providerGroup: proposalData.data.providerGroup
                     };
+
+                    if(proposalData.data.actualAmount){
+                        taskData.actualAmount = proposalData.data.actualAmount;
+                    }
 
                     let deferred1 = Q.defer();
                     createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_TOP_UP_RETURN_GROUP, proposalData);

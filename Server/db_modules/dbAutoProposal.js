@@ -294,6 +294,8 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 createTime: {$lt: proposal.createTime}
             };
 
+            console.log('lastWithdrawDate', lastWithdrawDate);
+
             if (lastWithdrawDate) {
                 dLastWithdraw = lastWithdrawDate;
                 transferLogQuery.createTime["$gt"] = lastWithdrawDate;
@@ -394,6 +396,8 @@ function checkRewardTaskGroup(proposal, platformObj) {
             if(allProposals && playerData){
                 bIsPaymentInfoMatched = isPaymentInfoMatched(allProposals, playerData);
             }
+
+            console.log('data[5]', data[5]);
 
             if (data && data[5] && data[5][0] && data[5][0].totalBetAmt) {
                 playerTotalBets = data[5][0].totalBetAmt;
@@ -508,6 +512,9 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 checkMsgChinese += ' 失败：提款资料与上次银改不符;';
                 canApprove = false;
             }
+
+            console.log('playerTotalBonus', playerTotalBonus);
+            console.log('playerTotalTopupAmount', playerTotalTopupAmount);
 
             if (proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
                 && ((playerTotalBonus / playerTotalTopupAmount) >= platformObj.autoApproveProfitTimes)) {
@@ -1373,16 +1380,18 @@ function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
     // TODO:: May be enhanced to limit search to 1 year time -
 
     return dbconfig.collection_proposal.find({
-        'data.platformId': platform._id,
-        'data.playerObjId': playerObjId,
+        'data.platformId': ObjectId(platform._id),
+        'data.playerObjId': ObjectId(playerObjId),
         mainType: 'TopUp',
-        createTime: {$lt: thisWithdrawTime}
+        createTime: {$lt: thisWithdrawTime},
+        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
     }, {createTime: 1}).sort({createTime: -1}).limit(1).lean().then(
         lastTopUpProp => {
             if (lastTopUpProp && lastTopUpProp[0] && lastTopUpProp[0].createTime) {
                 return dbconfig.collection_proposal.find({
+                    'data.platformId': ObjectId(platform._id),
                     'data.playerObjId': ObjectId(playerObjId),
-                    type: constProposalType.PLAYER_BONUS,
+                    mainType: 'PlayerBonus',
                     $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}],
                     createTime: {$lt: lastTopUpProp[0].createTime}
                 }, {createTime: 1}).sort({createTime: -1}).limit(1).lean().then(
@@ -1446,6 +1455,8 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
     let multipleTransferOutId = null;
     creditChangeLogs = creditChangeLogs ? creditChangeLogs : [];
 
+    let abnormalities = [];
+
     let logsLength = transferLogs.length;
     for (let i = 0; i < logsLength; i++) {
         if (transferLogs[i].type === 'TransferIn') {
@@ -1491,8 +1502,6 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
             completeCycle = !completeCycle;
         }
     }
-
-    let abnormalities = [];
 
     if (multipleTransferInWithoutOtherCreditInput) {
         abnormalities.push({
