@@ -294,8 +294,6 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 createTime: {$lt: proposal.createTime}
             };
 
-            console.log('lastWithdrawDate', lastWithdrawDate);
-
             if (lastWithdrawDate) {
                 dLastWithdraw = lastWithdrawDate;
                 transferLogQuery.createTime["$gt"] = lastWithdrawDate;
@@ -382,8 +380,6 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
             if (data && data[3]) {
                 allProposals = data[3];
-                // bPendingPaymentInfo = hasPendingPaymentInfoChanges(allProposals);
-                // bUpdatePaymentInfo = isFirstWithdrawalAfterPaymentInfoUpdated(allProposals);
                 playerTotalTopupAmount = calcPlayerTotalTopupAmount(allProposals);
             }
 
@@ -393,11 +389,9 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 playerCurrentAmount = playerData.validCredit;
             }
 
-            if(allProposals && playerData){
+            if (allProposals && playerData) {
                 bIsPaymentInfoMatched = isPaymentInfoMatched(allProposals, playerData);
             }
-
-            console.log('data[5]', data[5]);
 
             if (data && data[5] && data[5][0] && data[5][0].totalBetAmt) {
                 playerTotalBets = data[5][0].totalBetAmt;
@@ -512,9 +506,6 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 checkMsgChinese += ' 失败：提款资料与上次银改不符;';
                 canApprove = false;
             }
-
-            console.log('playerTotalBonus', playerTotalBonus);
-            console.log('playerTotalTopupAmount', playerTotalTopupAmount);
 
             if (proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
                 && ((playerTotalBonus / playerTotalTopupAmount) >= platformObj.autoApproveProfitTimes)) {
