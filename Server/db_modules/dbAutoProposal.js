@@ -1372,8 +1372,6 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
  * @returns {Promise}
  */
 function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
-    console.log('getLastValidWithdrawTime', platform, playerObjId, thisWithdrawTime);
-
     thisWithdrawTime = new Date(thisWithdrawTime);
 
     // TODO:: May be enhanced to limit search to 1 year time -
@@ -1382,11 +1380,11 @@ function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
         // 'data.platformId': platform._id,
         'data.playerObjId': playerObjId,
         mainType: 'TopUp',
-        createTime: {$lt: thisWithdrawTime},
+        // createTime: {$lt: thisWithdrawTime},
         status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
     }, {createTime: 1}).sort({createTime: -1}).limit(1).lean().then(
         lastTopUpProp => {
-            console.log('lastTopUpProp', thisWithdrawTime, lastTopUpProp, playerObjId, platform);
+            console.log('lastTopUpProp', thisWithdrawTime, lastTopUpProp, playerObjId);
             if (lastTopUpProp && lastTopUpProp[0] && lastTopUpProp[0].createTime) {
                 return dbconfig.collection_proposal.find({
                     'data.playerObjId': ObjectId(playerObjId),
