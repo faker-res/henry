@@ -4600,7 +4600,8 @@ let dbPlayerReward = {
                         limitedOfferApplyTime: moment().toDate(),
                         repeatDay: repeatDay ? repeatDay : "",
                         // selectedProvider: selectedProvider? selectedProvider: ""
-                        providerGroup: limitedOfferObj.providerGroup
+                        providerGroup: limitedOfferObj.providerGroup,
+                        spendingTimes: limitedOfferObj.bet
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS,

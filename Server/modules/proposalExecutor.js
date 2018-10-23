@@ -2726,6 +2726,7 @@ var proposalExecutor = {
 
             executePlayerLimitedOfferReward: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                    let amount = proposalData.data.actualAmount ? proposalData.data.actualAmount : proposalData.data.applyAmount;
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
                         type: constRewardType.PLAYER_LIMITED_OFFERS_REWARD,
@@ -2733,8 +2734,8 @@ var proposalExecutor = {
                         platformId: proposalData.data.platformId,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
                         applyAmount: proposalData.data.applyAmount,
-                        currentAmount: proposalData.data.applyAmount + proposalData.data.rewardAmount,
-                        initAmount: proposalData.data.applyAmount + proposalData.data.rewardAmount,
+                        currentAmount: amount + proposalData.data.rewardAmount,
+                        initAmount: amount + proposalData.data.rewardAmount,
                         eventId: proposalData.data.eventId
                     };
 
@@ -2742,6 +2743,10 @@ var proposalExecutor = {
                         taskData.targetProviders = proposalData.data.providers;
                     } else {
                         taskData.providerGroup = proposalData.data.providerGroup;
+                    }
+
+                    if(proposalData.data.actualAmount){
+                        taskData.actualAmount = proposalData.data.actualAmount;
                     }
 
                     proposalData.data.proposalId = proposalData.proposalId;

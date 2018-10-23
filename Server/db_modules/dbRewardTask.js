@@ -234,7 +234,6 @@ const dbRewardTask = {
                         || (proposalData.data.promoCodeTypeValue && proposalData.data.promoCodeTypeValue == 1)) {
                         consumptionAmt = rewardData.requiredUnlockAmount;
                     } else {
-                        console.log("%%%%%%%%%%%%%%%%%%%%%%", rewardData);
                         let amount = rewardData.actualAmount ? rewardData.actualAmount : rewardData.applyAmount;
                         consumptionAmt = rewardData.requiredUnlockAmount - amount;
                     }
@@ -253,7 +252,6 @@ const dbRewardTask = {
                         updObj.$inc.targetConsumption = consumptionAmt;
                     }
 
-                    console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", updObj);
                     // There are on-going reward task for this provider group
                     return dbconfig.collection_rewardTaskGroup.findOneAndUpdate({
                         _id: providerGroup._id
@@ -315,9 +313,6 @@ const dbRewardTask = {
 
                         return dbconfig.collection_players.findOne({_id: proposalData.data.playerObjId}).lean().then(
                             playerData => {
-                                console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^66666666666",amountToUpdate)
-                                console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^77777777777",rewardData);
-                                console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^888888888888",proposalData);
                                 return dbPlayerInfo.changePlayerCredit(proposalData.data.playerObjId, playerData.platform, amountToUpdate, rewardType, proposalData);
                             }
                         ).then(
