@@ -726,6 +726,12 @@
         this.playerService.getReceiveTransferList.once(callback);
     };
 
+    proto.playerLoginOrRegisterWithSMS = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.playerLoginOrRegisterWithSMS.request(data);
+        this.playerService.playerLoginOrRegisterWithSMS.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPlayerAPITest;
     } else {

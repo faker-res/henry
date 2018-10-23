@@ -5568,6 +5568,73 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
+    playerLoginOrRegisterWithSMS: (loginData, ua) => {
+        let isSMSVerified = false;
+        let rejectMsg = {
+            status: constServerCode.VALIDATION_CODE_INVALID,
+            name: "ValidationError",
+            message: "Invalid SMS Validation Code"
+        };
+
+        // Check matched verification code
+        let smsProm = dbconfig.collection_smsVerificationLog.findOne({
+            platformId: loginData.platformId,
+            tel: loginData.phoneNumber
+        }).sort({createTime: -1});
+
+        return smsProm.then(
+            verificationSMS => {
+                // Check verification SMS code
+                if (verificationSMS && verificationSMS.code) {
+                    if (verificationSMS.code == loginData.smsCode) {
+                        // Verified
+                        return dbconfig.collection_smsVerificationLog.remove(
+                            {_id: verificationSMS._id}
+                        ).then(
+                            data => {
+                                dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
+                                isSMSVerified = true;
+                                let plyProm = dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified);
+
+                                return Promise.all([plyProm])
+                                    .catch(
+                                        error => {
+                                            return Q.reject({
+                                                status: constServerCode.DB_ERROR,
+                                                name: "DBError",
+                                                message: error.message
+                                            });
+                                        }
+                                    )
+                            }
+                        )
+                    } else {
+                        // Not verified
+                        if (verificationSMS.loginAttempts >= 10) {
+                            // Safety - remove sms verification code after 10 attempts to prevent brute force attack
+                            return dbconfig.collection_smsVerificationLog.remove(
+                                {_id: verificationSMS._id}
+                            ).then(() => {
+                                return Q.reject(rejectMsg);
+                            });
+                        }
+                        else {
+                            return dbconfig.collection_smsVerificationLog.findOneAndUpdate(
+                                {_id: verificationSMS._id},
+                                {$inc: {loginAttempts: 1}}
+                            ).then(() => {
+                                return Q.reject(rejectMsg);
+                            });
+                        }
+                    }
+                }
+                else {
+                    return Q.reject(rejectMsg);
+                }
+            }
+        )
+    },
+
     playerLoginWithSMS: function (loginData, userAgent, isSMSVerified) {
         let deferred = Q.defer();
         let newAgentArray = [];
@@ -5693,12 +5760,15 @@ let dbPlayerInfo = {
                             return record.save().then(
                                 function () {
                                     if (bUpdateIp) {
-                                        dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
+                                        dbPlayerInfo.updateGeoipws(data._id, platformId, loginData.lastLoginIp);
                                     }
                                 }
                             ).then(
                                 () => {
                                     dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
+                                        path: "platform",
+                                        model: dbconfig.collection_platform
+                                    }).populate({
                                         path: "playerLevel",
                                         model: dbconfig.collection_playerLevel
                                     }).lean().then(

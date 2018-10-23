@@ -1214,6 +1214,97 @@ let PlayerServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getReceiveTransferList, [data.platformId, conn.playerId, data.startTime, data.endTime, data.requestPage, data.count], isValidData);
     };
 
+    this.playerLoginOrRegisterWithSMS.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.phoneNumber && data.smsCode && data.platformId);
+
+        data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
+        let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            if(forwardedIp[0].trim() != "undefined"){
+                data.lastLoginIp = forwardedIp[0].trim();
+            }
+        }
+
+        let uaString = conn.upgradeReq.headers['user-agent'];
+        let ua = uaParser(uaString);
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLoginOrRegisterWithSMS, [data, ua], isValidData, true, true, true).then(
+            playerPartnerData => {
+                console.log("playerPartnerData",playerPartnerData);
+                let playerData = playerPartnerData[0];
+
+                if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT || playerData.platform.requireLogInCaptcha) {
+                    if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
+                        conn.isAuth = true;
+                    } else {
+                        conn.noOfAttempt++;
+                        conn.isAuth = false;
+                        conn.playerId = null;
+                        conn.playerObjId = null;
+                        conn.captchaCode = null;
+                        wsFunc.response(conn, {
+                            status: constServerCode.INVALID_CAPTCHA,
+                            errorMessage: localization.translate("Captcha code invalid", conn.lang, conn.platformId),
+                            data: {noOfAttempt: conn.noOfAttempt},
+
+                        }, data);
+                        return;
+                    }
+                } else {
+                    conn.isAuth = true;
+                }
+
+                conn.playerId = playerData.playerId;
+                conn.playerObjId = playerData._id;
+                conn.noOfAttempt = 0;
+                // conn.onclose = function (event) {
+                //     dbPlayerPartner.logoutPlayerPartnerAPI({
+                //         playerId: playerData.playerId,
+                //         partnerId: partnerData.partnerId
+                //     }).catch(
+                //         error => {
+                //             if (error.message === "Can't find db data") {
+                //                 // This is quite normal during testing, because we remove the test player account before the connection closes.
+                //                 // Do nothing
+                //             } else {
+                //                 console.error("dbPlayerPartner.logoutPlayerPartnerAPI failed:", error);
+                //             }
+                //         }
+                //     );
+                // };
+                let profile = {name: playerPartnerData.name, password: playerPartnerData.password};
+                let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+                wsFunc.response(conn, {
+                    status: constServerCode.SUCCESS,
+                    data: playerPartnerData,
+                    token: token,
+                }, data);
+            },
+            error => {
+                if (error != "INVALID_DATA") {
+                    conn.noOfAttempt++;
+                    conn.isAuth = false;
+                    conn.playerId = null;
+                    conn.playerObjId = null;
+                    conn.captchaCode = null;
+
+                    if (error && error.message == "Invalid SMS Validation Code") {
+                        wsFunc.response(conn, {
+                            status: constServerCode.VALIDATION_CODE_EXPIRED,
+                            data: {noOfAttempt: conn.noOfAttempt},
+                            errorMessage: localization.translate("Invalid SMS Validation Code", conn.lang, conn.platformId),
+                        }, data);
+                    } else {
+                        wsFunc.response(conn, {
+                            status: constServerCode.INVALID_USER_PASSWORD,
+                            data: {noOfAttempt: conn.noOfAttempt},
+                            errorMessage: localization.translate("User not found OR Invalid Password", conn.lang, conn.platformId),
+                        }, data);
+                    }
+                }
+            }
+        ).catch(WebSocketUtil.errorHandler)
+            .done();
+    };
 };
 var proto = PlayerServiceImplement.prototype = Object.create(PlayerService.prototype);
 proto.constructor = PlayerServiceImplement;
