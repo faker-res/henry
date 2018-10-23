@@ -95,6 +95,7 @@
                 "updatePlayerEmail",
                 "loginJblShow",
                 "createDemoPlayer",
+                "createGuestPlayer",
                 "getClientData",
                 "saveClientData",
                 "callBackToUser",

@@ -1731,7 +1731,7 @@ var dbClientQnA = {
                 player = data[0];
                 platform = data[1];
 
-                return isExceedSameBankAccount(inputDataObj.bankAccount, platform);
+                return isExceedSameBankAccount(inputDataObj.bankAccount, platform, player._id);
             }
         ).then(
             exceedSameBankAccount => {
@@ -2676,16 +2676,24 @@ var dbClientQnA = {
     //endregion
 };
 
-function isExceedSameBankAccount(bankAccount, platformData) {
+function isExceedSameBankAccount(bankAccount, platformData, playerObjId) {
     if (!platformData || !platformData.sameBankAccountCount) {
         return false;
     }
-    return dbconfig.collection_players.find({
+
+    let query = {
         bankAccount: bankAccount,
         platform: platformData._id,
         'permission.forbidPlayerFromLogin': false
-    }).lean().count().then(
-        bankAccountCount => {
+    };
+
+    if (playerObjId) {
+        query._id = {$ne: playerObjId};
+    }
+
+    return dbconfig.collection_players.find(query, {_id:1}).lean().then(
+        bankAccount => {
+            let bankAccountCount = bankAccount && bankAccount.length || 0;
             return Boolean(bankAccountCount && bankAccountCount >= platformData.sameBankAccountCount);
         }
     )

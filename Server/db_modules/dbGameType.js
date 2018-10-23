@@ -113,7 +113,7 @@ var dbGameType = {
      * @returns {Promise<Array<GameType>>}
      */
     getGameTypeList: function () {
-        return dbconfig.collection_gameType.find({});
+        return dbconfig.collection_gameType.find({name: {$exists: true}}).sort({name: 1}).exec();
     }
 };
 

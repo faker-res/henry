@@ -12821,6 +12821,7 @@ define(['js/app'], function (myApp) {
                         let proposalSpendingAmt =
                             vm.rewardTaskProposalData[i].data.spendingAmount
                             || vm.rewardTaskProposalData[i].data.requiredUnlockAmount
+                            || vm.rewardTaskProposalData[i].data.actualAmountReceived
                             || vm.rewardTaskProposalData[i].data.amount
                             || 0;
 
@@ -12999,7 +13000,7 @@ define(['js/app'], function (myApp) {
                         item.topUpProposal = item.data.topUpProposalId ? item.data.topUpProposalId : item.data.topUpProposal;
                         item.topUpAmount = item.data.topUpAmount;
                         item.bonusAmount = item.data.rewardAmount;
-                        item.applyAmount = item.data.applyAmount || item.data.amount;
+                        item.applyAmount = item.data.actualAmount || item.data.actualAmountReceived || item.data.applyAmount || item.data.amount;
                         item.requiredUnlockAmount = item.data.spendingAmount;
                         item.requiredBonusAmount = item.data.requiredBonusAmount;
                         item['provider$'] = $translate(item.data.provider$);

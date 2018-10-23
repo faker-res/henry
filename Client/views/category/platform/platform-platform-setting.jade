@@ -2,17 +2,17 @@
     .col-md-12
         .panel-body.common-right-sub-panel-body
             ul.nav.nav-tabs.common-nav-tabs
-                li(ng-class="vm.selectedPlatformDetailTab == 'backstage-settings' ? 'active' : null")
+                li(ng-class="vm.selectedPlatformDetailTab == 'backstage-settings' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Platform','BackstageSettings')")
                     a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('backstage-settings')") {{"BACKSTAGE_SETTINGS" | translate}}
-                li(ng-class="vm.selectedPlatformDetailTab == 'player-display-data' ? 'active' : null")
+                li(ng-class="vm.selectedPlatformDetailTab == 'player-display-data' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Platform','PlayerDisplayData')")
                     a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('player-display-data')") {{"PLAYER_DISPLAY_DATA" | translate}}
-                li(ng-class="vm.selectedPlatformDetailTab == 'partner-display-data' ? 'active' : null")
+                li(ng-class="vm.selectedPlatformDetailTab == 'partner-display-data' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Platform','PartnerDisplayData')")
                     a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('partner-display-data')") {{"PARTNER_DISPLAY_DATA" | translate}}
-                li(ng-class="vm.selectedPlatformDetailTab == 'system-settlement' ? 'active' : null")
+                li(ng-class="vm.selectedPlatformDetailTab == 'system-settlement' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Platform','SystemSettlement')")
                     a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('system-settlement')", ng-show="vm.platformAction!='create'&&vm.platformAction!='edit'") {{"SYSTEM_SETTLEMENT" | translate}}
-                li(ng-class="vm.selectedPlatformDetailTab == 'frontend-module-setting' ? 'active' : null")
+                li(ng-class="vm.selectedPlatformDetailTab == 'frontend-module-setting' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Platform','FrontendModuleSetting')")
                     a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('frontend-module-setting')") {{"FRONTEND_MODULE_SETTING" | translate}}
-                li(ng-class="vm.selectedPlatformDetailTab == 'theme-select' ? 'active' : null")
+                li(ng-class="vm.selectedPlatformDetailTab == 'theme-select' ? 'active' : null", ng-show="checkViewPermission('Platform', 'Platform','ThemeSelect')")
                     a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('theme-select')") {{"THEME_SELECT" | translate}}
             .panel.panel-primary(style="border-radius:0 !important;")
                 .panel-body
