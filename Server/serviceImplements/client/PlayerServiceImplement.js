@@ -177,6 +177,100 @@ let PlayerServiceImplement = function () {
             .done();
     };
 
+    this.createGuestPlayer.onRequest = function (wsFunc, conn, data) {
+        let uaString = conn.upgradeReq.headers['user-agent'];
+        let ua = uaParser(uaString);
+        let userAgent = [{
+            browser: ua.browser.name || '',
+            device: ua.device.name || '',
+            os: ua.os.name || ''
+        }];
+
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        var md = new mobileDetect(uaString);
+        data.ua = ua;
+        data.md = md;
+        data.inputDevice = inputDevice;
+
+        let lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
+        let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
+        if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
+            if(forwardedIp[0].trim() != "undefined"){
+                lastLoginIp = forwardedIp[0].trim();
+            }
+        }
+        let loginIps = [lastLoginIp];
+
+        let country, city, province, longitude, latitude;
+        let geo = dbUtility.getIpLocationByIPIPDotNet(lastLoginIp);
+        if (geo) {
+            country = geo.country;
+            city = geo.city;
+            province = geo.province || null;
+            longitude = geo.ll ? geo.ll[1] : null;
+            latitude = geo.ll ? geo.ll[0] : null;
+        }
+        let deviceData = {userAgent, lastLoginIp, loginIps, country, city, province, longitude, latitude};
+
+        let isValidData = Boolean(data && data.platformId && data.guestDeviceId);
+
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.createGuestPlayer, [data, deviceData], isValidData, true, false, true).then(
+            (playerData) => {
+                data.playerId = data.playerId ? data.playerId : playerData.playerId;
+
+                conn.isAuth = true;
+                conn.playerId = playerData.playerId;
+                conn.playerObjId = playerData._id;
+                // conn.noOfAttempt = 0;
+                conn.onclose = function (event) {
+                    dbPlayerInfo.playerLogout({playerId: playerData.playerId}).catch(
+                        error => {
+                            if (error.message === "Can't find db data") {
+                                // This is quite normal during testing, because we remove the test player account before the connection closes.
+                                // Do nothing
+                            } else {
+                                console.error("dbPlayerInfo.playerLogout failed:", error);
+                            }
+                        }
+                    );
+                };
+                var profile = {name: playerData.name, password: playerData.password};
+                var token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+
+                if (playerData.guestDeviceId) {
+                    delete playerData.guestDeviceId;
+                }
+
+                wsFunc.response(conn, {
+                    status: constServerCode.SUCCESS,
+                    data: playerData,
+                    token: token,
+                }, data);
+            }, (err) => {
+
+                console.log(err);
+                if (err && err.status) {
+                    if (err.errorMessage || err.message) {
+                        var msg = err.errorMessage || err.message;
+                        err.errorMessage = localization.translate(msg, conn.lang, conn.platformId);
+                    }
+                    wsFunc.response(conn, err, data);
+                }
+                else {
+                    var errorCode = err && err.code || constServerCode.COMMON_ERROR;
+                    var resObj = {
+                        status: errorCode,
+                        errorMessage: localization.translate(err.message || err.errorMessage, conn.lang, conn.platformId)
+                    };
+
+                    resObj.errorMessage = err.errMessage || resObj.errorMessage;
+                    wsFunc.response(conn, resObj, data);
+                }
+            }
+        ).catch(WebSocketUtil.errorHandler)
+            .done();
+    };
+
     //player create api handler
     this.playerQuickReg.expectsData = 'platformId: String, password: String';
     this.playerQuickReg.onRequest = function (wsFunc, conn, data) {

@@ -2324,9 +2324,10 @@ define(['js/app'], function (myApp) {
 
             vm.cancelUpdatePlatformConfig = function () {
                 vm.isNotAllowEdit = true;
-                if (vm.isCreateNewPlatform) {
-                    vm.bindSelectedPlatformData();
-                }
+                vm.bindSelectedPlatformData();
+                // if (vm.isCreateNewPlatform) {
+                //     vm.bindSelectedPlatformData();
+                // }
                 vm.isCreateNewPlatform = false;
                 if (vm.selectedPlatform && vm.selectedPlatform.data) {
                     if (vm.showPlatform) {
@@ -27209,7 +27210,7 @@ console.log('typeof ',typeof gameProviders);
 
                             if (vm.platformFeeEstimateSetting.platformFee && vm.platformFeeEstimateSetting.platformFee.length) {
                                 vm.platformFeeEstimateSetting.platformFee.forEach(provider => {
-                                    vm.platformFeeEstimate[String(provider.gameProvider)] = provider.feeRate * 100; // * 100 to show percentage
+                                    vm.platformFeeEstimate[String(provider.gameProvider)] = (provider.feeRate * 100).toFixed(2); // * 100 to show percentage
                                 })
                             }
 
@@ -28613,7 +28614,7 @@ console.log('typeof ',typeof gameProviders);
                     for (let key in vm.platformFeeEstimate) {
                         platformFee.push({
                             gameProvider: key,
-                            feeRate: (vm.platformFeeEstimate[key] || 0) / 100
+                            feeRate: (parseFloat(vm.platformFeeEstimate[key]).toFixed(2) || 0) / 100
                         })
                     }
                 }

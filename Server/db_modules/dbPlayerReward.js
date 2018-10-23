@@ -3188,6 +3188,7 @@ let dbPlayerReward = {
         let promoCodeObj, playerObj, topUpProp;
         let isType2Promo = false;
         let platformObjId = '';
+        let topUpAmount = 0;
         return expirePromoCode().then(res => {
             return dbConfig.collection_players.findOne({
                 playerId: playerId
@@ -3289,13 +3290,19 @@ let dbPlayerReward = {
                         })
                     }
 
+                    if(typeof topUpProp.data.actualAmountReceived != "undefined"){
+                        topUpAmount = topUpProp.data.actualAmountReceived;
+                    }else{
+                        topUpAmount = topUpProp.data.amount;
+                    }
+
                     // Process amount and requiredConsumption for type 3 promo code
                     if (promoCodeObj.promoCodeTypeObjId.type == 3) {
                         promoCodeObj.amount = topUpProp.data.amount * promoCodeObj.amount * 0.01;
                         if (promoCodeObj.amount > promoCodeObj.maxRewardAmount) {
                             promoCodeObj.amount = promoCodeObj.maxRewardAmount;
                         }
-                        promoCodeObj.requiredConsumption = (topUpProp.data.amount + promoCodeObj.amount) * promoCodeObj.requiredConsumption;
+                        promoCodeObj.requiredConsumption = (topUpAmount + promoCodeObj.amount) * promoCodeObj.requiredConsumption;
                     }
 
                     let consumptionRecordProm = dbConfig.collection_playerConsumptionRecord.findOne({
@@ -3343,8 +3350,8 @@ let dbPlayerReward = {
 
                 if (!consumptionRec || isType2Promo) {
                     // Try deduct player credit first if it is type-C promo code
-                    if (promoCodeObj.isProviderGroup && promoCodeObj.allowedProviders.length > 0 && promoCodeObj.promoCodeTypeObjId.type == 3 && topUpProp && topUpProp.data && topUpProp.data.amount) {
-                        return dbPlayerUtil.tryToDeductCreditFromPlayer(playerObj._id, platformObjId, topUpProp.data.amount, promoCodeObj.promoCodeTypeObjId.name + ":Deduction", topUpProp.data)
+                    if (promoCodeObj.isProviderGroup && promoCodeObj.allowedProviders.length > 0 && promoCodeObj.promoCodeTypeObjId.type == 3 && topUpProp && topUpProp.data && topUpAmount) {
+                        return dbPlayerUtil.tryToDeductCreditFromPlayer(playerObj._id, platformObjId, topUpAmount, promoCodeObj.promoCodeTypeObjId.name + ":Deduction", topUpProp.data)
                     } else {
                         return Promise.resolve();
                     }
@@ -3364,7 +3371,7 @@ let dbPlayerReward = {
         }).then(
             proposalTypeData => {
                 // determine applyAmount
-                let applyAmt = topUpProp && topUpProp.data.amount ? topUpProp.data.amount : 0;
+                let applyAmt = topUpProp && topUpAmount ? topUpAmount : 0;
 
                 if (promoCodeObj.promoCodeTypeObjId.type === 1) { applyAmt = 0 }
 
@@ -3428,7 +3435,7 @@ let dbPlayerReward = {
                     status: constPromoCodeStatus.ACCEPTED,
                     proposalId: newProp.proposalId,
                     acceptedAmount: newProp.data.rewardAmount,
-                    topUpAmount: newProp.data.applyAmount || topUpProp && topUpProp.data && topUpProp.data.amount || 0
+                    topUpAmount: newProp.data.applyAmount || topUpAmount || 0
                 })
             }
         ).then(() => {
@@ -3451,6 +3458,7 @@ let dbPlayerReward = {
         let promoCodeObj, playerObj, topUpProp;
         let isType2Promo = false;
         let platformObjId = '';
+        let topUpAmount = 0;
         return expirePromoCode(true).then(res => {
             return dbConfig.collection_players.findOne({
                 playerId: playerId
@@ -3618,6 +3626,12 @@ let dbPlayerReward = {
                         })
                     }
 
+                    if(typeof topUpProp.data.actualAmountReceived != "undefined"){
+                        topUpAmount = topUpProp.data.actualAmountReceived;
+                    }else{
+                        topUpAmount = topUpProp.data.amount;
+                    }
+
                     // Process amount and requiredConsumption for type 3 promo code
                     if (promoCodeObj.type == 3) {
                         promoCodeObj.amount$ = promoCodeObj.amount;
@@ -3626,7 +3640,7 @@ let dbPlayerReward = {
                             promoCodeObj.amount = promoCodeObj.maxRewardAmount;
                         }
                         promoCodeObj.requiredConsumption$ = promoCodeObj.requiredConsumption;
-                        promoCodeObj.requiredConsumption = (topUpProp.data.amount + promoCodeObj.amount) * promoCodeObj.requiredConsumption;
+                        promoCodeObj.requiredConsumption = (topUpAmount + promoCodeObj.amount) * promoCodeObj.requiredConsumption;
                     }
 
                     let consumptionRecordProm = dbConfig.collection_playerConsumptionRecord.findOne({
@@ -3674,8 +3688,8 @@ let dbPlayerReward = {
 
                 if (!consumptionRec || isType2Promo) {
                     // Try deduct player credit first if it is type-C promo code
-                    if (promoCodeObj.isProviderGroup && promoCodeObj.allowedProviders.length > 0 && promoCodeObj.type == 3 && topUpProp && topUpProp.data && topUpProp.data.amount) {
-                        return dbPlayerUtil.tryToDeductCreditFromPlayer(playerObj._id, platformObjId, topUpProp.data.amount, promoCodeObj.name + ":Deduction", topUpProp.data)
+                    if (promoCodeObj.isProviderGroup && promoCodeObj.allowedProviders.length > 0 && promoCodeObj.type == 3 && topUpProp && topUpProp.data && topUpAmount) {
+                        return dbPlayerUtil.tryToDeductCreditFromPlayer(playerObj._id, platformObjId, topUpAmount, promoCodeObj.name + ":Deduction", topUpProp.data)
                     } else {
                         return Promise.resolve();
                     }
@@ -3695,7 +3709,7 @@ let dbPlayerReward = {
         }).then(
             proposalTypeData => {
                 // determine applyAmount
-                let applyAmt = topUpProp && topUpProp.data.amount ? topUpProp.data.amount : 0;
+                let applyAmt = topUpProp && topUpAmount ? topUpAmount : 0;
 
                 if (promoCodeObj.type === 1) { applyAmt = 0 }
 
@@ -4586,7 +4600,8 @@ let dbPlayerReward = {
                         limitedOfferApplyTime: moment().toDate(),
                         repeatDay: repeatDay ? repeatDay : "",
                         // selectedProvider: selectedProvider? selectedProvider: ""
-                        providerGroup: limitedOfferObj.providerGroup
+                        providerGroup: limitedOfferObj.providerGroup,
+                        spendingTimes: limitedOfferObj.bet
                     },
                     entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                     userType: constProposalUserType.PLAYERS,
@@ -4871,7 +4886,7 @@ let dbPlayerReward = {
         console.log("checking --- rewardData.applyTargetDate", rewardData.previewDate)
         let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate) : dbUtility.getTodaySGTime();
         // let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate): dbUtility.getYesterdaySGTime();
-        let rewardAmount = 0, spendingAmount = 0, applyAmount = 0;
+        let rewardAmount = 0, spendingAmount = 0, applyAmount = 0, actualAmount = 0;
         let promArr = [];
         let selectedRewardParam = {};
         let intervalTime;
@@ -4984,7 +4999,8 @@ let dbPlayerReward = {
         if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
             if (rewardData && rewardData.selectedTopup) {
                 selectedTopUp = rewardData.selectedTopup;
-                applyAmount = rewardData.selectedTopup.amount;
+                applyAmount = rewardData.selectedTopup.oriAmount;
+                actualAmount = rewardData.selectedTopup.amount;
 
                 let withdrawPropQuery = {
                     'data.platformId': playerData.platform._id,
@@ -5606,7 +5622,8 @@ let dbPlayerReward = {
                                 }
 
                                 selectedRewardParam.spendingTimes = selectedRewardParam.spendingTimes || 1;
-                                spendingAmount = (applyAmount + rewardAmount) * selectedRewardParam.spendingTimes;
+                                //spendingAmount = (applyAmount + rewardAmount) * selectedRewardParam.spendingTimes;
+                                spendingAmount = (actualAmount + rewardAmount) * selectedRewardParam.spendingTimes;
                             } else {
                                 rewardAmount = selectedRewardParam.rewardAmount;
                                 selectedRewardParam.spendingTimesOnReward = selectedRewardParam.spendingTimesOnReward || 0;
@@ -6063,15 +6080,16 @@ let dbPlayerReward = {
 
                 // Decide whether deduct player credit
                 if (isUpdateValidCredit && playerData.platform.useProviderGroup) {
+                    let deductAmount = actualAmount && actualAmount > 0 ? actualAmount : applyAmount;
                     // Decide whether player has enough free amount to apply
-                    if (playerData.validCredit >= applyAmount) {
+                    if (playerData.validCredit >= deductAmount) {
                         // Player has enough amount in validCredit
-                        return dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, applyAmount, eventData.name + ":Deduction", rewardData.selectedTopup, true);
+                        return dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, deductAmount, eventData.name + ":Deduction", rewardData.selectedTopup, true);
                     } else {
                         // Player doesn't have enough validCredit, proceed to check in game credit
                         return dbPlayerUtil.getProviderGroupInGameCreditByObjId(playerData._id, playerData.platform._id, eventData.condition.providerGroup).then(
                             res => {
-                                if (res && res.totalInGameCredit >= applyAmount) {
+                                if (res && res.totalInGameCredit >= deductAmount) {
                                     // Player has enough credit in game provider to apply reward
                                     let transferOutPromArr = [];
 
@@ -6094,7 +6112,7 @@ let dbPlayerReward = {
                             transferComplete => {
                                 if (transferComplete) {
                                     // Player has enough amount in validCredit
-                                    return dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, applyAmount, eventData.name + ":Deduction", rewardData.selectedTopup, true);
+                                    return dbPlayerUtil.tryToDeductCreditFromPlayer(playerData._id, playerData.platform._id, deductAmount, eventData.name + ":Deduction", rewardData.selectedTopup, true);
                                 }
                             }
                         );
@@ -6265,6 +6283,7 @@ let dbPlayerReward = {
                         if (rewardData && rewardData.selectedTopup && rewardData.selectedTopup.proposalId &&
                             eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
                             proposalData.data.topUpProposalId = rewardData.selectedTopup.proposalId;
+                            proposalData.data.actualAmount = actualAmount;
                         }
 
                         // PLAYER_LOSE_RETURN_REWARD_GROUP does not require this field

@@ -1,5 +1,6 @@
 const Q = require("q");
 const nodemailer = require('nodemailer');
+const errorUtils = require('./errorUtils');
 // If we want advanced templates, we could consider: https://github.com/niftylettuce/node-email-templates
 
 // See: https://nodemailer.com/2-0-0-beta/setup-smtp/

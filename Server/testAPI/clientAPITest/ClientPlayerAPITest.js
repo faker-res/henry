@@ -665,6 +665,17 @@
         });
     };
 
+    proto.createGuestPlayer = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.playerService.createGuestPlayer.request(data);
+        this.playerService.createGuestPlayer.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.createDemoPlayer = function (callback, requestData) {
         let data = requestData || {};
 
