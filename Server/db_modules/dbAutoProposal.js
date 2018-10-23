@@ -396,6 +396,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
             }
 
             if (data && data[5] && data[5][0] && data[5][0].totalBetAmt) {
+                console.log('data[5]', data[5]);
                 playerTotalBets = data[5][0].totalBetAmt;
 
                 if (Number.isFinite(data[5][0].totalBonusAmount)) {
@@ -1379,7 +1380,7 @@ function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
         'data.platformId': platform._id,
         'data.playerObjId': playerObjId,
         mainType: 'TopUp',
-        createTime: {$lt: thisWithdrawTime},
+        // createTime: {$lt: thisWithdrawTime},
         status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
     }, {createTime: 1}).sort({createTime: -1}).limit(1).lean().then(
         lastTopUpProp => {
