@@ -1372,6 +1372,8 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
  * @returns {Promise}
  */
 function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
+    console.log('getLastValidWithdrawTime', platform, playerObjId, thisWithdrawTime);
+
     thisWithdrawTime = new Date(thisWithdrawTime);
 
     // TODO:: May be enhanced to limit search to 1 year time -
