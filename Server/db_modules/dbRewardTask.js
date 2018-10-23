@@ -234,7 +234,8 @@ const dbRewardTask = {
                         || (proposalData.data.promoCodeTypeValue && proposalData.data.promoCodeTypeValue == 1)) {
                         consumptionAmt = rewardData.requiredUnlockAmount;
                     } else {
-                        consumptionAmt = rewardData.requiredUnlockAmount - rewardData.applyAmount;
+                        let amount = rewardData.actualAmount ? rewardData.actualAmount : rewardData.applyAmount;
+                        consumptionAmt = rewardData.requiredUnlockAmount - amount;
                     }
 
                     // Make sure required consumption is not negative

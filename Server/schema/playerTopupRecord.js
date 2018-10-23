@@ -12,6 +12,8 @@ var playerTopUpRecordSchema = new Schema({
     settlementTime: {type: Date, default: Date.now, index: true},
     //numerical value of the amount top-upped
     amount: {type: Number, required: true, default: 0},
+    //numerical value of the original amount top-upped
+    oriAmount: {type: Number, default: 0},
     //paid through Visa. mastercard, paypal etc..
     topUpType: {type: String},
     //dirty
