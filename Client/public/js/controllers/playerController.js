@@ -10461,9 +10461,7 @@ define(['js/app'], function (myApp) {
             if (type == 'PlayerConsumptionSlipRewardGroup' && rewardObj._id) {
             
                 vm.playerApplyRewardShow.consumptionSlipReward = type;
-
                 vm.prepareShowConsumptionSlipReward();
-         
             }
 
             if (type == 'PlayerLoseReturnRewardGroup' && rewardObj.type && rewardObj.type._id){

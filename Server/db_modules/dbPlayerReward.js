@@ -6335,7 +6335,6 @@ let dbPlayerReward = {
 
                     }
                     else if (eventData.type.name === constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP && rewardSpecificData[0]) {
-
                        return rewardSpecificData[0];
                     }
 
