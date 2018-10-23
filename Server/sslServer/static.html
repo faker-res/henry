@@ -64,31 +64,38 @@
     function saveKey(e, url, textId, statusId) {
         e.preventDefault();
 
+        let saveData = $(textId).val();
 
-        webEnv.forEach(env => {
-            let ajaxUrl = 'http://' + env.nodeUrl;
+        if (
+            (url.indexOf('pem') > -1 && saveData.length >= 886 && saveData.length <= 888)
+            || (url.indexOf('pem') === -1 && saveData.length >= 272 && saveData.length <= 274)
+        ) {
+            webEnv.forEach(env => {
+                let ajaxUrl = 'http://' + env.nodeUrl;
 
-            if (env.nodePort) {
-                ajaxUrl += ':' + env.nodePort + '/' + url;
-            } else {
-                ajaxUrl += '/' + url;
-            }
-
-            // Multiple ajax
-            $.ajax({
-                url: ajaxUrl,
-                headers: {  'Access-Control-Allow-Origin': '*' },
-                data: $(textId).val(),
-                method: "POST",
-                beforeSend: (xhr) => {
-                    xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
-                },
-                success: (data) => {
-                    console.log(env.nodeUrl, env.nodePort, data);
-                    $(statusId).removeClass('hide');
+                if (env.nodePort) {
+                    ajaxUrl += ':' + env.nodePort + '/' + url;
+                } else {
+                    ajaxUrl += '/' + url;
                 }
+
+                // Multiple ajax
+                $.ajax({
+                    url: ajaxUrl,
+                    data: saveData,
+                    method: "POST",
+                    beforeSend: (xhr) => {
+                        xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
+                    },
+                    success: (data) => {
+                        console.log(env.nodeUrl, env.nodePort, data);
+                        $(statusId).removeClass('hide');
+                    }
+                })
             })
-        })
+        } else {
+            alert('Incorrect key format!')
+        }
     }
 
     function migrateKey(e, targetId, originId) {
