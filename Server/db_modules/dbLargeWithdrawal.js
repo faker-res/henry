@@ -84,7 +84,7 @@ const dbLargeWithdrawal = {
             ([lastWithdraw, lastTopUp]) => {
                 lastWithdrawalObj = lastWithdraw;
                 let largeWithdrawalSettingProm = dbconfig.collection_largeWithdrawalSetting.findOne({platform: largeWithdrawalLog.platform}).lean();
-                let todayTime = dbUtility.getTodaySGTime();
+                let todayTime = dbUtility.getTargetSGTime(proposal.createTime);
                 let currentMonthDate = dbUtility.getCurrentMonthSGTIme();
                 let lastMonthDate = dbUtility.getLastMonthSGTime();
                 let secondLastMonthDate = dbUtility.getSecondLastMonthSGTime();
@@ -93,7 +93,7 @@ const dbLargeWithdrawal = {
                     platform: largeWithdrawalLog.platform,
                     withdrawalTime: {
                         $gte: todayTime.startTime,
-                        $lt: todayTime.endTime
+                        $lte: proposal.createTime
                     },
                 }).count();
 
@@ -337,6 +337,7 @@ const dbLargeWithdrawal = {
                     return Promise.reject({message: "proposal of partner large withdrawal not found"});
                 }
                 proposal = proposalData;
+                todayTime = dbUtility.getTargetSGTime(proposal.createTime);
 
                 if (!proposal.data || !proposal.data.partnerObjId) {
                     console.log("partnerObjId of proposal not found:", log.proposalId);
@@ -363,7 +364,7 @@ const dbLargeWithdrawal = {
                     platform: log.platform,
                     withdrawalTime: {
                         $gte: todayTime.startTime,
-                        $lt: todayTime.endTime
+                        $lte: proposal.createTime
                     },
                 }).read("secondaryPreferred").count();
 
