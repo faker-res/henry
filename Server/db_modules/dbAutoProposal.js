@@ -396,6 +396,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
             }
 
             if (data && data[5] && data[5][0] && data[5][0].totalBetAmt) {
+                console.log('data[5]', data[5]);
                 playerTotalBets = data[5][0].totalBetAmt;
 
                 if (Number.isFinite(data[5][0].totalBonusAmount)) {
@@ -508,6 +509,9 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 checkMsgChinese += ' 失败：提款资料与上次银改不符;';
                 canApprove = false;
             }
+
+            console.log('playerTotalBonus', playerTotalBonus);
+            console.log('playerTotalTopupAmount', playerTotalTopupAmount);
 
             if (proposal.data.amount >= platformObj.autoApproveProfitTimesMinAmount
                 && ((playerTotalBonus / playerTotalTopupAmount) >= platformObj.autoApproveProfitTimes)) {
@@ -1368,17 +1372,19 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
  * @returns {Promise}
  */
 function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
-    let thisWithdrawTime = new Date(thisWithdrawTime);
+    thisWithdrawTime = new Date(thisWithdrawTime);
 
-    // TODO:: May be enhanced to limit search to 1 year time
+    // TODO:: May be enhanced to limit search to 1 year time -
 
     return dbconfig.collection_proposal.find({
-        'data.platformId': platform._id,
+        // 'data.platformId': platform._id,
         'data.playerObjId': playerObjId,
         mainType: 'TopUp',
-        createTime: {$lt: thisWithdrawTime}
+        createTime: {$lt: thisWithdrawTime},
+        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
     }, {createTime: 1}).sort({createTime: -1}).limit(1).lean().then(
         lastTopUpProp => {
+            console.log('lastTopUpProp', thisWithdrawTime, lastTopUpProp, playerObjId, platform);
             if (lastTopUpProp && lastTopUpProp[0] && lastTopUpProp[0].createTime) {
                 return dbconfig.collection_proposal.find({
                     'data.playerObjId': ObjectId(playerObjId),
@@ -1388,6 +1394,7 @@ function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
                 }, {createTime: 1}).sort({createTime: -1}).limit(1).lean().then(
                     retData => {
                         if (retData && retData[0]) {
+                            console.log('retData', retData);
                             return retData[0].createTime;
                         }
                     }
