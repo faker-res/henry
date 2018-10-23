@@ -64,6 +64,8 @@ var playerSchema = new Schema({
     isTestPlayer: {type: Boolean, default: false},
     //is real player
     isRealPlayer: {type: Boolean, default: true, index: true},
+    //device ID - guest login/create (frontend app only)
+    guestDeviceId: {type: String, index: true},
     //last feedback time
     lastFeedbackTime: {type: Date, default: "", index: true},
     //last feedback topic
