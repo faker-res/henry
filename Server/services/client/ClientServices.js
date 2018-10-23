@@ -100,7 +100,8 @@
                 "saveClientData",
                 "callBackToUser",
                 "getOMCaptcha",
-                "getReceiveTransferList"
+                "getReceiveTransferList",
+                "playerLoginOrRegisterWithSMS"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
