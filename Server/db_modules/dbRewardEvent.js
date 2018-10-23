@@ -385,11 +385,11 @@ var dbRewardEvent = {
                                 return Promise.all(promArr).then(
                                     res => {
                                         if (res && res.length) {
-                                            let topUpDetails = {};
+                                            let topUpDetails = [];
                                             let returnData;
                                             for (let j = 0; j < res.length; j++) {
                                                 if (res[j].condition.deposit && res[j].condition.deposit.status == 1 && res[j].condition.deposit.details) {
-                                                    topUpDetails = res[j].condition.deposit.details
+                                                    topUpDetails.push(res[j].condition.deposit.details)
                                                 }
                                                 if (j == 0) {
                                                     returnData = res[j];
