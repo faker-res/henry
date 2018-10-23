@@ -642,7 +642,6 @@ const dbRewardTask = {
                     isUnlock: true
 
                 };
-                console.log("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUU", sendData);
                 proms.push(dbRewardTaskGroup.createRewardTaskGroupUnlockedRecord(sendData));
             })
         }
