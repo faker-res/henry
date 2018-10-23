@@ -1377,14 +1377,14 @@ function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
     // TODO:: May be enhanced to limit search to 1 year time -
 
     return dbconfig.collection_proposal.find({
-        'data.platformId': platform._id,
-        // 'data.playerObjId': playerObjId,
+        'data.platformId': ObjectId(platform._id),
+        'data.playerObjId': ObjectId(playerObjId),
         mainType: 'TopUp',
-        // createTime: {$lt: thisWithdrawTime},
+        createTime: {$lt: thisWithdrawTime},
         status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
-    }).sort({createTime: -1}).limit(1).lean().then(
+    }, {createTime: 1}).sort({createTime: -1}).limit(1).lean().then(
         lastTopUpProp => {
-            console.log('lastTopUpProp', thisWithdrawTime, lastTopUpProp);
+            console.log('lastTopUpProp', lastTopUpProp, playerObjId);
             if (lastTopUpProp && lastTopUpProp[0] && lastTopUpProp[0].createTime) {
                 return dbconfig.collection_proposal.find({
                     'data.playerObjId': ObjectId(playerObjId),
