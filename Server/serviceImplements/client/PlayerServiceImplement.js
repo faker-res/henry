@@ -1322,9 +1322,8 @@ let PlayerServiceImplement = function () {
         let uaString = conn.upgradeReq.headers['user-agent'];
         let ua = uaParser(uaString);
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLoginOrRegisterWithSMS, [data, ua], isValidData, true, true, true).then(
-            playerPartnerData => {
-                console.log("playerPartnerData",playerPartnerData);
-                let playerData = playerPartnerData[0];
+            player => {
+                let playerData = player[0];
 
                 if (conn.noOfAttempt > constSystemParam.NO_OF_LOGIN_ATTEMPT || playerData.platform.requireLogInCaptcha) {
                     if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
@@ -1365,11 +1364,11 @@ let PlayerServiceImplement = function () {
                 //         }
                 //     );
                 // };
-                let profile = {name: playerPartnerData.name, password: playerPartnerData.password};
+                let profile = {name: playerData.name, password: playerData.password};
                 let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
-                    data: playerPartnerData,
+                    data: playerData,
                     token: token,
                 }, data);
             },
