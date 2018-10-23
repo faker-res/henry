@@ -294,6 +294,8 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 createTime: {$lt: proposal.createTime}
             };
 
+            console.log('lastWithdrawDate', lastWithdrawDate);
+
             if (lastWithdrawDate) {
                 dLastWithdraw = lastWithdrawDate;
                 transferLogQuery.createTime["$gt"] = lastWithdrawDate;
@@ -395,8 +397,9 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 bIsPaymentInfoMatched = isPaymentInfoMatched(allProposals, playerData);
             }
 
+            console.log('data[5]', data[5]);
+
             if (data && data[5] && data[5][0] && data[5][0].totalBetAmt) {
-                console.log('data[5]', data[5]);
                 playerTotalBets = data[5][0].totalBetAmt;
 
                 if (Number.isFinite(data[5][0].totalBonusAmount)) {
@@ -1394,7 +1397,6 @@ function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
                 }, {createTime: 1}).sort({createTime: -1}).limit(1).lean().then(
                     retData => {
                         if (retData && retData[0]) {
-                            console.log('retData', retData);
                             return retData[0].createTime;
                         }
                     }
