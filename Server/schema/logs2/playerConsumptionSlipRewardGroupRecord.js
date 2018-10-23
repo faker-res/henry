@@ -9,32 +9,40 @@ let playerConsumptionSlipRewardGroupRecordSchema = new Schema({
     platformObjId: {type: Schema.ObjectId, ref: 'platform', required: true, index: true},
     // player info
     playerObjId: {type: Schema.ObjectId, ref: 'player', index: true},
+    //playerConsumptionRecord objectId
+    consumptionRecordObjId: {type: Schema.ObjectId, ref: 'playerConsumptionRecord', index: true},
     // consumptionSlip number
     consumptionSlipNo: {type: String},
     // bonus amount
     bonusAmount: {type: Number},
     // betting amount
     consumptionAmount: {type: Number},
-    // required top up amount within period
+    // required top up amount within period to apply the reward
     requiredTopUpAmount: {type: Number, default: 0},
-    // reward amount if this applied successfully
-    rewardAmount: {type: Number, index:true},
+    // the bonus ratio that is required to apply the reward
+    requiredBonusRatio: {type: Number},
     // consumption needed if this applied succesfully
-    requiredConsumption: {type: Number},
+    requiredConsumptionAmount: {type: Number},
+    // the required eding digit of the order number
+    requiredOrderNoEndingDigit: {type: String},
     // the multiplier for the consumption as the reward
     rewardMultiplier: {type: Number},
-    // the bonus ratio
-    bonusRatio: {type: Number},
+    // reward amount if this applied successfully
+    rewardAmount: {type: Number, index:true},
     // the spendingTimes
     spendingTimes: {type: Number},
     // the maximum rewardAmount
     maxRewardAmount: {type: Number},
-    //playerConsumptionRecord objectId
-    consumptionRecordObjId: {type: Schema.ObjectId, ref: 'playerConsumptionRecord', index: true},
-    // the time when the consumption is created
-    consumptionCreateTime: {type: Date},
     // // the consumption is made from the game provider
     gameProvider: {type: Schema.ObjectId, ref: 'gameProvider'},
+    // forbid withdrawing after getting the reward
+    forbidWithdrawAfterApply: {type: Boolean, default: false},
+    // check if the balance after unlock exceeds this amount, withdrawing will not be allowed
+    forbidWithdrawIfBalanceAfterUnlock: {type: Number},
+    // remark
+    remark: {type: String},
+    // the time when the consumption is created
+    consumptionCreateTime: {type: Date},
     // check if the record has been used up
     isUsed: {type: Boolean, default: false}
 });

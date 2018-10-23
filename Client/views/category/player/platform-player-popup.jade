@@ -1369,6 +1369,18 @@
                                         label {{'Reward Proposal Amount' | translate}}&nbsp;:&nbsp;
                                         label {{vm.playerApplyRewardShow.returnData.rewardAmount}}
 
+                            .well(ng-if='vm.playerApplyRewardShow.consumptionSlipReward', style="background: white;")
+                                .row
+                                    .col-md-12
+                                        label {{"Total" | translate}} {{vm.consumptionSlipReward.totalCount}} {{"records" | translate}}
+                                        </br>
+                                        label {{"The available application quantity of the interval time" | translate}} :  {{vm.playerApplyRewardShow.returnData.appliedTime}} / {{vm.playerApplyRewardShow.returnData.quota}}
+                                        </br>
+                                        label {{"The total top-up amount of the interval time" | translate}} :  {{vm.playerApplyRewardShow.returnData.topUpAmountInterval}}
+                                        i.fa.fa-spin.fa-spinner(ng-show='vm.consumptionSlipReward.loading')
+                                        table#playerConsumptionSlipRewardTable.common-table.display(style='width:100%')
+                                        #playerConsumptionSlipRewardTablePage
+
                             .form-group(ng-if='vm.playerApplyRewardShow.showConsumptionReturn')
                                 label {{'rewardAmount' | translate}} : {{vm.playerApplyRewardShow.showRewardAmount}}
                                 table#playerConsumptionReturnsTbl.noWrap.text-center.display(style='min-width:100%;width:100%')
