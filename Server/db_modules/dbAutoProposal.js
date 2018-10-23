@@ -1446,6 +1446,8 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
     let multipleTransferOutId = null;
     creditChangeLogs = creditChangeLogs ? creditChangeLogs : [];
 
+    let abnormalities = [];
+
     let logsLength = transferLogs.length;
     for (let i = 0; i < logsLength; i++) {
         if (transferLogs[i].type === 'TransferIn') {
@@ -1491,8 +1493,6 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
             completeCycle = !completeCycle;
         }
     }
-
-    let abnormalities = [];
 
     if (multipleTransferInWithoutOtherCreditInput) {
         abnormalities.push({
