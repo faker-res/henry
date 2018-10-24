@@ -320,9 +320,9 @@ var dbRewardEvent = {
 
                                 // filter top up record after consumption
                                 if (!rewardEvent.condition.allowConsumptionAfterTopUp) {
-                                    if (topUpData && topUpData.length > 0) {
+                                    if (topUpData && topUpData.length > 0 && consumptionData && consumptionData.length > 0) {
                                         topUpData.forEach(topUp => {
-                                            if (topUp && consumptionData && consumptionData[0] && topUp.settlementTime > consumptionData[0].createTime) {
+                                            if (topUp && consumptionData[0] && topUp.settlementTime > consumptionData[0].createTime) {
                                                 topUpAfterConsumption.push(topUp);
                                             }
                                         })
@@ -367,15 +367,17 @@ var dbRewardEvent = {
 
                                 let promArr = [];
                                 if (topUpData && topUpData.length) {
-                                    if (rewardEvent.condition.allowConsumptionAfterTopUp) {
-                                        for (let i = 0; i < topUpData.length; i++) {
-                                            promArr.push(checkRewardEventWithTopUp(topUpData[i]));
-                                        }
-                                    } else {
+                                    if (!rewardEvent.condition.allowConsumptionAfterTopUp) {
                                         if (topUpAfterConsumption && topUpAfterConsumption.length > 0) {
                                             for (let i = 0; i < topUpAfterConsumption.length; i++) {
                                                 promArr.push(checkRewardEventWithTopUp(topUpAfterConsumption[i]));
                                             }
+                                        } else {
+                                            promArr.push(checkRewardEventWithTopUp(null));
+                                        }
+                                    } else {
+                                        for (let i = 0; i < topUpData.length; i++) {
+                                            promArr.push(checkRewardEventWithTopUp(topUpData[i]));
                                         }
                                     }
                                 } else {
