@@ -1686,6 +1686,7 @@
   "SystemSettlement": "系统结算",
   "FrontendModuleSetting": "前端功能模板设置",
   "ThemeSelect": "主题选择",
+  "onlineTopupAmount(ActualReceivedAmount)": "在线充值金额（实际到帐）",
   "attachRolesToUsersById": "添加用户角色",
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",

@@ -21,9 +21,10 @@ const constMessageTypeParam = {
     ONLINE_TOPUP_SUCCESS: {
         name:"OnlineTopupSuccess",
         params:[
-            {parameterName:'proposalData.data.amount' , description:'onlineTopupAmount'},
+            // {parameterName:'proposalData.data.amount' , description:'onlineTopupAmount'},
             {parameterName:'proposalData.settleTime' , description:'executeTime'},
             {parameterName:'proposalData.proposalId' , description:'proposalId'},
+            {parameterName:'proposalData.data.actualAmountReceived' , description:'onlineTopupAmount(ActualReceivedAmount)'},
         ]
     },
     ALIPAY_TOPUP_SUCCESS: {
