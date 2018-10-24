@@ -21574,16 +21574,20 @@ console.log('typeof ',typeof gameProviders);
                 });
             }
 
+            vm.deselectRewardEvent = function () {
+                $scope.$evalAsync(()=> {
+                    vm.platformRewardPageName = '';
+                    vm.showReward = {};
+                });
+            }
+
             vm.deleteRewardEventGroup = function () {
                 let sendData = {
                     query: {_id: vm.showRewardEventGroup._id},
                 };
 
                 socketService.$socket($scope.AppSocket, 'removeRewardEventGroup', sendData, function (data) {
-                    $scope.$evalAsync(()=> {
-                        vm.platformRewardPageName = '';
-                        vm.showReward = {};
-                    });
+                    vm.deselectRewardEvent();
                     vm.getAllRewardGroup();
                     console.log('removeRewardEventGroup success');
                 });
@@ -21608,10 +21612,7 @@ console.log('typeof ',typeof gameProviders);
                 };
 
                 socketService.$socket($scope.AppSocket, 'updateRewardEventGroup', sendData, function (data) {
-                    $scope.$evalAsync(()=> {
-                        vm.platformRewardPageName = '';
-                        vm.showReward = {};
-                    });
+                    vm.deselectRewardEvent();
                    vm.getAllRewardGroup();
                     console.log('updateRewardEventGroup success');
                 });
@@ -21651,10 +21652,7 @@ console.log('typeof ',typeof gameProviders);
                     };
 
                     socketService.$socket($scope.AppSocket, 'updateRewardEventGroup', addGroupData, function (data) {
-                        $scope.$evalAsync(()=> {
-                            vm.platformRewardPageName = '';
-                            vm.showReward = {};
-                        });
+                        vm.deselectRewardEvent();
                         console.log('add event success');
                     });
 
@@ -21803,6 +21801,20 @@ console.log('typeof ',typeof gameProviders);
                 }, function (data) {
                     console.log("created not", data);
                 });
+
+                let removeGroupData = {
+                    query: {rewardEvents: vm.showReward._id},
+                    updateData: {
+                        "$pull": {
+                            rewardEvents: vm.showReward._id
+                        }
+                    }
+                };
+
+                socketService.$socket($scope.AppSocket, 'updateRewardEventGroup', removeGroupData, function (data) {
+                    console.log('remove event success');
+                });
+
             }
             vm.submitReward = function () {
                 let isValid = true;
