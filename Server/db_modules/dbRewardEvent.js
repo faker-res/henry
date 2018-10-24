@@ -1869,6 +1869,7 @@ var dbRewardEvent = {
                             case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
                             case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
                             case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
+                            case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
                                 rewardTypeName[String(rewardType._id)] = rewardType.name;
                         }
                     });
@@ -1888,6 +1889,7 @@ var dbRewardEvent = {
 
                 switch (rewardTypeName[String(event.type)]) {
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
+                    case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
                         // need top up
                         streamProm = dbconfig.collection_playerTopUpRecord.aggregate(aggregateParam).then(
                             players => {

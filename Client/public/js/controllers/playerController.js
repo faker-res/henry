@@ -10311,10 +10311,11 @@ define(['js/app'], function (myApp) {
                                 let detail = {};
                                 detail.betTime = inData.consumptionCreateTime ? utilService.$getTimeFromStdTimeFormat(inData.consumptionCreateTime) : null;
                                 detail.orderNo = inData.consumptionSlipNo || null;
+                                detail.endingDigit = inData.requiredOrderNoEndingDigit || null;
                                 detail.bonusAmount = inData.bonusAmount || null;
                                 detail.consumptionAmount = inData.consumptionAmount || null;
                                 detail.rewardAmount = inData.rewardAmount || null;
-                                detail.spendingTimes = inData.spendingTimes || null;
+                                detail.spendingAmount = inData.spendingAmount || null;
                                 detail.remark = inData.remark || null;
                                 detail.platformObjId = inData.platformObjId;
                                 detail.eventObjId = inData.eventObjId;
@@ -10351,7 +10352,7 @@ define(['js/app'], function (myApp) {
 
                         columns: [
                             {
-                                "title": $translate('Multiselect'),
+                                "title": $translate('Tick'),
                                 bSortable: false,
                                 sClass: "rewardSelected",
                                 render: function (data, type, row) {
@@ -10364,13 +10365,26 @@ define(['js/app'], function (myApp) {
                                     return link.prop('outerHTML');
                                 },
                             },
-                            {title: $translate('orderNo'), data: "orderNo"},
+                            {
+                                title: $translate('orderNo'),
+                                data: "orderNo",
+                                render: function (data, type, row) {
+                                    let text = row.orderNo;
+
+                                    if (row.endingDigit && text.endsWith(row.endingDigit.toString())){
+                                        text = text.slice(0,text.length-row.endingDigit.length) + "<span style='color: red; font-weight: bold;'>" + row.endingDigit + "</span>";
+                                    }
+                    
+                                    let $link = $('<span>').html(text);
+                                    return $link.prop('outerHTML');
+                                },
+                            },
                             {title: $translate('BET_TIME'), data: "betTime"},
                             {title: $translate('RECEIVED_BONUS_AMOUNT'), data: "bonusAmount"},
                             {title: $translate('CONSUMPTION_AMOUNT_ROUND'), data: "consumptionAmount"},
-                            {title: $translate('REWARD_AMOUNT'), data: "rewardAmount"},
-                            {title: $translate('SPENDING_TIMES'), data: "spendingTimes"},
-                            {title: $translate('REAMRK'), data: "remark"},
+                            {title: $translate('PROPOSAL_REWARD_AMOUNT'), data: "rewardAmount"},
+                            {title: $translate('SPENDING_AMOUNT (Reward Amount x Multiplier)'), data: "spendingAmount"},
+                            {title: $translate('REMARK'), data: "remark"},
 
                         ],
                         destroy: true,
