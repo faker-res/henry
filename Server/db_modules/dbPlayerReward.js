@@ -4984,10 +4984,16 @@ let dbPlayerReward = {
         if (intervalTime) {
             topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
             if (rewardData.applyTargetDate) {
-                eventQuery.settleTime = {$gte: eventQueryPeriodTime.startTime, $lte: eventQueryPeriodTime.endTime};
+                eventQuery.createTime = {$gte: eventQueryPeriodTime.startTime, $lte: eventQueryPeriodTime.endTime};
             } else {
-                eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                eventQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
             }
+            // NOTE :: Regarding to time used for reward event proposal query, using settle time would be wrong because
+            //         settle time will change based on the time that cs approve/reject the proposal.
+            //         Create time will be wrong too when the system use settlement apply as the create time will only
+            //         be set on next period of the reward.
+            //         Currently I will change to createTime for hot fix, but "applyTargetDate" might be needed for all
+            //         reward proposal. - Huat
         }
         console.log("checking --- eventQuery.settleTime", eventQuery.settleTime)
 
