@@ -1739,7 +1739,7 @@ const dbRewardTask = {
     /**
      * Add manual unlock support
      * NO_CREDIT will also trigger this function now
-     * @param rewardGroupData
+     * @param rewardGroupData (It could bind with EBET wallet data when necessary)
      * @param {String} unlockType
      */
     completeRewardTaskGroup: (rewardGroupData, unlockType) => {

@@ -46,6 +46,7 @@ var proposalTypeProcessSchema = require('./../schema/proposalTypeProcess');
 var proposalTypeProcessStepSchema = require('./../schema/proposalTypeProcessStep');
 
 var rewardEventSchema = require('./../schema/rewardEvent');
+var rewardEventGroupSchema = require('./../schema/rewardEventGroup');
 var rewardRuleSchema = require('./../schema/rewardRule');
 var rewardParamSchema = require('./../schema/rewardParam');
 var rewardTypeSchema = require('./../schema/rewardType');
@@ -102,6 +103,7 @@ var proposalTypeProcessModel = db_admin.model('proposalTypeProcess', proposalTyp
 var proposalTypeProcessStepModel = db_admin.model('proposalTypeProcessStep', proposalTypeProcessStepSchema, 'proposalTypeProcessStep');
 
 var rewardEventModel = db_admin.model('rewardEvent', rewardEventSchema, 'rewardEvent');
+var rewardEventGroupModel = db_admin.model('rewardEventGroup', rewardEventGroupSchema, 'rewardEventGroup');
 var rewardTypeModel = db_admin.model('rewardType', rewardTypeSchema, 'rewardType');
 var rewardRuleModel = db_admin.model('rewardRule', rewardRuleSchema, 'rewardRule');
 var rewardParamModel = db_admin.model('rewardParam', rewardParamSchema, 'rewardParam');
@@ -500,6 +502,7 @@ var dbProperties = {
     collection_proposalTypeProcessStep: proposalTypeProcessStepModel,
 
     collection_rewardEvent: rewardEventModel,
+    collection_rewardEventGroup: rewardEventGroupModel,
     collection_rewardParam: rewardParamModel,
     collection_rewardRule: rewardRuleModel,
     collection_rewardType: rewardTypeModel,

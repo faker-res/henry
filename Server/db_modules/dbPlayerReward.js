@@ -863,7 +863,7 @@ let dbPlayerReward = {
         });
     },
 
-    getPlayerConsumptionSlipRewardDetail: (rewardData, playerId, code, applyTargetTime) => {
+    getPlayerConsumptionSlipRewardDetail: (rewardData, playerId, code, applyTargetTime, isBulkApply) => {
         // reward event code is an optional value, getting the latest relevant event by default
         let currentTime = applyTargetTime || new Date();
         let today = applyTargetTime ? dbUtility.getDayTime(applyTargetTime) : dbUtility.getTodaySGTime();
@@ -918,9 +918,12 @@ let dbPlayerReward = {
                 })
             } else {
                 rewardProposalQuery.settleTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
-                similarRewardProposalCount = dbConfig.collection_proposal.find(rewardProposalQuery).sort({
-                    createTime: -1
-                }).lean().count();
+                // if isBulkApply, the successful proposal's settleTime will be at the current moment, which has to be considered in the searching range
+                // this can prevent redundant reawrd proposal being generated
+                if (isBulkApply){
+                    rewardProposalQuery.settleTime.$lt = dbUtility.getTodaySGTime().endTime;
+                }
+                similarRewardProposalCount = dbConfig.collection_proposal.find(rewardProposalQuery).lean().count();
             }
 
             return similarRewardProposalCount;
@@ -936,7 +939,7 @@ let dbPlayerReward = {
                 isUsed: false,
             };
 
-            let sortCol = rewardData.sortCol || {consumptionCreateTime: -1};
+            let sortCol = isBulkApply ? {rewardAmount: -1} : rewardData.sortCol || {consumptionCreateTime: -1};
             let index = rewardData.index || 0;
             let limit = rewardData.limit || 100;
 
@@ -950,7 +953,6 @@ let dbPlayerReward = {
                 consumptionSlipRewardGroupProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find(searchQuery).sort(sortCol).skip(index).limit(limit).lean();
                 consumptionSlipRewardGroupTotalCountProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find(searchQuery).lean().count();
             }
-
 
             let topUpIntervalProm = dbConfig.collection_playerTopUpRecord.find({
                 playerId: player._id,
@@ -5207,25 +5209,15 @@ let dbPlayerReward = {
 
             let rewardDetailProm = [];
 
-            if (isPreview){
-                rewardDetailProm = dbPlayerReward.getPlayerConsumptionSlipRewardDetail(rewardData, playerData.playerId, eventData.code, rewardData.applyTargetDate);
+            if (!isPreview && !isBulkApply && !rewardData.appliedRewardList){
+
+                return Promise.reject({
+                    name: "DataError",
+                    message: "No data is selected"
+                })
             }
-            else{
-                if(isBulkApply){
 
-                }
-                else{
-
-                    if (!rewardData.appliedRewardList){
-                        return Promise.reject({
-                            name: "DataError",
-                            message: "No data is selected"
-                        })
-                    }
-
-                    rewardDetailProm = dbPlayerReward.getPlayerConsumptionSlipRewardDetail(rewardData, playerData.playerId, eventData.code, rewardData.applyTargetDate);
-                }
-            }
+            rewardDetailProm = dbPlayerReward.getPlayerConsumptionSlipRewardDetail(rewardData, playerData.playerId, eventData.code, rewardData.applyTargetDate, isBulkApply);
             
             promArr.push(rewardDetailProm);
         }
@@ -5883,17 +5875,30 @@ let dbPlayerReward = {
 
                         if (playerRewardFinalList && playerRewardFinalList.list && playerRewardFinalList.list.length){
                             let applicableNumber = playerRewardFinalList.availableQuantity - playerRewardFinalList.appliedCount;
+                            // if isBulkApply/backStage/frontEnd apply -> select the list based on the applicableNumber to apply
                             if (playerRewardFinalList.list.length > applicableNumber && !isPreview){
+
                                 for(let i = 0; i < applicableNumber; i++){
 
-                                    if(playerRewardFinalList.list[i]){
-                                        playerRewardFinalList.list[i].spendingAmount = (playerRewardFinalList.list[i].spendingTimes || 1) * playerRewardFinalList.list[i].rewardAmount;
-                                        playerRewardFinalList.list[i].isSharedWithXIMA = eventData.condition && eventData.condition.isSharedWithXIMA ? eventData.condition.isSharedWithXIMA : false;
-                                        playerRewardFinalList.list[i].targetDate = intervalTime;
-                                        applicationDetails.push(playerRewardFinalList.list[i]);
+                                    // arrange the playerRewardFinalList.list based on the order when the input is keyed in
+                                    let index = playerRewardFinalList.list.findIndex( p => {
+                                        if (p._id && rewardData.appliedRewardList[i]) {
+                                            return p._id.toString() == rewardData.appliedRewardList[i]
+                                        }
+                                        else
+                                        {
+                                            return false;
+                                        }
+                                    })
+                                    if (index != -1 && playerRewardFinalList.list[index]){
+                                        playerRewardFinalList.list[index].spendingAmount = (playerRewardFinalList.list[index].spendingTimes || 1) * playerRewardFinalList.list[index].rewardAmount;
+                                        playerRewardFinalList.list[index].isSharedWithXIMA = eventData.condition && eventData.condition.isSharedWithXIMA ? eventData.condition.isSharedWithXIMA : false;
+                                        playerRewardFinalList.list[index].targetDate = intervalTime;
+                                        applicationDetails.push(playerRewardFinalList.list[index]);
                                     }
                                 }
                             }
+                            // if isPreview/ the application quantity <= applicableNumber -> select all the available records
                             else {
                                 playerRewardFinalList.list.forEach(
                                     data => {
@@ -5907,7 +5912,7 @@ let dbPlayerReward = {
                         }
 
                         console.log("yH checking---applicationDetails", applicationDetails)
-
+                        
                         if (applicationDetails && applicationDetails.length < 1) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -6432,6 +6437,7 @@ let dbPlayerReward = {
                                     useConsumption: Boolean(!applyDetail.isSharedWithXIMA),
                                     providerGroup: eventData.condition.providerGroup,
                                     forbidWithdrawIfBalanceAfterUnlock: applyDetail.forbidWithdrawIfBalanceAfterUnlock ? applyDetail.forbidWithdrawIfBalanceAfterUnlock : 0,
+                                    consumptionSlipNo: applyDetail.consumptionSlipNo || null,
                                 },
                                 entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
                                 userType: constProposalUserType.PLAYERS
