@@ -4999,7 +4999,7 @@ let dbPlayerReward = {
         if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
             if (rewardData && rewardData.selectedTopup) {
                 selectedTopUp = rewardData.selectedTopup;
-                applyAmount = rewardData.selectedTopup.oriAmount;
+                applyAmount = rewardData.selectedTopup.oriAmount || rewardData.selectedTopup.amount;
                 actualAmount = rewardData.selectedTopup.amount;
 
                 let withdrawPropQuery = {
