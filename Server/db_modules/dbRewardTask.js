@@ -1750,7 +1750,7 @@ const dbRewardTask = {
         let rewardAmount = rewardGroupData.rewardAmt;
 
         // Mark the provider group as complete if it is manual unlocked
-        let taskGroupProm = Promise.resolve(rewardGroupData);
+        let taskGroupProm = dbconfig.collection_rewardTaskGroup.findOne({_id: rewardGroupData._id}).lean();
 
         let prohibitWithdrawal = function (player) {
             if (player) {
