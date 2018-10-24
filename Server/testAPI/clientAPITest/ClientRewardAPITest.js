@@ -136,11 +136,18 @@
         var data = requestData || {proposalId: xxxxx};
         this.rewardService.cancelAppliedBonus.request(data);
         this.rewardService.cancelAppliedBonus.once(callback);
+    }
+
+    proto.getConsumptionSlipRewardList = function (callback, requestData) {
+        var data = requestData || {};
+        this.rewardService.getConsumptionSlipRewardList.request(data);
+        this.rewardService.getConsumptionSlipRewardList.once(callback);
     };
 
     proto.applyRewardEvent = function (callback, requestData) {
         var sendReq = {
             code: requestData.code,
+            appliedObjIdList: requestData.appliedObjIdList,
             data: {
                 requestId: requestData.requestId,
                 //topUpRecordId: requestData.topUpRecordId,
