@@ -1302,7 +1302,7 @@ let dbPlayerReward = {
 
                                 bonus = checkRewardBonusLimit(bonus, event, selectedParam.maxRewardInSingleTopUp);
 
-                                let spendingAmount = (bonus + result.topUpDayAmount) * requestedTimes;
+                                let spendingAmount = (bonus + (result.actualAmount || result.topUpDayAmount)) * requestedTimes;
                                 insertOutputList(1, consecutiveNumber, bonus, requestedTimes, result.targetDate,
                                     selectedParam.forbidWithdrawAfterApply, selectedParam.remark, isSharedWithXIMA,
                                     result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, forbidWithdrawIfBalanceAfterUnlock, spendingAmount);
@@ -1587,6 +1587,7 @@ let dbPlayerReward = {
                 let consumptionAmount = (consumptionData && consumptionData[0] && consumptionData[0].total) ? consumptionData[0].total : 0;
                 let requiredConsumptionMet = false;
                 let requiredTopUpMet = false;
+                let actualAmount = 0;
 
                 if (consumptionAmount >= requiredConsumptionAmount)
                     requiredConsumptionMet = true;
@@ -1604,6 +1605,8 @@ let dbPlayerReward = {
                 let usedTopUpRecord = [];
                 for (let i = 0; i < topUpRecords.length; i++) {
                     let record = topUpRecords[i];
+                    let amount = record.oriAmount || record.amount;
+                    actualAmount = record.amount;
                     if (bypassDirtyEvent) {
                         let isSubset = record.usedEvent.every(event => {
                             return bypassDirtyEvent.indexOf(event.toString()) > -1;
@@ -1615,7 +1618,7 @@ let dbPlayerReward = {
                             continue;
                     }
 
-                    totalTopUpAmount += record.amount;
+                    totalTopUpAmount += amount;
                     usedTopUpRecord.push(record._id)
                     if (!event.condition.isDynamicRewardAmount && totalTopUpAmount >= requiredTopUpAmount) {
                         requiredTopUpMet = true;
@@ -1636,7 +1639,7 @@ let dbPlayerReward = {
                     meetRequirement = requiredConsumptionMet || requiredTopUpMet;
                 }
 
-                let response = {targetDate, meetRequirement, requiredConsumptionMet, requiredTopUpMet, topUpDayAmount: totalTopUpAmount};
+                let response = {targetDate, meetRequirement, requiredConsumptionMet, requiredTopUpMet, topUpDayAmount: totalTopUpAmount, actualAmount: actualAmount};
                 // let response = {targetDate, meetRequirement, requiredConsumptionMet, requiredTopUpMet};
                 if (isApply && meetRequirement && requiredTopUpMet) {
                     response.usedTopUpRecord = usedTopUpRecord;
@@ -6394,7 +6397,7 @@ let dbPlayerReward = {
                     }
 
                     if (isMultiApplication) {
-                        let asyncProms = Promise.resolve(); 
+                        let asyncProms = Promise.resolve();
                         for (let i = 0; i < applicationDetails.length; i++) {
                             let applyDetail = applicationDetails[i];
                             let proposalData = {
