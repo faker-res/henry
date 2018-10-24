@@ -10,8 +10,13 @@ const privateKeyPath = "./playerPhone.key.pem";
 const replacedPrivateKeyPath = "./playerPhone.key.pem.bak";
 const publicKeyPath = "./playerPhone.pub";
 const replacedPublicKeyPath = "./playerPhone.pub.bak";
+const loginPagePath = "./login.html";
 
 let privateKey, publicKey, replacedPrivateKey, replacedPublicKey;
+
+// TEMPORARY USERNAME AND PASSWORD
+let username = 'keyuser';
+let password = 'KeyUserP@s$w0rd!';
 
 http.createServer(function (req, res) {
     console.log(`${req.method} ${req.url}`);
@@ -64,6 +69,20 @@ http.createServer(function (req, res) {
                     let buffer = Buffer.concat(inputData);
                     replacedPublicKey = buffer.toString();
                     res.end('Success');
+                });
+                break;
+            case loginPagePath:
+                req.on('data', data => {
+                    inputData.push(data);
+                }).on('end', () => {
+                    let buffer = Buffer.concat(inputData);
+                    let loginData = JSON.parse(buffer.toString());
+
+                    if (loginData.username === username && loginData.password === password) {
+                        res.end('static.html');
+                    } else {
+                        res.end();
+                    }
                 });
                 break;
         }

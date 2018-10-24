@@ -343,6 +343,12 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerConsumptionRecords, [data, data.index, data.limit, data.sortCol], actionName, isValidData);
         },
 
+        getConsumptionSlipRewardList: function () {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId && data.code & data.data);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getConsumptionSlipRewardList, [data.playerId, data.code, data.data], actionName, isValidData);
+        },
+
         /**
          * get player's daily consumption summary records
          * @param {json} data - It has to contain playerid
