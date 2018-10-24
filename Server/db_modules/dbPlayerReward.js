@@ -1304,7 +1304,7 @@ let dbPlayerReward = {
 
                                 bonus = checkRewardBonusLimit(bonus, event, selectedParam.maxRewardInSingleTopUp);
 
-                                let spendingAmount = (bonus + result.topUpDayAmount) * requestedTimes;
+                                let spendingAmount = (bonus + (result.actualAmount || result.topUpDayAmount)) * requestedTimes;
                                 insertOutputList(1, consecutiveNumber, bonus, requestedTimes, result.targetDate,
                                     selectedParam.forbidWithdrawAfterApply, selectedParam.remark, isSharedWithXIMA,
                                     result.meetRequirement, result.requiredConsumptionMet, result.requiredTopUpMet, result.usedTopUpRecord, forbidWithdrawIfBalanceAfterUnlock, spendingAmount);
@@ -1589,6 +1589,7 @@ let dbPlayerReward = {
                 let consumptionAmount = (consumptionData && consumptionData[0] && consumptionData[0].total) ? consumptionData[0].total : 0;
                 let requiredConsumptionMet = false;
                 let requiredTopUpMet = false;
+                let actualAmount = 0;
 
                 if (consumptionAmount >= requiredConsumptionAmount)
                     requiredConsumptionMet = true;
@@ -1606,6 +1607,8 @@ let dbPlayerReward = {
                 let usedTopUpRecord = [];
                 for (let i = 0; i < topUpRecords.length; i++) {
                     let record = topUpRecords[i];
+                    let amount = record.oriAmount || record.amount;
+                    actualAmount = record.amount;
                     if (bypassDirtyEvent) {
                         let isSubset = record.usedEvent.every(event => {
                             return bypassDirtyEvent.indexOf(event.toString()) > -1;
@@ -1617,7 +1620,7 @@ let dbPlayerReward = {
                             continue;
                     }
 
-                    totalTopUpAmount += record.amount;
+                    totalTopUpAmount += amount;
                     usedTopUpRecord.push(record._id)
                     if (!event.condition.isDynamicRewardAmount && totalTopUpAmount >= requiredTopUpAmount) {
                         requiredTopUpMet = true;
@@ -1638,7 +1641,7 @@ let dbPlayerReward = {
                     meetRequirement = requiredConsumptionMet || requiredTopUpMet;
                 }
 
-                let response = {targetDate, meetRequirement, requiredConsumptionMet, requiredTopUpMet, topUpDayAmount: totalTopUpAmount};
+                let response = {targetDate, meetRequirement, requiredConsumptionMet, requiredTopUpMet, topUpDayAmount: totalTopUpAmount, actualAmount: actualAmount};
                 // let response = {targetDate, meetRequirement, requiredConsumptionMet, requiredTopUpMet};
                 if (isApply && meetRequirement && requiredTopUpMet) {
                     response.usedTopUpRecord = usedTopUpRecord;
@@ -5158,10 +5161,16 @@ let dbPlayerReward = {
         if (intervalTime) {
             topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
             if (rewardData.applyTargetDate) {
-                eventQuery.settleTime = {$gte: eventQueryPeriodTime.startTime, $lte: eventQueryPeriodTime.endTime};
+                eventQuery.createTime = {$gte: eventQueryPeriodTime.startTime, $lte: eventQueryPeriodTime.endTime};
             } else {
-                eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                eventQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
             }
+            // NOTE :: Regarding to time used for reward event proposal query, using settle time would be wrong because
+            //         settle time will change based on the time that cs approve/reject the proposal.
+            //         Create time will be wrong too when the system use settlement apply as the create time will only
+            //         be set on next period of the reward.
+            //         Currently I will change to createTime for hot fix, but "applyTargetDate" might be needed for all
+            //         reward proposal. - Huat
         }
         console.log("checking --- eventQuery.settleTime", eventQuery.settleTime)
 
@@ -5172,7 +5181,7 @@ let dbPlayerReward = {
         if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
             if (rewardData && rewardData.selectedTopup) {
                 selectedTopUp = rewardData.selectedTopup;
-                applyAmount = rewardData.selectedTopup.oriAmount;
+                applyAmount = rewardData.selectedTopup.oriAmount || rewardData.selectedTopup.amount;
                 actualAmount = rewardData.selectedTopup.amount;
 
                 let withdrawPropQuery = {
@@ -6399,7 +6408,7 @@ let dbPlayerReward = {
                     }
 
                     if (isMultiApplication) {
-                        let asyncProms = Promise.resolve(); 
+                        let asyncProms = Promise.resolve();
                         for (let i = 0; i < applicationDetails.length; i++) {
                             let applyDetail = applicationDetails[i];
                             let proposalData = {

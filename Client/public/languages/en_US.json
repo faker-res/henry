@@ -1238,6 +1238,7 @@
   "THEME_SELECT": "Theme Select",
   "PLAYER_THEME": "Player Theme",
   "PARTNER_THEME": "Partner Theme",
+  "onlineTopupAmount(ActualReceivedAmount)": "Online Top Up Amount (Actual Received Amount)",
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
   "SMS_VERIFICATION": "SMS Verification",

@@ -101,8 +101,8 @@ var dbLogger = {
                 } else if (adminActionRecordData.action == 'updatePlayerPermission' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0]._id) {
                     return dbconfig.collection_players.findOne({_id: adminActionRecordData.data[0]._id}, {name: 1});
                 } else if (adminActionRecordData.action == 'transferPlayerCreditToProvider' && adminActionRecordData && adminActionRecordData.data[0]) {
-                    return adminActionRecordData.data[5] ? dbconfig.collection_players.findOne({name: playerId}, {name: 1})
-                        : dbconfig.collection_players.findOne({playerId: playerId}, {name: 1});
+                    return adminActionRecordData.data[5] ? dbconfig.collection_players.findOne({name: adminActionRecordData.data[0]}, {name: 1})
+                        : dbconfig.collection_players.findOne({playerId: adminActionRecordData.data[0]}, {name: 1});
                 } else if (adminActionRecordData.action == 'resetPartnerPassword' && adminActionRecordData && adminActionRecordData.data[0]) {
                     return dbconfig.collection_partner.findOne({_id: adminActionRecordData.data[0]}, {partnerName: 1});
                 } else if (adminActionRecordData.action == 'updatePartnerPermission' && adminActionRecordData && adminActionRecordData.data[0] && adminActionRecordData.data[0]._id) {
