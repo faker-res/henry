@@ -20278,9 +20278,39 @@ define(['js/app'], function (myApp) {
                         }
                     })
                 });
-
+                vm.getAllRewardGroup();
                 vm.getPlatformProviderGroup();
             };
+
+            vm.getAllRewardGroup = function () {
+                vm.showRewardEventGroup = null;
+                vm.groupedRewardEvent = []; // to hide grouped reward event in the default group
+                socketService.$socket($scope.AppSocket, 'getRewardEventGroup', {platform: vm.selectedPlatform.id}, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.rewardEventGroup = data.data || [];
+                        if (vm.rewardEventGroup.length) {
+                            vm.rewardEventGroup.forEach(group => {
+                                if (group.rewardEvents && group.rewardEvents.length) {
+                                    vm.groupedRewardEvent = vm.groupedRewardEvent.concat(group.rewardEvents)
+                                }
+                            })
+                        }
+
+                        vm.showRewardEventGroup = vm.rewardEventGroup[0];
+                    })
+                });
+            }
+
+            vm.displayRewardEventInGroup = function (rewardEventObj) {
+                let isShow = false;
+                if (rewardEventObj && rewardEventObj._id && vm.showRewardEventGroup) {
+                    if ((!vm.showRewardEventGroup._id && vm.groupedRewardEvent.indexOf(String(rewardEventObj._id)) == -1)
+                        || (vm.showRewardEventGroup.rewardEvents && vm.showRewardEventGroup.rewardEvents.indexOf(String(rewardEventObj._id)) > -1)) {
+                        isShow = true;
+                    }
+                }
+                return isShow;
+            }
 
             vm.rewardEventClicked = function (i, v) {
                 if (!v) {
@@ -21515,6 +21545,121 @@ console.log('typeof ',typeof gameProviders);
                 $scope.safeApply();
             }
 
+            vm.initNewRewardGroup = function () {
+                vm.newRewardEventGroupName = "";
+                $("#modalCreateRewardEventGroup").modal('show');
+            }
+
+            vm.initDeleteRewardGroup = function () {
+                vm.rewardEventGroupOnly = false;
+                vm.rewardEventGroupAll = false; // include all event in the group
+                $("#modalDeleteRewardEventGroup").modal('show');
+            }
+
+            vm.initEditRewardGroup = function () {
+                if (vm.showRewardEventGroup && vm.showRewardEventGroup.name) {
+                    vm.editRewardEventGroupName = vm.showRewardEventGroup.name;
+                    $("#modalEditRewardEventGroup").modal('show');
+                }
+            }
+
+            vm.createRewardEventGroup = function () {
+                let sendData = {
+                    platform: vm.selectedPlatform.id,
+                    name: vm.newRewardEventGroupName
+                }
+
+                socketService.$socket($scope.AppSocket, 'createRewardEventGroup', sendData, function () {
+                    vm.getAllRewardGroup();
+                });
+            }
+
+            vm.deselectRewardEvent = function () {
+                $scope.$evalAsync(()=> {
+                    vm.platformRewardPageName = '';
+                    vm.showReward = {};
+                });
+            }
+
+            vm.deleteRewardEventGroup = function () {
+                let sendData = {
+                    query: {_id: vm.showRewardEventGroup._id},
+                };
+
+                socketService.$socket($scope.AppSocket, 'removeRewardEventGroup', sendData, function (data) {
+                    vm.deselectRewardEvent();
+                    vm.getAllRewardGroup();
+                    console.log('removeRewardEventGroup success');
+                });
+
+                if (vm.rewardEventGroupAll) {
+                    if (vm.showRewardEventGroup && vm.showRewardEventGroup.rewardEvents && vm.showRewardEventGroup.rewardEvents.length) {
+                        socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {
+                            _ids: vm.showRewardEventGroup.rewardEvents
+                        }, function (data) {
+                            vm.rewardTabClicked();
+                        })
+                    }
+                }
+            }
+
+            vm.editRewardGroupName = function () {
+                let sendData = {
+                    query: {_id: vm.showRewardEventGroup._id},
+                    updateData: {
+                        name: vm.editRewardEventGroupName
+                    }
+                };
+
+                socketService.$socket($scope.AppSocket, 'updateRewardEventGroup', sendData, function (data) {
+                    vm.deselectRewardEvent();
+                   vm.getAllRewardGroup();
+                    console.log('updateRewardEventGroup success');
+                });
+            }
+
+            vm.initMoveToRewardGroup = function () {
+                vm.moveRewardEventGroupId = '';
+                if (vm.showRewardEventGroup && vm.showReward && vm.showReward._id) {
+                    $("#modalMoveToRewardGroup").modal('show');
+                }
+            }
+
+            vm.moveEventRewardGroup = function () {
+                if (vm.showReward && vm.showReward._id && vm.moveRewardEventGroupId) {
+                    if (vm.showRewardEventGroup && vm.showRewardEventGroup._id) {
+                        let removeGroupData = {
+                            query: {_id: vm.showRewardEventGroup._id},
+                            updateData: {
+                                "$pull": {
+                                    rewardEvents: vm.showReward._id
+                                }
+                            }
+                        };
+
+                        socketService.$socket($scope.AppSocket, 'updateRewardEventGroup', removeGroupData, function (data) {
+                            console.log('remove event success');
+                        });
+                    }
+
+                    let addGroupData = {
+                        query: {_id: vm.moveRewardEventGroupId},
+                        updateData: {
+                            "$addToSet": {
+                                rewardEvents: vm.showReward._id
+                            }
+                        }
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'updateRewardEventGroup', addGroupData, function (data) {
+                        vm.deselectRewardEvent();
+                        console.log('add event success');
+                    });
+
+                    vm.getAllRewardGroup();
+                }
+            }
+
             vm.editReward = function (i) {
                 let isValid = true;
                 console.log('vm.showReward', vm.showReward);
@@ -21656,6 +21801,20 @@ console.log('typeof ',typeof gameProviders);
                 }, function (data) {
                     console.log("created not", data);
                 });
+
+                let removeGroupData = {
+                    query: {rewardEvents: vm.showReward._id},
+                    updateData: {
+                        "$pull": {
+                            rewardEvents: vm.showReward._id
+                        }
+                    }
+                };
+
+                socketService.$socket($scope.AppSocket, 'updateRewardEventGroup', removeGroupData, function (data) {
+                    console.log('remove event success');
+                });
+
             }
             vm.submitReward = function () {
                 let isValid = true;

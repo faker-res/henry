@@ -84,6 +84,10 @@ var dbRewardEvent = {
         }
     },
 
+    createRewardEventGroup: function (data) {
+        return dbconfig.collection_rewardEventGroup(data).save();
+    },
+
     /**
      * Get one reward event by query
      * @param {Object} query
@@ -320,9 +324,9 @@ var dbRewardEvent = {
 
                                 // filter top up record after consumption
                                 if (!rewardEvent.condition.allowConsumptionAfterTopUp) {
-                                    if (topUpData && topUpData.length > 0) {
+                                    if (topUpData && topUpData.length > 0 && consumptionData && consumptionData.length > 0) {
                                         topUpData.forEach(topUp => {
-                                            if (topUp && consumptionData && consumptionData[0] && topUp.settlementTime > consumptionData[0].createTime) {
+                                            if (topUp && consumptionData[0] && topUp.settlementTime > consumptionData[0].createTime) {
                                                 topUpAfterConsumption.push(topUp);
                                             }
                                         })
@@ -367,15 +371,17 @@ var dbRewardEvent = {
 
                                 let promArr = [];
                                 if (topUpData && topUpData.length) {
-                                    if (rewardEvent.condition.allowConsumptionAfterTopUp) {
-                                        for (let i = 0; i < topUpData.length; i++) {
-                                            promArr.push(checkRewardEventWithTopUp(topUpData[i]));
-                                        }
-                                    } else {
+                                    if (!rewardEvent.condition.allowConsumptionAfterTopUp) {
                                         if (topUpAfterConsumption && topUpAfterConsumption.length > 0) {
                                             for (let i = 0; i < topUpAfterConsumption.length; i++) {
                                                 promArr.push(checkRewardEventWithTopUp(topUpAfterConsumption[i]));
                                             }
+                                        } else {
+                                            promArr.push(checkRewardEventWithTopUp(null));
+                                        }
+                                    } else {
+                                        for (let i = 0; i < topUpData.length; i++) {
+                                            promArr.push(checkRewardEventWithTopUp(topUpData[i]));
                                         }
                                     }
                                 } else {
@@ -1502,6 +1508,15 @@ var dbRewardEvent = {
         }).exec();
     },
 
+    getRewardEventGroup: function (query) {
+        return dbconfig.collection_rewardEventGroup.find(query).lean().then(
+            groupData => {
+                groupData.unshift({name: "默认组别*"});
+                return groupData;
+            }
+        );
+    },
+
     /**
      * Update reward event
      * @param {String} query string
@@ -1511,6 +1526,10 @@ var dbRewardEvent = {
         return dbconfig.collection_rewardEvent.findOneAndUpdate(query, updateData).exec();
     },
 
+    updateRewardEventGroup: function (query, updateData) {
+        return dbconfig.collection_rewardEventGroup.findOneAndUpdate(query, updateData, {upsert: true}).exec();
+    },
+
     /**
      * Remove reward events by id
      * @param {Array} ids
@@ -1518,6 +1537,11 @@ var dbRewardEvent = {
     removeRewardEventsById: function (ids) {
         return dbconfig.collection_rewardEvent.remove({_id: {$in: ids}}).exec();
     },
+
+    removeRewardEventGroup: function (query) {
+        return dbconfig.collection_rewardEventGroup.remove(query).exec();
+    },
+
 
     /*
      * Get all platforms id has the reward event with passed in reward type
@@ -1869,6 +1893,7 @@ var dbRewardEvent = {
                             case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
                             case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
                             case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
+                            case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
                                 rewardTypeName[String(rewardType._id)] = rewardType.name;
                         }
                     });
@@ -1888,6 +1913,7 @@ var dbRewardEvent = {
 
                 switch (rewardTypeName[String(event.type)]) {
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
+                    case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
                         // need top up
                         streamProm = dbconfig.collection_playerTopUpRecord.aggregate(aggregateParam).then(
                             players => {
