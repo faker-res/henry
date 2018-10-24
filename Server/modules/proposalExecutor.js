@@ -265,6 +265,7 @@ var proposalExecutor = {
             this.executions.executeFinancialPointsDeduct.des = "Deduct Platform Financial Points";
             this.executions.executeUpdatePlayerRealName.des = "Update player real name";
             this.executions.executeUpdatePartnerRealName.des = "Update partner real name";
+            this.executions.executePlayerConsumptionSlipRewardGroup.des = "Player Consumption Slip Reward";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -337,6 +338,7 @@ var proposalExecutor = {
             this.rejections.rejectFinancialPointsDeduct.des = " Reject Deduct Platform Financial Points";
             this.rejections.rejectUpdatePlayerRealName.des = "Reject player update real name proposal";
             this.rejections.rejectUpdatePartnerRealName.des = "Reject partner update real name proposal";
+            this.rejections.rejectPlayerConsumptionSlipRewardGroup.des = "reject Player Consumption Slip Reward";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -1354,12 +1356,14 @@ var proposalExecutor = {
              */
             executePlayerTopUp: function (proposalData, deferred) {
                 let topUpAmount = Number(proposalData.data.amount);
+                let oriAmount = 0;
 
                 if(proposalData.data.hasOwnProperty("actualAmountReceived")){
                     topUpAmount = Number(proposalData.data.actualAmountReceived);
+                    oriAmount = Number(proposalData.data.amount);
                 }
 
-                dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, topUpAmount, "", constPlayerTopUpType.ONLINE, proposalData).then(
+                dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, topUpAmount, "", constPlayerTopUpType.ONLINE, proposalData, oriAmount).then(
                     function (data) {
                         var wsMessageClient = serverInstance.getWebSocketMessageClient();
                         if (wsMessageClient) {
@@ -2724,6 +2728,7 @@ var proposalExecutor = {
 
             executePlayerLimitedOfferReward: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                    let amount = proposalData.data.actualAmount ? proposalData.data.actualAmount : proposalData.data.applyAmount;
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
                         type: constRewardType.PLAYER_LIMITED_OFFERS_REWARD,
@@ -2731,8 +2736,8 @@ var proposalExecutor = {
                         platformId: proposalData.data.platformId,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
                         applyAmount: proposalData.data.applyAmount,
-                        currentAmount: proposalData.data.applyAmount + proposalData.data.rewardAmount,
-                        initAmount: proposalData.data.applyAmount + proposalData.data.rewardAmount,
+                        currentAmount: amount + proposalData.data.rewardAmount,
+                        initAmount: amount + proposalData.data.rewardAmount,
                         eventId: proposalData.data.eventId
                     };
 
@@ -2740,6 +2745,10 @@ var proposalExecutor = {
                         taskData.targetProviders = proposalData.data.providers;
                     } else {
                         taskData.providerGroup = proposalData.data.providerGroup;
+                    }
+
+                    if(proposalData.data.actualAmount){
+                        taskData.actualAmount = proposalData.data.actualAmount;
                     }
 
                     proposalData.data.proposalId = proposalData.proposalId;
@@ -2755,19 +2764,24 @@ var proposalExecutor = {
 
             executePlayerTopUpReturnGroup: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && (proposalData.data.rewardAmount || (proposalData.data.applyAmount && proposalData.data.isDynamicRewardAmount))) {
+                    let amount = proposalData.data.actualAmount ? proposalData.data.actualAmount : proposalData.data.applyAmount;
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
                         type: constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
                         rewardType: constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
                         platformId: proposalData.data.platformId,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
-                        currentAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + proposalData.data.applyAmount : proposalData.data.rewardAmount,
-                        initAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + proposalData.data.applyAmount : proposalData.data.rewardAmount,
+                        currentAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + amount : proposalData.data.rewardAmount,
+                        initAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + amount : proposalData.data.rewardAmount,
                         useConsumption: Boolean(proposalData.data.useConsumption),
                         eventId: proposalData.data.eventId,
                         applyAmount: proposalData.data.applyAmount,
                         providerGroup: proposalData.data.providerGroup
                     };
+
+                    if(proposalData.data.actualAmount){
+                        taskData.actualAmount = proposalData.data.actualAmount;
+                    }
 
                     let deferred1 = Q.defer();
                     createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_TOP_UP_RETURN_GROUP, proposalData);
@@ -2882,6 +2896,60 @@ var proposalExecutor = {
 
                     let deferred1 = Q.defer();
                     createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP, proposalData);
+                    deferred1.promise.then(
+                        data => {
+                            let updateData = {$set: {}};
+
+                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
+                                updateData.$set["permission.applyBonus"] = false;
+                            }
+
+                            dbconfig.collection_players.findOneAndUpdate(
+                                {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
+                                updateData
+                            ).then(
+                                playerData => {
+                                    if(proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply){
+                                        let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
+                                        let newPermissionObj = {applyBonus: false};
+                                        let remark = "优惠提案：" + proposalData.proposalId +  "(领取优惠后禁用提款)";
+                                        dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj);
+                                    }
+                                    return playerData;
+                                }
+                            ).then(
+                                () => {
+                                    deferred.resolve(data);
+                                },
+                                deferred.reject
+                            );
+                        },
+                        deferred.reject
+                    );
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect player top up return group proposal data"});
+                }
+            },
+
+            executePlayerConsumptionSlipRewardGroup: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && !isNaN(parseInt(proposalData.data.rewardAmount)) ) {
+                    let taskData = {
+                        playerId: proposalData.data.playerObjId,
+                        type: constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP,
+                        rewardType: constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP,
+                        platformId: proposalData.data.platformId,
+                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        currentAmount: proposalData.data.rewardAmount,
+                        initAmount: proposalData.data.rewardAmount,
+                        useConsumption: Boolean(proposalData.data.useConsumption),
+                        eventId: proposalData.data.eventId,
+                        applyAmount: 0,
+                        providerGroup: proposalData.data.providerGroup
+                    };
+
+                    let deferred1 = Q.defer();
+                    createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP, proposalData);
                     deferred1.promise.then(
                         data => {
                             let updateData = {$set: {}};
@@ -4009,6 +4077,10 @@ var proposalExecutor = {
             },
 
             rejectPlayerRandomRewardGroup: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerConsumptionSlipRewardGroup: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
 

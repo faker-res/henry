@@ -380,8 +380,6 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
             if (data && data[3]) {
                 allProposals = data[3];
-                // bPendingPaymentInfo = hasPendingPaymentInfoChanges(allProposals);
-                // bUpdatePaymentInfo = isFirstWithdrawalAfterPaymentInfoUpdated(allProposals);
                 playerTotalTopupAmount = calcPlayerTotalTopupAmount(allProposals);
             }
 
@@ -391,7 +389,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 playerCurrentAmount = playerData.validCredit;
             }
 
-            if(allProposals && playerData){
+            if (allProposals && playerData) {
                 bIsPaymentInfoMatched = isPaymentInfoMatched(allProposals, playerData);
             }
 
@@ -1373,16 +1371,18 @@ function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
     // TODO:: May be enhanced to limit search to 1 year time -
 
     return dbconfig.collection_proposal.find({
-        'data.platformId': platform._id,
-        'data.playerObjId': playerObjId,
+        'data.platformId': ObjectId(platform._id),
+        'data.playerObjId': ObjectId(playerObjId),
         mainType: 'TopUp',
-        createTime: {$lt: thisWithdrawTime}
+        createTime: {$lt: thisWithdrawTime},
+        status: {$in: [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
     }, {createTime: 1}).sort({createTime: -1}).limit(1).lean().then(
         lastTopUpProp => {
             if (lastTopUpProp && lastTopUpProp[0] && lastTopUpProp[0].createTime) {
                 return dbconfig.collection_proposal.find({
+                    'data.platformId': ObjectId(platform._id),
                     'data.playerObjId': ObjectId(playerObjId),
-                    type: constProposalType.PLAYER_BONUS,
+                    mainType: 'PlayerBonus',
                     $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}],
                     createTime: {$lt: lastTopUpProp[0].createTime}
                 }, {createTime: 1}).sort({createTime: -1}).limit(1).lean().then(

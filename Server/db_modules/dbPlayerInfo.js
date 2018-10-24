@@ -2917,6 +2917,12 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerObj = data;
+                    if (playerObj.guestDeviceId) {
+                        return Promise.reject({
+                            name: "DBError",
+                            message: "Guest ID cannot update password"
+                        })
+                    }
                     return dbPlayerUtil.setPlayerBState(playerObj._id, "updatePassword", true).then(
                         playerState => {
                             if (playerState) {
@@ -3576,6 +3582,17 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
+    getConsumptionSlipRewardList: function (userAgent, playerId, code, startIndex, count) {
+
+        let data = {
+            index: startIndex || 0,
+            limit: count || 100,
+            isPreview: true
+        };
+        return dbPlayerInfo.applyRewardEvent(userAgent, playerId, code, data);
+  
+    } ,
+
     /*
      * get player consumption records
      * @param {objectId} playerId
@@ -3868,7 +3885,7 @@ let dbPlayerInfo = {
      * @param {number} amount
      * @param {String} paymentChannelName
      */
-    playerTopUp: function (playerId, amount, paymentChannelName, topUpType, proposalData) {
+    playerTopUp: function (playerId, amount, paymentChannelName, topUpType, proposalData, oriAmount) {
         function topupUpdateRTG(playerData, platformData, amount) {
             player = playerData;
             platform = platformData;
@@ -4030,6 +4047,7 @@ let dbPlayerInfo = {
                         playerId: player._id,
                         platformId: player.platform,
                         amount: amount,
+                        oriAmount: oriAmount,
                         topUpType: topUpType,
                         createTime: proposalData ? proposalData.createTime : new Date(),
                         bDirty: false
@@ -5683,6 +5701,73 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
+    playerLoginOrRegisterWithSMS: (loginData, ua) => {
+        let isSMSVerified = false;
+        let rejectMsg = {
+            status: constServerCode.VALIDATION_CODE_INVALID,
+            name: "ValidationError",
+            message: "Invalid SMS Validation Code"
+        };
+
+        // Check matched verification code
+        let smsProm = dbconfig.collection_smsVerificationLog.findOne({
+            platformId: loginData.platformId,
+            tel: loginData.phoneNumber
+        }).sort({createTime: -1});
+
+        return smsProm.then(
+            verificationSMS => {
+                // Check verification SMS code
+                if (verificationSMS && verificationSMS.code) {
+                    if (verificationSMS.code == loginData.smsCode) {
+                        // Verified
+                        return dbconfig.collection_smsVerificationLog.remove(
+                            {_id: verificationSMS._id}
+                        ).then(
+                            data => {
+                                dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
+                                isSMSVerified = true;
+                                let plyProm = dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified);
+
+                                return Promise.all([plyProm])
+                                    .catch(
+                                        error => {
+                                            return Q.reject({
+                                                status: constServerCode.DB_ERROR,
+                                                name: "DBError",
+                                                message: error.message
+                                            });
+                                        }
+                                    )
+                            }
+                        )
+                    } else {
+                        // Not verified
+                        if (verificationSMS.loginAttempts >= 10) {
+                            // Safety - remove sms verification code after 10 attempts to prevent brute force attack
+                            return dbconfig.collection_smsVerificationLog.remove(
+                                {_id: verificationSMS._id}
+                            ).then(() => {
+                                return Q.reject(rejectMsg);
+                            });
+                        }
+                        else {
+                            return dbconfig.collection_smsVerificationLog.findOneAndUpdate(
+                                {_id: verificationSMS._id},
+                                {$inc: {loginAttempts: 1}}
+                            ).then(() => {
+                                return Q.reject(rejectMsg);
+                            });
+                        }
+                    }
+                }
+                else {
+                    return Q.reject(rejectMsg);
+                }
+            }
+        )
+    },
+
     playerLoginWithSMS: function (loginData, userAgent, isSMSVerified) {
         let deferred = Q.defer();
         let newAgentArray = [];
@@ -5808,12 +5893,15 @@ let dbPlayerInfo = {
                             return record.save().then(
                                 function () {
                                     if (bUpdateIp) {
-                                        dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
+                                        dbPlayerInfo.updateGeoipws(data._id, platformId, loginData.lastLoginIp);
                                     }
                                 }
                             ).then(
                                 () => {
                                     dbconfig.collection_players.findOne({_id: playerObj._id}).populate({
+                                        path: "platform",
+                                        model: dbconfig.collection_platform
+                                    }).populate({
                                         path: "playerLevel",
                                         model: dbconfig.collection_playerLevel
                                     }).lean().then(
@@ -13570,7 +13658,7 @@ let dbPlayerInfo = {
         );
     },
 
-    applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply) {
+    applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply, appliedObjIdList) {
         console.log('Apply reward event', playerId, code);
         data = data || {};
         let isPreview = data.isPreview || false;
@@ -13682,7 +13770,8 @@ let dbPlayerInfo = {
                         constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
                         constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,
                         constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,
-                        constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP
+                        constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,
+                        constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP
                     ];
 
                     // Check any consumption after topup upon apply reward
@@ -13809,6 +13898,7 @@ let dbPlayerInfo = {
                                 case constRewardType.PLAYER_RANDOM_REWARD_GROUP:
                                 case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
                                 case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
+                                case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
                                     // Check whether platform allowed for reward group
                                     // if (!playerInfo.platform.useProviderGroup) {
                                     //     return Q.reject({
@@ -13824,6 +13914,36 @@ let dbPlayerInfo = {
                                     if (data.previewDate) {
                                         rewardData.previewDate = data.previewDate;
                                     }
+                                    if (data.hasOwnProperty('index')){
+                                        rewardData.index = data.index;
+                                    }
+                                    if (data.hasOwnProperty('limit')){
+                                        rewardData.limit = data.limit;
+                                    }
+                                    if (data.hasOwnProperty('sortCol')){
+                                        rewardData.sortCol = data.sortCol;
+                                    }
+                                    if(data.appliedRewardList){
+                                        rewardData.appliedRewardList = data.appliedRewardList
+                                    }
+                                    else if(appliedObjIdList){
+                                        if (typeof appliedObjIdList == 'string'){
+                                            let splitArr = appliedObjIdList.split(",");
+                                            let objIdList = [];
+                                            splitArr.forEach(
+                                                objId => {
+                                                    if (objId) {
+                                                        objIdList.push(ObjectId(objId.trim()));
+                                                    }
+                                                }
+                                            )
+                                            rewardData.appliedRewardList = objIdList;
+                                        }
+                                        else{
+                                            rewardData.appliedRewardList = appliedObjIdList
+                                        }
+                                    }
+                                
                                     rewardData.smsCode = data.smsCode;
                                     return dbPlayerReward.applyGroupReward(userAgent, playerInfo, rewardEvent, adminInfo, rewardData, isPreview, isBulkApply);
                                     break;
@@ -20923,25 +21043,48 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
     if (proposalData && proposalData.data && proposalData.data.limitedOfferObjId) {
         let topupProposal = proposalData;
         let newProp;
+        let amountToDeduct = 0;
+        let updateObj = {
+            'data.topUpProposalObjId': proposalData._id,
+            'data.topUpProposalId': proposalData.proposalId,
+            'data.topUpAmount': proposalData.data.amount
+        }
 
-        return dbUtility.findOneAndUpdateForShard(
-            dbconfig.collection_proposal,
-            {_id: proposalData.data.limitedOfferObjId},
-            {
-                $set: {
-                    'data.topUpProposalObjId': proposalData._id,
-                    'data.topUpProposalId': proposalData.proposalId,
-                    'data.topUpAmount': proposalData.data.amount
-                },
-                $currentDate: {settleTime: true}
-            },
-            constShardKeys.collection_proposal,
-            true
+        if(proposalData.data.actualAmountReceived){
+            updateObj["data.actualAmount"] = proposalData.data.actualAmountReceived;
+        }
+
+        return dbconfig.collection_proposal.findOne({_id: proposalData.data.limitedOfferObjId}).then(
+            limitedOfferProposal => {
+                if(limitedOfferProposal && typeof limitedOfferProposal.data.spendingTimes != "undefined" && typeof limitedOfferProposal.data.rewardAmount != "undefined"
+                    && proposalData.data.actualAmountReceived){
+                    updateObj["data.spendingAmount"] = (proposalData.data.actualAmountReceived + limitedOfferProposal.data.rewardAmount) * limitedOfferProposal.data.spendingTimes;
+                }
+                return;
+            }
+        ).then(
+            () => {
+                return dbUtility.findOneAndUpdateForShard(
+                    dbconfig.collection_proposal,
+                    {_id: proposalData.data.limitedOfferObjId},
+                    {
+                        $set: updateObj,
+                        $currentDate: {settleTime: true}
+                    },
+                    constShardKeys.collection_proposal,
+                    true
+                )
+            }
         ).then(
             res => {
                 newProp = res;
+                if(proposalData.data.actualAmountReceived){
+                    amountToDeduct = proposalData.data.actualAmountReceived
+                }else{
+                    amountToDeduct = res.data.applyAmount;
+                }
 
-                return dbPlayerUtil.tryToDeductCreditFromPlayer(res.data.playerObjId, res.data.platformId, res.data.applyAmount, res.data.limitedOfferName + ":Deduction", res.data);
+                return dbPlayerUtil.tryToDeductCreditFromPlayer(res.data.playerObjId, res.data.platformId, amountToDeduct, res.data.limitedOfferName + ":Deduction", res.data);
             }
         ).then(
             res => {
