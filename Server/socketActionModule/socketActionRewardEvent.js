@@ -23,6 +23,12 @@ function socketActionRewardEvent(socketIO, socket) {
             socketUtil.emitter(self.socket, dbRewardEvent.createRewardEvent, [data], actionName, isValidData);
         },
 
+        createRewardEventGroup: function createRewardEventGroup(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.name && data.platform);
+            socketUtil.emitter(self.socket, dbRewardEvent.createRewardEventGroup, [data], actionName, isValidData);
+        },
+
         /**
          * Get one Reward event
          * @param {json} data - data has to contain _id
@@ -43,6 +49,12 @@ function socketActionRewardEvent(socketIO, socket) {
             socketUtil.emitter(self.socket, dbRewardEvent.getRewardEvents, [{platform: data.platform}], actionName, isValidData);
         },
 
+        getRewardEventGroup: function getRewardEventGroup(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbRewardEvent.getRewardEventGroup, [{platform: data.platform}], actionName, isValidData);
+        },
+
         /**
          * Update one Reward event
          *  @param {json} data - data has to contain query and updateData
@@ -53,6 +65,12 @@ function socketActionRewardEvent(socketIO, socket) {
             socketUtil.emitter(self.socket, dbRewardEvent.updateRewardEvent, [data.query, data.updateData], actionName, isValidData);
         },
 
+        updateRewardEventGroup: function updateRewardEventGroup(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbRewardEvent.updateRewardEventGroup, [data.query, data.updateData], actionName, isValidData);
+        },
+
         /**
          * delete Reward events by id
          * @param {json} data - data has to contain _ids
@@ -61,6 +79,12 @@ function socketActionRewardEvent(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data._ids);
             socketUtil.emitter(self.socket, dbRewardEvent.removeRewardEventsById, [data._ids, data.name], actionName, isValidData);
+        },
+
+        removeRewardEventGroup: function removeRewardEventGroup(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query);
+            socketUtil.emitter(self.socket, dbRewardEvent.removeRewardEventGroup, [data.query], actionName, isValidData);
         },
 
         /**
