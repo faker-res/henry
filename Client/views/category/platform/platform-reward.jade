@@ -2,12 +2,26 @@
     p(ng-if="!vm.curPlatformText")
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 .col-sm-2(ng-if="vm.curPlatformText", style='padding-left:0')
+    //start here
+    .panel.panel-primary(style="min-height:610px")
+        .panel-heading.panel-heading-sm
+            label {{"TRACKING_GROUP" | translate}}
+        .panel-body
+            ul.list-group.treeview(style='height:567px;overflow-y:auto')
+                li.list-group-item(ng-repeat='(i,v) in vm.rewardEventGroup', ng-class='{active: v == vm.showRewardEventGroup}', ng-click='vm.showRewardEventGroup = v') {{v.name}}
+            button.btn.btn-primary.common-button(style='text-align:center' ng-if='checkViewPermission("Platform", "Reward", "Add")' ng-click='vm.initNewRewardGroup()')
+                text {{"ADD_NEW_GROUP"|translate}}
+            button.btn.btn-success.common-button(style='text-align:center' ng-if='checkViewPermission("Platform", "Reward", "Update")' ng-click='vm.initEditRewardGroup()' ng-disabled='!vm.showRewardEventGroup || !vm.showRewardEventGroup._id')
+                text {{"EDIT_TRACKING_GROUP"|translate}}
+            button.btn.btn-danger.common-button(style='text-align:center' ng-if='checkViewPermission("Platform", "Reward", "Delete")' ng-click='vm.initDeleteRewardGroup()' ng-disabled='!vm.showRewardEventGroup || !vm.showRewardEventGroup._id')
+                text {{"DELETE_REWARD_GROUP"|translate}}
+
     .panel.panel-primary(style="min-height:610px")
         .panel-heading.panel-heading-sm
             label {{"All Rewards" | translate}}
         .panel-body
             ul.list-group.treeview(style='height:567px;overflow-y:auto')
-                li.list-group-item(ng-repeat='(i,v) in vm.allRewardEvent', ng-class='{active: v == vm.showReward}', ng-click='vm.rewardEventClicked(i,v)') {{v.name}}
+                li.list-group-item(ng-repeat='(i,v) in vm.allRewardEvent', ng-class='{active: v == vm.showReward}', ng-click='vm.rewardEventClicked(i,v)' ng-if='vm.displayRewardEventInGroup(v)') {{v.name}}
             button.btn.btn-primary.common-button(style='text-align:center' ng-if='checkViewPermission("Platform", "Reward", "Add")' ng-click='vm.initReward();vm.disableAllRewardInput(false)')
                 text {{"Add Event"|translate}}
                 img.img-create
@@ -288,6 +302,7 @@
             .pull-right
                 //- Intuitive UI: The Delete Event button should probably be on the left, next to Add Event.  (Or it could be an X button next to the name of the currently selected event.)
                 //-               The Edit Event button could be a "pencil" icon in the top-right corner of the form.
+                button.common-button.btn.btn-success(ng-if='checkViewPermission("Platform", "Reward", "Update")', ng-click='vm.initMoveToRewardGroup()') {{'MOVE_TO_ANOTHER_GROUP' | translate}}
                 button.common-button.btn.btn-danger(ng-if='vm.platformRewardShowEdit("DELETE") && checkViewPermission("Platform", "Reward", "Delete")', data-toggle="modal", data-target='#modalDeleteReward') {{'DELETE' | translate}}
                 button.common-button.btn.btn-warning(ng-if='vm.platformRewardShowEdit("CANCEL")', ng-click="vm.platformRewardPageName='showReward';vm.clearRewardFormData();vm.disableAllRewardInput(true)") {{'CANCEL' | translate}}
                 button.common-button.btn.btn-info(ng-if='vm.platformRewardShowEdit("EDIT") && checkViewPermission("Platform", "Reward", "Update")', ng-click="vm.platformRewardPageName='updateReward';vm.disableAllRewardInput(false)") {{'EDIT' | translate}}
@@ -312,4 +327,85 @@
                                     label ?
             .modal-footer
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.deleteReward();") {{"DELETE" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalDeleteRewardEventGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Warning!" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"This group still contain reward events, which of the following operations do you want to do?"|translate}}
+                                .col-md-6(style='text-align:center;background-color:green;color:white')
+                                    input#rewardGroupOnly(type='checkbox', ng-model='vm.rewardEventGroupOnly', ng-change='vm.rewardEventGroupAll=false')
+                                    label(for='rewardGroupOnly') {{"Delete group only, reward events will move to default group?"|translate}}
+                                .col-md-6(style='text-align:center;background-color:red;color:white')
+                                    input#rewardGroupAll(type='checkbox', ng-model='vm.rewardEventGroupAll', ng-change='vm.rewardEventGroupOnly=false')
+                                    label(for='rewardGroupAll') {{"Delete reward events in the group?"|translate}}
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.deleteRewardEventGroup();" ng-disabled='!vm.rewardEventGroupOnly && !vm.rewardEventGroupAll') {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalMoveToRewardGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"MOVE_TO_ANOTHER_GROUP" | translate}}
+            .modal-body
+                .panel.panel-primary
+                        .panel-body
+                            .row
+                                .col-md-12
+                                    label {{"GROUP_NAME"|translate}}
+                                    select.form-control(ng-model='vm.moveRewardEventGroupId', style='max-width:300px', required)
+                                        option(ng-repeat='(i,v) in vm.rewardEventGroup', value='{{v._id}}', ng-if='v._id && v._id != vm.showRewardEventGroup._id') {{v.name}}
+                                                    
+                                
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-disabled='!vm.moveRewardEventGroupId', ng-click="vm.moveEventRewardGroup()") {{"CONFIRM" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalCreateRewardEventGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_NEW_GROUP" | translate}}
+            .modal-body
+                .panel.panel-primary
+                        .panel-body
+                            .row
+                                .col-md-12
+                                    label {{"GROUP_NAME"|translate}}
+                                    input.form-control(type="text", ng-model="vm.newRewardEventGroupName", required)
+
+                                
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-disabled='!vm.newRewardEventGroupName', ng-click="vm.createRewardEventGroup()") {{"ADD" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalEditRewardEventGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_NEW_GROUP" | translate}}
+            .modal-body
+                .panel.panel-primary
+                        .panel-body
+                            .row
+                                .col-md-12
+                                    label {{"GROUP_NAME"|translate}}
+                                    input.form-control(type="text", ng-model="vm.editRewardEventGroupName", required)
+
+                                
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal', ng-disabled='!vm.editRewardEventGroupName', ng-click="vm.editRewardGroupName()") {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
