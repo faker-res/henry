@@ -4595,6 +4595,7 @@
   "The length is limit to 16, 19  , or if none then not need to input" : "16、19位'、无",
   "Enter a round number, if none any withdraw made, just type 0":"准确到元，无提款为0",
   "Attention! This player does not bind phone number (or inconvenient to receive sms code), cannot verify bank card. Please contact customer service to reset password manually ": "提示！此玩家无绑定电话，无法进行核对，请客服人工进行其他方式核对后手动修改密码。",
+  "Attention! This player has been forbidden to login": "提示！此玩家已被禁止登录。",
   "Update phone number failed": "更新手机号码失败 ",
   "Please enter binding bank account (If you dont fill it before, let it blank)?": "填写原绑定银行账号（如未绑定，填写无）",
   "Please enter last withdraw amount?": "请填写最后一次提款金额?",
