@@ -2905,6 +2905,8 @@ define(['js/app'], function (myApp) {
             }
 
             if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PartnerBonus") {
+                let pmsRemark = "";
+                let indexOfDivider = -1;
                 proposalDetail = {};
                 if (!vm.selectedProposal.data) {
                     vm.selectedProposal.data = {};
@@ -2920,6 +2922,16 @@ define(['js/app'], function (myApp) {
                 proposalDetail["autoAuditRemark"] = vm.selectedProposal.data.autoAuditRemarkChinese;
                 proposalDetail["autoAuditDetail"] = vm.selectedProposal.data.detailChinese;
                 proposalDetail["Total commission since the last withdrawal (include first level partner commission)"] = vm.selectedProposal.data.lastWithdrawalTotalCommission;
+                
+                if(vm.selectedProposal.data.remarkPMS){
+                    pmsRemark = vm.selectedProposal.data.remarkPMS;
+                    indexOfDivider = pmsRemark.indexOf("#");
+
+                    if(indexOfDivider > -1){
+                        proposalDetail["pmsRemark"] = pmsRemark.substring(0, indexOfDivider);
+                        proposalDetail["pmsOperator"] = pmsRemark.substring(indexOfDivider + 1, pmsRemark.length);
+                    }
+                }
 
                 vm.selectedProposalDetailForDisplay = proposalDetail;
             }
