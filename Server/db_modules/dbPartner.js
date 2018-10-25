@@ -8870,7 +8870,7 @@ let dbPartner = {
                 }
                 output.bonusFeeRate = commissionDetail.rewardFeeRate;
                 output.totalBonusFee = commissionDetail.totalRewardFee;
-                output.totalProviderFee = commissionDetail.totalPlatformFee;
+                output.totalProviderFee = commissionDetail.totalPlatformFee ? commissionDetail.totalPlatformFee : 0;
                 // output.totalCommission = commissionDetail.nettCommission;
                 output.totalCommission = 0;
                 output.list = [];
