@@ -705,10 +705,18 @@ var dbPlatform = {
         return Q.all([providerProm, platformProm]).then(
             data => {
                 if (data && data[0] && data[1]) {
-                    var nickName = localProviderNickName ? localProviderNickName : data[0].nickName;
-                    var prefix = localProviderPrefix ? localProviderPrefix : data[0].prefix;
+                    // var nickName = localProviderNickName ? localProviderNickName : data[0].nickName;
+                    // var prefix = localProviderPrefix ? localProviderPrefix : data[0].prefix;
 
-                    var providerProm = dbPlatform.addOrRenameProviderInPlatformById(data[1]._id, data[0]._id, nickName, prefix);
+                    // var providerProm = dbPlatform.addOrRenameProviderInPlatformById(data[1]._id, data[0]._id, nickName, prefix);
+                    var providerProm = dbconfig.collection_platform.findOneAndUpdate(
+                        {
+                            _id: data[1]._id
+                        },
+                        {
+                            $addToSet: {gameProviders: {$each: [data[0]._id]}}
+                        }
+                    ).lean();
                     var gameProm = dbPlatformGameStatus.addProviderGamesToPlatform(data[0]._id, data[1]._id);
 
                     return Q.all([providerProm, gameProm]);
@@ -729,22 +737,31 @@ var dbPlatform = {
         let nickNameUpdatePath = "gameProviderInfo." + providerObjId + ".localNickName";
         let prefixUpdatePath = "gameProviderInfo." + providerObjId + ".localPrefix";
         let nickNameUpdate = {};
-        nickNameUpdate[nickNameUpdatePath] = localProviderNickName;
-        nickNameUpdate[prefixUpdatePath] = localProviderPrefix;
+        if (localProviderNickName) {
+            nickNameUpdate[nickNameUpdatePath] = localProviderNickName;
+        }
+        if (localProviderPrefix) {
+            nickNameUpdate[prefixUpdatePath] = localProviderPrefix;
+        }
+
+        let query = {
+            $addToSet: {gameProviders: {$each: [providerObjId]}}
+        };
+
+        if (localProviderNickName || localProviderPrefix) {
+            query.$set = nickNameUpdate
+        }
 
         console.log("addOrRenameProviderInPlatformById platform update:", {
             $addToSet: {gameProviders: {$each: [providerObjId]}},
-            // $set: nickNameUpdate
+            $set: nickNameUpdate
         });
 
         return dbconfig.collection_platform.findOneAndUpdate(
             {
                 _id: platformObjId
             },
-            {
-                $addToSet: {gameProviders: {$each: [providerObjId]}},
-                // $set: nickNameUpdate
-            }
+            query
         ).exec();
     },
 
