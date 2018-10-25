@@ -1238,7 +1238,13 @@ let dbPlayerCreditTransfer = {
                                     // Since we are going to unlock this, we set freeAmt to 0 to prevent double addition
                                     // updateObj.freeAmt = 0;
 
-                                    return dbRewardTask.completeRewardTaskGroup(preRTG, preRTG.status).then(() => true);
+                                    return dbConfig.collection_rewardTaskGroup.findOne({
+                                        _id: rewardGroupObj._id
+                                    }).lean().then(
+                                        RTGdata => {
+                                            return dbRewardTask.completeRewardTaskGroup(RTGdata, RTGdata.status).then(() => true);
+                                        }
+                                    );
                                 }
 
                                 return true;

@@ -2985,7 +2985,9 @@ define(['js/app'], function (myApp) {
                         validConsumptionAmount: 0,
                         consumptionBonusAmount: 0,
                         profit: 0,
-                        consumptionAmount: 0
+                        consumptionAmount: 0,
+                        totalPlatformFeeEstimate: 0,
+                        totalOnlineTopUpFee: 0
                     };
                     vm.feedbackQuery.totalCount = data.data.size;
                     vm.feedbackData = data.data.data.map(item => {
@@ -3062,6 +3064,8 @@ define(['js/app'], function (myApp) {
                         item.validConsumptionAmount ? vm.feedbackDataSum.validConsumptionAmount += item.validConsumptionAmount : null;
                         item.consumptionBonusAmount ? vm.feedbackDataSum.consumptionBonusAmount += item.consumptionBonusAmount : null;
                         item.consumptionAmount ? vm.feedbackDataSum.consumptionAmount += item.consumptionAmount : null;
+                        item.totalPlatformFeeEstimate ? vm.feedbackDataSum.totalPlatformFeeEstimate += item.totalPlatformFeeEstimate : null;
+                        item.totalOnlineTopUpFee ? vm.feedbackDataSum.totalOnlineTopUpFee += item.totalOnlineTopUpFee : null;
 
                         if (item.onlineTopUpFeeDetail && item.onlineTopUpFeeDetail.length > 0) {
                             let detailArr = [];
@@ -3077,6 +3081,10 @@ define(['js/app'], function (myApp) {
                             item.onlineTopUpFeeDetail$ = '';
                         }
                         item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
+
+                        if (item.hasOwnProperty("totalPlatformFeeEstimate")) {
+                            item.totalPlatformFeeEstimate$ = item.totalPlatformFeeEstimate.toFixed(2);
+                        }
 
                         return item;
                     });
@@ -3188,7 +3196,7 @@ define(['js/app'], function (myApp) {
                     },
                     {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: "sumFloat"},
                     {
-                        title: $translate("Platform Fee"), data: "totalPlatformFeeEstimate",
+                        title: $translate("Platform Fee"), data: "totalPlatformFeeEstimate$",
                         render: function (data, type, row) {
                             data = data || 0;
                             let feeDetails = "";
@@ -3197,14 +3205,14 @@ define(['js/app'], function (myApp) {
                                     if (feeDetails) {
                                         feeDetails += "\n";
                                     }
-                                    feeDetails += (key + ": " + row.platformFeeEstimate[key]);
+                                    feeDetails += (key + ": " + row.platformFeeEstimate[key].toFixed(2));
                                 }
                             }
                             return $('<a data-toggle="tooltip" title=\'' + feeDetails + '\'  data-placement= "left"></a>')
                                 .attr('data-row', JSON.stringify(row))
                                 .text((data))
                                 .prop('outerHTML');
-                        }
+                        } ,sClass: "sumFloat"
                     },
                     {
                         title: $translate("Online Top Up Fee"), data: "totalOnlineTopUpFee$",
@@ -3242,7 +3250,9 @@ define(['js/app'], function (myApp) {
                 18: vm.feedbackDataSum.validConsumptionAmount,
                 19: vm.feedbackDataSum.consumptionBonusAmount,
                 20: vm.feedbackDataSum.profit,
-                23: vm.feedbackDataSum.consumptionAmount
+                23: vm.feedbackDataSum.consumptionAmount,
+                24: vm.feedbackDataSum.totalPlatformFeeEstimate.toFixed(2),
+                25: vm.feedbackDataSum.totalOnlineTopUpFee.toFixed(2),
             };
 
             if(isExport){
@@ -3708,6 +3718,24 @@ define(['js/app'], function (myApp) {
                         item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
                     }
 
+                    if (item.onlineTopUpFeeDetail && item.onlineTopUpFeeDetail.length > 0) {
+                        let detailArr = [];
+                        item.onlineTopUpFeeDetail.forEach((detail, index) => {
+                            if (detail && detail.merchantName && detail.hasOwnProperty('onlineToUpFee') && detail.hasOwnProperty('onlineTopUpServiceChargeRate')) {
+                                let orderNo = index ? index + 1 : 1;
+                                detailArr.push(orderNo + '. ' + detail.merchantName + ': ' + detail.amount + $translate("YEN") + ' * ' + parseFloat(detail.onlineTopUpServiceChargeRate * 100).toFixed(2) + '%');
+                            }
+                        });
+
+                        item.onlineTopUpFeeDetail$ = detailArr && detailArr.length > 0 ? detailArr.join('\n') : '';
+                    } else {
+                        item.onlineTopUpFeeDetail$ = '';
+                    }
+                    item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
+
+                    if (item.hasOwnProperty("totalPlatformFeeEstimate")) {
+                        item.totalPlatformFeeEstimate$ = item.totalPlatformFeeEstimate.toFixed(2);
+                    }
 
                     return item;
                 }), data.data.total, data.data.size, newSearch, isExport);
@@ -3739,6 +3767,8 @@ define(['js/app'], function (myApp) {
                     {'sortCol': 'validConsumptionAmount', 'aTargets': [16], bSortable: true},
                     {'sortCol': 'consumptionBonusAmount', 'aTargets': [17], bSortable: true},
                     {'sortCol': 'consumptionAmount', 'aTargets': [19], bSortable: true},
+                    {'sortCol': 'totalPlatformFeeEstimate', 'aTargets': [21], bSortable: true},
+                    {'sortCol': 'totalOnlineTopUpFee', 'aTargets': [22], bSortable: true},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
@@ -3779,7 +3809,38 @@ define(['js/app'], function (myApp) {
                     },
                     {title: $translate('COMPANY_PROFIT'), data: "profit$", sClass: 'playerReportProfit alignRight'},
                     {title: $translate('TOTAL_CONSUMPTION'), data: "consumptionAmount$", sClass: 'sumFloat alignRight'},
-                    {title: $translate('Registration Agent'), data: "registrationAgent$"}
+                    {title: $translate('Registration Agent'), data: "registrationAgent$"},
+                    {
+                        title: $translate("Platform Fee"), data: "totalPlatformFeeEstimate$",
+                        render: function (data, type, row) {
+                            data = data || 0;
+                            let feeDetails = "";
+                            if (row && row.platformFeeEstimate) {
+                                for (let key in row.platformFeeEstimate) {
+                                    if (feeDetails) {
+                                        feeDetails += "\n";
+                                    }
+                                    feeDetails += (key + ": " + row.platformFeeEstimate[key].toFixed(2));
+                                }
+                            }
+                            return $('<a data-toggle="tooltip" title=\'' + feeDetails + '\'  data-placement= "left"></a>')
+                                .attr('data-row', JSON.stringify(row))
+                                .text((data))
+                                .prop('outerHTML');
+                        }, sClass: 'sumFloat alignRight'
+                    },
+                    {
+                        title: $translate("Online Top Up Fee"), data: "totalOnlineTopUpFee$",
+                        render: function (data, type, row) {
+                            var link = $('<div>', {});
+                            link.append($('<a>', {
+                                'data-toggle': 'tooltip',
+                                'title': row.onlineTopUpFeeDetail$,
+                                'data-placement': 'left',
+                            }).text(data));
+                            return link.prop('outerHTML');
+                        }, sClass: 'sumFloat alignRight'
+                    }
                 ],
                 "paging": false,
                 // "dom": '<"top">rt<"bottom"il><"clear">',
@@ -3809,7 +3870,9 @@ define(['js/app'], function (myApp) {
                     16: total.validConsumptionAmount,
                     17: total.consumptionBonusAmount,
                     18: total.profit,
-                    19: total.consumptionAmount
+                    19: total.consumptionAmount,
+                    21: total.totalPlatformFeeEstimate.toFixed(2),
+                    22: total.totalOnlineTopUpFee.toFixed(2)
                 });
 
                 $('#playerReportExcelTable_wrapper').hide();
@@ -3830,7 +3893,9 @@ define(['js/app'], function (myApp) {
                     16: total.validConsumptionAmount,
                     17: total.consumptionBonusAmount,
                     18: total.profit,
-                    19: total.consumptionAmount
+                    19: total.consumptionAmount,
+                    21: total.totalPlatformFeeEstimate.toFixed(2),
+                    22: total.totalOnlineTopUpFee.toFixed(2)
                 });
                 utilService.setDataTablePageInput('playerReportTable', playerTbl, $translate);
 
@@ -4545,6 +4610,10 @@ define(['js/app'], function (myApp) {
                     }
                     item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
 
+                    if (item.hasOwnProperty("totalPlatformFeeEstimate")) {
+                        item.totalPlatformFeeEstimate$ = item.totalPlatformFeeEstimate.toFixed(2);
+                    }
+
                     return item;
                 }), data.data.size, newSearch, isExport);
                 $scope.safeApply();
@@ -4615,7 +4684,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate("PHONE_LOCATION"), data: "phoneArea$"},
                     {title: $translate("IP_LOCATION"), data: "ipArea$"},
                     {
-                        title: $translate("Platform Fee"), data: "totalPlatformFeeEstimate",
+                        title: $translate("Platform Fee"), data: "totalPlatformFeeEstimate$",
                         render: function (data, type, row) {
                             data = data || 0;
                             let feeDetails = "";
@@ -4624,14 +4693,14 @@ define(['js/app'], function (myApp) {
                                     if (feeDetails) {
                                         feeDetails += "\n";
                                     }
-                                    feeDetails += (key + ": " + row.platformFeeEstimate[key]);
+                                    feeDetails += (key + ": " + row.platformFeeEstimate[key].toFixed(2));
                                 }
                             }
                             return $('<a data-toggle="tooltip" title=\'' + feeDetails + '\'  data-placement= "left"></a>')
                                 .attr('data-row', JSON.stringify(row))
                                 .text((data))
                                 .prop('outerHTML');
-                        }
+                        }, "sClass": "sumFloat"
                     },
                     {
                         title: $translate("Online Top Up Fee"), data: "totalOnlineTopUpFee$",

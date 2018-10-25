@@ -309,7 +309,13 @@ var roleChecker = {
                 PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement', 'getYesterdayConsumptionReturnSGTime'],
                 PlayerLevelSettlement: ['startPlatformPlayerLevelSettlement'],
                 PlayerConsecutiveConsumptionSettlement: ['startPlayerConsecutiveConsumptionSettlement'],
-                FrontendConfiguration: []
+                FrontendConfiguration: [],
+                BackstageSettings: [],
+                PlayerDisplayData: [],
+                PartnerDisplayData: [],
+                SystemSettlement: [],
+                FrontendModuleSetting: [],
+                ThemeSelect: [],
             },
             // "Player": {
             //     Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList', "getDepartmentTreeById",

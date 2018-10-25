@@ -634,6 +634,9 @@ var dbPlayerConsumptionRecord = {
             () => {
                 if (playerData) {
                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(playerData.platform, playerData, {}).catch(errorUtils.reportError);
+                    // check for the consumptionSlip rewardEvent
+                    dbPlayerReward.checkConsumptionSlipRewardGroup(playerData, record).catch(errorUtils.reportError);
+
 
                 }
                 if (record) {
@@ -1478,6 +1481,30 @@ var dbPlayerConsumptionRecord = {
         );
 
         return deferred.promise;
+    },
+
+    assignConsumptionUsedEventByObjId: function (startTime, endTime, consumptionRecordObjId, eventObjId, usedProposal, rewardType) {
+
+        let consumptionQuery = {
+            _id: consumptionRecordObjId,
+            bDirty: false
+        };
+
+        let updateValue = {
+            bDirty: true,
+            $push: {usedEvent: eventObjId}
+        };
+
+        if (rewardType) {
+            updateValue.usedType = rewardType;
+        }
+
+        if (usedProposal) {
+            updateValue.usedProposal = usedProposal;
+        }
+
+        return dbconfig.collection_playerConsumptionRecord.update(consumptionQuery, updateValue).lean();
+
     },
 
     /**

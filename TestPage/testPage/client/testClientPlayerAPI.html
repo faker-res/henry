@@ -1596,6 +1596,26 @@
     </div>
 </div>
 
+<h3>Create Demo Player (生成游客账号)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+
+    </div>
+    <div>
+        <label>Device Id
+            <input type=text name="guestDeviceId">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="createGuestPlayer">Create</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <h3>Save Client Data (编辑客户端数据)</h3>
 
 <div class="test-container">
@@ -1828,6 +1848,31 @@
     </div>
 </div>
 
+
+<h3>Player Login/Register via Phone Number with SMS (玩家电话号码登入/注册)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input type=text name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Phone Number
+            <input type=text name="phoneNumber">
+        </label>
+    </div>
+    <button data-api-name="getSMSCode">Get Verification Code</button>
+    <label>SMSCode
+        <input type=text name="smsCode">
+    </label>
+
+    <div>
+        <button data-api-name="playerLoginOrRegisterWithSMS">Login With SMS</button>
+    </div>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
 
 
 <script>

@@ -47,9 +47,6 @@ var errorUtils = {
             if (error.stack) {
                 console.error("stack:", error.stack);
             }
-            else {
-                console.trace("stack:");
-            }
         }
     },
 

@@ -230,6 +230,13 @@ var dbClientQnA = {
         let endDes = "Attention: this number is over the excess the limit of sent sms. Please contact cs or open a new account if necessary.";
         return dbClientQnA.qnaEndMessage(endTitle, endDes)
     },
+
+    // return reject player forbid to login
+    rejectPlayerForbiddenToLogin: function () {
+        let endTitle = "Reset password failed";
+        let endDes = "Attention! This player has been forbidden to login";
+        return dbClientQnA.qnaEndMessage(endTitle, endDes)
+    },
     //endregion
 
     //region forgot password
@@ -349,6 +356,12 @@ var dbClientQnA = {
             playerData => {
                 if (!playerData) {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
+                }
+
+                if(playerData.permission && playerData.permission.forbidPlayerFromLogin){
+                    let endTitle = "Reset password failed";
+                    let endDes = "Attention! This player has been forbidden to login";
+                    return dbClientQnA.qnaEndMessage(endTitle, endDes)
                 }
 
                 let updateObj = {
@@ -595,7 +608,7 @@ var dbClientQnA = {
                 return dbconfig.collection_players.find({
                     platform: platformObjId,
                     phoneNumber: phoneQ
-                }, '_id platform playerId name').populate({
+                }, '_id platform playerId name permission').populate({
                     path: "platform",
                     model: dbconfig.collection_platform,
                     select: {platformId: 1}
@@ -607,6 +620,10 @@ var dbClientQnA = {
                     // One player found
                     if (players.length === 1) {
                         playerData = players[0];
+
+                        if(playerData.permission && playerData.permission.forbidPlayerFromLogin){
+                            throw new Error ("Player is forbidden to login")
+                        }
 
                         let updateObj = {
                             $set: {
@@ -669,6 +686,10 @@ var dbClientQnA = {
 
             if (error.message === "Max SMS count") {
                 return dbClientQnA.rejectSMSCountMoreThanFiveInPastHour();
+            }
+
+            if (error.message === "Player is forbidden to login") {
+                return dbClientQnA.rejectPlayerForbiddenToLogin();
             }
         })
     },
@@ -1731,7 +1752,7 @@ var dbClientQnA = {
                 player = data[0];
                 platform = data[1];
 
-                return isExceedSameBankAccount(inputDataObj.bankAccount, platform);
+                return isExceedSameBankAccount(inputDataObj.bankAccount, platform, player._id);
             }
         ).then(
             exceedSameBankAccount => {
@@ -2676,16 +2697,24 @@ var dbClientQnA = {
     //endregion
 };
 
-function isExceedSameBankAccount(bankAccount, platformData) {
+function isExceedSameBankAccount(bankAccount, platformData, playerObjId) {
     if (!platformData || !platformData.sameBankAccountCount) {
         return false;
     }
-    return dbconfig.collection_players.find({
+
+    let query = {
         bankAccount: bankAccount,
         platform: platformData._id,
         'permission.forbidPlayerFromLogin': false
-    }).lean().count().then(
-        bankAccountCount => {
+    };
+
+    if (playerObjId) {
+        query._id = {$ne: playerObjId};
+    }
+
+    return dbconfig.collection_players.find(query, {_id:1}).lean().then(
+        bankAccount => {
+            let bankAccountCount = bankAccount && bankAccount.length || 0;
             return Boolean(bankAccountCount && bankAccountCount >= platformData.sameBankAccountCount);
         }
     )

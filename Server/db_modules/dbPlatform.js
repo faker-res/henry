@@ -705,13 +705,15 @@ var dbPlatform = {
         return Q.all([providerProm, platformProm]).then(
             data => {
                 if (data && data[0] && data[1]) {
-                    var nickName = localProviderNickName ? localProviderNickName : data[0].nickName;
-                    var prefix = localProviderPrefix ? localProviderPrefix : data[0].prefix;
+                    // var nickName = localProviderNickName ? localProviderNickName : data[0].nickName;
+                    // var prefix = localProviderPrefix ? localProviderPrefix : data[0].prefix;
 
-                    var providerProm = dbPlatform.addOrRenameProviderInPlatformById(data[1]._id, data[0]._id, nickName, prefix);
-                    var gameProm = dbPlatformGameStatus.addProviderGamesToPlatform(data[0]._id, data[1]._id);
+                    // var providerProm = dbPlatform.addOrRenameProviderInPlatformById(data[1]._id, data[0]._id, nickName, prefix);
+                    // var gameProm = dbPlatformGameStatus.addProviderGamesToPlatform(data[0]._id, data[1]._id);
 
-                    return Q.all([providerProm, gameProm]);
+                    // return Q.all([providerProm, gameProm]);
+
+                    return dbPlatformGameStatus.addProviderGamesToPlatform(data[0]._id, data[1]._id);
                 }
                 else {
                     return Q.reject({
@@ -4585,7 +4587,10 @@ var dbPlatform = {
             // rewardEvent (ignore provider group setting, fix reward event inter-relationship)
             let oldNewEventObjId = {};
             let copyRewardEventProm = dbconfig.collection_rewardEvent.remove({platform: replicateTo._id}).then(
-                () => dbconfig.collection_rewardEvent.find({platform: replicateFrom._id}).lean()
+                () => dbconfig.collection_rewardEvent.find({platform: replicateFrom._id}).populate({
+                    path: "executeProposal",
+                    model: dbconfig.collection_proposalType
+                }).lean()
             ).then(
                 rewardEvents => {
                     let proms = [];
@@ -4594,10 +4599,21 @@ var dbPlatform = {
                         delete rewardEvent._id;
                         if (rewardEvent.condition) delete rewardEvent.condition.providerGroup;
                         rewardEvent.platform = replicateTo._id;
-                        let prom = dbconfig.collection_rewardEvent(rewardEvent).save().then(newRewardEvent => {
-                            oldNewEventObjId[rewardEventId] = String(newRewardEvent._id);
-                            return newRewardEvent;
-                        }).catch(errorUtils.reportError);
+
+                        let prom = dbconfig.collection_proposalType.findOne({
+                            platformId: replicateTo._id, name: rewardEvent.executeProposal.name
+                        }).lean().then(
+                            replToPropType => {
+                                if (replToPropType && replToPropType._id) {
+                                    rewardEvent.executeProposal = replToPropType._id;
+
+                                    dbconfig.collection_rewardEvent(rewardEvent).save().then(newRewardEvent => {
+                                        oldNewEventObjId[rewardEventId] = String(newRewardEvent._id);
+                                        return newRewardEvent;
+                                    }).catch(errorUtils.reportError);
+                                }
+                            }
+                        );
                         proms.push(prom);
                     });
 

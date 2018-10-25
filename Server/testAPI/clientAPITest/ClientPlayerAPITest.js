@@ -665,6 +665,17 @@
         });
     };
 
+    proto.createGuestPlayer = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.playerService.createGuestPlayer.request(data);
+        this.playerService.createGuestPlayer.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     proto.createDemoPlayer = function (callback, requestData) {
         let data = requestData || {};
 
@@ -724,6 +735,12 @@
         var data = requestData || {};
         this.playerService.getReceiveTransferList.request(data);
         this.playerService.getReceiveTransferList.once(callback);
+    };
+
+    proto.playerLoginOrRegisterWithSMS = function (callback, requestData) {
+        var data = requestData || {};
+        this.playerService.playerLoginOrRegisterWithSMS.request(data);
+        this.playerService.playerLoginOrRegisterWithSMS.once(callback);
     };
 
     if (isNode) {

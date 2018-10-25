@@ -84,7 +84,7 @@ const dbLargeWithdrawal = {
             ([lastWithdraw, lastTopUp]) => {
                 lastWithdrawalObj = lastWithdraw;
                 let largeWithdrawalSettingProm = dbconfig.collection_largeWithdrawalSetting.findOne({platform: largeWithdrawalLog.platform}).lean();
-                let todayTime = dbUtility.getTodaySGTime();
+                let todayTime = dbUtility.getTargetSGTime(proposal.createTime);
                 let currentMonthDate = dbUtility.getCurrentMonthSGTIme();
                 let lastMonthDate = dbUtility.getLastMonthSGTime();
                 let secondLastMonthDate = dbUtility.getSecondLastMonthSGTime();
@@ -93,7 +93,7 @@ const dbLargeWithdrawal = {
                     platform: largeWithdrawalLog.platform,
                     withdrawalTime: {
                         $gte: todayTime.startTime,
-                        $lt: todayTime.endTime
+                        $lte: proposal.createTime
                     },
                 }).count();
 
@@ -253,7 +253,11 @@ const dbLargeWithdrawal = {
                     }
                 };
 
-                return dbconfig.collection_largeWithdrawalLog.findOneAndUpdate({_id: largeWithdrawalLogObjId}, updateObj, {new: true}).lean();
+                return dbconfig.collection_largeWithdrawalLog.findOneAndUpdate({_id: largeWithdrawalLogObjId}, updateObj, {new: true}).lean().catch(err => {
+                    // debug use
+                    console.log("fill up failure", largeWithdrawalLogObjId, updateObj);
+                    return Promise.reject(err);
+                });
             }
         );
     },
@@ -333,6 +337,7 @@ const dbLargeWithdrawal = {
                     return Promise.reject({message: "proposal of partner large withdrawal not found"});
                 }
                 proposal = proposalData;
+                todayTime = dbUtility.getTargetSGTime(proposal.createTime);
 
                 if (!proposal.data || !proposal.data.partnerObjId) {
                     console.log("partnerObjId of proposal not found:", log.proposalId);
@@ -359,7 +364,7 @@ const dbLargeWithdrawal = {
                     platform: log.platform,
                     withdrawalTime: {
                         $gte: todayTime.startTime,
-                        $lt: todayTime.endTime
+                        $lte: proposal.createTime
                     },
                 }).read("secondaryPreferred").count();
 
@@ -378,7 +383,7 @@ const dbLargeWithdrawal = {
             }
         ).then(
             ([todayLargeAmountData, bankCityData, lastWithdrawalData, downLinePlayerData, downLinePartnerData]) => {
-                todayLargeAmount = todayLargeAmountData || 0;
+                todayLargeAmount = (todayLargeAmountData || 0) + 1;
 
                 bankCityName = "";
                 if (bankCityData && bankCityData.cities && bankCityData.cities.length && partner.bankAccountCity) {

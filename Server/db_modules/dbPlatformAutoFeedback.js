@@ -296,10 +296,10 @@ let dbPlatformAutoFeedback = {
                         }
                     }
 
-                    if (feedback.credibilityRemarksFilter && feedback.credibilityRemarksFilter.length > 0) {
+                    if (feedback.filterCredibilityRemarks && feedback.filterCredibilityRemarks.length > 0) {
                         let tempArr = [];
-                        if (feedback.credibilityRemarksFilter.includes("")) {
-                            feedback.credibilityRemarksFilter.forEach(remark => {
+                        if (feedback.filterCredibilityRemarks.includes("")) {
+                            feedback.filterCredibilityRemarks.forEach(remark => {
                                 if (remark != "") {
                                     tempArr.push(remark);
                                 }
@@ -307,10 +307,10 @@ let dbPlatformAutoFeedback = {
                             playerQuery.$and = [{credibilityRemarks: {$ne: []}}, {credibilityRemarks: {$exists: true}}, {credibilityRemarks: {$nin: tempArr}}];
                         } else {
                             if (playerQuery.credibilityRemarks && playerQuery.credibilityRemarks.$in) {
-                                playerQuery.$and = [{credibilityRemarks: {$nin: feedback.credibilityRemarksFilter}}];
+                                playerQuery.$and = [{credibilityRemarks: {$nin: feedback.filterCredibilityRemarks}}];
                             }
                             else {
-                                playerQuery.credibilityRemarks = {$nin: feedback.credibilityRemarksFilter};
+                                playerQuery.credibilityRemarks = {$nin: feedback.filterCredibilityRemarks};
                             }
                         }
                     }

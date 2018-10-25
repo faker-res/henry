@@ -2089,6 +2089,22 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.recalculateLargeWithdrawal = () => {
+            if (vm.largeWithdrawLog && vm.largeWithdrawLog._id) {
+                let proposalId = vm.largeWithdrawLog.proposalId;
+                socketService.showConfirmMessage(proposalId + " " + $translate("Recalculating..."), 5000);
+                let logObjId = vm.largeWithdrawLog._id;
+                return $scope.$socketPromise('recalculateLargeWithdrawalLog', {logObjId}).then(
+                    () => {
+                        socketService.showConfirmMessage(proposalId + " " + $translate("Recalculate successful"), 5000);
+                    },
+                    err => {
+                        socketService.showErrorMessage(proposalId + " " + $translate("Recalculate failed") + ": " + $translate(err.errorMessage || err.message || err));
+                    }
+                );
+            }
+        }
+
         vm.sendLargeAmountDetailMail = () => {
             let query = {
                 logObjId: vm.largeWithdrawLog._id,
