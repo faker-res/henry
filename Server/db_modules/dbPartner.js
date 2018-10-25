@@ -2451,6 +2451,7 @@ let dbPartner = {
      */
     applyBonus: function (userAgent, partnerId, bonusId, amount, honoreeDetail, bForce, adminInfo) {
 
+        let lastBonusRemark = "";
         let platform;
         let partner = null;
         // let bonusDetail = null;
@@ -2524,33 +2525,81 @@ let dbPartner = {
                 }
             ).then(
                 partnerData => {
-                    if (partnerData) {
-                    // if (!partnerData.permission || !partnerData.permission.applyBonus) {
-                    //     return Q.reject({
-                    //         status: constServerCode.PLAYER_NO_PERMISSION,
-                    //         name: "DataError",
-                    //         errorMessage: "Player does not have this permission"
-                    //     });
-                    // }
-                        partner = partnerData;
-                        if (partnerData.bankName == null || !partnerData.bankAccountName || !partnerData.bankAccountCity
-                            || !partnerData.bankAccount || !partnerData.bankAccountProvince || (partnerData.bankAccount && partnerData.bankAccount.indexOf("*") > -1)) {
+                    if (!partnerData) {
+                        return Promise.reject({name: "DataError", errorMessage: "Cannot find partner"});
+                    }
+
+                    partner = partnerData;
+
+                    let permissionProm = Promise.resolve(true);
+                    let disablePermissionProm = Promise.resolve(true);
+                    if (!partner.permission.applyBonus) {
+                        permissionProm = dbconfig.collection_partnerPermissionLog.find(
+                            {
+                                partner: partner._id,
+                                platform: platform._id,
+                                // "oldData.applyBonus": true,
+                                "newData.applyBonus": false,
+                            },
+                            {remark: 1}
+                        ).sort({createTime: -1}).limit(1).lean().then(
+                            log => {
+                                if (log && log.length > 0) {
+                                    lastBonusRemark = log[0].remark;
+                                }
+                            }
+                        );
+
+                        disablePermissionProm = dbconfig.collection_partnerPermissionLog.findOne({
+                            partner: partner._id,
+                            platform: platform._id,
+                            isSystem: false
+                        }).sort({createTime: -1}).lean().then(
+                            manualPermissionSetting => {
+
+                                if (manualPermissionSetting && manualPermissionSetting.newData && manualPermissionSetting.newData.hasOwnProperty('applyBonus')
+                                    && manualPermissionSetting.newData.applyBonus.toString() == 'false') {
+                                    return dbconfig.collection_proposal.find({
+                                        'data.platformId': platform._id,
+                                        'data.partnerObjId': partner._id,
+                                        mainType: constProposalType.PARTNER_BONUS,
+                                        status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                                        'data.remark': '禁用提款: '+ lastBonusRemark
+                                    }).sort({createTime: -1}).limit(1).then(proposalData => {
+                                        if (proposalData && proposalData.length > 0) {
+                                            lastBonusRemark = manualPermissionSetting.remark;
+                                        }
+                                    });
+                                }
+                            }
+                        )
+                    }
+                    return Promise.all([permissionProm, disablePermissionProm])
+                }
+            ).then(
+                res => {
+                    if (partner){
+
+                        // if (!partnerData.permission || !partnerData.permission.applyBonus) {
+                        //     return Q.reject({
+                        //         status: constServerCode.PLAYER_NO_PERMISSION,
+                        //         name: "DataError",
+                        //         errorMessage: "Player does not have this permission"
+                        //     });
+                        // }
+
+                        // partner = partnerData;
+
+                        if (partner.bankName == null || !partner.bankAccountName || !partner.bankAccountCity
+                            || !partner.bankAccount || !partner.bankAccountProvince || (partner.bankAccount && partner.bankAccount.indexOf("*") > -1)) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_INVALID_PAYMENT_INFO,
                                 name: "DataError",
                                 errorMessage: "Partner does not have valid payment information"
                             });
                         }
-
-                        if (partnerData.permission && !partnerData.permission.applyBonus) {
-                            return Q.reject({
-                                status: constServerCode.PARTNER_NO_PERMISSION,
-                                name: "DataError",
-                                errorMessage: "Partner is forbidden to apply bonus"
-                            });
-                        }
-
-                        if ((parseFloat(partnerData.credits).toFixed(2)) < parseFloat(amount)) {
+                    
+                        if ((parseFloat(partner.credits).toFixed(2)) < parseFloat(amount)) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                                 name: "DataError",
@@ -2587,7 +2636,6 @@ let dbPartner = {
                                             data: '(detected after withdrawl)'
                                         });
                                     }
-
 
                                     //check if player's credit is correct after update
                                     if (amountAfterUpdate != newPartnerData.credits) {
@@ -2639,7 +2687,7 @@ let dbPartner = {
                                     }
 
                                     if (!partner.permission.applyBonus && partner.platform.playerForbidApplyBonusNeedCsApproval) {
-                                        proposalData.remark = "禁用提款";
+                                        proposalData.remark = "禁用提款" + lastBonusRemark;
                                         proposalData.needCsApproved = true;
                                     }
                                     var newProposal = {
@@ -2660,9 +2708,7 @@ let dbPartner = {
                                 }
                             })
                     }
-                    else {
-                        return Promise.reject({name: "DataError", errorMessage: "Cannot find partner"});
-                    }
+
                 }
             ).then(
                 proposal => {
