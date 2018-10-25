@@ -51,11 +51,11 @@ div
         .label-value(ng-show='v.memo')
             label {{'remark' | translate}}&nbsp;:&nbsp;
             label {{v.memo}}
-    .titleBackground.margin-bottom-5.text-center(ng-if = "vm.selectedProposal.type && vm.selectedProposal.type.name === 'PlayerBonus'") {{'Financial History Process (PMS)' | translate}}
-    .label-value(ng-if = "vm.selectedProposal.type && vm.selectedProposal.type.name === 'PlayerBonus'")
+    .titleBackground.margin-bottom-5.text-center(ng-if = "vm.selectedProposal.type && (vm.selectedProposal.type.name === 'PlayerBonus' || vm.selectedProposal.type.name === 'PartnerBonus')") {{'Financial History Process (PMS)' | translate}}
+    .label-value(ng-if = "vm.selectedProposal.type && (vm.selectedProposal.type.name === 'PlayerBonus' || vm.selectedProposal.type.name === 'PartnerBonus')")
         label {{'OPERATOR_NAME' | translate}}&nbsp;:&nbsp;
         label {{vm.selectedProposalDetailForDisplay.pmsOperator || 'not locked' | translate}}
-    .label-value(ng-if = "vm.selectedProposal.type && vm.selectedProposal.type.name === 'PlayerBonus'")
+    .label-value(ng-if = "vm.selectedProposal.type && (vm.selectedProposal.type.name === 'PlayerBonus' || vm.selectedProposal.type.name === 'PartnerBonus')")
         label {{'remark' | translate}}&nbsp;:&nbsp;
         label {{vm.selectedProposalDetailForDisplay.pmsRemark || 'not locked' | translate}}
         hr
