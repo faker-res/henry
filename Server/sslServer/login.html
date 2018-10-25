@@ -31,9 +31,12 @@
             url: 'login.html',
             data: JSON.stringify(sendData),
             method: "POST",
-            success: (data) => {
-                console.log('Success');
-                window.location = data;
+            success: (data, status, xhr) => {
+                sessionStorage.setItem('tkn', xhr.getResponseHeader('x-token'));
+
+                if (xhr.getResponseHeader('location')) {
+                    window.location = xhr.getResponseHeader('location');
+                }
             }
         })
     }

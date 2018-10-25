@@ -5,6 +5,9 @@ const path = require('path');
 const env = require("./config/env").config();
 const webEnv = require('./config/webEnv');
 const port = env.redisPort || 1802;
+const jwt = require('jsonwebtoken');
+
+const constSystemParam = require('./../const/constSystemParam');
 
 const privateKeyPath = "./playerPhone.key.pem";
 const replacedPrivateKeyPath = "./playerPhone.key.pem.bak";
@@ -25,6 +28,7 @@ http.createServer(function (req, res) {
     res.setHeader('Access-Control-Request-Method', '*');
     res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET');
     res.setHeader('Access-Control-Allow-Headers', '*');
+    res.setHeader('Access-Control-Expose-Headers', 'Location');
 
     // parse URL
     const parsedUrl = url.parse(req.url);
@@ -79,7 +83,11 @@ http.createServer(function (req, res) {
                     let loginData = JSON.parse(buffer.toString());
 
                     if (loginData.username === username && loginData.password === password) {
-                        res.end('static.html');
+                        let token = jwt.sign(loginData, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+                        res.setHeader('X-Token', token);
+                        res.setHeader('Location', 'static.html');
+                        res.statusCode = 201;
+                        res.end();
                     } else {
                         res.end();
                     }
@@ -87,6 +95,9 @@ http.createServer(function (req, res) {
                 break;
         }
     } else {
+        // GET
+        console.log('path name', pathname);
+
         switch(pathname) {
             case privateKeyPath:
                 res.setHeader('Content-type', 'text/plain' );
@@ -105,7 +116,6 @@ http.createServer(function (req, res) {
                 res.end(replacedPublicKey);
                 break;
             default:
-                // based on the URL path, extract the file extention. e.g. .js, .doc, ...
                 const ext = path.parse(pathname).ext;
                 // maps file extention to MIME typere
                 const map = {
@@ -126,13 +136,11 @@ http.createServer(function (req, res) {
                 fs.exists(pathname, function (exist) {
                     if(!exist) {
                         // if the file is not found, return 404
-                        res.statusCode = 404;
-                        res.end(`File ${pathname} not found!`);
-                        return;
+                        pathname = './login.html';
                     }
 
                     // if is a directory search for index file matching the extention
-                    if (fs.statSync(pathname).isDirectory()) pathname += '/index' + ext;
+                    // if (fs.statSync(pathname).isDirectory()) pathname += '/index' + ext;
 
                     // read file from file system
                     fs.readFile(pathname, function(err, data){
