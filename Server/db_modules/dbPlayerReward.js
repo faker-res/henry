@@ -2310,6 +2310,10 @@ let dbPlayerReward = {
                 playerRecord => {
                     // get the  ExtraBonusInfor state of the player: enable or disable the msg showing
                     if (playerRecord && playerRecord._id) {
+                        if (playerRecord.permission && playerRecord.permission.banReward) {
+                            return Q.reject({name: "DataError", message: "Player does not have this permission"});
+                        }
+
                         let showInfoState;
                         let oneMonthAgoDate = moment(new Date()).subtract(1, 'months').toDate();
 
@@ -3168,6 +3172,10 @@ let dbPlayerReward = {
         return Promise.all(saveArr);
     },
 
+    updatePromoCodeGroupMainPermission: function (query, updateData) {
+        return dbConfig.collection_promoCodeUserGroup.findOneAndUpdate(query, updateData, {upsert: true}).lean();
+    },
+
     saveDelayDurationGroup: (platformObjId, data) => {
         let saveObj = {consumptionTimeConfig: data};
 
@@ -3179,7 +3187,7 @@ let dbPlayerReward = {
 
     },
 
-    getPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId, isBlockPromoCodeUser: {$ne: true}}).lean(),
+    getPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId, isBlockPromoCodeUser: {$ne: true}, isBlockByMainPermission: {$ne: true}}).lean(),
     getBlockPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId, isBlockPromoCodeUser: true}).lean(),
     getAllPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
     getDelayDurationGroup: (platformObjId, duration) => dbConfig.collection_platform.find({_id: platformObjId}).lean(),
