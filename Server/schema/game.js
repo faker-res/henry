@@ -11,7 +11,7 @@ var gameSchema = new Schema({
     //customized game name list by platform
     changedName: {type: JSON},
     //game title
-    title: {type: String},
+    title: {type: String, index: true},
     //code
     code: {type: String, required: true, index: true},
     //aliasCode ["g1","g2","g3"]
@@ -25,9 +25,9 @@ var gameSchema = new Schema({
     //if this game has trial account
     canTrial: {type: Boolean, default: false},
     //Game Type
-    type: {type: String, required: true},
+    type: {type: String, required: true, index: true},
     //game description
-    description: {type: String, default: null},
+    description: {type: String, default: null, index: true},
     //game provider
     provider: {type: Schema.ObjectId, ref: 'gameProvider', index: true},
     //status
