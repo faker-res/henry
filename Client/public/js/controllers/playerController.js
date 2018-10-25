@@ -10000,6 +10000,10 @@ define(['js/app'], function (myApp) {
                     referralName: vm.playerApplyRewardPara.referralName
                 }
             };
+
+            if (vm.appliedRewardList && vm.appliedRewardList.length){
+                sendQuery.data.appliedRewardList = vm.appliedRewardList;
+            }
             if (isForceApply) {
                 if (vm.playerApplyEventResult && vm.playerApplyEventResult.error && vm.playerApplyEventResult.error.status === 466) {
                     sendQuery.data.isClearConcurrent = isForceApply;
@@ -10262,6 +10266,201 @@ define(['js/app'], function (myApp) {
             });
         }
 
+        vm.prepareShowConsumptionSlipReward = function () {
+
+            vm.consumptionSlipReward = {totalCount: 0};
+            vm.consumptionSlipReward.index = 0;
+            vm.consumptionSlipReward.limit = vm.consumptionSlipReward && vm.consumptionSlipReward.limit ? vm.consumptionSlipReward.limit : 100;
+
+            utilService.actionAfterLoaded('#playerConsumptionSlipRewardTablePage', function () {
+                vm.consumptionSlipReward.pageObj = utilService.createPageForPagingTable("#playerConsumptionSlipRewardTablePage", {pageSize: 100}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "consumptionSlipReward", vm.getConsumptionSlipReward)
+                });
+                vm.getConsumptionSlipReward(true);
+            })
+        };
+
+        vm.getConsumptionSlipReward = function (newSearch) {
+
+            let searchQuery = {
+                code: vm.playerApplyRewardPara.code,
+                playerId: vm.isOneSelectedPlayer().playerId,
+            };
+
+            searchQuery.data = {};
+            searchQuery.data.index = newSearch ? 0 : (vm.consumptionSlipReward.index || 0),
+            searchQuery.data.limit = newSearch ? vm.consumptionSlipReward.limit : (vm.consumptionSlipReward.limit || 100),
+            searchQuery.data.sortCol = vm.consumptionSlipReward.sortCol || null;
+            searchQuery.data.isPreview = true;
+
+            vm.consumptionSlipReward.loading = true;
+            vm.showConsumptionSlipReward(searchQuery, newSearch);
+        }
+
+        vm.showConsumptionSlipReward = function (queryData, newSearch) {
+            vm.playerAllExpenseRecords = [];
+            socketService.$socket($scope.AppSocket, 'applyRewardEvent', queryData, function (data) {
+
+                let record = [];
+                $scope.$evalAsync( () => {
+                    if (data && data.data && data.data.list && data.data.list.length) {
+
+                        vm.consumptionSlipReward.loading = false;
+                        data.data.list.forEach(
+                            inData => {
+                                let detail = {};
+                                detail.betTime = inData.consumptionCreateTime ? utilService.$getTimeFromStdTimeFormat(inData.consumptionCreateTime) : null;
+                                detail.orderNo = inData.consumptionSlipNo || null;
+                                detail.endingDigit = inData.requiredOrderNoEndingDigit || null;
+                                detail.bonusAmount = inData.bonusAmount || null;
+                                detail.consumptionAmount = inData.consumptionAmount || null;
+                                detail.rewardAmount = inData.rewardAmount || null;
+                                detail.spendingAmount = inData.spendingAmount || null;
+                                detail.remark = inData.remark || null;
+                                detail.platformObjId = inData.platformObjId;
+                                detail.eventObjId = inData.eventObjId;
+                                detail._id = inData._id;
+                                record.push(detail);
+                            }
+                        )
+
+                    }
+                    else {
+                        vm.consumptionSlipReward.loading = false;
+                    }
+
+                    vm.playerApplyRewardShow.returnData.appliedTime = data.data.appliedCount || 0;
+                    vm.playerApplyRewardShow.returnData.quota = data.data.availableQuantity || 1;
+                    vm.playerApplyRewardShow.returnData.topUpAmountInterval = data.data.topUpAmountInterval || 0;
+                    vm.playerApplyRewardShow.returnData.list = record;
+                    vm.consumptionSlipReward.totalCount = data.data.size;
+
+                    console.log('vm.playerApplyRewardShow.returnData', vm.playerApplyRewardShow.returnData);
+
+                    var option = $.extend({}, vm.generalDataTableOptions, {
+                        data: vm.playerApplyRewardShow.returnData.list,
+                        // "aaSorting": vm.consumptionSlipReward.aaSorting || [[2, 'desc']],
+                        aoColumnDefs: [
+                            {'sortCol': 'orderNo', bSortable: false, 'aTargets': [1]},
+                            {'sortCol': 'consumptionCreateTime', bSortable: true, 'aTargets': [2]},
+                            {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [3]},
+                            {'sortCol': 'consumptionAmount', bSortable: true, 'aTargets': [4]},
+                            {'sortCol': 'rewardAmount', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'spendingTimes', bSortable: true, 'aTargets': [6]},
+                            {targets: '_all', defaultContent: ' ', bSortable: false}
+                        ],
+
+                        columns: [
+                            {
+                                "title": $translate('Tick'),
+                                bSortable: false,
+                                sClass: "rewardSelected",
+                                render: function (data, type, row) {
+
+                                    var link = $('<input>', {
+                                        type: 'checkbox',
+                                        "data-_id": row._id,
+                                        class: "transform150",
+                                    })
+                                    return link.prop('outerHTML');
+                                },
+                            },
+                            {
+                                title: $translate('orderNo'),
+                                data: "orderNo",
+                                render: function (data, type, row) {
+                                    let text = row.orderNo;
+
+                                    if (row.endingDigit && text.endsWith(row.endingDigit.toString())){
+                                        text = text.slice(0,text.length-row.endingDigit.length) + "<span style='color: red; font-weight: bold;'>" + row.endingDigit + "</span>";
+                                    }
+                    
+                                    let $link = $('<span>').html(text);
+                                    return $link.prop('outerHTML');
+                                },
+                            },
+                            {title: $translate('BET_TIME'), data: "betTime"},
+                            {title: $translate('RECEIVED_BONUS_AMOUNT'), data: "bonusAmount"},
+                            {title: $translate('CONSUMPTION_AMOUNT_ROUND'), data: "consumptionAmount"},
+                            {title: $translate('PROPOSAL_REWARD_AMOUNT'), data: "rewardAmount"},
+                            {title: $translate('SPENDING_AMOUNT (Reward Amount x Multiplier)'), data: "spendingAmount"},
+                            {title: $translate('REMARK'), data: "remark"},
+
+                        ],
+                        destroy: true,
+                        paging: false,
+                        autoWidth: true
+                    });
+
+                    var a = utilService.createDatatableWithFooter('#playerConsumptionSlipRewardTable', option, {});
+
+                    vm.consumptionSlipReward.pageObj.init({maxCount: vm.consumptionSlipReward.totalCount}, newSearch);
+
+                    function tableRowClicked(event) {
+                        console.log("event", event)
+                        if (event.target.tagName == "INPUT" && event.target.type == 'checkbox') {
+                            vm.updateMultiSelectRewardList(event.currentTarget);
+                        }
+
+                    }
+                    $('#playerConsumptionSlipRewardTable input[type=checkbox]').off('change');
+                    $('#playerConsumptionSlipRewardTable input[type=checkbox]').on('change', tableRowClicked);
+
+                    $("#playerConsumptionSlipRewardTable").off('order.dt');
+                    $("#playerConsumptionSlipRewardTable").on('order.dt', function (event, a, b) {
+                        vm.commonSortChangeHandler(a, 'consumptionSlipReward', vm.getConsumptionSlipReward);
+                    });
+                    $('#playerConsumptionSlipRewardTable').resize();
+
+                })
+            }, err => {
+                $scope.$evalAsync( () => {
+                    vm.consumptionSlipReward.loading = false;
+                })
+            });
+        };
+
+        vm.updateMultiSelectRewardList = function (elem) {
+
+            let allClicked = $("#playerConsumptionSlipRewardTable tr input:checked[type='checkbox']");
+
+                if (allClicked.length && allClicked.length > (vm.playerApplyRewardShow.returnData.quota - vm.playerApplyRewardShow.returnData.appliedTime)){
+                    $scope.$evalAsync( () => {
+                        elem.checked = false;
+
+                        let clicked = $("#playerConsumptionSlipRewardTable tr input:checked[type='checkbox']");
+
+                        if (clicked.length) {
+                            vm.appliedRewardList = [];
+                            clicked.each(function () {
+                                let consumptionSlipObjId = $(this)[0] && $(this)[0].dataset._id ? $(this)[0].dataset._id : null;
+
+                                if (consumptionSlipObjId) {
+                                    vm.appliedRewardList.push({_id: consumptionSlipObjId});
+                                }
+                            })
+                        }
+
+                        socketService.showErrorMessage($translate("The available application quantity is") + " " + (vm.playerApplyRewardShow.returnData.quota - vm.playerApplyRewardShow.returnData.appliedTime));
+                    })
+                }
+                else{
+                    if (allClicked.length){
+                        vm.appliedRewardList = [];
+                        allClicked.each(function () {
+                            let consumptionSlipObjId = $(this)[0] && $(this)[0].dataset._id ? $(this)[0].dataset._id : null;
+
+                            if (consumptionSlipObjId) {
+                                vm.appliedRewardList.push({_id: consumptionSlipObjId});
+                            }
+                        })
+                    }
+                }
+
+            console.log("vm.appliedRewardList", vm.appliedRewardList);
+
+        };
+
         vm.playerApplyRewardCodeChange = function (obj) {
             vm.playerApplyEventResult = null;
             if (!obj) return;
@@ -10271,6 +10470,13 @@ define(['js/app'], function (myApp) {
             vm.playerApplyRewardShow.TopupRecordSelect = false;
             let type = rewardObj.type ? rewardObj.type.name : null;
             vm.playerApplyRewardShow.returnData = {};
+    
+
+            if (type == 'PlayerConsumptionSlipRewardGroup' && rewardObj._id) {
+            
+                vm.playerApplyRewardShow.consumptionSlipReward = type;
+                vm.prepareShowConsumptionSlipReward();
+            }
 
             if (type == 'PlayerLoseReturnRewardGroup' && rewardObj.type && rewardObj.type._id){
                 vm.playerApplyRewardShow.showLoseReturn = type;
@@ -18767,6 +18973,8 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerBonus") {
+                    let pmsRemark = "";
+                    let indexOfDivider = -1;
                     let proposalDetail = {};
                     let bankNameWhenSubmit = "";
                     let bankNameWhenApprove = "";
@@ -18805,10 +19013,22 @@ define(['js/app'], function (myApp) {
                     proposalDetail["bankInfoWhenApprove"] = bankNameWhenApprove + $translate("bankcard no:") + vm.selectedProposal.data.bankAccountWhenApprove;
                     proposalDetail["playerCancelRemark"] = vm.selectedProposal.data.playerCancelRemark
 
+                    if(vm.selectedProposal.data.remarkPMS){
+                        pmsRemark = vm.selectedProposal.data.remarkPMS;
+                        indexOfDivider = pmsRemark.indexOf("#");
+
+                        if(indexOfDivider > -1){
+                            proposalDetail["pmsRemark"] = pmsRemark.substring(0, indexOfDivider);
+                            proposalDetail["pmsOperator"] = pmsRemark.substring(indexOfDivider + 1, pmsRemark.length);
+                        }
+                    }
+
                     vm.selectedProposal.data = proposalDetail;
                 }
 
                 if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PartnerBonus") {
+                    let pmsRemark = "";
+                    let indexOfDivider = -1;
                     let proposalDetail = {};
                     if (!vm.selectedProposal.data) {
                         vm.selectedProposal.data = {};
@@ -18824,6 +19044,16 @@ define(['js/app'], function (myApp) {
                     proposalDetail["autoAuditRemark"] = vm.selectedProposal.data.autoAuditRemarkChinese;
                     proposalDetail["autoAuditDetail"] = vm.selectedProposal.data.detailChinese;
                     proposalDetail["Total commission since the last withdrawal (include first level partner commission)"] = vm.selectedProposal.data.lastWithdrawalTotalCommission;
+
+                    if(vm.selectedProposal.data.remarkPMS){
+                        pmsRemark = vm.selectedProposal.data.remarkPMS;
+                        indexOfDivider = pmsRemark.indexOf("#");
+
+                        if(indexOfDivider > -1){
+                            proposalDetail["pmsRemark"] = pmsRemark.substring(0, indexOfDivider);
+                            proposalDetail["pmsOperator"] = pmsRemark.substring(indexOfDivider + 1, pmsRemark.length);
+                        }
+                    }
 
                     vm.selectedProposal.data = proposalDetail;
                 }

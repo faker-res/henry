@@ -1372,7 +1372,9 @@ function sendWelcomeMessage(dxMission, dxPhone, player) {
                     recipientType: 'player',
                     recipientId: player._id,
                     title: title,
-                    content: content
+                    content: content,
+                    senderType: 'System',
+                    senderName: 'System',
                 });
             }
         }
