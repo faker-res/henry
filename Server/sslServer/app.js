@@ -31,9 +31,10 @@ http.createServer(function (req, res) {
     res.setHeader('Access-Control-Expose-Headers', 'Location');
 
     // parse URL
-    const parsedUrl = url.parse(req.url);
+    const parsedUrl = url.parse(req.url, true);
     // extract URL path
     let pathname = `.${parsedUrl.pathname}`;
+    let query = parsedUrl.query;
 
     if (req.method === 'POST') {
         let inputData = [];
@@ -85,7 +86,7 @@ http.createServer(function (req, res) {
                     if (loginData.username === username && loginData.password === password) {
                         let token = jwt.sign(loginData, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
                         res.setHeader('X-Token', token);
-                        res.setHeader('Location', 'static.html');
+                        res.setHeader('Location', 'static.html?token=' + token);
                         res.statusCode = 201;
                         res.end();
                     } else {
@@ -114,6 +115,42 @@ http.createServer(function (req, res) {
             case replacedPublicKeyPath:
                 res.setHeader('Content-type', 'text/plain' );
                 res.end(replacedPublicKey);
+                break;
+            case './static.html':
+                if (query && query.token) {
+                    jwt.verify(query.token, constSystemParam.API_AUTH_SECRET_KEY, function (err, decoded) {
+                        if (err || !decoded) {
+                            // Jwt token error
+                            console.log("jwt verify error", err);
+                            redirectToLoginPage();
+                        } else {
+                            let renderPath = "./static.html";
+                            fs.exists(renderPath, function (exist) {
+                                if(!exist) {
+                                    // if the file is not found, return 404
+                                    renderPath = './login.html';
+                                }
+
+                                fs.readFile(renderPath, function(err, data){
+                                    if(err){
+                                        res.statusCode = 500;
+                                        res.end(`Error getting the file: ${err}.`);
+                                    } else {
+                                        // if the file is found, set Content-type and send data
+                                        res.setHeader('Content-type', 'text/html' );
+                                        res.end(data);
+                                    }
+                                });
+                            });
+                        }
+                    });
+                } else {
+                    redirectToLoginPage();
+                }
+                break;
+            case './static.htm': // to prevent people viewing source code
+            case './':
+                redirectToLoginPage();
                 break;
             default:
                 const ext = path.parse(pathname).ext;
@@ -155,6 +192,13 @@ http.createServer(function (req, res) {
                     });
                 });
         }
+    }
+
+    function redirectToLoginPage() {
+        res.writeHead(302, {
+            'location': '/login.html'
+        });
+        res.end();
     }
 
 }).listen(parseInt(port));
