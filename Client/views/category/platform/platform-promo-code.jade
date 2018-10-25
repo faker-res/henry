@@ -53,36 +53,36 @@
                                 td
                                     textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable1', $index)", ng-disabled="promoCode.code || promoCode.cancel")
                                 td
-                                    select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType1', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType1', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
-                                    input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
-                                    input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "true", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "true", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'Yes' | translate}}
                                     br
-                                    input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "false", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'No' | translate}}
                                 td
                                     div(id="expDate1-{{$index}}", ng-disabled="!promoCode.code")
                                 td
-                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "true", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "true", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'Yes' | translate}}
                                     br
-                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'No' | translate}}
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}', ng-init="$last") {{prov.name}}
-                                    select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission')
+                                    select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='vm.checkPromoCodeDisabled(promoCode)')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                                 td
-                                    input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
                                     text(ng-if="promoCode.code") {{promoCode.code}}
                                     text(ng-if="promoCode.cancel") {{ 'CANCEL' | translate}}
@@ -101,13 +101,13 @@
                                 td
                                     div(style="display:block;min-width:90px;max-height:70px;overflow:auto;") {{promoCode.promoCodeType.smsContent}}
                                 td
-                                    input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "true", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "true", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'Yes' | translate}}
                                     br
-                                    input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "false", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'No' | translate}}
                                 td
-                                    input.form-control(style="display:block;overflow:auto;" type='string', ng-model='promoCode.remark', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input.form-control(style="display:block;overflow:auto;" type='string', ng-model='promoCode.remark', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
                                     i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode1, 1)')
 
@@ -144,34 +144,34 @@
                                 td
                                     textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable2', $index)", ng-disabled="promoCode.code || promoCode.cancel")
                                 td
-                                    select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType2', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType2', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
-                                    input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "true", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "true", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'Yes' | translate}}
                                     br
-                                    input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "false", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'No' | translate}}
                                 td
-                                    div(id="expDate2-{{$index}}", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    div(id="expDate2-{{$index}}", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
-                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "true", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "true", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'Yes' | translate}}
                                     br
-                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'No' | translate}}
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last") {{prov.name}}
-                                    select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission')
+                                    select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='vm.checkPromoCodeDisabled(promoCode)')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                                 td
-                                    input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
                                     text(ng-if="promoCode.code") {{promoCode.code}}
                                     text(ng-if="promoCode.cancel") {{ 'CANCEL' | translate}}
@@ -190,13 +190,13 @@
                                 td
                                     div(style="display:block;min-width:90px;max-height:70px;overflow:auto;") {{promoCode.promoCodeType.smsContent}}
                                 td
-                                    input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "true", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "true", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'Yes' | translate}}
                                     br
-                                    input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "false", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'No' | translate}}
                                 td
-                                    input.form-control(type='string', ng-model='promoCode.remark', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input.form-control(type='string', ng-model='promoCode.remark', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
                                     i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode2, 2)')
                     br
@@ -234,15 +234,15 @@
                                 td
                                     textarea.form-control(ng-model='promoCode.playerName', ng-change="vm.checkPlayerName(promoCode, '#createPromoCodeTable3', $index)", ng-disabled="promoCode.code || promoCode.cancel")
                                 td
-                                    select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType3', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    select.form-control(ng-model='promoCode.promoCodeType', ng-options='type.name for type in vm.promoCodeType3', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input.form-control(type='number', ng-model='promoCode.amount', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
-                                    input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input.form-control(type='number', ng-model="promoCode.minTopUpAmount", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
-                                    input.form-control(type='number', ng-model="promoCode.maxRewardAmount", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input.form-control(type='number', ng-model="promoCode.maxRewardAmount", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
-                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
                                     input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "true", ng-disabled="promoCode.code || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
                                     text {{'Yes' | translate}}
@@ -250,22 +250,22 @@
                                     input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "false", ng-disabled="promoCode.code || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
                                     text {{'No' | translate}}
                                 td
-                                    div(id="expDate3-{{$index}}", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    div(id="expDate3-{{$index}}", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
-                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "true", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "true", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'Yes' | translate}}
                                     br
-                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'No' | translate}}
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='true')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last") {{prov.name}}
-                                    select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission')
+                                    select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='vm.checkPromoCodeDisabled(promoCode)')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(style="display: inline-block" ng-repeat='v in vm.gameProviderGroup', value='{{v._id}}' ng-init='$last && vm.endLoadWeekDay()') {{v.name}}
                                 td
-                                    input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input.form-control(type='string', ng-model='promoCode.bannerText', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
                                     text(ng-if="promoCode.code") {{promoCode.code}}
                                     text(ng-if="promoCode.cancel") {{ 'CANCEL' | translate}}
@@ -284,13 +284,13 @@
                                 td
                                     div(style="display:block;min-width:90px;max-height:70px;overflow:auto;") {{promoCode.promoCodeType.smsContent}}
                                 td
-                                    input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "true", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "true", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'Yes' | translate}}
                                     br
-                                    input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "false", ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'No' | translate}}
                                 td
-                                    input.form-control(type='string', ng-model='promoCode.remark', ng-disabled="promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
+                                    input.form-control(type='string', ng-model='promoCode.remark', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
                                     i.fa.fa-plus(ng-click='vm.promoCodeNewRow(vm.newPromoCode3, 3)')
                     br
