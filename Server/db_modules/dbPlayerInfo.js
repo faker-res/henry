@@ -5716,18 +5716,61 @@ let dbPlayerInfo = {
                             data => {
                                 dbLogger.logUsedVerificationSMS(verificationSMS.tel, verificationSMS.code);
                                 isSMSVerified = true;
-                                let plyProm = dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified);
 
-                                return Promise.all([plyProm])
-                                    .catch(
-                                        error => {
-                                            return Q.reject({
-                                                status: constServerCode.DB_ERROR,
-                                                name: "DBError",
-                                                message: error.message
+                                let platformId, platformPrefix;
+                                return dbconfig.collection_platform.findOne({platformId: loginData.platformId}).then(
+                                    platformData => {
+                                        if (platformData) {
+                                            platformId = platformData.platformId;
+                                            platformPrefix = platformData.prefix;
+                                            let encryptedPhoneNumber = rsaCrypto.encrypt(loginData.phoneNumber);
+                                            let enOldPhoneNumber = rsaCrypto.oldEncrypt(loginData.phoneNumber);
+
+                                            return dbconfig.collection_players.findOne(
+                                                {
+                                                    $or: [
+                                                        {phoneNumber: encryptedPhoneNumber},
+                                                        {phoneNumber: loginData.phoneNumber},
+                                                        {phoneNumber: enOldPhoneNumber}
+                                                    ],
+                                                    platform: platformData._id
+                                                }
+                                            ).lean();
+                                        }
+                                    }
+                                ).then(
+                                    player => {
+                                        if (player) {
+                                            return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified).catch(
+                                                error => {
+                                                    return Q.reject({
+                                                        status: constServerCode.DB_ERROR,
+                                                        name: "DBError",
+                                                        message: error.message
+                                                    });
+                                                }
+                                            )
+                                        } else {
+                                            let newPlayerData = {
+                                                platformId: loginData.platformId,
+                                                name: platformPrefix+(chance.name().replace(/\s+/g, '').toLowerCase()),
+                                                password: chance.hash({length: constSystemParam.PASSWORD_LENGTH}),
+                                                phoneNumber: loginData.phoneNumber,
+                                            };
+                                            return dbPlayerInfo.createPlayerInfoAPI(newPlayerData, true, null, null, true).then(registerData => {
+                                                return dbPlayerInfo.playerLoginWithSMS(loginData, ua, isSMSVerified).catch(
+                                                    error => {
+                                                        return Q.reject({
+                                                            status: constServerCode.DB_ERROR,
+                                                            name: "DBError",
+                                                            message: error.message
+                                                        });
+                                                    }
+                                                )
                                             });
                                         }
-                                    )
+                                    }
+                                );
                             }
                         )
                     } else {
