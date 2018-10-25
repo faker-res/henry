@@ -458,6 +458,8 @@ const dbPlayerMail = {
                         }
                         if (purpose && purpose === constSMSPurpose.RESET_PASSWORD && inputData.name) {
                             playerQuery.name = inputData.name;
+                        }else if(purpose && purpose === constSMSPurpose.INQUIRE_ACCOUNT && inputData.phoneNumber){
+                            playerQuery.phoneNumber = rsaCrypto.encrypt(inputData.phoneNumber);
                         } else {
                             playerQuery.playerId = inputData.playerId;
                         }
@@ -478,6 +480,16 @@ const dbPlayerMail = {
                                             message: "Phone number does not match"
                                         });
                                     }
+
+                                    if (purpose && (purpose === constSMSPurpose.RESET_PASSWORD || purpose === constSMSPurpose.INQUIRE_ACCOUNT)) {
+                                        if(playerData && playerData.permission && playerData.permission.forbidPlayerFromLogin){
+                                            return Promise.reject({
+                                                name: "DataError",
+                                                message: "Attention! This player has been forbidden to login"
+                                            });
+                                        }
+                                    }
+
                                 }
                             }
                         )
