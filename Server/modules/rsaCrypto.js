@@ -18,10 +18,6 @@ var fs = require('fs')
 key = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
 crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
 
-// TESTING
-// env.redisUrl = "testkey.fpms8.me";
-// env.redisPort = "";
-//
 let oldKey, oldCert;
 
 // // Legacy key and cert - fallback plan
@@ -92,7 +88,6 @@ if (!replKey) {
             if (data) {
                 replKey = ursa.createPrivateKey(data);
             } else {
-                console.log('getPrivateReplKey no data', host);
                 replKey = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
             }
         }
