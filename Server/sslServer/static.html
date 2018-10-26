@@ -84,9 +84,6 @@
                     url: ajaxUrl,
                     data: saveData,
                     method: "POST",
-                    beforeSend: (xhr) => {
-                        xhr.setRequestHeader('Access-Control-Allow-Origin', '*');
-                    },
                     success: (data) => {
                         console.log(env.nodeUrl, env.nodePort, data);
                         $(statusId).removeClass('hide');
