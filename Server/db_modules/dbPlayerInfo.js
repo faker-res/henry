@@ -5657,7 +5657,7 @@ let dbPlayerInfo = {
                                             var b = retObj.bankAccountCity ? pmsAPI.foundation_getCity({cityId: retObj.bankAccountCity}) : true;
                                             var c = retObj.bankAccountDistrict ? pmsAPI.foundation_getDistrict({districtId: retObj.bankAccountDistrict}) : true;
                                             // var creditProm = dbPlayerInfo.getPlayerCredit(retObj.playerId);
-                                            return Q.all([a, b, c, creditProm]);
+                                            return Q.all([a, b, c]);
                                         }
                                     ).then(
                                         zoneData => {
