@@ -9,7 +9,7 @@ define(['js/app'], function (myApp) {
             var vm = this;
 
             // This next line should be commented.  Uncomment temporarily for debugging only.
-            // window.vm = vm;
+            window.vm = vm;
 
             vm.userTableRowSelected = {};
             vm.selectedUsers = {};
@@ -955,6 +955,9 @@ define(['js/app'], function (myApp) {
             vm.getAllChildrenDepartmentIds = function (departmentNode, count) {
                 count = count || 0;
                 var userIds = [];
+                if (!departmentNode) {
+                    return userIds;
+                }
                 //console.log(departmentNode.text, vm.departmentNodes[departmentNode.id].departData.users);
                 userIds = userIds.concat(vm.departmentNodes[departmentNode.id].departData.users);
                 if (departmentNode.children && count <= 10) {

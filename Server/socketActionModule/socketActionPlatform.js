@@ -806,7 +806,8 @@ function socketActionPlatform(socketIO, socket) {
         getAllAutoFeedback: function getAllAutoFeedback(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
-            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data], actionName, isValidData);
+            let ignoreLimit = true;
+            socketUtil.emitter(self.socket, dbPlatformAutoFeedback.getAutoFeedback, [data, null, null, ignoreLimit], actionName, isValidData);
         },
         removeAutoFeedbackByObjId: function removeAutoFeedbackByObjId(data) {
             let actionName = arguments.callee.name;

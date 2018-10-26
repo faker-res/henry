@@ -101,7 +101,9 @@ let dbPlatformAutoFeedback = {
         }
         console.log(query);
         if(ignoreLimit) {
-            return dbconfig.collection_autoFeedback.find(query).sort({createTime:-1}).lean();
+            return dbconfig.collection_autoFeedback.find(query).sort({createTime:-1}).lean().then(autoFeedbacks => {
+                return {data: autoFeedbacks};
+            });
         } else {
             return dbconfig.collection_autoFeedback.find(query).sort({createTime: -1}).skip(index).limit(limit).lean().then(autoFeedbacks => {
                 console.log(autoFeedbacks);

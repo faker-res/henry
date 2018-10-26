@@ -385,11 +385,15 @@ var dbRewardEvent = {
                                 let promArr = [];
                                 if (topUpData && topUpData.length) {
                                     if (!rewardEvent.condition.allowConsumptionAfterTopUp) {
-                                        if (topUpAfterConsumption && topUpAfterConsumption.length > 0) {
+                                        if (consumptionData && consumptionData.length === 0) { // if no consumption, use all valid top up
+                                            for (let i = 0; i < topUpData.length; i++) {
+                                                promArr.push(checkRewardEventWithTopUp(topUpData[i]));
+                                            }
+                                        } else if (topUpAfterConsumption && topUpAfterConsumption.length > 0) { // if got top up after consumption
                                             for (let i = 0; i < topUpAfterConsumption.length; i++) {
                                                 promArr.push(checkRewardEventWithTopUp(topUpAfterConsumption[i]));
                                             }
-                                        } else {
+                                        } else { // if no top up after consumption
                                             promArr.push(checkRewardEventWithTopUp(null));
                                         }
                                     } else {

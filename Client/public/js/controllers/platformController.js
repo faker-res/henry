@@ -23539,6 +23539,10 @@ console.log('typeof ',typeof gameProviders);
                 vm.getDelayDurationGroup();
             }
 
+            vm.checkPromoCodeDisabled = function (promoCode) {
+                return promoCode.code || promoCode.cancel || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission;
+            }
+
             vm.checkPlayerName = function (el, id, index) {
                 let bgColor;
                 let blockedGroupName;
@@ -23546,12 +23550,17 @@ console.log('typeof ',typeof gameProviders);
                 let rowNumber = index + 1;
                 let playerNameList = el.playerName ? el.playerName.split("\n") : el.playerName;
                 let isBlockPlayer;
+                let isBlockPermission;
 
                 if (playerNameList && playerNameList.length > 0 && el.playerName.indexOf("\n") < 0) {
                     vm.userGroupAllConfig.map(e => {
                         playerNameList.map(playerName => {
                             if (e.playerNames.indexOf(playerName.trim()) > -1) {
                                 bgColor = e.color;
+                            }
+
+                            if (e.playerNames.indexOf(playerName.trim()) > -1 && e.isBlockByMainPermission) {
+                                isBlockPermission = true
                             }
 
                             if (e.playerNames.indexOf(playerName.trim()) > -1 && e.isBlockPromoCodeUser) {
@@ -23565,6 +23574,11 @@ console.log('typeof ',typeof gameProviders);
                         cssPointer = id + " > tbody > tr:nth-child(" + rowNumber + ")";
                     }
 
+                    if (isBlockPermission) {
+                        el.isBlockByMainPermission = true;
+                    } else {
+                        el.isBlockByMainPermission = false;
+                    }
                     if (isBlockPlayer) {
                         el.isBlockPromoCodeUser = isBlockPlayer;
                         el.blockedGroupName = blockedGroupName;
@@ -23602,8 +23616,9 @@ console.log('typeof ',typeof gameProviders);
                 }, 10);
             };
             vm.cancelPromoCode = function (col, index) {
+              $scope.$evalAsync(()=>{
                 col[index].cancel = true;
-                $scope.safeApply();
+              })
             };
 
             vm.deletePromoCode = function (col, index) {
@@ -23611,9 +23626,16 @@ console.log('typeof ',typeof gameProviders);
                     col.splice(index, 1);
                 }
             };
-
+            vm.generatePromoCodeAsync= function(obj, index, data, type){
+                let prom = new Promise((resolve, reject)=>{
+                    let result = vm.generatePromoCode(obj, index, data, type);
+                    resolve(result);
+                });
+                prom.then(()=>{
+                    $scope.$evalAsync();
+                })
+            }
             vm.generatePromoCode = function (col, index, data, type) {
-
                 if (data && data.playerName) {
                     let sendData = Object.assign({}, data);
                     col[index].error = false;
@@ -23636,7 +23658,6 @@ console.log('typeof ',typeof gameProviders);
                             });
 
                         });
-
 
                         return p.then(vm.endLoadWeekDay);
                     } else {
@@ -23672,10 +23693,10 @@ console.log('typeof ',typeof gameProviders);
                             }
                             else {
                                 return $scope.$socketPromise('checkPlayerHasPromoCode', searchQ).then(ret => {
+
                                     if (ret && ret.data && ret.data.length > 0) {
                                         if (!data.skipCheck) {
                                             data.hasMoreThanOne = true;
-                                            $scope.safeApply();
                                         }
                                     }
 
@@ -23696,7 +23717,6 @@ console.log('typeof ',typeof gameProviders);
                                         }
 
                                         delete sendData.isBlockPromoCodeUser;
-
                                         console.log('sendData', sendData);
                                         return $scope.$socketPromise('generatePromoCode', {
                                             platformObjId: vm.selectedPlatform.id,
@@ -23704,15 +23724,13 @@ console.log('typeof ',typeof gameProviders);
                                             adminName: authService.adminName,
                                             adminId: authService.adminId
                                         }).then(ret => {
-                                            col[index].code = ret.data;
-                                            $scope.safeApply();
+                                              col[index].code = ret.data;
                                         }).catch(err=>{
-                                            $scope.$evalAsync(()=>{
-                                                col[index].error = true;
-                                            })
+                                              col[index].error = true;
                                         });
                                     }
                                 });
+
                             }
                         }
                     }
@@ -23734,26 +23752,28 @@ console.log('typeof ',typeof gameProviders);
                 });
 
                 return p.then(() => {
-                    if (col && col.length > 0) {
-                        if (col.filter(promoCodeData => promoCodeData.hasMoreThanOne && !promoCodeData.code && !promoCodeData.cancel).length > 0) {
-                            if (type) {
-                                if (type == 1) {
-                                    vm.promoCode1HasMoreThanOne = true;
-                                }
-                                if (type == 2) {
-                                    vm.promoCode2HasMoreThanOne = true;
-                                }
-                                if (type == 3) {
-                                    vm.promoCode3HasMoreThanOne = true;
-                                }
-                            }
-                        } else {
-                            vm.promoCode1HasMoreThanOne = false;
-                            vm.promoCode2HasMoreThanOne = false;
-                            vm.promoCode3HasMoreThanOne = false;
-                        }
-                    }
-                });
+                    $scope.$evalAsync(()=>{
+                      if (col && col.length > 0) {
+                          if (col.filter(promoCodeData => promoCodeData.hasMoreThanOne && !promoCodeData.code && !promoCodeData.cancel).length > 0) {
+                              if (type) {
+                                  if (type == 1) {
+                                      vm.promoCode1HasMoreThanOne = true;
+                                  }
+                                  if (type == 2) {
+                                      vm.promoCode2HasMoreThanOne = true;
+                                  }
+                                  if (type == 3) {
+                                      vm.promoCode3HasMoreThanOne = true;
+                                  }
+                              }
+                          } else {
+                              vm.promoCode1HasMoreThanOne = false;
+                              vm.promoCode2HasMoreThanOne = false;
+                              vm.promoCode3HasMoreThanOne = false;
+                          }
+                      }
+                  });
+              });
 
             };
 
@@ -26653,8 +26673,14 @@ console.log('typeof ',typeof gameProviders);
                 }
 
             };
-            vm.commissionSettingDeleteRow = (idx, valueCollection) => {
+
+            vm.updateCommissionChangeGroup = (groupName) => {
                 vm.updateCommissionRateRequirement = true;
+                vm.updatedCommissionGameGroup.add(groupName);
+            }
+
+            vm.commissionSettingDeleteRow = (idx, valueCollection, groupName) => {
+                vm.updateCommissionChangeGroup(groupName);
                 valueCollection.splice(idx, 1);
 
                 if (valueCollection.length == 0) {
@@ -26753,6 +26779,7 @@ console.log('typeof ',typeof gameProviders);
 
             vm.isSetAllDisablePartnerConfigSetting = function (showSetting, isEditing, isProviderGroupIncluded, srcSetting) {
                 vm.updateCommissionRateRequirement = false;
+                vm.updatedCommissionGameGroup = new Set();
 
                 if (isProviderGroupIncluded) {
                     for (var i in showSetting) {
@@ -26830,9 +26857,14 @@ console.log('typeof ',typeof gameProviders);
             };
             vm.submitPartnerCommissionConfigWithGameProviderGroup = function (isConfirm) {
                 if (!isConfirm && vm.updateCommissionRateRequirement) {
+                    let updatedGroup = [...vm.updatedCommissionGameGroup];
                     vm.modalYesNo = {};
                     vm.modalYesNo.modalTitle = $translate("Commission Customization Revert");
                     vm.modalYesNo.modalText = $translate("Update requirement will revert partner's commission customization. Are you sure?");
+                    vm.modalYesNo.modalText += ` ${$translate('Relevant provider group:')}`;
+                    updatedGroup.map(groupName => {
+                        vm.modalYesNo.modalText += " " + groupName;
+                    });
                     vm.modalYesNo.actionYes = () => vm.submitPartnerCommissionConfigWithGameProviderGroup(true);
                     $('#modalYesNo').modal();
                     return;
@@ -26845,13 +26877,14 @@ console.log('typeof ',typeof gameProviders);
                         if (gameProviderGroup && gameProviderGroup.showConfig && gameProviderGroup.showConfig.commissionSetting.length > 0) {
                             if (JSON.stringify(gameProviderGroup.showConfig) != JSON.stringify(gameProviderGroup.srcConfig)) {
                                 let tempShowConfig = gameProviderGroup.showConfig;
+                                let clearCustomize = vm.updatedCommissionGameGroup.has(gameProviderGroup.name);
 
                                 // Convert back commissionRate to percentage
                                 tempShowConfig.commissionSetting.forEach(e => {
                                     e.commissionRate = parseFloat((e.commissionRate / 100).toFixed(4));
                                 });
 
-                                if(tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
+                                if (tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
                                     for (let i = 0; i < tempShowConfig.commissionSetting.length; i++) {
                                         if ((tempShowConfig.commissionSetting[i].playerConsumptionAmountFrom == '' || tempShowConfig.commissionSetting[i].playerConsumptionAmountFrom == null) &&
                                             (tempShowConfig.commissionSetting[i].activePlayerValueFrom == '' || tempShowConfig.commissionSetting[i].activePlayerValueFrom == null) &&
@@ -26862,7 +26895,7 @@ console.log('typeof ',typeof gameProviders);
                                     }
                                 }
 
-                                if(tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
+                                if (tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
                                     gameProviderGroup.showConfig.provider = gameProviderGroup._id;
 
                                     var sendData = {
@@ -26871,7 +26904,7 @@ console.log('typeof ',typeof gameProviders);
                                             _id: tempShowConfig._id
                                         },
                                         updateData: tempShowConfig,
-                                        clearCustomize: vm.updateCommissionRateRequirement
+                                        clearCustomize: clearCustomize
                                     }
 
                                     p = p.then(function () {
@@ -26887,6 +26920,7 @@ console.log('typeof ',typeof gameProviders);
                     return p.then(()=> {
                         $scope.$evalAsync(vm.getPartnerCommissionConfigWithGameProviderConfig);
                         vm.updateCommissionRateRequirement = false;
+                        vm.updatedCommissionGameGroup = new Set();
                     });
                 }
             }
@@ -26906,6 +26940,7 @@ console.log('typeof ',typeof gameProviders);
                     $scope.safeApply();
                 });
                 vm.updateCommissionRateRequirement = false;
+                vm.updatedCommissionGameGroup = new Set();
             };
             vm.addCommissionLevel = function (key) {
                 vm.partnerCommission.showConfig[key] = vm.partnerCommission.showConfig[key] || [];

@@ -3228,6 +3228,8 @@ define(['js/app'], function (myApp) {
                         "sClass": "sumFloat"
                     }
                 ],
+                "sScrollY": "80vh",
+                "bScrollCollapse": true,
                 "paging": false,
                 "language": {
                     "info": "Total _MAX_ records",
@@ -3842,6 +3844,8 @@ define(['js/app'], function (myApp) {
                         }, sClass: 'sumFloat alignRight'
                     }
                 ],
+                "sScrollY": "80vh",
+                "bScrollCollapse": true,
                 "paging": false,
                 // "dom": '<"top">rt<"bottom"il><"clear">',
                 "language": {
@@ -4716,6 +4720,8 @@ define(['js/app'], function (myApp) {
                         "sClass": "sumFloat"
                     }
                 ],
+                "sScrollY": "80vh",
+                "bScrollCollapse": true,
                 "paging": false,
                 // "dom": '<"top">rt<"bottom"il><"clear">',
                 "language": {
