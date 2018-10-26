@@ -612,14 +612,14 @@
                                     td(ng-if="$even")
                                         input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="vm.selectedPromoCodeUserGroup.playerNames[$index]")
                                     td(ng-if="$odd" style="background-color:#ddd")
-                                        button.btn.btn-success.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=false; vm.savePromoCodeUserGroup();")
+                                        button.btn.btn-success.common-button(ng-click="vm.checkUserBlockGroupBeforeAndSave(vm.selectedPromoCodeUserGroup);")
                                             i.fa.fa-floppy-o
                                             text {{'SAVE' | translate}}
                                         button.btn.btn-danger.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=false")
                                             i.fa.fa-times
                                             text {{'CANCEL' | translate}}
                                     td(ng-if="$even")
-                                        button.btn.btn-success.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=false; vm.savePromoCodeUserGroup();")
+                                        button.btn.btn-success.common-button(ng-click="vm.checkUserBlockGroupBeforeAndSave(vm.selectedPromoCodeUserGroup);")
                                             i.fa.fa-floppy-o
                                             text {{'SAVE' | translate}}
                                         button.btn.btn-danger.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=false")
@@ -662,7 +662,7 @@
                                     td(style="background-color:{{blockConfig.color}}", ng-click="vm.selectedBlockPromoCodeUserGroup=blockConfig;") {{blockConfig.name}}
                                     td(style="background-color:{{blockConfig.color}}") {{blockConfig.color}}
                                     td(style="background-color:{{blockConfig.color}}")
-                                        button.btn.btn-primary.common-button(ng-click="vm.blockPromoCodeUserGroupEdit=true" ng-disabled='blockConfig.isDefaultGroup')
+                                        button.btn.btn-primary.common-button(ng-click="vm.blockPromoCodeUserGroupEdit=true")
                                             i.fa.fa-pencil-square-o
                                             text {{'EDIT' | translate}}
                                         button.btn.btn-danger.common-button(ng-disabled='blockConfig.isDefaultGroup' data-toggle="modal", data-target='#modalDeleteBlockPromoCodeUserGroup' ng-click="vm.userGroupBlockConfigDeleteIndex = $index")
@@ -672,7 +672,7 @@
                                 tr(ng-repeat='blockConfig in vm.userGroupBlockConfig', ng-if='vm.blockPromoCodeUserGroupEdit')
                                     td {{ $index + 1 }}
                                     td(style="background-color:{{blockConfig.color}}", ng-click="vm.selectedBlockPromoCodeUserGroup=blockConfig;")
-                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="blockConfig.name")
+                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="blockConfig.name" ng-disabled='blockConfig.isDefaultGroup')
                                     td(style="background-color:{{blockConfig.color}}")
                                         input.form-control(style="text-align:center;width:90%;margin: 0 auto;", colorpicker="rgb", type="text", ng-model="blockConfig.color")
                                     td(style="background-color:{{blockConfig.color}}")
@@ -743,14 +743,14 @@
                                     td(ng-if="$even")
                                         input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="vm.selectedBlockPromoCodeUserGroup.playerNames[$index]")
                                     td(ng-if="$odd" style="background-color:#ddd")
-                                        button.btn.btn-success.common-button(ng-click="vm.blockPromoCodeUserGroupPlayerEdit=false; vm.saveBlockPromoCodeUserGroup();")
+                                        button.btn.btn-success.common-button(ng-click="vm.checkUserBlockGroupBeforeAndSave(vm.selectedBlockPromoCodeUserGroup, true);")
                                             i.fa.fa-floppy-o
                                             text {{'SAVE' | translate}}
                                         button.btn.btn-danger.common-button(ng-click="vm.blockPromoCodeUserGroupPlayerEdit=false")
                                             i.fa.fa-times
                                             text {{'CANCEL' | translate}}
                                     td(ng-if="$even")
-                                        button.btn.btn-success.common-button(ng-click="vm.blockPromoCodeUserGroupPlayerEdit=false; vm.saveBlockPromoCodeUserGroup();")
+                                        button.btn.btn-success.common-button(ng-click="vm.checkUserBlockGroupBeforeAndSave(vm.selectedBlockPromoCodeUserGroup,true);")
                                             i.fa.fa-floppy-o
                                             text {{'SAVE' | translate}}
                                         button.btn.btn-danger.common-button(ng-click="vm.blockPromoCodeUserGroupPlayerEdit=false")

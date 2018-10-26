@@ -25636,6 +25636,74 @@ console.log('typeof ',typeof gameProviders);
                 }
             };
 
+            vm.checkUserBlockGroupBeforeAndSave = function (ObjData, isBlockGroup) {
+                if (ObjData && ObjData.playerNames && ObjData.playerNames.length
+                    && vm.userGroupAllConfig && vm.userGroupAllConfig.length) {
+                    let duplicateName = [];
+                    let duplicateGroup = [];
+                    vm.userGroupAllConfig.forEach(
+                        (group, index) => {
+                            ObjData.playerNames.forEach(
+                                (playerName, pIndex) => {
+                                    if (ObjData._id && group._id && String(group._id) != String(ObjData._id) && group.playerNames
+                                        && group.playerNames.length && group.playerNames.indexOf(playerName) > -1) {
+                                        duplicateName.push(playerName);
+                                        duplicateGroup.indexOf(group.name) == -1? duplicateGroup.push(group.name): "";
+                                    }
+                                }
+                            )
+                        }
+                    )
+                    let playerNameFiltered = [...new Set(ObjData.playerNames)];
+                    ObjData.playerNames = playerNameFiltered;
+                    if (duplicateName.length && duplicateGroup.length) {
+                        let message = [
+                            duplicateName.join(", "), $translate("already exist in group"), duplicateGroup.join(", "),
+                            $translate(", Are you sure you want to move player to group"), ObjData.name, "?"];
+                        vm.modalYesNo.modalTitle = $translate("MOVE_PLAYER");
+                        vm.modalYesNo.modalText = message.join(" ");
+                        vm.modalYesNo.actionYes = () => {
+                            vm.userGroupBlockConfig.forEach(group => {
+                                if (group.name && duplicateGroup.indexOf(group.name) > -1) {
+                                    duplicateName.forEach(name => {
+                                        let index = group.playerNames.splice(group.playerNames.indexOf(name))
+                                        if (index > -1) {
+                                            group.playerNames.splice(index,1);
+                                        }
+                                    })
+                                }
+                            })
+                            vm.userGroupConfig.forEach(group => {
+                                if (group.name && duplicateGroup.indexOf(group.name) > -1) {
+                                    duplicateName.forEach(name => {
+                                        let index = group.playerNames.splice(group.playerNames.indexOf(name))
+                                        if (index > -1) {
+                                            group.playerNames.splice(index,1);
+                                        }
+                                    })
+                                }
+                            })
+                            if (isBlockGroup) {
+                                vm.blockPromoCodeUserGroupPlayerEdit=false;
+                                vm.saveBlockPromoCodeUserGroup();
+                            } else {
+                                vm.promoCodeUserGroupPlayerEdit=false;
+                                vm.savePromoCodeUserGroup();
+                            }
+                        };
+                        $('#modalYesNo').modal();
+                    } else {
+                        if (isBlockGroup) {
+                            vm.blockPromoCodeUserGroupPlayerEdit=false;
+                            vm.saveBlockPromoCodeUserGroup();
+                        } else {
+                            vm.promoCodeUserGroupPlayerEdit=false;
+                            vm.savePromoCodeUserGroup();
+                        }
+                    }
+                }
+            }
+
             vm.addUserToBlockPromoCodeGroup = function (data, isSkipCheck) {
                 vm.isMoveUserFromGroupToGroup = false;
                 if (vm.searchBlockPromoCodeUserGroup(data, true) && !isSkipCheck) {
@@ -25765,7 +25833,7 @@ console.log('typeof ',typeof gameProviders);
                 socketService.$socket($scope.AppSocket, 'getBlockPromoCodeUserGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('getBlockPromoCodeUserGroup', data);
-
+                        vm.userGroupBlockConfigCopy = JSON.parse(JSON.stringify(data.data)); // use to check if duplicate name in group (will not affect by input)
                         vm.userGroupBlockConfig = data.data;
                     });
                 });

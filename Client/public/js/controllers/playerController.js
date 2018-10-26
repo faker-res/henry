@@ -13512,8 +13512,7 @@ define(['js/app'], function (myApp) {
                             platformObjId: playerObj.platform,
                             name: "次权限禁用组（预设）", //hard code name
                             isBlockPromoCodeUser: true,
-                            isDefaultGroup: true,
-                            color: "rgb(69,201,17)"
+                            isDefaultGroup: true
                         },
                         updateData: {}
                     }
