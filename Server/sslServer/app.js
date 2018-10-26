@@ -4,10 +4,10 @@ const fs = require('fs');
 const path = require('path');
 const env = require("./config/env").config();
 const webEnv = require('./config/webEnv');
+const nodeUrl = env.redisUrl || 'localhost';
 const port = env.redisPort || 1802;
 const jwt = require('jsonwebtoken');
-
-const constSystemParam = require('./../const/constSystemParam');
+const secret = "$ap1U5eR$";
 
 const privateKeyPath = "./playerPhone.key.pem";
 const replacedPrivateKeyPath = "./playerPhone.key.pem.bak";
@@ -85,7 +85,7 @@ http.createServer(function (req, res) {
                     let loginData = JSON.parse(buffer.toString());
 
                     if (loginData.username === username && loginData.password === password) {
-                        let token = jwt.sign(loginData, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
+                        let token = jwt.sign(loginData, secret, {expiresIn: 60 * 60 * 5});
                         res.setHeader('X-Token', token);
                         res.setHeader('Location', 'static.html?token=' + token);
                         res.statusCode = 201;
@@ -113,7 +113,7 @@ http.createServer(function (req, res) {
                 break;
             case './static.html':
                 if (query && query.token) {
-                    jwt.verify(query.token, constSystemParam.API_AUTH_SECRET_KEY, function (err, decoded) {
+                    jwt.verify(query.token, secret, function (err, decoded) {
                         if (err || !decoded) {
                             // Jwt token error
                             console.log("jwt verify error", err);
@@ -198,7 +198,7 @@ http.createServer(function (req, res) {
 
     function verifyAndSendKey(query, res, key) {
         if (query && query.token) {
-            jwt.verify(query.token, constSystemParam.API_AUTH_SECRET_KEY, (err, decoded) => {
+            jwt.verify(query.token, secret, (err, decoded) => {
                 if (!err && decoded && decoded === fpmsKey) {
                     res.setHeader('Content-type', 'text/plain' );
                     res.end(key);
