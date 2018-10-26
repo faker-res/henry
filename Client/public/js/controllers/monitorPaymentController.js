@@ -632,7 +632,12 @@ define(['js/app'], function (myApp) {
                                 item.topupTypeStr = typeID
                                     ? $translate(vm.topUpTypeList[typeID])
                                     : $translate("Unknown")
-                                item.merchantNo$ = vm.getOnlineMerchantId(item.data.merchantNo, item.inputDevice, typeID);
+
+                                let merchantNo = '';
+                                if(item.data.merchantNo){
+                                    merchantNo = item.data.merchantNo;
+                                }
+                                item.merchantNo$ = vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
                             } else {
                                 //show topup type for other types
                                 item.topupTypeStr = $translate(item.type.name);
@@ -853,7 +858,7 @@ define(['js/app'], function (myApp) {
             return result;
         }
         vm.getOnlineMerchantId = function (merchantNo, devices, topupType) {
-            let result = '';
+            let result = merchantNo;
             let targetDevices = commonService.getPMSDevices(devices);
             if (merchantNo && vm.merchants) {
                 let merchant = vm.merchants.filter(item => {
