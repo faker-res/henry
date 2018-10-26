@@ -25409,6 +25409,8 @@ console.log('typeof ',typeof gameProviders);
 
             vm.savePromoCodeUserGroup = function (isDelete, index) {
                 console.log('userGroupConfig', vm.userGroupConfig);
+                vm.selectedPromoCodeUserGroup = null;
+                vm.selectedBlockPromoCodeUserGroup = null;
 
                 let sendData = {
                     platformObjId: vm.selectedPlatform.id,
@@ -25434,6 +25436,8 @@ console.log('typeof ',typeof gameProviders);
 
             vm.saveBlockPromoCodeUserGroup = function (isDelete, index) {
                 console.log('userGroupBlockConfig', vm.userGroupBlockConfig);
+                vm.selectedPromoCodeUserGroup = null;
+                vm.selectedBlockPromoCodeUserGroup = null;
 
                 let sendData = {
                     platformObjId: vm.selectedPlatform.id,
