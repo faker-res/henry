@@ -863,13 +863,15 @@ let dbPlayerReward = {
         });
     },
 
-    getPlayerConsumptionSlipRewardDetail: (rewardData, playerId, code, applyTargetTime, isBulkApply) => {
+    getPlayerConsumptionSlipRewardDetail: (rewardData, playerId, code, applyTargetTime, isBulkApply, isFrontEndCheck) => {
         // reward event code is an optional value, getting the latest relevant event by default
         let currentTime = applyTargetTime || new Date();
         let today = applyTargetTime ? dbUtility.getDayTime(applyTargetTime) : dbUtility.getTodaySGTime();
         let platformId = null;
         let player, event, selectedParam, intervalTime, paramOfLevel, similarProposalCount = 0;
         let outputList = [];
+        let unusedList = [];
+        let applyList = [];
         let result = {};
 
         return dbConfig.collection_players.findOne({playerId: playerId}).lean().then(data => {
@@ -949,6 +951,10 @@ let dbPlayerReward = {
             if (rewardData.appliedRewardList && rewardData.appliedRewardList.length) {
                 consumptionSlipRewardGroupProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find({_id: {$in: rewardData.appliedRewardList}}).lean();
             }
+            else if (isFrontEndCheck){
+                consumptionSlipRewardGroupProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find(searchQuery).sort(sortCol).lean();
+                consumptionSlipRewardGroupTotalCountProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find(searchQuery).lean().count();
+            }
             else{
                 consumptionSlipRewardGroupProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find(searchQuery).sort(sortCol).skip(index).limit(limit).lean();
                 consumptionSlipRewardGroupTotalCountProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find(searchQuery).lean().count();
@@ -968,7 +974,6 @@ let dbPlayerReward = {
                     let consumptionSlipRecord = retData[0];
                     let topUpResults = retData[1];
                     let totalCount = retData[2];
-
 
                     let bypassDirtyEvent;
                     let totalTopUpAmount = 0;
@@ -1010,21 +1015,51 @@ let dbPlayerReward = {
                     // filter again the rewardEvent with the topUpAmount of the interval
                     if (consumptionSlipRecord && consumptionSlipRecord.length) {
                         consumptionSlipRecord.forEach(
-                            record => {
-                                if (record.requiredTopUpAmount && totalTopUpAmount >= record.requiredTopUpAmount) {
 
-                                    record.targetDate = intervalTime;
-                                    outputList.push(record);
+                            record => {
+
+                                // check if is called from front-end
+                                if (isFrontEndCheck){
+                                    if (!record.requiredTopUpAmount){
+                                        applyList.push(record);
+                                    }
+                                    else if (record.requiredTopUpAmount && totalTopUpAmount >= record.requiredTopUpAmount) {
+                                        outputList.push(record);
+                                    }
+                                    else{
+                                        unusedList.push(record);
+                                    }
                                 }
+                                else {
+                                    if (!record.requiredTopUpAmount || (record.requiredTopUpAmount && totalTopUpAmount >= record.requiredTopUpAmount)) {
+
+                                        record.targetDate = intervalTime;
+                                        outputList.push(record);
+                                    }
+                                }
+
                             }
                         )
 
-                        result = {
-                            availableQuantity: event.condition && event.condition.countInRewardInterval ? event.condition.countInRewardInterval : 1,
-                            appliedCount: similarProposalCount,
-                            topUpAmountInterval: totalTopUpAmount,
-                            list: outputList,
-                            size: totalCount
+                        if(isFrontEndCheck){
+                            result = {
+                                availableQuantity: event.condition && event.condition.countInRewardInterval ? event.condition.countInRewardInterval : 1,
+                                appliedCount: similarProposalCount,
+                                topUpAmountInterval: totalTopUpAmount,
+                                list: outputList,
+                                applyList: applyList,
+                                unusedList: unusedList,
+                            }
+
+                        }
+                        else{
+                            result = {
+                                availableQuantity: event.condition && event.condition.countInRewardInterval ? event.condition.countInRewardInterval : 1,
+                                appliedCount: similarProposalCount,
+                                topUpAmountInterval: totalTopUpAmount,
+                                list: outputList,
+                                size: totalCount
+                            }
                         }
                     }
 
@@ -5067,7 +5102,7 @@ let dbPlayerReward = {
      */
     applyGroupReward: (userAgent, playerData, eventData, adminInfo, rewardData, isPreview, isBulkApply) => {
         rewardData = rewardData || {};
-        console.log("checking --- rewardData.applyTargetDate", rewardData.previewDate)
+
         let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate) : dbUtility.getTodaySGTime();
         // let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate): dbUtility.getYesterdaySGTime();
         let rewardAmount = 0, spendingAmount = 0, applyAmount = 0, actualAmount = 0;
@@ -5180,7 +5215,6 @@ let dbPlayerReward = {
             //         Currently I will change to createTime for hot fix, but "applyTargetDate" might be needed for all
             //         reward proposal. - Huat
         }
-        console.log("checking --- eventQuery.settleTime", eventQuery.settleTime)
 
         let topupInPeriodProm = dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
         let eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
@@ -5552,18 +5586,13 @@ let dbPlayerReward = {
                             $lte: intervalTime.endTime
                         };
                     }
-                    console.log("checking--- in case 3 consumptionQuery", consumptionQuery)
-                    console.log("checking--- in case 3 allRewardProm", allRewardProm)
+
                     if (rewardData.previewDate) {
                         consumptionQuery.createTime = {$gte: intervalTime.startTime, $lte: dbUtility.getSGTimeOf(rewardData.previewDate)};
                         if (allRewardProm) allRewardQuery.settleTime = {
                             $gte: intervalTime.startTime,
                             $lte:  dbUtility.getSGTimeOf(rewardData.previewDate)
                         };
-                        console.log("checking---- consumptionQuery in case 3", consumptionQuery)
-                        if (allRewardProm){
-                            console.log("checking---- allRewardQuery in case 3", allRewardQuery)
-                        }
                     }
                     // promArr.push(totalConsumptionAmount);
                     // if (allRewardProm) promArr.push(allRewardProm);
