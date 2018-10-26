@@ -140,6 +140,12 @@ function socketActionPromoCode(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerReward.getAllPromoCodeUserGroup, [ObjectId(data.platformObjId)], actionName, isValidData);
         },
 
+        updatePromoCodeGroupMainPermission: function updatePromoCodeGroupMainPermission(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPlayerReward.updatePromoCodeGroupMainPermission, [data.query, data.updateData], actionName, isValidData);
+        },
+
         getDelayDurationGroup: function getDelayDurationGroup(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
