@@ -3416,11 +3416,14 @@ let dbPlayerInfo = {
         return Promise.all(proms);
     },
 
-    updatePlayerForbidRewardEvents: function (playerObjId, forbidRewardEvents) {
+    updatePlayerForbidRewardEvents: function (playerObjId, forbidRewardEvents, disablePromoCode) {
         let updateData = {};
         if (forbidRewardEvents) {
             updateData.forbidRewardEvents = forbidRewardEvents;
         }
+
+        updateData.forbidPromoCode = disablePromoCode? true: false;
+
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {_id: playerObjId}, updateData, constShardKeys.collection_players);
     },
     managingDataList: function (dataList, addList, removeList) {

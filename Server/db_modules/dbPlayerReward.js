@@ -3188,7 +3188,21 @@ let dbPlayerReward = {
     },
 
     getPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId, isBlockPromoCodeUser: {$ne: true}, isBlockByMainPermission: {$ne: true}}).lean(),
-    getBlockPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId, isBlockPromoCodeUser: true}).lean(),
+    getBlockPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId, isBlockPromoCodeUser: true}).lean().then(
+        groupData => {
+            // to sort default group to first one
+            if (groupData && groupData.length) {
+                for (let i = 0; i < groupData.length; i++) {
+                    if (i != 0 && groupData[i].isDefaultGroup) {
+                        let temp = groupData[0];
+                        groupData[0] = groupData[i];
+                        groupData[i] = temp;
+                    }
+                }
+            }
+            return groupData;
+        }
+    ),
     getAllPromoCodeUserGroup: (platformObjId) => dbConfig.collection_promoCodeUserGroup.find({platformObjId: platformObjId}).lean(),
     getDelayDurationGroup: (platformObjId, duration) => dbConfig.collection_platform.find({_id: platformObjId}).lean(),
 
@@ -3205,6 +3219,9 @@ let dbPlayerReward = {
             playerData => {
                 playerObj = playerData;
                 platformObjId = playerObj.platform;
+                if (playerObj && playerObj.forbidPromoCode) {
+                    return Q.reject({name: "DataError", message: "Player does not have this permission"});
+                }
                 return dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", true);
             }
         ).then(
@@ -3475,6 +3492,9 @@ let dbPlayerReward = {
             playerData => {
                 playerObj = playerData;
                 platformObjId = playerObj.platform;
+                if (playerObj && playerObj.forbidPromoCode) {
+                    return Q.reject({name: "DataError", message: "Player does not have this permission"});
+                }
                 return dbPlayerUtil.setPlayerBState(playerObj._id, "ApplyPromoCode", true);
             }
         ).then(

@@ -6275,6 +6275,7 @@ define(['js/app'], function (myApp) {
                         content: function () {
                             var data = JSON.parse(this.dataset.row);
                             vm.forbidRewardEventPopover = data;
+                            vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
                             vm.forbidRewardEvents = [];
                             vm.forbidRewardDisable = true;
                             $scope.safeApply();
@@ -6319,6 +6320,7 @@ define(['js/app'], function (myApp) {
                                 let sendData = {
                                     _id: rowData._id,
                                     forbidRewardEvents: forbidRewardEvents,
+                                    forbidPromoCode: vm.forbidPromoCode,
                                     adminName: authService.adminName
                                 };
                                 vm.updatePlayerForbidRewardEvents(sendData);
@@ -13503,6 +13505,26 @@ define(['js/app'], function (myApp) {
         vm.updatePlayerForbidRewardEvents = function (sendData) {
             console.log('sendData', sendData);
             socketService.$socket($scope.AppSocket, 'updatePlayerForbidRewardEvents', sendData, function (data) {
+                let playerObj = data.data;
+                if (playerObj) {
+                    let sendData = {
+                        query: {
+                            platformObjId: playerObj.platform,
+                            name: "次权限禁用组（预设）", //hard code name
+                            isBlockPromoCodeUser: true,
+                            isDefaultGroup: true,
+                            color: "rgb(69,201,17)"
+                        },
+                        updateData: {}
+                    }
+                    if (playerObj.forbidPromoCode) {
+                        sendData.updateData["$addToSet"] = {playerNames: playerObj.name};
+                    } else {
+                        sendData.updateData["$pull"] = {playerNames: playerObj.name};
+                    }
+                    socketService.$socket($scope.AppSocket, 'updatePromoCodeGroupMainPermission', sendData, function () {
+                    });
+                }
                 vm.getPlatformPlayersData();
                 vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent));
             });

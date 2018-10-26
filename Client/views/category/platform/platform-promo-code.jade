@@ -662,10 +662,10 @@
                                     td(style="background-color:{{blockConfig.color}}", ng-click="vm.selectedBlockPromoCodeUserGroup=blockConfig;") {{blockConfig.name}}
                                     td(style="background-color:{{blockConfig.color}}") {{blockConfig.color}}
                                     td(style="background-color:{{blockConfig.color}}")
-                                        button.btn.btn-primary.common-button(ng-click="vm.blockPromoCodeUserGroupEdit=true")
+                                        button.btn.btn-primary.common-button(ng-click="vm.blockPromoCodeUserGroupEdit=true" ng-disabled='blockConfig.isDefaultGroup')
                                             i.fa.fa-pencil-square-o
                                             text {{'EDIT' | translate}}
-                                        button.btn.btn-danger.common-button(data-toggle="modal", data-target='#modalDeleteBlockPromoCodeUserGroup' ng-click="vm.userGroupBlockConfigDeleteIndex = $index")
+                                        button.btn.btn-danger.common-button(ng-disabled='blockConfig.isDefaultGroup' data-toggle="modal", data-target='#modalDeleteBlockPromoCodeUserGroup' ng-click="vm.userGroupBlockConfigDeleteIndex = $index")
                                             i.fa.fa-trash
                                             text {{'DELETE' | translate}}
                                 // after edit enabled

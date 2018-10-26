@@ -268,7 +268,7 @@ function socketActionPlayer(socketIO, socket) {
         updatePlayerForbidRewardEvents: function updatePlayerForbidRewardEvents(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data._id && data.forbidRewardEvents);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidRewardEvents, [data._id, data.forbidRewardEvents], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidRewardEvents, [data._id, data.forbidRewardEvents, data.forbidPromoCode], actionName, isValidData);
         },
 
         updateBatchPlayerForbidRewardEvents: function updateBatchPlayerForbidRewardEvents(data) {
