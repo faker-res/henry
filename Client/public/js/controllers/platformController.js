@@ -26653,8 +26653,14 @@ console.log('typeof ',typeof gameProviders);
                 }
 
             };
-            vm.commissionSettingDeleteRow = (idx, valueCollection) => {
+
+            vm.updateCommissionChangeGroup = (groupName) => {
                 vm.updateCommissionRateRequirement = true;
+                vm.updatedCommissionGameGroup.add(groupName);
+            }
+
+            vm.commissionSettingDeleteRow = (idx, valueCollection, groupName) => {
+                vm.updateCommissionChangeGroup(groupName);
                 valueCollection.splice(idx, 1);
 
                 if (valueCollection.length == 0) {
@@ -26753,6 +26759,7 @@ console.log('typeof ',typeof gameProviders);
 
             vm.isSetAllDisablePartnerConfigSetting = function (showSetting, isEditing, isProviderGroupIncluded, srcSetting) {
                 vm.updateCommissionRateRequirement = false;
+                vm.updatedCommissionGameGroup = new Set();
 
                 if (isProviderGroupIncluded) {
                     for (var i in showSetting) {
@@ -26830,9 +26837,14 @@ console.log('typeof ',typeof gameProviders);
             };
             vm.submitPartnerCommissionConfigWithGameProviderGroup = function (isConfirm) {
                 if (!isConfirm && vm.updateCommissionRateRequirement) {
+                    let updatedGroup = [...vm.updatedCommissionGameGroup];
                     vm.modalYesNo = {};
                     vm.modalYesNo.modalTitle = $translate("Commission Customization Revert");
                     vm.modalYesNo.modalText = $translate("Update requirement will revert partner's commission customization. Are you sure?");
+                    vm.modalYesNo.modalText += ` ${$translate('Relevant provider group:')}`;
+                    updatedGroup.map(groupName => {
+                        vm.modalYesNo.modalText += " " + groupName;
+                    });
                     vm.modalYesNo.actionYes = () => vm.submitPartnerCommissionConfigWithGameProviderGroup(true);
                     $('#modalYesNo').modal();
                     return;
@@ -26845,13 +26857,14 @@ console.log('typeof ',typeof gameProviders);
                         if (gameProviderGroup && gameProviderGroup.showConfig && gameProviderGroup.showConfig.commissionSetting.length > 0) {
                             if (JSON.stringify(gameProviderGroup.showConfig) != JSON.stringify(gameProviderGroup.srcConfig)) {
                                 let tempShowConfig = gameProviderGroup.showConfig;
+                                let clearCustomize = vm.updatedCommissionGameGroup.has(gameProviderGroup.name);
 
                                 // Convert back commissionRate to percentage
                                 tempShowConfig.commissionSetting.forEach(e => {
                                     e.commissionRate = parseFloat((e.commissionRate / 100).toFixed(4));
                                 });
 
-                                if(tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
+                                if (tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
                                     for (let i = 0; i < tempShowConfig.commissionSetting.length; i++) {
                                         if ((tempShowConfig.commissionSetting[i].playerConsumptionAmountFrom == '' || tempShowConfig.commissionSetting[i].playerConsumptionAmountFrom == null) &&
                                             (tempShowConfig.commissionSetting[i].activePlayerValueFrom == '' || tempShowConfig.commissionSetting[i].activePlayerValueFrom == null) &&
@@ -26862,7 +26875,7 @@ console.log('typeof ',typeof gameProviders);
                                     }
                                 }
 
-                                if(tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
+                                if (tempShowConfig.commissionSetting && tempShowConfig.commissionSetting.length > 0) {
                                     gameProviderGroup.showConfig.provider = gameProviderGroup._id;
 
                                     var sendData = {
@@ -26871,7 +26884,7 @@ console.log('typeof ',typeof gameProviders);
                                             _id: tempShowConfig._id
                                         },
                                         updateData: tempShowConfig,
-                                        clearCustomize: vm.updateCommissionRateRequirement
+                                        clearCustomize: clearCustomize
                                     }
 
                                     p = p.then(function () {
@@ -26887,6 +26900,7 @@ console.log('typeof ',typeof gameProviders);
                     return p.then(()=> {
                         $scope.$evalAsync(vm.getPartnerCommissionConfigWithGameProviderConfig);
                         vm.updateCommissionRateRequirement = false;
+                        vm.updatedCommissionGameGroup = new Set();
                     });
                 }
             }
@@ -26906,6 +26920,7 @@ console.log('typeof ',typeof gameProviders);
                     $scope.safeApply();
                 });
                 vm.updateCommissionRateRequirement = false;
+                vm.updatedCommissionGameGroup = new Set();
             };
             vm.addCommissionLevel = function (key) {
                 vm.partnerCommission.showConfig[key] = vm.partnerCommission.showConfig[key] || [];
