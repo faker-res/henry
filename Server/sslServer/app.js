@@ -14,6 +14,7 @@ const replacedPrivateKeyPath = "./playerPhone.key.pem.bak";
 const publicKeyPath = "./playerPhone.pub";
 const replacedPublicKeyPath = "./playerPhone.pub.bak";
 const loginPagePath = "./login.html";
+const fpmsKey = "Fr0m_FPM$!";
 
 let privateKey, publicKey, replacedPrivateKey, replacedPublicKey;
 
@@ -97,24 +98,18 @@ http.createServer(function (req, res) {
         }
     } else {
         // GET
-        console.log('path name', pathname);
-
         switch(pathname) {
             case privateKeyPath:
-                res.setHeader('Content-type', 'text/plain' );
-                res.end(privateKey);
+                verifyAndSendKey(query, res, privateKey);
                 break;
             case replacedPrivateKeyPath:
-                res.setHeader('Content-type', 'text/plain' );
-                res.end(replacedPrivateKey);
+                verifyAndSendKey(query, res, replacedPrivateKey);
                 break;
             case publicKeyPath:
-                res.setHeader('Content-type', 'text/plain' );
-                res.end(publicKey);
+                verifyAndSendKey(query, res, publicKey);
                 break;
             case replacedPublicKeyPath:
-                res.setHeader('Content-type', 'text/plain' );
-                res.end(replacedPublicKey);
+                verifyAndSendKey(query, res, replacedPublicKey);
                 break;
             case './static.html':
                 if (query && query.token) {
@@ -199,6 +194,17 @@ http.createServer(function (req, res) {
             'location': '/login.html'
         });
         res.end();
+    }
+
+    function verifyAndSendKey(query, res, key) {
+        if (query && query.token) {
+            jwt.verify(query.token, constSystemParam.API_AUTH_SECRET_KEY, (err, decoded) => {
+                if (!err && decoded && decoded === fpmsKey) {
+                    res.setHeader('Content-type', 'text/plain' );
+                    res.end(key);
+                }
+            });
+        }
     }
 
 }).listen(parseInt(port));
