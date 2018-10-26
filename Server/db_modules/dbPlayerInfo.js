@@ -2440,20 +2440,57 @@ let dbPlayerInfo = {
         return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, updateData, constShardKeys.collection_players);
     },
 
-    updatePlayerInfoClient: function (query, updateData) {
+    updatePlayerInfoClient: function (query, updateData, entryType) {
         if (updateData) {
             delete updateData.password;
         }
-        let upData = {};
-        if (updateData.DOB) {
-            upData.DOB = updateData.DOB;
+        if (!(updateData.DOB || typeof(updateData.gender) === "boolean" || typeof(updateData.gender) === "number")) {
+            return true;
         }
-        if (updateData.gender) {
-            upData.gender = updateData.gender;
-        }
-        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, upData, constShardKeys.collection_players).then(
-            data => true
+
+        return dbconfig.collection_players.findOne(query).lean().then(
+            player => {
+                if (!player) {
+                    return false;
+                }
+
+                let proposalDetail = {
+                    _id: player._id,
+                    playerId: player.playerId,
+                    platformId: player.platform,
+                    playerName: player.name,
+                    remark: ""
+                }
+                if (updateData.DOB) {
+                    proposalDetail.DOB = updateData.DOB
+                    proposalDetail.remark += "生日"
+                }
+                if (typeof(updateData.gender) === "boolean" || typeof(updateData.gender) === "number") {
+                    proposalDetail.gender = Boolean(updateData.gender);
+                    proposalDetail.remark += proposalDetail.remark ? ", 性别" : "性别";
+                }
+
+                let proposalData = {
+                    creator: {
+                        type: 'player',
+                        name: player.name,
+                        id: player._id
+                    },
+                    data: proposalDetail,
+                    entryType: constProposalEntryType.CLIENT,
+                    userType: constProposalUserType.PLAYERS,
+                    inputDevice: entryType ? entryType : 0
+                };
+
+                return dbProposal.createProposalWithTypeName(player.platform, constProposalType.UPDATE_PLAYER_INFO, proposalData);
+            }
+        ).then(
+            () => true
         );
+
+        // return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, query, upData, constShardKeys.collection_players).then(
+        //     data => true
+        // );
     },
 
 
@@ -19121,11 +19158,22 @@ let dbPlayerInfo = {
      * Create new Proposal to update player QQ
      * @param {json} data - proposal data
      */
-    createPlayerQQProposal: function createPlayerQQProposal(query, data) {
+    createPlayerQQProposal: function createPlayerQQProposal(query, data, inputDevice) {
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
                 let proposalData = {
+                    creator: {
+                        type: 'player',
+                        name: playerData.name,
+                        id: playerData._id
+                    },
+                    entryType: constProposalEntryType.CLIENT,
+                    userType: constProposalUserType.PLAYERS,
+                    inputDevice: inputDevice ? inputDevice : 0,
                     data: {
+                        _id: playerData._id,
+                        playerId: playerData.playerId,
+                        platformId: playerData.platform,
                         playerObjId: playerData._id,
                         playerName: playerData.name,
                         updateData: {qq: data.qq}
@@ -19155,11 +19203,22 @@ let dbPlayerInfo = {
      * Create new Proposal to update player WeChat
      * @param {json} data - proposal data
      */
-    createPlayerWeChatProposal: function createPlayerWeChatProposal(query, data) {
+    createPlayerWeChatProposal: function createPlayerWeChatProposal(query, data, inputDevice) {
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
                 let proposalData = {
+                    creator: {
+                        type: 'player',
+                        name: playerData.name,
+                        id: playerData._id
+                    },
+                    entryType: constProposalEntryType.CLIENT,
+                    userType: constProposalUserType.PLAYERS,
+                    inputDevice: inputDevice ? inputDevice : 0,
                     data: {
+                        _id: playerData._id,
+                        playerId: playerData.playerId,
+                        platformId: playerData.platform,
                         playerObjId: playerData._id,
                         playerName: playerData.name,
                         updateData: {wechat: data.wechat}
@@ -19189,11 +19248,22 @@ let dbPlayerInfo = {
      * Create new Proposal to update player email
      * @param {json} data - proposal data
      */
-    createPlayerEmailProposal: function createPlayerEmailProposal(query, data) {
+    createPlayerEmailProposal: function createPlayerEmailProposal(query, data, inputDevice) {
         return dbconfig.collection_players.findOne(query).lean().then(
             playerData => {
                 let proposalData = {
+                    creator: {
+                        type: 'player',
+                        name: playerData.name,
+                        id: playerData._id
+                    },
+                    entryType: constProposalEntryType.CLIENT,
+                    userType: constProposalUserType.PLAYERS,
+                    inputDevice: inputDevice ? inputDevice : 0,
                     data: {
+                        _id: playerData._id,
+                        playerId: playerData.playerId,
+                        platformId: playerData.platform,
                         playerObjId: playerData._id,
                         playerName: playerData.name,
                         updateData: {email: data.email}
