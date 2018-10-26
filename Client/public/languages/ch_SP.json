@@ -2228,7 +2228,6 @@
   "merchantGroup": "商户组",
   "_id": "ID",
   "playerName": "玩家账号",
-  "referralName": "推荐人姓名",
   "referralTopUpAmount": "被推荐人充值额",
   "updateAmount": "变更额度",
   "curAmount": "当前额度",
@@ -4258,6 +4257,7 @@
   "Recalculate successful": "重算成功",
   "Recalculate failed": "重算失败",
   "Recalculate": "重新计算",
+  "Relevant provider group:": "相关锁大厅组：",
 
   "Please insert bank account name.": "请填入银行户口姓名",
   "Please insert bank account.": "请填入银行帐号",
