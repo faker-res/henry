@@ -23616,8 +23616,9 @@ console.log('typeof ',typeof gameProviders);
                 }, 10);
             };
             vm.cancelPromoCode = function (col, index) {
+              $scope.$evalAsync(()=>{
                 col[index].cancel = true;
-                $scope.safeApply();
+              })
             };
 
             vm.deletePromoCode = function (col, index) {
@@ -23625,7 +23626,15 @@ console.log('typeof ',typeof gameProviders);
                     col.splice(index, 1);
                 }
             };
-
+            vm.generatePromoCodeAsync= function(obj, index, data, type){
+                let prom = new Promise((resolve, reject)=>{
+                    let result = vm.generatePromoCode(obj, index, data, type);
+                    resolve(result);
+                });
+                prom.then(()=>{
+                    $scope.$evalAsync();
+                })
+            }
             vm.generatePromoCode = function (col, index, data, type) {
                 if (data && data.playerName) {
                     let sendData = Object.assign({}, data);
@@ -23743,27 +23752,28 @@ console.log('typeof ',typeof gameProviders);
                 });
 
                 return p.then(() => {
-                    if (col && col.length > 0) {
-                        if (col.filter(promoCodeData => promoCodeData.hasMoreThanOne && !promoCodeData.code && !promoCodeData.cancel).length > 0) {
-                            if (type) {
-                                if (type == 1) {
-                                    vm.promoCode1HasMoreThanOne = true;
-                                }
-                                if (type == 2) {
-                                    vm.promoCode2HasMoreThanOne = true;
-                                }
-                                if (type == 3) {
-                                    vm.promoCode3HasMoreThanOne = true;
-                                }
-                            }
-                        } else {
-                            vm.promoCode1HasMoreThanOne = false;
-                            vm.promoCode2HasMoreThanOne = false;
-                            vm.promoCode3HasMoreThanOne = false;
-                        }
-                    }
-                     $scope.$evalAsync();
-                });
+                    $scope.$evalAsync(()=>{
+                      if (col && col.length > 0) {
+                          if (col.filter(promoCodeData => promoCodeData.hasMoreThanOne && !promoCodeData.code && !promoCodeData.cancel).length > 0) {
+                              if (type) {
+                                  if (type == 1) {
+                                      vm.promoCode1HasMoreThanOne = true;
+                                  }
+                                  if (type == 2) {
+                                      vm.promoCode2HasMoreThanOne = true;
+                                  }
+                                  if (type == 3) {
+                                      vm.promoCode3HasMoreThanOne = true;
+                                  }
+                              }
+                          } else {
+                              vm.promoCode1HasMoreThanOne = false;
+                              vm.promoCode2HasMoreThanOne = false;
+                              vm.promoCode3HasMoreThanOne = false;
+                          }
+                      }
+                  });
+              });
 
             };
 
