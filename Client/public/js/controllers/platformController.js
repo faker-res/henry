@@ -23627,7 +23627,6 @@ console.log('typeof ',typeof gameProviders);
             };
 
             vm.generatePromoCode = function (col, index, data, type) {
-
                 if (data && data.playerName) {
                     let sendData = Object.assign({}, data);
                     col[index].error = false;
@@ -23650,7 +23649,6 @@ console.log('typeof ',typeof gameProviders);
                             });
 
                         });
-
 
                         return p.then(vm.endLoadWeekDay);
                     } else {
@@ -23686,10 +23684,10 @@ console.log('typeof ',typeof gameProviders);
                             }
                             else {
                                 return $scope.$socketPromise('checkPlayerHasPromoCode', searchQ).then(ret => {
+
                                     if (ret && ret.data && ret.data.length > 0) {
                                         if (!data.skipCheck) {
                                             data.hasMoreThanOne = true;
-                                            $scope.safeApply();
                                         }
                                     }
 
@@ -23710,7 +23708,6 @@ console.log('typeof ',typeof gameProviders);
                                         }
 
                                         delete sendData.isBlockPromoCodeUser;
-
                                         console.log('sendData', sendData);
                                         return $scope.$socketPromise('generatePromoCode', {
                                             platformObjId: vm.selectedPlatform.id,
@@ -23718,15 +23715,13 @@ console.log('typeof ',typeof gameProviders);
                                             adminName: authService.adminName,
                                             adminId: authService.adminId
                                         }).then(ret => {
-                                            col[index].code = ret.data;
-                                            $scope.safeApply();
+                                              col[index].code = ret.data;
                                         }).catch(err=>{
-                                            $scope.$evalAsync(()=>{
-                                                col[index].error = true;
-                                            })
+                                              col[index].error = true;
                                         });
                                     }
                                 });
+
                             }
                         }
                     }
@@ -23767,6 +23762,7 @@ console.log('typeof ',typeof gameProviders);
                             vm.promoCode3HasMoreThanOne = false;
                         }
                     }
+                     $scope.$evalAsync();
                 });
 
             };
