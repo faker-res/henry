@@ -313,8 +313,15 @@ var dbRewardEvent = {
                             topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
                         }
 
-                        let topUpProm = dbconfig.collection_playerTopUpRecord.find(topupMatchQuery).sort({createTime: 1}).lean();
-                        let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerObjId}).sort({createTime: -1}).limit(1);
+                        let topUpProm = null;
+
+                        if (rewardEvent.condition.allowOnlyLatestTopUp) {
+                            topUpProm = dbconfig.collection_playerTopUpRecord.find(topupMatchQuery).sort({createTime: -1}).limit(1).lean();
+                        } else {
+                            topUpProm = dbconfig.collection_playerTopUpRecord.find(topupMatchQuery).sort({createTime: 1}).lean();
+                        }
+
+                        let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerObjId}).sort({createTime: -1}).limit(1).lean();
 
                         return Promise.all([topUpProm, lastConsumptionProm]).then(
                             data => {
