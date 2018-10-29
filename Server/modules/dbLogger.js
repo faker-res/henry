@@ -840,6 +840,9 @@ var dbLogger = {
                 ]
             };
         }
+        if (platformObjId) {
+            playerQuery.platform = platformObjId;
+        }
 
         dbconfig.collection_players.findOne(playerQuery, {name: 1, bankAccount: 1}).lean().then(
             playerData => {
