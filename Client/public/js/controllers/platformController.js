@@ -568,17 +568,33 @@ define(['js/app'], function (myApp) {
             };
 
             vm.showPlatformDetailTab = function (tabName) {
+                if (tabName === null) {
+                    if (authService.checkViewPermission('Platform', 'Platform','BackstageSettings')) {
+                        tabName = "backstage-settings";
+                    } else if (authService.checkViewPermission('Platform', 'Platform','PlayerDisplayData')) {
+                        tabName = "player-display-data";
+                    } else if (authService.checkViewPermission('Platform', 'Platform','PartnerDisplayData')) {
+                        tabName = "partner-display-data";
+                    } else if (authService.checkViewPermission('Platform', 'Platform','SystemSettlement')) {
+                        tabName = "system-settlement";
+                    } else if (authService.checkViewPermission('Platform', 'Platform','FrontendModuleSetting')) {
+                        tabName = "frontend-module-setting";
+                    } else if (authService.checkViewPermission('Platform', 'Platform','ThemeSelect')) {
+                        tabName = "theme-select";
+                    }
+                }
 
-                vm.selectedPlatformDetailTab = tabName == null ? "backstage-settings" : tabName;
-                if (tabName && tabName == "player-display-data") {
+                vm.selectedPlatformDetailTab = tabName;
+
+                if (tabName && tabName === "player-display-data") {
                     vm.initPlayerDisplayDataModal();
-                } else if (tabName && tabName == "partner-display-data") {
+                } else if (tabName && tabName === "partner-display-data") {
                     vm.initPartnerDisplayDataModal();
-                } else if (tabName && tabName == "system-settlement") {
+                } else if (tabName && tabName === "system-settlement") {
                     vm.prepareSettlementHistory();
-                } else if (tabName && tabName == "frontend-module-setting"){
+                } else if (tabName && tabName === "frontend-module-setting") {
                     vm.initFrontendModuleSettingModal();
-                } else if (tabName && tabName == "theme-select"){
+                } else if (tabName && tabName === "theme-select") {
                     vm.loadThemeSetting();
                 }
             };
@@ -1389,13 +1405,19 @@ define(['js/app'], function (myApp) {
                     case "batchPermit":
                         vm.initBatchPermit();
                         vm.initBulkCreditClearOut();
+                        break;
+                    case "platformSetting":
+                        vm.showPlatformDetailTab(null);
+                        break;
                     // setTimeout(() => {
                     //     $('#partnerDataTable').resize();
                     // }, 300);
                     case "externalUserInfo":
                         vm.initExternalUserInfo();
+                        break;
                     case "FrontendConfiguration":
                         vm.initFrontendConfiguration();
+                        break;
                 }
 
                 commonService.updatePageTile($translate, "platform", tabName);
