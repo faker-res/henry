@@ -13516,10 +13516,6 @@ define(['js/app'], function (myApp) {
                 let playerObj = data.data;
                 if (playerObj) {
                     let sendData = {
-                        checkQuery: {
-                            platformObjId: playerObj.platform,
-                            playerNames: playerObj.name
-                        },
                         query: {
                             platformObjId: playerObj.platform,
                             name: "次权限禁用组（预设）", //hard code name
@@ -13529,6 +13525,10 @@ define(['js/app'], function (myApp) {
                         updateData: {}
                     }
                     if (playerObj.forbidPromoCode) {
+                        sendData.checkQuery = {
+                            platformObjId: playerObj.platform,
+                            playerNames: playerObj.name
+                        }
                         sendData.updateData["$addToSet"] = {playerNames: playerObj.name};
                     } else {
                         sendData.updateData["$pull"] = {playerNames: playerObj.name};
