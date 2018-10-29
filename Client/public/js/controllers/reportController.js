@@ -1696,7 +1696,14 @@ define(['js/app'], function (myApp) {
                             return "<div>" + text + "</div>";
                         }
                     },
-                    {"title": $translate('3rd Party Platform'), "data": 'merchantName'},
+                    {
+                        "title": $translate('3rd Party Platform'), "data": 'data.merchantUseName',
+                        render: function(data, type, row){
+                            let merchantName =  row.merchantName ? row.merchantName : '';
+                            var text = data ? data : merchantName;
+                            return "<div>" + text + "</div>";
+                        }
+                    },
                     {
                         "title": $translate('DEPOSIT_METHOD'), "data": 'data.depositMethod',
                         render: function (data, type, row) {
@@ -8541,7 +8548,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["bankInfoWhenApprove"] = bankNameWhenApprove + $translate("bankcard no:") + vm.selectedProposal.data.bankAccountWhenApprove;
                     proposalDetail["playerCancelRemark"] = vm.selectedProposal.data.playerCancelRemark;
                     proposalDetail["lastSettleTime"] = vm.selectedProposal.data.lastSettleTime;
-                   
+
                     if(vm.selectedProposal.data.remarkPMS){
                         pmsRemark = vm.selectedProposal.data.remarkPMS;
                         indexOfDivider = pmsRemark.indexOf("#");
@@ -8573,7 +8580,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["autoAuditRemark"] = vm.selectedProposal.data.autoAuditRemarkChinese;
                     proposalDetail["autoAuditDetail"] = vm.selectedProposal.data.detailChinese;
                     proposalDetail["Total commission since the last withdrawal (include first level partner commission)"] = vm.selectedProposal.data.lastWithdrawalTotalCommission;
-                   
+
                     if(vm.selectedProposal.data.remarkPMS){
                         pmsRemark = vm.selectedProposal.data.remarkPMS;
                         indexOfDivider = pmsRemark.indexOf("#");

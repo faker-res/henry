@@ -279,6 +279,7 @@ var dbRewardEvent = {
                     case constRewardType.PLAYER_RANDOM_REWARD_GROUP:
                     case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
                     case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
+                    case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
                         let intervalTime;
                         if (rewardEvent.condition.interval) {
                             intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, rewardEvent);
@@ -313,8 +314,15 @@ var dbRewardEvent = {
                             topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
                         }
 
-                        let topUpProm = dbconfig.collection_playerTopUpRecord.find(topupMatchQuery).sort({createTime: 1}).lean();
-                        let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerObjId}).sort({createTime: -1}).limit(1);
+                        let topUpProm = null;
+
+                        if (rewardEvent.condition.allowOnlyLatestTopUp) {
+                            topUpProm = dbconfig.collection_playerTopUpRecord.find(topupMatchQuery).sort({createTime: -1}).limit(1).lean();
+                        } else {
+                            topUpProm = dbconfig.collection_playerTopUpRecord.find(topupMatchQuery).sort({createTime: 1}).lean();
+                        }
+
+                        let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerObjId}).sort({createTime: -1}).limit(1).lean();
 
                         return Promise.all([topUpProm, lastConsumptionProm]).then(
                             data => {
@@ -336,9 +344,21 @@ var dbRewardEvent = {
                                 function checkRewardEventWithTopUp(topUpDataObj) {
                                     return dbRewardEvent.checkRewardEventGroupApplicable(playerObj, rewardEvent, {selectedTopup: topUpDataObj}).then(
                                         checkRewardData => {
-                                            if (checkRewardData.status == 1 && (checkRewardData.condition.deposit.status == 2 || checkRewardData.condition.bet.status == 2 || checkRewardData.condition.telephone.status == 2 || checkRewardData.condition.ip.status == 2 || checkRewardData.condition.SMSCode.status == 2)) {
-                                                checkRewardData.status = 2;
+
+                                            if(rewardEvent.type.name == constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP){
+                                                if (checkRewardData.condition.deposit.status == 1 || checkRewardData.condition.bet.status == 1) {
+                                                    checkRewardData.status = 1;
+                                                }
+                                                else{
+                                                    checkRewardData.status = 2;
+                                                }
                                             }
+                                            else{
+                                                if (checkRewardData.status == 1 && (checkRewardData.condition.deposit.status == 2 || checkRewardData.condition.bet.status == 2 || checkRewardData.condition.telephone.status == 2 || checkRewardData.condition.ip.status == 2 || checkRewardData.condition.SMSCode.status == 2)) {
+                                                    checkRewardData.status = 2;
+                                                }
+                                            }
+
                                             if (checkRewardData.condition.telephone.status == 0) {
                                                 delete checkRewardData.condition.telephone;
                                             }
@@ -362,7 +382,7 @@ var dbRewardEvent = {
                                             }
                                             if (checkRewardData.status == 2) {
                                                 delete checkRewardData.result;
-                                            }
+                                            }                                      
 
                                             return checkRewardData;
                                         }
@@ -372,11 +392,15 @@ var dbRewardEvent = {
                                 let promArr = [];
                                 if (topUpData && topUpData.length) {
                                     if (!rewardEvent.condition.allowConsumptionAfterTopUp) {
-                                        if (topUpAfterConsumption && topUpAfterConsumption.length > 0) {
+                                        if (consumptionData && consumptionData.length === 0) { // if no consumption, use all valid top up
+                                            for (let i = 0; i < topUpData.length; i++) {
+                                                promArr.push(checkRewardEventWithTopUp(topUpData[i]));
+                                            }
+                                        } else if (topUpAfterConsumption && topUpAfterConsumption.length > 0) { // if got top up after consumption
                                             for (let i = 0; i < topUpAfterConsumption.length; i++) {
                                                 promArr.push(checkRewardEventWithTopUp(topUpAfterConsumption[i]));
                                             }
-                                        } else {
+                                        } else { // if no top up after consumption
                                             promArr.push(checkRewardEventWithTopUp(null));
                                         }
                                     } else {
@@ -591,6 +615,11 @@ var dbRewardEvent = {
         if (eventData.type.name === constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP) {
             let playerRewardDetailProm = dbPlayerReward.getPlayerConsecutiveRewardDetail(playerData.playerId, eventData.code, true, null, rewardData.applyTargetDate, true);
             promArr.push(playerRewardDetailProm);
+        }
+
+        if (eventData.type.name === constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP) {
+            let consumptionSlipRewardProm = dbPlayerReward.getPlayerConsumptionSlipRewardDetail(rewardData, playerData.playerId, eventData.code, rewardData.applyTargetDate, false, true);
+            promArr.push(consumptionSlipRewardProm);
         }
 
         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
@@ -1082,6 +1111,95 @@ var dbRewardEvent = {
 
                 // Count reward amount and spending amount
                 switch (eventData.type.name) {
+                  
+                    case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
+                        let consumptionSlipRewardDetail = rewardSpecificData[0];
+
+                        returnData.condition.deposit.list = [];
+                        returnData.condition.bet.list = [];
+
+                        if (consumptionSlipRewardDetail.list && consumptionSlipRewardDetail.list.length){
+
+                            returnData.condition.deposit.status = 1;
+                            consumptionSlipRewardDetail.list.forEach(
+                               detail => {
+                                   returnData.condition.deposit.list.push({
+                                       id: detail._id || null,
+                                       no: detail.consumptionSlipNo || null,
+                                       time: detail.consumptionCreateTime || null,
+                                       betAmount: detail.consumptionAmount || null,
+                                       winAmount: detail.bonusAmount || null,
+                                       rewardAmount: detail.rewardAmount || null,
+                                       spendingTimes: detail.spendingTimes || null,
+                                       status: 1,
+                                       endingDigitMatched: detail.requiredOrderNoEndingDigit || null
+
+                                   })
+                               }
+                           )
+                        }
+
+                        if (consumptionSlipRewardDetail.unusedList && consumptionSlipRewardDetail.unusedList.length){
+                            consumptionSlipRewardDetail.unusedList.forEach(
+                                detail => {
+                                    returnData.condition.deposit.list.push({
+                                        id: detail._id || null,
+                                        no: detail.consumptionSlipNo || null,
+                                        time: detail.consumptionCreateTime || null,
+                                        betAmount: detail.consumptionAmount || null,
+                                        winAmount: detail.bonusAmount || null,
+                                        rewardAmount: detail.rewardAmount || null,
+                                        spendingTimes: detail.spendingTimes || null,
+                                        status: 2,
+                                        endingDigitMatched: detail.requiredOrderNoEndingDigit || null
+                                    })
+                                }
+                            )
+                        }
+
+                        if(consumptionSlipRewardDetail.applyList && consumptionSlipRewardDetail.applyList.length){
+                            
+                            returnData.condition.bet.status = 1;
+                            consumptionSlipRewardDetail.applyList.forEach(
+                                detail => {
+                                    returnData.condition.bet.list.push({
+                                        id: detail._id || null,
+                                        no: detail.consumptionSlipNo || null,
+                                        time: detail.consumptionCreateTime || null,
+                                        betAmount: detail.consumptionAmount || null,
+                                        winAmount: detail.bonusAmount || null,
+                                        rewardAmount: detail.rewardAmount || null,
+                                        spendingTimes: detail.spendingTimes || null,
+                                        status: 1,
+                                        endingDigitMatched: detail.requiredOrderNoEndingDigit || null
+                                    })
+                                }
+                            )
+                        }
+
+                        if (returnData.result.hasOwnProperty('rewardAmount')){
+                            delete returnData.result.rewardAmount;
+                        }
+                        if (returnData.result.hasOwnProperty('betAmount')){
+                            delete returnData.result.betAmount;
+                        }
+                        if (returnData.result.hasOwnProperty('betTimes')){
+                            delete returnData.result.betTimes;
+                        }
+                        if (consumptionSlipRewardDetail.hasOwnProperty('availableQuantity')){
+                            returnData.result.quantityLimit = consumptionSlipRewardDetail.availableQuantity
+                        }
+                        if (consumptionSlipRewardDetail.hasOwnProperty('appliedCount')){
+                            returnData.result.appliedCount = consumptionSlipRewardDetail.appliedCount
+                        }
+                        if (consumptionSlipRewardDetail.hasOwnProperty('topUpAmountInterval')){
+                            returnData.result.topUpAmountInterval = consumptionSlipRewardDetail.topUpAmountInterval
+                        }
+                        if (consumptionSlipRewardDetail.hasOwnProperty('availableQuantity') && consumptionSlipRewardDetail.hasOwnProperty('appliedCount') && consumptionSlipRewardDetail.appliedCount >= consumptionSlipRewardDetail.availableQuantity){
+                            returnData.status = 3;
+                        }
+
+                        break;
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                             if (!returnData.condition.deposit.status) {
                                 returnData.condition.deposit.status = 1;

@@ -6500,6 +6500,22 @@ define(['js/app'], function (myApp) {
                                         status: status
                                     }
                                 }, function (data) {
+                                    let sendData = {
+                                        query: {
+                                            platformObjId: vm.permissionPlayer.platform,
+                                            name: "Main Permission Disabled (default)", //hard code name
+                                            isBlockByMainPermission: true,
+                                            color: "lightgrey"
+                                        },
+                                        updateData: {}
+                                    }
+                                    if (changeObj.banReward) {
+                                        sendData.updateData["$addToSet"] = {playerNames: vm.permissionPlayer.name};
+                                    } else {
+                                        sendData.updateData["$pull"] = {playerNames: vm.permissionPlayer.name};
+                                    }
+                                    socketService.$socket($scope.AppSocket, 'updatePromoCodeGroupMainPermission', sendData, function () {
+                                    });
                                     vm.getPlatformPlayersData();
                                 }, null, true);
                                 $(thisPopover).popover('hide');
@@ -11601,10 +11617,10 @@ define(['js/app'], function (myApp) {
                             if (vm.isUnlockTaskGroup) {
                                 let spendingAmt = vm.calSpendingAmt(index);
 
-                                item.curConsumption$ = spendingAmt.currentAmt;
+                                item.curConsumption$ = Number.isFinite(spendingAmt.currentAmt) ? spendingAmt.currentAmt : 0;
                                 item.maxConsumption$ = spendingAmt.currentMax;
                             } else {
-                                item.curConsumption$ = item.requiredBonusAmount;
+                                item.curConsumption$ = Number.isFinite(item.requiredBonusAmount) ? item.requiredBonusAmount : 0;
                                 item.maxConsumption$ = item.requiredUnlockAmount;
                             }
                             item.bonusAmount$ = item.data.bonusAmount;

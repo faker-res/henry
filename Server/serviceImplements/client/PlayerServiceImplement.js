@@ -396,26 +396,27 @@ let PlayerServiceImplement = function () {
                 data.phoneType = queryRes.type;
             }
         }
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerInfoClient, [{playerId: conn.playerId}, data], isValidData, false, false, true);
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.updatePlayerInfoClient, [{playerId: conn.playerId}, data, inputDevice], isValidData, false, false, true);
     };
 
     //update player QQ
     this.updatePlayerQQ.onRequest = function (wsFunc, conn, data) {
-
         var isValidData = Boolean(conn.playerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerQQProposal, [{playerId: conn.playerId}, data], isValidData);
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerQQProposal, [{playerId: conn.playerId}, data, inputDevice], isValidData);
     };
 
     this.updatePlayerWeChat.onRequest = function (wsFunc, conn, data) {
-
         var isValidData = Boolean(conn.playerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerWeChatProposal, [{playerId: conn.playerId}, data], isValidData);
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerWeChatProposal, [{playerId: conn.playerId}, data, inputDevice], isValidData);
     };
 
     this.updatePlayerEmail.onRequest = function (wsFunc, conn, data) {
-
         var isValidData = Boolean(conn.playerId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerEmailProposal, [{playerId: conn.playerId}, data], isValidData);
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.createPlayerEmailProposal, [{playerId: conn.playerId}, data, inputDevice], isValidData);
     };
 
 
@@ -1349,21 +1350,7 @@ let PlayerServiceImplement = function () {
                 conn.playerId = playerData.playerId;
                 conn.playerObjId = playerData._id;
                 conn.noOfAttempt = 0;
-                // conn.onclose = function (event) {
-                //     dbPlayerPartner.logoutPlayerPartnerAPI({
-                //         playerId: playerData.playerId,
-                //         partnerId: partnerData.partnerId
-                //     }).catch(
-                //         error => {
-                //             if (error.message === "Can't find db data") {
-                //                 // This is quite normal during testing, because we remove the test player account before the connection closes.
-                //                 // Do nothing
-                //             } else {
-                //                 console.error("dbPlayerPartner.logoutPlayerPartnerAPI failed:", error);
-                //             }
-                //         }
-                //     );
-                // };
+
                 let profile = {name: playerData.name, password: playerData.password};
                 let token = jwt.sign(profile, constSystemParam.API_AUTH_SECRET_KEY, {expiresIn: 60 * 60 * 5});
                 wsFunc.response(conn, {
