@@ -995,7 +995,7 @@ let dbPlayerReward = {
                     consumptionSlipRewardGroupTotalCountProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find(searchQuery).lean().count();
                 }
                 else{
-                    searchQuery.$or = [ {requiredTopUpAmount: {$gt: 0, $lte: totalTopUpAmount} }, {requiredTopUpAmount: {$exists: false}}, {requiredTopUpAmount: null}];
+                    searchQuery.$or = [ {requiredTopUpAmount: {$gte: 0, $lte: totalTopUpAmount} }, {requiredTopUpAmount: {$exists: false}}, {requiredTopUpAmount: null}];
                     consumptionSlipRewardGroupProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find(searchQuery).sort(sortCol).skip(index).limit(limit).lean();
                     consumptionSlipRewardGroupTotalCountProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find(searchQuery).lean().count();
                 }
@@ -1009,7 +1009,6 @@ let dbPlayerReward = {
 
                     let consumptionSlipRecord = retData[0];
                     let totalCount = retData[1];
-
 
                     // if there is appliedRewardList, it is applying the reward, not preview
                     if (rewardData.appliedRewardList && rewardData.appliedRewardList.length){
