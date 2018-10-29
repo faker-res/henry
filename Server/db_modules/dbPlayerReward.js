@@ -3200,7 +3200,11 @@ let dbPlayerReward = {
     },
 
     updatePromoCodeGroupMainPermission: function (checkQuery, query, updateData) {
-        return dbConfig.collection_promoCodeUserGroup.findOne(checkQuery).lean().then(
+        let checkProm = Promise.resolve(false);
+        if (checkQuery) {
+            checkProm = dbConfig.collection_promoCodeUserGroup.findOne(checkQuery).lean();
+        }
+        return checkProm.then(
             promoCodeData => {
                 if (promoCodeData) {
                     if (!promoCodeData.isBlockPromoCodeUser) {

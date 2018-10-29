@@ -148,7 +148,7 @@ function socketActionPromoCode(socketIO, socket) {
 
         updatePromoCodeGroupMainPermission: function updatePromoCodeGroupMainPermission(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.query && data.checkQuery && data.updateData);
+            let isValidData = Boolean(data && data.query && data.updateData);
             socketUtil.emitter(self.socket, dbPlayerReward.updatePromoCodeGroupMainPermission, [data.checkQuery, data.query, data.updateData], actionName, isValidData);
         },
 
