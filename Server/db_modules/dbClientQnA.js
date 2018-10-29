@@ -1775,6 +1775,7 @@ var dbClientQnA = {
                         bankAccountProvince: inputDataObj.bankCardProvince,
                         bankAccountCity: inputDataObj.bankAccountCity,
                         bankAddress: inputDataObj.bankAddress,
+                        isIgnoreAudit: true
                     }
                 };
                 return dbProposal.createProposalWithTypeNameWithProcessInfo(platform._id, constProposalType.UPDATE_PLAYER_BANK_INFO, proposalData);
