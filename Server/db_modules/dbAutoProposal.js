@@ -488,6 +488,11 @@ function checkRewardTaskGroup(proposal, platformObj) {
                         (playerData.phoneProvince && bankProvince !== playerData.phoneProvince)
                         || (playerData.province && bankProvince !== playerData.province)
                     )
+                    &&(
+                        (playerData.phoneProvince && !bankProvince.includes(playerData.phoneProvince) && !playerData.phoneProvince.includes(bankProvince))
+                        ||
+                        (playerData.province && !bankProvince.includes(playerData.province) && !playerData.province.includes(bankProvince))
+                    )
                 ) {
                     checkMsg += ' Denied: FW: Different Province between IP, Phone, And Bank Account;';
                     checkMsgChinese += ' 失败：首提IP, 电话, 银行所在省不一致;';
