@@ -269,6 +269,8 @@ var playerSchema = new Schema({
     forbidTopUpType: [{type: String}],
     // forbid reward events by player
     forbidRewardEvents: [{type: String}],
+    // disable generate/apply promo code
+    forbidPromoCode: {type: Boolean, default: false},
     //reward info
     //if this player has been rewarded for first time top up event
     bFirstTopUpReward: {type: Boolean, default: false},
