@@ -3616,17 +3616,6 @@ let dbPlayerInfo = {
         return deferred.promise;
     },
 
-    getConsumptionSlipRewardList: function (userAgent, playerId, code, startIndex, count) {
-
-        let data = {
-            index: startIndex || 0,
-            limit: count || 100,
-            isPreview: true
-        };
-        return dbPlayerInfo.applyRewardEvent(userAgent, playerId, code, data);
-  
-    } ,
-
     /*
      * get player consumption records
      * @param {objectId} playerId

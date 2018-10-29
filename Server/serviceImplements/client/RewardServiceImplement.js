@@ -78,13 +78,6 @@ let RewardServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.applyForGameProviderRewardAPI, [data.userAgent, conn.playerId, data.code, data.amount], isValidData);
     };
 
-    this.getConsumptionSlipRewardList.onRequest = function (wsFunc, conn, data) {
-        let isValidData = Boolean(conn.playerId && data.code);
-        let userAgent = conn['upgradeReq']['headers']['user-agent'];
-        data.userAgent = userAgent;
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getConsumptionSlipRewardList, [data.userAgent, conn.playerId, data.code, data.startIndex, data.count], isValidData);
-    };
-
     this.applyRewardEvent.expectsData = 'code: String';
     this.applyRewardEvent.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && conn.playerId && data.code);

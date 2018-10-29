@@ -2877,7 +2877,6 @@
   "getPlayerRewardList": "获取玩家优惠活动申请列表",
   "getConsumeRebateAmount": "获取洗码额度",
   "applyRewardEvent": "申请优惠活动",
-  "getConsumptionSlipRewardList": "获取幸运单注的投注列表",
   "Exceeded the application quantity of the interval time": "本周期内仍可申请次数已达标",
   "getPlayerReferralList": "获取推荐玩家列表",
   "getConsecutiveLoginRewardDay": "获取玩家登陆累计天数",
