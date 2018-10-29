@@ -25459,6 +25459,33 @@ console.log('typeof ',typeof gameProviders);
                     });
                     vm.saveUserFromGroupToGroup(2, vm.userGroupAllConfig, vm.userGroupConfig)
                 }
+
+                let addedPlayerNameArr = [];
+                let deletedPlayerNameArr = [];
+                let originalPlayer = [];
+                let currentPlayer = [];
+
+                vm.userGroupAllConfig.forEach(originalItem => {
+                    if (originalItem.isBlockPromoCodeUser && originalItem.playerNames && originalItem.playerNames.length) {
+                        originalPlayer = originalPlayer.concat(originalItem.playerNames);
+                    }
+                });
+                vm.userGroupBlockConfig.forEach(currentItem => {
+                    if (currentItem.playerNames && currentItem.playerNames.length) {
+                        currentPlayer = currentPlayer.concat(currentItem.playerNames);
+                    }
+                });
+
+                deletedPlayerNameArr = originalPlayer.filter(oriItem=>currentPlayer.indexOf(oriItem) == -1);
+                addedPlayerNameArr = currentPlayer.filter(curItem=>originalPlayer.indexOf(curItem) == -1);
+
+                let modifyData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    addedPlayerNameArr,
+                    deletedPlayerNameArr
+                }
+
+                socketService.$socket($scope.AppSocket, 'modifyPlayerPermissionByPromoCode', modifyData, function () {});
             };
 
             vm.saveUserFromGroupToGroup = function (type, originalConfig, currentConfig) {
@@ -25837,7 +25864,6 @@ console.log('typeof ',typeof gameProviders);
                 socketService.$socket($scope.AppSocket, 'getBlockPromoCodeUserGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('getBlockPromoCodeUserGroup', data);
-                        vm.userGroupBlockConfigCopy = JSON.parse(JSON.stringify(data.data)); // use to check if duplicate name in group (will not affect by input)
                         vm.userGroupBlockConfig = data.data;
                     });
                 });
@@ -25845,7 +25871,7 @@ console.log('typeof ',typeof gameProviders);
 
             vm.getAllPromoCodeUserGroup = function () {
                 socketService.$socket($scope.AppSocket, 'getAllPromoCodeUserGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
-                    vm.userGroupAllConfig = data.data;
+                    vm.userGroupAllConfig = data.data; // note: do not modify playerNames in this variable, promocode may not function properly
                 });
             };
 

@@ -3063,6 +3063,23 @@ let dbPlayerReward = {
         )
     },
 
+    modifyPlayerPermissionByPromoCode: (platformObjId, addedPlayerNameArr, deletedPlayerNameArr) => {
+        let promArr = [];
+        if (addedPlayerNameArr && addedPlayerNameArr.length) {
+            let addBanPermission = dbConfig.collection_players.update(
+                {platform: platformObjId, name: {$in: addedPlayerNameArr}}, {forbidPromoCode: true}, {multi: true});
+            promArr.push(addBanPermission);
+        }
+        if (deletedPlayerNameArr && deletedPlayerNameArr.length) {
+            let deleteBanPermission = dbConfig.collection_players.update(
+                {platform: platformObjId, name: {$in: deletedPlayerNameArr}}, {forbidPromoCode: false}, {multi: true});
+            promArr.push(deleteBanPermission);
+        }
+
+        return Promise.all(promArr);
+
+    },
+
     // check the availability of promoCodeType
     checkPromoCodeTypeAvailability: (platformObjId, promoCodeTypeObjId) => {
         return expirePromoCode().then(() => {
@@ -3136,7 +3153,17 @@ let dbPlayerReward = {
         let saveArr = [];
 
         if (isDelete) {
-            return dbConfig.collection_promoCodeUserGroup.remove({_id: data});
+            return dbConfig.collection_promoCodeUserGroup.findOne({_id: data}).lean().then(
+                groupData => {
+                    if (groupData && groupData.playerNames && groupData.playerNames.length) {
+                        dbConfig.collection_players.update({
+                            platform: groupData.platformObjId,
+                            name: {$in: groupData.playerNames}
+                        }, {forbidPromoCode: false}, {multi: true}).catch(errorUtils.reportError);
+                    }
+                    return dbConfig.collection_promoCodeUserGroup.remove({_id: data});
+                }
+            )
         } else {
             if (data && data.length > 0) {
                 data.map(grp => {
@@ -3172,8 +3199,19 @@ let dbPlayerReward = {
         return Promise.all(saveArr);
     },
 
-    updatePromoCodeGroupMainPermission: function (query, updateData) {
-        return dbConfig.collection_promoCodeUserGroup.findOneAndUpdate(query, updateData, {upsert: true}).lean();
+    updatePromoCodeGroupMainPermission: function (checkQuery, query, updateData) {
+        return dbConfig.collection_promoCodeUserGroup.findOne(checkQuery).lean().then(
+            promoCodeData => {
+                if (promoCodeData) {
+                    if (!promoCodeData.isBlockPromoCodeUser) {
+                        dbConfig.collection_promoCodeUserGroup.findOneAndUpdate({_id: promoCodeData._id}, {$pull: {playerNames: checkQuery.playerNames}}).lean().catch(errorUtils.reportError);
+                    } else {
+                        return Q.reject({name: "DataError", message: "Player already in promo code blocked group"});
+                    }
+                }
+                return dbConfig.collection_promoCodeUserGroup.findOneAndUpdate(query, updateData, {upsert: true}).lean();
+            }
+        )
     },
 
     saveDelayDurationGroup: (platformObjId, data) => {

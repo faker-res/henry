@@ -5681,8 +5681,12 @@ define(['js/app'], function (myApp) {
                             var playerObjId = row._id ? row._id : "";
 
                             if (row.isRealPlayer) {
+                                let isForbidPromoCode = 0;
+                                if (row.forbidPromoCode) {
+                                    isForbidPromoCode = 1;
+                                }
                                 link.append($('<a>', {
-                                    'class': 'forbidRewardEventPopover fa fa-gift margin-right-5' + (row.forbidRewardEvents && row.forbidRewardEvents.length > 0 ? " text-danger" : ""),
+                                    'class': 'forbidRewardEventPopover fa fa-gift margin-right-5' + (row.forbidRewardEvents && (row.forbidRewardEvents.length + isForbidPromoCode) > 0 ? " text-danger" : ""),
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     // 'title': $translate("PHONE"),
@@ -5693,7 +5697,7 @@ define(['js/app'], function (myApp) {
                                     'href': '#',
                                     'style': "z-index: auto; min-width:23px",
                                     'data-container': "body",
-                                    'html': (row.forbidRewardEvents && row.forbidRewardEvents.length > 0 ? '<sup>' + row.forbidRewardEvents.length + '</sup>' : ''),
+                                    'html': (row.forbidRewardEvents && (row.forbidRewardEvents.length + isForbidPromoCode) > 0 ? '<sup>' + (row.forbidRewardEvents.length + isForbidPromoCode) + '</sup>' : ''),
                                 }));
                             }
 
@@ -6294,7 +6298,11 @@ define(['js/app'], function (myApp) {
                                         forbidRewardEvents.push($(v).attr('data-provider'));
                                     }
                                 });
-                                vm.forbidRewardDisable = vm.isForbidChanged(forbidRewardEvents, vm.forbidRewardEventPopover.forbidRewardEvents);
+                                if (vm.forbidPromoCode != rowData.forbidPromoCode) {
+                                    vm.forbidRewardDisable = false;
+                                } else {
+                                    vm.forbidRewardDisable = vm.isForbidChanged(forbidRewardEvents, vm.forbidRewardEventPopover.forbidRewardEvents);
+                                }
                                 $scope.safeApply();
                             });
 
@@ -6313,7 +6321,7 @@ define(['js/app'], function (myApp) {
                                 let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
                                 let forbidRewardEvents = [];
                                 $.each(forbidRewardEventList, function (i, v) {
-                                    if ($(v).prop('checked')) {
+                                    if ($(v).prop('checked') && $(v).attr('data-provider')) {
                                         forbidRewardEvents.push($(v).attr('data-provider'));
                                     }
                                 });
@@ -13508,6 +13516,10 @@ define(['js/app'], function (myApp) {
                 let playerObj = data.data;
                 if (playerObj) {
                     let sendData = {
+                        checkQuery: {
+                            platformObjId: playerObj.platform,
+                            playerNames: playerObj.name
+                        },
                         query: {
                             platformObjId: playerObj.platform,
                             name: "次权限禁用组（预设）", //hard code name
@@ -13521,6 +13533,7 @@ define(['js/app'], function (myApp) {
                     } else {
                         sendData.updateData["$pull"] = {playerNames: playerObj.name};
                     }
+
                     socketService.$socket($scope.AppSocket, 'updatePromoCodeGroupMainPermission', sendData, function () {
                     });
                 }
