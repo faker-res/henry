@@ -3200,6 +3200,11 @@ let dbPlayerReward = {
     },
 
     updatePromoCodeGroupMainPermission: function (checkQuery, query, updateData) {
+        let isUpsert = true;
+        if (updateData.$pull) {
+            isUpsert = false;
+        }
+
         let checkProm = Promise.resolve(false);
         if (checkQuery) {
             checkProm = dbConfig.collection_promoCodeUserGroup.findOne(checkQuery).lean();
@@ -3213,7 +3218,7 @@ let dbPlayerReward = {
                         return Q.reject({name: "DataError", message: "Player already in promo code blocked group"});
                     }
                 }
-                return dbConfig.collection_promoCodeUserGroup.findOneAndUpdate(query, updateData, {upsert: true}).lean();
+                return dbConfig.collection_promoCodeUserGroup.findOneAndUpdate(query, updateData, {upsert: isUpsert}).lean();
             }
         )
     },
