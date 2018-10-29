@@ -4629,6 +4629,7 @@ let dbPlayerReward = {
                         if (String(f._id) == String(limitedOfferObjId)) {
                             eventObj = e;
                             limitedOfferObj = f;
+                            console.log("yH checking----limitedOfferObj", limitedOfferObj)
                         }
                     });
                 });
@@ -4780,6 +4781,7 @@ let dbPlayerReward = {
                 expirationTime.setMinutes(expirationTime.getMinutes() + (Math.abs(Number(limitedOfferObj.limitTime)) || 30));
 
                 // create reward proposal
+                console.log("yH checking----limitedOfferObj.name",  limitedOfferObj.name)
                 let proposalData = {
                     type: proposalTypeObj._id,
                     creator: adminInfo ? adminInfo :
