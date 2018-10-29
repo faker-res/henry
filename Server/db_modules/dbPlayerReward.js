@@ -5806,6 +5806,18 @@ let dbPlayerReward = {
                                 });
                             }
 
+                            let lastTopUpRecord = topupInPeriodData[topupInPeriodData.length-1];
+
+                            if (eventData.condition.allowOnlyLatestTopUp && lastTopUpRecord && rewardData && rewardData.selectedTopup) {
+                                if (lastTopUpRecord._id.toString() !== rewardData.selectedTopup._id.toString()) {
+                                    return Promise.reject({
+                                        status: constServerCode.INVALID_DATA,
+                                        name: "DataError",
+                                        message: "This is not the latest top up record"
+                                    });
+                                }
+                            }
+
                             // check correct topup type
                             let correctTopUpType = true;
 
