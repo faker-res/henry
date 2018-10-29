@@ -1733,12 +1733,12 @@ define(['js/app'], function (myApp) {
 
                 if (type === 'msg' && authService.checkViewPermission('Partner', 'Partner', 'sendSMS')) {
                     vm.smsPartner = {
-                        partnerId: partnerObjId.partnerId,
-                        partnerName: partnerObjId.partnerName,
-                        realName: partnerObjId.realName,
+                        partnerId: data.partnerId,
+                        partnerName: data.partnerName,
+                        realName: data.realName,
                         platformId: vm.selectedPlatform.data.platformId,
                         channel: $scope.channelList[0],
-                        hasPhone: partnerObjId.phoneNumber
+                        hasPhone: data.phoneNumber
                     };
                     vm.sendSMSResult = {};
                     $scope.safeApply();

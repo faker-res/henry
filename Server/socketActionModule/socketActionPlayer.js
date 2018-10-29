@@ -268,7 +268,7 @@ function socketActionPlayer(socketIO, socket) {
         updatePlayerForbidRewardEvents: function updatePlayerForbidRewardEvents(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data._id && data.forbidRewardEvents);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidRewardEvents, [data._id, data.forbidRewardEvents], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updatePlayerForbidRewardEvents, [data._id, data.forbidRewardEvents, data.forbidPromoCode], actionName, isValidData);
         },
 
         updateBatchPlayerForbidRewardEvents: function updateBatchPlayerForbidRewardEvents(data) {
@@ -341,12 +341,6 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId);
             socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerConsumptionRecords, [data, data.index, data.limit, data.sortCol], actionName, isValidData);
-        },
-
-        getConsumptionSlipRewardList: function () {
-            var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.playerId && data.code & data.data);
-            socketUtil.emitter(self.socket, dbPlayerInfo.getConsumptionSlipRewardList, [data.playerId, data.code, data.data], actionName, isValidData);
         },
 
         /**

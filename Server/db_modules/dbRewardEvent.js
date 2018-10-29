@@ -1153,6 +1153,9 @@ var dbRewardEvent = {
                                }
                            )
                         }
+                        else{
+                            returnData.condition.deposit.status = 2;
+                        }
 
                         if (consumptionSlipRewardDetail.unusedList && consumptionSlipRewardDetail.unusedList.length){
                             consumptionSlipRewardDetail.unusedList.forEach(

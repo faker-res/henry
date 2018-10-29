@@ -138,12 +138,6 @@
         this.rewardService.cancelAppliedBonus.once(callback);
     }
 
-    proto.getConsumptionSlipRewardList = function (callback, requestData) {
-        var data = requestData || {};
-        this.rewardService.getConsumptionSlipRewardList.request(data);
-        this.rewardService.getConsumptionSlipRewardList.once(callback);
-    };
-
     proto.applyRewardEvent = function (callback, requestData) {
         var sendReq = {
             code: requestData.code,
