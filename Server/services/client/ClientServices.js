@@ -295,7 +295,6 @@
                 "createFirstTopUpRewardProposal",
                 "applyProviderReward",
                 "applyRewardEvent",
-                "getConsumptionSlipRewardList",
                 "getPlayerReferralList",
                 "getConsecutiveLoginRewardDay",
                 "getEasterEggPlayerInfo",
