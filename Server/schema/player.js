@@ -135,6 +135,7 @@ var playerSchema = new Schema({
         applyBonus: {type: Boolean, default: true},
         // advanceConsumptionReward: {type: Boolean, default: true},
         transactionReward: {type: Boolean, default: true},
+        allTopUp: {type: Boolean, default: true},
         topupOnline: {type: Boolean, default: true},
         topupManual: {type: Boolean, default: true},
         topUpCard: {type: Boolean, default: true},

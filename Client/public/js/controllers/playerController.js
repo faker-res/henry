@@ -5549,6 +5549,12 @@ define(['js/app'], function (myApp) {
                                 }));
                                 link.append($('<img>', {
                                     'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.allTopUp === false ? "allTopUpRed.png" : "allTopUpBlue.png"),
+                                    height: "13px",
+                                    width: "15px",
+                                }));
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
                                     'src': "images/icon/" + (perm.topupOnline === true ? "onlineTopUpBlue.png" : "onlineTopUpRed.png"),
                                     height: "13px",
                                     width: "15px",
@@ -6351,6 +6357,12 @@ define(['js/app'], function (myApp) {
                                     height: '26px'
                                 },
                                 // transactionReward: {imgType: 'i', iconClass: "fa fa-share-square"},
+                                allTopUp: {
+                                    imgType: 'img',
+                                    src: "images/icon/allTopUpBlue.png",
+                                    width: "26px",
+                                    height: '20px'
+                                },
                                 topupOnline: {
                                     imgType: 'img',
                                     src: "images/icon/onlineTopUpBlue.png",
