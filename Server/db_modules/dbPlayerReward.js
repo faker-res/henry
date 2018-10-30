@@ -1073,7 +1073,7 @@ let dbPlayerReward = {
                     }
 
                 }
-            
+
                 return result
             }
         )
@@ -2901,7 +2901,7 @@ let dbPlayerReward = {
         ).then(
             res => {
                 if (res && res.length == 2){
-                 
+
                     let f1 = searchQuery.promoCodeType ? res[0].filter(e =>
                         (e.promoCodeTypeObjId &&  e.promoCodeTypeObjId.type && e.promoCodeTypeObjId.type == searchQuery.promoCodeType) ||
                         (e.promoCodeTemplateObjId &&  e.promoCodeTemplateObjId.type && e.promoCodeTemplateObjId.type == searchQuery.promoCodeType)
@@ -5238,7 +5238,7 @@ let dbPlayerReward = {
             "data.playerObjId": playerData._id,
             "data.eventId": eventData._id,
             status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-            settleTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+            createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
         };
 
         if (eventData.condition.topupType && eventData.condition.topupType.length > 0) {
@@ -5338,7 +5338,7 @@ let dbPlayerReward = {
             }
 
             rewardDetailProm = dbPlayerReward.getPlayerConsumptionSlipRewardDetail(rewardData, playerData.playerId, eventData.code, rewardData.applyTargetDate, isBulkApply);
-            
+
             promArr.push(rewardDetailProm);
         }
 
@@ -6039,7 +6039,7 @@ let dbPlayerReward = {
                         }
 
                         console.log("yH checking---applicationDetails", applicationDetails)
-                        
+
                         if (applicationDetails && applicationDetails.length < 1) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -6067,7 +6067,7 @@ let dbPlayerReward = {
                         let rewardInfoList = playerRewardDetail.list;
 
                         console.log("yH checking--- rewardInfoList", rewardInfoList)
-                        
+
                         for (let i = 0; i < rewardInfoList.length; i++) {
                             let listItem = rewardInfoList[i];
 
