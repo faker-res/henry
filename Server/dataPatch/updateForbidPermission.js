@@ -33,7 +33,7 @@ platformCursor.eachAsync(
                 }).then(
                     groupPlayers => {
                         if (groupPlayers && groupPlayers.length) {
-                            dbconfig.collection_players.update({
+                            return dbconfig.collection_players.update({
                                 platform: platform._id,
                                 name: {$in: groupPlayers}
                             }, {"forbidPromoCode": true}, {multi: true, new: true}).exec();
