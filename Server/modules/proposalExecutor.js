@@ -90,6 +90,13 @@ var proposalExecutor = {
             || executionType === 'executeUpdatePlayerCredit'
             || executionType === 'executePlayerConsumptionReturn'
 
+            // Top up
+            || executionType === 'executePlayerTopUp'
+            || executionType === 'executePlayerAlipayTopUp'
+            || executionType === 'executePlayerQuickpayTopUp'
+            || executionType === 'executePlayerWechatTopUp'
+            || executionType === 'executeManualPlayerTopUp'
+
             // Group reward
             || executionType === 'executePlayerLoseReturnRewardGroup';
 
@@ -1354,18 +1361,18 @@ var proposalExecutor = {
             /**
              * execution function for player top up proposal type
              */
-            executePlayerTopUp: function (proposalData, deferred) {
+            executePlayerTopUp: function (proposalData) {
                 let topUpAmount = Number(proposalData.data.amount);
                 let oriAmount = 0;
 
-                if(proposalData.data.hasOwnProperty("actualAmountReceived")){
+                if (proposalData.data.hasOwnProperty("actualAmountReceived")) {
                     topUpAmount = Number(proposalData.data.actualAmountReceived);
                     oriAmount = Number(proposalData.data.amount);
                 }
 
-                dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, topUpAmount, "", constPlayerTopUpType.ONLINE, proposalData, oriAmount).then(
-                    function (data) {
-                        var wsMessageClient = serverInstance.getWebSocketMessageClient();
+                return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, topUpAmount, "", constPlayerTopUpType.ONLINE, proposalData, oriAmount).then(
+                    data => {
+                        let wsMessageClient = serverInstance.getWebSocketMessageClient();
                         if (wsMessageClient) {
                             wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "onlineTopupStatusNotify",
                                 {
@@ -1375,14 +1382,14 @@ var proposalExecutor = {
                                     status: proposalData.status,
                                     playerId: proposalData.data.playerId
                                 }
-                            );
+                            ).catch(errorUtils.reportError);
                         }
-                        dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ONLINE);
+                        dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ONLINE).catch(errorUtils.reportError);
                         sendMessageToPlayer (proposalData,constMessageType.ONLINE_TOPUP_SUCCESS,{});
-                        deferred.resolve(proposalData);
+                        return proposalData;
                     },
-                    function (error) {
-                        deferred.reject(error);
+                    error => {
+                        return Promise.reject(error);
                     }
                 )
             },
@@ -1390,9 +1397,9 @@ var proposalExecutor = {
             /**
              * execution function for player top up proposal type
              */
-            executePlayerAlipayTopUp: function (proposalData, deferred) {
-                dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.ALIPAY, proposalData).then(
-                    function (data) {
+            executePlayerAlipayTopUp: function (proposalData) {
+                return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.ALIPAY, proposalData).then(
+                    data => {
                         //todo::add top up notify here ???
                         // var wsMessageClient = serverInstance.getWebSocketMessageClient();
                         // if (wsMessageClient) {
@@ -1406,23 +1413,20 @@ var proposalExecutor = {
                         //         }
                         //     );
                         // }
-                        dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ALIPAY);
+                        dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.ALIPAY).catch(errorUtils.reportError);
                         sendMessageToPlayer (proposalData,constMessageType.ALIPAY_TOPUP_SUCCESS,{});
-                        deferred.resolve(proposalData);
+                        return proposalData;
                     },
-                    function (error) {
-                        deferred.reject(error);
-                    }
+                    error => Promise.reject(error)
                 )
-
             },
 
             /**
              * execution function for player top up proposal type
              */
-            executePlayerQuickpayTopUp: function (proposalData, deferred) {
-                dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.QUICKPAY, proposalData).then(
-                    function (data) {
+            executePlayerQuickpayTopUp: function (proposalData) {
+                return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.QUICKPAY, proposalData).then(
+                    data => {
                         //todo::add top up notify here ???
                         // var wsMessageClient = serverInstance.getWebSocketMessageClient();
                         // if (wsMessageClient) {
@@ -1436,20 +1440,18 @@ var proposalExecutor = {
                         //         }
                         //     );
                         // }
-                        deferred.resolve(proposalData);
+                        return proposalData;
                     },
-                    function (error) {
-                        deferred.reject(error);
-                    }
+                    error => Promise.reject(error)
                 );
             },
 
             /**
              * execution function for player top up proposal type
              */
-            executePlayerWechatTopUp: function (proposalData, deferred) {
-                dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.WECHAT, proposalData).then(
-                    function (data) {
+            executePlayerWechatTopUp: function (proposalData) {
+                return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.WECHAT, proposalData).then(
+                    data => {
                         //todo::add top up notify here ???
                         // var wsMessageClient = serverInstance.getWebSocketMessageClient();
                         // if (wsMessageClient) {
@@ -1463,13 +1465,11 @@ var proposalExecutor = {
                         //         }
                         //     );
                         // }
-                        dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.WECHAT);
+                        dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.WECHAT).catch(errorUtils.reportError);
                         sendMessageToPlayer (proposalData,constMessageType.WECHAT_TOPUP_SUCCESS,{});
-                        deferred.resolve(proposalData);
+                        return proposalData;
                     },
-                    function (error) {
-                        deferred.reject(error);
-                    }
+                    error => Promise.reject(error)
                 )
 
             },
@@ -1477,11 +1477,11 @@ var proposalExecutor = {
             /**
              * execution function for player manual top up proposal type
              */
-            executeManualPlayerTopUp: function (proposalData, deferred) {
+            executeManualPlayerTopUp: function (proposalData) {
                 //valid data
                 if (proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.amount) {
-                    dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.MANUAL, proposalData).then(
-                        function (data) {
+                    return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.MANUAL, proposalData).then(
+                        data => {
                             // SMSSender.sendByPlayerId(proposalData.data.playerId, constMessageType.MANUAL_TOPUP_SUCCESS);
                             // var wsMessageClient = serverInstance.getWebSocketMessageClient();
                             // if (wsMessageClient) {
@@ -1496,17 +1496,15 @@ var proposalExecutor = {
                             //     );
                             // }
                             // DEBUG: Reward sometime not applied issue
-                            dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.MANUAL);
+                            dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.MANUAL).catch(errorUtils.reportError);
                             sendMessageToPlayer(proposalData,constMessageType.MANUAL_TOPUP_SUCCESS,{});
-                            deferred.resolve(proposalData);
+                            return proposalData;
                         },
-                        function (error) {
-                            deferred.reject(error);
-                        }
+                        error => Promise.reject(error)
                     )
                 }
                 else {
-                    deferred.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
+                    return Promise.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
                 }
             },
 
