@@ -30950,7 +30950,7 @@ console.log('typeof ',typeof gameProviders);
                 vm.showPlatformList = true;
                 vm.showPlatformDropDownList = false;
                 vm.prepareDemoPlayerPrefix();
-                vm.showPlatformDetailTab(null);
+                // vm.showPlatformDetailTab(null);
                 vm.showRewardSettingsTab(null);
                 vm.showReapplyLostOrderTab(null);
                 vm.showPlayerAccountingDetailTab(null);
