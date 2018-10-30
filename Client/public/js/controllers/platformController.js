@@ -14606,7 +14606,7 @@ define(['js/app'], function (myApp) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updatePlayerForbidRewardEvents', sendData, function (data) {
                     vm.getPlatformPlayersData();
-                    vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent));
+                    vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent), data.data);
                 });
             };
             vm.updateBatchPlayerForbidRewardEvents = function (sendData) {
@@ -25439,35 +25439,13 @@ console.log('typeof ',typeof gameProviders);
                         $scope.safeApply();
                     });
                     vm.saveUserFromGroupToGroup(1, vm.userGroupAllConfig, vm.userGroupBlockConfig)
+                    modifyPlayerPermissionPromoGroup();
                 }
+
+
             };
 
-            vm.saveBlockPromoCodeUserGroup = function (isDelete, index) {
-                console.log('userGroupBlockConfig', vm.userGroupBlockConfig);
-                vm.selectedPromoCodeUserGroup = null;
-                vm.selectedBlockPromoCodeUserGroup = null;
-
-                let sendData = {
-                    platformObjId: vm.selectedPlatform.id,
-                    groupData: vm.userGroupBlockConfig
-                };
-
-                if (isDelete) {
-                    let deleteData = {
-                        platformObjId: vm.selectedPlatform.id,
-                        deleteData: index
-                    };
-                    socketService.$socket($scope.AppSocket, 'saveBlockPromoCodeUserGroup', deleteData);
-                } else {
-                    socketService.$socket($scope.AppSocket, 'saveBlockPromoCodeUserGroup', sendData, function () {
-                        vm.getPromoCodeUserGroup();
-                        vm.getBlockPromoCodeUserGroup();
-                        vm.getAllPromoCodeUserGroup();
-                        $scope.safeApply();
-                    });
-                    vm.saveUserFromGroupToGroup(2, vm.userGroupAllConfig, vm.userGroupConfig)
-                }
-
+            function modifyPlayerPermissionPromoGroup() {
                 let addedPlayerNameArr = [];
                 let deletedPlayerNameArr = [];
                 let originalPlayer = [];
@@ -25488,12 +25466,43 @@ console.log('typeof ',typeof gameProviders);
                 addedPlayerNameArr = currentPlayer.filter(curItem=>originalPlayer.indexOf(curItem) == -1);
 
                 let modifyData = {
+                    adminId: authService.adminId,
                     platformObjId: vm.selectedPlatform.id,
                     addedPlayerNameArr,
                     deletedPlayerNameArr
                 }
 
                 socketService.$socket($scope.AppSocket, 'modifyPlayerPermissionByPromoCode', modifyData, function () {});
+            }
+
+            vm.saveBlockPromoCodeUserGroup = function (isDelete, index) {
+                console.log('userGroupBlockConfig', vm.userGroupBlockConfig);
+                vm.selectedPromoCodeUserGroup = null;
+                vm.selectedBlockPromoCodeUserGroup = null;
+
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    groupData: vm.userGroupBlockConfig
+                };
+
+                if (isDelete) {
+                    let deleteData = {
+                        adminId: authService.adminId,
+                        platformObjId: vm.selectedPlatform.id,
+                        deleteData: index
+                    };
+                    socketService.$socket($scope.AppSocket, 'saveBlockPromoCodeUserGroup', deleteData);
+                } else {
+                    socketService.$socket($scope.AppSocket, 'saveBlockPromoCodeUserGroup', sendData, function () {
+                        vm.getPromoCodeUserGroup();
+                        vm.getBlockPromoCodeUserGroup();
+                        vm.getAllPromoCodeUserGroup();
+                        $scope.safeApply();
+                    });
+                    vm.saveUserFromGroupToGroup(2, vm.userGroupAllConfig, vm.userGroupConfig)
+                    modifyPlayerPermissionPromoGroup();
+                }
+
             };
 
             vm.saveUserFromGroupToGroup = function (type, originalConfig, currentConfig) {
@@ -25681,10 +25690,10 @@ console.log('typeof ',typeof gameProviders);
                     let duplicateName = [];
                     let duplicateGroup = [];
                     vm.userGroupAllConfig.forEach(
-                        (group, index) => {
+                        (group) => {
                             ObjData.playerNames.forEach(
-                                (playerName, pIndex) => {
-                                    if (ObjData._id && group._id && String(group._id) != String(ObjData._id) && group.playerNames
+                                (playerName) => {
+                                    if (!group.isBlockByMainPermission && ObjData._id && group._id && String(group._id) != String(ObjData._id) && group.playerNames
                                         && group.playerNames.length && group.playerNames.indexOf(playerName) > -1) {
                                         duplicateName.push(playerName);
                                         duplicateGroup.indexOf(group.name) == -1? duplicateGroup.push(group.name): "";
@@ -31917,8 +31926,10 @@ console.log('typeof ',typeof gameProviders);
             //endregion
 
             //region forbidReward
-            vm.updateForbidRewardLog = function (playerId, forbidReward) {
-
+            vm.updateForbidRewardLog = function (playerId, forbidReward, playerObj) {
+                if (playerObj && playerObj.forbidPromoCode) {
+                    forbidReward.push("优惠代码");
+                }
                 let queryData = {
                     playerId: playerId,
                     remark: vm.forbidRewardRemark,
@@ -31935,7 +31946,7 @@ console.log('typeof ',typeof gameProviders);
                 let proms = [];
 
                 data.data.forEach(player => {
-                    let prom = vm.updateForbidRewardLog(player._id, vm.findForbidCheckedName(player.forbidRewardEvents, vm.allRewardEvent));
+                    let prom = vm.updateForbidRewardLog(player._id, vm.findForbidCheckedName(player.forbidRewardEvents, vm.allRewardEvent), player);
                     proms.push(prom);
                 });
 
