@@ -30938,7 +30938,7 @@ console.log('typeof ',typeof gameProviders);
                 }, 1000);
             }
 
-            function initPageParam() {
+            async function initPageParam() {
                 vm.initFeedbackQuery();
                 oneSecIntervalTask();
 
