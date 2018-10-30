@@ -24,7 +24,7 @@ sudo npm install -g gulp [https://github.com/gulpjs/gulp](https://github.com/gul
 
 # Production Deployment
 
-    Set up DB servers and Init DB data
+    Set up DB servers and Init DB data222
         Set up Mongodb
         Connect to your DB server
         Initialize shard keys if it is sharded cluster
