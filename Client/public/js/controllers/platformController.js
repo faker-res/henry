@@ -3866,6 +3866,7 @@ define(['js/app'], function (myApp) {
                         }
                     })
                     console.log("vm.includedGames", vm.includedGames);
+                    $scope.$evalAsync();
                 })
                 vm.excludedGames = '';
                 socketService.$socket($scope.AppSocket, 'getGamesNotAttachedToPlatform', query, function (data2) {
@@ -3899,7 +3900,7 @@ define(['js/app'], function (myApp) {
                             vm.gameStatus[v._id] = "default";
                         }
                     })
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 })
             }
 
