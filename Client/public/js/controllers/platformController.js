@@ -21362,6 +21362,14 @@ console.log('typeof ',typeof gameProviders);
 
             vm.updateCollectionInEdit = function (type, collection, data, collectionCopy, isNotObject) {
                 if (type == 'add') {
+                    if (collection && collection.length && data && data.hasOwnProperty("name")) {
+                        for (let i = 0; i < collection.length; i++) {
+                            if (collection[i].name == data.name) {
+                                return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                            }
+                        }
+                    }
+
 
                     if (!isNotObject) {
 
@@ -28141,6 +28149,11 @@ console.log('typeof ',typeof gameProviders);
 
             vm.updatePromoCodeTemplateInEdit = function (func, collection, data, type, tab, index) {
                 if (func == 'add') {
+                    for (let i = 0; i < collection.length; i++) {
+                        if (collection[i].name == data.name) {
+                            return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                        }
+                    }
 
                     if (collection && data && type) {
                         let returnedMsg = vm.checkPromoCodeField(data, type, tab);
