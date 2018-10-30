@@ -21363,14 +21363,9 @@ console.log('typeof ',typeof gameProviders);
 
             vm.updateCollectionInEdit = function (type, collection, data, collectionCopy, isNotObject) {
                 if (type == 'add') {
-                    if (collection && collection.length && data && data.hasOwnProperty("name")) {
-                        for (let i = 0; i < collection.length; i++) {
-                            if (collection[i].name == data.name) {
-                                return socketService.showErrorMessage($translate('Promo code name must be unique'));
-                            }
-                        }
+                    if (data && vm.isPromoNameExist(data.name)) {
+                        return socketService.showErrorMessage($translate('Promo code name must be unique'));
                     }
-
 
                     if (!isNotObject) {
 
@@ -22286,6 +22281,7 @@ console.log('typeof ',typeof gameProviders);
 
                 loadPromoCodeTypes();
                 loadPromoCodeUserGroup();
+                loadOpenPromoCodeTemplate();
                 // loadPromoCodeTemplate();
 
                 switch (choice) {
@@ -23433,6 +23429,21 @@ console.log('typeof ',typeof gameProviders);
                     vm.getPlatformPlayersData();
                     $scope.safeApply();
                 });
+            };
+
+            vm.isPromoNameExist = (name) => {
+                let allNames = [];
+                vm.promoCodeTypes.map(promoCode => {
+                    allNames.push(promoCode.name);
+                });
+                vm.promoCodeTemplateSetting.map(promoCode => {
+                    allNames.push(promoCode.name);
+                });
+                vm.openPromoCodeTemplateData.map(promoCode => {
+                    allNames.push(promoCode.name);
+                });
+
+                return allNames.includes(name);
             };
 
             function loadPromoCodeTypes() {
@@ -28150,13 +28161,10 @@ console.log('typeof ',typeof gameProviders);
 
             vm.updatePromoCodeTemplateInEdit = function (func, collection, data, type, tab, index) {
                 if (func == 'add') {
-                    for (let i = 0; i < collection.length; i++) {
-                        if (collection[i].name == data.name) {
-                            return socketService.showErrorMessage($translate('Promo code name must be unique'));
-                        }
-                    }
-
                     if (collection && data && type) {
+                        if (vm.isPromoNameExist(data.name)) {
+                            return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                        };
                         let returnedMsg = vm.checkPromoCodeField(data, type, tab);
                         vm.promoCodeFieldCheckFlag = false;
                         if (returnedMsg) {
@@ -28430,7 +28438,9 @@ console.log('typeof ',typeof gameProviders);
             }
 
             vm.generateOpenPromoCode = function (col, index, data, type, template) {
-
+                if (!template && data && vm.isPromoNameExist(data.name)) {
+                    return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                }
                 vm.promoCodeFieldCheckFlag = false;
                 let sendData = Object.assign({},data);
                 let returnedMsg = vm.checkPromoCodeField(data, type);
