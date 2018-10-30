@@ -28363,7 +28363,7 @@ console.log('typeof ',typeof gameProviders);
 
                 if(vm.openPromoCodeTemplateSetting.length > 0){
                     vm.openPromoCodeTemplateSetting.forEach(p => {
-
+                    
                         if (p) {
                             let usingGroup = p.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
 
@@ -28396,10 +28396,9 @@ console.log('typeof ',typeof gameProviders);
                                     p.createTime = new Date();
                                     p.status = vm.constPromoCodeStatus.AVAILABLE;
                                 }
-
-                                delete p.expirationTime$
-
                             }
+
+                            delete p.expirationTime$
                         }
                     })
                 }
