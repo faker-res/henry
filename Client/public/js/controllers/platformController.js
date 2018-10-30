@@ -27715,6 +27715,7 @@ console.log('typeof ',typeof gameProviders);
                 vm.autoApprovalBasic.profitTimesMinAmount = vm.selectedPlatform.data.autoApproveProfitTimesMinAmount;
                 vm.autoApprovalBasic.bonusProfitOffset = vm.selectedPlatform.data.autoApproveBonusProfitOffset;
                 vm.autoApprovalBasic.autoUnlockWhenInitAmtLessThanLostThreshold = vm.selectedPlatform.data.autoUnlockWhenInitAmtLessThanLostThreshold;
+                vm.autoApprovalBasic.checkContinousApplyBonusTimes = vm.selectedPlatform.data.checkContinousApplyBonusTimes;
 
                 vm.autoApprovalBasic.partnerEnableAutoApplyBonus = vm.selectedPlatform.data.partnerEnableAutoApplyBonus;
                 vm.autoApprovalBasic.partnerAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.partnerAutoApproveWhenSingleBonusApplyLessThan;
@@ -29189,6 +29190,7 @@ console.log('typeof ',typeof gameProviders);
                         autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
                         autoApproveBonusProfitOffset: srcData.bonusProfitOffset,
                         autoUnlockWhenInitAmtLessThanLostThreshold: srcData.autoUnlockWhenInitAmtLessThanLostThreshold,
+                        checkContinousApplyBonusTimes: srcData.checkContinousApplyBonusTimes,
                         partnerEnableAutoApplyBonus: srcData.partnerEnableAutoApplyBonus,
                         partnerAutoApproveWhenSingleBonusApplyLessThan: srcData.partnerAutoApproveWhenSingleBonusApplyLessThan,
                         partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan,
