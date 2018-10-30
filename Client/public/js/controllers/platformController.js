@@ -3866,6 +3866,7 @@ define(['js/app'], function (myApp) {
                         }
                     })
                     console.log("vm.includedGames", vm.includedGames);
+                    $scope.$evalAsync();
                 })
                 vm.excludedGames = '';
                 socketService.$socket($scope.AppSocket, 'getGamesNotAttachedToPlatform', query, function (data2) {
@@ -3899,7 +3900,7 @@ define(['js/app'], function (myApp) {
                             vm.gameStatus[v._id] = "default";
                         }
                     })
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 })
             }
 
@@ -21374,6 +21375,9 @@ console.log('typeof ',typeof gameProviders);
 
             vm.updateCollectionInEdit = function (type, collection, data, collectionCopy, isNotObject) {
                 if (type == 'add') {
+                    if (data && vm.isPromoNameExist(data.name)) {
+                        return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                    }
 
                     if (!isNotObject) {
 
@@ -22289,6 +22293,7 @@ console.log('typeof ',typeof gameProviders);
 
                 loadPromoCodeTypes();
                 loadPromoCodeUserGroup();
+                loadOpenPromoCodeTemplate();
                 // loadPromoCodeTemplate();
 
                 switch (choice) {
@@ -23436,6 +23441,21 @@ console.log('typeof ',typeof gameProviders);
                     vm.getPlatformPlayersData();
                     $scope.safeApply();
                 });
+            };
+
+            vm.isPromoNameExist = (name) => {
+                let allNames = [];
+                vm.promoCodeTypes.map(promoCode => {
+                    allNames.push(promoCode.name);
+                });
+                vm.promoCodeTemplateSetting.map(promoCode => {
+                    allNames.push(promoCode.name);
+                });
+                vm.openPromoCodeTemplateData.map(promoCode => {
+                    allNames.push(promoCode.name);
+                });
+
+                return allNames.includes(name);
             };
 
             function loadPromoCodeTypes() {
@@ -28153,8 +28173,10 @@ console.log('typeof ',typeof gameProviders);
 
             vm.updatePromoCodeTemplateInEdit = function (func, collection, data, type, tab, index) {
                 if (func == 'add') {
-
                     if (collection && data && type) {
+                        if (vm.isPromoNameExist(data.name)) {
+                            return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                        };
                         let returnedMsg = vm.checkPromoCodeField(data, type, tab);
                         vm.promoCodeFieldCheckFlag = false;
                         if (returnedMsg) {
@@ -28375,7 +28397,7 @@ console.log('typeof ',typeof gameProviders);
 
                 if(vm.openPromoCodeTemplateSetting.length > 0){
                     vm.openPromoCodeTemplateSetting.forEach(p => {
-
+                    
                         if (p) {
                             let usingGroup = p.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
 
@@ -28408,10 +28430,9 @@ console.log('typeof ',typeof gameProviders);
                                     p.createTime = new Date();
                                     p.status = vm.constPromoCodeStatus.AVAILABLE;
                                 }
-
-                                delete p.expirationTime$
-
                             }
+
+                            delete p.expirationTime$
                         }
                     })
                 }
@@ -28429,7 +28450,9 @@ console.log('typeof ',typeof gameProviders);
             }
 
             vm.generateOpenPromoCode = function (col, index, data, type, template) {
-
+                if (!template && data && vm.isPromoNameExist(data.name)) {
+                    return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                }
                 vm.promoCodeFieldCheckFlag = false;
                 let sendData = Object.assign({},data);
                 let returnedMsg = vm.checkPromoCodeField(data, type);

@@ -995,7 +995,7 @@ let dbPlayerReward = {
                     consumptionSlipRewardGroupTotalCountProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find(searchQuery).lean().count();
                 }
                 else{
-                    searchQuery.$or = [ {requiredTopUpAmount: {$gt: 0, $lte: totalTopUpAmount} }, {requiredTopUpAmount: {$exists: false}}, {requiredTopUpAmount: null}];
+                    searchQuery.$or = [ {requiredTopUpAmount: {$gte: 0, $lte: totalTopUpAmount} }, {requiredTopUpAmount: {$exists: false}}, {requiredTopUpAmount: null}];
                     consumptionSlipRewardGroupProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find(searchQuery).sort(sortCol).skip(index).limit(limit).lean();
                     consumptionSlipRewardGroupTotalCountProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find(searchQuery).lean().count();
                 }
@@ -1009,7 +1009,6 @@ let dbPlayerReward = {
 
                     let consumptionSlipRecord = retData[0];
                     let totalCount = retData[1];
-
 
                     // if there is appliedRewardList, it is applying the reward, not preview
                     if (rewardData.appliedRewardList && rewardData.appliedRewardList.length){
@@ -1074,7 +1073,7 @@ let dbPlayerReward = {
                     }
 
                 }
-            
+
                 return result
             }
         )
@@ -2902,7 +2901,7 @@ let dbPlayerReward = {
         ).then(
             res => {
                 if (res && res.length == 2){
-                 
+
                     let f1 = searchQuery.promoCodeType ? res[0].filter(e =>
                         (e.promoCodeTypeObjId &&  e.promoCodeTypeObjId.type && e.promoCodeTypeObjId.type == searchQuery.promoCodeType) ||
                         (e.promoCodeTemplateObjId &&  e.promoCodeTemplateObjId.type && e.promoCodeTemplateObjId.type == searchQuery.promoCodeType)
@@ -3421,7 +3420,16 @@ let dbPlayerReward = {
     },
 
     updatePromoCodeGroupMainPermission: function (checkQuery, query, updateData) {
-        return dbConfig.collection_promoCodeUserGroup.findOne(checkQuery).lean().then(
+        let isUpsert = true;
+        if (updateData.$pull) {
+            isUpsert = false;
+        }
+
+        let checkProm = Promise.resolve(false);
+        if (checkQuery) {
+            checkProm = dbConfig.collection_promoCodeUserGroup.findOne(checkQuery).lean();
+        }
+        return checkProm.then(
             promoCodeData => {
                 if (promoCodeData) {
                     if (!promoCodeData.isBlockPromoCodeUser) {
@@ -3430,7 +3438,7 @@ let dbPlayerReward = {
                         return Q.reject({name: "DataError", message: "Player already in promo code blocked group"});
                     }
                 }
-                return dbConfig.collection_promoCodeUserGroup.findOneAndUpdate(query, updateData, {upsert: true}).lean();
+                return dbConfig.collection_promoCodeUserGroup.findOneAndUpdate(query, updateData, {upsert: isUpsert}).lean();
             }
         )
     },
@@ -5230,7 +5238,7 @@ let dbPlayerReward = {
             "data.playerObjId": playerData._id,
             "data.eventId": eventData._id,
             status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-            settleTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+            createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
         };
 
         if (eventData.condition.topupType && eventData.condition.topupType.length > 0) {
@@ -5330,7 +5338,7 @@ let dbPlayerReward = {
             }
 
             rewardDetailProm = dbPlayerReward.getPlayerConsumptionSlipRewardDetail(rewardData, playerData.playerId, eventData.code, rewardData.applyTargetDate, isBulkApply);
-            
+
             promArr.push(rewardDetailProm);
         }
 
@@ -6031,7 +6039,7 @@ let dbPlayerReward = {
                         }
 
                         console.log("yH checking---applicationDetails", applicationDetails)
-                        
+
                         if (applicationDetails && applicationDetails.length < 1) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -6059,7 +6067,7 @@ let dbPlayerReward = {
                         let rewardInfoList = playerRewardDetail.list;
 
                         console.log("yH checking--- rewardInfoList", rewardInfoList)
-                        
+
                         for (let i = 0; i < rewardInfoList.length; i++) {
                             let listItem = rewardInfoList[i];
 
