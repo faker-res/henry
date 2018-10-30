@@ -4629,6 +4629,7 @@ let dbPlayerReward = {
                         if (String(f._id) == String(limitedOfferObjId)) {
                             eventObj = e;
                             limitedOfferObj = f;
+                            console.log("yH checking----limitedOfferObj", limitedOfferObj)
                         }
                     });
                 });
@@ -4780,6 +4781,7 @@ let dbPlayerReward = {
                 expirationTime.setMinutes(expirationTime.getMinutes() + (Math.abs(Number(limitedOfferObj.limitTime)) || 30));
 
                 // create reward proposal
+                console.log("yH checking----limitedOfferObj.name",  limitedOfferObj.name)
                 let proposalData = {
                     type: proposalTypeObj._id,
                     creator: adminInfo ? adminInfo :
@@ -5245,7 +5247,7 @@ let dbPlayerReward = {
         if (eventData.type.name === constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP) {
             // set the settlement date for eventQuery and topupMatchQuery based on intervalTime
             if(intervalTime){
-                eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                eventQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
                 topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
             }
 
@@ -5299,7 +5301,7 @@ let dbPlayerReward = {
 
             if (intervalTime) {
                 consumptionMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                eventQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
                 topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
             }
 
@@ -5344,13 +5346,13 @@ let dbPlayerReward = {
 
             // set the settlement date for eventQuery and topupMatchQuery based on intervalTime
             if(intervalTime){
-                eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                eventQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
                 topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
             }
 
             // special settlement time handling for for this case: the settlement endTime will be the previewing-time
             if (rewardData.previewDate) {
-                eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: dbUtility.getSGTimeOf(rewardData.previewDate)};
+                eventQuery.createTime = {$gte: intervalTime.startTime, $lte: dbUtility.getSGTimeOf(rewardData.previewDate)};
                 topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lt: dbUtility.getSGTimeOf(rewardData.previewDate)};
             }
 

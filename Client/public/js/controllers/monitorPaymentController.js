@@ -611,7 +611,7 @@ define(['js/app'], function (myApp) {
                             item.amount$ = parseFloat(item.data.amount).toFixed(2);
                             item.merchantNo$ = item.data.merchantNo ? item.data.merchantNo
                                 : item.data.wechatAccount ? item.data.wechatAccount
-                                    : item.data.weChatAccount != null ? item.data.weChatAccount
+                                    : item.data.weChatAccount ? item.data.weChatAccount
                                         : item.data.alipayAccount ? item.data.alipayAccount
                                             : item.data.bankCardNo ? item.data.bankCardNo
                                                 : item.data.accountNo ? item.data.accountNo : '';
@@ -632,7 +632,12 @@ define(['js/app'], function (myApp) {
                                 item.topupTypeStr = typeID
                                     ? $translate(vm.topUpTypeList[typeID])
                                     : $translate("Unknown")
-                                item.merchantNo$ = vm.getOnlineMerchantId(item.data.merchantNo, item.inputDevice, typeID);
+
+                                let merchantNo = '';
+                                if(item.data.merchantNo){
+                                    merchantNo = item.data.merchantNo;
+                                }
+                                item.merchantNo$ = vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
                             } else {
                                 //show topup type for other types
                                 item.topupTypeStr = $translate(item.type.name);
@@ -853,7 +858,7 @@ define(['js/app'], function (myApp) {
             return result;
         }
         vm.getOnlineMerchantId = function (merchantNo, devices, topupType) {
-            let result = '';
+            let result = merchantNo;
             let targetDevices = commonService.getPMSDevices(devices);
             if (merchantNo && vm.merchants) {
                 let merchant = vm.merchants.filter(item => {
@@ -960,7 +965,15 @@ define(['js/app'], function (myApp) {
                         },
                         sClass: 'merchantCount'
                     },
-                    {title: $translate('3rd Party Platform'), data: "merchantName", sClass: 'merchantCount'},
+                    {
+                        "title": $translate('3rd Party Platform'), "data": 'data.merchantUseName',
+                        render: function(data, type, row){
+                            let merchantName =  row.merchantName ? row.merchantName : '';
+                            var text = data ? data : merchantName;
+                            return "<div>" + text + "</div>";
+                        },
+                        sClass: 'merchantCount'
+                    },
                     {
                         "title": $translate('DEPOSIT_METHOD'), "data": 'data.depositMethod',
                         render: function (data, type, row) {

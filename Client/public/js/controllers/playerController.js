@@ -11617,10 +11617,10 @@ define(['js/app'], function (myApp) {
                             if (vm.isUnlockTaskGroup) {
                                 let spendingAmt = vm.calSpendingAmt(index);
 
-                                item.curConsumption$ = spendingAmt.currentAmt;
+                                item.curConsumption$ = Number.isFinite(spendingAmt.currentAmt) ? spendingAmt.currentAmt : 0;
                                 item.maxConsumption$ = spendingAmt.currentMax;
                             } else {
-                                item.curConsumption$ = item.requiredBonusAmount;
+                                item.curConsumption$ = Number.isFinite(item.requiredBonusAmount) ? item.requiredBonusAmount : 0;
                                 item.maxConsumption$ = item.requiredUnlockAmount;
                             }
                             item.bonusAmount$ = item.data.bonusAmount;
