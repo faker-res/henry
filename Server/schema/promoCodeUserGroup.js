@@ -5,7 +5,7 @@ let promoCodeUserGroupSchema = new Schema({
     // platform id
     platformObjId: {type: Schema.ObjectId, required: true},
     // promo code type name
-    name: {type: String, required: true, unique: true},
+    name: {type: String, required: true},
     // promo code type
     color: {type: String, required: true},
     // sms content

@@ -13722,21 +13722,23 @@ define(['js/app'], function (myApp) {
                 let playerObj = data.data;
                 if (playerObj) {
                     let sendData = {
-                        checkQuery: {
-                            platformObjId: playerObj.platform,
-                            playerNames: playerObj.name
-                        },
                         query: {
                             platformObjId: playerObj.platform,
-                            name: "次权限禁用组（预设）", //hard code name
-                            isBlockPromoCodeUser: true,
-                            isDefaultGroup: true
+                            isBlockByMainPermission: false
                         },
                         updateData: {}
                     }
                     if (playerObj.forbidPromoCode) {
+                        sendData.query.name = "次权限禁用组（预设）"; //hard code name;
+                        sendData.query.isBlockPromoCodeUser = true;
+                        sendData.query.isDefaultGroup = true;
+                        sendData.checkQuery = {
+                            platformObjId: playerObj.platform,
+                            playerNames: playerObj.name
+                        }
                         sendData.updateData["$addToSet"] = {playerNames: playerObj.name};
                     } else {
+                        sendData.query.playerNames =  playerObj.name;
                         sendData.updateData["$pull"] = {playerNames: playerObj.name};
                     }
 
