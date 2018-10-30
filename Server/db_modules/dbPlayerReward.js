@@ -3283,7 +3283,7 @@ let dbPlayerReward = {
         )
     },
 
-    modifyPlayerPermissionByPromoCode: (platformObjId, addedPlayerNameArr, deletedPlayerNameArr) => {
+    modifyPlayerPermissionByPromoCode: (adminId, platformObjId, addedPlayerNameArr, deletedPlayerNameArr) => {
         let promArr = [];
         if (addedPlayerNameArr && addedPlayerNameArr.length) {
             let addBanPermission = dbConfig.collection_players.update(
@@ -3296,7 +3296,51 @@ let dbPlayerReward = {
             promArr.push(deleteBanPermission);
         }
 
-        return Promise.all(promArr);
+        return Promise.all(promArr).then(
+            () => {
+                let deletedPlayerProm = Promise.resolve([])
+                let addedPlayerProm = Promise.resolve([]);
+                if (addedPlayerNameArr && addedPlayerNameArr.length) {
+                    addedPlayerProm = dbConfig.collection_players.find({
+                        platform: platformObjId,
+                        name: {$in: addedPlayerNameArr}
+                    }).lean();
+                }
+                if (deletedPlayerNameArr && deletedPlayerNameArr.length) {
+                    deletedPlayerProm = dbConfig.collection_players.find({
+                        platform: platformObjId,
+                        name: {$in: deletedPlayerNameArr}
+                    }).lean();
+                }
+                return Promise.all([addedPlayerProm, deletedPlayerProm])
+            }
+        ).then(
+            ([addedPlayer, deletedPlayer]) => {
+                if (addedPlayer && addedPlayer.length) {
+                    addedPlayer.forEach(player => {
+                        let logDetails = {
+                            player: player._id,
+                            admin: adminId,
+                            forbidRewardNames: ["优惠代码"],
+                            remark: "（关闭）新增玩家至封锁群组"
+                        };
+                        dbConfig.collection_playerForbidRewardLog(logDetails).save().then().catch(errorUtils.reportError);
+                    });
+                }
+
+                if (deletedPlayer && deletedPlayer.length) {
+                    deletedPlayer.forEach(player => {
+                        let logDetails = {
+                            player: player._id,
+                            admin: adminId,
+                            forbidRewardNames: [],
+                            remark: "（开启）从封锁群组删除玩家"
+                        };
+                        dbConfig.collection_playerForbidRewardLog(logDetails).save().then().catch(errorUtils.reportError);
+                    });
+                }
+            }
+        );
 
     },
 
@@ -3369,7 +3413,7 @@ let dbPlayerReward = {
         return Promise.all(saveArr);
     },
 
-    saveBlockPromoCodeUserGroup: (platformObjId, data, isDelete) => {
+    saveBlockPromoCodeUserGroup: (platformObjId, data, isDelete, adminId) => {
         let saveArr = [];
 
         if (isDelete) {
@@ -3380,7 +3424,28 @@ let dbPlayerReward = {
                             platform: groupData.platformObjId,
                             name: {$in: groupData.playerNames}
                         }, {forbidPromoCode: false}, {multi: true}).catch(errorUtils.reportError);
+
+                         dbConfig.collection_players.find({
+                                    platform: groupData.platformObjId,
+                                    name: {$in: groupData.playerNames}
+                                }).lean().then(
+                             deletedPlayer => {
+                                 if (deletedPlayer && deletedPlayer.length) {
+                                     deletedPlayer.forEach(player => {
+                                         let logDetails = {
+                                             player: player._id,
+                                             admin: adminId,
+                                             forbidRewardNames: [],
+                                             remark: "（开启）从封锁群组删除玩家"
+                                         };
+                                         dbConfig.collection_playerForbidRewardLog(logDetails).save().then().catch(errorUtils.reportError);
+                                     });
+                                 }
+                             }
+                        ).catch(errorUtils.reportError);
+
                     }
+
                     return dbConfig.collection_promoCodeUserGroup.remove({_id: data});
                 }
             )
@@ -3435,7 +3500,8 @@ let dbPlayerReward = {
                     if (!promoCodeData.isBlockPromoCodeUser) {
                         dbConfig.collection_promoCodeUserGroup.findOneAndUpdate({_id: promoCodeData._id}, {$pull: {playerNames: checkQuery.playerNames}}).lean().catch(errorUtils.reportError);
                     } else {
-                        return Q.reject({name: "DataError", message: "Player already in promo code blocked group"});
+                        // return Q.reject({name: "DataError", message: "Player already in promo code blocked group"});
+                        return true;
                     }
                 }
                 return dbConfig.collection_promoCodeUserGroup.findOneAndUpdate(query, updateData, {upsert: isUpsert}).lean();

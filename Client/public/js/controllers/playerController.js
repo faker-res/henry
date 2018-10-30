@@ -13746,7 +13746,7 @@ define(['js/app'], function (myApp) {
                     });
                 }
                 vm.getPlatformPlayersData();
-                vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent));
+                vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent), data.data);
             });
         };
         vm.updateBatchPlayerForbidRewardEvents = function (sendData) {
@@ -22564,7 +22564,10 @@ define(['js/app'], function (myApp) {
         //endregion
 
         //region forbidReward
-        vm.updateForbidRewardLog = function (playerId, forbidReward) {
+        vm.updateForbidRewardLog = function (playerId, forbidReward, playerObj) {
+            if (playerObj && playerObj.forbidPromoCode) {
+                forbidReward.push("优惠代码");
+            }
 
             let queryData = {
                 playerId: playerId,
@@ -22582,7 +22585,7 @@ define(['js/app'], function (myApp) {
             let proms = [];
 
             data.data.forEach(player => {
-                let prom = vm.updateForbidRewardLog(player._id, vm.findForbidCheckedName(player.forbidRewardEvents, vm.allRewardEvent));
+                let prom = vm.updateForbidRewardLog(player._id, vm.findForbidCheckedName(player.forbidRewardEvents, vm.allRewardEvent), player);
                 proms.push(prom);
             });
 
