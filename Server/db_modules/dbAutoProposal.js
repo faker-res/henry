@@ -252,6 +252,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
     let abnormalMessageChinese = "";
     let checkMsg = "", checkMsgChinese = "";
     let bTransferAbnormal = false;
+    let continuousApplyBonusTimes;
 
     return getBonusRecordsOfPlayer(proposal.data.playerObjId, proposal.type).then(
         bonusRecord => {
@@ -262,7 +263,12 @@ function checkRewardTaskGroup(proposal, platformObj) {
     ).then(
         lastWithdrawDate => {
             // settleTime of last withdraw proposal
-            bFirstWithdraw = !lastWithdrawDate;
+            if (lastWithdrawDate) {
+                bFirstWithdraw = !lastWithdrawDate[0];
+            } else {
+                bFirstWithdraw = !lastWithdrawDate;
+            }
+            continuousApplyBonusTimes = lastWithdrawDate && lastWithdrawDate[1] ? lastWithdrawDate[1] : null;
 
             let transferLogQuery = {
                 platformObjId: ObjectId(proposal.data.platformId),
@@ -294,11 +300,11 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 createTime: {$lt: proposal.createTime}
             };
 
-            if (lastWithdrawDate) {
-                dLastWithdraw = lastWithdrawDate;
-                transferLogQuery.createTime["$gt"] = lastWithdrawDate;
-                creditLogQuery.operationTime["$gt"] = lastWithdrawDate;
-                consumptionQuery.createTime["$gt"] = lastWithdrawDate;
+            if (lastWithdrawDate && lastWithdrawDate[0]) {
+                dLastWithdraw = lastWithdrawDate[0];
+                transferLogQuery.createTime["$gt"] = lastWithdrawDate[0];
+                creditLogQuery.operationTime["$gt"] = lastWithdrawDate[0];
+                consumptionQuery.createTime["$gt"] = lastWithdrawDate[0];
             }
 
             let RTGPromise = dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: proposal.data.playerObjId}, proposal.createTime);
@@ -516,6 +522,13 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 && ((playerTotalBonus / playerTotalTopupAmount) >= platformObj.autoApproveProfitTimes)) {
                 checkMsg += ' Denied: Max profit times;';
                 checkMsgChinese += ' 失败：二提款间（输赢/存款）过高;';
+                canApprove = false;
+            }
+
+            if (continuousApplyBonusTimes && platformObj.checkContinuousApplyBonusTimes && platformObj.checkContinuousApplyBonusTimes != 0
+                && ((continuousApplyBonusTimes + 1) >= platformObj.checkContinuousApplyBonusTimes)) {
+                checkMsg += ' Denied: Continuous Apply Bonus N Times;';
+                checkMsgChinese += ' 失败：连续提款N次;';
                 canApprove = false;
             }
 
@@ -1372,6 +1385,7 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
  */
 function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
     thisWithdrawTime = new Date(thisWithdrawTime);
+    let lastWithdrawTimeBeforeTopUp;
 
     // TODO:: May be enhanced to limit search to 1 year time -
 
@@ -1384,22 +1398,54 @@ function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
     }, {createTime: 1}).sort({createTime: -1}).limit(1).lean().then(
         lastTopUpProp => {
             if (lastTopUpProp && lastTopUpProp[0] && lastTopUpProp[0].createTime) {
-                return dbconfig.collection_proposal.find({
-                    'data.platformId': ObjectId(platform._id),
-                    'data.playerObjId': ObjectId(playerObjId),
-                    mainType: 'PlayerBonus',
-                    $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}],
-                    createTime: {$lt: lastTopUpProp[0].createTime}
-                }, {createTime: 1}).sort({createTime: -1}).limit(1).lean().then(
+                // get last withdraw time before topup
+                return getWithdrawTime(platform._id, playerObjId, lastTopUpProp[0].createTime).then(
                     retData => {
                         if (retData && retData[0]) {
-                            return retData[0].createTime;
+                            lastWithdrawTimeBeforeTopUp = retData[0].createTime;
                         }
+
+                        // get last withdraw time after topup
+                        return getWithdrawTime(platform._id, playerObjId, thisWithdrawTime).then(
+                            lastWithdrawTimeAfterTopUp => {
+                                if (lastWithdrawTimeAfterTopUp && lastWithdrawTimeAfterTopUp[0] && lastWithdrawTimeAfterTopUp[0].createTime
+                                    && (lastTopUpProp[0].createTime < lastWithdrawTimeAfterTopUp[0].createTime)) {
+
+                                    let countBonusQuery = {
+                                        'data.platformId': ObjectId(platform._id),
+                                        'data.playerObjId': ObjectId(playerObjId),
+                                        mainType: 'PlayerBonus',
+                                        $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}],
+                                        createTime: {$gte: lastTopUpProp[0].createTime, $lt: thisWithdrawTime}
+                                    };
+
+                                    // count total withdraw times after topup
+                                    return dbconfig.collection_proposal.find(countBonusQuery).count().then(
+                                        count => {
+
+                                            return [lastWithdrawTimeBeforeTopUp, count];
+                                        }
+                                    );
+                                }
+                            }
+                        )
                     }
                 );
             }
         }
     )
+}
+
+function getWithdrawTime(platformId, playerId, createTime) {
+
+    return dbconfig.collection_proposal.find({
+        'data.platformId': ObjectId(platformId),
+        'data.playerObjId': ObjectId(playerId),
+        mainType: 'PlayerBonus',
+        $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}],
+        createTime: {$lt: createTime}
+    }, {createTime: 1}).sort({createTime: -1}).limit(1).lean();
+
 }
 
 function getPlayerConsumptionSummary(platformId, playerId, dateFrom, dateTo, providerIdArr) {
