@@ -483,7 +483,21 @@ var platformSchema = new Schema({
         themeId: {type: String},
         themeIdObjId: {type: Schema.ObjectId, index: true}
     },
-    frontendConfigurationDomainName: {type: String}
+    frontendConfigurationDomainName: {type: String},
+    // call out mission max ring times
+    teleMarketingMaxRingTime: {type: Number},
+    // call out mission redial times
+    teleMarketingRedialTimes: {type: Number},
+    // call out mission minimum redial interval,
+    teleMarketingMinRedialInterval: {type: Number},
+    // call out mission number of call in parallel happen per idle agent
+    teleMarketingIdleAgentMultiple: {type: Number},
+    // Definition of Answered Phone Call
+    definitionOfAnsweredPhone: {type: JSON},
+    // Decompose after N days
+    decomposeAfterNDays: {type: Number},
+    // Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday
+    phoneWhiteListExportMaxNumber: {type: Number},
 });
 
 //add platform id before save
