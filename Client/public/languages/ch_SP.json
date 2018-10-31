@@ -4693,7 +4693,7 @@
   "PlayerConsumptionSlipRewardGroup": "幸运注单（组）",
   "* required": "*星号必填",
   "Min Consumption Amount, Reward Amount is required": "必填该局最低下注金额、优惠金额",
-  "Check Continous Apply Bonus Times": "连续提款次数 ≥ X（转人工审核）",
+  "Check Continuous Apply Bonus Times": "连续提款次数 ≥ X（转人工审核）",
   "BATCH_FEEDBACK_SETTING": "批量回访配置",
   "BATCH_TELEMARKETING_SETTING(FOR WHITELIST)": "批量电销配置(拨打白名单用)",
   "Definition of Answered Phone Call(Choose from feedback status/ multi selection)": "定义何谓成功接听（选择回访状态/复选）",
