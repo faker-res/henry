@@ -135,6 +135,7 @@ var playerSchema = new Schema({
         applyBonus: {type: Boolean, default: true},
         // advanceConsumptionReward: {type: Boolean, default: true},
         transactionReward: {type: Boolean, default: true},
+        allTopUp: {type: Boolean, default: true},
         topupOnline: {type: Boolean, default: true},
         topupManual: {type: Boolean, default: true},
         topUpCard: {type: Boolean, default: true},
@@ -269,6 +270,8 @@ var playerSchema = new Schema({
     forbidTopUpType: [{type: String}],
     // forbid reward events by player
     forbidRewardEvents: [{type: String}],
+    // disable generate/apply promo code
+    forbidPromoCode: {type: Boolean, default: false},
     //reward info
     //if this player has been rewarded for first time top up event
     bFirstTopUpReward: {type: Boolean, default: false},

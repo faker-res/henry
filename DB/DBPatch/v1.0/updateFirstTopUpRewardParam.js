@@ -451,6 +451,12 @@ var loseValueCond = {
 }
 
 var latestTopUpCond = {
+    // Allow to apply only if top up is the latest
+    allowOnlyLatestTopUp: {
+        index: 29,
+        type: "checkbox",
+        des: "Allow to apply if top up is the latest"
+    },
     // Allow to apply after latest top up has consumption after it
     allowConsumptionAfterTopUp: {
         index: 30,

@@ -176,7 +176,7 @@ div.proposalDataDetail(ng-switch="vm.selectedProposal.type.name")
                     td {{ vm.selectedProposal.data.city }}
                 tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && vm.selectedProposal.from_old_system')
                     td {{'ToBankTypeId' | translate}}
-                    td {{　vm.selectedProposal.data.corpBankName}}
+                    td {{ vm.selectedProposal.data.corpBankName}}
                 tr(ng-if='vm.selectedProposal.type.name=="ManualPlayerTopUp" && vm.selectedProposal.from_old_system')
                     td {{'ToBankCardNo' | translate}}
                     td {{ vm.selectedProposal.data.accountNo }}

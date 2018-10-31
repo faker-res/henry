@@ -851,14 +851,14 @@
                                                             tbody
                                                                 tr(ng-repeat='commissionSetting in gpg.showConfig.commissionSetting track by $index')
                                                                     td
-                                                                        input.form-control(type='number', ng-model='commissionSetting.playerConsumptionAmountFrom' ng-disabled='!commissionSetting.isEditing' ng-change="vm.updateCommissionRateRequirement=true")
+                                                                        input.form-control(type='number', ng-model='commissionSetting.playerConsumptionAmountFrom' ng-disabled='!commissionSetting.isEditing' ng-change="vm.updateCommissionChangeGroup(gpg.name)")
                                                                     td
-                                                                        input.form-control(type='number', ng-if='commissionSetting.playerConsumptionAmountTo || commissionSetting.isEditing || commissionSetting.isCreateNew', ng-model='commissionSetting.playerConsumptionAmountTo' ng-disabled='!commissionSetting.isEditing' ng-change="vm.updateCommissionRateRequirement=true")
+                                                                        input.form-control(type='number', ng-if='commissionSetting.playerConsumptionAmountTo || commissionSetting.isEditing || commissionSetting.isCreateNew', ng-model='commissionSetting.playerConsumptionAmountTo' ng-disabled='!commissionSetting.isEditing' ng-change="vm.updateCommissionChangeGroup(gpg.name)")
                                                                         input.form-control(style='text-align: right' type='text', ng-if='!commissionSetting.playerConsumptionAmountTo && !commissionSetting.isEditing && !commissionSetting.isCreateNew', value='-', disabled)
                                                                     td
-                                                                        input.form-control(type='number', ng-model='commissionSetting.activePlayerValueFrom' ng-disabled='!commissionSetting.isEditing' ng-change="vm.updateCommissionRateRequirement=true")
+                                                                        input.form-control(type='number', ng-model='commissionSetting.activePlayerValueFrom' ng-disabled='!commissionSetting.isEditing' ng-change="vm.updateCommissionChangeGroup(gpg.name)")
                                                                     td
-                                                                        input.form-control(type='number', ng-if='commissionSetting.activePlayerValueTo || commissionSetting.isEditing || commissionSetting.isCreateNew', ng-model='commissionSetting.activePlayerValueTo', ng-disabled='!commissionSetting.isEditing' ng-change="vm.updateCommissionRateRequirement=true")
+                                                                        input.form-control(type='number', ng-if='commissionSetting.activePlayerValueTo || commissionSetting.isEditing || commissionSetting.isCreateNew', ng-model='commissionSetting.activePlayerValueTo', ng-disabled='!commissionSetting.isEditing' ng-change="vm.updateCommissionChangeGroup(gpg.name)")
                                                                         input.form-control(style='text-align: right' type='text', ng-if='!commissionSetting.activePlayerValueTo && !commissionSetting.isEditing && !commissionSetting.isCreateNew', value='-', disabled)
                                                                     td
                                                                         span.percentage
@@ -1406,6 +1406,11 @@
                                 td {{'UNLOCK_IF_INIT_AMT_LESS_THAN_LOST_THRESHOLD' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.autoApprovalBasic.autoUnlockWhenInitAmtLessThanLostThreshold', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Check Continous Apply Bonus Times' | translate}}
+                                td
+                                    text(ng-if='!vm.configTableEdit') {{vm.autoApprovalBasic.checkContinousApplyBonusTimes}}
+                                    input(type='number' ng-if='vm.configTableEdit' ng-model='vm.autoApprovalBasic.checkContinousApplyBonusTimes')
                     
                     br
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
