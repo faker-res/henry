@@ -4593,7 +4593,6 @@
   "alipayerNickName": "PMS收录玩家支付宝腻称",
   "alipayerRemark": "PMS收录玩家支付宝备注",
   "getLockedLobbyConfig": "获取平台锁大厅配置",
-  "Please enter player account":"请输入玩家账号",
   "Please enter new phone number for sms verification code": "请输入您（新）电话号码，将发送短信验证码",
   "Please enter current phone number for sms verification": "请输入您原绑定电话号码，将发送短信验证码",
   "New phone number is already used. Please insert other phone number.": "新号码已绑定账号，不支持重复绑定。",
