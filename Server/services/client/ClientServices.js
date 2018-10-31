@@ -139,7 +139,8 @@
                 "getIDCIpDetail",
                 "getLockedLobbyConfig",
                 "saveFrontEndData",
-                "getFrontEndData"
+                "getFrontEndData",
+                "sendFileFTP"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
