@@ -5242,12 +5242,15 @@ let dbPlayerReward = {
      * @param eventData
      * @param adminInfo
      * @param rewardData
+     * @param isPreview
+     * @param isBulkApply - if it is settlement apply from backstage, is bulk apply
      * @returns {Promise.<TResult>}
      */
     applyGroupReward: (userAgent, playerData, eventData, adminInfo, rewardData, isPreview, isBulkApply) => {
         rewardData = rewardData || {};
 
         let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate) : dbUtility.getTodaySGTime();
+        rewardData.applyTargetDate = rewardData.applyTargetDate || todayTime.startTime;
         // let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate): dbUtility.getYesterdaySGTime();
         let rewardAmount = 0, spendingAmount = 0, applyAmount = 0, actualAmount = 0;
         let promArr = [];
@@ -5304,7 +5307,7 @@ let dbPlayerReward = {
             "data.playerObjId": playerData._id,
             "data.eventId": eventData._id,
             status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-            createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}
+            "data.applyTargetDate": {$gte: todayTime.startTime, $lt: todayTime.endTime}
         };
 
         if (eventData.condition.topupType && eventData.condition.topupType.length > 0) {
@@ -5348,9 +5351,9 @@ let dbPlayerReward = {
         if (intervalTime) {
             topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
             if (rewardData.applyTargetDate) {
-                eventQuery.createTime = {$gte: eventQueryPeriodTime.startTime, $lte: eventQueryPeriodTime.endTime};
+                eventQuery["data.applyTargetDate"] = {$gte: eventQueryPeriodTime.startTime, $lte: eventQueryPeriodTime.endTime};
             } else {
-                eventQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                eventQuery["data.applyTargetDate"] = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
             }
             // NOTE :: Regarding to time used for reward event proposal query, using settle time would be wrong because
             //         settle time will change based on the time that cs approve/reject the proposal.
@@ -5389,7 +5392,7 @@ let dbPlayerReward = {
         if (eventData.type.name === constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP) {
             // set the settlement date for eventQuery and topupMatchQuery based on intervalTime
             if(intervalTime){
-                eventQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                eventQuery["data.applyTargetDate"] = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
                 topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
             }
 
@@ -5443,7 +5446,7 @@ let dbPlayerReward = {
 
             if (intervalTime) {
                 consumptionMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                eventQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                eventQuery["data.applyTargetDate"] = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
                 topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
             }
 
@@ -6773,8 +6776,8 @@ let dbPlayerReward = {
                         }
 
                         // PLAYER_LOSE_RETURN_REWARD_GROUP does not require this field
-                        if (rewardData.applyTargetDate && eventData.type.name != constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
-                            proposalData.data.applyTargetDate = todayTime.startTime;
+                        if (rewardData.applyTargetDate /*&& eventData.type.name != constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP*/) {
+                            proposalData.data.applyTargetDate = new Date(rewardData.applyTargetDate);
                         }
 
                         if (useTopUpAmount !== null) {
