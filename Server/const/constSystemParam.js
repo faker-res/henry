@@ -23,6 +23,13 @@ const constSystemParam = {
     PROPOSAL_SEARCH_MAX_TIME_FRAME: 691200000, // 8 days ( 8 * (1000*3600*24))
 
     UPDATE_RECURSE_MAX_RETRY: 5,
+    FTP_CONNECTION_PROPERTIES: {
+        host: "callfpms-ftp.neweb.me",
+        port: 21,
+        user: 'hank',
+        password: "CallHank@163",
+        mode: 'Active'
+    }
 };
 
 module.exports = constSystemParam;

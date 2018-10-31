@@ -2880,7 +2880,7 @@
   "getPlayerRewardList": "获取玩家优惠活动申请列表",
   "getConsumeRebateAmount": "获取洗码额度",
   "applyRewardEvent": "申请优惠活动",
-  "Exceeded the application quantity of the interval time": "本周期内仍可申请次数已达标",
+  "Exceeded the application quantity of the interval time": "周期内仍可申请次数已达标",
   "getPlayerReferralList": "获取推荐玩家列表",
   "getConsecutiveLoginRewardDay": "获取玩家登陆累计天数",
   "getBonusRequestList": "获取申请提款列表",
@@ -4693,5 +4693,5 @@
   "PlayerConsumptionSlipRewardGroup": "幸运注单（组）",
   "* required": "*星号必填",
   "Min Consumption Amount, Reward Amount is required": "必填该局最低下注金额、优惠金额",
-  "Check Continous Apply Bonus Times": "连续提款次数 ≥ X（转人工审核）"
+  "Check Continuous Apply Bonus Times": "连续提款次数 ≥ X（转人工审核）"
 }
