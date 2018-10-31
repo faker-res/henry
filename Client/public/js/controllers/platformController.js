@@ -14649,6 +14649,32 @@ define(['js/app'], function (myApp) {
             vm.updateBatchPlayerForbidRewardEvents = function (sendData) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updateBatchPlayerForbidRewardEvents', sendData, function (data) {
+                    if (vm.forbidPromoCode != undefined) { // undefined means unchanged
+                        let sendDataPromoCode = {
+                            query: {
+                                platformObjId: sendData.platformObjId,
+                                isBlockByMainPermission: false
+                            },
+                            updateData: {}
+                        }
+                        if (sendData.forbidPromoCode) {
+                            sendDataPromoCode.query.name = "次权限禁用组（预设）"; //hard code name;
+                            sendDataPromoCode.query.isBlockPromoCodeUser = true;
+                            sendDataPromoCode.query.isDefaultGroup = true;
+                            sendDataPromoCode.checkQuery = {
+                                platformObjId: sendData.platformObjId,
+                                playerNames: {"$in": sendData.playerNames},
+                                isBlockPromoCodeUser: {"$ne": true}
+                            }
+                            sendDataPromoCode.updateData["$addToSet"] = {playerNames: {"$each": sendData.playerNames}};
+                        } else {
+                            sendDataPromoCode.query.playerNames = {"$in": sendData.playerNames};
+                            sendDataPromoCode.updateData["$pull"] = {playerNames: {"$in": sendData.playerNames}};
+                        }
+
+                        socketService.$socket($scope.AppSocket, 'updateBatchPromoCodeGroupMainPermission', sendDataPromoCode, function () {
+                        });
+                    }
                     vm.getPlatformPlayersData();
                     vm.updateBatchForbidRewardLog(data);
                 });
@@ -32691,6 +32717,7 @@ console.log('typeof ',typeof gameProviders);
 
                 vm.forbidRewardEventAddList = [];
                 vm.forbidRewardEventRemoveList = [];
+                vm.forbidPromoCode = undefined;
 
                 vm.forbidGameAddList = [];
                 vm.forbidGameRemoveList = [];
@@ -33186,6 +33213,25 @@ console.log('typeof ',typeof gameProviders);
                                         permission: changeObj,
                                         remark: $remark.val()
                                     }, function (data) {
+                                        if (changeObj.banReward != undefined) {
+                                            let sendData = {
+                                                query: {
+                                                    platformObjId: vm.selectedPlatform.id,
+                                                    name: "Main Permission Disabled (default)", //hard code name
+                                                    isBlockByMainPermission: true,
+                                                    color: "lightgrey"
+                                                },
+                                                updateData: {}
+                                            }
+                                            if (changeObj.banReward) {
+                                                sendData.updateData["$addToSet"] = {playerNames: {"$each": playerNames}};
+                                            } else {
+                                                sendData.updateData["$pull"] = {playerNames: {"$in": playerNames}};
+                                            }
+                                            socketService.$socket($scope.AppSocket, 'updatePromoCodeGroupMainPermission', sendData, function () {
+                                            });
+                                        }
+
                                         let errorList = data.data;
                                         errorList = errorList.filter(item => {
                                             return (typeof item === 'string');
@@ -33230,7 +33276,13 @@ console.log('typeof ',typeof gameProviders);
                                             forbidRewardEvents.push($(v).attr('data-provider'));
                                         }
                                     });
-                                    vm.forbidRewardDisable = vm.isForbidChanged(forbidRewardEvents, vm.forbidRewardEventPopover.forbidRewardEvents);
+
+                                    if (vm.forbidPromoCode != rowData.forbidPromoCode) {
+                                        vm.forbidRewardDisable = false;
+                                    } else {
+                                        vm.forbidRewardDisable = vm.isForbidChanged(forbidRewardEvents, vm.forbidRewardEventPopover.forbidRewardEvents);
+                                    }
+
                                 });
 
                                 $("button.forbidRewardEventCancel").on('click', function () {
@@ -33245,7 +33297,7 @@ console.log('typeof ',typeof gameProviders);
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
-                                    if (vm.forbidRewardEventAddList.length == 0 && vm.forbidRewardEventRemoveList == 0) {
+                                    if (vm.forbidRewardEventAddList.length == 0 && vm.forbidRewardEventRemoveList == 0 && vm.forbidPromoCode == undefined) {
                                         var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
                                         if (!ans) {
                                             return
@@ -33255,7 +33307,7 @@ console.log('typeof ',typeof gameProviders);
                                     let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
                                     let forbidRewardEvents = [];
                                     $.each(forbidRewardEventList, function (i, v) {
-                                        if ($(v).prop('checked')) {
+                                        if ($(v).prop('checked') && $(v).attr('data-provider')) {
                                             forbidRewardEvents.push($(v).attr('data-provider'));
                                         }
                                     });
@@ -33267,6 +33319,7 @@ console.log('typeof ',typeof gameProviders);
                                             'addList': vm.forbidRewardEventAddList,
                                             'removeList': vm.forbidRewardEventRemoveList
                                         },
+                                        forbidPromoCode: vm.forbidPromoCode,
                                         adminName: authService.adminName
                                     };
                                     // subcategory 1

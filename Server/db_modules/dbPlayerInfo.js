@@ -3485,7 +3485,7 @@ let dbPlayerInfo = {
         })
         return result;
     },
-    updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents) {
+    updateBatchPlayerForbidRewardEvents: function (platformObjId, playerNames, forbidRewardEvents, disablePromoCode) {
 
         let result = [];
         let addList = forbidRewardEvents.addList;
@@ -3497,6 +3497,9 @@ let dbPlayerInfo = {
                 .then(data => {
                     let playerForbidRewardEvents = data.forbidRewardEvents || [];
                     updateData.forbidRewardEvents = dbPlayerInfo.managingDataList(playerForbidRewardEvents, addList, removeList);
+                    if (disablePromoCode != undefined) {
+                        updateData.forbidPromoCode = disablePromoCode ? true : false;
+                    }
 
                     if (addList.length == 0 && removeList.length == 0) {
                         updateData.forbidRewardEvents = [];
