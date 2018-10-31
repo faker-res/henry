@@ -258,6 +258,8 @@ var platformSchema = new Schema({
     autoApproveProfitTimesMinAmount: {type: Number, default: 2000},
     // Auto approve abnormal bonus check offset
     autoApproveBonusProfitOffset: {type: Number, default: 2000},
+    // Enable check on continuous apply bonus
+    checkContinuousApplyBonusTimes: {type: Number},
     // Player forbid apply bonus, apply bonus proposal need cs approval
     playerForbidApplyBonusNeedCsApproval: {type: Boolean, default: false},
     //can apply multiple reward

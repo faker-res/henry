@@ -1146,7 +1146,9 @@ var dbRewardEvent = {
                                        winAmount: detail.bonusAmount || null,
                                        rewardAmount: detail.rewardAmount || null,
                                        spendingTimes: detail.spendingTimes || null,
+                                       depositAmount: detail.requiredTopUpAmount || null,
                                        status: 1,
+                                       gameProvider: detail.gameProvider && detail.gameProvider.name ?  detail.gameProvider.name : null,
                                        endingDigitMatched: detail.requiredOrderNoEndingDigit || null
 
                                    })
@@ -1168,6 +1170,8 @@ var dbRewardEvent = {
                                         winAmount: detail.bonusAmount || null,
                                         rewardAmount: detail.rewardAmount || null,
                                         spendingTimes: detail.spendingTimes || null,
+                                        depositAmount: detail.requiredTopUpAmount || null,
+                                        gameProvider: detail.gameProvider && detail.gameProvider.name ?  detail.gameProvider.name : null,
                                         status: 2,
                                         endingDigitMatched: detail.requiredOrderNoEndingDigit || null
                                     })
@@ -1188,6 +1192,7 @@ var dbRewardEvent = {
                                         winAmount: detail.bonusAmount || null,
                                         rewardAmount: detail.rewardAmount || null,
                                         spendingTimes: detail.spendingTimes || null,
+                                        gameProvider: detail.gameProvider && detail.gameProvider.name ?  detail.gameProvider.name : null,
                                         status: 1,
                                         endingDigitMatched: detail.requiredOrderNoEndingDigit || null
                                     })

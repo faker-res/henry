@@ -2880,7 +2880,7 @@
   "getPlayerRewardList": "获取玩家优惠活动申请列表",
   "getConsumeRebateAmount": "获取洗码额度",
   "applyRewardEvent": "申请优惠活动",
-  "Exceeded the application quantity of the interval time": "本周期内仍可申请次数已达标",
+  "Exceeded the application quantity of the interval time": "周期内仍可申请次数已达标",
   "getPlayerReferralList": "获取推荐玩家列表",
   "getConsecutiveLoginRewardDay": "获取玩家登陆累计天数",
   "getBonusRequestList": "获取申请提款列表",
@@ -4257,6 +4257,7 @@
   "Recalculate failed": "重算失败",
   "Recalculate": "重新计算",
   "Relevant provider group:": "相关锁大厅组：",
+  "applyTargetDate": "周期判断时间",
 
   "Please insert bank account name.": "请填入银行户口姓名",
   "Please insert bank account.": "请填入银行帐号",
@@ -4592,7 +4593,6 @@
   "alipayerNickName": "PMS收录玩家支付宝腻称",
   "alipayerRemark": "PMS收录玩家支付宝备注",
   "getLockedLobbyConfig": "获取平台锁大厅配置",
-  "Please enter player account":"请输入玩家账号",
   "Please enter new phone number for sms verification code": "请输入您（新）电话号码，将发送短信验证码",
   "Please enter current phone number for sms verification": "请输入您原绑定电话号码，将发送短信验证码",
   "New phone number is already used. Please insert other phone number.": "新号码已绑定账号，不支持重复绑定。",
@@ -4692,5 +4692,6 @@
   "Max Reward Amount In Single Reward": "单笔最高优惠上限",
   "PlayerConsumptionSlipRewardGroup": "幸运注单（组）",
   "* required": "*星号必填",
-  "Min Consumption Amount, Reward Amount is required": "必填该局最低下注金额、优惠金额"
+  "Min Consumption Amount, Reward Amount is required": "必填该局最低下注金额、优惠金额",
+  "Check Continuous Apply Bonus Times": "连续提款次数 ≥ X（转人工审核）"
 }
