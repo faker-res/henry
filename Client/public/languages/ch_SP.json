@@ -2058,6 +2058,7 @@
   "PlayerLevelUp": "系统升级优惠",
   "Online": "网银转账",
   "Counter": "银行柜台",
+  "allTopUp": "所有存款",
   "topupOnline": "在线充值",
   "Online Topup Type": "在线充值类型",
   "topupManualtopupManual": "手工存款",
@@ -4691,5 +4692,6 @@
   "Max Reward Amount In Single Reward": "单笔最高优惠上限",
   "PlayerConsumptionSlipRewardGroup": "幸运注单（组）",
   "* required": "*星号必填",
-  "Min Consumption Amount, Reward Amount is required": "必填该局最低下注金额、优惠金额"
+  "Min Consumption Amount, Reward Amount is required": "必填该局最低下注金额、优惠金额",
+  "Check Continous Apply Bonus Times": "连续提款次数 ≥ X（转人工审核）"
 }

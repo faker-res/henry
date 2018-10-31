@@ -5549,6 +5549,12 @@ define(['js/app'], function (myApp) {
                                 }));
                                 link.append($('<img>', {
                                     'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.allTopUp === false ? "allTopUpRed.png" : "allTopUpBlue.png"),
+                                    height: "13px",
+                                    width: "15px",
+                                }));
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
                                     'src': "images/icon/" + (perm.topupOnline === true ? "onlineTopUpBlue.png" : "onlineTopUpRed.png"),
                                     height: "13px",
                                     width: "15px",
@@ -6351,6 +6357,12 @@ define(['js/app'], function (myApp) {
                                     height: '26px'
                                 },
                                 // transactionReward: {imgType: 'i', iconClass: "fa fa-share-square"},
+                                allTopUp: {
+                                    imgType: 'img',
+                                    src: "images/icon/allTopUpBlue.png",
+                                    width: "26px",
+                                    height: '20px'
+                                },
                                 topupOnline: {
                                     imgType: 'img',
                                     src: "images/icon/onlineTopUpBlue.png",
@@ -13722,21 +13734,23 @@ define(['js/app'], function (myApp) {
                 let playerObj = data.data;
                 if (playerObj) {
                     let sendData = {
-                        checkQuery: {
-                            platformObjId: playerObj.platform,
-                            playerNames: playerObj.name
-                        },
                         query: {
                             platformObjId: playerObj.platform,
-                            name: "次权限禁用组（预设）", //hard code name
-                            isBlockPromoCodeUser: true,
-                            isDefaultGroup: true
+                            isBlockByMainPermission: false
                         },
                         updateData: {}
                     }
                     if (playerObj.forbidPromoCode) {
+                        sendData.query.name = "次权限禁用组（预设）"; //hard code name;
+                        sendData.query.isBlockPromoCodeUser = true;
+                        sendData.query.isDefaultGroup = true;
+                        sendData.checkQuery = {
+                            platformObjId: playerObj.platform,
+                            playerNames: playerObj.name
+                        }
                         sendData.updateData["$addToSet"] = {playerNames: playerObj.name};
                     } else {
+                        sendData.query.playerNames =  playerObj.name;
                         sendData.updateData["$pull"] = {playerNames: playerObj.name};
                     }
 
@@ -13744,7 +13758,7 @@ define(['js/app'], function (myApp) {
                     });
                 }
                 vm.getPlatformPlayersData();
-                vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent));
+                vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent), data.data);
             });
         };
         vm.updateBatchPlayerForbidRewardEvents = function (sendData) {
@@ -22562,7 +22576,10 @@ define(['js/app'], function (myApp) {
         //endregion
 
         //region forbidReward
-        vm.updateForbidRewardLog = function (playerId, forbidReward) {
+        vm.updateForbidRewardLog = function (playerId, forbidReward, playerObj) {
+            if (playerObj && playerObj.forbidPromoCode) {
+                forbidReward.push("优惠代码");
+            }
 
             let queryData = {
                 playerId: playerId,
@@ -22580,7 +22597,7 @@ define(['js/app'], function (myApp) {
             let proms = [];
 
             data.data.forEach(player => {
-                let prom = vm.updateForbidRewardLog(player._id, vm.findForbidCheckedName(player.forbidRewardEvents, vm.allRewardEvent));
+                let prom = vm.updateForbidRewardLog(player._id, vm.findForbidCheckedName(player.forbidRewardEvents, vm.allRewardEvent), player);
                 proms.push(prom);
             });
 

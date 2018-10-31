@@ -111,15 +111,15 @@ function socketActionPromoCode(socketIO, socket) {
 
         modifyPlayerPermissionByPromoCode: function modifyPlayerPermissionByPromoCode(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && (data.addedPlayerNameArr || data.deletedPlayerNameArr));
-            socketUtil.emitter(self.socket, dbPlayerReward.modifyPlayerPermissionByPromoCode, [ObjectId(data.platformObjId), data.addedPlayerNameArr, data.deletedPlayerNameArr], actionName, isValidData);
+            let isValidData = Boolean(data && data.adminId && data.platformObjId && (data.addedPlayerNameArr || data.deletedPlayerNameArr));
+            socketUtil.emitter(self.socket, dbPlayerReward.modifyPlayerPermissionByPromoCode, [data.adminId, ObjectId(data.platformObjId), data.addedPlayerNameArr, data.deletedPlayerNameArr], actionName, isValidData);
         },
 
         saveBlockPromoCodeUserGroup: function saveBlockPromoCodeUserGroup(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && (data.groupData || data.deleteData));
+            let isValidData = Boolean(data && data.platformObjId && (data.groupData || (data.deleteData && data.adminId)));
             let isDelete = Boolean(data.deleteData);
-            socketUtil.emitter(self.socket, dbPlayerReward.saveBlockPromoCodeUserGroup, [ObjectId(data.platformObjId), isDelete ? data.deleteData : data.groupData, isDelete], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerReward.saveBlockPromoCodeUserGroup, [ObjectId(data.platformObjId), isDelete ? data.deleteData : data.groupData, isDelete, data.adminId], actionName, isValidData);
         },
 
         saveDelayDurationGroup: function saveDelayDurationGroup(data) {
@@ -148,7 +148,7 @@ function socketActionPromoCode(socketIO, socket) {
 
         updatePromoCodeGroupMainPermission: function updatePromoCodeGroupMainPermission(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.query && data.checkQuery && data.updateData);
+            let isValidData = Boolean(data && data.query && data.updateData);
             socketUtil.emitter(self.socket, dbPlayerReward.updatePromoCodeGroupMainPermission, [data.checkQuery, data.query, data.updateData], actionName, isValidData);
         },
 
