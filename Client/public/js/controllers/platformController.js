@@ -27450,6 +27450,20 @@ console.log('typeof ',typeof gameProviders);
                 vm.bulkCallBasic.redialTimes = vm.selectedPlatform.data.redialTimes || 3;
                 vm.bulkCallBasic.minRedialInterval = vm.selectedPlatform.data.minRedialInterval || 10;
                 vm.bulkCallBasic.idleAgentMultiple = vm.selectedPlatform.data.idleAgentMultiple || 2.0;
+                vm.bulkCallBasic.teleMarketingMaxRingTime = vm.selectedPlatform.data.teleMarketingMaxRingTime || 30;
+                vm.bulkCallBasic.teleMarketingRedialTimes = vm.selectedPlatform.data.teleMarketingRedialTimes || 3;
+                vm.bulkCallBasic.teleMarketingMinRedialInterval = vm.selectedPlatform.data.teleMarketingMinRedialInterval || 10;
+                vm.bulkCallBasic.teleMarketingIdleAgentMultiple = vm.selectedPlatform.data.teleMarketingIdleAgentMultiple || 2.0;
+                vm.bulkCallBasic.definitionOfAnsweredPhone = vm.selectedPlatform.data.definitionOfAnsweredPhone || "";
+                vm.bulkCallBasic.decomposeAfterNDays = vm.selectedPlatform.data.decomposeAfterNDays || 0;
+                vm.bulkCallBasic.phoneWhiteListExportMaxNumber = vm.selectedPlatform.data.phoneWhiteListExportMaxNumber || 0;
+
+                socketService.$socket($scope.AppSocket, 'getAllPlayerFeedbackResults', {}, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.playerAllFeedBackResult = data.data;
+                    });
+                });
+
                 $scope.safeApply();
             };
 
@@ -28845,6 +28859,13 @@ console.log('typeof ',typeof gameProviders);
                         redialTimes: srcData.redialTimes,
                         minRedialInterval: srcData.minRedialInterval,
                         idleAgentMultiple: srcData.idleAgentMultiple,
+                        teleMarketingMaxRingTime: srcData.teleMarketingMaxRingTime,
+                        teleMarketingRedialTimes: srcData.teleMarketingRedialTimes,
+                        teleMarketingMinRedialInterval: srcData.teleMarketingMinRedialInterval,
+                        teleMarketingIdleAgentMultiple: srcData.teleMarketingIdleAgentMultiple,
+                        definitionOfAnsweredPhone: srcData.definitionOfAnsweredPhone,
+                        decomposeAfterNDays: srcData.decomposeAfterNDays,
+                        phoneWhiteListExportMaxNumber: srcData.phoneWhiteListExportMaxNumber,
                     }
                 };
 
