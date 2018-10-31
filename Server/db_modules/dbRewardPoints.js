@@ -8,6 +8,7 @@ let dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 let dbUtility = require('./../modules/dbutility');
 let errorUtils = require('./../modules/errorUtils');
 let localization = require("../modules/localization");
+
 const constRewardPointsTaskCategory = require('../const/constRewardPointsTaskCategory');
 const constRewardPointsLogCategory = require('../const/constRewardPointsLogCategory');
 const constRewardPointsLogStatus = require('../const/constRewardPointsLogStatus');
@@ -20,6 +21,8 @@ const constRewardPointsTopupEventUserAgent = require("../const/constRewardPoints
 const constServerCode = require('../const/constServerCode');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
+
+const dbPlayerUtil = require('./../db_common/dbPlayerUtility');
 
 let dbRewardPoints = {
 
@@ -255,6 +258,7 @@ let dbRewardPoints = {
                             rewardPointsConfig = data[2];
                             let playerLevelData = data[3];
 
+                            // Get relevent reward point events
                             relevantEvents = events.filter(event => isRelevantTopupEvent(event, topupMainType, topupProposalData, playerLevelData));
                             if (!relevantEvents || relevantEvents.length < 1) {
                                 relevantEvents = [];
@@ -493,7 +497,6 @@ let dbRewardPoints = {
     },
 
     applyRewardPoint: (playerObjId, rewardPointsEventObjId, inputDevice, rewardPointsConfig) => {
-    // eventData and playerRewardPoints are optional parameter
         let getRewardPointsProm = dbRewardPoints.getPlayerRewardPoints(playerObjId);
         let getRewardPointEventProm = dbConfig.collection_rewardPointsEvent.findOne({_id: rewardPointsEventObjId}).lean();
         let getPlayerLevelProm = dbConfig.collection_players.findOne({_id: playerObjId})
@@ -501,7 +504,19 @@ let dbRewardPoints = {
 
         let pointEvent, rewardPoints, progress, currentPlayerLevelName;
 
-        return Promise.all([getRewardPointsProm, getRewardPointEventProm, getPlayerLevelProm]).then(
+        return dbPlayerUtil.setPlayerBState(playerObjId, 'applyRewardPoint', true).then(
+            playerState => {
+                if (playerState) {
+                    return Promise.all([getRewardPointsProm, getRewardPointEventProm, getPlayerLevelProm])
+                } else {
+                    return Promise.reject({
+                        name: "DBError",
+                        status: constServerCode.CONCURRENT_DETECTED,
+                        message: "Apply Reward Fail, please try again later"
+                    })
+                }
+            }
+        ).then(
             data => {
                 // let eventPeriodStartTime = getEventPeriodStartTime(relevantData);
                 // relevantEvents = events.filter(event => isRelevantLoginEventByProvider(event, provider, inputDevice, playerLevelData));
@@ -743,8 +758,21 @@ let dbRewardPoints = {
                 }
 
                 dbRewardPoints.createRewardPointsLog(logDetail).catch(errorUtils.reportError);
+                // Reset BState
+                dbPlayerUtil.setPlayerBState(playerObjId, 'applyRewardPoint', false).catch(errorUtils.reportError);
 
                 return logDetail;
+            }
+        ).catch(
+            err => {
+                if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                    // Ignore concurrent request for now
+                } else {
+                    // Set BState back to false
+                    dbPlayerUtil.setPlayerBState(playerObjId, "applyRewardPoint", false).catch(errorUtils.reportError);
+                }
+
+                throw err;
             }
         );
     },
