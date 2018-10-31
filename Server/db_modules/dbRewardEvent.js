@@ -1146,6 +1146,7 @@ var dbRewardEvent = {
                                        winAmount: detail.bonusAmount || null,
                                        rewardAmount: detail.rewardAmount || null,
                                        spendingTimes: detail.spendingTimes || null,
+                                       depositAmount: detail.requiredTopUpAmount,
                                        status: 1,
                                        endingDigitMatched: detail.requiredOrderNoEndingDigit || null
 
@@ -1168,6 +1169,7 @@ var dbRewardEvent = {
                                         winAmount: detail.bonusAmount || null,
                                         rewardAmount: detail.rewardAmount || null,
                                         spendingTimes: detail.spendingTimes || null,
+                                        depositAmount: detail.requiredTopUpAmount,
                                         status: 2,
                                         endingDigitMatched: detail.requiredOrderNoEndingDigit || null
                                     })
