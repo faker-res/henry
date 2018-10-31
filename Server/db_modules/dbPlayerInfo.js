@@ -8881,6 +8881,8 @@ let dbPlayerInfo = {
                                         );
                                     } else {
                                         if (checkLevelUp) {
+                                            console.log("manual level up topUpAmt", playerObj.name, topUpSumPeriod)
+                                            console.log("manual level up consumptionAmt", playerObj.name, consumptionSumPeriod)
                                             return Q.reject({
                                                 status: levelUpErrorCode,
                                                 name: "DataError",
