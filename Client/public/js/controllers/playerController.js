@@ -5549,6 +5549,12 @@ define(['js/app'], function (myApp) {
                                 }));
                                 link.append($('<img>', {
                                     'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.allTopUp === false ? "allTopUpRed.png" : "allTopUpBlue.png"),
+                                    height: "13px",
+                                    width: "15px",
+                                }));
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
                                     'src': "images/icon/" + (perm.topupOnline === true ? "onlineTopUpBlue.png" : "onlineTopUpRed.png"),
                                     height: "13px",
                                     width: "15px",
@@ -5681,8 +5687,12 @@ define(['js/app'], function (myApp) {
                             var playerObjId = row._id ? row._id : "";
 
                             if (row.isRealPlayer) {
+                                let isForbidPromoCode = 0;
+                                if (row.forbidPromoCode) {
+                                    isForbidPromoCode = 1;
+                                }
                                 link.append($('<a>', {
-                                    'class': 'forbidRewardEventPopover fa fa-gift margin-right-5' + (row.forbidRewardEvents && row.forbidRewardEvents.length > 0 ? " text-danger" : ""),
+                                    'class': 'forbidRewardEventPopover fa fa-gift margin-right-5' + (row.forbidRewardEvents && (row.forbidRewardEvents.length + isForbidPromoCode) > 0 ? " text-danger" : ""),
                                     'data-row': JSON.stringify(row),
                                     'data-toggle': 'popover',
                                     // 'title': $translate("PHONE"),
@@ -5693,7 +5703,7 @@ define(['js/app'], function (myApp) {
                                     'href': '#',
                                     'style': "z-index: auto; min-width:23px",
                                     'data-container': "body",
-                                    'html': (row.forbidRewardEvents && row.forbidRewardEvents.length > 0 ? '<sup>' + row.forbidRewardEvents.length + '</sup>' : ''),
+                                    'html': (row.forbidRewardEvents && (row.forbidRewardEvents.length + isForbidPromoCode) > 0 ? '<sup>' + (row.forbidRewardEvents.length + isForbidPromoCode) + '</sup>' : ''),
                                 }));
                             }
 
@@ -6275,6 +6285,7 @@ define(['js/app'], function (myApp) {
                         content: function () {
                             var data = JSON.parse(this.dataset.row);
                             vm.forbidRewardEventPopover = data;
+                            vm.forbidPromoCode = vm.forbidRewardEventPopover.forbidPromoCode || false;
                             vm.forbidRewardEvents = [];
                             vm.forbidRewardDisable = true;
                             $scope.safeApply();
@@ -6293,7 +6304,11 @@ define(['js/app'], function (myApp) {
                                         forbidRewardEvents.push($(v).attr('data-provider'));
                                     }
                                 });
-                                vm.forbidRewardDisable = vm.isForbidChanged(forbidRewardEvents, vm.forbidRewardEventPopover.forbidRewardEvents);
+                                if (vm.forbidPromoCode != rowData.forbidPromoCode) {
+                                    vm.forbidRewardDisable = false;
+                                } else {
+                                    vm.forbidRewardDisable = vm.isForbidChanged(forbidRewardEvents, vm.forbidRewardEventPopover.forbidRewardEvents);
+                                }
                                 $scope.safeApply();
                             });
 
@@ -6312,13 +6327,14 @@ define(['js/app'], function (myApp) {
                                 let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
                                 let forbidRewardEvents = [];
                                 $.each(forbidRewardEventList, function (i, v) {
-                                    if ($(v).prop('checked')) {
+                                    if ($(v).prop('checked') && $(v).attr('data-provider')) {
                                         forbidRewardEvents.push($(v).attr('data-provider'));
                                     }
                                 });
                                 let sendData = {
                                     _id: rowData._id,
                                     forbidRewardEvents: forbidRewardEvents,
+                                    forbidPromoCode: vm.forbidPromoCode,
                                     adminName: authService.adminName
                                 };
                                 vm.updatePlayerForbidRewardEvents(sendData);
@@ -6341,6 +6357,12 @@ define(['js/app'], function (myApp) {
                                     height: '26px'
                                 },
                                 // transactionReward: {imgType: 'i', iconClass: "fa fa-share-square"},
+                                allTopUp: {
+                                    imgType: 'img',
+                                    src: "images/icon/allTopUpBlue.png",
+                                    width: "26px",
+                                    height: '20px'
+                                },
                                 topupOnline: {
                                     imgType: 'img',
                                     src: "images/icon/onlineTopUpBlue.png",
@@ -10336,6 +10358,7 @@ define(['js/app'], function (myApp) {
                                 detail.platformObjId = inData.platformObjId;
                                 detail.eventObjId = inData.eventObjId;
                                 detail._id = inData._id;
+                                detail.gameProvider$ = inData.gameProvider && inData.gameProvider.name ? inData.gameProvider.name : null;
                                 record.push(detail);
                             }
                         )
@@ -10358,11 +10381,12 @@ define(['js/app'], function (myApp) {
                         // "aaSorting": vm.consumptionSlipReward.aaSorting || [[2, 'desc']],
                         aoColumnDefs: [
                             {'sortCol': 'orderNo', bSortable: false, 'aTargets': [1]},
-                            {'sortCol': 'consumptionCreateTime', bSortable: true, 'aTargets': [2]},
-                            {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [3]},
-                            {'sortCol': 'consumptionAmount', bSortable: true, 'aTargets': [4]},
-                            {'sortCol': 'rewardAmount', bSortable: true, 'aTargets': [5]},
-                            {'sortCol': 'spendingTimes', bSortable: true, 'aTargets': [6]},
+                            {'sortCol': 'gameProvider', bSortable: false, 'aTargets': [2]},
+                            {'sortCol': 'consumptionCreateTime', bSortable: true, 'aTargets': [3]},
+                            {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [4]},
+                            {'sortCol': 'consumptionAmount', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'rewardAmount', bSortable: true, 'aTargets': [6]},
+                            {'sortCol': 'spendingTimes', bSortable: true, 'aTargets': [7]},
                             {targets: '_all', defaultContent: ' ', bSortable: false}
                         ],
 
@@ -10396,6 +10420,7 @@ define(['js/app'], function (myApp) {
                                 },
                             },
                             {title: $translate('BET_TIME'), data: "betTime"},
+                            {title: $translate('PROVIDER_NAME') + "ID", data: "gameProvider$"},
                             {title: $translate('RECEIVED_BONUS_AMOUNT'), data: "bonusAmount"},
                             {title: $translate('CONSUMPTION_AMOUNT_ROUND'), data: "consumptionAmount"},
                             {title: $translate('PROPOSAL_REWARD_AMOUNT'), data: "rewardAmount"},
@@ -11617,10 +11642,10 @@ define(['js/app'], function (myApp) {
                             if (vm.isUnlockTaskGroup) {
                                 let spendingAmt = vm.calSpendingAmt(index);
 
-                                item.curConsumption$ = spendingAmt.currentAmt;
+                                item.curConsumption$ = Number.isFinite(spendingAmt.currentAmt) ? spendingAmt.currentAmt : 0;
                                 item.maxConsumption$ = spendingAmt.currentMax;
                             } else {
-                                item.curConsumption$ = item.requiredBonusAmount;
+                                item.curConsumption$ = Number.isFinite(item.requiredBonusAmount) ? item.requiredBonusAmount : 0;
                                 item.maxConsumption$ = item.requiredUnlockAmount;
                             }
                             item.bonusAmount$ = item.data.bonusAmount;
@@ -13709,8 +13734,34 @@ define(['js/app'], function (myApp) {
         vm.updatePlayerForbidRewardEvents = function (sendData) {
             console.log('sendData', sendData);
             socketService.$socket($scope.AppSocket, 'updatePlayerForbidRewardEvents', sendData, function (data) {
+                let playerObj = data.data;
+                if (playerObj) {
+                    let sendData = {
+                        query: {
+                            platformObjId: playerObj.platform,
+                            isBlockByMainPermission: false
+                        },
+                        updateData: {}
+                    }
+                    if (playerObj.forbidPromoCode) {
+                        sendData.query.name = "次权限禁用组（预设）"; //hard code name;
+                        sendData.query.isBlockPromoCodeUser = true;
+                        sendData.query.isDefaultGroup = true;
+                        sendData.checkQuery = {
+                            platformObjId: playerObj.platform,
+                            playerNames: playerObj.name
+                        }
+                        sendData.updateData["$addToSet"] = {playerNames: playerObj.name};
+                    } else {
+                        sendData.query.playerNames =  playerObj.name;
+                        sendData.updateData["$pull"] = {playerNames: playerObj.name};
+                    }
+
+                    socketService.$socket($scope.AppSocket, 'updatePromoCodeGroupMainPermission', sendData, function () {
+                    });
+                }
                 vm.getPlatformPlayersData();
-                vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent));
+                vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent), data.data);
             });
         };
         vm.updateBatchPlayerForbidRewardEvents = function (sendData) {
@@ -22528,7 +22579,10 @@ define(['js/app'], function (myApp) {
         //endregion
 
         //region forbidReward
-        vm.updateForbidRewardLog = function (playerId, forbidReward) {
+        vm.updateForbidRewardLog = function (playerId, forbidReward, playerObj) {
+            if (playerObj && playerObj.forbidPromoCode) {
+                forbidReward.push("优惠代码");
+            }
 
             let queryData = {
                 playerId: playerId,
@@ -22546,7 +22600,7 @@ define(['js/app'], function (myApp) {
             let proms = [];
 
             data.data.forEach(player => {
-                let prom = vm.updateForbidRewardLog(player._id, vm.findForbidCheckedName(player.forbidRewardEvents, vm.allRewardEvent));
+                let prom = vm.updateForbidRewardLog(player._id, vm.findForbidCheckedName(player.forbidRewardEvents, vm.allRewardEvent), player);
                 proms.push(prom);
             });
 

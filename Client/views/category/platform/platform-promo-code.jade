@@ -75,7 +75,7 @@
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'No' | translate}}
                                 td
-                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
+                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', data-actions-box='true', data-dropup-auto='true')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}', ng-init="$last") {{prov.name}}
                                     select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='vm.checkPromoCodeDisabled(promoCode)')
@@ -86,7 +86,7 @@
                                 td
                                     text(ng-if="promoCode.code") {{promoCode.code}}
                                     text(ng-if="promoCode.cancel") {{ 'CANCEL' | translate}}
-                                    button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='vm.generatePromoCode(vm.newPromoCode1, $index, promoCode, 1);')
+                                    button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='vm.generatePromoCodeAsync(vm.newPromoCode1, $index, promoCode, 1);')
                                         text {{'GENERATE' | translate}}
                                     button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && (vm.newPromoCode1 && vm.newPromoCode1.length > 1) && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='vm.deletePromoCode(vm.newPromoCode1, $index);')
                                         text {{'CANCEL' | translate}}
@@ -94,7 +94,7 @@
                                     text(ng-if="!promoCode.code && promoCode.isBlockPromoCodeUser && promoCode.blockedGroupName") {{'BLOCK' | translate}} ({{promoCode.blockedGroupName}})
                                     text(style="font-size:80%" ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission") * more than 1?
                                     wbr
-                                    button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='promoCode.skipCheck = true; vm.generatePromoCode(vm.newPromoCode1, $index, promoCode, 1);')
+                                    button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='promoCode.skipCheck = true; vm.generatePromoCodeAsync(vm.newPromoCode1, $index, promoCode, 1);')
                                         text {{'Yes' | translate}}
                                     button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='vm.cancelPromoCode(vm.newPromoCode1, $index)')
                                         text {{'No' | translate}}
@@ -164,7 +164,7 @@
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'No' | translate}}
                                 td
-                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='false')
+                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup",data-width="150px", ng-model='promoCode.allowedProviders', data-actions-box='true', data-dropup-auto='true')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last") {{prov.name}}
                                     select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='vm.checkPromoCodeDisabled(promoCode)')
@@ -175,7 +175,7 @@
                                 td
                                     text(ng-if="promoCode.code") {{promoCode.code}}
                                     text(ng-if="promoCode.cancel") {{ 'CANCEL' | translate}}
-                                    button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='vm.generatePromoCode(vm.newPromoCode2, $index, promoCode, 2);')
+                                    button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='vm.generatePromoCodeAsync(vm.newPromoCode2, $index, promoCode, 2);')
                                         text {{'GENERATE' | translate}}
                                     button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && (vm.newPromoCode2 && vm.newPromoCode2.length > 1) && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='vm.deletePromoCode(vm.newPromoCode2, $index);')
                                         text {{'CANCEL' | translate}}
@@ -183,7 +183,7 @@
                                     text(ng-if="!promoCode.code && promoCode.isBlockPromoCodeUser && promoCode.blockedGroupName") {{'BLOCK' | translate}} ({{promoCode.blockedGroupName}})
                                     text(style="font-size:80%" ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission") * more than 1?
                                     wbr
-                                    button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='promoCode.skipCheck = true; vm.generatePromoCode(vm.newPromoCode2, $index, promoCode, 2);')
+                                    button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='promoCode.skipCheck = true; vm.generatePromoCodeAsync(vm.newPromoCode2, $index, promoCode, 2);')
                                         text {{'Yes' | translate}}
                                     button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='vm.cancelPromoCode(vm.newPromoCode2, $index)')
                                         text {{'No' | translate}}
@@ -258,7 +258,7 @@
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                     text {{'No' | translate}}
                                 td
-                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', multiple, data-actions-box='true' ng-change="$scope.safeApply();" data-dropup-auto='true')
+                                    select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', data-actions-box='true', data-dropup-auto='true')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
                                         option(ng-repeat='prov in vm.platformProviderList', value='{{prov._id}}' ng-init="$last") {{prov.name}}
                                     select.form-control(ng-if="vm.selectedPlatform.data.useProviderGroup" ng-model="promoCode.allowedProviders" ng-disabled='vm.checkPromoCodeDisabled(promoCode)')
@@ -269,7 +269,7 @@
                                 td
                                     text(ng-if="promoCode.code") {{promoCode.code}}
                                     text(ng-if="promoCode.cancel") {{ 'CANCEL' | translate}}
-                                    button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='vm.generatePromoCode(vm.newPromoCode3, $index, promoCode, 3);')
+                                    button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='vm.generatePromoCodeAsync(vm.newPromoCode3, $index, promoCode, 3);')
                                         text {{'GENERATE' | translate}}
                                     button.btn.btn-primary(ng-if="!promoCode.code && !promoCode.hasMoreThanOne && !promoCode.cancel && (vm.newPromoCode3 && vm.newPromoCode3.length > 1) && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='vm.deletePromoCode(vm.newPromoCode3, $index);')
                                         text {{'CANCEL' | translate}}
@@ -277,7 +277,7 @@
                                     text(ng-if="!promoCode.code && promoCode.isBlockPromoCodeUser && promoCode.blockedGroupName") {{'BLOCK' | translate}} ({{promoCode.blockedGroupName}})
                                     text(style="font-size:80%" ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission") * more than 1?
                                     wbr
-                                    button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='promoCode.skipCheck = true; vm.generatePromoCode(vm.newPromoCode3, $index, promoCode, 3);')
+                                    button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='promoCode.skipCheck = true; vm.generatePromoCodeAsync(vm.newPromoCode3, $index, promoCode, 3);')
                                         text {{'Yes' | translate}}
                                     button.btn.btn-primary(ng-if="!promoCode.code && promoCode.hasMoreThanOne && !promoCode.cancel && !promoCode.isBlockPromoCodeUser && !promoCode.isBlockByMainPermission", ng-click='vm.cancelPromoCode(vm.newPromoCode3, $index)')
                                         text {{'No' | translate}}
@@ -612,14 +612,14 @@
                                     td(ng-if="$even")
                                         input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="vm.selectedPromoCodeUserGroup.playerNames[$index]")
                                     td(ng-if="$odd" style="background-color:#ddd")
-                                        button.btn.btn-success.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=false; vm.savePromoCodeUserGroup();")
+                                        button.btn.btn-success.common-button(ng-click="vm.checkUserBlockGroupBeforeAndSave(vm.selectedPromoCodeUserGroup);")
                                             i.fa.fa-floppy-o
                                             text {{'SAVE' | translate}}
                                         button.btn.btn-danger.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=false")
                                             i.fa.fa-times
                                             text {{'CANCEL' | translate}}
                                     td(ng-if="$even")
-                                        button.btn.btn-success.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=false; vm.savePromoCodeUserGroup();")
+                                        button.btn.btn-success.common-button(ng-click="vm.checkUserBlockGroupBeforeAndSave(vm.selectedPromoCodeUserGroup);")
                                             i.fa.fa-floppy-o
                                             text {{'SAVE' | translate}}
                                         button.btn.btn-danger.common-button(ng-click="vm.promoCodeUserGroupPlayerEdit=false")
@@ -652,7 +652,7 @@
                             thead
                                 tr
                                     th
-                                    th(width="40%") {{'BLOCK_GROUP' | translate}}
+                                    th(width="40%") {{'BLOCK_GROUP' | translate}} {{"(Forbid main permissions are not sync here but will take effect)" | translate}}
                                     th(width="40%") {{'COLOR_CODE' | translate}}
                                     th(width="20%") {{'INLINE_EDIT' | translate}}
                             tbody
@@ -665,14 +665,14 @@
                                         button.btn.btn-primary.common-button(ng-click="vm.blockPromoCodeUserGroupEdit=true")
                                             i.fa.fa-pencil-square-o
                                             text {{'EDIT' | translate}}
-                                        button.btn.btn-danger.common-button(data-toggle="modal", data-target='#modalDeleteBlockPromoCodeUserGroup' ng-click="vm.userGroupBlockConfigDeleteIndex = $index")
+                                        button.btn.btn-danger.common-button(ng-disabled='blockConfig.isDefaultGroup' data-toggle="modal", data-target='#modalDeleteBlockPromoCodeUserGroup' ng-click="vm.userGroupBlockConfigDeleteIndex = $index")
                                             i.fa.fa-trash
                                             text {{'DELETE' | translate}}
                                 // after edit enabled
                                 tr(ng-repeat='blockConfig in vm.userGroupBlockConfig', ng-if='vm.blockPromoCodeUserGroupEdit')
                                     td {{ $index + 1 }}
                                     td(style="background-color:{{blockConfig.color}}", ng-click="vm.selectedBlockPromoCodeUserGroup=blockConfig;")
-                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="blockConfig.name")
+                                        input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="blockConfig.name" ng-disabled='blockConfig.isDefaultGroup')
                                     td(style="background-color:{{blockConfig.color}}")
                                         input.form-control(style="text-align:center;width:90%;margin: 0 auto;", colorpicker="rgb", type="text", ng-model="blockConfig.color")
                                     td(style="background-color:{{blockConfig.color}}")
@@ -743,14 +743,14 @@
                                     td(ng-if="$even")
                                         input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type="text", ng-model="vm.selectedBlockPromoCodeUserGroup.playerNames[$index]")
                                     td(ng-if="$odd" style="background-color:#ddd")
-                                        button.btn.btn-success.common-button(ng-click="vm.blockPromoCodeUserGroupPlayerEdit=false; vm.saveBlockPromoCodeUserGroup();")
+                                        button.btn.btn-success.common-button(ng-click="vm.checkUserBlockGroupBeforeAndSave(vm.selectedBlockPromoCodeUserGroup, true);")
                                             i.fa.fa-floppy-o
                                             text {{'SAVE' | translate}}
                                         button.btn.btn-danger.common-button(ng-click="vm.blockPromoCodeUserGroupPlayerEdit=false")
                                             i.fa.fa-times
                                             text {{'CANCEL' | translate}}
                                     td(ng-if="$even")
-                                        button.btn.btn-success.common-button(ng-click="vm.blockPromoCodeUserGroupPlayerEdit=false; vm.saveBlockPromoCodeUserGroup();")
+                                        button.btn.btn-success.common-button(ng-click="vm.checkUserBlockGroupBeforeAndSave(vm.selectedBlockPromoCodeUserGroup,true);")
                                             i.fa.fa-floppy-o
                                             text {{'SAVE' | translate}}
                                         button.btn.btn-danger.common-button(ng-click="vm.blockPromoCodeUserGroupPlayerEdit=false")

@@ -139,7 +139,8 @@
                 "getIDCIpDetail",
                 "getLockedLobbyConfig",
                 "saveFrontEndData",
-                "getFrontEndData"
+                "getFrontEndData",
+                "sendFileFTP"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -295,7 +296,6 @@
                 "createFirstTopUpRewardProposal",
                 "applyProviderReward",
                 "applyRewardEvent",
-                "getConsumptionSlipRewardList",
                 "getPlayerReferralList",
                 "getConsecutiveLoginRewardDay",
                 "getEasterEggPlayerInfo",
