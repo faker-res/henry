@@ -10358,6 +10358,7 @@ define(['js/app'], function (myApp) {
                                 detail.platformObjId = inData.platformObjId;
                                 detail.eventObjId = inData.eventObjId;
                                 detail._id = inData._id;
+                                detail.gameProvider$ = inData.gameProvider && inData.gameProvider.name ? inData.gameProvider.name : null;
                                 record.push(detail);
                             }
                         )
@@ -10380,11 +10381,12 @@ define(['js/app'], function (myApp) {
                         // "aaSorting": vm.consumptionSlipReward.aaSorting || [[2, 'desc']],
                         aoColumnDefs: [
                             {'sortCol': 'orderNo', bSortable: false, 'aTargets': [1]},
-                            {'sortCol': 'consumptionCreateTime', bSortable: true, 'aTargets': [2]},
-                            {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [3]},
-                            {'sortCol': 'consumptionAmount', bSortable: true, 'aTargets': [4]},
-                            {'sortCol': 'rewardAmount', bSortable: true, 'aTargets': [5]},
-                            {'sortCol': 'spendingTimes', bSortable: true, 'aTargets': [6]},
+                            {'sortCol': 'gameProvider', bSortable: false, 'aTargets': [2]},
+                            {'sortCol': 'consumptionCreateTime', bSortable: true, 'aTargets': [3]},
+                            {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [4]},
+                            {'sortCol': 'consumptionAmount', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'rewardAmount', bSortable: true, 'aTargets': [6]},
+                            {'sortCol': 'spendingTimes', bSortable: true, 'aTargets': [7]},
                             {targets: '_all', defaultContent: ' ', bSortable: false}
                         ],
 
@@ -10418,6 +10420,7 @@ define(['js/app'], function (myApp) {
                                 },
                             },
                             {title: $translate('BET_TIME'), data: "betTime"},
+                            {title: $translate('PROVIDER_NAME') + "ID", data: "gameProvider$"},
                             {title: $translate('RECEIVED_BONUS_AMOUNT'), data: "bonusAmount"},
                             {title: $translate('CONSUMPTION_AMOUNT_ROUND'), data: "consumptionAmount"},
                             {title: $translate('PROPOSAL_REWARD_AMOUNT'), data: "rewardAmount"},

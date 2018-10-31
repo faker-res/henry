@@ -991,12 +991,12 @@ let dbPlayerReward = {
                 }
                 else if (isFrontEndCheck){
                 
-                    consumptionSlipRewardGroupProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find(searchQuery).sort(sortCol).lean();
+                    consumptionSlipRewardGroupProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find(searchQuery).sort(sortCol).populate({path: "gameProvider", model: dbConfig.collection_gameProvider}).lean();
                     consumptionSlipRewardGroupTotalCountProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find(searchQuery).lean().count();
                 }
                 else{
                     searchQuery.$or = [ {requiredTopUpAmount: {$gte: 0, $lte: totalTopUpAmount} }, {requiredTopUpAmount: {$exists: false}}, {requiredTopUpAmount: null}];
-                    consumptionSlipRewardGroupProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find(searchQuery).sort(sortCol).skip(index).limit(limit).lean();
+                    consumptionSlipRewardGroupProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find(searchQuery).sort(sortCol).skip(index).limit(limit).populate({path: "gameProvider", model: dbConfig.collection_gameProvider}).lean();
                     consumptionSlipRewardGroupTotalCountProm = dbConfig.collection_playerConsumptionSlipRewardGroupRecord.find(searchQuery).lean().count();
                 }
 
@@ -1012,10 +1012,20 @@ let dbPlayerReward = {
 
                     // if there is appliedRewardList, it is applying the reward, not preview
                     if (rewardData.appliedRewardList && rewardData.appliedRewardList.length){
+                        let retList = [];
+                        if (consumptionSlipRecord && consumptionSlipRecord.length){
+                            consumptionSlipRecord.forEach(
+                                record => {
+                                    if (record.requiredTopUpAmount && totalTopUpAmount >= record.requiredTopUpAmount){
+                                        retList.push(record);
+                                    }
+                                }
+                            )
+                        }
                         return {
                             availableQuantity: event.condition && event.condition.countInRewardInterval ? event.condition.countInRewardInterval : 1,
                             appliedCount: similarProposalCount,
-                            list: consumptionSlipRecord,
+                            list: retList,
                         }
                     }
 

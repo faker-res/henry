@@ -410,6 +410,30 @@
     </div>
 </div>
 
+<h3>sendFileFTP (文件上传ftp)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform ID
+            <input name="platformId" type="number">
+        </label>
+    </div>
+    <div>
+        <label>token
+            <input name="token">
+        </label>
+    </div>
+    <div>
+        <label>fileName
+            <input name="fileName">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="sendFileFTP">send</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlatformAPITest','testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlatformAPITest, ClientConnectionAPITest) {
