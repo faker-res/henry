@@ -33198,7 +33198,6 @@ console.log('typeof ',typeof gameProviders);
                             callback: function () {
 
                                 let thisPopover = utilService.$getPopoverID(this);
-                                vm.initBatchParams();
                                 let rowData = vm.resetBatchEditUI();
                                 $scope.safeApply();
 
