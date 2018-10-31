@@ -290,6 +290,13 @@ var dbRewardEvent = {
                             platformId: playerObj.platform._id
                         };
 
+                        let eventQuery = {
+                            "data.platformObjId": playerObj.platform._id,
+                            "data.playerObjId": playerObj._id,
+                            "data.eventId": rewardEvent._id,
+                            status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                        };
+
                         if (rewardEvent.condition.topupType && rewardEvent.condition.topupType.length > 0) {
                             topupMatchQuery.topUpType = {$in: rewardEvent.condition.topupType}
                         }
@@ -312,6 +319,7 @@ var dbRewardEvent = {
 
                         if (intervalTime) {
                             topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                            eventQuery.settleTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
                         }
 
                         let topUpProm = null;
@@ -323,11 +331,14 @@ var dbRewardEvent = {
                         }
 
                         let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerObjId}).sort({createTime: -1}).limit(1).lean();
+                        let eventInPeriodProm = dbconfig.collection_proposal.find(eventQuery).lean();
 
-                        return Promise.all([topUpProm, lastConsumptionProm]).then(
+                        return Promise.all([topUpProm, lastConsumptionProm, eventInPeriodProm]).then(
                             data => {
                                 let topUpData =  data[0];
                                 let consumptionData =  data[1];
+                                let eventInPeriodData = data[2];
+                                let eventInPeriodCount = eventInPeriodData.length;
                                 let topUpAfterConsumption = [];
 
                                 // filter top up record after consumption
@@ -344,6 +355,10 @@ var dbRewardEvent = {
                                 function checkRewardEventWithTopUp(topUpDataObj) {
                                     return dbRewardEvent.checkRewardEventGroupApplicable(playerObj, rewardEvent, {selectedTopup: topUpDataObj}).then(
                                         checkRewardData => {
+                                            // Check reward apply limit in period
+                                            if (rewardEvent.param.countInRewardInterval && rewardEvent.param.countInRewardInterval <= eventInPeriodCount) {
+                                                checkRewardData.status = 3;
+                                            }
 
                                             if(rewardEvent.type.name == constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP){
                                                 if (checkRewardData.condition.deposit.status == 1 || checkRewardData.condition.bet.status == 1) {
@@ -1131,12 +1146,16 @@ var dbRewardEvent = {
                                        winAmount: detail.bonusAmount || null,
                                        rewardAmount: detail.rewardAmount || null,
                                        spendingTimes: detail.spendingTimes || null,
+                                       depositAmount: detail.requiredTopUpAmount || null,
                                        status: 1,
                                        endingDigitMatched: detail.requiredOrderNoEndingDigit || null
 
                                    })
                                }
                            )
+                        }
+                        else{
+                            returnData.condition.deposit.status = 2;
                         }
 
                         if (consumptionSlipRewardDetail.unusedList && consumptionSlipRewardDetail.unusedList.length){
@@ -1150,6 +1169,7 @@ var dbRewardEvent = {
                                         winAmount: detail.bonusAmount || null,
                                         rewardAmount: detail.rewardAmount || null,
                                         spendingTimes: detail.spendingTimes || null,
+                                        depositAmount: detail.requiredTopUpAmount || null,
                                         status: 2,
                                         endingDigitMatched: detail.requiredOrderNoEndingDigit || null
                                     })

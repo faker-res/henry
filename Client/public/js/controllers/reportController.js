@@ -1603,7 +1603,11 @@ define(['js/app'], function (myApp) {
                             item.topupTypeStr = typeID
                                 ? $translate($scope.merchantTopupTypeJson[typeID])
                                 : $translate("Unknown")
-                            item.merchantNo$ = vm.getOnlineMerchantId(item.data.merchantNo, item.inputDevice);
+                            let merchantNo = '';
+                            if(item.data.merchantNo){
+                                merchantNo = item.data.merchantNo;
+                            }
+                            item.merchantNoDisplay = vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
                         } else {
                             //show topup type for other types
                             item.topupTypeStr = $translate(item.type.name)
@@ -1625,17 +1629,27 @@ define(['js/app'], function (myApp) {
             let result = commonService.getMerchantName(merchantNo, vm.merchantNoList, vm.merchantTypes, inputDevice);
             return result;
         }
-        vm.getOnlineMerchantId = function (merchantNo, targetDevices) {
-            let result = '';
-            if (merchantNo && vm.merchantNoList) {
-                let merchant = vm.merchantNoList.filter(item => {
-                    return item.merchantNo == merchantNo && targetDevices == item.targetDevices;
-                })
-                if (merchant.length > 0) {
-                    result = merchant[0].name
-                }
-            }
-            return result;
+        vm.getOnlineMerchantId = function (merchantNo, devices, topupType) {
+          let result = merchantNo;
+          let targetDevices = commonService.getPMSDevices(devices);
+
+          if(topupType && typeof topupType=='string'){
+              topupType = Number(topupType);
+          }
+
+          if (merchantNo && vm.merchantNoList) {
+              let merchant = vm.merchantNoList.filter(item => {
+                  if(topupType){
+                      return item.merchantNo == merchantNo && targetDevices == item.targetDevices && topupType == item.topupType;
+                  }else{
+                      return item.merchantNo == merchantNo && targetDevices == item.targetDevices;
+                  }
+              })
+              if (merchant.length > 0) {
+                  result = merchant[0].name
+              }
+          }
+          return result;
         }
         vm.initAccs = function () {
             socketService.$socket($scope.AppSocket, 'getAllBankCard', {platform: vm.selectedPlatform.platformId},

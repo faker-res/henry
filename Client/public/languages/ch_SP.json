@@ -2058,6 +2058,7 @@
   "PlayerLevelUp": "系统升级优惠",
   "Online": "网银转账",
   "Counter": "银行柜台",
+  "allTopUp": "所有存款",
   "topupOnline": "在线充值",
   "Online Topup Type": "在线充值类型",
   "topupManualtopupManual": "手工存款",
@@ -2879,7 +2880,6 @@
   "getPlayerRewardList": "获取玩家优惠活动申请列表",
   "getConsumeRebateAmount": "获取洗码额度",
   "applyRewardEvent": "申请优惠活动",
-  "getConsumptionSlipRewardList": "获取幸运单注的投注列表",
   "Exceeded the application quantity of the interval time": "本周期内仍可申请次数已达标",
   "getPlayerReferralList": "获取推荐玩家列表",
   "getConsecutiveLoginRewardDay": "获取玩家登陆累计天数",
@@ -3636,6 +3636,7 @@
   "PushNotification": "推送APP消息",
   "addPushNotification": "添加推送信息",
   "PromoCode": "优惠代码",
+  "(Forbid main permissions are not sync here but will take effect)": "（主权限禁用不在此同步但会生效）",
   "Player does not have permission for this limited offer. Please contact cs for more detail.": "玩家无参加秒杀礼包的权限，详情请联系客服。",
   "Convert reward points amount must greater than 0": "兑换积分的数量必须大于0",
   "PLATFORM_ID": "平台ID（唯一、不可更改）",
@@ -4256,6 +4257,7 @@
   "Recalculate failed": "重算失败",
   "Recalculate": "重新计算",
   "Relevant provider group:": "相关锁大厅组：",
+  "applyTargetDate": "周期判断时间",
 
   "Please insert bank account name.": "请填入银行户口姓名",
   "Please insert bank account.": "请填入银行帐号",
@@ -4591,7 +4593,6 @@
   "alipayerNickName": "PMS收录玩家支付宝腻称",
   "alipayerRemark": "PMS收录玩家支付宝备注",
   "getLockedLobbyConfig": "获取平台锁大厅配置",
-  "Please enter player account":"请输入玩家账号",
   "Please enter new phone number for sms verification code": "请输入您（新）电话号码，将发送短信验证码",
   "Please enter current phone number for sms verification": "请输入您原绑定电话号码，将发送短信验证码",
   "New phone number is already used. Please insert other phone number.": "新号码已绑定账号，不支持重复绑定。",
@@ -4691,5 +4692,6 @@
   "Max Reward Amount In Single Reward": "单笔最高优惠上限",
   "PlayerConsumptionSlipRewardGroup": "幸运注单（组）",
   "* required": "*星号必填",
-  "Min Consumption Amount, Reward Amount is required": "必填该局最低下注金额、优惠金额"
+  "Min Consumption Amount, Reward Amount is required": "必填该局最低下注金额、优惠金额",
+  "Check Continous Apply Bonus Times": "连续提款次数 ≥ X（转人工审核）"
 }

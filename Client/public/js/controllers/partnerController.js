@@ -1733,12 +1733,12 @@ define(['js/app'], function (myApp) {
 
                 if (type === 'msg' && authService.checkViewPermission('Partner', 'Partner', 'sendSMS')) {
                     vm.smsPartner = {
-                        partnerId: partnerObjId.partnerId,
-                        partnerName: partnerObjId.partnerName,
-                        realName: partnerObjId.realName,
+                        partnerId: data.partnerId,
+                        partnerName: data.partnerName,
+                        realName: data.realName,
                         platformId: vm.selectedPlatform.data.platformId,
                         channel: $scope.channelList[0],
-                        hasPhone: partnerObjId.phoneNumber
+                        hasPhone: data.phoneNumber
                     };
                     vm.sendSMSResult = {};
                     $scope.safeApply();
@@ -3417,7 +3417,7 @@ define(['js/app'], function (myApp) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updatePlayerForbidRewardEvents', sendData, function (data) {
                     vm.getPlatformPlayersData();
-                    vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent));
+                    vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent), data.data);
                 });
             };
             vm.updateBatchPlayerForbidRewardEvents = function (sendData) {
@@ -13812,7 +13812,10 @@ define(['js/app'], function (myApp) {
             //endregion
 
             //region forbidReward
-            vm.updateForbidRewardLog = function (playerId, forbidReward) {
+            vm.updateForbidRewardLog = function (playerId, forbidReward, playerObj) {
+                if (playerObj && playerObj.forbidPromoCode) {
+                    forbidReward.push("优惠代码");
+                }
 
                 let queryData = {
                     playerId: playerId,
@@ -13830,7 +13833,7 @@ define(['js/app'], function (myApp) {
                 let proms = [];
 
                 data.data.forEach(player => {
-                    let prom = vm.updateForbidRewardLog(player._id, vm.findForbidCheckedName(player.forbidRewardEvents, vm.allRewardEvent));
+                    let prom = vm.updateForbidRewardLog(player._id, vm.findForbidCheckedName(player.forbidRewardEvents, vm.allRewardEvent), player);
                     proms.push(prom);
                 });
 

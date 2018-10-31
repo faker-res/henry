@@ -568,17 +568,33 @@ define(['js/app'], function (myApp) {
             };
 
             vm.showPlatformDetailTab = function (tabName) {
+                if (tabName === null) {
+                    if (authService.checkViewPermission('Platform', 'Platform','BackstageSettings')) {
+                        tabName = "backstage-settings";
+                    } else if (authService.checkViewPermission('Platform', 'Platform','PlayerDisplayData')) {
+                        tabName = "player-display-data";
+                    } else if (authService.checkViewPermission('Platform', 'Platform','PartnerDisplayData')) {
+                        tabName = "partner-display-data";
+                    } else if (authService.checkViewPermission('Platform', 'Platform','SystemSettlement')) {
+                        tabName = "system-settlement";
+                    } else if (authService.checkViewPermission('Platform', 'Platform','FrontendModuleSetting')) {
+                        tabName = "frontend-module-setting";
+                    } else if (authService.checkViewPermission('Platform', 'Platform','ThemeSelect')) {
+                        tabName = "theme-select";
+                    }
+                }
 
-                vm.selectedPlatformDetailTab = tabName == null ? "backstage-settings" : tabName;
-                if (tabName && tabName == "player-display-data") {
+                vm.selectedPlatformDetailTab = tabName;
+
+                if (tabName && tabName === "player-display-data") {
                     vm.initPlayerDisplayDataModal();
-                } else if (tabName && tabName == "partner-display-data") {
+                } else if (tabName && tabName === "partner-display-data") {
                     vm.initPartnerDisplayDataModal();
-                } else if (tabName && tabName == "system-settlement") {
+                } else if (tabName && tabName === "system-settlement") {
                     vm.prepareSettlementHistory();
-                } else if (tabName && tabName == "frontend-module-setting"){
+                } else if (tabName && tabName === "frontend-module-setting") {
                     vm.initFrontendModuleSettingModal();
-                } else if (tabName && tabName == "theme-select"){
+                } else if (tabName && tabName === "theme-select") {
                     vm.loadThemeSetting();
                 }
             };
@@ -1389,13 +1405,19 @@ define(['js/app'], function (myApp) {
                     case "batchPermit":
                         vm.initBatchPermit();
                         vm.initBulkCreditClearOut();
+                        break;
+                    case "platformSetting":
+                        vm.showPlatformDetailTab(null);
+                        break;
                     // setTimeout(() => {
                     //     $('#partnerDataTable').resize();
                     // }, 300);
                     case "externalUserInfo":
                         vm.initExternalUserInfo();
+                        break;
                     case "FrontendConfiguration":
                         vm.initFrontendConfiguration();
+                        break;
                 }
 
                 commonService.updatePageTile($translate, "platform", tabName);
@@ -3844,6 +3866,7 @@ define(['js/app'], function (myApp) {
                         }
                     })
                     console.log("vm.includedGames", vm.includedGames);
+                    $scope.$evalAsync();
                 })
                 vm.excludedGames = '';
                 socketService.$socket($scope.AppSocket, 'getGamesNotAttachedToPlatform', query, function (data2) {
@@ -3877,7 +3900,7 @@ define(['js/app'], function (myApp) {
                             vm.gameStatus[v._id] = "default";
                         }
                     })
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 })
             }
 
@@ -6664,6 +6687,12 @@ define(['js/app'], function (myApp) {
                                     }));
                                     link.append($('<img>', {
                                         'class': 'margin-right-5 ',
+                                        'src': "images/icon/" + (perm.allTopUp === false ? "allTopUpRed.png" : "allTopUpBlue.png"),
+                                        height: "13px",
+                                        width: "15px",
+                                    }));
+                                    link.append($('<img>', {
+                                        'class': 'margin-right-5 ',
                                         'src': "images/icon/" + (perm.topupOnline === true ? "onlineTopUpBlue.png" : "onlineTopUpRed.png"),
                                         height: "13px",
                                         width: "15px",
@@ -7473,6 +7502,12 @@ define(['js/app'], function (myApp) {
                                         height: '26px'
                                     },
                                     // transactionReward: {imgType: 'i', iconClass: "fa fa-share-square"},
+                                    allTopUp: {
+                                        imgType: 'img',
+                                        src: "images/icon/allTopUpBlue.png",
+                                        width: "26px",
+                                        height: '20px'
+                                    },
                                     topupOnline: {
                                         imgType: 'img',
                                         src: "images/icon/onlineTopUpBlue.png",
@@ -14606,7 +14641,7 @@ define(['js/app'], function (myApp) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updatePlayerForbidRewardEvents', sendData, function (data) {
                     vm.getPlatformPlayersData();
-                    vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent));
+                    vm.updateForbidRewardLog(data.data._id, vm.findForbidCheckedName(data.data.forbidRewardEvents, vm.allRewardEvent), data.data);
                 });
             };
             vm.updateBatchPlayerForbidRewardEvents = function (sendData) {
@@ -21340,6 +21375,9 @@ console.log('typeof ',typeof gameProviders);
 
             vm.updateCollectionInEdit = function (type, collection, data, collectionCopy, isNotObject) {
                 if (type == 'add') {
+                    if (data && vm.isPromoNameExist(data.name)) {
+                        return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                    }
 
                     if (!isNotObject) {
 
@@ -22255,6 +22293,7 @@ console.log('typeof ',typeof gameProviders);
 
                 loadPromoCodeTypes();
                 loadPromoCodeUserGroup();
+                loadOpenPromoCodeTemplate();
                 // loadPromoCodeTemplate();
 
                 switch (choice) {
@@ -23402,6 +23441,21 @@ console.log('typeof ',typeof gameProviders);
                     vm.getPlatformPlayersData();
                     $scope.safeApply();
                 });
+            };
+
+            vm.isPromoNameExist = (name) => {
+                let allNames = [];
+                vm.promoCodeTypes.map(promoCode => {
+                    allNames.push(promoCode.name);
+                });
+                vm.promoCodeTemplateSetting.map(promoCode => {
+                    allNames.push(promoCode.name);
+                });
+                vm.openPromoCodeTemplateData.map(promoCode => {
+                    allNames.push(promoCode.name);
+                });
+
+                return allNames.includes(name);
             };
 
             function loadPromoCodeTypes() {
@@ -25415,6 +25469,8 @@ console.log('typeof ',typeof gameProviders);
 
             vm.savePromoCodeUserGroup = function (isDelete, index) {
                 console.log('userGroupConfig', vm.userGroupConfig);
+                vm.selectedPromoCodeUserGroup = null;
+                vm.selectedBlockPromoCodeUserGroup = null;
 
                 let sendData = {
                     platformObjId: vm.selectedPlatform.id,
@@ -25435,11 +25491,46 @@ console.log('typeof ',typeof gameProviders);
                         $scope.safeApply();
                     });
                     vm.saveUserFromGroupToGroup(1, vm.userGroupAllConfig, vm.userGroupBlockConfig)
+                    modifyPlayerPermissionPromoGroup();
                 }
+
+
             };
+
+            function modifyPlayerPermissionPromoGroup() {
+                let addedPlayerNameArr = [];
+                let deletedPlayerNameArr = [];
+                let originalPlayer = [];
+                let currentPlayer = [];
+
+                vm.userGroupAllConfig.forEach(originalItem => {
+                    if (originalItem.isBlockPromoCodeUser && originalItem.playerNames && originalItem.playerNames.length) {
+                        originalPlayer = originalPlayer.concat(originalItem.playerNames);
+                    }
+                });
+                vm.userGroupBlockConfig.forEach(currentItem => {
+                    if (currentItem.playerNames && currentItem.playerNames.length) {
+                        currentPlayer = currentPlayer.concat(currentItem.playerNames);
+                    }
+                });
+
+                deletedPlayerNameArr = originalPlayer.filter(oriItem=>currentPlayer.indexOf(oriItem) == -1);
+                addedPlayerNameArr = currentPlayer.filter(curItem=>originalPlayer.indexOf(curItem) == -1);
+
+                let modifyData = {
+                    adminId: authService.adminId,
+                    platformObjId: vm.selectedPlatform.id,
+                    addedPlayerNameArr,
+                    deletedPlayerNameArr
+                }
+
+                socketService.$socket($scope.AppSocket, 'modifyPlayerPermissionByPromoCode', modifyData, function () {});
+            }
 
             vm.saveBlockPromoCodeUserGroup = function (isDelete, index) {
                 console.log('userGroupBlockConfig', vm.userGroupBlockConfig);
+                vm.selectedPromoCodeUserGroup = null;
+                vm.selectedBlockPromoCodeUserGroup = null;
 
                 let sendData = {
                     platformObjId: vm.selectedPlatform.id,
@@ -25448,6 +25539,7 @@ console.log('typeof ',typeof gameProviders);
 
                 if (isDelete) {
                     let deleteData = {
+                        adminId: authService.adminId,
                         platformObjId: vm.selectedPlatform.id,
                         deleteData: index
                     };
@@ -25460,7 +25552,9 @@ console.log('typeof ',typeof gameProviders);
                         $scope.safeApply();
                     });
                     vm.saveUserFromGroupToGroup(2, vm.userGroupAllConfig, vm.userGroupConfig)
+                    modifyPlayerPermissionPromoGroup();
                 }
+
             };
 
             vm.saveUserFromGroupToGroup = function (type, originalConfig, currentConfig) {
@@ -25642,6 +25736,74 @@ console.log('typeof ',typeof gameProviders);
                 }
             };
 
+            vm.checkUserBlockGroupBeforeAndSave = function (ObjData, isBlockGroup) {
+                if (ObjData && ObjData.playerNames && ObjData.playerNames.length
+                    && vm.userGroupAllConfig && vm.userGroupAllConfig.length) {
+                    let duplicateName = [];
+                    let duplicateGroup = [];
+                    vm.userGroupAllConfig.forEach(
+                        (group) => {
+                            ObjData.playerNames.forEach(
+                                (playerName) => {
+                                    if (!group.isBlockByMainPermission && ObjData._id && group._id && String(group._id) != String(ObjData._id) && group.playerNames
+                                        && group.playerNames.length && group.playerNames.indexOf(playerName) > -1) {
+                                        duplicateName.push(playerName);
+                                        duplicateGroup.indexOf(group.name) == -1? duplicateGroup.push(group.name): "";
+                                    }
+                                }
+                            )
+                        }
+                    )
+                    let playerNameFiltered = [...new Set(ObjData.playerNames)];
+                    ObjData.playerNames = playerNameFiltered;
+                    if (duplicateName.length && duplicateGroup.length) {
+                        let message = [
+                            duplicateName.join(", "), $translate("already exist in group"), duplicateGroup.join(", "),
+                            $translate(", Are you sure you want to move player to group"), ObjData.name, "?"];
+                        vm.modalYesNo.modalTitle = $translate("MOVE_PLAYER");
+                        vm.modalYesNo.modalText = message.join(" ");
+                        vm.modalYesNo.actionYes = () => {
+                            vm.userGroupBlockConfig.forEach(group => {
+                                if (group.name && duplicateGroup.indexOf(group.name) > -1) {
+                                    duplicateName.forEach(name => {
+                                        let index = group.playerNames.splice(group.playerNames.indexOf(name))
+                                        if (index > -1) {
+                                            group.playerNames.splice(index,1);
+                                        }
+                                    })
+                                }
+                            })
+                            vm.userGroupConfig.forEach(group => {
+                                if (group.name && duplicateGroup.indexOf(group.name) > -1) {
+                                    duplicateName.forEach(name => {
+                                        let index = group.playerNames.splice(group.playerNames.indexOf(name))
+                                        if (index > -1) {
+                                            group.playerNames.splice(index,1);
+                                        }
+                                    })
+                                }
+                            })
+                            if (isBlockGroup) {
+                                vm.blockPromoCodeUserGroupPlayerEdit=false;
+                                vm.saveBlockPromoCodeUserGroup();
+                            } else {
+                                vm.promoCodeUserGroupPlayerEdit=false;
+                                vm.savePromoCodeUserGroup();
+                            }
+                        };
+                        $('#modalYesNo').modal();
+                    } else {
+                        if (isBlockGroup) {
+                            vm.blockPromoCodeUserGroupPlayerEdit=false;
+                            vm.saveBlockPromoCodeUserGroup();
+                        } else {
+                            vm.promoCodeUserGroupPlayerEdit=false;
+                            vm.savePromoCodeUserGroup();
+                        }
+                    }
+                }
+            }
+
             vm.addUserToBlockPromoCodeGroup = function (data, isSkipCheck) {
                 vm.isMoveUserFromGroupToGroup = false;
                 if (vm.searchBlockPromoCodeUserGroup(data, true) && !isSkipCheck) {
@@ -25771,7 +25933,6 @@ console.log('typeof ',typeof gameProviders);
                 socketService.$socket($scope.AppSocket, 'getBlockPromoCodeUserGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
                     $scope.$evalAsync(() => {
                         console.log('getBlockPromoCodeUserGroup', data);
-
                         vm.userGroupBlockConfig = data.data;
                     });
                 });
@@ -25779,7 +25940,7 @@ console.log('typeof ',typeof gameProviders);
 
             vm.getAllPromoCodeUserGroup = function () {
                 socketService.$socket($scope.AppSocket, 'getAllPromoCodeUserGroup', {platformObjId: vm.selectedPlatform.id}, function (data) {
-                    vm.userGroupAllConfig = data.data;
+                    vm.userGroupAllConfig = data.data; // note: do not modify playerNames in this variable, promocode may not function properly
                 });
             };
 
@@ -27554,6 +27715,7 @@ console.log('typeof ',typeof gameProviders);
                 vm.autoApprovalBasic.profitTimesMinAmount = vm.selectedPlatform.data.autoApproveProfitTimesMinAmount;
                 vm.autoApprovalBasic.bonusProfitOffset = vm.selectedPlatform.data.autoApproveBonusProfitOffset;
                 vm.autoApprovalBasic.autoUnlockWhenInitAmtLessThanLostThreshold = vm.selectedPlatform.data.autoUnlockWhenInitAmtLessThanLostThreshold;
+                vm.autoApprovalBasic.checkContinousApplyBonusTimes = vm.selectedPlatform.data.checkContinousApplyBonusTimes;
 
                 vm.autoApprovalBasic.partnerEnableAutoApplyBonus = vm.selectedPlatform.data.partnerEnableAutoApplyBonus;
                 vm.autoApprovalBasic.partnerAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.partnerAutoApproveWhenSingleBonusApplyLessThan;
@@ -28021,8 +28183,10 @@ console.log('typeof ',typeof gameProviders);
 
             vm.updatePromoCodeTemplateInEdit = function (func, collection, data, type, tab, index) {
                 if (func == 'add') {
-
                     if (collection && data && type) {
+                        if (vm.isPromoNameExist(data.name)) {
+                            return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                        };
                         let returnedMsg = vm.checkPromoCodeField(data, type, tab);
                         vm.promoCodeFieldCheckFlag = false;
                         if (returnedMsg) {
@@ -28243,7 +28407,7 @@ console.log('typeof ',typeof gameProviders);
 
                 if(vm.openPromoCodeTemplateSetting.length > 0){
                     vm.openPromoCodeTemplateSetting.forEach(p => {
-
+                    
                         if (p) {
                             let usingGroup = p.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
 
@@ -28276,10 +28440,9 @@ console.log('typeof ',typeof gameProviders);
                                     p.createTime = new Date();
                                     p.status = vm.constPromoCodeStatus.AVAILABLE;
                                 }
-
-                                delete p.expirationTime$
-
                             }
+
+                            delete p.expirationTime$
                         }
                     })
                 }
@@ -28297,7 +28460,9 @@ console.log('typeof ',typeof gameProviders);
             }
 
             vm.generateOpenPromoCode = function (col, index, data, type, template) {
-
+                if (!template && data && vm.isPromoNameExist(data.name)) {
+                    return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                }
                 vm.promoCodeFieldCheckFlag = false;
                 let sendData = Object.assign({},data);
                 let returnedMsg = vm.checkPromoCodeField(data, type);
@@ -29025,6 +29190,7 @@ console.log('typeof ',typeof gameProviders);
                         autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
                         autoApproveBonusProfitOffset: srcData.bonusProfitOffset,
                         autoUnlockWhenInitAmtLessThanLostThreshold: srcData.autoUnlockWhenInitAmtLessThanLostThreshold,
+                        checkContinousApplyBonusTimes: srcData.checkContinousApplyBonusTimes,
                         partnerEnableAutoApplyBonus: srcData.partnerEnableAutoApplyBonus,
                         partnerAutoApproveWhenSingleBonusApplyLessThan: srcData.partnerAutoApproveWhenSingleBonusApplyLessThan,
                         partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan,
@@ -30795,7 +30961,7 @@ console.log('typeof ',typeof gameProviders);
                 }, 1000);
             }
 
-            function initPageParam() {
+            async function initPageParam() {
                 vm.initFeedbackQuery();
                 oneSecIntervalTask();
 
@@ -30807,7 +30973,7 @@ console.log('typeof ',typeof gameProviders);
                 vm.showPlatformList = true;
                 vm.showPlatformDropDownList = false;
                 vm.prepareDemoPlayerPrefix();
-                vm.showPlatformDetailTab(null);
+                // vm.showPlatformDetailTab(null);
                 vm.showRewardSettingsTab(null);
                 vm.showReapplyLostOrderTab(null);
                 vm.showPlayerAccountingDetailTab(null);
@@ -31827,8 +31993,10 @@ console.log('typeof ',typeof gameProviders);
             //endregion
 
             //region forbidReward
-            vm.updateForbidRewardLog = function (playerId, forbidReward) {
-
+            vm.updateForbidRewardLog = function (playerId, forbidReward, playerObj) {
+                if (playerObj && playerObj.forbidPromoCode) {
+                    forbidReward.push("优惠代码");
+                }
                 let queryData = {
                     playerId: playerId,
                     remark: vm.forbidRewardRemark,
@@ -31845,7 +32013,7 @@ console.log('typeof ',typeof gameProviders);
                 let proms = [];
 
                 data.data.forEach(player => {
-                    let prom = vm.updateForbidRewardLog(player._id, vm.findForbidCheckedName(player.forbidRewardEvents, vm.allRewardEvent));
+                    let prom = vm.updateForbidRewardLog(player._id, vm.findForbidCheckedName(player.forbidRewardEvents, vm.allRewardEvent), player);
                     proms.push(prom);
                 });
 
@@ -32554,6 +32722,7 @@ console.log('typeof ',typeof gameProviders);
                     "permission": {
                         "alipayTransaction": true,
                         "topupManual": true,
+                        "allTopUp": true,
                         "topupOnline": true,
                         "transactionReward": true,
                         "advanceConsumptionReward": true,
@@ -32665,6 +32834,12 @@ console.log('typeof ',typeof gameProviders);
                                     'src': "images/icon/" + (perm.applyBonus === true ? "withdrawBlue.png" : "withdrawRed.png"),
                                     height: "14px",
                                     width: "14px",
+                                }));
+                                link.append($('<img>', {
+                                    'class': 'margin-right-5 ',
+                                    'src': "images/icon/" + (perm.allTopUp === false ? "allTopUpRed.png" : "allTopUpBlue.png"),
+                                    height: "13px",
+                                    width: "15px",
                                 }));
                                 link.append($('<img>', {
                                     'class': 'margin-right-5 ',
@@ -32852,6 +33027,12 @@ console.log('typeof ',typeof gameProviders);
                                         height: '26px'
                                     },
                                     // transactionReward: {imgType: 'i', iconClass: "fa fa-share-square"},
+                                    allTopUp: {
+                                        imgType: 'img',
+                                        src: "images/icon/allTopUpBlue.png",
+                                        width: "26px",
+                                        height: '20px'
+                                    },
                                     topupOnline: {
                                         imgType: 'img',
                                         src: "images/icon/onlineTopUpBlue.png",

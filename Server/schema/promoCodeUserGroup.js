@@ -5,7 +5,7 @@ let promoCodeUserGroupSchema = new Schema({
     // platform id
     platformObjId: {type: Schema.ObjectId, required: true},
     // promo code type name
-    name: {type: String, required: true, unique: true},
+    name: {type: String, required: true},
     // promo code type
     color: {type: String, required: true},
     // sms content
@@ -13,7 +13,9 @@ let promoCodeUserGroupSchema = new Schema({
     // block promo code user
     isBlockPromoCodeUser: {type: Boolean, default: false},
     // block promo code user (base on player's main permission)
-    isBlockByMainPermission: {type: Boolean, default: false}
+    isBlockByMainPermission: {type: Boolean, default: false},
+    // default group cannot edit
+    isDefaultGroup: {type: Boolean, default: false},
 });
 
 module.exports = promoCodeUserGroupSchema;
