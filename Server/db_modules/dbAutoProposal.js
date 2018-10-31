@@ -252,6 +252,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
     let abnormalMessageChinese = "";
     let checkMsg = "", checkMsgChinese = "";
     let bTransferAbnormal = false;
+    let isContinuousApplyBonus = false;
 
     return getBonusRecordsOfPlayer(proposal.data.playerObjId, proposal.type).then(
         bonusRecord => {
@@ -294,6 +295,18 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 createTime: {$lt: proposal.createTime}
             };
 
+            let lastTopUpQuery = {
+                platformId: ObjectId(proposal.data.platformId),
+                playerId: ObjectId(proposal.data.playerObjId)
+            };
+
+            let lastBonusQuery = {
+                'data.platformId': ObjectId(proposal.data.platformId),
+                'data.playerObjId': ObjectId(proposal.data.playerObjId),
+                mainType: 'PlayerBonus',
+                $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}]
+            };
+
             if (lastWithdrawDate) {
                 dLastWithdraw = lastWithdrawDate;
                 transferLogQuery.createTime["$gt"] = lastWithdrawDate;
@@ -305,6 +318,8 @@ function checkRewardTaskGroup(proposal, platformObj) {
             let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).sort({createTime: 1}).lean();
             let playerInfoPromise = dbconfig.collection_players.findOne(playerQuery, {similarPlayers: 0}).lean();
             let creditLogPromise = dbconfig.collection_creditChangeLog.find(creditLogQuery).sort({operationTime: 1}).lean();
+            let lastTopUpProm = dbconfig.collection_playerTopUpRecord.find(lastTopUpQuery, {createTime: 1}).sort({createTime: -1}).limit(1).lean();
+            let lastBonusProm = dbconfig.collection_proposal.find(lastBonusQuery, {createTime: 1}).sort({createTime: -1}).limit(1).lean();
 
             if (proposal.data.playerId) {
                 allProposalQuery["$or"].push({'data.playerId': proposal.data.playerId});
@@ -330,7 +345,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
             let promises = [
                 RTGPromise, transferLogsWithinPeriodPromise, playerInfoPromise, proposalsPromise, creditLogPromise,
-                consumptionPromise, provinceListProm
+                consumptionPromise, provinceListProm, lastTopUpProm, lastBonusProm
             ];
             return Promise.all(promises);
         }
@@ -360,6 +375,36 @@ function checkRewardTaskGroup(proposal, platformObj) {
                         return data;
                     }
                 )
+            }
+
+            return data;
+        }
+    ).then(
+        data => {
+            // Check continuous apply bonus times
+            if (data && data[7] && data[7][0] && data[7][0].createTime && data[8] && data[8][0] && data[8][0].createTime) {
+                 let lastTopUpTime = data[7][0].createTime;
+                 let lastBonusTime = data[8][0].createTime;
+
+                 if (lastTopUpTime < lastBonusTime) {
+                     let countBonusQuery = {
+                         'data.platformId': ObjectId(proposal.data.platformId),
+                         'data.playerObjId': ObjectId(proposal.data.playerObjId),
+                         mainType: 'PlayerBonus',
+                         $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}],
+                         createTime: {$gte: lastTopUpTime, $lt: proposal.createTime}
+                     };
+
+                     return dbconfig.collection_proposal.find(countBonusQuery).count().then(
+                         count => {
+                             if (count && platformObj.checkContinuousApplyBonusTimes && platformObj.checkContinuousApplyBonusTimes != 0 && ((count + 1) >= platformObj.checkContinuousApplyBonusTimes)) {
+                                 isContinuousApplyBonus = true;
+                             }
+
+                             return data;
+                         }
+                     );
+                 }
             }
 
             return data;
@@ -516,6 +561,12 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 && ((playerTotalBonus / playerTotalTopupAmount) >= platformObj.autoApproveProfitTimes)) {
                 checkMsg += ' Denied: Max profit times;';
                 checkMsgChinese += ' 失败：二提款间（输赢/存款）过高;';
+                canApprove = false;
+            }
+
+            if (isContinuousApplyBonus) {
+                checkMsg += ' Denied: Continous Apply Bonus N Times;';
+                checkMsgChinese += ' 失败：连续提款N次;';
                 canApprove = false;
             }
 
