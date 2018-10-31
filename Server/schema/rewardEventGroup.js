@@ -11,7 +11,7 @@ var rewardEventGroupSchema = new Schema({
 
 });
 //record is unique by name and platform
-rewardEventGroupSchema.index({name: 1, platform: 1});
+rewardEventGroupSchema.index({name: 1, platform: 1}, {unique: true});
 
 module.exports = rewardEventGroupSchema;
 
