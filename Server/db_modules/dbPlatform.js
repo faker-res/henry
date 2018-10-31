@@ -58,16 +58,6 @@ const constSMSPurpose = require("../const/constSMSPurpose");
 const constPartnerCommissionLogStatus = require("../const/constPartnerCommissionLogStatus");
 
 const Client = require('ftp');
-const connectionProperties = {
-    host: "callfpms-ftp.neweb.me",
-    port: 21,
-    user: 'hank',
-    password: "CallHank@163",
-    connTimeout: 5000000,
-    pasvTimeout: 5000000,
-    mode: 'Active'
-};
-
 const admZip = require('adm-zip');
 
 function randomObjectId() {
@@ -5227,7 +5217,7 @@ var dbPlatform = {
             });
         });
 
-        ftpClient.connect(connectionProperties);
+        ftpClient.connect(constSystemParam.FTP_CONNECTION_PROPERTIES);
 
         return deferred.promise;
 
