@@ -21,7 +21,9 @@ let playerBStateSchema = new Schema({
     // Apply promo code
     ApplyPromoCode: {type: Boolean, default: false},
     // update password
-    updatePassword: {type: Boolean, default: false}
+    updatePassword: {type: Boolean, default: false},
+    // Apply reward points
+    applyRewardPoint: {type: Boolean, default: false}
 });
 
 module.exports = playerBStateSchema;
