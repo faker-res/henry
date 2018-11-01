@@ -1056,16 +1056,14 @@ let dbPlayerReward = {
                                             let selectedCondition = record.condition[i];
 
                                             if (record.condition[i] && record.condition[i].requiredTopUpAmount && totalTopUpAmount >= record.condition[i].requiredTopUpAmount) {
-
-
+                                                
                                                 for (let key of Object.keys(selectedCondition)){
                                                     record[key] = selectedCondition[key];
                                                 }
                                                 outputList.push(record);
                                                 break;
                                             }
-
-                                            if (!record.condition[i].requiredTopUpAmount) {
+                                            else if (!record.condition[i].requiredTopUpAmount) {
 
                                                 for (let key of Object.keys(selectedCondition)){
                                                     record[key] = selectedCondition[key];
@@ -1073,8 +1071,7 @@ let dbPlayerReward = {
                                                 applyList.push(record);
                                                 break;
                                             }
-
-                                            if (i == record.condition.length - 1) {
+                                            else if (i == record.condition.length - 1) {
 
                                                 for (let key of Object.keys(selectedCondition)){
                                                     record[key] = selectedCondition[key];
