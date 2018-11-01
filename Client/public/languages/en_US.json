@@ -947,6 +947,7 @@
   "COPIED_SUCCESS": "Copied",
   "ADD_PHONE_NUMBER_XLS_INSTRUCTION": "First row in spreadsheet will be treated as header",
   "ADD_PHONE_NUMBER_XLS_INSTRUCTION_2": "Please set the phone number format to 'General'",
+  "ADD_PHONE_NUMBER_XLS_INSTRUCTION_3": "Arrange Excel data in order：1.Phone number, 2.Player account, 3.Real name, 4.Gender, 5.DOB, 6.Wechat, 7.QQ, 8.Email, 9.Remark",
   "RESET_GRID": "Reset",
   "FILTER_THEN_EXPORT_XLS": "Filter and Export",
   "FILTER_THEN_IMPORT_XLS": "Filter and Import",
