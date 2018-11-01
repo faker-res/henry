@@ -304,9 +304,15 @@ define(['js/app'], function (myApp) {
                     vm.tsNewList = {phoneIdx: 0};
                     vm.phoneNumFilterClicked();
                     break;
-                case 'PHONE_LISTS':
+                case 'PHONE_LIST_ANALYSE_AND_MANAGEMENT':
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#phoneListStartTimePicker', utilService.getTodayStartTime());
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#phoneListEndTimePicker', utilService.getTodayEndTime());
+                    break;
+                case 'MY_PHONE_LIST_OR_REMINDER_PHONE_LIST':
+                    break;
+                case 'WORKLOAD REPORT':
+                    break;
+                case 'RECYCLE_BIN':
                     break;
                 case 'PHONE_MISSION':
                     vm.initTeleMarketingOverview();
