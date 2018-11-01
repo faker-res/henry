@@ -173,6 +173,10 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                         i.fa.fa-info-circle.margin-right-5
                         text
                             strong {{"ADD_PHONE_NUMBER_XLS_INSTRUCTION_2" | translate}}
+                        br
+                        i.fa.fa-info-circle.margin-right-5
+                        text
+                            strong {{"ADD_PHONE_NUMBER_XLS_INSTRUCTION_3" | translate}}
                     div
                         #grid1.grid(ng-if='vm.gridOptions', ui-grid='vm.gridOptions', ui-grid-edit='', ui-grid-exporter='', ui-grid-resize-columns='', ui-grid-move-columns='')
                             .grid-msg-overlay(ng-show='!vm.gridOptions.data.length')

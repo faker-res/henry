@@ -304,9 +304,15 @@ define(['js/app'], function (myApp) {
                     vm.tsNewList = {phoneIdx: 0};
                     vm.phoneNumFilterClicked();
                     break;
-                case 'PHONE_LISTS':
+                case 'PHONE_LIST_ANALYSE_AND_MANAGEMENT':
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#phoneListStartTimePicker', utilService.getTodayStartTime());
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#phoneListEndTimePicker', utilService.getTodayEndTime());
+                    break;
+                case 'MY_PHONE_LIST_OR_REMINDER_PHONE_LIST':
+                    break;
+                case 'WORKLOAD REPORT':
+                    break;
+                case 'RECYCLE_BIN':
                     break;
                 case 'PHONE_MISSION':
                     vm.initTeleMarketingOverview();
@@ -336,9 +342,11 @@ define(['js/app'], function (myApp) {
             vm.getPlatformProviderGroup();
 
             // Zero dependencies variable
-            [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins]] = await Promise.all([
+            [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults] = await Promise.all([
                 commonService.getAllTSPhoneList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllDepartmentInfo($scope, vm.selectedPlatform.id, vm.selectedPlatform.data.name).catch(err => Promise.resolve([[], [], []])),
+                commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([])),
             ]);
         };
 
@@ -4646,6 +4654,68 @@ define(['js/app'], function (myApp) {
                 }
             });
         };
+
+        vm.initFilterAndImportDXSystem = function () {
+            // utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
+            //     $('#registerStartTimePicker').datetimepicker({
+            //         language: 'en',
+            //         format: 'dd/MM/yyyy',
+            //         pickTime: false,
+            //     });
+            //
+            //
+            //
+            //     $('#registerStartTimePicker1').datetimepicker({
+            //         language: 'en',
+            //         format: 'HH:mm:ss',
+            //         pick12HourFormat: true,
+            //         pickDate: false,
+            //     });
+            // });
+
+            if (!vm.currentProvince) {
+                vm.currentProvince = {};
+            }
+            if (!vm.currentCity) {
+                vm.currentCity = {};
+            }
+            vm.provinceList = [];
+            vm.cityList = [];
+            socketService.$socket($scope.AppSocket, 'getProvinceList', {}, function (data) {
+                if (data) {
+                    vm.provinceList.length = 0;
+
+                    for (let i = 0, len = data.data.provinces.length; i < len; i++) {
+                        let province = data.data.provinces[i];
+                        province.id = province.id.toString();
+                        vm.provinceList.push(province);
+                    }
+
+                    vm.changeProvince(false);
+                    $scope.$evalAsync();
+                }
+            }, null, true);
+        }
+
+        vm.changeProvince = function (reset) {
+            socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.currentProvince.province}, function (data) {
+                if (data) {
+                    // vm.cityList = data.data.cities;
+                    if (data.data.cities) {
+                        vm.cityList.length = 0;
+                        for (let i = 0, len = data.data.cities.length; i < len; i++) {
+                            let city = data.data.cities[i];
+                            city.id = city.id.toString();
+                            vm.cityList.push(city);
+                        }
+                    }
+                    if (reset) {
+                        vm.currentCity.city = vm.cityList[0].id;
+                        $scope.safeApply();
+                    }
+                }
+            }, null, true);
+        }
 
     };
 
