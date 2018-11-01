@@ -48,7 +48,7 @@ let playerConsumptionSlipRewardGroupRecordSchema = new Schema({
     // the time when the consumption is created
     consumptionCreateTime: {type: Date},
     // check if the record has been used up
-    isUsed: {type: Boolean, default: false}
+    isUsed: {type: Boolean, default: false, index: true}
 });
 
 playerConsumptionSlipRewardGroupRecordSchema.index({platform: 1, playerObjId: 1});
