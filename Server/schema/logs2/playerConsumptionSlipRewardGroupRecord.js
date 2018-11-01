@@ -19,7 +19,7 @@ let playerConsumptionSlipRewardGroupRecordSchema = new Schema({
     condition: [{
         _id: false,
         // required top up amount within period to apply the reward
-        requiredTopUpAmount: {type: Number, default: 0},
+        requiredTopUpAmount: {type: Number, default: 0, index: true},
         // the bonus ratio that is required to apply the reward
         requiredBonusRatio: {type: Number},
         // consumption needed if this applied succesfully
