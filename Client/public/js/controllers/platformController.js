@@ -9762,22 +9762,24 @@ define(['js/app'], function (myApp) {
                 vm.playerCredibilityRemarksUpdated = false;
                 vm.prepareCredibilityConfig().then(
                     () => {
-                        if (vm.selectedSinglePlayer) {
-                            if (!vm.selectedSinglePlayer.credibilityRemarks) {
-                                return;
-                            }
+                        $scope.$evalAsync(()=>{
+                            if (vm.selectedSinglePlayer) {
+                                if (!vm.selectedSinglePlayer.credibilityRemarks) {
+                                    return;
+                                }
 
-                            let playerRemarksId = vm.selectedSinglePlayer.credibilityRemarks;
-                            for (let i = 0; i < playerRemarksId.length; i++) {
-                                for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                    if (playerRemarksId[i] === vm.credibilityRemarks[j]._id) {
-                                        vm.credibilityRemarks[j].selected = true;
+                                let playerRemarksId = vm.selectedSinglePlayer.credibilityRemarks;
+                                for (let i = 0; i < playerRemarksId.length; i++) {
+                                    for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                        if (playerRemarksId[i] === vm.credibilityRemarks[j]._id) {
+                                            vm.credibilityRemarks[j].selected = true;
+                                        }
                                     }
                                 }
+                                vm.getPlayerCredibilityComment();
+                                // $scope.safeApply();
                             }
-                            vm.getPlayerCredibilityComment();
-                            $scope.safeApply();
-                        }
+                        })
                     }
                 );
             };
@@ -14647,6 +14649,32 @@ define(['js/app'], function (myApp) {
             vm.updateBatchPlayerForbidRewardEvents = function (sendData) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updateBatchPlayerForbidRewardEvents', sendData, function (data) {
+                    if (vm.forbidPromoCode != undefined) { // undefined means unchanged
+                        let sendDataPromoCode = {
+                            query: {
+                                platformObjId: sendData.platformObjId,
+                                isBlockByMainPermission: false
+                            },
+                            updateData: {}
+                        }
+                        if (sendData.forbidPromoCode) {
+                            sendDataPromoCode.query.name = "次权限禁用组（预设）"; //hard code name;
+                            sendDataPromoCode.query.isBlockPromoCodeUser = true;
+                            sendDataPromoCode.query.isDefaultGroup = true;
+                            sendDataPromoCode.checkQuery = {
+                                platformObjId: sendData.platformObjId,
+                                playerNames: {"$in": sendData.playerNames},
+                                isBlockPromoCodeUser: {"$ne": true}
+                            }
+                            sendDataPromoCode.updateData["$addToSet"] = {playerNames: {"$each": sendData.playerNames}};
+                        } else {
+                            sendDataPromoCode.query.playerNames = {"$in": sendData.playerNames};
+                            sendDataPromoCode.updateData["$pull"] = {playerNames: {"$in": sendData.playerNames}};
+                        }
+
+                        socketService.$socket($scope.AppSocket, 'updateBatchPromoCodeGroupMainPermission', sendDataPromoCode, function () {
+                        });
+                    }
                     vm.getPlatformPlayersData();
                     vm.updateBatchForbidRewardLog(data);
                 });
@@ -27450,6 +27478,20 @@ console.log('typeof ',typeof gameProviders);
                 vm.bulkCallBasic.redialTimes = vm.selectedPlatform.data.redialTimes || 3;
                 vm.bulkCallBasic.minRedialInterval = vm.selectedPlatform.data.minRedialInterval || 10;
                 vm.bulkCallBasic.idleAgentMultiple = vm.selectedPlatform.data.idleAgentMultiple || 2.0;
+                vm.bulkCallBasic.teleMarketingMaxRingTime = vm.selectedPlatform.data.teleMarketingMaxRingTime || 30;
+                vm.bulkCallBasic.teleMarketingRedialTimes = vm.selectedPlatform.data.teleMarketingRedialTimes || 3;
+                vm.bulkCallBasic.teleMarketingMinRedialInterval = vm.selectedPlatform.data.teleMarketingMinRedialInterval || 10;
+                vm.bulkCallBasic.teleMarketingIdleAgentMultiple = vm.selectedPlatform.data.teleMarketingIdleAgentMultiple || 2.0;
+                vm.bulkCallBasic.definitionOfAnsweredPhone = vm.selectedPlatform.data.definitionOfAnsweredPhone || "";
+                vm.bulkCallBasic.decomposeAfterNDays = vm.selectedPlatform.data.decomposeAfterNDays || 0;
+                vm.bulkCallBasic.phoneWhiteListExportMaxNumber = vm.selectedPlatform.data.phoneWhiteListExportMaxNumber || 0;
+
+                socketService.$socket($scope.AppSocket, 'getAllPlayerFeedbackResults', {}, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.playerAllFeedBackResult = data.data;
+                    });
+                });
+
                 $scope.safeApply();
             };
 
@@ -27715,7 +27757,7 @@ console.log('typeof ',typeof gameProviders);
                 vm.autoApprovalBasic.profitTimesMinAmount = vm.selectedPlatform.data.autoApproveProfitTimesMinAmount;
                 vm.autoApprovalBasic.bonusProfitOffset = vm.selectedPlatform.data.autoApproveBonusProfitOffset;
                 vm.autoApprovalBasic.autoUnlockWhenInitAmtLessThanLostThreshold = vm.selectedPlatform.data.autoUnlockWhenInitAmtLessThanLostThreshold;
-                vm.autoApprovalBasic.checkContinousApplyBonusTimes = vm.selectedPlatform.data.checkContinousApplyBonusTimes;
+                vm.autoApprovalBasic.checkContinuousApplyBonusTimes = vm.selectedPlatform.data.checkContinuousApplyBonusTimes;
 
                 vm.autoApprovalBasic.partnerEnableAutoApplyBonus = vm.selectedPlatform.data.partnerEnableAutoApplyBonus;
                 vm.autoApprovalBasic.partnerAutoApproveWhenSingleBonusApplyLessThan = vm.selectedPlatform.data.partnerAutoApproveWhenSingleBonusApplyLessThan;
@@ -27766,6 +27808,7 @@ console.log('typeof ',typeof gameProviders);
 
                 return vm.getCredibilityRemarks().then(
                     () => {
+                      $scope.$evalAsync(()=>{
                         let cloneRemarks = vm.credibilityRemarks.slice(0);
                         vm.positiveRemarks = [];
                         vm.negativeRemarks = [];
@@ -27793,10 +27836,8 @@ console.log('typeof ',typeof gameProviders);
                         vm.negativeRemarks.sort((a, b) => {
                             return a.score - b.score;
                         });
-
-                        $scope.safeApply();
-                    }
-                );
+                      });
+                  })
             };
 
             vm.setFixedCredibilityRemarks = () => {
@@ -28407,7 +28448,7 @@ console.log('typeof ',typeof gameProviders);
 
                 if(vm.openPromoCodeTemplateSetting.length > 0){
                     vm.openPromoCodeTemplateSetting.forEach(p => {
-                    
+
                         if (p) {
                             let usingGroup = p.isProviderGroup ? vm.gameProviderGroup : vm.allGameProviders;
 
@@ -28845,6 +28886,13 @@ console.log('typeof ',typeof gameProviders);
                         redialTimes: srcData.redialTimes,
                         minRedialInterval: srcData.minRedialInterval,
                         idleAgentMultiple: srcData.idleAgentMultiple,
+                        teleMarketingMaxRingTime: srcData.teleMarketingMaxRingTime,
+                        teleMarketingRedialTimes: srcData.teleMarketingRedialTimes,
+                        teleMarketingMinRedialInterval: srcData.teleMarketingMinRedialInterval,
+                        teleMarketingIdleAgentMultiple: srcData.teleMarketingIdleAgentMultiple,
+                        definitionOfAnsweredPhone: srcData.definitionOfAnsweredPhone,
+                        decomposeAfterNDays: srcData.decomposeAfterNDays,
+                        phoneWhiteListExportMaxNumber: srcData.phoneWhiteListExportMaxNumber,
                     }
                 };
 
@@ -29190,7 +29238,7 @@ console.log('typeof ',typeof gameProviders);
                         autoApproveProfitTimesMinAmount: srcData.profitTimesMinAmount,
                         autoApproveBonusProfitOffset: srcData.bonusProfitOffset,
                         autoUnlockWhenInitAmtLessThanLostThreshold: srcData.autoUnlockWhenInitAmtLessThanLostThreshold,
-                        checkContinousApplyBonusTimes: srcData.checkContinousApplyBonusTimes,
+                        checkContinuousApplyBonusTimes: srcData.checkContinuousApplyBonusTimes,
                         partnerEnableAutoApplyBonus: srcData.partnerEnableAutoApplyBonus,
                         partnerAutoApproveWhenSingleBonusApplyLessThan: srcData.partnerAutoApproveWhenSingleBonusApplyLessThan,
                         partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan: srcData.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan,
@@ -32656,6 +32704,12 @@ console.log('typeof ',typeof gameProviders);
             // Batch Permit Edit
             vm.initBatchPermit = function () {
                 vm.prepareCredibilityConfig();
+                vm.initBatchParams();
+                vm.drawBatchPermitTable();
+
+            };
+
+            vm.initBatchParams = function(){
                 vm.resetBatchEditData();
                 // init edit data
                 vm.forbidCredibilityAddList = [];
@@ -32663,6 +32717,7 @@ console.log('typeof ',typeof gameProviders);
 
                 vm.forbidRewardEventAddList = [];
                 vm.forbidRewardEventRemoveList = [];
+                vm.forbidPromoCode = undefined;
 
                 vm.forbidGameAddList = [];
                 vm.forbidGameRemoveList = [];
@@ -32672,11 +32727,14 @@ console.log('typeof ',typeof gameProviders);
 
                 vm.forbidRewardPointsAddList = [];
                 vm.forbidRewardPointsRemoveList = [];
-
-                vm.drawBatchPermitTable();
-
                 vm.playerCredibilityRemarksUpdated = false;
-            };
+            }
+
+            vm.resetBatchEditUI = function(){
+                vm.initBatchParams();
+                return vm.batchEditData;
+            }
+
             vm.localRemarkUpdate = function () {
                 if (vm.forbidCredibilityAddList.length == 0 && vm.forbidCredibilityRemoveList == 0) {
                     var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
@@ -33010,13 +33068,13 @@ console.log('typeof ',typeof gameProviders);
                         var container = oSettings.nTable;
 
                         $(container).find('[title]').tooltip();
-
-                        let uData = vm.batchEditData;
+                        let uData = vm.resetBatchEditUI();
 
                         utilService.setupPopover({
                             context: container,
                             elem: '.playerPermissionPopover',
                             onClickAsync: function (showPopover) {
+                                $scope.$evalAsync(()=>{
                                 var that = this;
                                 var row = uData;
                                 vm.playerPermissionTypes = {
@@ -33090,8 +33148,8 @@ console.log('typeof ',typeof gameProviders);
 
                                 vm.permissionChangeMark();
                                 showPopover(that, '#playerBatchPermissionPopover', row);
-                                $scope.safeApply();
-
+                                // $scope.safeApply();
+                                });
                             },
                             callback: function () {
                                 var changeObj = {}
@@ -33155,6 +33213,25 @@ console.log('typeof ',typeof gameProviders);
                                         permission: changeObj,
                                         remark: $remark.val()
                                     }, function (data) {
+                                        if (changeObj.banReward != undefined) {
+                                            let sendData = {
+                                                query: {
+                                                    platformObjId: vm.selectedPlatform.id,
+                                                    name: "Main Permission Disabled (default)", //hard code name
+                                                    isBlockByMainPermission: true,
+                                                    color: "lightgrey"
+                                                },
+                                                updateData: {}
+                                            }
+                                            if (changeObj.banReward) {
+                                                sendData.updateData["$addToSet"] = {playerNames: {"$each": playerNames}};
+                                            } else {
+                                                sendData.updateData["$pull"] = {playerNames: {"$in": playerNames}};
+                                            }
+                                            socketService.$socket($scope.AppSocket, 'updatePromoCodeGroupMainPermission', sendData, function () {
+                                            });
+                                        }
+
                                         let errorList = data.data;
                                         errorList = errorList.filter(item => {
                                             return (typeof item === 'string');
@@ -33183,12 +33260,12 @@ console.log('typeof ',typeof gameProviders);
                                 vm.forbidRewardEventPopover = data;
                                 vm.forbidRewardEvents = [];
                                 vm.forbidRewardDisable = true;
-                                $scope.safeApply();
                                 return $compile($('#forbidRewardEventPopover').html())($scope);
                             },
                             callback: function () {
+
                                 let thisPopover = utilService.$getPopoverID(this);
-                                let rowData = uData;
+                                let rowData = vm.resetBatchEditUI();
                                 $scope.safeApply();
 
                                 $("input.playerRewardEventForbid").on('click', function () {
@@ -33199,8 +33276,13 @@ console.log('typeof ',typeof gameProviders);
                                             forbidRewardEvents.push($(v).attr('data-provider'));
                                         }
                                     });
-                                    vm.forbidRewardDisable = vm.isForbidChanged(forbidRewardEvents, vm.forbidRewardEventPopover.forbidRewardEvents);
-                                    $scope.safeApply();
+
+                                    if (vm.forbidPromoCode != rowData.forbidPromoCode) {
+                                        vm.forbidRewardDisable = false;
+                                    } else {
+                                        vm.forbidRewardDisable = vm.isForbidChanged(forbidRewardEvents, vm.forbidRewardEventPopover.forbidRewardEvents);
+                                    }
+
                                 });
 
                                 $("button.forbidRewardEventCancel").on('click', function () {
@@ -33215,7 +33297,7 @@ console.log('typeof ',typeof gameProviders);
                                     if ($(this).hasClass('disabled')) {
                                         return;
                                     }
-                                    if (vm.forbidRewardEventAddList.length == 0 && vm.forbidRewardEventRemoveList == 0) {
+                                    if (vm.forbidRewardEventAddList.length == 0 && vm.forbidRewardEventRemoveList == 0 && vm.forbidPromoCode == undefined) {
                                         var ans = confirm("不选取选项 ，将重置权限！ 确定要执行 ?");
                                         if (!ans) {
                                             return
@@ -33225,7 +33307,7 @@ console.log('typeof ',typeof gameProviders);
                                     let forbidRewardEventList = $(thisPopover).find('.playerRewardEventForbid');
                                     let forbidRewardEvents = [];
                                     $.each(forbidRewardEventList, function (i, v) {
-                                        if ($(v).prop('checked')) {
+                                        if ($(v).prop('checked') && $(v).attr('data-provider')) {
                                             forbidRewardEvents.push($(v).attr('data-provider'));
                                         }
                                     });
@@ -33237,6 +33319,7 @@ console.log('typeof ',typeof gameProviders);
                                             'addList': vm.forbidRewardEventAddList,
                                             'removeList': vm.forbidRewardEventRemoveList
                                         },
+                                        forbidPromoCode: vm.forbidPromoCode,
                                         adminName: authService.adminName
                                     };
                                     // subcategory 1
@@ -33263,7 +33346,7 @@ console.log('typeof ',typeof gameProviders);
                             },
                             callback: function () {
                                 let thisPopover = utilService.$getPopoverID(this);
-                                let rowData = uData;
+                                let rowData = vm.resetBatchEditUI();
                                 $scope.safeApply();
 
                                 $("button.forbidGameCancel").on('click', function () {
@@ -33340,7 +33423,7 @@ console.log('typeof ',typeof gameProviders);
                             },
                             callback: function () {
                                 let thisPopover = utilService.$getPopoverID(this);
-                                let rowData = uData;
+                                let rowData = vm.resetBatchEditUI();
                                 $scope.safeApply();
 
                                 $("button.forbidTopUpCancel").on('click', function () {
@@ -33419,7 +33502,7 @@ console.log('typeof ',typeof gameProviders);
                             },
                             callback: function () {
                                 let thisPopover = utilService.$getPopoverID(this);
-                                let rowData = uData;
+                                let rowData = vm.resetBatchEditUI()
                                 $scope.safeApply();
 
                                 $("button.forbidRewardPointsEventCancel").on('click', function () {

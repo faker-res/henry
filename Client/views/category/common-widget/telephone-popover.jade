@@ -217,7 +217,9 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                         table.common-table.playerLvlTable
                             thead
                                 tr
-                                    th {{"receive status" | translate}}
+                                    th
+                                        input.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.checkAllNoSmsGroup" ng-init="vm.isAllNoSmsGroupChecked()" ng-change="vm.toggleAllNoSmsGroup()")
+                                        | {{"receive status" | translate}}
                                     th {{"no group sms setting" | translate}}
 
                             tbody
@@ -231,7 +233,9 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                         table.common-table.playerLvlTable
                             thead
                                 tr
-                                    th {{"receive status/sms group" | translate}}
+                                    th
+                                        input.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.checkAllIsSmsGroup" ng-init="vm.isAllIsSmsGroupChecked()" ng-change="vm.toggleAllIsSmsGroup()")
+                                        | {{"receive status/sms group" | translate}}
                                     th {{"sms group settings" | translate}}
                             tbody
                                 tr(ng-repeat='(i, v) in vm.smsGroups | filter: {smsParentSmsId: -1}')
