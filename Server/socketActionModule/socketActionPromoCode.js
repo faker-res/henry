@@ -152,6 +152,12 @@ function socketActionPromoCode(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerReward.updatePromoCodeGroupMainPermission, [data.checkQuery, data.query, data.updateData], actionName, isValidData);
         },
 
+        updateBatchPromoCodeGroupMainPermission: function updateBatchPromoCodeGroupMainPermission(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPlayerReward.updateBatchPromoCodeGroupMainPermission, [data.checkQuery, data.query, data.updateData], actionName, isValidData);
+        },
+
         getDelayDurationGroup: function getDelayDurationGroup(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
