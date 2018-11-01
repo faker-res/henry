@@ -6082,7 +6082,7 @@ define(['js/app'], function (myApp) {
                     $('#loadingPlayerTableSpin').hide();
                     if (vm.selectedSinglePlayer) {
                         var found = false;
-                        vm.playerTable.rows(function (idx, rowData, node) {
+                        vm.playerFeedbackTable.rows(function (idx, rowData, node) {
                             if (rowData._id == vm.selectedSinglePlayer._id) {
                                 vm.playerTableRowClicked(rowData);
                                 vm.selectedPlayersCount = 1;
@@ -6130,7 +6130,7 @@ define(['js/app'], function (myApp) {
             });
 
             var setPlayerTableData = function (data) {
-                return setTableData(vm.playerTable, data);
+                return setTableData(vm.playerFeedbackTable, data);
             };
 
             // Clears the table data and shows the provided data instead, without re-creating the table object itself.
@@ -8060,7 +8060,7 @@ define(['js/app'], function (myApp) {
                     $(this).toggleClass('selected');
                     vm.selectedPlayersCount = 1;
                     vm.playerTableRowClicked(aData);
-                    vm.playerTableClickedRow = vm.playerTable.row(this);
+                    vm.playerTableClickedRow = vm.playerFeedbackTable.row(this);
                     //display qq in email when no email added
                     vm.qqAddress = (vm.selectedSinglePlayer.qq ? vm.selectedSinglePlayer.qq + "@qq.com" : null);
                 });
@@ -31662,13 +31662,13 @@ console.log('typeof ',typeof gameProviders);
                                 socketService.$socket($scope.AppSocket, 'getPagePlayerByAdvanceQuery', sendQuery2, function (data2) {
                                     size += data2.data.size || 0;
                                     result = result.concat(data2.data.data);
-                                    vm.playerTable.context[0].aaSorting = [];
+                                    vm.playerFeedbackTable.context[0].aaSorting = [];
 
                                     setPlayerTableData(result);
                                     utilService.hideAllPopoversExcept();
                                     vm.searchPlayerCount = size;
                                     vm.playerTableQuery.pageObj.init({maxCount: size}, true);
-                                    vm.playerTable.rows(function (idx, rowData, node) {
+                                    vm.playerFeedbackTable.rows(function (idx, rowData, node) {
                                         if (rowData._id == result[0]._id) {
                                             vm.playerTableRowClicked(rowData);
                                             vm.selectedPlayersCount = 1;
@@ -31683,7 +31683,7 @@ console.log('typeof ',typeof gameProviders);
                                 utilService.hideAllPopoversExcept();
                                 vm.searchPlayerCount = size;
                                 vm.playerTableQuery.pageObj.init({maxCount: size}, true);
-                                vm.playerTable.rows(function (idx, rowData, node) {
+                                vm.playerFeedbackTable.rows(function (idx, rowData, node) {
                                     if (rowData._id == result[0]._id) {
                                         vm.playerTableRowClicked(rowData);
                                         vm.selectedPlayersCount = 1;
@@ -34691,12 +34691,12 @@ console.log('typeof ',typeof gameProviders);
                                 }
                                 if(item.autoFeedbackMissionLogin) {
                                     vm.autoFeedbackSearchDetailResult[scheduleNumber][date].loginCount++;
-                                    vm.autoFeedbackSearchDetailResult[scheduleNumber][date].loginPlayers.push(item.playerName);
+                                    vm.autoFeedbackSearchDetailResult[scheduleNumber][date].loginPlayers.push(item.player);
 
                                 }
                                 if(item.autoFeedbackMissionTopUp) {
                                     vm.autoFeedbackSearchDetailResult[scheduleNumber][date].topUpCount++;
-                                    vm.autoFeedbackSearchDetailResult[scheduleNumber][date].topUpPlayers.push(item.playerName);
+                                    vm.autoFeedbackSearchDetailResult[scheduleNumber][date].topUpPlayers.push(item.player);
                                 }
                                 vm.autoFeedbackSearchDetailResult[scheduleNumber][date].data.push(item);
                             }
@@ -34715,55 +34715,343 @@ console.log('typeof ',typeof gameProviders);
                 });
             };
             vm.autoFeedbackShowLoginPlayers = function(data){
-
-                    var playerData = data.map((item, index)=>{ return { "no":index + 1,"playerName":item} })
-                    let tableOptions = {
-                        data: playerData,
-                        aoColumnDefs: [
-                            {targets: '_all', defaultContent: ' ', bSortable: false}
-                        ],
-                        columns: [
-                            {
-                                title: $translate('order'),
-                                data: "no"
+                let tableOptions = {
+                    data: data,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('order'),
+                            render: function (data, type, row, meta) {
+                                return meta.row + 1 ;
+                            }
+                        },
+                        {
+                            title: $translate('Account'),
+                            data: "name"
+                        },
+                        {
+                            title: $translate('Function'), //data: 'phoneNumber',
+                            orderable: false,
+                            render: function (data, type, row) {
+                                data = data || '';
+                                var playerObjId = row._id ? row._id : "";
+                                var link = $('<div>', {});
+                                link.append($('<a>', {
+                                    'class': 'fa fa-envelope margin-right-5',
+                                    'ng-click': 'vm.initMessageModal(); vm.sendMessageToPlayerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("SEND_MESSAGE_TO_PLAYER"),
+                                    'data-placement': 'left',   // because top and bottom got hidden behind the table edges
+                                }));
+                                link.append($('<a>', {
+                                    'class': 'fa fa-comment margin-right-5' + (row.permission.SMSFeedBack === false ? " text-danger" : ""),
+                                    'ng-click': 'vm.initSMSModal();' + "vm.onClickPlayerCheck('" +
+                                    playerObjId + "', " + "vm.telorMessageToPlayerBtn" +
+                                    ", " + "[" + '"msg"' + ", " + JSON.stringify(row) + "]);",
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("Send SMS to Player"),
+                                    'data-placement': 'left',
+                                }));
+                                link.append($('<a>', {
+                                    'class': 'fa fa-volume-control-phone margin-right-5' + (row.permission.phoneCallFeedback === false ? " text-danger" : ""),
+                                    'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("PHONE"),
+                                    'data-placement': 'left',
+                                }));
+                                if ($scope.checkViewPermission('Player', 'Feedback', 'AddFeedback')) {
+                                    link.append($('<a>', {
+                                        'class': 'fa fa-commenting margin-right-5',
+                                        'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'modal',
+                                        'data-target': '#modalAddPlayerFeedback',
+                                        'title': $translate("ADD_FEEDBACK"),
+                                        'data-placement': 'right',
+                                    }));
+                                }
+                                if (row.isRealPlayer) {
+                                    if ($scope.checkViewPermission('Player', 'TopUp', 'ApplyManualTopup')) {
+                                        link.append($('<a>', {
+                                            'class': 'fa fa-plus-circle',
+                                            'ng-click': 'vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerTopUp',
+                                            'title': $translate("TOP_UP"),
+                                            'data-placement': 'left',
+                                            'style': 'color: #68C60C'
+                                        }));
+                                    }
+                                    link.append($('<br>'));
+                                    if ($scope.checkViewPermission('Player', 'Bonus', 'applyBonus')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5 margin-right-5',
+                                            'src': (row.permission.applyBonus === false ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.initPlayerBonus();',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerBonus',
+                                            'title': $translate("Bonus"),
+                                            'data-placement': 'left',   // because top and bottom got hidden behind the table edges
+                                        }));
+                                    }
+                                    if ($scope.checkViewPermission('Player', 'Reward', 'AddRewardTask')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5 margin-right-5',
+                                            'src': "images/icon/rewardBlue.png",
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.initRewardSettings();vm.initPlayerAddRewardTask();',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerAddRewardTask',
+                                            'title': $translate("REWARD_ACTION"),
+                                            'data-placement': 'left',
+                                        }));
+                                    }
+                                    if ($scope.checkViewPermission('Player', 'Player', 'RepairPayment') || $scope.checkViewPermission('Player', 'Player', 'RepairTransaction')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5',
+                                            'src': "images/icon/reapplyBlue.png",
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.showReapplyLostOrderTab(null);vm.prepareShowPlayerCredit();vm.prepareShowRepairPayment(\'#modalReapplyLostOrder\');',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'title': $translate("ALL_REAPPLY_ORDER"),
+                                            'data-placement': 'right',
+                                        }));
+                                    }
+                                    if ($scope.checkViewPermission('Player', 'Credit', 'CreditAdjustment')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5',
+                                            'src': "images/icon/creditAdjustBlue.png",
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerCreditAdjustment, \'adjust\')',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerCreditAdjustment',
+                                            'title': $translate("CREDIT_ADJUSTMENT"),
+                                            'data-placement': 'right',
+                                        }));
+                                    }
+                                    if ($scope.checkViewPermission('Player', 'RewardPoints', 'RewardPointsChange') || $scope.checkViewPermission('Player', 'RewardPoints', 'RewardPointsConvert')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5',
+                                            'src': (row.permission.rewardPointsTask === false ? "images/icon/rewardPointsRed.png" : "images/icon/rewardPointsBlue.png"),
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.showRewardPointsAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointsAdjustment);',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerRewardPointsAdjustment',
+                                            'title': $translate("REWARD_POINTS_ADJUSTMENT"),
+                                            'data-placement': 'right',
+                                        }));
+                                    }
+                                }
+                                return link.prop('outerHTML');
                             },
-                            {
-                                title: $translate('Account'),
-                                data: "playerName"
-                            }],
-                            "paging": true,
-                        };
-                        tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
-                        utilService.createDatatableWithFooter('#autoFeedbackLoginPlayersTable', tableOptions, {}, true);
-                        utilService.actionAfterLoaded("#autoFeedbackLoginPlayersTable", function () {
-                            $('#autoFeedbackLoginPlayersTable').resize();
-                        })
-
+                            "sClass": "alignLeft"
+                        },
+                    ],
+                    "paging": true,
+                    "destroy": true,
+                    "fnRowCallback": function(nRow, rowData) {
+                        $compile(nRow)($scope);
+                        $(nRow).off('click');
+                        $(nRow).on('click', function () {
+                            vm.selectedSinglePlayer = rowData;
+                        });
+                    },
+                    "drawCallback": function() {
+                        $('#autoFeedbackLoginPlayersTable').resize();
+                    }
+                };
+                tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
+                utilService.createDatatableWithFooter('#autoFeedbackLoginPlayersTable', tableOptions, {}, true);
+                utilService.actionAfterLoaded("#autoFeedbackLoginPlayersTable", function () {
+                    $('#autoFeedbackLoginPlayersTable').resize();
+                });
             };
             vm.autoFeedbackShowTopUpPlayers = function(data){
-                    var playerData = data.map((item, index)=>{ return { "no":index + 1,"playerName":item} })
-                    let tableOptions = {
-                        data: playerData,
-                        aoColumnDefs: [
-                            {targets: '_all', defaultContent: ' ', bSortable: false}
-                        ],
-                        columns: [
-                            {
-                                title: $translate('order'),
-                                data: "no",
+                let tableOptions = {
+                    data: data,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('order'),
+                            render: function (data, type, row, meta) {
+                                return meta.row + 1 ;
+                            }
+                        },
+                        {
+                            title: $translate('Account'),
+                            data: "name"
+                        },
+                        {
+                            title: $translate('Function'), //data: 'phoneNumber',
+                            orderable: false,
+                            render: function (data, type, row) {
+                                data = data || '';
+                                var playerObjId = row._id ? row._id : "";
+                                var link = $('<div>', {});
+                                link.append($('<a>', {
+                                    'class': 'fa fa-envelope margin-right-5',
+                                    'ng-click': 'vm.initMessageModal(); vm.sendMessageToPlayerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("SEND_MESSAGE_TO_PLAYER"),
+                                    'data-placement': 'left',   // because top and bottom got hidden behind the table edges
+                                }));
+                                link.append($('<a>', {
+                                    'class': 'fa fa-comment margin-right-5' + (row.permission.SMSFeedBack === false ? " text-danger" : ""),
+                                    'ng-click': 'vm.initSMSModal();' + "vm.onClickPlayerCheck('" +
+                                    playerObjId + "', " + "vm.telorMessageToPlayerBtn" +
+                                    ", " + "[" + '"msg"' + ", " + JSON.stringify(row) + "]);",
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("Send SMS to Player"),
+                                    'data-placement': 'left',
+                                }));
+                                link.append($('<a>', {
+                                    'class': 'fa fa-volume-control-phone margin-right-5' + (row.permission.phoneCallFeedback === false ? " text-danger" : ""),
+                                    'ng-click': 'vm.telorMessageToPlayerBtn(' + '"tel", "' + playerObjId + '",' + JSON.stringify(row) + ');',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'tooltip',
+                                    'title': $translate("PHONE"),
+                                    'data-placement': 'left',
+                                }));
+                                if ($scope.checkViewPermission('Player', 'Feedback', 'AddFeedback')) {
+                                    link.append($('<a>', {
+                                        'class': 'fa fa-commenting margin-right-5',
+                                        'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
+                                        'data-row': JSON.stringify(row),
+                                        'data-toggle': 'modal',
+                                        'data-target': '#modalAddPlayerFeedback',
+                                        'title': $translate("ADD_FEEDBACK"),
+                                        'data-placement': 'right',
+                                    }));
+                                }
+                                if (row.isRealPlayer) {
+                                    if ($scope.checkViewPermission('Player', 'TopUp', 'ApplyManualTopup')) {
+                                        link.append($('<a>', {
+                                            'class': 'fa fa-plus-circle',
+                                            'ng-click': 'vm.showTopupTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.initPlayerManualTopUp);',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerTopUp',
+                                            'title': $translate("TOP_UP"),
+                                            'data-placement': 'left',
+                                            'style': 'color: #68C60C'
+                                        }));
+                                    }
+                                    link.append($('<br>'));
+                                    if ($scope.checkViewPermission('Player', 'Bonus', 'applyBonus')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5 margin-right-5',
+                                            'src': (row.permission.applyBonus === false ? "images/icon/withdrawRed.png" : "images/icon/withdrawBlue.png"),
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.initPlayerBonus();',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerBonus',
+                                            'title': $translate("Bonus"),
+                                            'data-placement': 'left',   // because top and bottom got hidden behind the table edges
+                                        }));
+                                    }
+                                    if ($scope.checkViewPermission('Player', 'Reward', 'AddRewardTask')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5 margin-right-5',
+                                            'src': "images/icon/rewardBlue.png",
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.initRewardSettings();vm.initPlayerAddRewardTask();',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerAddRewardTask',
+                                            'title': $translate("REWARD_ACTION"),
+                                            'data-placement': 'left',
+                                        }));
+                                    }
+                                    if ($scope.checkViewPermission('Player', 'Player', 'RepairPayment') || $scope.checkViewPermission('Player', 'Player', 'RepairTransaction')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5',
+                                            'src': "images/icon/reapplyBlue.png",
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.showReapplyLostOrderTab(null);vm.prepareShowPlayerCredit();vm.prepareShowRepairPayment(\'#modalReapplyLostOrder\');',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'title': $translate("ALL_REAPPLY_ORDER"),
+                                            'data-placement': 'right',
+                                        }));
+                                    }
+                                    if ($scope.checkViewPermission('Player', 'Credit', 'CreditAdjustment')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5',
+                                            'src': "images/icon/creditAdjustBlue.png",
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerCreditAdjustment, \'adjust\')',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerCreditAdjustment',
+                                            'title': $translate("CREDIT_ADJUSTMENT"),
+                                            'data-placement': 'right',
+                                        }));
+                                    }
+                                    if ($scope.checkViewPermission('Player', 'RewardPoints', 'RewardPointsChange') || $scope.checkViewPermission('Player', 'RewardPoints', 'RewardPointsConvert')) {
+                                        link.append($('<img>', {
+                                            'class': 'margin-right-5',
+                                            'src': (row.permission.rewardPointsTask === false ? "images/icon/rewardPointsRed.png" : "images/icon/rewardPointsBlue.png"),
+                                            'height': "14px",
+                                            'width': "14px",
+                                            'ng-click': 'vm.showRewardPointsAdjustmentTab(null);vm.onClickPlayerCheck("' + playerObjId + '", vm.prepareShowPlayerRewardPointsAdjustment);',
+                                            'data-row': JSON.stringify(row),
+                                            'data-toggle': 'modal',
+                                            'data-target': '#modalPlayerRewardPointsAdjustment',
+                                            'title': $translate("REWARD_POINTS_ADJUSTMENT"),
+                                            'data-placement': 'right',
+                                        }));
+                                    }
+                                }
+                                return link.prop('outerHTML');
                             },
-                            {
-                              title: $translate('Account'),
-                                data: "playerName"
-                            }],
-                            "paging": true,
-                        };
-                        tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
-                        utilService.createDatatableWithFooter('#autoFeedbackTopUpPlayersTable', tableOptions, {}, true);
-                        utilService.actionAfterLoaded("#autoFeedbackTopUpPlayersTable", function () {
-                          $('#autoFeedbackTopUpPlayersTable').resize();
-                        })
-            }
+                            "sClass": "alignLeft"
+                        },
+                    ],
+                    "paging": true,
+                    "destroy": true,
+                    "fnRowCallback": function(nRow, rowData) {
+                        $compile(nRow)($scope);
+                        $(nRow).off('click');
+                        $(nRow).on('click', function () {
+                            vm.selectedSinglePlayer = rowData;
+                        });
+                    },
+                    "drawCallback": function() {
+                        $('#autoFeedbackTopUpPlayersTable').resize();
+                    }
+                };
+                tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
+                utilService.createDatatableWithFooter('#autoFeedbackTopUpPlayersTable', tableOptions, {}, true);
+                utilService.actionAfterLoaded("#autoFeedbackTopUpPlayersTable", function () {
+                    $('#autoFeedbackTopUpPlayersTable').resize();
+                });
+            };
             vm.autoFeedbackShowPromoCodeDetail = function(data) {
                 console.log(data);
                 vm.autoFeedbackPromoCodeDetail = data;
