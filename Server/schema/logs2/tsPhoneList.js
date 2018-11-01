@@ -39,7 +39,7 @@ let tsPhoneListSchema = new Schema({
     // zone stated will not be call, fix feed back content will be save
     dangerZoneList: [{province: {type: String}, city: {type: String}}],
     // status - consTsPhoneListStatus
-    status: {type: Number, default: 0},
+    status: {type: Number, default: 0, index: true},
     // number of phone number consisted
     totalPhone: {type: Number, default: 0},
     // number of phone number distributed
