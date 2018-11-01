@@ -38,6 +38,24 @@ let tsPhoneListSchema = new Schema({
     isCheckWhiteListAndRecycleBin: {type: Boolean, default: false},
     // zone stated will not be call, fix feed back content will be save
     dangerZoneList: [{province: {type: String}, city: {type: String}}],
+    // status - consTsPhoneListStatus
+    status: {type: Number, default: 0},
+    // number of phone number consisted
+    totalPhone: {type: Number, default: 0},
+    // number of phone number distributed
+    totalDistributed: {type: Number, default: 0},
+    // number of phone number used
+    totalUsed: {type: Number, default: 0},
+    // number of called successful
+    totalSuccess: {type: Number, default: 0},
+    // number of registration
+    totalRegistration: {type: Number, default: 0},
+    // number of registed player who top up
+    totalTopUp: {type: Number, default: 0},
+    // number of registed player who top up multiple times
+    totalMultipleTopUp: {type: Number, default: 0},
+    // number of valid players
+    totalValidPlayer: {type: Number, default: 0},
 
     // assignees
     assignees: [{type: Schema.Types.ObjectId, ref: 'admin', index: true}],
