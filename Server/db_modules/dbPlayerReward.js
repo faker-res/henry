@@ -3519,6 +3519,27 @@ let dbPlayerReward = {
         )
     },
 
+    updateBatchPromoCodeGroupMainPermission: function (checkQuery, query, updateData) {
+        let isUpsert = true;
+        if (updateData.$pull) {
+            isUpsert = false;
+        }
+
+        let checkProm = Promise.resolve(false);
+        if (checkQuery) {
+            checkProm = dbConfig.collection_promoCodeUserGroup.update(checkQuery,{$pull: {playerNames: checkQuery.playerNames}},{multi: true})
+        }
+        return checkProm.then(
+            () => {
+                if (updateData.$pull) {
+                    return dbConfig.collection_promoCodeUserGroup.update(query, updateData, {multi: true})
+                } else {
+                    return dbConfig.collection_promoCodeUserGroup.findOneAndUpdate(query, updateData, {upsert: true}).lean();
+                }
+            }
+        )
+    },
+
     saveDelayDurationGroup: (platformObjId, data) => {
         let saveObj = {consumptionTimeConfig: data};
 
