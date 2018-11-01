@@ -73,6 +73,8 @@ define(['js/app'], function (myApp) {
 
         vm.constProposalType = {
             UPDATE_PLAYER_INFO: "UpdatePlayerInfo",
+            UPDATE_PLAYER_INFO_PARTNER: "UpdatePlayerInfoPartner",
+            UPDATE_PLAYER_INFO_LEVEL: "UpdatePlayerInfoLevel",
             UPDATE_PLAYER_CREDIT: "UpdatePlayerCredit",
             FIX_PLAYER_CREDIT_TRANSFER: "FixPlayerCreditTransfer",
             UPDATE_PLAYER_EMAIL: "UpdatePlayerEmail",
@@ -8146,6 +8148,8 @@ define(['js/app'], function (myApp) {
             if (Object.keys(updateData).length > 0) {
                 updateData._id = playerId;
                 var isUpdate = false;
+                let isUpdatePlayerInfoPartner = false;
+                let isUpdatePlayerInfoLevel = false;
                 var isRealName = false;
                 let realNameObj = {
                     playerName: newPlayerData.name || vm.editPlayer.name,
@@ -8174,9 +8178,19 @@ define(['js/app'], function (myApp) {
                 if (updateData.partner == null) {
                     updateData.partnerName = '';
                 }
+
+                if (updateData.partnerName) {
+                    updateData.oldPartnerName = vm.editPlayer.partner && vm.editPlayer.partner.partnerName ? vm.editPlayer.partner.partnerName : '';
+                    updateData.newPartnerName = updateData.partnerName;
+                    isUpdatePlayerInfoPartner = true;
+                    isUpdate = false;
+                }
+
                 if (updateData.playerLevel) {
                     updateData.oldLevelName = getPlayerLevelName(vm.editPlayer.playerLevel);
                     updateData.newLevelName = getPlayerLevelName(updateData.playerLevel);
+                    isUpdatePlayerInfoLevel = true;
+                    isUpdate = false;
                 }
 
                 // if (updateData.bankCardGroup == 'NULL') {
@@ -8253,6 +8267,32 @@ define(['js/app'], function (myApp) {
 
                 if (isUpdate) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoProposal', {
+                        creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                        data: updateData,
+                        platformId: vm.selectedPlatform.id
+                    }, function (data) {
+                        if (data.data && data.data.stepInfo) {
+                            socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                        }
+                        vm.getPlatformPlayersData();
+                    }, null, true);
+                }
+
+                if (isUpdatePlayerInfoPartner) {
+                    socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoPartnerProposal', {
+                        creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                        data: updateData,
+                        platformId: vm.selectedPlatform.id
+                    }, function (data) {
+                        if (data.data && data.data.stepInfo) {
+                            socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                        }
+                        vm.getPlatformPlayersData();
+                    }, null, true);
+                }
+
+                if (isUpdatePlayerInfoLevel) {
+                    socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoLevelProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: updateData,
                         platformId: vm.selectedPlatform.id
@@ -17310,7 +17350,7 @@ define(['js/app'], function (myApp) {
                     vm.noGroupSmsSetting.push(vm.allMessageTypes[messageType]);
             }
             $scope.safeApply();
-        }
+        };
 
         function updateSmsGroup() {
             socketService.$socket($scope.AppSocket, 'updatePlatformSmsGroups', {
@@ -17319,7 +17359,7 @@ define(['js/app'], function (myApp) {
             }, function (data) {
                 vm.configTabClicked("smsGroup")
             });
-        }
+        };
 
         vm.addSmsSettingToGroup = (smsSetting, index) => {
             if (!smsSetting.group) return;
@@ -17329,7 +17369,7 @@ define(['js/app'], function (myApp) {
                 platformObjId: vm.selectedPlatform.data._id
             });
             vm.noGroupSmsSetting.splice(index, 1);
-        }
+        };
 
         vm.filterSmsSettingGroup = (parentSmsId) => {
             return (smsSettingGroup) => {
@@ -17342,7 +17382,7 @@ define(['js/app'], function (myApp) {
                 vm.smsGroups.push(data.data)
                 $scope.safeApply();
             });
-        }
+        };
 
         vm.removeSmsSettingFromGroup = (smsSettingGroup) => {
             vm.smsGroups = vm.smsGroups.filter(smsGroup => smsGroup.smsName !== smsSettingGroup.smsName && smsSettingGroup.smsParentSmsId !== -1);
