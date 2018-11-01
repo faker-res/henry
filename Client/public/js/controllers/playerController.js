@@ -10380,13 +10380,13 @@ define(['js/app'], function (myApp) {
                         data: vm.playerApplyRewardShow.returnData.list,
                         // "aaSorting": vm.consumptionSlipReward.aaSorting || [[2, 'desc']],
                         aoColumnDefs: [
-                            {'sortCol': 'orderNo', bSortable: false, 'aTargets': [1]},
-                            {'sortCol': 'gameProvider', bSortable: false, 'aTargets': [2]},
-                            {'sortCol': 'consumptionCreateTime', bSortable: true, 'aTargets': [3]},
+                            // {'sortCol': 'orderNo', bSortable: false, 'aTargets': [1]},
+                            // {'sortCol': 'gameProvider', bSortable: false, 'aTargets': [2]},
+                            {'sortCol': 'consumptionCreateTime', bSortable: true, 'aTargets': [2]},
                             {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [4]},
                             {'sortCol': 'consumptionAmount', bSortable: true, 'aTargets': [5]},
-                            {'sortCol': 'rewardAmount', bSortable: true, 'aTargets': [6]},
-                            {'sortCol': 'spendingTimes', bSortable: true, 'aTargets': [7]},
+                            // {'sortCol': 'rewardAmount', bSortable: true, 'aTargets': [6]},
+                            // {'sortCol': 'spendingTimes', bSortable: false, 'aTargets': [7]},
                             {targets: '_all', defaultContent: ' ', bSortable: false}
                         ],
 

@@ -97,70 +97,73 @@ var dbPlayerTopUpRecord = {
     },
 
     assignTopUpRecordUsedEvent: function (platformObjId, playerObjId, eventObjId, spendingAmount, startTime, endTime, byPassedEvent, usedProposal, rewardType, isNoLimit) {
-        let topUpQuery = {
-            platformId: platformObjId,
-            playerId: playerObjId,
-        };
+        // if spendingAmount (i.e., the requiredTopUpAmount) is 0, ignore it as no top up record has to be used up
+        if (spendingAmount) {
+            let topUpQuery = {
+                platformId: platformObjId,
+                playerId: playerObjId,
+            };
 
-        if (startTime) {
-            topUpQuery.createTime = {$gte: startTime};
-            if (endTime) {
-                topUpQuery.createTime.$lte = endTime;
-            }
-        }
-
-        let updateValue = {
-            bDirty: true,
-            $push: {usedEvent: eventObjId}
-        };
-
-        if (rewardType) {
-            updateValue.usedType = rewardType;
-        }
-
-        if (usedProposal) {
-            updateValue.usedProposal = usedProposal;
-        }
-
-        let recordIds = [];
-
-        let rewardEventQuery = {platform: platformObjId};
-
-        if (byPassedEvent && byPassedEvent.length > 0) {
-            byPassedEvent.forEach(byPassedEventId => {
-                byPassedEvent.push(ObjectId(byPassedEventId));
-            });
-            rewardEventQuery._id = {$nin: byPassedEvent};
-        }
-
-        return dbconfig.collection_rewardEvent.distinct("_id", rewardEventQuery).then(
-            rewardEventIds => {
-                topUpQuery.usedEvent = {$nin: rewardEventIds};
-                return dbconfig.collection_playerTopUpRecord.find(topUpQuery).lean()
-            }
-        ).then(
-            toUpRecords => {
-                let curAmount = 0;
-
-                for (var i = 0; i < toUpRecords.length; i++) {
-                    let record = toUpRecords[i];
-                    recordIds.push(record._id);
-                    curAmount += record.amount;
-
-                    if (!isNoLimit && curAmount >= spendingAmount) {
-                        break;
-                    }
+            if (startTime) {
+                topUpQuery.createTime = {$gte: startTime};
+                if (endTime) {
+                    topUpQuery.createTime.$lte = endTime;
                 }
-
-                dbconfig.collection_playerTopUpRecord.update(
-                    {_id: {$in: recordIds}},
-                    updateValue,
-                    {multi: true}
-                ).exec();
-
-                return recordIds;
             }
-        );
+
+            let updateValue = {
+                bDirty: true,
+                $push: {usedEvent: eventObjId}
+            };
+
+            if (rewardType) {
+                updateValue.usedType = rewardType;
+            }
+
+            if (usedProposal) {
+                updateValue.usedProposal = usedProposal;
+            }
+
+            let recordIds = [];
+
+            let rewardEventQuery = {platform: platformObjId};
+
+            if (byPassedEvent && byPassedEvent.length > 0) {
+                byPassedEvent.forEach(byPassedEventId => {
+                    byPassedEvent.push(ObjectId(byPassedEventId));
+                });
+                rewardEventQuery._id = {$nin: byPassedEvent};
+            }
+
+            return dbconfig.collection_rewardEvent.distinct("_id", rewardEventQuery).then(
+                rewardEventIds => {
+                    topUpQuery.usedEvent = {$nin: rewardEventIds};
+                    return dbconfig.collection_playerTopUpRecord.find(topUpQuery).lean()
+                }
+            ).then(
+                toUpRecords => {
+                    let curAmount = 0;
+
+                    for (var i = 0; i < toUpRecords.length; i++) {
+                        let record = toUpRecords[i];
+                        recordIds.push(record._id);
+                        curAmount += record.amount;
+
+                        if (!isNoLimit && curAmount >= spendingAmount) {
+                            break;
+                        }
+                    }
+
+                    dbconfig.collection_playerTopUpRecord.update(
+                        {_id: {$in: recordIds}},
+                        updateValue,
+                        {multi: true}
+                    ).exec();
+
+                    return recordIds;
+                }
+            );
+        }
     },
 
     /**
