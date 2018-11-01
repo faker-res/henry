@@ -1,5 +1,5 @@
 #modalNewTSPhoneListXLS.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog(style='width:80%;')
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -16,6 +16,93 @@
                                     div.padding-all-5
                                         label {{"DESCRIPTION" | translate}}
                                         input.form-control(ng-model="vm.tsNewList.description")
+
+                                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                                        thead
+                                            tr
+                                                th {{'Setting Item' | translate}}
+                                                th {{'VALUE' | translate}}
+                                        tbody
+                                            tr
+                                                td {{'Name Of List' | translate}}
+                                                td
+                                                    input.form-control(type='text', min=0, ng-model='vm.tsNewList.name')
+                                            tr
+                                                td {{'Description Of List' | translate}}
+                                                td
+                                                    input.form-control(type='text', min=0, ng-model='vm.tsNewList.description')
+                                            tr
+                                                td {{'Feedback Result Of Default Failure System Call' | translate}}
+                                                td
+                                                    select.form-control(ng-model='vm.tsNewList.failFeedBackResult',  ng-options='v.key as v.value for (i,v) in vm.allPlayerFeedbackResults')
+                                            tr
+                                                td {{'Feedback Topic Of Default Failure System Call' | translate}}
+                                                td
+                                                    select.form-control(ng-model='vm.tsNewList.failFeedBackTopic',  ng-options='v.key as v.value for (i,v) in vm.playerFeedbackTopic')
+                                            tr
+                                                td {{'Feedback Content Of Default Failure System Call' | translate}}
+                                                td
+                                                    input.form-control(type='text', min=0, ng-model='vm.tsNewList.failFeedBackContent')
+                                            tr
+                                                td {{'Assign To N Caller For Each Unregistered Phone Number' | translate}}
+                                                td
+                                                    input.form-control(type='text', min=0, ng-model='vm.tsNewList.callerCycleCount')
+                                            tr
+                                                td {{'Daily Distribute Task Count Equally Divide For Each Caller' | translate}}
+                                                td
+                                                    input.form-control(type='text', min=0, ng-model='vm.tsNewList.dailyCallerMaximumTask')
+                                            tr
+                                                td {{'Daily Distribute Task Time' | translate}}
+                                                td
+                                                    #dxTimePicker.datetimepicker.form-control
+                                                        input.input-append.playerDate(style='border:0;', data-format="hh:mm:ss", type='text')
+                                                        span.add-on
+                                                            i.fa-clock-o.fa(data-time-icon='fa fa-clock-o')
+                                            tr
+                                                td {{'Distribute Task Start Date' | translate}}
+                                                td
+                                                    #dxDatePicker.datetimepicker.form-control
+                                                        input.input-append.playerDate(style='border:0;', data-format="dd/MM/yyyy", type='text')
+                                                        span.add-on
+                                                            i.fa-calendar.fa(data-date-icon='fa fa-calendar')
+                                            tr
+                                                td {{'Reclaim Task After X Days And Reassign Task' | translate}}
+                                                td
+                                                    input.form-control(type='text', min=0, ng-model='vm.tsNewList.reclaimDayCount')
+                                            tr
+                                                td {{'Filter Phone Number From White List And Recycle Bin' | translate}}
+                                                td
+                                                    input(type='checkbox', min=0, ng-model='vm.tsNewList.isCheckWhiteListAndRecycleBin')
+                                            tr
+                                                td {{'Zone Will Not Be Call' | translate}}
+                                                td
+                                                    table.common-table.playerLvlTable
+                                                        thead
+                                                            tr
+                                                                th(style="width:50%") {{"CITY" | translate}}
+                                                                th(style="width:50%") {{"PROVINCE" | translate}}
+                                                                th
+                                                        tbody
+                                                            tr(ng-repeat='(i, v) in vm.tsNewList.dangerZoneList')
+                                                                td
+                                                                    select.form-control(ng-model='vm.tsNewList.dangerZoneList[i].province',  ng-options='v.id as v.name for (i, v) in vm.provinceList')
+                                                                td
+                                                                    select.form-control(ng-model='vm.tsNewList.dangerZoneList[i].city',  ng-options='v.id as v.name for (i, v) in vm.cityList')
+                                                                td
+                                                                    i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.tsNewList.dangerZoneList, $index)')
+                                                            tr
+                                                                td(colspan=3) {{'ADD' | translate}}
+                                                            tr
+                                                                td
+                                                                    select.form-control(ng-model='vm.currentProvince.province',  ng-options='v.id as v.name for (i, v) in vm.provinceList' ng-change='vm.changeProvince()')
+                                                                td
+                                                                    select.form-control(ng-model='vm.currentCity.city',  ng-options='v.id as v.name for (i, v) in vm.cityList')
+                                                                td
+                                                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.tsNewList.dangerZoneList, {province: vm.currentProvince.province, city: vm.currentCity.city}); vm.resetProvince();')
+
+
+
+
             .modal-footer
                 div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
                 button.btn.btn-success.common-button(ng-if="!vm.importPhoneResult" ng-click="vm.uploadPhoneFileXLS('', true)")
