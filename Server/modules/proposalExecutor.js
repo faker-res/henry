@@ -202,6 +202,7 @@ var proposalExecutor = {
             this.executions.executeUpdatePlayerInfo.des = "Update player information";
             this.executions.executeUpdatePlayerInfoPartner.des = "Update player partner";
             this.executions.executeUpdatePlayerInfoLevel.des = "Update player level";
+            this.executions.executeUpdatePlayerInfoAccAdmin.des = "Update player acc admin";
             this.executions.executeUpdatePlayerCredit.des = "Update player credit";
             this.executions.executeFixPlayerCreditTransfer.des = "Fix player credit transfer";
             this.executions.executePlayerConsumptionReturnFix.des = "Update player credit for consumption return";
@@ -280,6 +281,7 @@ var proposalExecutor = {
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
             this.rejections.rejectUpdatePlayerInfoPartner.des = "Reject player partner";
             this.rejections.rejectUpdatePlayerInfoLevel.des = "Reject player level";
+            this.rejections.rejectUpdatePlayerInfoAccAdmin.des = "Reject player acc admin";
             this.rejections.rejectUpdatePlayerCredit.des = "Reject player update credit proposal";
             this.rejections.rejectFixPlayerCreditTransfer.des = "Reject fix player credit transfer proposal";
             this.rejections.rejectPlayerConsumptionReturnFix.des = "Reject update player credit for consumption return";
@@ -694,6 +696,31 @@ var proposalExecutor = {
                 }
                 else {
                     deferred.reject({name: "DataError", message: "Incorrect update player level proposal data"});
+                }
+            },
+
+            /**
+             * execution function for update player acc admin proposal type
+             */
+            executeUpdatePlayerInfoAccAdmin: function (proposalData, deferred) {
+                //valid data
+                if (proposalData && proposalData.data && proposalData.data._id) {
+                    dbUtil.findOneAndUpdateForShard(
+                        dbconfig.collection_players,
+                        {_id: proposalData.data._id},
+                        proposalData.data,
+                        constShardKeys.collection_players
+                    ).then(
+                        function (data) {
+                            deferred.resolve(data);
+                        },
+                        function (err) {
+                            deferred.reject({name: "DataError", message: "Failed to update player acc admin", error: err});
+                        }
+                    );
+                }
+                else {
+                    deferred.reject({name: "DataError", message: "Incorrect update player acc admin proposal data"});
                 }
             },
 
@@ -3492,6 +3519,13 @@ var proposalExecutor = {
              * reject function for UpdatePlayerInfoLevel proposal
              */
             rejectUpdatePlayerInfoLevel: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            /**
+             * reject function for UpdatePlayerInfoAccAdmin proposal
+             */
+            rejectUpdatePlayerInfoAccAdmin: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
 
