@@ -10412,6 +10412,71 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             };
 
+            vm.isAllNoSmsGroupChecked = () => {
+                let isAllChecked = true;
+                for (let i = 0; i < vm.noGroupSmsSetting.length; i++) {
+                    if (vm.playerBeingEdited.smsSetting[vm.noGroupSmsSetting[i].name] === false) {
+                        isAllChecked = false;
+                        break;
+                    }
+                }
+                vm.playerBeingEdited.checkAllNoSmsGroup = isAllChecked;
+            };
+
+            vm.toggleAllNoSmsGroup = () => {
+                if (vm.playerBeingEdited.checkAllNoSmsGroup === false) {
+                    vm.noGroupSmsSetting.forEach(
+                        noGroup => {
+                            vm.playerBeingEdited.smsSetting[noGroup.name] = false;
+                        }
+                    );
+                } else {
+                    vm.noGroupSmsSetting.forEach(
+                        noGroup => {
+                            vm.playerBeingEdited.smsSetting[noGroup.name] = true;
+                        }
+                    );
+                }
+            };
+
+            vm.isAllIsSmsGroupChecked = () => {
+                let smsSettingInThisGroup = vm.smsGroups.filter(smsGroup => smsGroup.smsParentSmsId === -1);
+                let isAllChecked = true;
+                for (let i = 0; i < smsSettingInThisGroup.length; i++) {
+                    let groupSmsId = smsSettingInThisGroup[i].smsId;
+                    if (vm.playerSmsSetting.smsGroup[groupSmsId] === false) {
+                        isAllChecked = false;
+                        break;
+                    }
+                }
+                vm.playerBeingEdited.checkAllIsSmsGroup = isAllChecked;
+            };
+
+            vm.toggleAllIsSmsGroup = () => {
+                if (vm.playerBeingEdited.checkAllIsSmsGroup === false) {
+                    vm.smsGroups.forEach(
+                        smsGroup => {
+                            if (smsGroup.smsParentSmsId !== -1) {
+                                vm.playerBeingEdited.smsSetting[smsGroup.smsName] = false;
+                            } else {
+                                vm.playerSmsSetting.smsGroup[smsGroup.smsId] = false;
+                            }
+
+                        }
+                    );
+                } else {
+                    vm.smsGroups.forEach(
+                        smsGroup => {
+                            if (smsGroup.smsParentSmsId !== -1) {
+                                vm.playerBeingEdited.smsSetting[smsGroup.smsName] = true;
+                            } else {
+                                vm.playerSmsSetting.smsGroup[smsGroup.smsId] = true;
+                            }
+                        }
+                    );
+                }
+            };
+
             vm.smsGroupCheckChange = (smsParentGroup) => {
                 let smsSettingInThisGroup = vm.smsGroups.filter(smsGroup => smsGroup.smsParentSmsId === smsParentGroup.smsId);
                 let isGroupChecked = vm.playerSmsSetting.smsGroup[smsParentGroup.smsId];
@@ -10432,6 +10497,7 @@ define(['js/app'], function (myApp) {
                     }
                 }
                 vm.playerSmsSetting.smsGroup[smsParentGroup.smsId] = isAllChecked;
+                vm.isAllIsSmsGroupChecked();
             };
 
             vm.initPlayerDisplayDataModal = function () {
