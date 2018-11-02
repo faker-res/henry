@@ -856,6 +856,8 @@ define(['js/app'], function (myApp) {
                 listDesc: listDesc
             };
 
+            console.log('sendData', sendData);
+
             socketService.$socket($scope.AppSocket, 'importTSNewList', sendData, function (data) {
                 $scope.$evalAsync(() => {
                     if (data.success && data.data) {
