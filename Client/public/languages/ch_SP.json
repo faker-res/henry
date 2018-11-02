@@ -4751,5 +4751,21 @@
   "BATCH_TELEMARKETING_SETTING(FOR WHITELIST)": "批量电销配置(拨打白名单用)",
   "Definition of Answered Phone Call(Choose from feedback status/ multi selection)": "定义何谓成功接听（选择回访状态/复选）",
   "Decompose after N days(Start to deal with other departments)": "进入回收桶 X 天后自动分解（开始与其他部门交易）",
-  "Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday": "每日 4AM 白名单电话自动出口/交易上限数量"
+  "Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday": "每日 4AM 白名单电话自动出口/交易上限数量",
+  "FINANCIAL_REPORT": "财务报表（存、取、平台费）",
+  "Search Date (Start)": "查询日期（开始）",
+  "Search Date (End)": "查询日期（结束）",
+  "Platform (Multiple Selection)": "产品（可复选）",
+  "Display Method": "显示方式",
+  "A. Sum": "A. 总和",
+  "B. Daily": "B. 每日",
+  "*Default 00:00:00": "* 默认 00：00：00",
+  "*Default 23:59:59": "* 默认 23：59：59",
+  "Deposit Group Setting": "配置存款组别",
+  "Impact report display": "影响报表展示",
+  "All Deposit Method": "所有存款方式",
+  "Deposit Group": "存款分组",
+  "Deposit Group Setting Detail": "组内包含的存款细项",
+  "DELETE_DEPOSIT_GROUP": "删除存款分组",
+  "DepositGroupSetting": "配置存款组别"
 }
