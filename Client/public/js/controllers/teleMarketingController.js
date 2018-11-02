@@ -4776,6 +4776,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.initFilterAndImportDXSystem = function () {
+            vm.tsNewList = {};
             vm.tsNewList.dangerZoneList = [];
             utilService.actionAfterLoaded("#dxDatePicker", function () {
                 $('#dxDatePicker').datetimepicker({
@@ -4837,6 +4838,23 @@ define(['js/app'], function (myApp) {
             vm.currentProvince = {};
             vm.currentCity = {};
         }
+
+        vm.checkFilterAndImportSystem = () => {
+          let isDisable = true;
+          let timePicker = $('#dxTimePicker').data('datetimepicker').getLocalDate();
+          let datePicker = $('#dxDatePicker').data('datetimepicker').getLocalDate();
+
+            if (vm.tsNewList) {
+              if (vm.tsNewList.name && vm.tsNewList.description && vm.tsNewList.failFeedBackResult && vm.tsNewList.failFeedBackTopic
+                  && vm.tsNewList.failFeedBackContent && vm.tsNewList.callerCycleCount !== null && vm.tsNewList.dailyCallerMaximumTask !== null
+                  && vm.tsNewList.reclaimDayCount !== null && timePicker && datePicker)
+               {
+                  isDisable = false;
+              }
+
+          }
+          return isDisable;
+        };
 
     };
 
