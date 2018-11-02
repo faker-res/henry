@@ -3,7 +3,7 @@
 let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
 
-let tsPhoneSchema = new Schema({
+let tsPhoneImportRecordSchema = new Schema({
     // platformObjId
     platform: {type: Schema.ObjectId, ref: 'platform', index: true, required: true},
     // tsPhoneList Object Id
@@ -18,5 +18,5 @@ let tsPhoneSchema = new Schema({
     importTime: {type: Date, default: new Date(), index: true},
 });
 
-module.exports = tsPhoneSchema;
+module.exports = tsPhoneImportRecordSchema;
 
