@@ -15,36 +15,40 @@ let playerConsumptionSlipRewardGroupRecordSchema = new Schema({
     consumptionSlipNo: {type: String},
     // bonus amount
     bonusAmount: {type: Number},
+    // condition list
+    condition: [{
+        _id: false,
+        // required top up amount within period to apply the reward
+        requiredTopUpAmount: {type: Number, default: 0, index: true},
+        // the bonus ratio that is required to apply the reward
+        requiredBonusRatio: {type: Number},
+        // consumption needed if this applied succesfully
+        requiredConsumptionAmount: {type: Number},
+        // the required eding digit of the order number
+        requiredOrderNoEndingDigit: {type: String},
+        // the multiplier for the consumption as the reward
+        rewardMultiplier: {type: Number},
+        // reward amount if this applied successfully
+        rewardAmount: {type: Number, index:true},
+        // the spendingTimes
+        spendingTimes: {type: Number},
+        // the maximum rewardAmount
+        maxRewardAmount: {type: Number},
+        // forbid withdrawing after getting the reward
+        forbidWithdrawAfterApply: {type: Boolean, default: false},
+        // check if the balance after unlock exceeds this amount, withdrawing will not be allowed
+        forbidWithdrawIfBalanceAfterUnlock: {type: Number},
+        // remark
+        remark: {type: String},
+    }],
     // betting amount
     consumptionAmount: {type: Number},
-    // required top up amount within period to apply the reward
-    requiredTopUpAmount: {type: Number, default: 0},
-    // the bonus ratio that is required to apply the reward
-    requiredBonusRatio: {type: Number},
-    // consumption needed if this applied succesfully
-    requiredConsumptionAmount: {type: Number},
-    // the required eding digit of the order number
-    requiredOrderNoEndingDigit: {type: String},
-    // the multiplier for the consumption as the reward
-    rewardMultiplier: {type: Number},
-    // reward amount if this applied successfully
-    rewardAmount: {type: Number, index:true},
-    // the spendingTimes
-    spendingTimes: {type: Number},
-    // the maximum rewardAmount
-    maxRewardAmount: {type: Number},
     // // the consumption is made from the game provider
     gameProvider: {type: Schema.ObjectId, ref: 'gameProvider'},
-    // forbid withdrawing after getting the reward
-    forbidWithdrawAfterApply: {type: Boolean, default: false},
-    // check if the balance after unlock exceeds this amount, withdrawing will not be allowed
-    forbidWithdrawIfBalanceAfterUnlock: {type: Number},
-    // remark
-    remark: {type: String},
     // the time when the consumption is created
     consumptionCreateTime: {type: Date},
     // check if the record has been used up
-    isUsed: {type: Boolean, default: false}
+    isUsed: {type: Boolean, default: false, index: true}
 });
 
 playerConsumptionSlipRewardGroupRecordSchema.index({platform: 1, playerObjId: 1});
