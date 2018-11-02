@@ -26,6 +26,7 @@
 
 .common-table tbody, .common-table thead {
     text-align: center;
+    border: 1px solid #337ab7;
 }
 
 /*.common-table td {*/
