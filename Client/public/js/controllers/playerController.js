@@ -75,6 +75,7 @@ define(['js/app'], function (myApp) {
             UPDATE_PLAYER_INFO: "UpdatePlayerInfo",
             UPDATE_PLAYER_INFO_PARTNER: "UpdatePlayerInfoPartner",
             UPDATE_PLAYER_INFO_LEVEL: "UpdatePlayerInfoLevel",
+            UPDATE_PLAYER_INFO_ACC_ADMIN: "UpdatePlayerInfoAccAdmin",
             UPDATE_PLAYER_CREDIT: "UpdatePlayerCredit",
             FIX_PLAYER_CREDIT_TRANSFER: "FixPlayerCreditTransfer",
             UPDATE_PLAYER_EMAIL: "UpdatePlayerEmail",
@@ -8150,6 +8151,7 @@ define(['js/app'], function (myApp) {
                 var isUpdate = false;
                 let isUpdatePlayerInfoPartner = false;
                 let isUpdatePlayerInfoLevel = false;
+                let isUpdatePlayerAccAdmin = false;
                 var isRealName = false;
                 let realNameObj = {
                     playerName: newPlayerData.name || vm.editPlayer.name,
@@ -8183,14 +8185,12 @@ define(['js/app'], function (myApp) {
                     updateData.oldPartnerName = vm.editPlayer.partner && vm.editPlayer.partner.partnerName ? vm.editPlayer.partner.partnerName : '';
                     updateData.newPartnerName = updateData.partnerName;
                     isUpdatePlayerInfoPartner = true;
-                    isUpdate = false;
                 }
 
                 if (updateData.playerLevel) {
                     updateData.oldLevelName = getPlayerLevelName(vm.editPlayer.playerLevel);
                     updateData.newLevelName = getPlayerLevelName(updateData.playerLevel);
                     isUpdatePlayerInfoLevel = true;
-                    isUpdate = false;
                 }
 
                 // if (updateData.bankCardGroup == 'NULL') {
@@ -8263,6 +8263,10 @@ define(['js/app'], function (myApp) {
 
                 if (updateData.accAdmin && vm.csOfficer) {
                     updateData.csOfficer = vm.csOfficer;
+                    updateData.oldAccAdmin = vm.editPlayer.accAdmin ? vm.editPlayer.accAdmin : '';
+                    updateData.newAccAdmin = updateData.accAdmin;
+                    isUpdatePlayerAccAdmin = true;
+                    isUpdate = false;
                 }
 
                 if (isUpdate) {
@@ -8293,6 +8297,19 @@ define(['js/app'], function (myApp) {
 
                 if (isUpdatePlayerInfoLevel) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoLevelProposal', {
+                        creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                        data: updateData,
+                        platformId: vm.selectedPlatform.id
+                    }, function (data) {
+                        if (data.data && data.data.stepInfo) {
+                            socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                        }
+                        vm.getPlatformPlayersData();
+                    }, null, true);
+                }
+
+                if (isUpdatePlayerAccAdmin) {
+                    socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoAccAdminProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: updateData,
                         platformId: vm.selectedPlatform.id
