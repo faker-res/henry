@@ -4006,6 +4006,22 @@
   "createPlayerFeedbackTopic": "添加回访主题",
   "createPartnerFeedbackResult": "添加回访结果",
   "createPartnerFeedbackTopic": "添加回访主题",
+
+  "Setting Item":"设定项目",
+  "Name Of List": "名单名称",
+  "Description Of List": "名单描述",
+  "Feedback Result Of Default Failure System Call": "批量呼叫失败系统预设的回访结果",
+  "Feedback Topic Of Default Failure System Call": "批量呼叫失败系统预设的回访主题",
+  "Feedback Content Of Default Failure System Call": "批量呼叫失败系统预设的回访内容",
+  "Assign To N Caller For Each Unregistered Phone Number": "每个尚未开户成功的电话，将派发循环 N 个不同电销员才算结束",
+  "Daily Distribute Task Count Equally Divide For Each Caller": "每日最高派发量：将随机平均分配给配置的电销员",
+  "Daily Distribute Task Time": "每日派发时间",
+  "Distribute Task Start Date": "开始派发日期",
+  "Reclaim Task After X Days And Reassign Task": "派发后X天回收（必填）：尚未开户成功的电话将会回收至未派发池，重新分配，同一操作员将不再分配",
+  "Filter Phone Number From White List And Recycle Bin": "除了过滤已开户的电话，导入时是否过滤『白名单』、『回收桶』内所有历史电话",
+  "Zone Will Not Be Call": "不拨号的危险电话地区（省+市/复选/非必填）：拨号时，将根据批量呼叫失败填入『结果+主题』，回访内容固定填入『不拨号的危险电话地区』",
+
+
   "modifyPlayerCredibilityRemark": "编辑信用评价",
   "updatePlayerCredibilityRemark": "信用评价",
   "createUpdatePlayerBankInfoProposal": "创建更新玩家银行资料提案",

@@ -4,7 +4,7 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
             img(async=on ng-if="companyLogo" ng-src="{{companyLogo}}" width="100px" height="100px" style="position:absolute;left:20px;top:10px;z-index:-1;")
             div.inlineBlk(ng-if='checkViewPermission("Platform","Platform", "Read")', data-toggle="modal", data-target='#modalUpdatePlatform', style='width:130px;white-space:nowrap;overflow:hidden;margin-bottom:0px')
                 .fa.fa-2x(style='margin:5px 10px;')
-                    img(async=on src="images/icon/websiteBusiness_hover.png" width="30" )
+                    img( async=on src="images/icon/websiteBusiness_hover.png" width="30" )
                 #selectedPlatformNodeTitle.inlineBlk.text.shadow(style='font-size:20px; overflow: visible; text-overflow: clip; vertical-align: middle;' ng-click='vm.initPlatform(false);vm.showPlatformDetailTab(null);vm.setPlatformFooter(null);vm.getAllDepartmentData();vm.prepareSettlementHistory();vm.populatePlatformData();') {{curPlatformText}}
             .fa.fa-2x.fa-caret-down(style='margin:5px 10px; margin-top:8px; vertical-align:top;' ng-click='switchPlatform($event)')
             #platformTreeHeader(ng-show='showPlatformDropDownList', style="min-width: 200px; position: absolute; color: black; z-index: 9;")
@@ -13,61 +13,61 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
                 option(ng-repeat='(i,v) in mgntServerList', value='{{i}}', ng-selected='currentServer' ng-disabled='!v.latency') {{i + ":  " + v.latency + "ms"}}
     #cssmenu
         ul.navibar.navbar-header.nav-header.navbar-brand
-            li(style="{{ checkViewPermission('Player', 'Player', 'Read')? 'display:block; width:65px;' : 'display:none'}}")
+            li(style="{{ checkViewPermission('Player', 'Player', 'Read')? 'display:block; width:70px;' : 'display:none'}}")
                 a(href='', name='player', ng-click="openHeaderPanel('player'); setClickedHeaderIcon()" )
                     i.fa.fa-user
                     | {{ 'PLAYER' | translate }}
-            li(style="{{ checkViewPermission('Partner', 'Partner', 'Read')? 'display:block; width: 65px' : 'display:none'}}")
+            li(style="{{ checkViewPermission('Partner', 'Partner', 'Read')? 'display:block; width: 70px' : 'display:none'}}")
                 a(href='', name='partner', ng-click="openHeaderPanel('partner'); setClickedHeaderIcon()" )
                     i.fa.fa-share-alt
                     | {{ 'PARTNER' | translate }}
-            li(style="{{ checkViewPermission('Platform')? 'display:block; width:65px;' : 'display:none'}}" class="wbLogo")
+            li(style="{{ checkViewPermission('Platform')? 'display:block; width:70px;' : 'display:none'}}" class="wbLogo")
                 a(href='', name='platform', ng-click="openHeaderPanel('platform'); setClickedHeaderIcon()" )
                     i.fa
                         div()
                     | {{ 'Website Business' | translate }}
-            li(style="{{ checkViewPermission('Report')? 'display:block; width:65px;' : 'display:none'}}")
+            li(style="{{ checkViewPermission('Report')? 'display:block; width:70px;' : 'display:none'}}")
                 a(href='', name='report', ng-click="openHeaderPanel('report'); setClickedHeaderIcon()" )
                     i.fa.fa-table
                     | {{ 'REPORT' | translate }}
-            li(style="{{ checkViewPermission('Operation')? 'display:block; width:65px;' : 'display:none'}}")
+            li(style="{{ checkViewPermission('Operation')? 'display:block; width:70px;' : 'display:none'}}")
                 a(href='', name='operation', ng-click="openHeaderPanel('operation'); setClickedHeaderIcon()" )
                     i.fa.fa-tasks
                     | {{ 'OPERATION' | translate }}
-            li(style="{{ checkViewPermission('Analysis')? 'display:block; width:65px;' : 'display:none'}}")
+            li(style="{{ checkViewPermission('Analysis')? 'display:block; width:70px;' : 'display:none'}}")
                 a(href='', name='analysis', ng-click="openHeaderPanel('analysis'); setClickedHeaderIcon()" )
                     i.fa.fa-line-chart
                     | {{ 'ANALYSIS' | translate }}
-            li(style="{{ checkViewPermission('Monitor')? 'display:block; width:65px;' : 'display:none'}}")
+            li(style="{{ checkViewPermission('Monitor')? 'display:block; width:70px;' : 'display:none'}}")
                 a(href='', name='monitor', ng-click="openHeaderPanel('monitor'); setClickedHeaderIcon()" )
                     i.fa.fa-desktop
                     | {{ 'MONITOR' | translate }}
-            li(style="{{ checkViewPermission('Payment')? 'display:block; width:65px;' : 'display:none'}}")
+            li(style="{{ checkViewPermission('Payment')? 'display:block; width:70px;' : 'display:none'}}")
                 a(href='', name='payment', ng-click="openHeaderPanel('payment'); setClickedHeaderIcon()" )
                     i.fa.fa-money
                     | {{ 'Payment' | translate }}
-            li(style="{{ checkViewPermission('Provider')? 'display:block; width:65px;' : 'display:none'}}")
+            li(style="{{ checkViewPermission('Provider')? 'display:block; width:70px;' : 'display:none'}}")
                 a(href='', name='provider', ng-click="openHeaderPanel('provider'); setClickedHeaderIcon()" )
                     i.fa.fa-gamepad
                     | {{ 'GAME_PROVIDER' | translate }}
-            li(style="{{ checkViewPermission('Dashboard')? 'display:block; width:65px;' : 'display:none'}}")
+            li(style="{{ checkViewPermission('Dashboard')? 'display:block; width:70px;' : 'display:none'}}")
                 a(href='', name='dashboard', ng-click="openHeaderPanel('dashboard'); setClickedHeaderIcon()" )
                     i.fa.fa-tachometer
                     | {{ 'DASHBOARD' | translate }}
-            li(style="{{ checkViewPermission('Admin')? 'display:block; width:65px;' : 'display:none'}}" class="privilegeLogo")
+            li(style="{{ checkViewPermission('Admin')? 'display:block; width:70px;' : 'display:none'}}" class="privilegeLogo")
                 a(href='', name='mainPage', ng-click="openHeaderPanel('mainPage'); setClickedHeaderIcon()" )
                     i.fa
                         div()
                     | {{ 'Backstage Privilege' | translate }}
-            li(style="{{ checkViewPermission('QualityInspection')? 'display:block; width:65px' : 'display:none'}}")
+            li(style="{{ checkViewPermission('QualityInspection')? 'display:block; width:70px' : 'display:none'}}")
                 a(href='', name='qualityInspection', ng-click="openHeaderPanel('qualityInspection'); setClickedHeaderIcon()" )
                     i.fa.fa-check-square-o
                     | {{ 'Quality Inspection' | translate }}
-            li(style="{{ checkViewPermission('TeleMarketing')? 'display:block; width:65px' : 'display:none'}}")
+            li(style="{{ checkViewPermission('TeleMarketing')? 'display:block; width:70px' : 'display:none'}}")
                 a(href='', name='teleMarketing', ng-click="openHeaderPanel('teleMarketing'); setClickedHeaderIcon()" )
                     i.fa.fa-phone
                     | {{ 'TeleMarketing' | translate }}
-            li(style="{{ checkViewPermission('ThemeControl')? 'display:block; width:65px' : 'display:none'}}")
+            li(style="{{ checkViewPermission('ThemeControl')? 'display:block; width:70px' : 'display:none'}}")
                 a(href='', name='themeControl', ng-click="openHeaderPanel('themeControl'); setClickedHeaderIcon()" )
                     i.fa.fa-picture-o
                     | {{ 'ThemeControl' | translate }}
