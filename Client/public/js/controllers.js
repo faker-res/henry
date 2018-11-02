@@ -92,6 +92,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             url = wsProtocol + WSCONFIG[serverCookie].socketURL
         }
 
+        console.log('before connect');
         $scope.AppSocket = io.connect(url, {
             query: 'token=' + token,
             //todo::add secure flag for https
@@ -187,7 +188,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             })
         }
     };
-    //$scope.connectSocket();
+    $scope.connectSocket();
 
     //init messages
     $scope.errorMessages = [];
@@ -1453,10 +1454,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     };
 
     $location.path();
-    $scope.$on('childControllerLoaded', function () {
-        console.log('Start connecting Management server');
-        $scope.connectSocket();
-    });
+    // $scope.$on('childControllerLoaded', function () {
+    //     console.log('Start connecting Management server');
+    //     $scope.connectSocket();
+    // });
 
     function initPage() {
         if (!$scope.AppSocket.connected) {
