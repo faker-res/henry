@@ -1,97 +1,14 @@
 extends layout
 
 block body
-    div#wrapper(style="display:none")
+    div#wrapper(ng-cloak)
         div(ng-controller='AppCtrl')
             include header
-            //#page-wrapper
-                //.row
-                    .col-lg-12
-                        h1 {{name}}
-
-            //#pageWrapper.margin-top-bottom-20(ng-view)
             #pageWrapper(ui-view)
             .clearfix
 
             #tooltip.dashboardTip
             include category/common-widget/message
             include category/common-widget/confirmation-modal
-
-    script(async src='js/lib/site.min.js')
-    script(async src='js/lib/site2.min.js')
-
-    // sheetjs.com js-xlsx - spreadsheet parser and writer
-    script(async src='js/lib/xlsx.full.min.js')
-    script(async src='js/lib/ods.js')
-    script(async src='js/lib/ui-grid.min.js')
-    script(async src='js/lib/FileSaver.min.js')
-    script(async src='js/lib/jquery/jquery-ui.min.js')
-
-    //angular route
-    script(async src='js/lib/angular/angular-route.min.js')
-
-    //localization JavaScript
-    //script(src='js/lib/angular-translate.min.js')
-    //script(src='js/lib/angular-translate-loader-static-files.min.js')
-
-    //Bootstrap
-    //script(src='sb-admin-2/js/bootstrap.min.js')
-    //script(src='js/lib/bootstrap/bootstrap-treeview.js')
-
-    //- script(src='js/lib/sinostrap/collapsible-dialogs.js')
-    script(async src='js/lib/sinostrap/floating-dialogs.js')
-    script(async src='js/lib/sinostrap/GeneralModal.js')
-
-    //- Angular datepicker
-    //script(src='js/lib/angular-datepicker/angular-datepicker.min.js')
-    //link(rel='stylesheet', href='js/lib/angular-datepicker/angular-datepicker.min.css')
-
-    // - Bootstrap dateTime Picker
-    script(async src='js/lib/bootstrap/bootstrap-datetimepicker.min.js')
-    //script(src='sb-admin-2/js/bootstrap-datetimepicker.pt-BR.js')
-    //link(rel='stylesheet', href='public/css/bootstrap-datetimepicker.min.css')
-
-    // Metis Menu Plugin Js
-    //script(src='sb-admin-2/js/plugins/metisMenu/metisMenu.min.js')
-
-    //Custom Theme Js
-    //script(src='sb-admin-2/js/sb-admin-2.js')
-
-    //socket io client
-    //script(src='js/lib/socket.io.js')
-    script(async src='js/lib/socket.io.slim.js')
-
-    //q lib
-    script(async src='js/lib/q.js')
-
-    //script(src='js/app.js')
-    script(async src='js/services.js')
-    script(async src='js/controllers.js')
-    script(async src='js/filters.js')
-    script(async src='js/directives.js')
-    script(async src='js/wsconfig.js')
-
-    //flow chart js
-    script(async src='js/svg_class.js')
-    script(async src='js/services/mouse_capture_service.js')
-    script(async src='js/services/dragging_service.js')
-    script(async src='js/flowchart_viewmodel.js')
-    script(async src='js/flowchart_directive.js')
-
-    //file upload js
-    //script(src='js/lib/ng-file-upload-shim.min.js')
-    //script(src='js/lib/ng-file-upload.min.js')
-
-    // export csv js
-    script(src='js/lib/ng-csv.min.js')
-
-    script(src='js/lib/angular/angular-sanitize.min.js')
-
-    //script(src='js/lib/multiple-select.js')
-
-    //Load custom scripts via RequireJS
-    script(async src="js/lib/require.js" data-main="js/main")
-    script(async src='js/components/platform/platformListSidebar.component.js')
-
 
     include category/common-widget/templates

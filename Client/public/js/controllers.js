@@ -187,7 +187,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             })
         }
     };
-    //$scope.connectSocket();
+    $scope.connectSocket();
 
     //init messages
     $scope.errorMessages = [];
@@ -1453,10 +1453,10 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     };
 
     $location.path();
-    $scope.$on('childControllerLoaded', function () {
-        console.log('Start connecting Management server');
-        $scope.connectSocket();
-    });
+    // $scope.$on('childControllerLoaded', function () {
+    //     console.log('Start connecting Management server');
+    //     $scope.connectSocket();
+    // });
 
     function initPage() {
         if (!$scope.AppSocket.connected) {
