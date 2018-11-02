@@ -796,6 +796,7 @@ angular-datepicker
 
 .common-table tbody, .common-table thead {
     text-align: center;
+    border: 1px solid #337ab7;
 }
 
 /*.common-table td {*/
@@ -813,7 +814,7 @@ angular-datepicker
 
 thead > tr > th {
     /*vertical-align: bottom;*/
-    /*border: 1px solid rgba(0, 0, 0, 0.2);*/
+    border: 1px solid rgba(0, 0, 0, 0.2);
     border-spacing: 0;
     text-align: center;
     border-collapse: collapse;
