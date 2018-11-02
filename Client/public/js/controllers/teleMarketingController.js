@@ -1355,6 +1355,15 @@ define(['js/app'], function (myApp) {
             }).done();
         };
 
+        vm.useSMSTemplate = function () {
+            vm.sendMultiMessage.messageContent = vm.smsTplSelection[0] ? vm.smsTplSelection[0].content : '';
+            vm.messagesChange();
+        };
+
+        vm.changeSMSTemplate = function () {
+            vm.smsPlayer.message = vm.smstpl ? vm.smstpl.content : '';
+        };
+
         vm.initSMSLog = function (type) {
             vm.smsLog = vm.smsLog || {index: 0, limit: 10};
             vm.smsLog.type = type;
