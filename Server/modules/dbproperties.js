@@ -410,6 +410,8 @@ let tsPhoneListSchema = require('./../schema/logs2/tsPhoneList');
 let tsPhoneListModel = dbLogs2.model('tsPhoneList', tsPhoneListSchema, 'tsPhoneList');
 let tsPhoneSchema = require('./../schema/logs2/tsPhone');
 let tsPhoneModel = dbLogs2.model('tsPhone', tsPhoneSchema, 'tsPhone');
+let tsPhoneImportRecordSchema = require('./../schema/logs2/tsPhoneImportRecord');
+let tsPhoneImportRecordModel = dbLogs2.model('tsPhoneImportRecord', tsPhoneImportRecordSchema, 'tsPhoneImportRecord');
 let tsDistributedPhoneListSchema = require('./../schema/logs2/tsDistributedPhoneList');
 let tsDistributedPhoneListModel = dbLogs2.model('tsDistributedPhoneList', tsDistributedPhoneListSchema, 'tsDistributedPhoneList');
 let tsDistributedPhoneSchema = require('./../schema/logs2/tsDistributedPhone');
@@ -671,6 +673,7 @@ var dbProperties = {
     collection_callOutMissionCallee: callOutMissionCalleeModel,
     collection_tsPhoneList: tsPhoneListModel,
     collection_tsPhone: tsPhoneModel,
+    collection_tsPhoneImportRecord: tsPhoneImportRecordModel,
     collection_tsDistributedPhoneList: tsDistributedPhoneListModel,
     collection_tsDistributedPhone: tsDistributedPhoneModel,
     collection_frontendData: frontendDataModel,
