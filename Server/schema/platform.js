@@ -421,6 +421,8 @@ var platformSchema = new Schema({
     manualRewardSkipAuditAmount: {type: Number, min: 0, default: 0},
     // checks that if the balance is lower than the winning or losing limit, it will be unlocked immediately (after re-locking)
     autoUnlockWhenInitAmtLessThanLostThreshold: {type: Boolean, default: false},
+    // to check consecutive transfer-in/ transfer-out
+    consecutiveTransferInOut: {type: Boolean, default: false},
     // set the maximum duration for the unread mail to be showing up
     unreadMailMaxDuration: {type: Number, min: 0},
     // call out mission max ring times

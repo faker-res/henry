@@ -1149,7 +1149,7 @@ let dbPlayerCreditTransfer = {
      * @param useEbetWallet
      * @constructor
      */
-    TransferPlayerCreditFromProviderWithProviderGroup: function(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, providerPlayerObj, checkBResolve, adminName, cpName, gameProviderGroup, useEbetWallet) {
+    TransferPlayerCreditFromProviderWithProviderGroup: function(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, providerPlayerObj, checkBResolve, adminName, cpName, gameProviderGroup, useEbetWallet, isEbet) {
         let pCTFP = this;
         let lockedAmount = 0;
         let rewardTaskTransferredAmount = 0;
@@ -1177,7 +1177,7 @@ let dbPlayerCreditTransfer = {
                             function (id) {
                                 transferId = id;
                                 dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
-                                    providerShortId, amount, updateObj.rewardAmt, adminName, null, constPlayerCreditTransferStatus.SEND);
+                                    providerShortId, amount, updateObj.rewardAmt, adminName, null, constPlayerCreditTransferStatus.SEND, isEbet);
                                 let playerTransferOutRequestData = {
                                     username: userName,
                                     platformId: platformId,
@@ -1197,7 +1197,7 @@ let dbPlayerCreditTransfer = {
                                         console.log("ebetwallet pCTFP.playerTransferOut error", error);
                                         // let lockedAmount = rewardTask && rewardTask.currentAmount ? rewardTask.currentAmount : 0;
                                         dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform, platformId, "transferOut", id,
-                                            providerShortId, amount, updateObj.rewardAmt, adminName, error, constPlayerCreditTransferStatus.FAIL);
+                                            providerShortId, amount, updateObj.rewardAmt, adminName, error, constPlayerCreditTransferStatus.FAIL, isEbet);
                                         error.hasLog = true;
                                         return Q.reject(error);
                                     }
@@ -1298,7 +1298,7 @@ let dbPlayerCreditTransfer = {
                         });
                         // Logging Transfer Success
                         dbLogger.createPlayerCreditTransferStatusLog(playerObjId, playerId, userName, platform,
-                            platformId, constPlayerCreditChangeType.TRANSFER_OUT, transferId, providerShortId, amount, updateObj.rewardAmt, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
+                            platformId, constPlayerCreditChangeType.TRANSFER_OUT, transferId, providerShortId, amount, updateObj.rewardAmt, adminName, res, constPlayerCreditTransferStatus.SUCCESS, isEbet);
                     }
                     return dbConfig.collection_rewardTaskGroup.find({
                         platformId: ObjectId(platform),
@@ -1466,6 +1466,7 @@ let dbPlayerCreditTransfer = {
         let transferId = new Date().getTime();
         let transferAmount = 0;
         let transferWallet = {};
+        let isEbet = true;
 
         let player, rewardTaskGroupObjId;
 
@@ -1589,7 +1590,7 @@ let dbPlayerCreditTransfer = {
                             //let lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
                             // Second log before call cpmsAPI
                             dbLogger.createPlayerCreditTransferStatusLog(playerObjId, player.playerId, player.name, platform, platformId, "transferIn",
-                                id, providerShortId, transferAmount, lockedTransferAmount, adminName, null, constPlayerCreditTransferStatus.SEND);
+                                id, providerShortId, transferAmount, lockedTransferAmount, adminName, null, constPlayerCreditTransferStatus.SEND, isEbet);
                             console.log("dPCT.playerTransferIn transferWallet", transferWallet);
                             return dPCT.playerTransferIn(
                                 {
@@ -1608,7 +1609,7 @@ let dbPlayerCreditTransfer = {
                                     // Third log - transfer in failed
                                     console.log('debug transfer error D:', error);
                                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, player.playerId, player.name, platform, platformId, "transferIn",
-                                        id, providerShortId, transferAmount, lockedTransferAmount, adminName, error, status);
+                                        id, providerShortId, transferAmount, lockedTransferAmount, adminName, error, status, isEbet);
 
                                     error.hasLog = true;
                                     return Promise.reject(error);
@@ -1634,7 +1635,7 @@ let dbPlayerCreditTransfer = {
 
                     // Logging Transfer Success
                     dbLogger.createPlayerCreditTransferStatusLog(playerObjId, player.playerId, player.name, platform,
-                        platformId, constPlayerCreditChangeType.TRANSFER_IN, transferId, providerShortId, transferAmount, lockedTransferAmount, adminName, res, constPlayerCreditTransferStatus.SUCCESS);
+                        platformId, constPlayerCreditChangeType.TRANSFER_IN, transferId, providerShortId, transferAmount, lockedTransferAmount, adminName, res, constPlayerCreditTransferStatus.SUCCESS, isEbet);
 
                     return dbConfig.collection_rewardTaskGroup.find({
                         platformId: ObjectId(platform),
@@ -1860,7 +1861,7 @@ let dbPlayerCreditTransfer = {
         //let updateObj = {};
         let checkBResolve = false;
         let useEbetWallet = true;
-
+        let isEbet = true;
         // First, need to make sure there's money in provider first
         let creditQuery = forSync ?
             Promise.resolve({credit: amount})
@@ -1902,7 +1903,7 @@ let dbPlayerCreditTransfer = {
                         }
                     }
 
-                    return dbPlayerCreditTransfer.TransferPlayerCreditFromProviderWithProviderGroup(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, providerPlayerObj, checkBResolve, adminName, cpName, gameProviderGroup, useEbetWallet);
+                    return dbPlayerCreditTransfer.TransferPlayerCreditFromProviderWithProviderGroup(playerObjId, platform, providerId, amount, playerId, providerShortId, userName, platformId, bResolve, forSync, providerPlayerObj, checkBResolve, adminName, cpName, gameProviderGroup, useEbetWallet, isEbet);
                 } else {
                     return Promise.reject({
                         name: "DataError",
