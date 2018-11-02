@@ -63,6 +63,7 @@ define(['js/app'], function (myApp) {
         }
         ////////////////////////////////end common function ///////////////////////
         function loadPlatform () {
+            console.log('loadPlatform - dashboard');
             socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                 vm.platformList = data.data;
 
@@ -509,10 +510,12 @@ define(['js/app'], function (myApp) {
         }
 
         $scope.$on(eventName, () => {
+            console.log('on', eventName);
             $scope.$evalAsync(loadPlatform());
         });
 
         $scope.$on('switchPlatform', () => {
+            console.log('on', 'switchPlatform');
             $scope.$evalAsync(loadPlatform());
         });
     };
