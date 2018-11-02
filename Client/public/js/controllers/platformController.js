@@ -1155,18 +1155,18 @@ define(['js/app'], function (myApp) {
                 };
 
                 //load partner
-                utilService.actionAfterLoaded("#partnerTablePage", function () {
-                    vm.advancedPartnerQueryObj.pageObj = utilService.createPageForPagingTable("#partnerTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
-                        var index = (curP - 1) * pageSize;
-                        vm.advancedPartnerQueryObj.index = index;
-                        vm.advancedPartnerQueryObj.limit = pageSize;
-                        vm.commonPageChangeHandler(curP, pageSize, "advancedPartnerQueryObj", vm.getPlatformPartnersData());
-                    });
-                })
+                // utilService.actionAfterLoaded("#partnerTablePage", function () {
+                //     vm.advancedPartnerQueryObj.pageObj = utilService.createPageForPagingTable("#partnerTablePage", {pageSize: 10}, $translate, function (curP, pageSize) {
+                //         var index = (curP - 1) * pageSize;
+                //         vm.advancedPartnerQueryObj.index = index;
+                //         vm.advancedPartnerQueryObj.limit = pageSize;
+                //         vm.commonPageChangeHandler(curP, pageSize, "advancedPartnerQueryObj", vm.getPlatformPartnersData());
+                //     });
+                // })
 
                 Q.all([vm.getAllPlayerLevels(), vm.getAllPartnerLevels()]).then(
                     function (data) {
-                        $scope.$evalAsync(() => {
+                        $scope.$evalAsync(async () => {
                             // Rather than call each tab directly, it might be more elegant to emit a 'platform_changed' event here, which each tab could listen for
                             console.log('vm.platformPageName', vm.platformPageName);
 
@@ -1193,7 +1193,7 @@ define(['js/app'], function (myApp) {
                             vm.loadAlldepartment(callbackAfterDepartmentLoad);
                             vm.rewardTabClicked();
                             vm.getPlatformRewardProposal();
-                            vm.getPlatformPlayersData(true, true);
+                            // vm.getPlatformPlayersData(true, true);
                             // vm.getPlatformPartnersData();
                             vm.getPlatformGameData();
                             vm.loadProposalTypeData();
