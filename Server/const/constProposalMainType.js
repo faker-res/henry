@@ -64,6 +64,7 @@ const constProposalMainType = {
     "UpdatePlayerInfo" : constMainType.UPDATE_PLAYER,
     "UpdatePlayerInfoPartner" : constMainType.UPDATE_PLAYER,
     "UpdatePlayerInfoLevel" : constMainType.UPDATE_PLAYER,
+    "UpdatePlayerInfoAccAdmin" : constMainType.UPDATE_PLAYER,
     "UpdatePlayerBankInfo": constMainType.UPDATE_PLAYER,
     "UpdatePlayerEmail": constMainType.UPDATE_PLAYER,
     "UpdatePlayerPhone": constMainType.UPDATE_PLAYER,

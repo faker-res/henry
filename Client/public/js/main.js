@@ -11,8 +11,10 @@ require(
         //'js/services/routeResolver',
         'js/services/authService',
         'js/services/socketService',
-        'js/services/utilService'
+        'js/services/utilService',
+        'js/services/commonService'
     ],
     function () {
         angular.bootstrap(document, ['myApp']);
-    });
+    }
+);

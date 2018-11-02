@@ -18497,12 +18497,11 @@ let dbPlayerInfo = {
 
                         phoneArr.forEach(phoneNumber => {
                             let encryptedNumber = rsaCrypto.encrypt(phoneNumber);
-                            let encryptedOldNumber = rsaCrypto.oldEncrypt(phoneNumber);
 
                             promArr.push(
                                 dbconfig.collection_tsPhone({
                                     platform: platform,
-                                    phoneNumber: {$in: [encryptedNumber, encryptedOldNumber]},
+                                    phoneNumber: encryptedNumber,
                                     tsPhoneList: tsList._id
                                 }).save()
                             )
