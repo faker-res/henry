@@ -175,7 +175,7 @@ let dbPlatformAutoFeedback = {
         }).then(promoCodes => {
             if(promoCodes && promoCodes.length > 0) {
                 promoCodes.forEach(item => {
-                    item.playerName = item.playerObjId.name;
+                    item.player = item.playerObjId;
                     item.name = autoFeedbackName;
                     item.type = item.promoCodeTemplateObjId.type;
                 });
