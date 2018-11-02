@@ -19,6 +19,8 @@ var simplifiedChinese = {
     "top up or consumption summary does not match record": "玩家累计存款或投注与实时记录不匹配",
     "To facilitate withdrawing process, please complete your bank information else the previous amendment will not be processed": "为确保正常提款，请同时完善您的银行资料修改，名字修改才可完成",
     "SUBMIT": "提交",
+    "Exceeded available application quantity": "超过申请次数",
+    "No available consumption list for the reward": "沒有符合申请的投注单",
     "Editing bank information is successful": "银行资料绑定成功",
     "The same bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他玩家绑定，请更换卡号或联系客服，谢谢！",
     "The identical bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他代理绑定，请更换卡号或联系客服，谢谢！",

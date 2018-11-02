@@ -41,6 +41,24 @@ function socketActionProposal(socketIO, socket) {
             socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PLAYER_INFO, data], actionName, isValidData);
         },
 
+        createUpdatePlayerInfoPartnerProposal: function createUpdatePlayerInfoPartnerProposal(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.data && (!data.data.realName || data.data.realName.match(/\d+/g) === null));
+            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PLAYER_INFO_PARTNER, data], actionName, isValidData);
+        },
+
+        createUpdatePlayerInfoLevelProposal: function createUpdatePlayerInfoLevelProposal(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.data && (!data.data.realName || data.data.realName.match(/\d+/g) === null));
+            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PLAYER_INFO_LEVEL, data], actionName, isValidData);
+        },
+
+        createUpdatePlayerInfoAccAdminProposal: function createUpdatePlayerInfoAccAdminProposal(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.data && (!data.data.realName || data.data.realName.match(/\d+/g) === null));
+            socketUtil.emitter(self.socket, dbProposal.createProposalWithTypeNameWithProcessInfo, [data.platformId, constProposalType.UPDATE_PLAYER_INFO_ACC_ADMIN, data], actionName, isValidData);
+        },
+
         /**
          * Create new Proposal to update player real name
          * @param {json} data -platformId  proposal data

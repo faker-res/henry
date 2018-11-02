@@ -18467,13 +18467,17 @@ let dbPlayerInfo = {
         return false;
     },
 
-    importTSNewList: function (platform, phoneNumber, listName, listDesc, adminId) {
+    getTsNewListName: function (platformObjId) {
+        return dbconfig.collection_tsPhoneList.distinct("name", {platform: platformObjId});
+    },
+
+    importTSNewList: function (phoneNumber, saveObj) {
         let phoneArr = phoneNumber.split(/[\n,]+/).map((item) => item.trim());
 
         if (phoneArr.length > 0) {
             return dbconfig.collection_tsPhoneList.findOne({
-                platform: platform,
-                name: listName
+                platform: saveObj.platform,
+                name: saveObj.name
             }).lean().then(
                 list => {
                     if (list) {
@@ -18483,12 +18487,7 @@ let dbPlayerInfo = {
                         })
                     }
 
-                    return new dbconfig.collection_tsPhoneList({
-                        platform: platform,
-                        name: listName,
-                        description: listDesc,
-                        creator: adminId
-                    }).save();
+                    return new dbconfig.collection_tsPhoneList(saveObj).save();
                 }
             ).then(
                 tsList => {
@@ -18497,12 +18496,11 @@ let dbPlayerInfo = {
 
                         phoneArr.forEach(phoneNumber => {
                             let encryptedNumber = rsaCrypto.encrypt(phoneNumber);
-                            let encryptedOldNumber = rsaCrypto.oldEncrypt(phoneNumber);
 
                             promArr.push(
                                 dbconfig.collection_tsPhone({
-                                    platform: platform,
-                                    phoneNumber: {$in: [encryptedNumber, encryptedOldNumber]},
+                                    platform: saveObj.platform,
+                                    phoneNumber: encryptedNumber,
                                     tsPhoneList: tsList._id
                                 }).save()
                             )

@@ -4330,6 +4330,7 @@ var dbPlatform = {
                 "autoApproveProfitTimesMinAmount",
                 "autoApproveBonusProfitOffset",
                 "autoUnlockWhenInitAmtLessThanLostThreshold",
+                "consecutiveTransferInOut",
                 "monitorMerchantCount",
                 "monitorPlayerCount",
                 "monitorMerchantUseSound",
