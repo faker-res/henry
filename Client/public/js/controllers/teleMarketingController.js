@@ -303,6 +303,7 @@ define(['js/app'], function (myApp) {
                 case 'NEW_PHONE_LIST':
                     vm.tsNewList = {phoneIdx: 0};
                     vm.phoneNumFilterClicked();
+                    vm.getPlatformTsListName();
                     break;
                 case 'PHONE_LIST_ANALYSE_AND_MANAGEMENT':
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#phoneListStartTimePicker', utilService.getTodayStartTime());
@@ -855,13 +856,38 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        // import phone number to system
-        vm.importTSNewList = function (diffPhoneNum, listName, listDesc) {
+        vm.getPlatformTsListName = function () {
             let sendData = {
-                platform: vm.selectedPlatform.id,
+                platform: vm.selectedPlatform.id
+            }
+            socketService.$socket($scope.AppSocket, 'getTsNewListName', sendData, function (data) {
+                vm.platformTsListName = data.data || [];
+            });
+        };
+
+        // import phone number to system
+        vm.importTSNewList = function (diffPhoneNum, tsNewListObj) {
+            let dailyDistributeTaskData = $('#dxTimePicker').data('datetimepicker').getLocalDate();
+            let sendData = {
                 phoneNumber: diffPhoneNum,
-                listName: listName,
-                listDesc: listDesc
+                updateData: {
+                    platform: vm.selectedPlatform.id,
+                    creator: authService.adminId,
+                    name: tsNewListObj.name,
+                    description: tsNewListObj.description,
+                    failFeedBackResult: tsNewListObj.failFeedBackResult,
+                    failFeedBackTopic: tsNewListObj.failFeedBackTopic,
+                    failFeedBackContent: tsNewListObj.failFeedBackContent,
+                    callerCycleCount: tsNewListObj.callerCycleCount,
+                    dailyCallerMaximumTask: tsNewListObj.dailyCallerMaximumTask,
+                    dailyDistributeTaskHour: dailyDistributeTaskData.getHours(),
+                    dailyDistributeTaskMinute: dailyDistributeTaskData.getMinutes(),
+                    dailyDistributeTaskSecond: dailyDistributeTaskData.getSeconds(),
+                    distributeTaskStartTime: $('#dxDatePicker').data('datetimepicker').getLocalDate(),
+                    reclaimDayCount: tsNewListObj.reclaimDayCount,
+                    isCheckWhiteListAndRecycleBin: tsNewListObj.isCheckWhiteListAndRecycleBin,
+                    dangerZoneList: tsNewListObj.dangerZoneList,
+                }
             };
 
             console.log('sendData', sendData);
@@ -869,6 +895,7 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'importTSNewList', sendData, function (data) {
                 $scope.$evalAsync(() => {
                     if (data.success && data.data) {
+                        vm.getPlatformTsListName();
                         //display success
                         vm.importPhoneResult = 'IMPORT_SUCCESS';
                     } else {
@@ -1054,12 +1081,12 @@ define(['js/app'], function (myApp) {
         /****************** List - end ******************/
 
         /****************** XLS - start ******************/
-        vm.uploadPhoneFileXLS = function (data, importXLS, dxMission) {
+        vm.uploadPhoneFileXLS = function (data, importXLS, dxMission, isCreateTsNewList) {
             let rows = uiGridExporterService.getData(vm.gridApi.grid, uiGridExporterConstants.VISIBLE, uiGridExporterConstants.VISIBLE);
             let sheet = {};
             let rowArray = [];
             let rowArrayMerge;
-            let isTSNewList = !Boolean(dxMission);
+            let isTSNewList = Boolean(!dxMission && isCreateTsNewList);
 
             for (let z = 0; z < rows.length; z++) {
                 let rowObject = rows[z][vm.tsNewList.phoneIdx];
@@ -1132,7 +1159,7 @@ define(['js/app'], function (myApp) {
                         var wbout = XLSX.write(workbook, wopts);
                         saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
                     } else if (isTSNewList) {
-                        vm.importTSNewList(vm.diffPhoneXLS, vm.tsNewList.name, vm.tsNewList.description)
+                        vm.importTSNewList(vm.diffPhoneXLS, vm.tsNewList)
                     } else if (importXLS) {
                         vm.importDiffPhoneNum(vm.diffPhoneXLS, dxMission)
                     }
@@ -4882,13 +4909,14 @@ define(['js/app'], function (myApp) {
                     format: 'dd/MM/yyyy',
                     pickTime: false,
                 });
-
+                $('#dxDatePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
                 $('#dxTimePicker').datetimepicker({
                     language: 'en',
                     format: 'HH:mm:ss',
                     pick12HourFormat: true,
                     pickDate: false,
                 });
+                $('#dxTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
             });
 
             vm.currentProvince = {};

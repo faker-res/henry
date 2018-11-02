@@ -253,6 +253,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
     let checkMsg = "", checkMsgChinese = "";
     let bTransferAbnormal = false;
     let continuousApplyBonusTimes;
+    let bConsecutiveTransferAbnormal = false;
 
     return getBonusRecordsOfPlayer(proposal.data.playerObjId, proposal.type).then(
         bonusRecord => {
@@ -354,18 +355,25 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 let transferLogs = data[1];
                 let creditChangeLogs = data[4];
 
-                return findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, proposal.data.playerObjId).then(
-                    transferAbnormalities => {
-                        if (transferAbnormalities) {
-                            for (let i = 0; i < transferAbnormalities.length; i++) {
-                                abnormalMessage += transferAbnormalities[i].en + "; ";
-                                abnormalMessageChinese += transferAbnormalities[i].ch + "; ";
-                                bTransferAbnormal = true;
+                if (platformObj.consecutiveTransferInOut) {
+
+                    return findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, proposal.data.playerObjId).then(
+                        transferAbnormalities => {
+                            if (transferAbnormalities) {
+                                for (let i = 0; i < transferAbnormalities.length; i++) {
+                                    abnormalMessage += transferAbnormalities[i].en + "; ";
+                                    abnormalMessageChinese += transferAbnormalities[i].ch + "; ";
+                                    if(transferAbnormalities[i].bConsecutiveTransferAbnormal){
+                                        bConsecutiveTransferAbnormal = true;
+                                    } else {
+                                        bTransferAbnormal = true;
+                                    }
+                                }
                             }
+                            return data;
                         }
-                        return data;
-                    }
-                )
+                    )
+                }
             }
 
             return data;
@@ -507,8 +515,14 @@ function checkRewardTaskGroup(proposal, platformObj) {
             }
 
             if (bTransferAbnormal) {
-                checkMsg += ' Denied: Abnormal Transfer;';
-                checkMsgChinese += ' 失败：转账异常;';
+                checkMsg += ' Denied: Transfer-out amount is larger than (transfer-in amount + winning/losing amount from the report);';
+                checkMsgChinese += ' 失败：带出大于（带入+报表输赢）;';
+                canApprove = false;
+            }
+
+            if (bConsecutiveTransferAbnormal) {
+                checkMsg += ' Denied: Consecutive transferring-in/ transferring-out;';
+                checkMsgChinese += ' 失败：连续转入/转出;';
                 canApprove = false;
             }
 
@@ -1501,54 +1515,59 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
 
     let logsLength = transferLogs.length;
     for (let i = 0; i < logsLength; i++) {
-        if (transferLogs[i].type === 'TransferIn') {
-            auditTransferInLog(transferLogs[i]);
-            lastTransferInLogTime = transferLogs[i].createTime;
+        if(transferLogs[i].isEbet === false) {
+            if (transferLogs[i].type === 'TransferIn') {
+                auditTransferInLog(transferLogs[i]);
+                lastTransferInLogTime = transferLogs[i].createTime;
 
-            // bonus <> transfer amount check
-            completeCycle = false;
-            inAmt = transferLogs[i].amount;
-            inTime = transferLogs[i].createTime;
-        } else {
-            auditTransferOutLog(transferLogs[i]);
+                // bonus <> transfer amount check
+                completeCycle = false;
+                inAmt = transferLogs[i].amount;
+                inTime = transferLogs[i].createTime;
+            } else {
+                auditTransferOutLog(transferLogs[i]);
 
-            // bonus <> transfer amount check
-            // if first transfer is not out, set completeCycle to true
-            completeCycle = i != 0;
-            outAmt = transferLogs[i].amount;
-            outTime = transferLogs[i].createTime;
-        }
-        lastTransferLogType = transferLogs[i].type;
-        lastTransferLogProviderId = transferLogs[i].providerId;
+                // bonus <> transfer amount check
+                // if first transfer is not out, set completeCycle to true
+                completeCycle = i != 0;
+                outAmt = transferLogs[i].amount;
+                outTime = transferLogs[i].createTime;
+            }
+            lastTransferLogType = transferLogs[i].type;
+            lastTransferLogProviderId = transferLogs[i].providerId;
 
-        if (completeCycle && inTime && outTime) {
-            let consumedAmt = outAmt - inAmt;
-            promBonusCheck.push(
-                getPlayerConsumptionSummary(platformObj._id, playerId, inTime, outTime).then(
-                    res => {
-                        let transferOutId = transferLogs[i].transferId;
-                        let transDifference = consumedAmt;
-                        let bonusAmt = res && res[0] ? res[0].bonusAmount : 0;
-                        let profitDifference = bonusAmt - transDifference;
+            if (completeCycle && inTime && outTime) {
+                let consumedAmt = outAmt - inAmt;
+                promBonusCheck.push(
+                    getPlayerConsumptionSummary(platformObj._id, playerId, inTime, outTime).then(
+                        res => {
+                            let transferOutId = transferLogs[i].transferId;
+                            let transDifference = consumedAmt;
+                            let bonusAmt = res && res[0] ? res[0].bonusAmount : 0;
+                            let profitDifference = bonusAmt - transDifference;
 
-                        if ((profitDifference < 0 && profitDifference < -platformObj.autoApproveBonusProfitOffset)
-                            || profitDifference > 0 && profitDifference > platformObj.autoApproveBonusProfitOffset) {
-                            abnormalities.push({
-                                en: "Abnormal Bonus (ID: " + transferOutId + ")",
-                                ch: "异常盈利 (ID: " + transferOutId + ")"
-                            });
+                            if ((profitDifference < 0 && profitDifference < -platformObj.autoApproveBonusProfitOffset)
+                                || profitDifference > 0 && profitDifference > platformObj.autoApproveBonusProfitOffset) {
+                                abnormalities.push({
+                                    en: "Transfer In transfer out (ID: " + transferOutId + ")",
+                                    ch: "带入带出 (ID: " + transferOutId + ")"
+                                });
+                            }
                         }
-                    }
-                )
-            );
-            completeCycle = !completeCycle;
+                    )
+                );
+                completeCycle = !completeCycle;
+            }
         }
     }
 
     if (multipleTransferInWithoutOtherCreditInput) {
         abnormalities.push({
-            en: "Multi TransferIn (ID: " + multipleTransferInId + ")",
-            ch: "连续转入 (ID: " + multipleTransferInId + ")"
+            en: "Transfer In transfer out (ID: " + multipleTransferInId + ")",
+            ch: "带入带出 (ID: " + multipleTransferInId + ")",
+            bConsecutiveTransferAbnormal: true
+            // en: "Multi TransferIn (ID: " + multipleTransferInId + ")",
+            // ch: "连续转入 (ID: " + multipleTransferInId + ")"
         });
     }
 
@@ -1561,8 +1580,11 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
 
     if (multipleTransferOutStreakExist) {
         abnormalities.push({
-            en: "Multi TransferOut (ID: " + multipleTransferOutId + ")",
-            ch: "连续转出 (ID: " + multipleTransferOutId + ")"
+            en: "Transfer In transfer out (ID: " + multipleTransferOutId + ")",
+            ch: "带入带出 (ID: " + multipleTransferOutId + ")",
+            bConsecutiveTransferAbnormal: true
+            // en: "Multi TransferOut (ID: " + multipleTransferOutId + ")",
+            // ch: "连续转出 (ID: " + multipleTransferOutId + ")"
         });
     }
 

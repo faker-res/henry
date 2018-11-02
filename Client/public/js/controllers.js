@@ -92,6 +92,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             url = wsProtocol + WSCONFIG[serverCookie].socketURL
         }
 
+        console.log('before connect');
         $scope.AppSocket = io.connect(url, {
             query: 'token=' + token,
             //todo::add secure flag for https
