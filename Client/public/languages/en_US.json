@@ -1718,5 +1718,7 @@
   "rateAfterRebateTotalDeposit": "Rate of the total deposit fee to be deducted (preset value)",
   "rateAfterRebateTotalWithdrawal": "Rate of the total withdrawal fee to be deducted (preset value)",
   "isResetAll": "Reset All Commission Rate",
-  "FrontendConfiguration": "Frontend Configuration"
+  "FrontendConfiguration": "Frontend Configuration",
+  "FINANCIAL_REPORT": "Financial Report (Deposit(s), Withdrawal(s), Platform Fee(s))",
+  "DELETE_DEPOSIT_GROUP": "Delete Deposit Group"
 }
