@@ -950,11 +950,6 @@ let dbPlayerReward = {
                 }
             })
 
-            // return dbConfig.collection_playerTopUpRecord.find({
-            //     playerId: player._id,
-            //     createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime},
-            // }).lean();
-
         }).then(
             playerTopUpRecord => {
 
@@ -962,34 +957,6 @@ let dbPlayerReward = {
                     totalTopUpAmount = playerTopUpRecord[0].amountSum;
 
                 }
-
-
-                // if (playerTopUpRecord && playerTopUpRecord.length) {
-                //
-                //     if (event.condition.ignoreAllTopUpDirtyCheckForReward && event.condition.ignoreAllTopUpDirtyCheckForReward.length > 0) {
-                //         bypassDirtyEvent = event.condition.ignoreAllTopUpDirtyCheckForReward;
-                //         for (let a = 0; a < bypassDirtyEvent.length; a++) {
-                //             bypassDirtyEvent[a] = bypassDirtyEvent[a].toString();
-                //         }
-                //     }
-                //
-                //     for (let i = 0; i < playerTopUpRecord.length; i++) {
-                //         let record = playerTopUpRecord[i];
-                //         if (bypassDirtyEvent) {
-                //             let isSubset = record.usedEvent.every(event => {
-                //                 return bypassDirtyEvent.indexOf(event.toString()) > -1;
-                //             });
-                //             if (!isSubset)
-                //                 continue;
-                //         } else {
-                //             if (record.bDirty)
-                //                 continue;
-                //         }
-                //
-                //         totalTopUpAmount += record.amount;
-                //         usedTopUpRecord.push(record._id)
-                //     }
-                // }
 
                 let searchQuery = {
                     platformObjId: ObjectId(player.platform),
