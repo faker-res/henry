@@ -88,6 +88,7 @@ let partnerPageAdvertisementInfoSchema = require('./../schema/partnerPageAdverti
 
 let smsGroupSchema = require('./../schema/smsGroup');
 let promoCodeTemplateSchema = require('./../schema/promoCodeTemplate');
+let depositGroupSchema = require('./../schema/depositGroup');
 let qualityInspectionSchema = require('./../schema/qualityInspection');
 let live800RecordDaySummarySchema = require('./../schema/live800RecordDaySummary');
 /////////////////////////Schema models/////////////////////////////////////
@@ -235,6 +236,8 @@ let partnerPageAdvertisementInfoModel = db_admin.model('partnerPageAdvertisement
 let smsGroupModel = db_admin.model('smsGroup', smsGroupSchema, 'smsGroup');
 
 let promoCodeTemplateModel = db_admin.model('promoCodeTemplate', promoCodeTemplateSchema, 'promoCodeTemplate');
+
+let depositGroupModel = db_admin.model('depositGroup', depositGroupSchema, 'depositGroup');
 
 let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
 let platformAutoFeedbackModel = db_admin.model('platformAutoFeedback', platformAutoFeedbackSchema, 'platformAutoFeedback');
@@ -602,6 +605,7 @@ var dbProperties = {
     collection_idcIp: idcIpModel,
     collection_smsGroup: smsGroupModel,
     collection_promoCodeTemplate: promoCodeTemplateModel,
+    collection_depositGroup: depositGroupModel,
 
     //logs
     collection_playerMail: playerMailModel,

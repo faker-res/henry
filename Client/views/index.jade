@@ -1,7 +1,7 @@
 extends layout
 
 block body
-    div#wrapper(ng-cloak)
+    div#wrapper(style='display:none')
         div(ng-controller='AppCtrl')
             include header
             #pageWrapper(ui-view)
