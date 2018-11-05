@@ -61,6 +61,8 @@
                                 text {{'CONSUMPTION_MODE_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.PLAYER_ALIPAY_ACCOUNT_REPORT}}" ng-click='vm.loadPage("PLAYER_ALIPAY_ACCOUNT_REPORT")', ng-if="checkViewPermission('Report', 'General', 'PLAYER_ALIPAY_ACCOUNT_REPORT')")
                                 text {{'PLAYER_ALIPAY_ACCOUNT_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.FINANCIAL_REPORT}}" ng-click='vm.loadPage("FINANCIAL_REPORT")', ng-if="checkViewPermission('Report', 'General', 'FINANCIAL_REPORT')")
+                                text {{'FINANCIAL_REPORT' | translate}}
 
             .panel.panel-default
                 .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#reportCategory", href='#rewardReports')

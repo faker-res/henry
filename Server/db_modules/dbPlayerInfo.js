@@ -15186,27 +15186,32 @@ let dbPlayerInfo = {
         let proms = [];
 
         playerNames.forEach(playerName => {
+            let trimPlayerName = playerName.trim();
             let updateData = {credibilityRemarks: []};
-            let prom = dbconfig.collection_players.findOne({name: playerName, platform: platformObjId})
+            let prom = dbconfig.collection_players.findOne({name: trimPlayerName, platform: platformObjId})
                 .then(data => {
-                    let playerCredibilityRemarks = data.credibilityRemarks.filter(item => {
-                        if (item) {
-                            return item != "undefined"
+                    if (data) {
+                        let playerCredibilityRemarks = data.credibilityRemarks.filter(item => {
+                            if (item) {
+                                return item != "undefined"
+                            }
+                        }) || [];
+                        updateData.credibilityRemarks = dbPlayerInfo.managingDataList(playerCredibilityRemarks, addList, removeList);
+                        if (addList.length == 0 && removeList.length == 0) {
+                            updateData.credibilityRemarks = [];
                         }
-                    }) || [];
-                    updateData.credibilityRemarks = dbPlayerInfo.managingDataList(playerCredibilityRemarks, addList, removeList);
-                    if (addList.length == 0 && removeList.length == 0) {
-                        updateData.credibilityRemarks = [];
+                        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                            name: trimPlayerName,
+                            platform: platformObjId
+                        }, updateData, constShardKeys.collection_players);
                     }
-                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
-                        name: playerName,
-                        platform: platformObjId
-                    }, updateData, constShardKeys.collection_players);
                 })
                 .then(playerData => {
-                    let playerObjId = playerData._id;
-                    dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, updateData.credibilityRemarks, comment);
-                    return playerData;
+                    if (playerData) {
+                        let playerObjId = playerData._id;
+                        dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, updateData.credibilityRemarks, comment);
+                        return playerData;
+                    }
                 })
             proms.push(prom);
         })
