@@ -34965,6 +34965,16 @@ console.log('typeof ',typeof gameProviders);
                         addTopUpCountToolTip($('#autoFeedbackDetailTableThird th')[4]);
                     });
                 });
+                vm.sendMessageToPlayer = function () {
+                    let sendData = {
+                        adminName: authService.adminName,
+                        platformId: vm.selectedPlatform.id,
+                        playerId: vm.telphonePlayer._id,
+                        title: vm.messageForPlayer.title,
+                        content: vm.messageForPlayer.content
+                    };
+                    $scope.$socketPromise('sendPlayerMailFromAdminToPlayer', sendData).then().done();
+                };
             };
             vm.autoFeedbackSearchMissionDetail = function () {
                 $('#autoFeedbackDetailSpin').show();
@@ -35404,7 +35414,7 @@ console.log('typeof ',typeof gameProviders);
                     columns: [
                         {
                             title: $translate('ACCOUNT'),
-                            data: "playerName"
+                            data: "player.name"
                         },
                         {
                             title: $translate('PROMO_CODE_TYPE'),
