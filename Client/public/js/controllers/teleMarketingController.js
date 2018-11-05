@@ -342,7 +342,9 @@ define(['js/app'], function (myApp) {
                 return;
             }
             vm.getPlatformProviderGroup();
-
+            vm.getAllPlayerFeedbackResults();
+            vm.getPlayerFeedbackTopic();
+            
             // Zero dependencies variable
             [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults] = await Promise.all([
                 commonService.getAllTSPhoneList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -369,8 +371,6 @@ define(['js/app'], function (myApp) {
         }
         $scope.$on(eventName, function (e, d) {
             vm.loadPlatformData();
-            vm.getAllPlayerFeedbackResults();
-            vm.getPlayerFeedbackTopic();
         });
 
         vm.initTeleMarketingOverview = function () {
