@@ -4805,7 +4805,9 @@ define(['js/app'], function (myApp) {
         };
 
         vm.initFilterAndImportDXSystem = function () {
-            vm.tsNewList = {};
+            vm.isShowNewListModal = true;
+            vm.tsNewListEnableSubmit = true;
+            vm.tsNewList = {phoneIdx: 0};
             vm.tsNewList.dangerZoneList = [];
             utilService.actionAfterLoaded("#dxDatePicker", function () {
                 $('#dxDatePicker').datetimepicker({
@@ -4847,19 +4849,20 @@ define(['js/app'], function (myApp) {
         vm.changeProvince = function (reset) {
             socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.currentProvince.province}, function (data) {
                 if (data) {
-                    // vm.cityList = data.data.cities;
-                    if (data.data.cities) {
-                        vm.cityList.length = 0;
-                        for (let i = 0, len = data.data.cities.length; i < len; i++) {
-                            let city = data.data.cities[i];
-                            city.id = city.id.toString();
-                            vm.cityList.push(city);
+                    $scope.$evalAsync(() => {
+                        // vm.cityList = data.data.cities;
+                        if (data.data.cities) {
+                            vm.cityList.length = 0;
+                            for (let i = 0, len = data.data.cities.length; i < len; i++) {
+                                let city = data.data.cities[i];
+                                city.id = city.id.toString();
+                                vm.cityList.push(city);
+                            }
                         }
-                    }
-                    if (reset) {
-                        vm.currentCity.city = vm.cityList[0].id;
-                        $scope.safeApply();
-                    }
+                        if (reset) {
+                            vm.currentCity.city = vm.cityList[0].id;
+                        }
+                    });
                 }
             }, null, true);
         }
@@ -4871,20 +4874,34 @@ define(['js/app'], function (myApp) {
 
         vm.checkFilterAndImportSystem = () => {
           let isDisable = true;
-          let timePicker = $('#dxTimePicker').data('datetimepicker').getLocalDate();
-          let datePicker = $('#dxDatePicker').data('datetimepicker').getLocalDate();
+          if (vm.isShowNewListModal) {
+              let timePicker = $('#dxTimePicker').data('datetimepicker').getLocalDate();
+              let datePicker = $('#dxDatePicker').data('datetimepicker').getLocalDate();
 
-            if (vm.tsNewList) {
-              if (vm.tsNewList.name && vm.tsNewList.description && vm.tsNewList.failFeedBackResult && vm.tsNewList.failFeedBackTopic
-                  && vm.tsNewList.failFeedBackContent && vm.tsNewList.callerCycleCount !== null && vm.tsNewList.dailyCallerMaximumTask !== null
-                  && vm.tsNewList.reclaimDayCount !== null && timePicker && datePicker)
-               {
-                  isDisable = false;
+              if (vm.tsNewList) {
+                  if (vm.tsNewList.name && vm.tsNewList.description && vm.tsNewList.failFeedBackResult && vm.tsNewList.failFeedBackTopic
+                      && vm.tsNewList.failFeedBackContent && vm.tsNewList.callerCycleCount !== null && vm.tsNewList.dailyCallerMaximumTask !== null
+                      && vm.tsNewList.reclaimDayCount !== null && timePicker && datePicker && vm.tsNewListEnableSubmit) {
+                      isDisable = false;
+                  }
+
               }
-
           }
           return isDisable;
         };
+
+
+        vm.checkTsNewListName = () => {
+           if(vm.platformTsListName.indexOf(vm.tsNewList.name) == -1){
+               vm.tsNewListEnableSubmit = true;
+           }
+           else{
+               $('#modalTSNewListNameRepeat').show();
+               $('#modalTSNewListNameRepeat').css("opacity", "1");
+               $('#modalTSNewListNameRepeat').css("z-index", "12000");
+
+           }
+        }
 
     };
 

@@ -17,51 +17,51 @@
                                                 th {{'VALUE' | translate}}
                                         tbody
                                             tr
-                                                td {{'Name Of List' | translate}}
+                                                td {{'Name Of List (Required) (Unique)' | translate}}
                                                 td
-                                                    input.form-control(type='text', min=0, ng-model='vm.tsNewList.name')
+                                                    input.form-control(type='text',ng-focus='vm.tsNewListEnableSubmit = false' ng-blur='vm.checkTsNewListName()' ng-model='vm.tsNewList.name')
                                             tr
-                                                td {{'Description Of List' | translate}}
+                                                td {{'Description Of List (Required)' | translate}}
                                                 td
-                                                    input.form-control(type='text', min=0, ng-model='vm.tsNewList.description')
+                                                    input.form-control(type='text', ng-model='vm.tsNewList.description')
                                             tr
-                                                td {{'Feedback Result Of Default Failure System Call' | translate}}
+                                                td {{'Feedback Result Of Default Failure System Call (Required)' | translate}}
                                                 td
                                                     select.form-control(ng-model='vm.tsNewList.failFeedBackResult',  ng-options='v.key as v.value for (i,v) in vm.allPlayerFeedbackResults')
                                             tr
-                                                td {{'Feedback Topic Of Default Failure System Call' | translate}}
+                                                td {{'Feedback Topic Of Default Failure System Call (Required)' | translate}}
                                                 td
                                                     select.form-control(ng-model='vm.tsNewList.failFeedBackTopic',  ng-options='v.key as v.value for (i,v) in vm.playerFeedbackTopic')
                                             tr
-                                                td {{'Feedback Content Of Default Failure System Call' | translate}}
+                                                td {{'Feedback Content Of Default Failure System Call (Required)' | translate}}
                                                 td
-                                                    input.form-control(type='text', min=0, ng-model='vm.tsNewList.failFeedBackContent')
+                                                    input.form-control(type='text', ng-model='vm.tsNewList.failFeedBackContent')
                                             tr
-                                                td {{'Assign To N Caller For Each Unregistered Phone Number' | translate}}
+                                                td {{'Assign To N Caller For Each Unregistered Phone Number (Required)' | translate}}
                                                 td
-                                                    input.form-control(type='text', min=0, ng-model='vm.tsNewList.callerCycleCount')
+                                                    input.form-control(type='number', min=0, ng-model='vm.tsNewList.callerCycleCount')
                                             tr
-                                                td {{'Daily Distribute Task Count Equally Divide For Each Caller' | translate}}
+                                                td {{'Daily Distribute Task Count Equally Divide For Each Caller (Required)' | translate}}
                                                 td
-                                                    input.form-control(type='text', min=0, ng-model='vm.tsNewList.dailyCallerMaximumTask')
+                                                    input.form-control(type='number', min=0, ng-model='vm.tsNewList.dailyCallerMaximumTask')
                                             tr
-                                                td {{'Daily Distribute Task Time' | translate}}
+                                                td {{'Daily Distribute Task Time (Required)' | translate}}
                                                 td
                                                     #dxTimePicker.datetimepicker.form-control
                                                         input.input-append.playerDate(style='border:0;', data-format="hh:mm:ss", type='text')
                                                         span.add-on
                                                             i.fa-clock-o.fa(data-time-icon='fa fa-clock-o')
                                             tr
-                                                td {{'Distribute Task Start Date' | translate}}
+                                                td {{'Distribute Task Start Date (Required)' | translate}}
                                                 td
                                                     #dxDatePicker.datetimepicker.form-control
                                                         input.input-append.playerDate(style='border:0;', data-format="dd/MM/yyyy", type='text')
                                                         span.add-on
                                                             i.fa-calendar.fa(data-date-icon='fa fa-calendar')
                                             tr
-                                                td {{'Reclaim Task After X Days And Reassign Task' | translate}}
+                                                td {{'Reclaim Task After X Days And Re-assign Task (Required)' | translate}}
                                                 td
-                                                    input.form-control(type='text', min=0, ng-model='vm.tsNewList.reclaimDayCount')
+                                                    input.form-control(type='number', min=0, ng-model='vm.tsNewList.reclaimDayCount')
                                             tr
                                                 td {{'Filter Phone Number From White List And Recycle Bin' | translate}}
                                                 td
@@ -93,14 +93,55 @@
                                                                 td
                                                                     i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.tsNewList.dangerZoneList, {province: vm.currentProvince.province, city: vm.currentCity.city}); vm.resetProvince();')
 
+                                    //table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                                    //    thead
+                                    //        tr
+                                    //            th {{'This name of List already exists in the product. Please select an option below' | translate}}
+                                    //    tbody
+                                    //        tr
+                                    //            td
+                                    //                input(type='checkbox', min=0, style='margin-right:.5em')
+                                    //                label {{'Add into the same list' | translate}}
+                                    //        tr
+                                    //            td
+                                    //                input(type='checkbox', min=0, style='margin-right:.5em' )
+                                    //                label {{'Go back and modify the name of list' | translate}}
+
 
 
 
             .modal-footer
                 div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
-                button.btn.btn-success.common-button(ng-if="!vm.importPhoneResult" ng-click="vm.uploadPhoneFileXLS('', true, null, true)")
+                button.btn.btn-success.common-button(data-dismiss='modal'  ng-if="!vm.importPhoneResult" ng-click="vm.uploadPhoneFileXLS('', true, null, true)" ng-disabled="vm.checkFilterAndImportSystem()")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
                 bbutton.btn.btn-danger.common-button(data-dismiss='modal')
                     i.fa.fa-ban
                     text {{"CANCEL" | translate}}
+
+
+#modalTSNewListNameRepeat.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:50%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Warning!" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-offset-3.col-md-6
+                                .well
+                                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                                        thead
+                                            tr
+                                                th {{'This name of List already exists in the product. Please select an option below' | translate}}
+                                        tbody
+                                            tr
+                                                td
+                                                    input(type='checkbox', min=0, style='margin-right:.5em', ng-model='vm.tsNewList.')
+                                                    label {{'Add into the same list' | translate}}
+                                            tr
+                                                td
+                                                    input(type='checkbox', min=0, style='margin-right:.5em', ng-model='vm.tsNewList.')
+                                                    label {{'Go back and modify the name of list' | translate}}

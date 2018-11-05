@@ -1,0 +1,52 @@
+{
+ /**
+  * Application configuration section
+  * http://pm2.keymetrics.io/docs/usage/application-declaration/
+  */
+ apps : [
+
+   // Client
+   {
+     name      : "Client",
+     script    : "Client/app.js"
+   },
+
+   // Server
+   {
+     name      : "Server",
+     script    : "Server/app.js"
+   },
+
+// clientAPIServer
+   {
+     name      : "clientAPIServer",
+     script    : "Server/clientAPIServer.js"
+   },
+// messageServer
+{
+     name      : "messageServerAPI",
+     script    : "Server/messageServer.js"
+   },
+// paymentAPIServer
+{
+     name      : "paymentAPIServer",
+     script    : "Server/paymentAPIServer.js"
+   },
+// providerAPIServer
+{
+     name      : "providerAPIServer",
+     script    : "Server/providerAPIServer.js"
+   },
+// settlementServer
+{
+     name      : "settlementServer",
+     script    : "Server/settlementServer.js"
+   },
+// scheduleServer
+{
+     name      : "scheduleServer",
+     script    : "Server/scheduleServer.js"
+   }
+ ]
+ 
+}
