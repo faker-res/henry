@@ -7676,13 +7676,13 @@ define(['js/app'], function (myApp) {
                 // utilService.setDataTablePageInput('playerDataTable', vm.playerTable, $translate);
                 utilService.setDataTablePageInput('playerFeedbackDataTable', vm.playerFeedbackTable, $translate);
 
-                if (!vm.playersQueryCreated) {
-                    createPlayerAdvancedSearchFilters({
-                        tableOptions: tableOptions,
-                        filtersElement: '#playerTable-search-filters',
-                        queryFunction: vm.getPlayersByAdvanceQueryDebounced
-                    });
-                }
+                // if (!vm.playersQueryCreated) {
+                //     createPlayerAdvancedSearchFilters({
+                //         tableOptions: tableOptions,
+                //         filtersElement: '#playerTable-search-filters',
+                //         queryFunction: vm.getPlayersByAdvanceQueryDebounced
+                //     });
+                // }
             };
 
             function createPlayerAdvancedSearchFilters(config) {
@@ -16263,7 +16263,7 @@ define(['js/app'], function (myApp) {
                     } //end processing for extended table
                 }
 
-                setTableData(vm.playerFeedbackTable, playerList);
+                vm.drawPlayerTable(playerList);
                 vm.drawExtendedFeedbackTable(extendedResult);
 
                 $('#platformFeedbackSpin').hide();
@@ -16622,7 +16622,8 @@ define(['js/app'], function (myApp) {
                             console.log('_getPlayerFeedbackQuery', data);
                             let playerList = data.data.data;
                             console.log(playerList);
-                            setTableData(vm.playerFeedbackTable, playerList);
+                            // setTableData(vm.playerFeedbackTable, playerList);
+                            vm.drawPlayerTable(playerList);
                             vm.playerFeedbackQuery.total = data.data.total || 0;
                             vm.playerFeedbackQuery.index = data.data.index || 0;
                             vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total}, isNewSearch);
