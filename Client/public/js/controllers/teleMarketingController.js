@@ -4921,54 +4921,7 @@ define(['js/app'], function (myApp) {
 
             vm.tsProvince = "";
             vm.tsCity = "";
-
-            // vm.provinceList = [];
-            vm.tsCityList = [];
-            // socketService.$socket($scope.AppSocket, 'getProvinceList', {}, function (data) {
-            //     if (data) {
-            //         vm.provinceList.length = 0;
-            //
-            //         for (let i = 0, len = data.data.provinces.length; i < len; i++) {
-            //             let province = data.data.provinces[i];
-            //             province.id = province.id.toString();
-            //             vm.provinceList.push(province);
-            //         }
-            //
-            //         vm.changeProvince(false);
-            //         $scope.$evalAsync();
-            //     }
-            // }, null, true);
         }
-
-        vm.changeTsProvince = function (isReset) {
-            if (vm.tsProvince) {
-
-
-                if (isReset) {
-
-                }
-            }
-        }
-
-        // vm.changeProvince = function (reset) {
-        //     socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.currentProvince.province}, function (data) {
-        //         if (data) {
-        //             // vm.cityList = data.data.cities;
-        //             if (data.data.cities) {
-        //                 vm.cityList.length = 0;
-        //                 for (let i = 0, len = data.data.cities.length; i < len; i++) {
-        //                     let city = data.data.cities[i];
-        //                     city.id = city.id.toString();
-        //                     vm.cityList.push(city);
-        //                 }
-        //             }
-        //             if (reset) {
-        //                 vm.currentCity.city = vm.cityList[0].id;
-        //                 $scope.safeApply();
-        //             }
-        //         }
-        //     }, null, true);
-        // }
 
         vm.resetProvince = function () {
             vm.tsProvince = "";
