@@ -10531,7 +10531,7 @@ define(['js/app'], function (myApp) {
                                 },
                             },
                             {
-                                title: $translate('orderNo'),
+                                title: $translate('orderSlip'),
                                 data: "orderNo",
                                 render: function (data, type, row) {
                                     let text = row.orderNo;

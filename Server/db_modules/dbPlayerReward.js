@@ -936,39 +936,26 @@ let dbPlayerReward = {
 
             similarProposalCount = proposalCount;
 
-            return dbConfig.collection_playerTopUpRecord.find({
-                playerId: player._id,
-                createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime},
-            }).lean();
+            return dbConfig.collection_playerTopUpRecord.aggregate({
+                $match: {
+                    playerId: player._id,
+                    createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime},
+                }
+            },
+            {
+                $group: {
+                    _id: "$playerId",
+                    amountSum: {$sum: "$amount"},
+
+                }
+            })
 
         }).then(
             playerTopUpRecord => {
 
-                if (playerTopUpRecord && playerTopUpRecord.length) {
+                if (playerTopUpRecord && playerTopUpRecord[0] && playerTopUpRecord[0].amountSum){
+                    totalTopUpAmount = playerTopUpRecord[0].amountSum;
 
-                    if (event.condition.ignoreAllTopUpDirtyCheckForReward && event.condition.ignoreAllTopUpDirtyCheckForReward.length > 0) {
-                        bypassDirtyEvent = event.condition.ignoreAllTopUpDirtyCheckForReward;
-                        for (let a = 0; a < bypassDirtyEvent.length; a++) {
-                            bypassDirtyEvent[a] = bypassDirtyEvent[a].toString();
-                        }
-                    }
-
-                    for (let i = 0; i < playerTopUpRecord.length; i++) {
-                        let record = playerTopUpRecord[i];
-                        if (bypassDirtyEvent) {
-                            let isSubset = record.usedEvent.every(event => {
-                                return bypassDirtyEvent.indexOf(event.toString()) > -1;
-                            });
-                            if (!isSubset)
-                                continue;
-                        } else {
-                            if (record.bDirty)
-                                continue;
-                        }
-
-                        totalTopUpAmount += record.amount;
-                        usedTopUpRecord.push(record._id)
-                    }
                 }
 
                 let searchQuery = {
