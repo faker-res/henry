@@ -28,6 +28,7 @@ define(['js/app'], function (myApp) {
         vm.createTaskResult = '';
         vm.editTaskResult = '';
         vm.phoneListSearch = {};
+        vm.checkFilterIsDisable = true;
 
         vm.updatePageTile = function () {
             window.document.title = $translate("teleMarketing") + "->" + $translate(vm.teleMarketingPageName);
@@ -344,7 +345,7 @@ define(['js/app'], function (myApp) {
             vm.getPlatformProviderGroup();
             vm.getAllPlayerFeedbackResults();
             vm.getPlayerFeedbackTopic();
-            
+
             // Zero dependencies variable
             [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults] = await Promise.all([
                 commonService.getAllTSPhoneList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
@@ -4903,6 +4904,10 @@ define(['js/app'], function (myApp) {
         };
 
         vm.initFilterAndImportDXSystem = function () {
+            vm.isShowNewListModal = true;
+            vm.tsNewListEnableSubmit = true;
+            vm.disableAll = false;
+            vm.tsNewList = {phoneIdx: 0};
             vm.tsNewList.dangerZoneList = [];
             utilService.actionAfterLoaded("#dxDatePicker", function () {
                 $('#dxDatePicker').datetimepicker({
@@ -5061,6 +5066,62 @@ define(['js/app'], function (myApp) {
             });
             $('#phoneListManagementTable').resize();
 
+        }
+
+
+        vm.checkFilterAndImportSystem = () => {
+          vm.checkFilterIsDisable = true;
+          if (vm.isShowNewListModal) {
+              let timePicker = $('#dxTimePicker').data('datetimepicker').getLocalDate();
+              let datePicker = $('#dxDatePicker').data('datetimepicker').getLocalDate();
+
+              if (vm.tsNewList) {
+                  if (vm.tsNewList.name && vm.tsNewList.description && vm.tsNewList.failFeedBackResult && vm.tsNewList.failFeedBackTopic
+                      && vm.tsNewList.failFeedBackContent && vm.tsNewList.callerCycleCount && vm.tsNewList.dailyCallerMaximumTask
+                      && vm.tsNewList.reclaimDayCount && timePicker && datePicker && vm.tsNewListEnableSubmit) {
+                      vm.checkFilterIsDisable = false;
+                  }
+              }
+          }
+          return vm.checkFilterIsDisable;
+        };
+
+
+        vm.checkBox = () => {
+            let isDisable = true;
+                if(vm.tsNewList.checkBoxA == true || vm.tsNewList.checkBoxB == true){
+                    isDisable = false;
+                }
+            return isDisable;
+        }
+
+        vm.checkTsNewListName = () => {
+           if(vm.platformTsListName.indexOf(vm.tsNewList.name) == -1){
+               vm.tsNewListEnableSubmit = true;
+               vm.checkFilterAndImportSystem();
+           }
+           else{
+               $('#modalTSNewListNameRepeat').show();
+               $('#modalTSNewListNameRepeat').css("opacity", "1");
+               $('#modalTSNewListNameRepeat').css("z-index", "12000");
+
+           }
+        }
+
+        vm.returnToInput = () => {
+            vm.disableAll = false;
+            if(vm.tsNewList.checkBoxB === true){
+                $('#modalTSNewListNameRepeat').hide();
+                $('#nameInput').focus();
+            }
+            else if(vm.tsNewList.checkBoxA === true){
+                $('#modalTSNewListNameRepeat').hide();
+                $('#descInput').focus();
+                vm.disableAll = true;
+
+            }
+            vm.tsNewList.checkBoxA = false;
+            vm.tsNewList.checkBoxB = false;
         }
 
     };
