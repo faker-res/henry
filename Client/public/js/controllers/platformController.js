@@ -14886,7 +14886,7 @@ define(['js/app'], function (myApp) {
             vm.updateBatchPlayerForbidRewardEvents = function (sendData) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updateBatchPlayerForbidRewardEvents', sendData, function (data) {
-                    if (vm.forbidPromoCode != undefined) { // undefined means unchanged
+                    if (sendData.forbidPromoCode != undefined) { // undefined means unchanged
                         let sendDataPromoCode = {
                             query: {
                                 platformObjId: sendData.platformObjId,
