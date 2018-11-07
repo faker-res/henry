@@ -8127,6 +8127,9 @@ define(['js/app'], function (myApp) {
             }
             oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
             var updateData = newAndModifiedFields(oldPlayerData, newPlayerData);
+            let updateDataPartner = {};
+            let updateDataLevel = {};
+            let updateDataAccAdmin = {};
             let updatedKeys = Object.keys(updateData);
             var updateSMS = {
                 receiveSMS: updateData.receiveSMS != null ? updateData.receiveSMS : undefined,
@@ -8182,15 +8185,37 @@ define(['js/app'], function (myApp) {
                 }
 
                 if (updateData.partnerName) {
-                    updateData.oldPartnerName = vm.editPlayer.partner && vm.editPlayer.partner.partnerName ? vm.editPlayer.partner.partnerName : '';
-                    updateData.newPartnerName = updateData.partnerName;
+                    updateDataPartner._id = updateData._id;
+                    updateDataPartner.playerName = updateData.playerName;
+                    updateDataPartner.oldPartnerName = vm.editPlayer.partner && vm.editPlayer.partner.partnerName ? vm.editPlayer.partner.partnerName : '';
+                    updateDataPartner.newPartnerName = updateData.partnerName;
+                    updateDataPartner.partner = updateData.partner;
+                    updateDataPartner.remark = $translate("partner");
                     isUpdatePlayerInfoPartner = true;
+                    isUpdate = false;
                 }
 
                 if (updateData.playerLevel) {
-                    updateData.oldLevelName = getPlayerLevelName(vm.editPlayer.playerLevel);
-                    updateData.newLevelName = getPlayerLevelName(updateData.playerLevel);
+                    updateDataLevel._id = updateData._id;
+                    updateDataLevel.playerName = updateData.playerName;
+                    updateDataLevel.oldLevelName = getPlayerLevelName(vm.editPlayer.playerLevel);
+                    updateDataLevel.newLevelName = getPlayerLevelName(updateData.playerLevel);
+                    updateDataLevel.playerLevel = updateData.playerLevel;
+                    updateDataLevel.remark = $translate("PLAYER_LEVEL");
                     isUpdatePlayerInfoLevel = true;
+                    isUpdate = false;
+                }
+
+                if (updateData.accAdmin && vm.csOfficer) {
+                    updateDataAccAdmin._id = updateData._id;
+                    updateDataAccAdmin.playerName = updateData.playerName;
+                    updateDataAccAdmin.csOfficer = vm.csOfficer;
+                    updateDataAccAdmin.oldAccAdmin = vm.editPlayer.accAdmin ? vm.editPlayer.accAdmin : '';
+                    updateDataAccAdmin.newAccAdmin = updateData.accAdmin;
+                    updateDataAccAdmin.accAdmin = updateData.accAdmin;
+                    updateDataAccAdmin.remark = $translate("AdminName");
+                    isUpdatePlayerAccAdmin = true;
+                    isUpdate = false;
                 }
 
                 // if (updateData.bankCardGroup == 'NULL') {
@@ -8223,50 +8248,27 @@ define(['js/app'], function (myApp) {
                 delete updateData.alipayGroup;
                 delete updateData.quickPayGroup;
 
-                updateData.remark = ""
-                if (updateData.partnerName) {
-                    if (updateData.remark) {
-                        updateData.remark += ", ";
-                    }
-                    updateData.remark += $translate("partner");
-                }
-                if (updateData.playerLevel) {
-                    if (updateData.remark) {
-                        updateData.remark += ", ";
-                    }
-                    updateData.remark += $translate("PLAYER_LEVEL");
-                }
+                updateData.remark = "";
                 if (updateData.referralName) {
                     if (updateData.remark) {
                         updateData.remark += ", ";
                     }
+                    isUpdate = true;
                     updateData.remark += $translate("REFERRAL");
                 }
                 if (updateData.DOB) {
                     if (updateData.remark) {
                         updateData.remark += ", ";
                     }
+                    isUpdate = true;
                     updateData.remark += $translate("DOB");
                 }
                 if (updateData.hasOwnProperty("gender")) {
                     if (updateData.remark) {
                         updateData.remark += ", ";
                     }
+                    isUpdate = true;
                     updateData.remark += $translate("GENDER");
-                }
-                if (updateData.accAdmin) {
-                    if (updateData.remark) {
-                        updateData.remark += ", ";
-                    }
-                    updateData.remark += $translate("AdminName");
-                }
-
-                if (updateData.accAdmin && vm.csOfficer) {
-                    updateData.csOfficer = vm.csOfficer;
-                    updateData.oldAccAdmin = vm.editPlayer.accAdmin ? vm.editPlayer.accAdmin : '';
-                    updateData.newAccAdmin = updateData.accAdmin;
-                    isUpdatePlayerAccAdmin = true;
-                    isUpdate = false;
                 }
 
                 if (isUpdate) {
@@ -8285,7 +8287,7 @@ define(['js/app'], function (myApp) {
                 if (isUpdatePlayerInfoPartner) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoPartnerProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
-                        data: updateData,
+                        data: updateDataPartner,
                         platformId: vm.selectedPlatform.id
                     }, function (data) {
                         if (data.data && data.data.stepInfo) {
@@ -8298,7 +8300,7 @@ define(['js/app'], function (myApp) {
                 if (isUpdatePlayerInfoLevel) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoLevelProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
-                        data: updateData,
+                        data: updateDataLevel,
                         platformId: vm.selectedPlatform.id
                     }, function (data) {
                         if (data.data && data.data.stepInfo) {
@@ -8311,7 +8313,7 @@ define(['js/app'], function (myApp) {
                 if (isUpdatePlayerAccAdmin) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoAccAdminProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
-                        data: updateData,
+                        data: updateDataAccAdmin,
                         platformId: vm.selectedPlatform.id
                     }, function (data) {
                         if (data.data && data.data.stepInfo) {
@@ -10529,7 +10531,7 @@ define(['js/app'], function (myApp) {
                                 },
                             },
                             {
-                                title: $translate('orderNo'),
+                                title: $translate('orderSlip'),
                                 data: "orderNo",
                                 render: function (data, type, row) {
                                     let text = row.orderNo;
