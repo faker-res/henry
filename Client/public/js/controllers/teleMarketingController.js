@@ -27,6 +27,7 @@ define(['js/app'], function (myApp) {
         vm.createTeleMarketing = Object.assign({}, vm.createTeleMarketingDefault);
         vm.createTaskResult = '';
         vm.editTaskResult = '';
+        vm.checkFilterIsDisable = true;
 
         vm.updatePageTile = function () {
             window.document.title = $translate("teleMarketing") + "->" + $translate(vm.teleMarketingPageName);
@@ -4900,10 +4901,17 @@ define(['js/app'], function (myApp) {
                 }
             });
         };
+        vm.testNewFunc =  ()=> {
+
+            $scope.$evalAsync(() => {
+                vm.tsNewListEnableSubmit = false;
+            })
+        }
 
         vm.initFilterAndImportDXSystem = function () {
             vm.isShowNewListModal = true;
             vm.tsNewListEnableSubmit = true;
+            vm.disableAll = false;
             vm.tsNewList = {phoneIdx: 0};
             vm.tsNewList.dangerZoneList = [];
             utilService.actionAfterLoaded("#dxDatePicker", function () {
@@ -4969,28 +4977,40 @@ define(['js/app'], function (myApp) {
             vm.currentCity = {};
         }
 
+
         vm.checkFilterAndImportSystem = () => {
-          let isDisable = true;
+          vm.checkFilterIsDisable = true;
           if (vm.isShowNewListModal) {
               let timePicker = $('#dxTimePicker').data('datetimepicker').getLocalDate();
               let datePicker = $('#dxDatePicker').data('datetimepicker').getLocalDate();
+              console.log("date",datePicker)
+              console.log("time",timePicker)
 
               if (vm.tsNewList) {
                   if (vm.tsNewList.name && vm.tsNewList.description && vm.tsNewList.failFeedBackResult && vm.tsNewList.failFeedBackTopic
-                      && vm.tsNewList.failFeedBackContent && vm.tsNewList.callerCycleCount !== null && vm.tsNewList.dailyCallerMaximumTask !== null
-                      && vm.tsNewList.reclaimDayCount !== null && timePicker && datePicker && vm.tsNewListEnableSubmit) {
-                      isDisable = false;
+                      && vm.tsNewList.failFeedBackContent && vm.tsNewList.callerCycleCount && vm.tsNewList.dailyCallerMaximumTask
+                      && vm.tsNewList.reclaimDayCount && timePicker && datePicker && vm.tsNewListEnableSubmit) {
+                      vm.checkFilterIsDisable = false;
                   }
-
               }
           }
-          return isDisable;
+          console.log('vm.checkFilterIsDisable', vm.checkFilterIsDisable);
+          return vm.checkFilterIsDisable;
         };
 
+
+        vm.checkBox = () => {
+            let isDisable = true;
+                if(vm.tsNewList.checkBoxA == true || vm.tsNewList.checkBoxB == true){
+                    isDisable = false;
+                }
+            return isDisable;
+        }
 
         vm.checkTsNewListName = () => {
            if(vm.platformTsListName.indexOf(vm.tsNewList.name) == -1){
                vm.tsNewListEnableSubmit = true;
+               vm.checkFilterAndImportSystem();
            }
            else{
                $('#modalTSNewListNameRepeat').show();
@@ -4998,6 +5018,22 @@ define(['js/app'], function (myApp) {
                $('#modalTSNewListNameRepeat').css("z-index", "12000");
 
            }
+        }
+
+        vm.returnToInput = () => {
+            vm.disableAll = false;
+            if(vm.tsNewList.checkBoxB === true){
+                $('#modalTSNewListNameRepeat').hide();
+                $('#nameInput').focus();
+            }
+            else if(vm.tsNewList.checkBoxA === true){
+                $('#modalTSNewListNameRepeat').hide();
+                $('#descInput').focus();
+                vm.disableAll = true;
+
+            }
+            vm.tsNewList.checkBoxA = false;
+            vm.tsNewList.checkBoxB = false;
         }
 
     };
