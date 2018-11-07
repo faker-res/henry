@@ -5974,7 +5974,6 @@ let dbPlayerReward = {
             promArr.push(countInRewardInterval.then(data => {console.log('countInRewardInterval'); return data;}));
             promArr.push(checkSMSProm.then(data => {console.log('checkSMSProm'); return data;}));
         }
-        console.log('eventQuery', eventQuery)
 
         return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
             data => {
