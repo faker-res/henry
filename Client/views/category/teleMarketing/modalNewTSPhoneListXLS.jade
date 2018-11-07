@@ -98,7 +98,7 @@
                 button.btn.btn-success.common-button(data-dismiss='modal'  ng-if="!vm.importPhoneResult" ng-click="vm.uploadPhoneFileXLS('', true, null, true)" ng-disabled="vm.checkFilterIsDisable || !vm.tsNewListEnableSubmit")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
-                bbutton.btn.btn-danger.common-button(data-dismiss='modal')
+                button.btn.btn-danger.common-button(data-dismiss='modal')
                     i.fa.fa-ban
                     text {{"CANCEL" | translate}}
 
@@ -107,7 +107,7 @@
     .modal-dialog(style='width:25%; margin-top: 12.5em;')
         .modal-content
             .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                a.fa.fa-times.close(type='button', data-dismiss='modal' ng-click='vm.closeModalTSNewListNameRepeat()')
                 h4.modal-title {{"Warning!" | translate}}
             .modal-body
                 .panel.panel-primary
@@ -133,6 +133,6 @@
                 button.btn.btn-success.common-button(data-dismiss='modal'  ng-if="!vm.importPhoneResult" ng-click="vm.returnToInput()" ng-disabled="vm.checkBox()")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
-                bbutton.btn.btn-danger.common-button(data-dismiss='modal')
+                button.btn.btn-danger.common-button(data-dismiss='modal', ng-click='vm.closeModalTSNewListNameRepeat()')
                     i.fa.fa-ban
                     text {{"CANCEL" | translate}}
