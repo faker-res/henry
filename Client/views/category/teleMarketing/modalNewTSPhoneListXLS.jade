@@ -10,7 +10,7 @@
                         .row
                             .col-md-12
                                 .well
-                                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%;white-space:normal;')
                                         thead
                                             tr
                                                 th {{'Setting Item' | translate}}
@@ -78,20 +78,20 @@
                                                         tbody
                                                             tr(ng-repeat='(i, v) in vm.tsNewList.dangerZoneList')
                                                                 td
-                                                                    select.form-control(ng-model='vm.tsNewList.dangerZoneList[i].province',  ng-options='v.id as v.name for (i, v) in vm.provinceList' ng-disabled='vm.disableAll')
+                                                                    select.form-control(ng-model='vm.tsNewList.dangerZoneList[i].province',  ng-options='i as i for (i, v) in constPhoneArea' ng-disabled='vm.disableAll')
                                                                 td
-                                                                    select.form-control(ng-model='vm.tsNewList.dangerZoneList[i].city',  ng-options='v.id as v.name for (i, v) in vm.cityList' ng-disabled='vm.disableAll')
+                                                                    select.form-control(ng-model='vm.tsNewList.dangerZoneList[i].city',  ng-options='val as val for (n, val) in constPhoneArea[vm.tsNewList.dangerZoneList[i].province]' ng-disabled='vm.disableAll')
                                                                 td
                                                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.tsNewList.dangerZoneList, $index)'  ng-disabled='vm.disableAll')
                                                             tr
                                                                 td(colspan=3) {{'ADD' | translate}}
                                                             tr
                                                                 td
-                                                                    select.form-control(ng-model='vm.currentProvince.province',  ng-options='v.id as v.name for (i, v) in vm.provinceList' ng-change='vm.changeProvince()' ng-disabled='vm.disableAll')
+                                                                    select.form-control(ng-model='vm.tsProvince',  ng-options='i as i for (i, v) in constPhoneArea' ng-disabled='vm.disableAll')
                                                                 td
-                                                                    select.form-control(ng-model='vm.currentCity.city',  ng-options='v.id as v.name for (i, v) in vm.cityList' ng-disabled='vm.disableAll')
+                                                                    select.form-control(ng-model='vm.tsCity',  ng-options='val as val for (n, val) in constPhoneArea[vm.tsProvince]' ng-disabled='vm.disableAll')
                                                                 td
-                                                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.tsNewList.dangerZoneList, {province: vm.currentProvince.province, city: vm.currentCity.city}); vm.resetProvince();' ng-disabled='vm.disableAll')
+                                                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.tsNewList.dangerZoneList, {province: vm.tsProvince, city: vm.tsCity}); vm.resetProvince();' ng-show='vm.tsProvince && vm.tsCity' ng-disabled='vm.disableAll')
 
             .modal-footer
                 div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}

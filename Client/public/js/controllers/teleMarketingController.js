@@ -27,6 +27,7 @@ define(['js/app'], function (myApp) {
         vm.createTeleMarketing = Object.assign({}, vm.createTeleMarketingDefault);
         vm.createTaskResult = '';
         vm.editTaskResult = '';
+        vm.phoneListSearch = {};
         vm.checkFilterIsDisable = true;
 
         vm.updatePageTile = function () {
@@ -307,7 +308,7 @@ define(['js/app'], function (myApp) {
                     vm.getPlatformTsListName();
                     break;
                 case 'PHONE_LIST_ANALYSE_AND_MANAGEMENT':
-                    commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#phoneListStartTimePicker', utilService.getTodayStartTime());
+                    commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#phoneListStartTimePicker', utilService.getNdayagoStartTime(30));
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#phoneListEndTimePicker', utilService.getTodayEndTime());
                     break;
                 case 'MY_PHONE_LIST_OR_REMINDER_PHONE_LIST':
@@ -342,6 +343,8 @@ define(['js/app'], function (myApp) {
                 return;
             }
             vm.getPlatformProviderGroup();
+            vm.getAllPlayerFeedbackResults();
+            vm.getPlayerFeedbackTopic();
 
             // Zero dependencies variable
             [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults] = await Promise.all([
@@ -369,8 +372,6 @@ define(['js/app'], function (myApp) {
         }
         $scope.$on(eventName, function (e, d) {
             vm.loadPlatformData();
-            vm.getAllPlayerFeedbackResults();
-            vm.getPlayerFeedbackTopic();
         });
 
         vm.initTeleMarketingOverview = function () {
@@ -4930,51 +4931,147 @@ define(['js/app'], function (myApp) {
                 $('#dxTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
             });
 
-            vm.currentProvince = {};
-            vm.currentCity = {};
-
-            vm.provinceList = [];
-            vm.cityList = [];
-            socketService.$socket($scope.AppSocket, 'getProvinceList', {}, function (data) {
-                if (data) {
-                    vm.provinceList.length = 0;
-
-                    for (let i = 0, len = data.data.provinces.length; i < len; i++) {
-                        let province = data.data.provinces[i];
-                        province.id = province.id.toString();
-                        vm.provinceList.push(province);
-                    }
-
-                    vm.changeProvince(false);
-                    $scope.$evalAsync();
-                }
-            }, null, true);
-        }
-
-        vm.changeProvince = function (reset) {
-            socketService.$socket($scope.AppSocket, 'getCityList', {provinceId: vm.currentProvince.province}, function (data) {
-                if (data) {
-                    $scope.$evalAsync(() => {
-                        // vm.cityList = data.data.cities;
-                        if (data.data.cities) {
-                            vm.cityList.length = 0;
-                            for (let i = 0, len = data.data.cities.length; i < len; i++) {
-                                let city = data.data.cities[i];
-                                city.id = city.id.toString();
-                                vm.cityList.push(city);
-                            }
-                        }
-                        if (reset) {
-                            vm.currentCity.city = vm.cityList[0].id;
-                        }
-                    });
-                }
-            }, null, true);
+            vm.tsProvince = "";
+            vm.tsCity = "";
         }
 
         vm.resetProvince = function () {
-            vm.currentProvince = {};
-            vm.currentCity = {};
+            vm.tsProvince = "";
+            vm.tsCity = "";
+        }
+
+        vm.filterPhoneListManagement = () => {
+            let sendQuery = {
+                platform: vm.selectedPlatform.id,
+                startTime: $('#phoneListStartTimePicker').data('datetimepicker').getLocalDate(),
+                endTime: $('#phoneListEndTimePicker').data('datetimepicker').getLocalDate()
+            }
+
+            socketService.$socket($scope.AppSocket, 'getTsPhoneList', sendQuery, function (data) {
+                if(data && data.data){
+                    $scope.$evalAsync(() => {
+                        vm.drawPhoneListManagementTable(data.data);
+                    })
+                }
+            });
+        };
+
+        vm.drawPhoneListManagementTable = function (tblData) {
+            console.log("phoneListManagementTable",tblData);
+            vm.phoneNumberInfo.remark = {};
+            var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                data: tblData,
+                aoColumnDefs: [
+                    // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                "scrollX": true,
+                "autoWidth": true,
+                "sScrollY": 550,
+                "scrollCollapse": true,
+                columns: [
+                    {title: $translate('NAME_LIST_TITLE'), data: "name"},
+                    {title: $translate('SEND_STATUS'), data: "status"},
+                    {title: $translate('TOTAL_NAME_LIST'), data: "totalPhone"},
+                    {title: $translate('TOTAL_DISTRIBUTED'), data: "totalDistributed"},
+                    {title: $translate('TOTAL_USED'), data: "totalUsed"},
+                    {
+                        title: $translate('TOTAL_UNUSED'),
+                        render: function(data, type, row, index){
+                            return row.totalPhone - row.totalUsed;
+                        }
+                    },
+                    {title: $translate('TOTAL_SUCCESS'), data: "totalSuccess"},
+                    {
+                        title: $translate('TOTAL_SUCCESS_RATE'),
+                        render: function(data, type, row, index){
+                            return row.totalSuccess / row.totalDistributed;
+                        }
+                    },
+                    {title: $translate('TOTAL_REGISTERED'), data: "totalRegistration"},
+                    {
+                        title: $translate('TOTAL_REGISTERED_RATE'),
+                        render: function(data, type, row, index){
+                            return row.totalRegistration / row.totalDistributed;
+                        }
+                    },
+                    {title: $translate('TOTAL_TOPUP'), data: "totalTopUp"},
+                    {
+                        title: $translate('TOTAL_TOPUP_RATE'),
+                        render: function(data, type, row, index){
+                            return row.totalTopUp / row.totalDistributed;
+                        }
+                    },
+                    {title: $translate('TOTAL_MULTIPLE_TOPUP'), data: "totalMultipleTopUp"},
+                    {
+                        title: $translate('TOTAL_MULTIPLE_TOPUP_RATE'),
+                        render: function(data, type, row, index){
+                            return row.totalMultipleTopUp / row.totalDistributed;
+                        }
+                    },
+                    {title: $translate('TOTAL_VALID'), data: "totalValidPlayer"},
+                    {
+                        title: $translate('TOTAL_VALID_RATE'),
+                        render: function(data, type, row, index){
+                            return row.totalValidPlayer / row.totalDistributed;
+                        }
+                    },
+                    {
+                        title: $translate('PLAYER_RETENTION'),
+                        render: function(data, type, row, index){
+                            return "详情";
+                        }
+                    },
+                ],
+                "paging": true,
+                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    $compile(nRow)($scope);
+                }
+            });
+            tableOptions.language.emptyTable=$translate("No data available in table");
+
+            if (reportTbl) {
+                reportTbl.clear();
+            }
+            var reportTbl = $("#phoneListManagementTable").DataTable(tableOptions);
+            utilService.setDataTablePageInput('phoneListManagementTable', reportTbl, $translate);
+
+            // var $checkAll = $(".dataTables_scrollHead thead .customerSelected");
+            // if ($checkAll.length == 1) {
+            //     var $showBtn = $('<input>', {
+            //         type: 'checkbox',
+            //         class: "customerSelected transform150 checkAllProposal"
+            //     });
+            //     $checkAll.html($showBtn);
+            //     $('.customerSelected.checkAllProposal').on('click', function () {
+            //         var $checkAll = $(this) && $(this).length == 1 ? $(this)[0] : null;
+            //         setCheckAllProposal($checkAll.checked);
+            //     })
+            // }
+            // function setCheckAllProposal(flag) {
+            //     var s = $("#phoneListManagementTable tbody td.customerSelected input").each(function () {
+            //         $(this).prop("checked", flag);
+            //     });
+            //     vm.updateMultiselectCustomer();
+            // }
+            //
+            // function tableRowClicked(event) {
+            //     if (event.target.tagName == "INPUT" && event.target.type == 'checkbox') {
+            //         var flagAllChecked = $("#phoneListManagementTable tbody td.customerSelected input[type='checkbox']:not(:checked)");
+            //         $('.customerSelected.checkAllProposal').prop('checked', flagAllChecked.length == 0);
+            //         vm.updateMultiselectCustomer();
+            //     }
+            //
+            // }
+            $('#phoneListManagementTable tbody').off('click', "**");
+            $('#phoneListManagementTable tbody').on('click', 'tr', tableRowClicked);
+
+            $('#phoneListManagementTable').off('order.dt');
+            $('#phoneListManagementTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'phoneListManagementTable', vm.drawPhoneListManagementTable);
+            });
+            $('#phoneListManagementTable').resize();
+
         }
 
 

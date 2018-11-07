@@ -1434,7 +1434,7 @@
                                 td
                                     text(ng-if='!vm.configTableEdit') {{vm.autoApprovalBasic.checkContinuousApplyBonusTimes}}
                                     input(type='number' ng-if='vm.configTableEdit' ng-model='vm.autoApprovalBasic.checkContinuousApplyBonusTimes')
-                                td
+                                td(style="text-align: left;") {{"Returned error message of proposal-Failed" | translate }} {{': '}}  {{"unusual frequency of withdrawal request" | translate }}
                             tr
                                 td
                                     div(style="display: grid;")

@@ -37,7 +37,7 @@ let tsPhoneListSchema = new Schema({
     // filter phone number from white list and recycle bin
     isCheckWhiteListAndRecycleBin: {type: Boolean, default: false},
     // zone stated will not be call, fix feed back content will be save
-    dangerZoneList: [{province: {type: String}, city: {type: String}}],
+    dangerZoneList: [{province: {type: String, required: true}, city: {type: String, required: true}}],
     // status - consTsPhoneListStatus
     status: {type: Number, default: 0, index: true},
     // number of phone number consisted
