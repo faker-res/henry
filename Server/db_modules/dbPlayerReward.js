@@ -936,39 +936,26 @@ let dbPlayerReward = {
 
             similarProposalCount = proposalCount;
 
-            return dbConfig.collection_playerTopUpRecord.find({
-                playerId: player._id,
-                createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime},
-            }).lean();
+            return dbConfig.collection_playerTopUpRecord.aggregate({
+                $match: {
+                    playerId: player._id,
+                    createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime},
+                }
+            },
+            {
+                $group: {
+                    _id: "$playerId",
+                    amountSum: {$sum: "$amount"},
+
+                }
+            })
 
         }).then(
             playerTopUpRecord => {
 
-                if (playerTopUpRecord && playerTopUpRecord.length) {
+                if (playerTopUpRecord && playerTopUpRecord[0] && playerTopUpRecord[0].amountSum){
+                    totalTopUpAmount = playerTopUpRecord[0].amountSum;
 
-                    if (event.condition.ignoreAllTopUpDirtyCheckForReward && event.condition.ignoreAllTopUpDirtyCheckForReward.length > 0) {
-                        bypassDirtyEvent = event.condition.ignoreAllTopUpDirtyCheckForReward;
-                        for (let a = 0; a < bypassDirtyEvent.length; a++) {
-                            bypassDirtyEvent[a] = bypassDirtyEvent[a].toString();
-                        }
-                    }
-
-                    for (let i = 0; i < playerTopUpRecord.length; i++) {
-                        let record = playerTopUpRecord[i];
-                        if (bypassDirtyEvent) {
-                            let isSubset = record.usedEvent.every(event => {
-                                return bypassDirtyEvent.indexOf(event.toString()) > -1;
-                            });
-                            if (!isSubset)
-                                continue;
-                        } else {
-                            if (record.bDirty)
-                                continue;
-                        }
-
-                        totalTopUpAmount += record.amount;
-                        usedTopUpRecord.push(record._id)
-                    }
                 }
 
                 let searchQuery = {
@@ -5384,7 +5371,10 @@ let dbPlayerReward = {
             "data.playerObjId": playerData._id,
             "data.eventId": eventData._id,
             status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
-            "data.applyTargetDate": {$gte: todayTime.startTime, $lt: todayTime.endTime}
+            $or: [
+                {"data.applyTargetDate": {$gte: todayTime.startTime, $lt: todayTime.endTime}},
+                {"data.applyTargetDate": {$exists: false}, createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}}
+            ],
         };
 
         if (eventData.condition.topupType && eventData.condition.topupType.length > 0) {
@@ -5428,16 +5418,18 @@ let dbPlayerReward = {
         if (intervalTime) {
             topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
             if (rewardData.applyTargetDate) {
-                eventQuery["data.applyTargetDate"] = {$gte: eventQueryPeriodTime.startTime, $lte: eventQueryPeriodTime.endTime};
+                eventQuery["$or"] = [
+                    {"data.applyTargetDate": {$gte: eventQueryPeriodTime.startTime, $lt: eventQueryPeriodTime.endTime}},
+                    {"data.applyTargetDate": {$exists: false}, createTime: {$gte: eventQueryPeriodTime.startTime, $lt: eventQueryPeriodTime.endTime}}
+                ];
             } else {
-                eventQuery["data.applyTargetDate"] = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                eventQuery["$or"] = [
+                    {"data.applyTargetDate": {$gte: intervalTime.startTime, $lt: intervalTime.endTime}},
+                    {"data.applyTargetDate": {$exists: false}, createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}}
+                ];
             }
-            // NOTE :: Regarding to time used for reward event proposal query, using settle time would be wrong because
-            //         settle time will change based on the time that cs approve/reject the proposal.
-            //         Create time will be wrong too when the system use settlement apply as the create time will only
-            //         be set on next period of the reward.
-            //         Currently I will change to createTime for hot fix, but "applyTargetDate" might be needed for all
-            //         reward proposal. - Huat
+            // NOTE :: Use apply target date instead. There are old records that does not have applyTargetDate field,
+            // so createTime is checked if applyTargetDate does not exist - Huat
         }
 
         let topupInPeriodProm = dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
@@ -5469,7 +5461,10 @@ let dbPlayerReward = {
         if (eventData.type.name === constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP) {
             // set the settlement date for eventQuery and topupMatchQuery based on intervalTime
             if(intervalTime){
-                eventQuery["data.applyTargetDate"] = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                eventQuery["$or"] = [
+                    {"data.applyTargetDate": {$gte: intervalTime.startTime, $lt: intervalTime.endTime}},
+                    {"data.applyTargetDate": {$exists: false}, createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}}
+                ]
                 topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
             }
 
@@ -5523,7 +5518,12 @@ let dbPlayerReward = {
 
             if (intervalTime) {
                 consumptionMatchQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                eventQuery["data.applyTargetDate"] = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                // eventQuery["data.applyTargetDate"] = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                eventQuery["$or"] = [
+                    {"data.applyTargetDate": {$gte: intervalTime.startTime, $lt: intervalTime.endTime}},
+                    {"data.applyTargetDate": {$exists: false}, createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}}
+                ];
+
                 topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
             }
 

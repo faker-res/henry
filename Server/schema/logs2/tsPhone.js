@@ -16,7 +16,11 @@ let tsPhoneSchema = new Schema({
     wechat: {type: String},
     qq: {type: String},
     email: {type: String},
-    remark: {type: String}
+    remark: {type: String},
+
+    // assign times 过手次数
+    assignTimes: {type: Number, default: 0},
+
 });
 
 module.exports = tsPhoneSchema;
