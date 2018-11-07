@@ -78,20 +78,20 @@
                                                         tbody
                                                             tr(ng-repeat='(i, v) in vm.tsNewList.dangerZoneList')
                                                                 td
-                                                                    select.form-control(ng-model='vm.tsNewList.dangerZoneList[i].province',  ng-options='v.id as v.name for (i, v) in vm.provinceList')
+                                                                    select.form-control(ng-model='vm.tsNewList.dangerZoneList[i].province',  ng-options='i as i for (i, v) in constPhoneArea')
                                                                 td
-                                                                    select.form-control(ng-model='vm.tsNewList.dangerZoneList[i].city',  ng-options='v.id as v.name for (i, v) in vm.cityList')
+                                                                    select.form-control(ng-model='vm.tsNewList.dangerZoneList[i].city',  ng-options='val as val for (n, val) in constPhoneArea[vm.tsNewList.dangerZoneList[i].province]')
                                                                 td
                                                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.tsNewList.dangerZoneList, $index)')
                                                             tr
                                                                 td(colspan=3) {{'ADD' | translate}}
                                                             tr
                                                                 td
-                                                                    select.form-control(ng-model='vm.currentProvince.province',  ng-options='v.id as v.name for (i, v) in vm.provinceList' ng-change='vm.changeProvince()')
+                                                                    select.form-control(ng-model='vm.tsProvince',  ng-options='i as i for (i, v) in constPhoneArea' ng-change='vm.changeProvince()')
                                                                 td
-                                                                    select.form-control(ng-model='vm.currentCity.city',  ng-options='v.id as v.name for (i, v) in vm.cityList')
+                                                                    select.form-control(ng-model='vm.tsCity',  ng-options='val as val for (n, val) in constPhoneArea[vm.tsProvince]')
                                                                 td
-                                                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.tsNewList.dangerZoneList, {province: vm.currentProvince.province, city: vm.currentCity.city}); vm.resetProvince();')
+                                                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.tsNewList.dangerZoneList, {province: vm.tsProvince, city: vm.tsCity}); vm.resetProvince();' ng-show='vm.tsProvince && vm.tsCity')
 
 
 
