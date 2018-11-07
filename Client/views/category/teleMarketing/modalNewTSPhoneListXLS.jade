@@ -87,7 +87,7 @@
                                                                 td(colspan=3) {{'ADD' | translate}}
                                                             tr
                                                                 td
-                                                                    select.form-control(ng-model='vm.tsProvince',  ng-options='i as i for (i, v) in constPhoneArea' ng-change='vm.changeProvince()')
+                                                                    select.form-control(ng-model='vm.tsProvince',  ng-options='i as i for (i, v) in constPhoneArea'')
                                                                 td
                                                                     select.form-control(ng-model='vm.tsCity',  ng-options='val as val for (n, val) in constPhoneArea[vm.tsProvince]')
                                                                 td
