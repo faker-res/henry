@@ -1352,6 +1352,22 @@ let dbDXMission = {
             }
         }
         return Promise.all(promArr);
+    },
+
+    getTsPhoneList: function(data){
+        if(!data || !data.platform){
+            return;
+        }
+
+        let sendQuery = {
+            platform: data.platform,
+            createTime: {
+                $gte: data.startTime,
+                $lt: data.endTime
+            },
+        };
+
+        return dbconfig.collection_tsPhoneList.find(sendQuery);
     }
 };
 

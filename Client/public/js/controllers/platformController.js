@@ -28739,7 +28739,7 @@ console.log('typeof ',typeof gameProviders);
             }
 
             vm.generateOpenPromoCode = function (col, index, data, type, template) {
-                if (!template && data && vm.isPromoNameExist(data.name)) {
+                if (template && data && vm.isPromoNameExist(data.name)) {
                     return socketService.showErrorMessage($translate('Promo code name must be unique'));
                 }
                 vm.promoCodeFieldCheckFlag = false;

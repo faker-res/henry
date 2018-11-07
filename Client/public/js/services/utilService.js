@@ -884,6 +884,9 @@ define([], function () {
                 case "UpdatePlayerWeChat":
                 case "PlayerLevelMigration":
                 case "UpdatePlayerRealName":
+                case "UpdatePlayerInfoPartner":
+                case "UpdatePlayerInfoLevel":
+                case "UpdatePlayerInfoAccAdmin":
                     groupName = "PLAYER_INFORMATION";
                     break;
                 case "UpdatePartnerInfo":
