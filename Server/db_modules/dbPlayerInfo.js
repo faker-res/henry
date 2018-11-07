@@ -2559,11 +2559,8 @@ let dbPlayerInfo = {
                 function (suc) {
                     var oldData = {};
                     for (var i in permission) {
-                        if (suc.permission[i] != permission[i]) {
-                            oldData[i] = suc.permission[i];
-                        }
+                        oldData[i] = suc.permission[i];
                     }
-
                     var newLog = new dbconfig.collection_playerPermissionLog({
                         admin: admin,
                         platform: playerQuery.platform,
@@ -14017,7 +14014,7 @@ let dbPlayerInfo = {
                                             rewardData.appliedRewardList = appliedObjIdList
                                         }
                                     }
-                                
+
                                     rewardData.smsCode = data.smsCode;
                                     return dbPlayerReward.applyGroupReward(userAgent, playerInfo, rewardEvent, adminInfo, rewardData, isPreview, isBulkApply);
                                     break;
