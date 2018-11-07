@@ -4902,12 +4902,6 @@ define(['js/app'], function (myApp) {
                 }
             });
         };
-        vm.testNewFunc =  ()=> {
-
-            $scope.$evalAsync(() => {
-                vm.tsNewListEnableSubmit = false;
-            })
-        }
 
         vm.initFilterAndImportDXSystem = function () {
             vm.isShowNewListModal = true;
@@ -5080,8 +5074,6 @@ define(['js/app'], function (myApp) {
           if (vm.isShowNewListModal) {
               let timePicker = $('#dxTimePicker').data('datetimepicker').getLocalDate();
               let datePicker = $('#dxDatePicker').data('datetimepicker').getLocalDate();
-              console.log("date",datePicker)
-              console.log("time",timePicker)
 
               if (vm.tsNewList) {
                   if (vm.tsNewList.name && vm.tsNewList.description && vm.tsNewList.failFeedBackResult && vm.tsNewList.failFeedBackTopic
@@ -5091,7 +5083,6 @@ define(['js/app'], function (myApp) {
                   }
               }
           }
-          console.log('vm.checkFilterIsDisable', vm.checkFilterIsDisable);
           return vm.checkFilterIsDisable;
         };
 
