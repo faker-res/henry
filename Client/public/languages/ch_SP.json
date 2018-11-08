@@ -4058,6 +4058,15 @@
   "Add into the same list": "添加在同一个名单之中",
   "Go back and modify the name of list": "返回修改名单名称",
 
+  "PRE_DISTRIBUTION": "尚未开始派发",
+  "DISTRIBUTING": "派发中",
+  "NOT_ENOUGH_CALLER": "电销员不足",
+  "MANUAL_PAUSED": "手动暂停",
+  "HALF_COMPLETE": "半结束（尚有未使用",
+  "COMPLETED": "完美结束（进回收桶",
+  "FORCE_COMPLETED": "强制结束（进回收桶",
+  "DECOMPOSED": "已分解",
+
   "modifyPlayerCredibilityRemark": "编辑信用评价",
   "updatePlayerCredibilityRemark": "信用评价",
   "createUpdatePlayerBankInfoProposal": "创建更新玩家银行资料提案",
