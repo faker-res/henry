@@ -1283,7 +1283,8 @@ function sendToAudit(proposalObjId, playerData, createTime, remark, remarkChines
     }).lean().then(
         proposalData => {
             if (proposalData) {
-                if (!proposalData.noSteps) {
+                //temp fix
+                if (true || !proposalData.noSteps) {
                     let dataToUpdate = {
                         status: constProposalStatus.PENDING,
                         'data.autoAuditTime': Date.now(),
