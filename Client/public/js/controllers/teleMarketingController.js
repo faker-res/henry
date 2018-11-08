@@ -4,6 +4,7 @@ define(['js/app'], function (myApp) {
     let teleMarketingController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants, commonService) {
         var $translate = $filter('translate');
         var vm = this;
+        let $noRoundTwoDecimalToFix = $filter('noRoundTwoDecimalToFix');
 
         // For debugging:
         window.VM = vm;
@@ -4980,35 +4981,40 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_SUCCESS_RATE'),
                         render: function(data, type, row, index){
-                            return row.totalSuccess / row.totalDistributed;
+                            let percentage = (row.totalSuccess / row.totalDistributed) || 0;
+                            return $noRoundTwoDecimalToFix(percentage);
                         }
                     },
                     {title: $translate('TOTAL_REGISTERED'), data: "totalRegistration"},
                     {
                         title: $translate('TOTAL_REGISTERED_RATE'),
                         render: function(data, type, row, index){
-                            return row.totalRegistration / row.totalDistributed;
+                            let percentage = (row.totalRegistration / row.totalDistributed) || 0;
+                            return $noRoundTwoDecimalToFix(percentage);
                         }
                     },
                     {title: $translate('TOTAL_TOPUP'), data: "totalTopUp"},
                     {
                         title: $translate('TOTAL_TOPUP_RATE'),
                         render: function(data, type, row, index){
-                            return row.totalTopUp / row.totalDistributed;
+                            let percentage =  (row.totalTopUp / row.totalDistributed) || 0;
+                            return $noRoundTwoDecimalToFix(percentage)
                         }
                     },
                     {title: $translate('TOTAL_MULTIPLE_TOPUP'), data: "totalMultipleTopUp"},
                     {
                         title: $translate('TOTAL_MULTIPLE_TOPUP_RATE'),
                         render: function(data, type, row, index){
-                            return row.totalMultipleTopUp / row.totalDistributed;
+                            let percentage = (row.totalMultipleTopUp / row.totalDistributed) || 0;
+                            return $noRoundTwoDecimalToFix(percentage)
                         }
                     },
                     {title: $translate('TOTAL_VALID'), data: "totalValidPlayer"},
                     {
                         title: $translate('TOTAL_VALID_RATE'),
                         render: function(data, type, row, index){
-                            return row.totalValidPlayer / row.totalDistributed;
+                            let percentage = (row.totalValidPlayer / row.totalDistributed) || 0;
+                            return $noRoundTwoDecimalToFix(percentage)
                         }
                     },
                     {
