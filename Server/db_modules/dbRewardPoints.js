@@ -2115,7 +2115,7 @@ function isRelevantGameEvent(event, consumptionRecord, playerLevelData, specialC
 
     if (event.target && event.target.betType && event.target.betType.length > 0) {
         let relevantBetType = event.target.betType;
-        let delimiters = [' ','|','@'];
+        let delimiters = [' ','|','@',','];
         let betTypes = consumptionRecord && consumptionRecord.betType ? consumptionRecord.betType.split(new RegExp('[' + delimiters.join('') + ']', 'g')).filter(function(el) {return el.length != 0}) : [];
 
         if (betTypes && betTypes.length > 0) {
