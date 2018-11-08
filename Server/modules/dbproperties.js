@@ -419,6 +419,8 @@ let tsDistributedPhoneListSchema = require('./../schema/logs2/tsDistributedPhone
 let tsDistributedPhoneListModel = dbLogs2.model('tsDistributedPhoneList', tsDistributedPhoneListSchema, 'tsDistributedPhoneList');
 let tsDistributedPhoneSchema = require('./../schema/logs2/tsDistributedPhone');
 let tsDistributedPhoneModel = dbLogs2.model('tsDistributedPhone', tsDistributedPhoneSchema, 'tsDistributedPhone');
+let tsAssigneeSchema = require('./../schema/logs2/tsAssignee');
+let tsAssigneeModel = dbLogs2.model('tsAssignee', tsAssigneeSchema, 'tsAssignee');
 
 let openPromoCodeTemplateSchema = require('./../schema/logs2/openPromoCodeTemplate');
 let openPromoCodeTemplateModel = dbLogs2.model('openPromoCodeTemplate', openPromoCodeTemplateSchema, 'openPromoCodeTemplate');
@@ -680,6 +682,7 @@ var dbProperties = {
     collection_tsPhoneImportRecord: tsPhoneImportRecordModel,
     collection_tsDistributedPhoneList: tsDistributedPhoneListModel,
     collection_tsDistributedPhone: tsDistributedPhoneModel,
+    collection_tsAssignee: tsAssigneeModel,
     collection_frontendData: frontendDataModel,
 
     collection_qualityInspection: qualityInspectionModel,
