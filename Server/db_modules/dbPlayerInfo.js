@@ -18473,38 +18473,40 @@ let dbPlayerInfo = {
         return dbconfig.collection_tsPhoneList.distinct("name", {platform: platformObjId});
     },
 
-    importTSNewList: function (phoneNumber, saveObj, isUpdateExisting) {
+    importTSNewList: function (phoneNumber, saveObj, isUpdateExisting, adminId, adminName) {
         let phoneArr = phoneNumber.split(/[\n,]+/).map((item) => item.trim());
 
         if (phoneArr.length > 0) {
-            let tsPhoneProm;
-            if (isUpdateExisting) {
-                tsPhoneProm = dbconfig.collection_tsPhoneList.findOneAndUpdate(
-                    {
-                        platform: saveObj.platform,
-                        name: saveObj.name
-                    },
-                    {description: saveObj.description}, {new: true}).lean();
-            } else {
-                tsPhoneProm = dbconfig.collection_tsPhoneList.findOne({
-                    platform: saveObj.platform,
-                    name: saveObj.name
-                }).lean().then(
-                    list => {
-                        if (list) {
-                            return Promise.reject({
-                                name: "DataError",
-                                message: "List with same name exist"
-                            })
-                        }
-
-                        return new dbconfig.collection_tsPhoneList(saveObj).save();
+            let tsPhoneProm = dbconfig.collection_tsPhoneList.findOne({
+                platform: saveObj.platform,
+                name: saveObj.name
+            }).lean().then(
+                list => {
+                    if (isUpdateExisting) {
+                        return list;
                     }
-                );
-            }
+                    if (list) {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "List with same name exist"
+                        })
+                    }
+
+                    return new dbconfig.collection_tsPhoneList(saveObj).save();
+                }
+            );
+
             return tsPhoneProm.then(
                 tsList => {
                     if (tsList) {
+                        dbconfig.collection_tsPhoneImportRecord({
+                            platform: saveObj.platform,
+                            tsPhoneList: tsList._id,
+                            description: saveObj.description,
+                            adminName: adminName,
+                            admin: adminId
+                        }).save().catch(errorUtils.reportError);
+
                         let promArr = [];
 
                         phoneArr.forEach(phoneNumber => {

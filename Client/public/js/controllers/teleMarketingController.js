@@ -5148,7 +5148,7 @@ define(['js/app'], function (myApp) {
                         $scope.$evalAsync(() => {
                             vm.tsNewListEnableSubmit = true;
                             vm.tsNewList.name = data.data.name;
-                            vm.tsNewList.description = data.data.description;
+                            vm.tsNewList.description = "";
                             vm.tsNewList.failFeedBackResult = data.data.failFeedBackResult;
                             vm.tsNewList.failFeedBackTopic = data.data.failFeedBackTopic;
                             vm.tsNewList.failFeedBackContent = data.data.failFeedBackContent;
