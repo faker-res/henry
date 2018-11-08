@@ -6882,9 +6882,6 @@ var proposal = {
 
 // lets do the most basic version, refactor later
 function insertRepeatCount(proposals, platformList) {
-    //tmp fix, too heavy for db
-    return [];
-
     return new Promise(function (resolve) {
         let typeIds = null;
         let getProposalTypesIdProm = typeIds ? Promise.resolve(typeIds) : getTopUpProposalTypeIds(platformList);
