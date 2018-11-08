@@ -422,27 +422,46 @@
                                 text.text-danger {{vm.transferAllCredit[v.providerId].text | translate}}
                                 i.fa.fa-spinner.fa-spin(ng-if='vm.transferAllCredit[v.providerId].finished== false')
 
-#playerConsumptionReturnSettlementModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='width:50%;margin-left:20%')
+#playerConsumptionReturnSettlementModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='')
     .modal-dialog
         .modal-content
             .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                a.fa.fa-times.close(type='button', data-dismiss='modal') llla
                 h4.modal-title {{"Player Consumption Return Settlement" | translate}} : {{vm.selectedPlatform.text}}
             .modal-body
                 //label {{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?
                 //br
                 //label {{vm.playerConsumptionReturnSettlement.startTime}} -> {{vm.playerConsumptionReturnSettlement.endTime}}
-                table#playerConsumptionReturnSettlementTbl.common-table.playerLvlTable
-                    thead
-                        th
-                        th {{"Name" | translate}}
-                        th {{"Settlement Period" | translate}}
-                    tbody(ng-repeat='(i, event) in vm.allRewardEvent | filter: {type:{name:"PlayerConsumptionReturn"}}')
-                        tr
-                            td
-                                input(type="checkbox" ng-value="i")
-                            td {{event.name}}
-                            td {{event.settlementStartTime}} -> {{event.settlementEndTime}}
+                div
+                    table#playerConsumptionReturnSettlementTbl.common-table
+                        thead
+                            th
+                            th {{"Name" | translate}}
+                            th {{"Settlement Period" | translate}}
+                            th {{"Action" | translate}}
+                        tbody(ng-repeat='(i, event) in vm.allRewardEvent | filter: {type:{name:"PlayerConsumptionReturn"}}')
+                            tr
+                                td
+                                    input(type="checkbox" ng-value="i")
+                                td {{event.name}}
+                                td {{event.settlementStartTime}} -> {{event.settlementEndTime}}
+                                td
+                                  .btn(ng-click="vm.compareAllConsumptionReturn(event.settlementStartTime, event.settlementEndTime)") {{"Refresh" | translate}}
+
+                div
+                    table#consumptionRecoverTbl.common-table
+                        thead
+                            th
+                            th
+                            th
+                            th
+                        tbody(ng-repeat='provider in vm.providerLists')
+                            tr
+                                td {{provider}}
+
+
+                    //table#playerConsumptionReturnRecoverTbl.common-table
+
             .modal-footer
                 .form-control.inlineBlk(style='width:initial', ng-if='vm.playerConsumptionReturnSettlement.status=="completed"')
                     .text-danger {{vm.playerConsumptionReturnSettlement.result | translate}}
@@ -555,4 +574,3 @@
                     button.btn.btn-primary.common-button(ng-if='!vm.CSSContentEdit', ng-click='vm.CSSContentEdit=!vm.CSSContentEdit;')
                         text {{'EDIT' | translate}}
                         img.img-edit
-
