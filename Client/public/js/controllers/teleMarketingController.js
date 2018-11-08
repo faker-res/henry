@@ -5109,6 +5109,12 @@ define(['js/app'], function (myApp) {
 
         }
 
+        vm.distributePhoneNumber = (tsListObjId) => {
+            socketService.$socket($scope.AppSocket, 'distributePhoneNumber', {platform: vm.selectedPlatform.id, tsListObjId: tsListObjId}, function (data) {
+                console.log("distributePhoneNumber", data)
+            })
+        }
+
 
         vm.checkFilterAndImportSystem = () => {
           vm.checkFilterIsDisable = true;
