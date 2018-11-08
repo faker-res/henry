@@ -18519,7 +18519,21 @@ let dbPlayerInfo = {
                             )
                         })
 
-                        return Promise.all(promArr);
+                        return Promise.all(promArr).then(
+                            resData => {
+                                dbconfig.collection_tsPhone.find({
+                                    platform: saveObj.platform,
+                                    tsPhoneList: tsList._id
+                                }).count().then(
+                                    totalPhone => {
+                                        if (totalPhone) {
+                                            return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsList._id}, {totalPhone: totalPhone}).lean()
+                                        }
+                                    }
+                                ).catch(errorUtils.reportError);
+                                return resData;
+                            }
+                        );
                     }
                 }
             ).then(() => true);
