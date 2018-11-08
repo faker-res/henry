@@ -3266,6 +3266,7 @@ define(['js/app'], function (myApp) {
                                 vm.gameStatus[v.game._id] = v.game.platformGameStatus;
                             }
                         })
+                        vm.includedGamesGroup.sort(function (a, b) { return a.index - b.index })
                         console.log("vm.includedGamesGroup", vm.includedGamesGroup);
                         if (vm.showGameCate == "include") {
                             vm.gameInGroupClicked(0, vm.includedGamesGroup[0], "in");
