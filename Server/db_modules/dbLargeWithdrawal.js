@@ -83,6 +83,8 @@ const dbLargeWithdrawal = {
         ).then(
             ([lastWithdraw, lastTopUp]) => {
                 lastWithdrawalObj = lastWithdraw;
+                let lastWithdrawalCreateTime = lastWithdraw && lastWithdraw.createTime || new Date("1990-01-01");
+                let lastTopUpCreateTime = lastTopUp && lastTopUp.createTime || new Date("1990-01-01");
                 let largeWithdrawalSettingProm = dbconfig.collection_largeWithdrawalSetting.findOne({platform: largeWithdrawalLog.platform}).lean();
                 let todayTime = dbUtility.getTargetSGTime(proposal.createTime);
                 let currentMonthDate = dbUtility.getCurrentMonthSGTIme();
@@ -108,16 +110,14 @@ const dbLargeWithdrawal = {
                     belowThousand: 0,
                     belowTenThousand: 0,
                     belowHundredThousand: 0,
-                    aboveHundredThousand: 0});
+                    aboveHundredThousand: 0
+                });
                 let providerInfoFromLastWithdrawal = Promise.resolve([]);
-                if (lastWithdraw && lastWithdraw.createTime) {
-                    totalTopUpFromLastWithdrawal = getTotalTopUpByTime(player, lastWithdraw.createTime, proposal.createTime);
-                    totalXIMAFromLastWithdrawal = getTotalXIMAByTime(player, lastWithdraw.createTime, proposal.createTime);
-                    totalRewardFromLastWithdrawal = getTotalRewardByTime(player, lastWithdraw.createTime, proposal.createTime);
-                    consumptionTimesFromLastWithdrawal = getConsumptionTimesByTime(player, lastWithdraw.createTime, proposal.createTime);
-                    providerInfoFromLastWithdrawal = getProviderInfoByTime(player, lastWithdraw.createTime, proposal.createTime);
-
-                }
+                totalTopUpFromLastWithdrawal = getTotalTopUpByTime(player, lastWithdrawalCreateTime, proposal.createTime);
+                totalXIMAFromLastWithdrawal = getTotalXIMAByTime(player, lastWithdrawalCreateTime, proposal.createTime);
+                totalRewardFromLastWithdrawal = getTotalRewardByTime(player, lastWithdrawalCreateTime, proposal.createTime);
+                consumptionTimesFromLastWithdrawal = getConsumptionTimesByTime(player, lastWithdrawalCreateTime, proposal.createTime);
+                providerInfoFromLastWithdrawal = getProviderInfoByTime(player, lastWithdrawalCreateTime, proposal.createTime);
                 let totalTopUpFromLastTopUp = Promise.resolve(0);
                 let totalXIMAFromLastTopUp = Promise.resolve(0);
                 let totalRewardFromLastTopUp = Promise.resolve(0);
@@ -148,11 +148,11 @@ const dbLargeWithdrawal = {
 
                 if (lastTopUp && lastTopUp.createTime) {
                     totalTopUpFromLastTopUp = lastTopUp.amount ? lastTopUp.amount : 0;
-                    totalXIMAFromLastTopUp = getTotalXIMAByTime(player, lastTopUp.createTime, proposal.createTime);
-                    totalRewardFromLastTopUp = getTotalRewardByTime(player, lastTopUp.createTime, proposal.createTime);
-                    consumptionTimesFromLastTopUp = getConsumptionTimesByTime(player, lastTopUp.createTime, proposal.createTime);
-                    providerInfoFromLastTopUp = getProviderInfoByTime(player, lastTopUp.createTime, proposal.createTime);
                 }
+                totalXIMAFromLastTopUp = getTotalXIMAByTime(player, lastTopUpCreateTime, proposal.createTime);
+                totalRewardFromLastTopUp = getTotalRewardByTime(player, lastTopUpCreateTime, proposal.createTime);
+                consumptionTimesFromLastTopUp = getConsumptionTimesByTime(player, lastTopUpCreateTime, proposal.createTime);
+                providerInfoFromLastTopUp = getProviderInfoByTime(player, lastTopUpCreateTime, proposal.createTime);
 
 
                 return Promise.all([largeWithdrawalSettingProm, todayLargeAmountProm, bankCityProm, gameCreditProm, totalTopUpFromLastWithdrawal

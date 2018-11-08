@@ -814,7 +814,6 @@ angular-datepicker
 
 thead > tr > th {
     /*vertical-align: bottom;*/
-    border: 1px solid rgba(0, 0, 0, 0.2);
     border-spacing: 0;
     text-align: center;
     border-collapse: collapse;
@@ -1284,7 +1283,7 @@ ul.roleList {
 }
 
 .panel {
-    -webkit-border-radius: 9px !important;
+    -webkit-border-radius: 5px !important;
     -moz-border-radius: 9px !important;
     border-radius: 9px !important;
 }

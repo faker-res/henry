@@ -4,6 +4,7 @@ define(['js/app'], function (myApp) {
     let teleMarketingController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants, commonService) {
         var $translate = $filter('translate');
         var vm = this;
+        let $noRoundTwoDecimalToFix = $filter('noRoundTwoDecimalToFix');
 
         // For debugging:
         window.VM = vm;
@@ -32,6 +33,17 @@ define(['js/app'], function (myApp) {
 
         vm.updatePageTile = function () {
             window.document.title = $translate("teleMarketing") + "->" + $translate(vm.teleMarketingPageName);
+        };
+
+        vm.constTsPhoneListStatus = {
+            0: "PRE_DISTRIBUTION",
+            1: "DISTRIBUTING",
+            2: "NOT_ENOUGH_CALLER",
+            3: "MANUAL_PAUSED",
+            4: "HALF_COMPLETE",
+            5: "COMPLETED",
+            6: "FORCE_COMPLETED",
+            7: "DECOMPOSED"
         };
 
         vm.constProposalType = {
@@ -872,6 +884,7 @@ define(['js/app'], function (myApp) {
             let dailyDistributeTaskData = $('#dxTimePicker').data('datetimepicker').getLocalDate();
             let sendData = {
                 phoneNumber: diffPhoneNum,
+                isUpdateExisting: vm.tsNewList && vm.tsNewList.checkBoxA || false,
                 updateData: {
                     platform: vm.selectedPlatform.id,
                     creator: authService.adminId,
@@ -4965,7 +4978,12 @@ define(['js/app'], function (myApp) {
                 "scrollCollapse": true,
                 columns: [
                     {title: $translate('NAME_LIST_TITLE'), data: "name"},
-                    {title: $translate('SEND_STATUS'), data: "status"},
+                    {
+                        title: $translate('SEND_STATUS'), data: "status",
+                        render: function (data, type, row, index) {
+                            return $translate(vm.constTsPhoneListStatus[data]);
+                        }
+                    },
                     {title: $translate('TOTAL_NAME_LIST'), data: "totalPhone"},
                     {title: $translate('TOTAL_DISTRIBUTED'), data: "totalDistributed"},
                     {title: $translate('TOTAL_USED'), data: "totalUsed"},
@@ -4979,35 +4997,40 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_SUCCESS_RATE'),
                         render: function(data, type, row, index){
-                            return row.totalSuccess / row.totalDistributed;
+                            let percentage = (row.totalSuccess / row.totalDistributed) || 0;
+                            return $noRoundTwoDecimalToFix(percentage);
                         }
                     },
                     {title: $translate('TOTAL_REGISTERED'), data: "totalRegistration"},
                     {
                         title: $translate('TOTAL_REGISTERED_RATE'),
                         render: function(data, type, row, index){
-                            return row.totalRegistration / row.totalDistributed;
+                            let percentage = (row.totalRegistration / row.totalDistributed) || 0;
+                            return $noRoundTwoDecimalToFix(percentage);
                         }
                     },
                     {title: $translate('TOTAL_TOPUP'), data: "totalTopUp"},
                     {
                         title: $translate('TOTAL_TOPUP_RATE'),
                         render: function(data, type, row, index){
-                            return row.totalTopUp / row.totalDistributed;
+                            let percentage =  (row.totalTopUp / row.totalDistributed) || 0;
+                            return $noRoundTwoDecimalToFix(percentage)
                         }
                     },
                     {title: $translate('TOTAL_MULTIPLE_TOPUP'), data: "totalMultipleTopUp"},
                     {
                         title: $translate('TOTAL_MULTIPLE_TOPUP_RATE'),
                         render: function(data, type, row, index){
-                            return row.totalMultipleTopUp / row.totalDistributed;
+                            let percentage = (row.totalMultipleTopUp / row.totalDistributed) || 0;
+                            return $noRoundTwoDecimalToFix(percentage)
                         }
                     },
                     {title: $translate('TOTAL_VALID'), data: "totalValidPlayer"},
                     {
                         title: $translate('TOTAL_VALID_RATE'),
                         render: function(data, type, row, index){
-                            return row.totalValidPlayer / row.totalDistributed;
+                            let percentage = (row.totalValidPlayer / row.totalDistributed) || 0;
+                            return $noRoundTwoDecimalToFix(percentage)
                         }
                     },
                     {
@@ -5101,6 +5124,8 @@ define(['js/app'], function (myApp) {
                vm.checkFilterAndImportSystem();
            }
            else{
+               vm.tsNewList.checkBoxA = false;
+               vm.tsNewList.checkBoxB = false;
                $('#modalTSNewListNameRepeat').show();
                $('#modalTSNewListNameRepeat').css("opacity", "1");
                $('#modalTSNewListNameRepeat').css("z-index", "12000");
@@ -5110,19 +5135,47 @@ define(['js/app'], function (myApp) {
 
         vm.returnToInput = () => {
             vm.disableAll = false;
+            $('#modalTSNewListNameRepeat').hide();
             if(vm.tsNewList.checkBoxB === true){
-                $('#modalTSNewListNameRepeat').hide();
                 $('#nameInput').focus();
             }
             else if(vm.tsNewList.checkBoxA === true){
-                $('#modalTSNewListNameRepeat').hide();
                 $('#descInput').focus();
                 vm.disableAll = true;
+                vm.tsNewListEnableSubmit = false;
+                socketService.$socket($scope.AppSocket, 'getOneTsNewList', {platform: vm.selectedPlatform.id, name: vm.tsNewList.name}, function (data) {
+                    if (data && data.data) {
+                        $scope.$evalAsync(() => {
+                            vm.tsNewListEnableSubmit = true;
+                            vm.tsNewList.name = data.data.name;
+                            vm.tsNewList.description = data.data.description;
+                            vm.tsNewList.failFeedBackResult = data.data.failFeedBackResult;
+                            vm.tsNewList.failFeedBackTopic = data.data.failFeedBackTopic;
+                            vm.tsNewList.failFeedBackContent = data.data.failFeedBackContent;
+                            vm.tsNewList.callerCycleCount = data.data.callerCycleCount;
+                            vm.tsNewList.dailyCallerMaximumTask = data.data.dailyCallerMaximumTask;
+                            let tsPhoneListTime = new Date();
+                            tsPhoneListTime.setHours(data.data.dailyDistributeTaskHour);
+                            tsPhoneListTime.setMinutes(data.data.dailyDistributeTaskMinute);
+                            tsPhoneListTime.setSeconds(data.data.dailyDistributeTaskSecond);
+                            $('#dxTimePicker').data('datetimepicker').setDate(utilService.getLocalTime(tsPhoneListTime));
+                            $('#dxDatePicker').data('datetimepicker').setDate(utilService.getLocalTime(new Date(data.data.distributeTaskStartTime)));
+                            vm.tsNewList.reclaimDayCount = data.data.reclaimDayCount;
+                            vm.tsNewList.isCheckWhiteListAndRecycleBin = data.data.isCheckWhiteListAndRecycleBin;
+                            vm.tsNewList.dangerZoneList = data.data.dangerZoneList;
+                            vm.checkFilterAndImportSystem();
+                        });
+                    }
+                })
 
             }
-            vm.tsNewList.checkBoxA = false;
-            vm.tsNewList.checkBoxB = false;
         }
+
+        vm.closeModalTSNewListNameRepeat = function () {
+            $('#modalTSNewListNameRepeat').hide();
+            $('#nameInput').focus();
+        };
+
 
     };
 

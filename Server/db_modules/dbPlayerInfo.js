@@ -2559,11 +2559,8 @@ let dbPlayerInfo = {
                 function (suc) {
                     var oldData = {};
                     for (var i in permission) {
-                        if (suc.permission[i] != permission[i]) {
-                            oldData[i] = suc.permission[i];
-                        }
+                        oldData[i] = suc.permission[i];
                     }
-
                     var newLog = new dbconfig.collection_playerPermissionLog({
                         admin: admin,
                         platform: playerQuery.platform,
@@ -14017,7 +14014,7 @@ let dbPlayerInfo = {
                                             rewardData.appliedRewardList = appliedObjIdList
                                         }
                                     }
-                                
+
                                     rewardData.smsCode = data.smsCode;
                                     return dbPlayerReward.applyGroupReward(userAgent, playerInfo, rewardEvent, adminInfo, rewardData, isPreview, isBulkApply);
                                     break;
@@ -18476,25 +18473,36 @@ let dbPlayerInfo = {
         return dbconfig.collection_tsPhoneList.distinct("name", {platform: platformObjId});
     },
 
-    importTSNewList: function (phoneNumber, saveObj) {
+    importTSNewList: function (phoneNumber, saveObj, isUpdateExisting) {
         let phoneArr = phoneNumber.split(/[\n,]+/).map((item) => item.trim());
 
         if (phoneArr.length > 0) {
-            return dbconfig.collection_tsPhoneList.findOne({
-                platform: saveObj.platform,
-                name: saveObj.name
-            }).lean().then(
-                list => {
-                    if (list) {
-                        return Promise.reject({
-                            name: "DataError",
-                            message: "List with same name exist"
-                        })
-                    }
+            let tsPhoneProm;
+            if (isUpdateExisting) {
+                tsPhoneProm = dbconfig.collection_tsPhoneList.findOneAndUpdate(
+                    {
+                        platform: saveObj.platform,
+                        name: saveObj.name
+                    },
+                    {description: saveObj.description}, {new: true}).lean();
+            } else {
+                tsPhoneProm = dbconfig.collection_tsPhoneList.findOne({
+                    platform: saveObj.platform,
+                    name: saveObj.name
+                }).lean().then(
+                    list => {
+                        if (list) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: "List with same name exist"
+                            })
+                        }
 
-                    return new dbconfig.collection_tsPhoneList(saveObj).save();
-                }
-            ).then(
+                        return new dbconfig.collection_tsPhoneList(saveObj).save();
+                    }
+                );
+            }
+            return tsPhoneProm.then(
                 tsList => {
                     if (tsList) {
                         let promArr = [];
@@ -18511,7 +18519,21 @@ let dbPlayerInfo = {
                             )
                         })
 
-                        return Promise.all(promArr);
+                        return Promise.all(promArr).then(
+                            resData => {
+                                dbconfig.collection_tsPhone.find({
+                                    platform: saveObj.platform,
+                                    tsPhoneList: tsList._id
+                                }).count().then(
+                                    totalPhone => {
+                                        if (totalPhone) {
+                                            return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsList._id}, {totalPhone: totalPhone}).lean()
+                                        }
+                                    }
+                                ).catch(errorUtils.reportError);
+                                return resData;
+                            }
+                        );
                     }
                 }
             ).then(() => true);
