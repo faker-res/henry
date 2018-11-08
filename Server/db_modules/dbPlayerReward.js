@@ -5313,7 +5313,7 @@ let dbPlayerReward = {
     applyGroupReward: (userAgent, playerData, eventData, adminInfo, rewardData, isPreview, isBulkApply) => {
         rewardData = rewardData || {};
 
-        let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate) : dbUtility.getTodaySGTime();
+        let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate).startTime : dbUtility.getTodaySGTime();
         rewardData.applyTargetDate = rewardData.applyTargetDate || todayTime.startTime;
         // let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate): dbUtility.getYesterdaySGTime();
         let rewardAmount = 0, spendingAmount = 0, applyAmount = 0, actualAmount = 0;
@@ -5569,8 +5569,8 @@ let dbPlayerReward = {
             // set the settlement date for eventQuery and topupMatchQuery based on intervalTime
             if(intervalTime){
                 eventQuery["$or"] = [
-                    {"data.applyTargetDate": {$gte: intervalTime.startTime, $lt: intervalTime.endTime}},
-                    {"data.applyTargetDate": {$exists: false}, createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}}
+                    {"data.applyTargetDate": {$gte: new Date(intervalTime.startTime), $lt: new Date(intervalTime.endTime)}},
+                    {"data.applyTargetDate": {$exists: false}, createTime: {$gte: new Date(intervalTime.startTime), $lt: new Date(intervalTime.endTime)}}
                 ];
                 topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
             }
@@ -5578,8 +5578,8 @@ let dbPlayerReward = {
             // special settlement time handling for for this case: the settlement endTime will be the previewing-time
             if (rewardData.previewDate) {
                 eventQuery["$or"] = [
-                    {"data.applyTargetDate": {$gte: intervalTime.startTime, $lte: dbUtility.getSGTimeOf(rewardData.previewDate)}},
-                    {"data.applyTargetDate": {$exists: false}, createTime: {$gte: intervalTime.startTime, $lte: dbUtility.getSGTimeOf(rewardData.previewDate)}}
+                    {"data.applyTargetDate": {$gte: new Date(intervalTime.startTime), $lte: dbUtility.getSGTimeOf(rewardData.previewDate)}},
+                    {"data.applyTargetDate": {$exists: false}, createTime: {$gte: new Date(intervalTime.startTime), $lte: dbUtility.getSGTimeOf(rewardData.previewDate)}}
                 ];
                 topupMatchQuery.createTime = {$gte: intervalTime.startTime, $lt: dbUtility.getSGTimeOf(rewardData.previewDate)};
             }
@@ -5830,6 +5830,7 @@ let dbPlayerReward = {
                 default:
                 // reject error
             }
+            eventInPeriodProm = dbConfig.collection_proposal.find(eventQuery).lean();
         }
 
 

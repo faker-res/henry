@@ -669,10 +669,13 @@ const dbPlayerMail = {
                             let query = {
                                 phoneNumber: {$in: [rsaCrypto.encrypt(telNum.toString()), rsaCrypto.oldEncrypt(telNum.toString())]},
                                 platform: platformObjId,
-                                isRealPlayer: true
+                                isRealPlayer: true,
+                                'permission.forbidPlayerFromLogin': false
                             };
                             if (isPartner) {
                                 delete query.isRealPlayer;
+                                delete query.permission.forbidPlayerFromLogin;
+                                query['permission.forbidPartnerFromLogin'] = false;
                             }
                             if (platform[sameTelPermission] === true) {
                                 validPhoneNumberProm = seletedDb.isExceedPhoneNumberValidToRegister(query, platform[samTelCount]);
