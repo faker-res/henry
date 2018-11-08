@@ -12,7 +12,7 @@ let rewardPointsLog = new Schema({
     // only available for point-to-credit transition
     rewardPointsTaskObjId: {type: Schema.ObjectId, ref: 'rewardTask'},
     // only available for point-to-credit transition
-    proposalId: {type: String},
+    proposalId: {type: String, index: true},
 
     playerName: {type: String, index: true},
     // player level name
