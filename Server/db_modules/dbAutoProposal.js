@@ -354,26 +354,23 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
                 let transferLogs = data[1];
                 let creditChangeLogs = data[4];
-
-                if (platformObj.consecutiveTransferInOut) {
-
-                    return findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, proposal.data.playerObjId).then(
-                        transferAbnormalities => {
-                            if (transferAbnormalities) {
-                                for (let i = 0; i < transferAbnormalities.length; i++) {
-                                    abnormalMessage += transferAbnormalities[i].en + "; ";
-                                    abnormalMessageChinese += transferAbnormalities[i].ch + "; ";
-                                    if(transferAbnormalities[i].bConsecutiveTransferAbnormal){
-                                        bConsecutiveTransferAbnormal = true;
-                                    } else {
-                                        bTransferAbnormal = true;
-                                    }
+                
+                return findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, proposal.data.playerObjId).then(
+                    transferAbnormalities => {
+                        if (transferAbnormalities) {
+                            for (let i = 0; i < transferAbnormalities.length; i++) {
+                                abnormalMessage += transferAbnormalities[i].en + "; ";
+                                abnormalMessageChinese += transferAbnormalities[i].ch + "; ";
+                                if(transferAbnormalities[i].bConsecutiveTransferAbnormal){
+                                    bConsecutiveTransferAbnormal = true;
+                                } else if (transferAbnormalities[i].bTransferAbnormal){
+                                    bTransferAbnormal = true;
                                 }
                             }
-                            return data;
                         }
-                    )
-                }
+                        return data;
+                    }
+                )
             }
 
             return data;
@@ -541,8 +538,8 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
             if (continuousApplyBonusTimes && platformObj.checkContinuousApplyBonusTimes && platformObj.checkContinuousApplyBonusTimes != 0
                 && ((continuousApplyBonusTimes + 1) >= platformObj.checkContinuousApplyBonusTimes)) {
-                checkMsg += ' Denied: Continuous Apply Bonus N Times;';
-                checkMsgChinese += ' 失败：连续提款N次;';
+                checkMsg += ' Denied: Continuous Apply Bonus' + (continuousApplyBonusTimes + 1) + 'Times;';
+                checkMsgChinese += ' 失败：连续提款' + (continuousApplyBonusTimes + 1) + '次;';
                 canApprove = false;
             }
 
@@ -1517,7 +1514,7 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
     for (let i = 0; i < logsLength; i++) {
         if(transferLogs[i].isEbet === false) {
             if (transferLogs[i].type === 'TransferIn') {
-                auditTransferInLog(transferLogs[i]);
+                auditTransferInLog(transferLogs[i], platformObj.consecutiveTransferInOut);
                 lastTransferInLogTime = transferLogs[i].createTime;
 
                 // bonus <> transfer amount check
@@ -1525,7 +1522,7 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
                 inAmt = transferLogs[i].amount;
                 inTime = transferLogs[i].createTime;
             } else {
-                auditTransferOutLog(transferLogs[i]);
+                auditTransferOutLog(transferLogs[i], platformObj.consecutiveTransferInOut);
 
                 // bonus <> transfer amount check
                 // if first transfer is not out, set completeCycle to true
@@ -1545,12 +1542,13 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
                             let transDifference = consumedAmt;
                             let bonusAmt = res && res[0] ? res[0].bonusAmount : 0;
                             let profitDifference = bonusAmt - transDifference;
-
+                            
                             if ((profitDifference < 0 && profitDifference < -platformObj.autoApproveBonusProfitOffset)
                                 || profitDifference > 0 && profitDifference > platformObj.autoApproveBonusProfitOffset) {
                                 abnormalities.push({
                                     en: "Transfer In transfer out (ID: " + transferOutId + ")",
-                                    ch: "带入带出 (ID: " + transferOutId + ")"
+                                    ch: "带入带出 (ID: " + transferOutId + ")",
+                                    bTransferAbnormal: true
                                 });
                             }
                         }
@@ -1595,9 +1593,10 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
         res => abnormalities
     );
 
-    function auditTransferInLog(log) {
+    function auditTransferInLog(log, isCheckConsecutiveTransferInOut) {
+
         if (lastTransferLogType === "TransferIn") {
-            if (!hasTopUpOrRewardWithinPeriod(lastTransferInLogTime, log.createTime)) {
+            if (!hasTopUpOrRewardWithinPeriod(lastTransferInLogTime, log.createTime) && isCheckConsecutiveTransferInOut) {
                 multipleTransferInWithoutOtherCreditInput = true;
                 if (!multipleTransferInId) {
                     multipleTransferInId = log.transferId;
@@ -1623,8 +1622,8 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
         }
     }
 
-    function auditTransferOutLog(log) {
-        if (lastTransferLogType === "TransferOut" && log.providerId === lastTransferLogProviderId) {
+    function auditTransferOutLog(log, isCheckConsecutiveTransferInOut) {
+        if (lastTransferLogType === "TransferOut" && log.providerId === lastTransferLogProviderId && isCheckConsecutiveTransferInOut) {
             multipleTransferOutStreakExist = true;
             if (!multipleTransferOutId) {
                 multipleTransferOutId = log.transferId;

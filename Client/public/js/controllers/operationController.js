@@ -2936,6 +2936,61 @@ define(['js/app'], function (myApp) {
                 vm.selectedProposalDetailForDisplay = proposalDetail;
             }
 
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePlayerInfoPartner") {
+                let proposalDetail = {};
+                let inputDevice = "";
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
+                proposalDetail["oldPartnerName"] = vm.selectedProposal.data.oldPartnerName;
+                proposalDetail["newPartnerName"] = vm.selectedProposal.data.newPartnerName;
+
+                for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                    if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == vm.selectedProposal.inputDevice ){
+                        inputDevice =  $translate(Object.keys(vm.inputDevice)[i]);
+                    }
+                }
+
+                proposalDetail["INPUT_DEVICE"] = inputDevice;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+                vm.selectedProposalDetailForDisplay = proposalDetail;
+            }
+
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePlayerInfoLevel") {
+                let proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["oldLevelName"] = vm.selectedProposal.data.oldLevelName;
+                proposalDetail["newLevelName"] = vm.selectedProposal.data.newLevelName;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+                vm.selectedProposalDetailForDisplay = proposalDetail;
+            }
+
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePlayerInfoAccAdmin") {
+                let proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
+                proposalDetail["oldAccAdmin"] = vm.selectedProposal.data.oldAccAdmin;
+                proposalDetail["newAccAdmin"] = vm.selectedProposal.data.newAccAdmin;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+                vm.selectedProposalDetailForDisplay = proposalDetail;
+            }
+
             // Remove fields for detail viewing
             delete vm.selectedProposalDetailForDisplay.creator;
             delete vm.selectedProposalDetailForDisplay.platform;
