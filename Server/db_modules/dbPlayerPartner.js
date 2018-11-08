@@ -368,10 +368,12 @@ let dbPlayerPartner = {
 
                     let plyProm = dbConfig.collection_players.findOne({
                         platform: platformObjId,
-                        phoneNumber: newEncrpytedPhoneNumber
+                        phoneNumber: newEncrpytedPhoneNumber,
+                        'permission.forbidPlayerFromLogin': false
                     }).lean();
                     let partnerProm = dbConfig.collection_partner.findOne({
                         platform: platformObjId,
+                        'permission.forbidPartnerFromLogin': false,
                         $or: [
                             {phoneNumber: newPhoneNumber},
                             {phoneNumber: newEncrpytedPhoneNumber},
