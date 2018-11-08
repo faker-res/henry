@@ -868,10 +868,10 @@ define(['js/app'], function (myApp) {
         };
 
         // import phone number to system
-        vm.importTSNewList = function (diffPhoneNum, tsNewListObj) {
+        vm.importTSNewList = function (uploadData, tsNewListObj) {
             let dailyDistributeTaskData = $('#dxTimePicker').data('datetimepicker').getLocalDate();
             let sendData = {
-                phoneNumber: diffPhoneNum,
+                phoneListDetail: uploadData,
                 isUpdateExisting: vm.tsNewList && vm.tsNewList.checkBoxA || false,
                 updateData: {
                     platform: vm.selectedPlatform.id,
@@ -1090,12 +1090,24 @@ define(['js/app'], function (myApp) {
             let rowArray = [];
             let rowArrayMerge;
             let isTSNewList = Boolean(!dxMission && isCreateTsNewList);
+            let phoneList = {};
 
             for (let z = 0; z < rows.length; z++) {
                 let rowObject = rows[z][vm.tsNewList.phoneIdx];
                 let rowObjectValue = Object.values(rowObject);
                 rowArray.push(rowObjectValue);
                 rowArrayMerge = [].concat.apply([], rowArray);
+                phoneList[rows[z][vm.tsNewList.phoneIdx].value] = {
+                    phoneNumber: rows[z][vm.tsNewList.phoneIdx].value,
+                    playerName: rows[z][vm.tsNewList.phoneIdx+1].value,
+                    realName: rows[z][vm.tsNewList.phoneIdx+2].value,
+                    gender: rows[z][vm.tsNewList.phoneIdx+3].value,
+                    dob: rows[z][vm.tsNewList.phoneIdx+4].value,
+                    wechat: rows[z][vm.tsNewList.phoneIdx+5].value,
+                    qq: rows[z][vm.tsNewList.phoneIdx+6].value,
+                    email: rows[z][vm.tsNewList.phoneIdx+7].value,
+                    remark: rows[z][vm.tsNewList.phoneIdx+8].value
+                };
             }
 
             let sendData = {
@@ -1106,6 +1118,7 @@ define(['js/app'], function (myApp) {
             };
 
             socketService.$socket($scope.AppSocket, 'uploadPhoneFileXLS', sendData, function (data) {
+                console.log("uploadPhoneFileXLS ret", data);
                 vm.diffPhoneXLS = data.data.diffPhoneXLS;
                 vm.samePhoneXLS = data.data.samePhoneXLS;
                 vm.diffPhoneTotalXLS = data.data.diffPhoneTotalXLS;
@@ -1162,7 +1175,12 @@ define(['js/app'], function (myApp) {
                         var wbout = XLSX.write(workbook, wopts);
                         saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
                     } else if (isTSNewList) {
-                        vm.importTSNewList(vm.diffPhoneXLS, vm.tsNewList)
+                        let uploadData = [];
+                        let phoneArr = vm.diffPhoneXLS.split(/[\n,]+/).map((item) => item.trim());
+                        phoneArr.forEach(phoneNumber => {
+                            uploadData.push(phoneList[phoneNumber]);
+                        });
+                        vm.importTSNewList(uploadData, vm.tsNewList)
                     } else if (importXLS) {
                         vm.importDiffPhoneNum(vm.diffPhoneXLS, dxMission)
                     }

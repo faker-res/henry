@@ -18473,10 +18473,8 @@ let dbPlayerInfo = {
         return dbconfig.collection_tsPhoneList.distinct("name", {platform: platformObjId});
     },
 
-    importTSNewList: function (phoneNumber, saveObj, isUpdateExisting) {
-        let phoneArr = phoneNumber.split(/[\n,]+/).map((item) => item.trim());
-
-        if (phoneArr.length > 0) {
+    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting) {
+        if (phoneListDetail.length > 0) {
             let tsPhoneProm;
             if (isUpdateExisting) {
                 tsPhoneProm = dbconfig.collection_tsPhoneList.findOneAndUpdate(
@@ -18507,13 +18505,21 @@ let dbPlayerInfo = {
                     if (tsList) {
                         let promArr = [];
 
-                        phoneArr.forEach(phoneNumber => {
-                            let encryptedNumber = rsaCrypto.encrypt(phoneNumber);
+                        phoneListDetail.forEach(phone => {
+                            let encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
 
                             promArr.push(
                                 dbconfig.collection_tsPhone({
                                     platform: saveObj.platform,
                                     phoneNumber: encryptedNumber,
+                                    playerName: phone.playerName,
+                                    realName: phone.realName,
+                                    gender: phone.gender,
+                                    dob: phone.dob,
+                                    wechat: phone.wechat,
+                                    qq: phone.qq,
+                                    email: phone.email,
+                                    remark: phone.remark,
                                     tsPhoneList: tsList._id
                                 }).save()
                             )
