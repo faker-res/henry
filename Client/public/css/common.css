@@ -223,7 +223,7 @@ ul.roleList {
 }
 
 .panel {
-    -webkit-border-radius: 9px !important;
+    -webkit-border-radius: 5px !important;
     -moz-border-radius: 9px !important;
     border-radius: 9px !important;
 }

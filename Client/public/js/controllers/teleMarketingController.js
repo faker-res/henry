@@ -5141,6 +5141,7 @@ define(['js/app'], function (myApp) {
                             vm.tsNewList.reclaimDayCount = data.data.reclaimDayCount;
                             vm.tsNewList.isCheckWhiteListAndRecycleBin = data.data.isCheckWhiteListAndRecycleBin;
                             vm.tsNewList.dangerZoneList = data.data.dangerZoneList;
+                            vm.checkFilterAndImportSystem();
                         });
                     }
                 })
@@ -5153,7 +5154,6 @@ define(['js/app'], function (myApp) {
             $('#nameInput').focus();
         };
 
-        // tsNewListEnableSubmit
 
     };
 
