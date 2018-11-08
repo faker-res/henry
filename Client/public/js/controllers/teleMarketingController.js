@@ -34,6 +34,17 @@ define(['js/app'], function (myApp) {
             window.document.title = $translate("teleMarketing") + "->" + $translate(vm.teleMarketingPageName);
         };
 
+        vm.constTsPhoneListStatus = {
+            0: "PRE_DISTRIBUTION",
+            1: "DISTRIBUTING",
+            2: "NOT_ENOUGH_CALLER",
+            3: "MANUAL_PAUSED",
+            4: "HALF_COMPLETE",
+            5: "COMPLETED",
+            6: "FORCE_COMPLETED",
+            7: "DECOMPOSED"
+        };
+
         vm.constProposalType = {
             UPDATE_PLAYER_INFO: "UpdatePlayerInfo",
             UPDATE_PLAYER_CREDIT: "UpdatePlayerCredit",
@@ -4966,7 +4977,12 @@ define(['js/app'], function (myApp) {
                 "scrollCollapse": true,
                 columns: [
                     {title: $translate('NAME_LIST_TITLE'), data: "name"},
-                    {title: $translate('SEND_STATUS'), data: "status"},
+                    {
+                        title: $translate('SEND_STATUS'), data: "status",
+                        render: function (data, type, row, index) {
+                            return $translate(vm.constTsPhoneListStatus[data]);
+                        }
+                    },
                     {title: $translate('TOTAL_NAME_LIST'), data: "totalPhone"},
                     {title: $translate('TOTAL_DISTRIBUTED'), data: "totalDistributed"},
                     {title: $translate('TOTAL_USED'), data: "totalUsed"},
