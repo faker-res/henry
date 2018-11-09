@@ -128,16 +128,16 @@ label(ng-show='vm.platformPlayerCount') {{'Total Players' | translate}} : {{vm.p
 
             .modal-footer
                 div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
-                button.btn.btn-success.common-button(data-dismiss='modal'  ng-if="!vm.importPhoneResult" ng-click="vm.uploadPhoneFileXLS('', true, null, true)" ng-disabled="vm.checkFilterIsDisable")
+                button.btn.btn-success.common-button(data-dismiss='modal'  ng-if="!vm.importPhoneResult" ng-click="vm.uploadPhoneFileXLS('', true, null, true)" ng-disabled="vm.checkFilterIsDisable" ng-show="!vm.analyticsPhoneListEdit")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
                 button.btn.btn-danger.common-button(data-dismiss='modal' ng-show="vm.analyticsPhoneListEdit")
                     i.fa.fa-ban
                     text {{"CANCEL" | translate}}
-                button.btn.btn-danger.common-button(ng-click = "vm.analyticsPhoneListEdit = true"  ng-show="!vm.analyticsPhoneListEdit")
+                button.btn.btn-warning.common-button(ng-click = "vm.analyticsPhoneListEdit = true"  ng-show="!vm.analyticsPhoneListEdit")
                     i.fa.fa-ban
                     text {{"CANCEL" | translate}}
-                button.btn.btn-primary.common-button(ng-click="vm.tsAnalyticsPhoneListEdit()")
+                button.btn.btn-primary.common-button(ng-click="vm.tsAnalyticsPhoneListEdit()" ng-show="vm.analyticsPhoneListEdit")
                     i.fa.fa-pencil-square-o
                     text {{'EDIT' | translate}}
 
