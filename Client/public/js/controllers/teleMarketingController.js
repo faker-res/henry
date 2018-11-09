@@ -5089,8 +5089,8 @@ define(['js/app'], function (myApp) {
             //     }
             //
             // }
-            $('#phoneListManagementTable tbody').off('click', "**");
-            $('#phoneListManagementTable tbody').on('click', 'tr', tableRowClicked);
+            // $('#phoneListManagementTable tbody').off('click', "**");
+            // $('#phoneListManagementTable tbody').on('click', 'tr', tableRowClicked);
 
             $('#phoneListManagementTable').off('order.dt');
             $('#phoneListManagementTable').on('order.dt', function (event, a, b) {
