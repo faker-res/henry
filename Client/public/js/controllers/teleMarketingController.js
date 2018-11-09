@@ -4,6 +4,7 @@ define(['js/app'], function (myApp) {
     let teleMarketingController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants, commonService) {
         var $translate = $filter('translate');
         var vm = this;
+        let $noRoundTwoDecimalToFix = $filter('noRoundTwoDecimalToFix');
 
         // For debugging:
         window.VM = vm;
@@ -32,6 +33,17 @@ define(['js/app'], function (myApp) {
 
         vm.updatePageTile = function () {
             window.document.title = $translate("teleMarketing") + "->" + $translate(vm.teleMarketingPageName);
+        };
+
+        vm.constTsPhoneListStatus = {
+            0: "PRE_DISTRIBUTION",
+            1: "DISTRIBUTING",
+            2: "NOT_ENOUGH_CALLER",
+            3: "MANUAL_PAUSED",
+            4: "HALF_COMPLETE",
+            5: "COMPLETED",
+            6: "FORCE_COMPLETED",
+            7: "DECOMPOSED"
         };
 
         vm.constProposalType = {
@@ -868,10 +880,10 @@ define(['js/app'], function (myApp) {
         };
 
         // import phone number to system
-        vm.importTSNewList = function (diffPhoneNum, tsNewListObj) {
+        vm.importTSNewList = function (uploadData, tsNewListObj) {
             let dailyDistributeTaskData = $('#dxTimePicker').data('datetimepicker').getLocalDate();
             let sendData = {
-                phoneNumber: diffPhoneNum,
+                phoneListDetail: uploadData,
                 isUpdateExisting: vm.tsNewList && vm.tsNewList.checkBoxA || false,
                 updateData: {
                     platform: vm.selectedPlatform.id,
@@ -1090,12 +1102,24 @@ define(['js/app'], function (myApp) {
             let rowArray = [];
             let rowArrayMerge;
             let isTSNewList = Boolean(!dxMission && isCreateTsNewList);
+            let phoneList = {};
 
             for (let z = 0; z < rows.length; z++) {
                 let rowObject = rows[z][vm.tsNewList.phoneIdx];
                 let rowObjectValue = Object.values(rowObject);
                 rowArray.push(rowObjectValue);
                 rowArrayMerge = [].concat.apply([], rowArray);
+                phoneList[rows[z][vm.tsNewList.phoneIdx].value] = {
+                    phoneNumber: rows[z][vm.tsNewList.phoneIdx].value,
+                    playerName: rows[z][vm.tsNewList.phoneIdx+1].value,
+                    realName: rows[z][vm.tsNewList.phoneIdx+2].value,
+                    gender: rows[z][vm.tsNewList.phoneIdx+3].value,
+                    dob: rows[z][vm.tsNewList.phoneIdx+4].value,
+                    wechat: rows[z][vm.tsNewList.phoneIdx+5].value,
+                    qq: rows[z][vm.tsNewList.phoneIdx+6].value,
+                    email: rows[z][vm.tsNewList.phoneIdx+7].value,
+                    remark: rows[z][vm.tsNewList.phoneIdx+8].value
+                };
             }
 
             let sendData = {
@@ -1106,6 +1130,7 @@ define(['js/app'], function (myApp) {
             };
 
             socketService.$socket($scope.AppSocket, 'uploadPhoneFileXLS', sendData, function (data) {
+                console.log("uploadPhoneFileXLS ret", data);
                 vm.diffPhoneXLS = data.data.diffPhoneXLS;
                 vm.samePhoneXLS = data.data.samePhoneXLS;
                 vm.diffPhoneTotalXLS = data.data.diffPhoneTotalXLS;
@@ -1162,7 +1187,12 @@ define(['js/app'], function (myApp) {
                         var wbout = XLSX.write(workbook, wopts);
                         saveAs(new Blob([vm.s2ab(wbout)], {type: ""}), "phoneNumberFilter.xlsx");
                     } else if (isTSNewList) {
-                        vm.importTSNewList(vm.diffPhoneXLS, vm.tsNewList)
+                        let uploadData = [];
+                        let phoneArr = vm.diffPhoneXLS.split(/[\n,]+/).map((item) => item.trim());
+                        phoneArr.forEach(phoneNumber => {
+                            uploadData.push(phoneList[phoneNumber]);
+                        });
+                        vm.importTSNewList(uploadData, vm.tsNewList)
                     } else if (importXLS) {
                         vm.importDiffPhoneNum(vm.diffPhoneXLS, dxMission)
                     }
@@ -4966,7 +4996,12 @@ define(['js/app'], function (myApp) {
                 "scrollCollapse": true,
                 columns: [
                     {title: $translate('NAME_LIST_TITLE'), data: "name"},
-                    {title: $translate('SEND_STATUS'), data: "status"},
+                    {
+                        title: $translate('SEND_STATUS'), data: "status",
+                        render: function (data, type, row, index) {
+                            return $translate(vm.constTsPhoneListStatus[data]);
+                        }
+                    },
                     {title: $translate('TOTAL_NAME_LIST'), data: "totalPhone"},
                     {title: $translate('TOTAL_DISTRIBUTED'), data: "totalDistributed"},
                     {title: $translate('TOTAL_USED'), data: "totalUsed"},
@@ -4980,35 +5015,40 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_SUCCESS_RATE'),
                         render: function(data, type, row, index){
-                            return row.totalSuccess / row.totalDistributed;
+                            let percentage = (row.totalSuccess / row.totalDistributed) || 0;
+                            return $noRoundTwoDecimalToFix(percentage);
                         }
                     },
                     {title: $translate('TOTAL_REGISTERED'), data: "totalRegistration"},
                     {
                         title: $translate('TOTAL_REGISTERED_RATE'),
                         render: function(data, type, row, index){
-                            return row.totalRegistration / row.totalDistributed;
+                            let percentage = (row.totalRegistration / row.totalDistributed) || 0;
+                            return $noRoundTwoDecimalToFix(percentage);
                         }
                     },
                     {title: $translate('TOTAL_TOPUP'), data: "totalTopUp"},
                     {
                         title: $translate('TOTAL_TOPUP_RATE'),
                         render: function(data, type, row, index){
-                            return row.totalTopUp / row.totalDistributed;
+                            let percentage =  (row.totalTopUp / row.totalDistributed) || 0;
+                            return $noRoundTwoDecimalToFix(percentage)
                         }
                     },
                     {title: $translate('TOTAL_MULTIPLE_TOPUP'), data: "totalMultipleTopUp"},
                     {
                         title: $translate('TOTAL_MULTIPLE_TOPUP_RATE'),
                         render: function(data, type, row, index){
-                            return row.totalMultipleTopUp / row.totalDistributed;
+                            let percentage = (row.totalMultipleTopUp / row.totalDistributed) || 0;
+                            return $noRoundTwoDecimalToFix(percentage)
                         }
                     },
                     {title: $translate('TOTAL_VALID'), data: "totalValidPlayer"},
                     {
                         title: $translate('TOTAL_VALID_RATE'),
                         render: function(data, type, row, index){
-                            return row.totalValidPlayer / row.totalDistributed;
+                            let percentage = (row.totalValidPlayer / row.totalDistributed) || 0;
+                            return $noRoundTwoDecimalToFix(percentage)
                         }
                     },
                     {
@@ -5069,6 +5109,12 @@ define(['js/app'], function (myApp) {
 
         }
 
+        vm.distributePhoneNumber = (tsListObjId) => {
+            socketService.$socket($scope.AppSocket, 'distributePhoneNumber', {platform: vm.selectedPlatform.id, tsListObjId: tsListObjId}, function (data) {
+                console.log("distributePhoneNumber", data)
+            })
+        }
+
 
         vm.checkFilterAndImportSystem = () => {
           vm.checkFilterIsDisable = true;
@@ -5126,7 +5172,7 @@ define(['js/app'], function (myApp) {
                         $scope.$evalAsync(() => {
                             vm.tsNewListEnableSubmit = true;
                             vm.tsNewList.name = data.data.name;
-                            vm.tsNewList.description = data.data.description;
+                            vm.tsNewList.description = "";
                             vm.tsNewList.failFeedBackResult = data.data.failFeedBackResult;
                             vm.tsNewList.failFeedBackTopic = data.data.failFeedBackTopic;
                             vm.tsNewList.failFeedBackContent = data.data.failFeedBackContent;
@@ -5141,6 +5187,7 @@ define(['js/app'], function (myApp) {
                             vm.tsNewList.reclaimDayCount = data.data.reclaimDayCount;
                             vm.tsNewList.isCheckWhiteListAndRecycleBin = data.data.isCheckWhiteListAndRecycleBin;
                             vm.tsNewList.dangerZoneList = data.data.dangerZoneList;
+                            vm.checkFilterAndImportSystem();
                         });
                     }
                 })
@@ -5153,7 +5200,6 @@ define(['js/app'], function (myApp) {
             $('#nameInput').focus();
         };
 
-        // tsNewListEnableSubmit
 
     };
 

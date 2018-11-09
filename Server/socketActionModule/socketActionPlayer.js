@@ -1212,12 +1212,12 @@ function socketActionPlayer(socketIO, socket) {
 
         importTSNewList: function importTSNewList(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.updateData && data.updateData.platform && data.phoneNumber && data.updateData.creator && data.updateData.name
+            let isValidData = Boolean(data && data.updateData && data.updateData.platform && data.phoneListDetail && data.updateData.creator && data.updateData.name
                 && data.updateData.description && data.updateData.failFeedBackResult && data.updateData.failFeedBackTopic
                 && data.updateData.failFeedBackContent && data.updateData.hasOwnProperty("callerCycleCount") && data.updateData.hasOwnProperty("dailyCallerMaximumTask")
                 && data.updateData.hasOwnProperty("dailyDistributeTaskHour") && data.updateData.hasOwnProperty("dailyDistributeTaskMinute")
                 && data.updateData.hasOwnProperty("dailyDistributeTaskSecond") && data.updateData.distributeTaskStartTime && data.updateData.hasOwnProperty("reclaimDayCount"));
-            socketUtil.emitter(self.socket, dbPlayerInfo.importTSNewList, [data.phoneNumber, data.updateData, data.isUpdateExisting], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.importTSNewList, [data.phoneListDetail, data.updateData, data.isUpdateExisting, getAdminId(), getAdminName()], actionName, isValidData);
         },
 
         getTsNewListName: function getTsNewListName (data) {
