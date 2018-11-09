@@ -404,7 +404,17 @@ var dbRewardEvent = {
                                             }
                                             if (checkRewardData.status == 2) {
                                                 delete checkRewardData.result;
-                                            }                                      
+                                            }
+
+                                            if (rewardEvent.code){
+                                                checkRewardData.code = rewardEvent.code;
+                                            }
+                                            if (rewardEvent.name){
+                                                checkRewardData.eventName = rewardEvent.name;
+                                            }
+                                            if (rewardEvent.type && rewardEvent.type.name){
+                                                checkRewardData.rewardType = rewardEvent.type.name;
+                                            }
 
                                             return checkRewardData;
                                         }
@@ -1136,7 +1146,7 @@ var dbRewardEvent = {
                   
                     case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
                         let consumptionSlipRewardDetail = rewardSpecificData[0];
-
+                        
                         returnData.condition.deposit.list = [];
                         returnData.condition.bet.list = [];
 

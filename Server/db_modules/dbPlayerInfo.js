@@ -18473,51 +18473,59 @@ let dbPlayerInfo = {
         return dbconfig.collection_tsPhoneList.distinct("name", {platform: platformObjId});
     },
 
-    importTSNewList: function (phoneNumber, saveObj, isUpdateExisting) {
-        let phoneArr = phoneNumber.split(/[\n,]+/).map((item) => item.trim());
-
-        if (phoneArr.length > 0) {
-            let tsPhoneProm;
-            if (isUpdateExisting) {
-                tsPhoneProm = dbconfig.collection_tsPhoneList.findOneAndUpdate(
-                    {
-                        platform: saveObj.platform,
-                        name: saveObj.name
-                    },
-                    {description: saveObj.description}, {new: true}).lean();
-            } else {
-                tsPhoneProm = dbconfig.collection_tsPhoneList.findOne({
-                    platform: saveObj.platform,
-                    name: saveObj.name
-                }).lean().then(
-                    list => {
-                        if (list) {
-                            return Promise.reject({
-                                name: "DataError",
-                                message: "List with same name exist"
-                            })
-                        }
-
-                        return new dbconfig.collection_tsPhoneList(saveObj).save();
+    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName) {
+        if (phoneListDetail.length > 0) {
+            let tsPhoneProm = dbconfig.collection_tsPhoneList.findOne({
+                platform: saveObj.platform,
+                name: saveObj.name
+            }).lean().then(
+                list => {
+                    if (isUpdateExisting) {
+                        return list;
                     }
-                );
-            }
+                    if (list) {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "List with same name exist"
+                        })
+                    }
+
+                    return new dbconfig.collection_tsPhoneList(saveObj).save();
+                }
+            );
+
             return tsPhoneProm.then(
                 tsList => {
                     if (tsList) {
+                        dbconfig.collection_tsPhoneImportRecord({
+                            platform: saveObj.platform,
+                            tsPhoneList: tsList._id,
+                            description: saveObj.description,
+                            adminName: adminName,
+                            admin: adminId
+                        }).save().catch(errorUtils.reportError);
+
                         let promArr = [];
 
-                        phoneArr.forEach(phoneNumber => {
-                            let encryptedNumber = rsaCrypto.encrypt(phoneNumber);
+                        phoneListDetail.forEach(phone => {
+                            let encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
 
                             promArr.push(
                                 dbconfig.collection_tsPhone({
                                     platform: saveObj.platform,
                                     phoneNumber: encryptedNumber,
+                                    playerName: phone.playerName,
+                                    realName: phone.realName,
+                                    gender: phone.gender,
+                                    dob: phone.dob,
+                                    wechat: phone.wechat,
+                                    qq: phone.qq,
+                                    email: phone.email,
+                                    remark: phone.remark,
                                     tsPhoneList: tsList._id
                                 }).save()
                             )
-                        })
+                        });
 
                         return Promise.all(promArr).then(
                             resData => {

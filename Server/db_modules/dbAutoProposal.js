@@ -1283,7 +1283,8 @@ function sendToAudit(proposalObjId, playerData, createTime, remark, remarkChines
     }).lean().then(
         proposalData => {
             if (proposalData) {
-                if (!proposalData.noSteps) {
+                //temp fix
+                if (true || !proposalData.noSteps) {
                     let dataToUpdate = {
                         status: constProposalStatus.PENDING,
                         'data.autoAuditTime': Date.now(),
@@ -1397,6 +1398,7 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
 function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
     thisWithdrawTime = new Date(thisWithdrawTime);
     let lastWithdrawTimeBeforeTopUp;
+    let withdrawCount = 0;
 
     // TODO:: May be enhanced to limit search to 1 year time -
 
@@ -1410,36 +1412,38 @@ function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
         lastTopUpProp => {
             if (lastTopUpProp && lastTopUpProp[0] && lastTopUpProp[0].createTime) {
                 // get last withdraw time before topup
-                return getWithdrawTime(platform._id, playerObjId, lastTopUpProp[0].createTime).then(
+                let lastValidWithdrawProm = getWithdrawTime(platform._id, playerObjId, lastTopUpProp[0].createTime);
+                let lastValidCountProm = getWithdrawTime(platform._id, playerObjId, thisWithdrawTime).then(
+                    lastWithdrawTimeAfterTopUp => {
+                        if (lastWithdrawTimeAfterTopUp && lastWithdrawTimeAfterTopUp[0] && lastWithdrawTimeAfterTopUp[0].createTime
+                            && (lastTopUpProp[0].createTime < lastWithdrawTimeAfterTopUp[0].createTime)) {
+
+                            let countBonusQuery = {
+                                'data.platformId': ObjectId(platform._id),
+                                'data.playerObjId': ObjectId(playerObjId),
+                                mainType: 'PlayerBonus',
+                                $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}],
+                                createTime: {$gte: lastTopUpProp[0].createTime, $lt: thisWithdrawTime}
+                            };
+
+                            // count total withdraw times after topup
+                            return dbconfig.collection_proposal.find(countBonusQuery).count();
+                        }
+                    }
+                )
+
+                return Promise.all([lastValidWithdrawProm, lastValidCountProm]).then(
                     retData => {
                         if (retData && retData[0]) {
                             lastWithdrawTimeBeforeTopUp = retData[0].createTime;
                         }
 
+                        if (retData && retData[1]) {
+                            withdrawCount = retData[1];
+                        }
+
                         // get last withdraw time after topup
-                        return getWithdrawTime(platform._id, playerObjId, thisWithdrawTime).then(
-                            lastWithdrawTimeAfterTopUp => {
-                                if (lastWithdrawTimeAfterTopUp && lastWithdrawTimeAfterTopUp[0] && lastWithdrawTimeAfterTopUp[0].createTime
-                                    && (lastTopUpProp[0].createTime < lastWithdrawTimeAfterTopUp[0].createTime)) {
-
-                                    let countBonusQuery = {
-                                        'data.platformId': ObjectId(platform._id),
-                                        'data.playerObjId': ObjectId(playerObjId),
-                                        mainType: 'PlayerBonus',
-                                        $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}],
-                                        createTime: {$gte: lastTopUpProp[0].createTime, $lt: thisWithdrawTime}
-                                    };
-
-                                    // count total withdraw times after topup
-                                    return dbconfig.collection_proposal.find(countBonusQuery).count().then(
-                                        count => {
-
-                                            return [lastWithdrawTimeBeforeTopUp, count];
-                                        }
-                                    );
-                                }
-                            }
-                        )
+                        return [lastWithdrawTimeBeforeTopUp, withdrawCount];
                     }
                 );
             }
