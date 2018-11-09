@@ -1292,7 +1292,8 @@ function sendToAudit(proposalObjId, playerData, createTime, remark, remarkChines
         model: dbconfig.collection_proposalType
     }).lean().then(
         proposalData => {
-            if (proposalData) {
+            //add status check
+            if (proposalData && proposalData.status == constProposalStatus.AUTOAUDIT) {
                 //temp fix
                 if (true || !proposalData.noSteps) {
                     let dataToUpdate = {
