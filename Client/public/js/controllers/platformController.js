@@ -17587,11 +17587,11 @@ define(['js/app'], function (myApp) {
                 });
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: showData,
-                    order: vm.feedbackAdminQuery.aaSorting || [[2, 'desc']],
+                    order: vm.feedbackAdminQuery.aaSorting || [[4, 'desc']],
                     aoColumnDefs: [
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [2]},
-                        {'sortCol': 'topupTimes', bSortable: true, 'aTargets': [5]},
-                        {'sortCol': 'amount', bSortable: true, 'aTargets': [6]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'topupTimes', bSortable: true, 'aTargets': [8]},
+                        {'sortCol': 'amount', bSortable: true, 'aTargets': [9]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
