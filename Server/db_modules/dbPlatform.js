@@ -5078,128 +5078,50 @@ var dbPlatform = {
                     let folderIndex = list.findIndex(l => l.name == platformId);
                     console.log("LH check FTP 7 --------------", folderIndex);
                     if (folderIndex > -1) {
-                        // if folder is exists,  get list and check if file name is exists
-                        ftpClient.list(function(err, fileList) {
+                        ftpClient.cwd(platformId, function (err, currentDir) {
                             if (err) {
                                 deferred.reject({
                                     status: constServerCode.DB_ERROR,
                                     name: "DataError",
-                                    errorMessage: "Failed to get directory list: " + err
+                                    errorMessage: err
                                 });
                             }
 
-                            console.log("LH check FTP 8 --------------", fileList);
-                            if(fileList && fileList.length > 0){
-                                let fileIndex = fileList.findIndex(f => f.name == fileName);
-                                console.log("LH check FTP 9 --------------", fileIndex);
-                                if(fileIndex > -1){
+                            // if folder is exists,  get list and check if file name is exists
+                            ftpClient.list(function (err, fileList) {
+                                if (err) {
                                     deferred.reject({
                                         status: constServerCode.DB_ERROR,
                                         name: "DataError",
-                                        errorMessage: "File name exists"
+                                        errorMessage: "Failed to get directory list: " + err
                                     });
                                 }
-                            }
 
-                            fileStream.on('data', function (d) {
-                                bufs.push(d);
-                            });
-                            fileStream.on('end', function () {
-                                var buf = Buffer.concat(bufs);
-                                console.log("LH check FTP 10 --------------", buf);
-                                //if it is a zip file, unzip it first
                                 if (fileName.includes(".zip")) {
-                                    var zip = new admZip(buf);
+                                    var zip = new admZip(fileStream);
                                     var zipEntries = zip.getEntries();
-
                                     zipEntries.forEach(function (zipEntry) {
                                         if (zipEntry.entryName) {
                                             fileName = zipEntry.entryName;
                                         }
-                                        buf = zip.readFile(zipEntry); // decompressed buffer of the entry
+                                        fileStream = zip.readFile(zipEntry); // decompressed buffer of the entry
                                     })
                                 }
 
-                                // transfer file to correct directory
-                                ftpClient.put(buf, platformId + "/" + fileName, function (err) {
-                                    if (err) {
+                                console.log("LH check FTP 8 --------------", fileList);
+                                if (fileList && fileList.length > 0) {
+                                    let fileIndex = fileList.findIndex(f => f.name == fileName);
+                                    console.log("LH check FTP 9 --------------", fileIndex);
+                                    if (fileIndex > -1) {
                                         deferred.reject({
                                             status: constServerCode.DB_ERROR,
                                             name: "DataError",
-                                            errorMessage: err
+                                            errorMessage: "File name exists"
                                         });
-                                    };
-
-                                    deferred.resolve({result: "success"});
-                                    ftpClient.end();
-                                });
-                            });
-                        });
-                    }
-                }
-
-
-                console.log("LH check FTP 11 -------------- Folder not exist");
-                ftpClient.mkdir(platformId, false, function(err){
-                    if(err) {
-                        deferred.reject({
-                            status: constServerCode.DB_ERROR,
-                            name: "DataError",
-                            errorMessage: "Failed to create folder: " + err
-                        });
-                    }
-
-                    console.log("LH check FTP 12 -------------- Folder created");
-                    ftpClient.cwd(platformId, function (err, currentDir) {
-                        if(err){
-                            deferred.reject({
-                                status: constServerCode.DB_ERROR,
-                                name: "DataError",
-                                errorMessage: err
-                            });
-                        }
-
-                        console.log("LH check FTP 13 --------------", currentDir);
-
-                        ftpClient.list(function(err, fileList){
-                            if (err) {
-                                deferred.reject({
-                                    status: constServerCode.DB_ERROR,
-                                    name: "DataError",
-                                    errorMessage: "Failed to get directory list: " + err
-                                });
-                            }
-
-                            if(fileList && fileList.length > 0){
-                                let fileIndex = fileList.findIndex(f => f.name == fileName);
-                                if(fileIndex > -1){
-                                    deferred.reject({
-                                        status: constServerCode.DB_ERROR,
-                                        name: "DataError",
-                                        errorMessage: "File name exists"
-                                    });
-                                }
-                            }
-
-                            fileStream.on('data', function (d) {
-                                bufs.push(d);
-                            });
-                            fileStream.on('end', function () {
-                                var buf = Buffer.concat(bufs);
-
-                                if (fileName.includes(".zip")) {
-                                    var zip = new admZip(buf);
-                                    var zipEntries = zip.getEntries();
-
-                                    zipEntries.forEach(function (zipEntry) {
-                                        if (zipEntry.entryName) {
-                                            fileName = zipEntry.entryName;
-                                        }
-                                        buf = zip.readFile(zipEntry); // decompressed buffer of the entry
-                                    })
+                                    }
                                 }
 
-                                ftpClient.put(buf, fileName, function (err) {
+                                ftpClient.put(fileStream, fileName, function (err) {
                                     if (err) {
                                         deferred.reject({
                                             status: constServerCode.DB_ERROR,
@@ -5208,13 +5130,57 @@ var dbPlatform = {
                                         });
                                     }
 
-                                    deferred.resolve({result: success});
+                                    deferred.resolve({result: "success"});
                                     ftpClient.end();
                                 });
                             });
                         });
+                    }
+                }else{
+                    ftpClient.mkdir(platformId, false, function(err){
+                        if(err) {
+                            deferred.reject({
+                                status: constServerCode.DB_ERROR,
+                                name: "DataError",
+                                errorMessage: "Failed to create folder: " + err
+                            });
+                        }
+
+                        ftpClient.cwd(platformId, function (err, currentDir) {
+                            if(err){
+                                deferred.reject({
+                                    status: constServerCode.DB_ERROR,
+                                    name: "DataError",
+                                    errorMessage: err
+                                });
+                            }
+
+                            if (fileName.includes(".zip")) {
+                                var zip = new admZip(fileStream);
+                                var zipEntries = zip.getEntries();
+                                zipEntries.forEach(function (zipEntry) {
+                                    if (zipEntry.entryName) {
+                                        fileName = zipEntry.entryName;
+                                    }
+                                    fileStream = zip.readFile(zipEntry); // decompressed buffer of the entry
+                                })
+                            }
+
+                            ftpClient.put(fileStream, fileName, function (err) {
+                                if (err) {
+                                    deferred.reject({
+                                        status: constServerCode.DB_ERROR,
+                                        name: "DataError",
+                                        errorMessage: "Failed to create file: " + err
+                                    });
+                                }
+
+                                deferred.resolve({result: "success"});
+                                ftpClient.end();
+                            });
+                        });
                     });
-                });
+                };
             });
         });
 
