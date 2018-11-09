@@ -141,7 +141,7 @@ let dbPromoCode = {
                                 'data.lastLoginIp': lastLoginIp,
                                 createTime: { $gte: promoCodeObj.createTime, $lt: promoCodeObj.expirationTime},
                                 status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
-                            }).lean().count();
+                            }).read("secondaryPreferred").lean().count();
                         }
                         else{
                             ipProposalProm = Promise.resolve(0);
