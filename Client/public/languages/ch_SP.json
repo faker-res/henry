@@ -4703,7 +4703,8 @@
   "FPMS Qty":"FPMS 笔数",
   "Subtract (CPMS-FPMS)":"笔数差距（CPMS-FPMS）",
   "Recover Bets": "补收录",
-  "Fetching Bets":"重新收录中"
+  "Fetching Bets":"重新收录中",
+  "Submit Consumption Return": "提交洗码"
 
 
 

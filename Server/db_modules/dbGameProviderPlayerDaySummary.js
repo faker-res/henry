@@ -7,6 +7,7 @@ const constShardKeys = require('../const/constShardKeys');
 const Q = require("q");
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
+var cpmsAPI = require("./../externalAPI/cpmsAPI");
 
 var dbGameProviderPlayerDaySummary = {
 
@@ -305,152 +306,70 @@ var dbGameProviderPlayerDaySummary = {
             endTime: endTime,
             platformId: platformId
         }
-        // return cpmsAPI.syncBetRecord(sendData);
-        return {};
+        return cpmsAPI.consumption_reSendConsumption(sendData);
+
     },
     getProviderDifferDaySummaryForTimeFrame: function (startTime, endTime, platformId, proId, index, count) {
-        console.log('we in')
 
-        function getFakeData(){
-
-        let result = { data:{
-            data:[
-                {
-                    amount:799986.3,
-                    bonusAmount:-62014.310000000005,
-                    consumption:13620,
-                    providerId:"85",
-                    providerName:"AGSLOTS",
-                    total_player:47,
-                    validAmount:799946.3,
-                    _id:"5b85fcdb40774704554eb698"
-                }
-                // {
-                //     amount:2547,
-                //     bonusAmount:-749.45,
-                //     consumption:9,
-                //     providerId:"93",
-                //     providerName:"ESPORTBULL",
-                //     total_player:3,
-                //     validAmount:2547,
-                //     _id:"5bb6be18df60a303103299ba"
-                // },
-                // {
-                //     amount:214473,
-                //     bonusAmount:-30718.91,
-                //     consumption:305,
-                //     providerId:"86",
-                //     providerName:"SABASPORTS",
-                //     total_player:35,
-                //     validAmount:186777.5,
-                //     _id:"5b879c00e2aa43024b99db1e"
-                // },
-                // {
-                //     amount:541739.4800000072,
-                //     bonusAmount:-46230.62000000047,
-                //     consumption:79336,
-                //     providerId:"18",
-                //     providerName:"PT",
-                //     total_player:82,
-                //     validAmount:541739.4800000072,
-                //     _id:"584a1b86c78e385935cf809b"
-                // }
-            ]
-        }
-        }
-
-                    return result.data;
-                    }
-
-        function getFakeCPMSData(){
-
-            let result = { data:{
-                data:[
-                    {
-                        amount:799986.3,
-                        bonusAmount:-62014.310000000005,
-                        consumption:100,
-                        providerId:"85",
-                        providerName:"AGSLOTS",
-                        total_player:47,
-                        validAmount:100,
-                        _id:"5b85fcdb40774704554eb698"
-                    }
-                    // {
-                    //     amount:2547,
-                    //     bonusAmount:-749.45,
-                    //     consumption:9,
-                    //     providerId:"93",
-                    //     providerName:"ESPORTBULL",
-                    //     total_player:3,
-                    //     validAmount:2547,
-                    //     _id:"5bb6be18df60a303103299ba"
-                    // },
-                    // {
-                    //     amount:214473,
-                    //     bonusAmount:-30718.91,
-                    //     consumption:300,
-                    //     providerId:"86",
-                    //     providerName:"SABASPORTS",
-                    //     total_player:35,
-                    //     validAmount:300,
-                    //     _id:"5b879c00e2aa43024b99db1e"
-                    // },
-                    // {
-                    //     amount:541739.4800000072,
-                    //     bonusAmount:-46230.62000000047,
-                    //     consumption:400,
-                    //     providerId:"18",
-                    //     providerName:"PT",
-                    //     total_player:82,
-                    //     validAmount:400,
-                    //     _id:"584a1b86c78e385935cf809b"
-                    // }
-                ]
-              }
-            }
-
-            return result.data;
-        }
-
-
-        let a = dbGameProviderPlayerDaySummary.getProviderDaySummaryForTimeFrame(startTime, endTime, platformId, proId, index, count);
-           //dbGameProviderPlayerDaySummary.getAllProviderDaySummaryForTimeFrame(startTime, endTime, platformId, proId, index, count);
-        let b = {}
-        return Q.all(a)
+        var sendQuery = {
+            platformId: platformId,
+            providerId: proId,
+            startTime: startTime,
+            endTime: endTime
+        };
+        let fpmsSummary = dbGameProviderPlayerDaySummary.getProviderDaySummaryForTimeFrame(startTime, endTime, platformId, proId, index, count);
+        let cpmsSummary = cpmsAPI.consumption_getConsumptionSummary(sendQuery).catch(err=>{console.log(err)});
+        return Q.all([fpmsSummary, cpmsSummary])
 
         .then(data=>{
             console.log(data);
-            let fpmsData = getFakeData();
-            let cpmsData= getFakeCPMSData();
+            let fpmsData = (data && data[0]) ? data[0] : {consumption:0, validAmount:0};
+            console.log(fpmsData);
+            let cpmsData = dbGameProviderPlayerDaySummary.sumCPMSBetsRecord(data[1]);
             let combineData = [];
             let index = 1;
 
             let providerId = cpmsData.providerId;
 
             if(fpmsData){
-
+                console.log('fpms data exist');
                 //1 - 数字相同不用补收录  2 - 需要补收录  3 - 重新收录中
-                let status = ((cpmsData.validAmount - fpmsData.validAmount == 0) && (cpmsData.consumption - fpmsData.consumption == 0)) ? 3 : 2;
+                let status = ((cpmsData.validAmount - fpmsData.validAmount == 0) && (cpmsData.consumption - fpmsData.consumption == 0)) ? 2 : 2;
                 let providerConsumption = {
                     index:index,
                     providerId:cpmsData.providerId,
-                    providerName:cpmsData.providerName,
+                    providerName:cpmsData.providerName+'('+proId+')',
                     fpmsConsumption:fpmsData.consumption,
                     fpmsValidAmount:fpmsData.validAmount,
                     cpmsConsumption:cpmsData.consumption,
                     cpmsValidAmount:cpmsData.validAmount,
-                    validAmtSyncPercent: ((fpmsData.validAmount / cpmsData.validAmount)*100).toFixed(2),
+                    validAmtSyncPercent: ((fpmsData.validAmount / cpmsData.validAmount)*100).toFixed(2) || 0,
                     consumptionDiff:cpmsData.consumption - fpmsData.consumption,
                     status:status
                 }
                 combineData.push(providerConsumption);
             }
 
-
-            console.log(combineData)
-            return combineData;
+            console.log(combineData);
+            let result = (combineData && combineData[0]) ? combineData[0]:[];
+            return result
         })
+    },
+    sumCPMSBetsRecord: function(data){
+        let result = {
+            cpmsConsumption:0,
+            cpmsValidAmount:0
+        }
+
+        if(data && data.data && data.data.summary && data.data.summary.length > 0){
+            data.data.summary.forEach(item=>{
+                if(item.summaryData){
+                    result.cpmsConsumption += item.summaryData.totalCount;
+                    result.cpmsValidAmount += item.summaryData.totalValidAmount;
+                }
+            })
+        }
+        return result;
     },
     getAllProviderDaySummaryForTimeFrame: function (startTime, endTime, platformId, proId, index, count) {
         var deferred = Q.defer();

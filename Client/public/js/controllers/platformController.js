@@ -2154,13 +2154,38 @@ define(['js/app'], function (myApp) {
                         })
                     });
             }
+            vm.resetProviderConsumptRecord = function(index, providerId){
 
+                let provider = vm.platformProviderList.filter(item=>{
+                    return item.providerId == providerId;
+                })
+                provider = (provider && provider[0]) ? provider[0] : [];
+                let providerName = provider.code + '('+providerId+')'
+                return {
+                     index:index,
+                     providerId:null,
+                     providerName:providerName,
+                     fpmsConsumption:null,
+                     fpmsValidAmount:null,
+                     cpmsConsumption:null,
+                     cpmsValidAmount:null,
+                     validAmtSyncPercent: null,
+                     consumptionDiff:null,
+                     status:null
+               }
+            }
             vm.compareAllConsumptionReturn = function(startTime, endTime){
-                console.log(vm.platformProviderList);
+                vm.settlementTime = vm.allRewardEvent.filter(item=>{
+                    return item.type.name == 'PlayerConsumptionReturn';
+                })
+                vm.settlementTime = vm.settlementTime[0] ? vm.settlementTime[0] : {};
+
+                console.log(vm.settlementTime)
                 vm.providerDiffConsumption = {};
                 vm.providerLists = [];
-                vm.platformProviderList.forEach(item=>{
-                    vm.providerDiffConsumption[item.providerId] = item;
+                vm.platformProviderList.forEach((item, index)=>{
+                    console.log(item);
+                    vm.providerDiffConsumption[item.providerId] = vm.resetProviderConsumptRecord(index, item.providerId);
                     vm.providerLists.push(item.providerId);
                     vm.compareConsumptionReturn(startTime, endTime, item.providerId)
                 });
@@ -2171,7 +2196,9 @@ define(['js/app'], function (myApp) {
                     startTime: startTime,
                     endTime: endTime,
                     providerId:providerId,
-                    limit: 100
+                    index:0,
+                    limit:10000
+                    // limit: 100
                     // sortCol: vm.sendMultiMessage.sortCol
                     // platformId: vm.selectedPlatform.id,
                     // query: playerQuery,
@@ -2184,12 +2211,14 @@ define(['js/app'], function (myApp) {
                         // data = getFakeData();
                         console.log('playerData', data);
                         let size = data.data.length;
-                        vm.providerDiffConsumption[providerId] = data.data;
+                        vm.providerDiffConsumption[providerId] = (data && data.data) ? data.data : [];
                         // vm.drawConsumptionReturnTable(data.data, size, startTime, endTime);
                     });
                 });
             }
-            vm.syncBetRecord = function(providerId, startTime, endTime){
+            vm.syncBetRecord = function(startTime, endTime, providerId){
+                vm.providerDiffConsumption[providerId] = vm.resetProviderConsumptRecord(index, providerId);
+                vm.providerDiffConsumption[providerId].status = 3;
                 var sendQuery = {
                     platformId: vm.selectedPlatform.id,
                     providerId: providerId,

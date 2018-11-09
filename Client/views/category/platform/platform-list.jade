@@ -426,7 +426,7 @@
     .modal-dialog
         .modal-content
             .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal') llla
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title {{"Player Consumption Return Settlement" | translate}} : {{vm.selectedPlatform.text}}
             .modal-body
                 //label {{"Are you sure to" | translate}}&nbsp;{{"SETTLEMENT" | translate}}?
@@ -446,27 +446,73 @@
                                 td {{event.name}}
                                 td {{event.settlementStartTime}} -> {{event.settlementEndTime}}
                                 td
-                                  .btn(ng-click="vm.compareAllConsumptionReturn(event.settlementStartTime, event.settlementEndTime)") {{"Refresh" | translate}}
+                                  button.btn.btn-primary(ng-click="vm.compareAllConsumptionReturn(event.settlementStartTime, event.settlementEndTime)") {{"Refresh" | translate}}
 
                 div
-                    table#consumptionRecoverTbl.common-table
+                    table#consumptionRecoverTbl.table
                         thead
-                            th
-                            th
-                            th
-                            th
-                        tbody(ng-repeat='provider in vm.providerLists')
-                            tr
-                                td {{provider}}
+                            th {{'sequence' | translate}}
+                            th {{'provider(ID)' | translate}}
+                            th {{'CPMS Valid Bet Amount' | translate}}
+                            th {{'FPMS Valid Bet Amount' | translate}}
+                            th {{'FPMS Valid Bet Sync％' | translate}}
+                            th {{'CPMS Qty' | translate}}
+                            th {{'FPMS Qty' | translate}}
+                            th {{'Subtract (CPMS-FPMS)' | translate}}
+                            th {{'ACTION_BUTTON' | translate}}
 
+
+                        tbody(ng-repeat='providerId in vm.providerLists')
+                            tr
+                                td {{vm.providerDiffConsumption[providerId].index}}
+                                td {{vm.providerDiffConsumption[providerId].providerName}}
+                                td
+                                    div(ng-if="!vm.providerDiffConsumption[providerId].cpmsValidAmount")
+                                        i.fa.fa-spinner.fa-spin
+                                    div(ng-if="vm.providerDiffConsumption[providerId].cpmsValidAmount") {{vm.providerDiffConsumption[providerId].cpmsValidAmount}}
+                                td
+                                    div(ng-if="!vm.providerDiffConsumption[providerId].fpmsValidAmount")
+                                        i.fa.fa-spinner.fa-spin
+                                    div(ng-if="vm.providerDiffConsumption[providerId].fpmsValidAmount && vm.providerDiffConsumption[providerId].status!=3") {{vm.providerDiffConsumption[providerId].fpmsValidAmount}}
+                                    div(ng-if="vm.providerDiffConsumption[providerId].fpmsValidAmount && vm.providerDiffConsumption[providerId].status!=3") {{vm.providerDiffConsumption[providerId].fpmsValidAmount}}
+                                        span(style="color:red") ↑
+                                td
+                                    div(ng-if="!vm.providerDiffConsumption[providerId].validAmtSyncPercent")
+                                        i.fa.fa-spinner.fa-spin
+                                    div(ng-if="vm.providerDiffConsumption[providerId].validAmtSyncPercent && vm.providerDiffConsumption[providerId].status!=3") {{vm.providerDiffConsumption[providerId].validAmtSyncPercent}}
+                                    div(ng-if="vm.providerDiffConsumption[providerId].validAmtSyncPercent && vm.providerDiffConsumption[providerId].status==3") {{vm.providerDiffConsumption[providerId].validAmtSyncPercent}}
+                                        span(style="color:red") ↑
+
+                                td
+                                    div(ng-if="!vm.providerDiffConsumption[providerId].cpmsConsumption")
+                                        i.fa.fa-spinner.fa-spin
+                                    div(ng-if="vm.providerDiffConsumption[providerId].cpmsConsumption") {{vm.providerDiffConsumption[providerId].cpmsConsumption}}
+                                td
+                                    div(ng-if="!vm.providerDiffConsumption[providerId].fpmsConsumption")
+                                        i.fa.fa-spinner.fa-spin
+                                    div(ng-if="vm.providerDiffConsumption[providerId].fpmsConsumption") {{vm.providerDiffConsumption[providerId].fpmsConsumption}}
+                                td
+                                    div(ng-if="!vm.providerDiffConsumption[providerId].consumptionDiff")
+                                        i.fa.fa-spinner.fa-spin
+                                    div(ng-if="vm.providerDiffConsumption[providerId].consumptionDiff && vm.providerDiffConsumption[providerId].status!='3'") {{vm.providerDiffConsumption[providerId].consumptionDiff}}
+                                    div(ng-if="vm.providerDiffConsumption[providerId].consumptionDiff && vm.providerDiffConsumption[providerId].status=='3'") {{vm.providerDiffConsumption[providerId].consumptionDiff}}
+                                        span(style="color:red") ↓
+
+                                td
+                                    div(ng-if="vm.providerDiffConsumption[providerId].status==1")
+                                        div(class="btn btn-primary disabled") {{'Recover Bets' | translate}}
+                                    div(ng-if="vm.providerDiffConsumption[providerId].status==2")
+                                        div(class="btn btn-primary", ng-click="vm.syncBetRecord(vm.settlementTime.settlementStartTime, vm.settlementTime.settlementEndTime, providerId )") {{'Recover Bets' | translate}}
+                                    div(ng-if="vm.providerDiffConsumption[providerId].status==3")
+                                        div(class="btn btn-danger disabled") {{'Fetching Bets' | translate}}
 
                     //table#playerConsumptionReturnRecoverTbl.common-table
 
             .modal-footer
                 .form-control.inlineBlk(style='width:initial', ng-if='vm.playerConsumptionReturnSettlement.status=="completed"')
                     .text-danger {{vm.playerConsumptionReturnSettlement.result | translate}}
+                button.btn.btn-success.common-button(ng-if='vm.playerConsumptionReturnSettlement.status=="ready"', ng-click="vm.performPlayerConsumptionReturnSettlement()") {{'Submit Consumption Return' | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{'CLOSE' | translate}}
-                button.btn.btn-success.common-button(ng-if='vm.playerConsumptionReturnSettlement.status=="ready"', ng-click="vm.performPlayerConsumptionReturnSettlement()") {{'CONFIRM' | translate}}
                 i.fa.fa-spin.fa-spinner.text-danger.fa-2x(ng-if='vm.playerConsumptionReturnSettlement.status=="processing"')
 
 

@@ -121,6 +121,7 @@ function socketActionReport(socketIO, socket) {
         },
         syncBetRecord: function syncBetRecord(query) {
             var actionName = arguments.callee.name;
+            var time = dbUtil.getYesterdaySGTime();
             var startTime = query.startTime ? new Date(query.startTime) : time.startTime;
             var endTime = query.endTime ? new Date(query.endTime) : time.endTime;
             query.limit = query.limit || 20;
