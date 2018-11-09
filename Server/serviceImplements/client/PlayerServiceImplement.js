@@ -113,7 +113,9 @@ let PlayerServiceImplement = function () {
                 console.log("createPlayerRegistrationIntentRecordAPI SUCCESS", data);
                 dbPlayerRegistrationIntentRecord.updatePlayerRegistrationIntentRecordAPI(data, constProposalStatus.SUCCESS).then(
                     isUpdateData=> {
+                        console.log("isUpdateData===", isUpdateData);
                         if (!(isUpdateData[0] && isUpdateData[0]._id)) {
+                            console.log("HERE99911===");
                             dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecordAPI(data, constProposalStatus.NOVERIFY, inputDevice).catch(errorUtils.reportError);
                         }
                     }
