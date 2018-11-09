@@ -881,7 +881,7 @@ define(['js/app'], function (myApp) {
 
         // import phone number to system
         vm.importTSNewList = function (uploadData, tsNewListObj) {
-            let dailyDistributeTaskData = $('#dxTimePicker').data('datetimepicker').getLocalDate();
+            let dailyDistributeTaskDate = $('#dxTimePicker').data('datetimepicker').getLocalDate();
             let sendData = {
                 phoneListDetail: uploadData,
                 isUpdateExisting: vm.tsNewList && vm.tsNewList.checkBoxA || false,
@@ -895,9 +895,9 @@ define(['js/app'], function (myApp) {
                     failFeedBackContent: tsNewListObj.failFeedBackContent,
                     callerCycleCount: tsNewListObj.callerCycleCount,
                     dailyCallerMaximumTask: tsNewListObj.dailyCallerMaximumTask,
-                    dailyDistributeTaskHour: dailyDistributeTaskData.getHours(),
-                    dailyDistributeTaskMinute: dailyDistributeTaskData.getMinutes(),
-                    dailyDistributeTaskSecond: dailyDistributeTaskData.getSeconds(),
+                    dailyDistributeTaskHour: dailyDistributeTaskDate.getHours(),
+                    dailyDistributeTaskMinute: dailyDistributeTaskDate.getMinutes(),
+                    dailyDistributeTaskSecond: dailyDistributeTaskDate.getSeconds(),
                     distributeTaskStartTime: $('#dxDatePicker').data('datetimepicker').getLocalDate(),
                     reclaimDayCount: tsNewListObj.reclaimDayCount,
                     isCheckWhiteListAndRecycleBin: tsNewListObj.isCheckWhiteListAndRecycleBin,
@@ -4961,28 +4961,88 @@ define(['js/app'], function (myApp) {
         }
 
 
-        vm.initAnalyticsFilterAndImportDXSystem = function (data) {
+        vm.initAnalyticsFilterAndImportDXSystem = function (rowData) {
             vm.isShowNewListModal = true;
             vm.tsNewListEnableSubmit = true;
             vm.analyticsdisableAll = true;
             vm.analyticsPhoneListEdit = true;
-            vm.tsAnalyticsPhoneList = {dangerZoneList: []};
+            vm.tsAnalyticsPhoneList = {dangerZoneList: [], time_operator_description: []};
             vm.checkFilterIsDisable = true;
+
             utilService.actionAfterLoaded("#tsAnalyticsDatePicker", function () {
                 $('#tsAnalyticsDatePicker').datetimepicker({
                     language: 'en',
                     format: 'dd/MM/yyyy',
                     pickTime: false,
                 });
-                $('#tsAnalyticsDatePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
+
                 $('#tsAnalyticsTimePicker').datetimepicker({
                     language: 'en',
                     format: 'HH:mm:ss',
                     pick12HourFormat: true,
                     pickDate: false,
                 });
-                $('#tsAnalyticsTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
+
+                if (rowData) {
+                    vm.tsAnalyticsPhoneList._id = rowData._id;
+                    vm.tsAnalyticsPhoneList.name = rowData.name;
+                    vm.tsAnalyticsPhoneList.failFeedBackResult = rowData.failFeedBackResult;
+                    vm.tsAnalyticsPhoneList.failFeedBackTopic = rowData.failFeedBackTopic;
+                    vm.tsAnalyticsPhoneList.failFeedBackContent = rowData.failFeedBackContent;
+                    vm.tsAnalyticsPhoneList.callerCycleCount = rowData.callerCycleCount;
+                    vm.tsAnalyticsPhoneList.dailyCallerMaximumTask = rowData.dailyCallerMaximumTask;
+                    let tsPhoneListTime = new Date();
+                    if (rowData.hasOwnProperty("dailyDistributeTaskHour") && rowData.hasOwnProperty("dailyDistributeTaskMinute")
+                        && rowData.hasOwnProperty("dailyDistributeTaskSecond")) {
+                        tsPhoneListTime.setHours(rowData.dailyDistributeTaskHour);
+                        tsPhoneListTime.setMinutes(rowData.dailyDistributeTaskMinute);
+                        tsPhoneListTime.setSeconds(rowData.dailyDistributeTaskSecond);
+                        $('#tsAnalyticsTimePicker').data('datetimepicker').setDate(utilService.getLocalTime(tsPhoneListTime));
+                    } else {
+                        $('#tsAnalyticsTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
+                    }
+                    $('#tsAnalyticsDatePicker').data('datetimepicker').setDate(utilService.getLocalTime(new Date(rowData.distributeTaskStartTime)));
+                    vm.tsAnalyticsPhoneList.reclaimDayCount = rowData.reclaimDayCount;
+                    vm.tsAnalyticsPhoneList.isCheckWhiteListAndRecycleBin = rowData.isCheckWhiteListAndRecycleBin;
+                    vm.tsAnalyticsPhoneList.dangerZoneList = rowData.dangerZoneList;
+                    vm.checkAnalyticsFilterAndImportSystem();
+                }
+
+                socketService.$socket($scope.AppSocket, 'getTsPhoneImportRecord', {platform: vm.selectedPlatform.id, tsPhoneList: rowData._id}, function (data) {
+                    if (data && data.data  && data.data.length) {
+                        $scope.$evalAsync(() => {
+                            data.data.forEach(tsImportRecord => {
+                                if (tsImportRecord.description) {
+                                    vm.tsAnalyticsPhoneList.time_operator_description.push(tsImportRecord.description);
+                                }
+                            });
+                        });
+                    }
+                })
             });
+
+            vm.editTsNewList = function () {
+                let dailyDistributeTaskDate = $('#tsAnalyticsTimePicker').data('datetimepicker').getLocalDate();
+                let sendData = {
+                    query: {
+                        _id: vm.tsAnalyticsPhoneList._id
+                    },
+                    updateData: {
+                        failFeedBackResult: vm.tsAnalyticsPhoneList.failFeedBackResult,
+                        failFeedBackTopic: vm.tsAnalyticsPhoneList.failFeedBackTopic,
+                        failFeedBackContent: vm.tsAnalyticsPhoneList.failFeedBackContent,
+                        callerCycleCount: vm.tsAnalyticsPhoneList.callerCycleCount,
+                        dailyCallerMaximumTask:vm. tsAnalyticsPhoneList.dailyCallerMaximumTask,
+                        dailyDistributeTaskHour: dailyDistributeTaskDate.getHours(),
+                        dailyDistributeTaskMinute: dailyDistributeTaskDate.getMinutes(),
+                        dailyDistributeTaskSecond: dailyDistributeTaskDate.getSeconds(),
+                        reclaimDayCount: vm.tsAnalyticsPhoneList.reclaimDayCount,
+                        dangerZoneList: vm.tsAnalyticsPhoneList.dangerZoneList
+                    }
+                };
+
+                socketService.$socket($scope.AppSocket, 'updateTsPhoneList', sendData, function () {})
+            }
 
 
 

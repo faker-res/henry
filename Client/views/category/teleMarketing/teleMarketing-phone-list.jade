@@ -121,14 +121,14 @@ label(ng-show='vm.platformPlayerCount') {{'Total Players' | translate}} : {{vm.p
                                                 td {{'Filter Phone Number From White List And Recycle Bin' | translate}}
                                                 td
                                                     input(type='checkbox', min=0, ng-model='vm.tsAnalyticsPhoneList.isCheckWhiteListAndRecycleBin' ng-disabled='vm.analyticsdisableAll')
-                                            tr
+                                            tr(ng-repeat='(i,v) in vm.tsAnalyticsPhoneList.time_operator_description')
                                                 td {{'Time/Operator/Description' | translate}}
                                                 td
-                                                    input.form-control(type='text', ng-model='vm.tsAnalyticsPhoneList.time_operator_description' ng-disabled='vm.analyticsdisableAll')
+                                                    input.form-control(type='text', ng-model='vm.tsAnalyticsPhoneList.time_operator_description[i]' ng-disabled='true')
 
             .modal-footer
                 div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
-                button.btn.btn-success.common-button(data-dismiss='modal'  ng-if="!vm.importPhoneResult" ng-click="vm.uploadPhoneFileXLS('', true, null, true)" ng-disabled="vm.checkFilterIsDisable" ng-show="!vm.analyticsPhoneListEdit")
+                button.btn.btn-success.common-button(data-dismiss='modal'  ng-if="!vm.importPhoneResult" ng-click="vm.editTsNewList()" ng-disabled="vm.checkFilterIsDisable" ng-show="!vm.analyticsPhoneListEdit")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
                 button.btn.btn-danger.common-button(data-dismiss='modal' ng-show="vm.analyticsPhoneListEdit")
