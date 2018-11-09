@@ -52,7 +52,7 @@ label(ng-show='vm.platformPlayerCount') {{'Total Players' | translate}} : {{vm.p
                                             tr
                                                 td {{'Name Of List (Required) (Unique)' | translate}}
                                                 td
-                                                    input.form-control(type='text', ng-model='vm.tsAnalyticsPhoneList.name' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.disableAll')
+                                                    input.form-control(type='text', ng-model='vm.tsAnalyticsPhoneList.name' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsdisableAll')
                                             tr
                                                 td {{'Feedback Result Of Default Failure System Call (Required)' | translate}}
                                                 td
@@ -79,14 +79,14 @@ label(ng-show='vm.platformPlayerCount') {{'Total Players' | translate}} : {{vm.p
                                                     #tsAnalyticsTimePicker.datetimepicker.form-control
                                                         input.input-append.playerDate(style='border:0;', data-format="hh:mm:ss", type='text' ng-disabled='vm.analyticsPhoneListEdit')
                                                         span.add-on
-                                                            i.fa-clock-o.fa(data-time-icon='fa fa-clock-o' ng-show='!vm.disableAll')
+                                                            i.fa-clock-o.fa(data-time-icon='fa fa-clock-o' ng-show='!vm.analyticsPhoneListEdit')
                                             tr
                                                 td {{'Distribute Task Start Date (Required)' | translate}}
                                                 td
                                                     #tsAnalyticsDatePicker.datetimepicker.form-control
-                                                        input.input-append.playerDate(style='border:0;', data-format="dd/MM/yyyy", type='text' ng-disabled='vm.disableAll')
+                                                        input.input-append.playerDate(style='border:0;', data-format="dd/MM/yyyy", type='text' ng-disabled='vm.analyticsdisableAll')
                                                         span.add-on
-                                                            i.fa-calendar.fa(data-date-icon='fa fa-calendar' ng-show='!vm.disableAll')
+                                                            i.fa-calendar.fa(data-date-icon='fa fa-calendar' ng-show='!vm.analyticsdisableAll')
                                             tr
                                                 td {{'Reclaim Task After X Days And Re-assign Task (Required)' | translate}}
                                                 td
@@ -120,11 +120,11 @@ label(ng-show='vm.platformPlayerCount') {{'Total Players' | translate}} : {{vm.p
                                             tr
                                                 td {{'Filter Phone Number From White List And Recycle Bin' | translate}}
                                                 td
-                                                    input(type='checkbox', min=0, ng-model='vm.tsAnalyticsPhoneList.isCheckWhiteListAndRecycleBin' ng-disabled='vm.disableAll')
+                                                    input(type='checkbox', min=0, ng-model='vm.tsAnalyticsPhoneList.isCheckWhiteListAndRecycleBin' ng-disabled='vm.analyticsdisableAll')
                                             tr
                                                 td {{'Time/Operator/Description' | translate}}
                                                 td
-                                                    input.form-control(type='text', ng-model='vm.tsAnalyticsPhoneList.time_operator_description' ng-disabled='vm.disableAll')
+                                                    input.form-control(type='text', ng-model='vm.tsAnalyticsPhoneList.time_operator_description' ng-disabled='vm.analyticsdisableAll')
 
             .modal-footer
                 div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
