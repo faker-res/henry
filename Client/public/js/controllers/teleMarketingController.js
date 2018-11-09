@@ -4960,6 +4960,25 @@ define(['js/app'], function (myApp) {
             vm.tsCity = "";
         }
 
+
+        vm.initAnalyticsFilterAndImportDXSystem = function (data) {
+            vm.isShowNewListModal = true;
+            vm.tsNewListEnableSubmit = true;
+            vm.disableAll = true;
+            vm.analyticsPhoneListEdit = true;
+            vm.tsAnalyticsPhoneList = {dangerZoneList: []};
+
+
+            vm.tsAnalyticsProvince = "";
+            vm.tsAnalyticsCity = "";
+
+        }
+
+        vm.resetAnalyticsProvince = function () {
+            vm.tsAnalyticsProvince = "";
+            vm.tsAnalyticsCity = "";
+        }
+
         vm.resetProvince = function () {
             vm.tsProvince = "";
             vm.tsCity = "";
@@ -4995,7 +5014,17 @@ define(['js/app'], function (myApp) {
                 "sScrollY": 550,
                 "scrollCollapse": true,
                 columns: [
-                    {title: $translate('NAME_LIST_TITLE'), data: "name"},
+                    {
+                        title: $translate('NAME_LIST_TITLE'), data: "name",
+                        render: function (data, type, row, index) {
+                            var link = $('<a>', {
+                                'ng-click': 'vm.initAnalyticsFilterAndImportDXSystem(' + JSON.stringify(row) + ');',
+                                'data-toggle': 'modal',
+                                'data-target': '#modaltsAnalyticsPhoneList'
+                            }).text(data);
+                            return link.prop('outerHTML');
+                        }
+                    },
                     {
                         title: $translate('SEND_STATUS'), data: "status",
                         render: function (data, type, row, index) {
@@ -5116,6 +5145,23 @@ define(['js/app'], function (myApp) {
         }
 
 
+        vm.tsAnalyticsPhoneListEdit = () => {
+            vm.analyticsPhoneListEdit = false;
+        }
+
+        vm.checkAnalyticsFilterAndImportSystem = () => {
+            vm.checkFilterIsDisable = true;
+                if (vm.tsAnalyticsPhoneList) {
+                    if (vm.tsAnalyticsPhoneList.failFeedBackResult && vm.tsAnalyticsPhoneList.failFeedBackTopic
+                        && vm.tsAnalyticsPhoneList.failFeedBackContent && vm.tsAnalyticsPhoneList.callerCycleCount
+                        && vm.tsAnalyticsPhoneList.dailyCallerMaximumTask
+                        && vm.tsAnalyticsPhoneList.reclaimDayCount) {
+                        vm.checkFilterIsDisable = false;
+                    }
+                }
+            return vm.checkFilterIsDisable;
+        };
+
         vm.checkFilterAndImportSystem = () => {
           vm.checkFilterIsDisable = true;
           if (vm.isShowNewListModal) {
@@ -5134,13 +5180,14 @@ define(['js/app'], function (myApp) {
         };
 
 
+
         vm.checkBox = () => {
             let isDisable = true;
                 if(vm.tsNewList.checkBoxA == true || vm.tsNewList.checkBoxB == true){
                     isDisable = false;
                 }
             return isDisable;
-        }
+        };
 
         vm.checkTsNewListName = () => {
            if(vm.platformTsListName.indexOf(vm.tsNewList.name) == -1){
@@ -5155,7 +5202,7 @@ define(['js/app'], function (myApp) {
                $('#modalTSNewListNameRepeat').css("z-index", "12000");
 
            }
-        }
+        };
 
         vm.returnToInput = () => {
             vm.disableAll = false;
@@ -5193,7 +5240,7 @@ define(['js/app'], function (myApp) {
                 })
 
             }
-        }
+        };
 
         vm.closeModalTSNewListNameRepeat = function () {
             $('#modalTSNewListNameRepeat').hide();
