@@ -591,6 +591,8 @@ var roleChecker = {
                 REAL_TIME_COMMISSION_REPORT: ['getCurrentPartnerCommissionDetail'],
                 PAST_COMMISSION_SETTLEMENT: ['settlePastCommission'],
                 PLAYER_ALIPAY_ACCOUNT_REPORT: ['getPlayerAlipayAccReport'],
+                FINANCIAL_REPORT: [],
+                DepositGroupSetting: ['addNewDepositGroup', 'updateDepositGroups', 'deleteDepositGroup']
             },
             Reward: {
                 Read: ['getPlatformRewardPageReport', 'getRewardProposalReportByType','getRewardProposalReport'],

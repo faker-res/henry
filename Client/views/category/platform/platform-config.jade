@@ -1434,11 +1434,11 @@
                                 td
                                     text(ng-if='!vm.configTableEdit') {{vm.autoApprovalBasic.checkContinuousApplyBonusTimes}}
                                     input(type='number' ng-if='vm.configTableEdit' ng-model='vm.autoApprovalBasic.checkContinuousApplyBonusTimes')
-                                td
+                                td(style="text-align: left;") {{"Returned error message of proposal-Failed" | translate }} {{': '}}  {{"unusual frequency of withdrawal request" | translate }}
                             tr
                                 td
                                     div(style="display: grid;")
-                                        span {{"Consecutive transferring-in (without top-up/reward during the interval)" | translate }}
+                                        span {{"Consecutive transferring-in (without top-up/reward/credit change during the interval)" | translate }}
                                         span {{"Consecutive transferring-out from the same provider (without transferring-in record during the interval)" | translate }}
                                 td
                                     input(type='checkbox', ng-model='vm.autoApprovalBasic.consecutiveTransferInOut', ng-disabled='!vm.configTableEdit')

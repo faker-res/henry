@@ -2559,11 +2559,8 @@ let dbPlayerInfo = {
                 function (suc) {
                     var oldData = {};
                     for (var i in permission) {
-                        if (suc.permission[i] != permission[i]) {
-                            oldData[i] = suc.permission[i];
-                        }
+                        oldData[i] = suc.permission[i];
                     }
-
                     var newLog = new dbconfig.collection_playerPermissionLog({
                         admin: admin,
                         platform: playerQuery.platform,
@@ -14017,7 +14014,7 @@ let dbPlayerInfo = {
                                             rewardData.appliedRewardList = appliedObjIdList
                                         }
                                     }
-                                
+
                                     rewardData.smsCode = data.smsCode;
                                     return dbPlayerReward.applyGroupReward(userAgent, playerInfo, rewardEvent, adminInfo, rewardData, isPreview, isBulkApply);
                                     break;
@@ -15186,27 +15183,32 @@ let dbPlayerInfo = {
         let proms = [];
 
         playerNames.forEach(playerName => {
+            let trimPlayerName = playerName.trim();
             let updateData = {credibilityRemarks: []};
-            let prom = dbconfig.collection_players.findOne({name: playerName, platform: platformObjId})
+            let prom = dbconfig.collection_players.findOne({name: trimPlayerName, platform: platformObjId})
                 .then(data => {
-                    let playerCredibilityRemarks = data.credibilityRemarks.filter(item => {
-                        if (item) {
-                            return item != "undefined"
+                    if (data) {
+                        let playerCredibilityRemarks = data.credibilityRemarks.filter(item => {
+                            if (item) {
+                                return item != "undefined"
+                            }
+                        }) || [];
+                        updateData.credibilityRemarks = dbPlayerInfo.managingDataList(playerCredibilityRemarks, addList, removeList);
+                        if (addList.length == 0 && removeList.length == 0) {
+                            updateData.credibilityRemarks = [];
                         }
-                    }) || [];
-                    updateData.credibilityRemarks = dbPlayerInfo.managingDataList(playerCredibilityRemarks, addList, removeList);
-                    if (addList.length == 0 && removeList.length == 0) {
-                        updateData.credibilityRemarks = [];
+                        return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
+                            name: trimPlayerName,
+                            platform: platformObjId
+                        }, updateData, constShardKeys.collection_players);
                     }
-                    return dbUtility.findOneAndUpdateForShard(dbconfig.collection_players, {
-                        name: playerName,
-                        platform: platformObjId
-                    }, updateData, constShardKeys.collection_players);
                 })
                 .then(playerData => {
-                    let playerObjId = playerData._id;
-                    dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, updateData.credibilityRemarks, comment);
-                    return playerData;
+                    if (playerData) {
+                        let playerObjId = playerData._id;
+                        dbPlayerCredibility.createUpdateCredibilityLog(adminName, platformObjId, playerObjId, updateData.credibilityRemarks, comment);
+                        return playerData;
+                    }
                 })
             proms.push(prom);
         })
@@ -18471,15 +18473,16 @@ let dbPlayerInfo = {
         return dbconfig.collection_tsPhoneList.distinct("name", {platform: platformObjId});
     },
 
-    importTSNewList: function (phoneNumber, saveObj) {
-        let phoneArr = phoneNumber.split(/[\n,]+/).map((item) => item.trim());
-
-        if (phoneArr.length > 0) {
-            return dbconfig.collection_tsPhoneList.findOne({
+    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName) {
+        if (phoneListDetail.length > 0) {
+            let tsPhoneProm = dbconfig.collection_tsPhoneList.findOne({
                 platform: saveObj.platform,
                 name: saveObj.name
             }).lean().then(
                 list => {
+                    if (isUpdateExisting) {
+                        return list;
+                    }
                     if (list) {
                         return Promise.reject({
                             name: "DataError",
@@ -18489,24 +18492,56 @@ let dbPlayerInfo = {
 
                     return new dbconfig.collection_tsPhoneList(saveObj).save();
                 }
-            ).then(
+            );
+
+            return tsPhoneProm.then(
                 tsList => {
                     if (tsList) {
+                        dbconfig.collection_tsPhoneImportRecord({
+                            platform: saveObj.platform,
+                            tsPhoneList: tsList._id,
+                            description: saveObj.description,
+                            adminName: adminName,
+                            admin: adminId
+                        }).save().catch(errorUtils.reportError);
+
                         let promArr = [];
 
-                        phoneArr.forEach(phoneNumber => {
-                            let encryptedNumber = rsaCrypto.encrypt(phoneNumber);
+                        phoneListDetail.forEach(phone => {
+                            let encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
 
                             promArr.push(
                                 dbconfig.collection_tsPhone({
                                     platform: saveObj.platform,
                                     phoneNumber: encryptedNumber,
+                                    playerName: phone.playerName,
+                                    realName: phone.realName,
+                                    gender: phone.gender,
+                                    dob: phone.dob,
+                                    wechat: phone.wechat,
+                                    qq: phone.qq,
+                                    email: phone.email,
+                                    remark: phone.remark,
                                     tsPhoneList: tsList._id
                                 }).save()
                             )
-                        })
+                        });
 
-                        return Promise.all(promArr);
+                        return Promise.all(promArr).then(
+                            resData => {
+                                dbconfig.collection_tsPhone.find({
+                                    platform: saveObj.platform,
+                                    tsPhoneList: tsList._id
+                                }).count().then(
+                                    totalPhone => {
+                                        if (totalPhone) {
+                                            return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsList._id}, {totalPhone: totalPhone}).lean()
+                                        }
+                                    }
+                                ).catch(errorUtils.reportError);
+                                return resData;
+                            }
+                        );
                     }
                 }
             ).then(() => true);

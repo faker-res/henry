@@ -3266,6 +3266,7 @@ define(['js/app'], function (myApp) {
                                 vm.gameStatus[v.game._id] = v.game.platformGameStatus;
                             }
                         })
+                        vm.includedGamesGroup.sort(function (a, b) { return a.index - b.index })
                         console.log("vm.includedGamesGroup", vm.includedGamesGroup);
                         if (vm.showGameCate == "include") {
                             vm.gameInGroupClicked(0, vm.includedGamesGroup[0], "in");
@@ -7676,13 +7677,13 @@ define(['js/app'], function (myApp) {
                 // utilService.setDataTablePageInput('playerDataTable', vm.playerTable, $translate);
                 utilService.setDataTablePageInput('playerFeedbackDataTable', vm.playerFeedbackTable, $translate);
 
-                if (!vm.playersQueryCreated) {
-                    createPlayerAdvancedSearchFilters({
-                        tableOptions: tableOptions,
-                        filtersElement: '#playerTable-search-filters',
-                        queryFunction: vm.getPlayersByAdvanceQueryDebounced
-                    });
-                }
+                // if (!vm.playersQueryCreated) {
+                //     createPlayerAdvancedSearchFilters({
+                //         tableOptions: tableOptions,
+                //         filtersElement: '#playerTable-search-filters',
+                //         queryFunction: vm.getPlayersByAdvanceQueryDebounced
+                //     });
+                // }
             };
 
             function createPlayerAdvancedSearchFilters(config) {
@@ -14886,7 +14887,7 @@ define(['js/app'], function (myApp) {
             vm.updateBatchPlayerForbidRewardEvents = function (sendData) {
                 console.log('sendData', sendData);
                 socketService.$socket($scope.AppSocket, 'updateBatchPlayerForbidRewardEvents', sendData, function (data) {
-                    if (vm.forbidPromoCode != undefined) { // undefined means unchanged
+                    if (sendData.forbidPromoCode != undefined) { // undefined means unchanged
                         let sendDataPromoCode = {
                             query: {
                                 platformObjId: sendData.platformObjId,
@@ -16263,7 +16264,7 @@ define(['js/app'], function (myApp) {
                     } //end processing for extended table
                 }
 
-                setTableData(vm.playerFeedbackTable, playerList);
+                vm.drawPlayerTable(playerList);
                 vm.drawExtendedFeedbackTable(extendedResult);
 
                 $('#platformFeedbackSpin').hide();
@@ -16622,7 +16623,8 @@ define(['js/app'], function (myApp) {
                             console.log('_getPlayerFeedbackQuery', data);
                             let playerList = data.data.data;
                             console.log(playerList);
-                            setTableData(vm.playerFeedbackTable, playerList);
+                            // setTableData(vm.playerFeedbackTable, playerList);
+                            vm.drawPlayerTable(playerList);
                             vm.playerFeedbackQuery.total = data.data.total || 0;
                             vm.playerFeedbackQuery.index = data.data.index || 0;
                             vm.playerFeedbackQuery.pageObj.init({maxCount: vm.playerFeedbackQuery.total}, isNewSearch);
@@ -28739,7 +28741,7 @@ console.log('typeof ',typeof gameProviders);
             }
 
             vm.generateOpenPromoCode = function (col, index, data, type, template) {
-                if (!template && data && vm.isPromoNameExist(data.name)) {
+                if (template && data && vm.isPromoNameExist(data.name)) {
                     return socketService.showErrorMessage($translate('Promo code name must be unique'));
                 }
                 vm.promoCodeFieldCheckFlag = false;
@@ -34965,6 +34967,16 @@ console.log('typeof ',typeof gameProviders);
                         addTopUpCountToolTip($('#autoFeedbackDetailTableThird th')[4]);
                     });
                 });
+                vm.sendMessageToPlayer = function () {
+                    let sendData = {
+                        adminName: authService.adminName,
+                        platformId: vm.selectedPlatform.id,
+                        playerId: vm.telphonePlayer._id,
+                        title: vm.messageForPlayer.title,
+                        content: vm.messageForPlayer.content
+                    };
+                    $scope.$socketPromise('sendPlayerMailFromAdminToPlayer', sendData).then().done();
+                };
             };
             vm.autoFeedbackSearchMissionDetail = function () {
                 $('#autoFeedbackDetailSpin').show();
@@ -35404,7 +35416,7 @@ console.log('typeof ',typeof gameProviders);
                     columns: [
                         {
                             title: $translate('ACCOUNT'),
-                            data: "playerName"
+                            data: "player.name"
                         },
                         {
                             title: $translate('PROMO_CODE_TYPE'),

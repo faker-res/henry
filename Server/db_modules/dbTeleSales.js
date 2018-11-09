@@ -10,6 +10,16 @@ let dbTeleSales = {
     getAllTSPhoneList: function (platformObjId) {
         return dbconfig.collection_tsPhoneList.find({platform: platformObjId}).lean();
     },
+
+    getOneTsNewList: function (query) {
+        return dbconfig.collection_tsPhoneList.findOne(query).lean();
+    },
+
+    distributePhoneNumber: function (data) {
+        console.log("tsListObjId", data.tsListObjId);
+        console.log("tsListPlatform", data.platform);
+        return data;
+    },
 };
 
 module.exports = dbTeleSales;
