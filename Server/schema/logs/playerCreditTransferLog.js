@@ -42,5 +42,6 @@ var playerCreditTransferLogSchema = new Schema({
 });
 
 playerCreditTransferLogSchema.index({createTime: 1, platformObjId: 1});
+playerCreditTransferLogSchema.index({createTime: 1, platformObjId: 1, status: 1, playerObjId: 1});
 
 module.exports = playerCreditTransferLogSchema;
