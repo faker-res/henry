@@ -4964,9 +4964,26 @@ define(['js/app'], function (myApp) {
         vm.initAnalyticsFilterAndImportDXSystem = function (data) {
             vm.isShowNewListModal = true;
             vm.tsNewListEnableSubmit = true;
-            vm.disableAll = true;
+            vm.analyticsdisableAll = true;
             vm.analyticsPhoneListEdit = true;
             vm.tsAnalyticsPhoneList = {dangerZoneList: []};
+            vm.checkFilterIsDisable = true;
+            utilService.actionAfterLoaded("#tsAnalyticsDatePicker", function () {
+                $('#tsAnalyticsDatePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy',
+                    pickTime: false,
+                });
+                $('#tsAnalyticsDatePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
+                $('#tsAnalyticsTimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'HH:mm:ss',
+                    pick12HourFormat: true,
+                    pickDate: false,
+                });
+                $('#tsAnalyticsTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
+            });
+
 
 
             vm.tsAnalyticsProvince = "";
@@ -5151,14 +5168,19 @@ define(['js/app'], function (myApp) {
 
         vm.checkAnalyticsFilterAndImportSystem = () => {
             vm.checkFilterIsDisable = true;
+            if (vm.isShowNewListModal) {
+                let tsTimePicker = $('#tsAnalyticsTimePicker').data('datetimepicker').getLocalDate();
+                let tsDatePicker = $('#tsAnalyticsDatePicker').data('datetimepicker').getLocalDate();
+
                 if (vm.tsAnalyticsPhoneList) {
                     if (vm.tsAnalyticsPhoneList.failFeedBackResult && vm.tsAnalyticsPhoneList.failFeedBackTopic
                         && vm.tsAnalyticsPhoneList.failFeedBackContent && vm.tsAnalyticsPhoneList.callerCycleCount
                         && vm.tsAnalyticsPhoneList.dailyCallerMaximumTask
-                        && vm.tsAnalyticsPhoneList.reclaimDayCount) {
+                        && vm.tsAnalyticsPhoneList.reclaimDayCount && tsTimePicker) {
                         vm.checkFilterIsDisable = false;
                     }
                 }
+            }
             return vm.checkFilterIsDisable;
         };
 
