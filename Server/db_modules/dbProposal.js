@@ -6990,8 +6990,8 @@ function insertRepeatCount(proposals, platformList) {
                 nextSuccessQuery["$and"] = bankCardNoRegExp;
             }
 
-            let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery).sort({createTime: -1}).limit(1);
-            let nextSuccessProm = dbconfig.collection_proposal.find(nextSuccessQuery).sort({createTime: 1}).limit(1);
+            let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery).read("secondaryPreferred").sort({createTime: -1}).limit(1);
+            let nextSuccessProm = dbconfig.collection_proposal.find(nextSuccessQuery).read("secondaryPreferred").sort({createTime: 1}).limit(1);
 
             // for debug usage
             // let pS, nS, fISQ;
@@ -7051,9 +7051,9 @@ function insertRepeatCount(proposals, platformList) {
                     // nS = nextSuccess[0];
                     // fISQ = firstInStreakQuery;
 
-                    let allCountProm = dbconfig.collection_proposal.find(allCountQuery).count();
-                    let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).count();
-                    let firstInStreakProm = dbconfig.collection_proposal.find(firstInStreakQuery).sort({createTime: 1}).limit(1);
+                    let allCountProm = dbconfig.collection_proposal.find(allCountQuery).read("secondaryPreferred").count();
+                    let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).read("secondaryPreferred").count();
+                    let firstInStreakProm = dbconfig.collection_proposal.find(firstInStreakQuery).read("secondaryPreferred").sort({createTime: 1}).limit(1);
 
                     return Promise.all([allCountProm, currentCountProm, firstInStreakProm]);
                 }
