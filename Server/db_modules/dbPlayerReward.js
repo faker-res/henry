@@ -3942,7 +3942,7 @@ let dbPlayerReward = {
                                     'data.lastLoginIp': lastLoginIp,
                                     createTime: { $gte: promoCodeObj.createTime, $lt: promoCodeObj.expirationTime},
                                     status: {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]}
-                                }).lean().count();
+                                }).read("secondaryPreferred").lean().count();
                             }
                             else{
                                 ipProposalProm = Promise.resolve(0);
@@ -5889,7 +5889,7 @@ let dbPlayerReward = {
                         _id: 0
                     }
                 }
-            ).then(
+            ).read("secondaryPreferred").then(
                 countReward => { // display approved proposal data during this event period
                     console.log('proposal aggregate - 1', countReward.length);
                     let resultArr = [];
