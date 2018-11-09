@@ -259,16 +259,26 @@ function checkRewardTaskGroup(proposal, platformObj) {
         bonusRecord => {
             todayBonusAmount = bonusRecord && bonusRecord[0] && bonusRecord[0].amount ? bonusRecord[0].amount : 0;
 
-            return getLastValidWithdrawTime(platformObj, proposal.data.playerObjId, proposal.createTime);
+            let lastWithdrawalDateProm = getLastValidWithdrawTime(platformObj, proposal.data.playerObjId, proposal.createTime);
+            let haveWithdrawalProm = dbconfig.collection_proposal.findOne({
+                'data.platformId': ObjectId(platformObj._id),
+                'data.playerObjId': ObjectId(proposal.data.playerObjId),
+                mainType: 'PlayerBonus',
+                $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}],
+                createTime: {$lt: proposal.createTime}
+            }, {_id: 1}).lean();
+
+            return Promise.all([lastWithdrawalDateProm, haveWithdrawalProm]);
         }
     ).then(
-        lastWithdrawDate => {
+        ([lastWithdrawDate, haveWithdrawal]) => {
+            bFirstWithdraw = !Boolean(haveWithdrawal);
             // settleTime of last withdraw proposal
-            if (lastWithdrawDate) {
-                bFirstWithdraw = !lastWithdrawDate[0];
-            } else {
-                bFirstWithdraw = !lastWithdrawDate;
-            }
+            // if (lastWithdrawDate) {
+            //     bFirstWithdraw = !lastWithdrawDate[0];
+            // } else {
+            //     bFirstWithdraw = !lastWithdrawDate;
+            // }
             continuousApplyBonusTimes = lastWithdrawDate && lastWithdrawDate[1] ? lastWithdrawDate[1] : null;
 
             let transferLogQuery = {
