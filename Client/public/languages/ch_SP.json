@@ -4058,7 +4058,7 @@
   "Add into the same list": "添加在同一个名单之中",
   "Go back and modify the name of list": "返回修改名单名称",
   "Time/Operator/Description": "导入时间/操作员/描述",
-
+  "FIELD":"栏位",
   "PRE_DISTRIBUTION": "尚未开始派发",
   "DISTRIBUTING": "派发中",
   "NOT_ENOUGH_CALLER": "电销员不足",
