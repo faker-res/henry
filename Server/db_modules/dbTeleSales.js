@@ -14,6 +14,20 @@ let dbTeleSales = {
     getOneTsNewList: function (query) {
         return dbconfig.collection_tsPhoneList.findOne(query).lean();
     },
+
+    distributePhoneNumber: function (data) {
+        console.log("tsListObjId", data.tsListObjId);
+        console.log("tsListPlatform", data.platform);
+        return data;
+    },
+
+    getTsPhoneImportRecord: function (query) {
+       return  dbconfig.collection_tsPhoneImportRecord.find(query).sort({importTime: 1}).lean();
+    },
+
+    updateTsPhoneList: function (query, updateData) {
+        return dbconfig.collection_tsPhoneList.findOneAndUpdate(query, updateData).lean()
+    },
 };
 
 module.exports = dbTeleSales;
