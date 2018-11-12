@@ -14118,7 +14118,7 @@ let dbPlayerInfo = {
             query._id = transferObjId;
         }
 
-        return dbconfig.collection_playerCreditTransferLog.find(query).sort({"createTime": -1}).limit(constSystemParam.MAX_RECORD_NUM);
+        return dbconfig.collection_playerCreditTransferLog.find(query).sort({"createTime": -1}).limit(constSystemParam.MAX_RECORD_NUM).read("secondaryPreferred");
     },
 
     verifyPlayerPhoneNumber: function (playerObjId, phoneNumber) {
