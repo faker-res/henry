@@ -24021,7 +24021,7 @@ console.log('typeof ',typeof gameProviders);
                             status: 1
                         };
 
-                        if (data && !data.isBlockPromoCodeUser) {
+                        if (data && !data.isBlockPromoCodeUser && !data.isBlockByMainPermission) {
                             if (!data.amount) {
                                 if (type == 3) {
                                     return socketService.showErrorMessage($translate("Promo Reward % is required"));
