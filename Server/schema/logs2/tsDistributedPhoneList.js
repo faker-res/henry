@@ -12,8 +12,6 @@ let tsDistributedPhoneListSchema = new Schema({
     assignee: {type: Schema.Types.ObjectId, ref: 'admin', index: true},
 
 });
-//record is unique by name and platform
-tsDistributedPhoneListSchema.index({name: 1, platform: 1}, {unique: true});
 
 module.exports = tsDistributedPhoneListSchema;
 

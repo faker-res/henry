@@ -16,12 +16,10 @@ let tsDistributedPhoneSchema = new Schema({
     assignee: {type: Schema.Types.ObjectId, ref: 'admin', index: true},
     // time that it can be start using
     startTime: {type: Date, index: true, default: new Date()},
-    // time that it expired
-    endTime: {type: Date, index: true},
+    // time that it expired - same with distributedEndTime in tsPhone.js
+    endTime: {type: Date, required: true, index: true},
 
 });
-//record is unique by name and platform
-tsDistributedPhoneSchema.index({name: 1, platform: 1}, {unique: true});
 
 module.exports = tsDistributedPhoneSchema;
 
