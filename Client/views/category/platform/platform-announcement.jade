@@ -13,7 +13,7 @@ div(style="height:265px;overflow:auto;margin-bottom:5px")
                     td
                         input.form-control(type="text", ng-disabled="!vm.configTableEdit", ng-model="ann.title", required, title="{{ann.title}}")
                     td
-                        textarea.form-control.expand-on-focuss(ng-disabled="!vm.configTableEdit", ng-model="ann.content", required, ng-focus="vm.currentlyFocusedAnnouncement = ann; vm.previewPlatformAnnouncement()", ng-change="vm.previewPlatformAnnouncement()", ng-blur="vm.currentlyFocusedAnnouncement = null; vm.previewPlatformAnnouncement()", title="{{ann.content}}")
+                        textarea.form-control.expand-on-focus-eightyfive(ng-disabled="!vm.configTableEdit", ng-model="ann.content", required, ng-focus="vm.currentlyFocusedAnnouncement = ann; vm.previewPlatformAnnouncement()", ng-change="vm.previewPlatformAnnouncement()", ng-blur="vm.currentlyFocusedAnnouncement = null; vm.previewPlatformAnnouncement()", title="{{ann.content}}")
                     td
                         select.form-control(ng-disabled="!vm.configTableEdit", ng-model="ann.reach", required, title="{{ann.reach}}")
                             option(value="all") {{"ALL" | translate}}
