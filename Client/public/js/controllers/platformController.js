@@ -24207,12 +24207,13 @@ console.log('typeof ',typeof gameProviders);
                                 item.promoCodeStatus = item.status;
                             }
 
-                            // special handling for openPromoCode gettign from proposal
+                            // special handling for openPromoCode getting from proposal
                             if (item.data && item.data.templateId ){
                                 item.amount = item.data.amount$ || null;
                                 item.minTopUpAmount = item.data.minTopUpAmount$ || null;
                                 item.maxRewardAmount = item.data.maxRewardAmount$ || null;
                                 item.requiredConsumption = item.data.requiredConsumption$ || null;
+                                item.isSharedWithXIMA$ = item.data.useConsumption ? $translate("false") : $translate("true");
                                 item.code = item.data.promoCode || null;
                                 item.adminName = item.creator ? item.creator.name : null;
                                 item.acceptedTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
