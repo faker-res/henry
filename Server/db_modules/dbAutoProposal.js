@@ -1427,7 +1427,7 @@ function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
                 let lastValidCountProm = getWithdrawTime(platform._id, playerObjId, thisWithdrawTime).then(
                     lastWithdrawTimeAfterTopUp => {
                         if (lastWithdrawTimeAfterTopUp && lastWithdrawTimeAfterTopUp[0] && lastWithdrawTimeAfterTopUp[0].createTime
-                            && (lastTopUpProp[0].createTime < lastWithdrawTimeAfterTopUp[0].createTime)) {
+                            && (lastTopUpProp[0].createTime.getTime() < lastWithdrawTimeAfterTopUp[0].createTime.getTime())) {
 
                             let countBonusQuery = {
                                 'data.platformId': ObjectId(platform._id),
@@ -1445,8 +1445,8 @@ function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
 
                 return Promise.all([lastValidWithdrawProm, lastValidCountProm]).then(
                     retData => {
-                        if (retData && retData[0]) {
-                            lastWithdrawTimeBeforeTopUp = retData[0].createTime;
+                        if (retData && retData[0] && retData[0][0]) {
+                            lastWithdrawTimeBeforeTopUp = retData[0][0].createTime;
                         }
 
                         if (retData && retData[1]) {
@@ -1463,7 +1463,6 @@ function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
 }
 
 function getWithdrawTime(platformId, playerId, createTime) {
-
     return dbconfig.collection_proposal.find({
         'data.platformId': ObjectId(platformId),
         'data.playerObjId': ObjectId(playerId),
@@ -1471,7 +1470,6 @@ function getWithdrawTime(platformId, playerId, createTime) {
         $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}],
         createTime: {$lt: createTime}
     }, {createTime: 1}).sort({createTime: -1}).limit(1).lean();
-
 }
 
 function getPlayerConsumptionSummary(platformId, playerId, dateFrom, dateTo, providerIdArr) {
