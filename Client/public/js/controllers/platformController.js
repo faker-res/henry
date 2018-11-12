@@ -17604,7 +17604,7 @@ define(['js/app'], function (myApp) {
                         },
                         {title: $translate('PLAYER'), data: "playerId.name"},
                         {title: $translate('CREDIBILITY_REMARK'), data: "credibilityRemarksName"},
-                        {title: $translate('CUSTOMER_SERVICE'), data: "csOfficerName"},
+                        {title: $translate('REGISTRATION_ADMIN'), data: "csOfficerName"},
                         {
                             title: $translate('CREATETIME'), data: "createTime$", bSortable: true
                             // render: function (data, type, row) {
