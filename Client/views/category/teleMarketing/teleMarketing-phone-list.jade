@@ -108,9 +108,9 @@ label(ng-show='vm.platformPlayerCount') {{'Total Players' | translate}} : {{vm.p
                                                                     select.form-control(ng-model='vm.tsAnalyticsPhoneList.dangerZoneList[i].city',  ng-options='val as val for (n, val) in constPhoneArea[vm.tsAnalyticsPhoneList.dangerZoneList[i].province]' ng-disabled='vm.analyticsPhoneListEdit')
                                                                 td
                                                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.tsAnalyticsPhoneList.dangerZoneList, $index)'  ng-disabled='vm.analyticsPhoneListEdit')
-                                                            tr
+                                                            tr(ng-show="!vm.analyticsPhoneListEdit")
                                                                 td(colspan=3) {{'ADD' | translate}}
-                                                            tr
+                                                            tr(ng-show="!vm.analyticsPhoneListEdit")
                                                                 td
                                                                     select.form-control(ng-model='vm.tsAnalyticsProvince',  ng-options='i as i for (i, v) in constPhoneArea' ng-disabled='vm.analyticsPhoneListEdit')
                                                                 td
