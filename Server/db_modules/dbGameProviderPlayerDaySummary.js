@@ -311,7 +311,7 @@ var dbGameProviderPlayerDaySummary = {
     },
     getProviderDifferDaySummaryForTimeFrame: function (startTime, endTime, platformId, proId, index, count) {
 
-        var sendQuery = {
+        let sendQuery = {
             platformId: platformId,
             providerId: proId,
             startTime: startTime,
@@ -319,53 +319,55 @@ var dbGameProviderPlayerDaySummary = {
         };
         let fpmsSummary = dbGameProviderPlayerDaySummary.getProviderDaySummaryForTimeFrame(startTime, endTime, platformId, proId, index, count);
         let cpmsSummary = cpmsAPI.consumption_getConsumptionSummary(sendQuery).catch(err=>{console.log(err)});
-        return Q.all([fpmsSummary, cpmsSummary])
+        return Promise.all([fpmsSummary, cpmsSummary])
 
         .then(data=>{
-            console.log(data);
-            let fpmsData = (data && data[0]) ? data[0] : {consumption:0, validAmount:0};
+            let fpmsData = (data && data[0] && data[0].data) ? data[0].data : {consumption:0, validAmount:0};
             console.log(fpmsData);
             let cpmsData = dbGameProviderPlayerDaySummary.sumCPMSBetsRecord(data[1]);
             let combineData = [];
-            let index = 1;
-
-            let providerId = cpmsData.providerId;
+            let result = {};
+            let providerId = proId;
 
             if(fpmsData){
                 console.log('fpms data exist');
+                console.log(cpmsData);
+                if(!fpmsData.consumption){
+                    fpmsData.consumption = 0;
+                }
+                if(!fpmsData.validAmount){
+                    fpmsData.validAmount = 0;
+                }
                 //1 - 数字相同不用补收录  2 - 需要补收录  3 - 重新收录中
                 let status = ((cpmsData.validAmount - fpmsData.validAmount == 0) && (cpmsData.consumption - fpmsData.consumption == 0)) ? 2 : 2;
-                let providerConsumption = {
-                    index:index,
-                    providerId:cpmsData.providerId,
-                    providerName:cpmsData.providerName+'('+proId+')',
+                result = {
+                    providerId:proId,
                     fpmsConsumption:fpmsData.consumption,
                     fpmsValidAmount:fpmsData.validAmount,
                     cpmsConsumption:cpmsData.consumption,
                     cpmsValidAmount:cpmsData.validAmount,
-                    validAmtSyncPercent: ((fpmsData.validAmount / cpmsData.validAmount)*100).toFixed(2) || 0,
+                    validAmtSyncPercent: ((fpmsData.validAmount / cpmsData.validAmount)*100) || 0,
                     consumptionDiff:cpmsData.consumption - fpmsData.consumption,
                     status:status
                 }
-                combineData.push(providerConsumption);
             }
-
-            console.log(combineData);
-            let result = (combineData && combineData[0]) ? combineData[0]:[];
             return result
+        },
+        err=>{
+            console.log(err);
         })
     },
     sumCPMSBetsRecord: function(data){
         let result = {
-            cpmsConsumption:0,
-            cpmsValidAmount:0
+            consumption:0,
+            validAmount:0
         }
 
         if(data && data.data && data.data.summary && data.data.summary.length > 0){
             data.data.summary.forEach(item=>{
                 if(item.summaryData){
-                    result.cpmsConsumption += item.summaryData.totalCount;
-                    result.cpmsValidAmount += item.summaryData.totalValidAmount;
+                    result.consumption += item.summaryData.totalCount;
+                    result.validAmount += item.summaryData.totalValidAmount;
                 }
             })
         }

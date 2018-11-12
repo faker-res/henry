@@ -2156,67 +2156,70 @@ define(['js/app'], function (myApp) {
             }
             vm.resetProviderConsumptRecord = function(index, providerId){
 
+                let providerName = vm.getProviderName(providerId);
+                  return {
+                       index:index,
+                       providerId:null,
+                       providerName:providerName,
+                       fpmsConsumption:null,
+                       fpmsValidAmount:null,
+                       cpmsConsumption:null,
+                       cpmsValidAmount:null,
+                       validAmtSyncPercent: null,
+                       consumptionDiff:null,
+                       status:null
+                 }
+            }
+            vm.getProviderName = function(providerId){
                 let provider = vm.platformProviderList.filter(item=>{
                     return item.providerId == providerId;
                 })
                 provider = (provider && provider[0]) ? provider[0] : [];
-                let providerName = provider.code + '('+providerId+')'
-                return {
-                     index:index,
-                     providerId:null,
-                     providerName:providerName,
-                     fpmsConsumption:null,
-                     fpmsValidAmount:null,
-                     cpmsConsumption:null,
-                     cpmsValidAmount:null,
-                     validAmtSyncPercent: null,
-                     consumptionDiff:null,
-                     status:null
-               }
+                let providerName = provider.code + '('+providerId+')';
+                return providerName;
             }
             vm.compareAllConsumptionReturn = function(startTime, endTime){
                 vm.settlementTime = vm.allRewardEvent.filter(item=>{
                     return item.type.name == 'PlayerConsumptionReturn';
                 })
                 vm.settlementTime = vm.settlementTime[0] ? vm.settlementTime[0] : {};
-
-                console.log(vm.settlementTime)
                 vm.providerDiffConsumption = {};
                 vm.providerLists = [];
+                let proms = [];
+
+                vm.platformProviderList.sort((a,b)=>{ return a.providerId - b.providerId});
                 vm.platformProviderList.forEach((item, index)=>{
-                    console.log(item);
-                    vm.providerDiffConsumption[item.providerId] = vm.resetProviderConsumptRecord(index, item.providerId);
+                    vm.providerDiffConsumption[item.providerId] = vm.resetProviderConsumptRecord(index+1, item.providerId);
                     vm.providerLists.push(item.providerId);
-                    vm.compareConsumptionReturn(startTime, endTime, item.providerId)
+                    vm.compareConsumptionReturn(startTime, endTime, item.providerId, index);
                 });
+
+                vm.renderConsumption();
+
             }
-            vm.compareConsumptionReturn = function (startTime, endTime, providerId){
-                var sendQuery = {
+            vm.renderConsumption = function(){
+                $scope.AppSocket.removeAllListeners('_operationDifferentReport')
+                $scope.AppSocket.on('_operationDifferentReport', function(data){
+                    $scope.$evalAsync(()=>{
+                        let pId = Number(data.data.providerId);
+                        let consumptData = (data && data.data) ? data.data : [];
+                        vm.providerDiffConsumption[pId].providerName = vm.getProviderName(pId);
+                        vm.providerDiffConsumption[pId] = $.extend(vm.providerDiffConsumption[pId], consumptData);
+                    })
+                })
+            }
+            vm.compareConsumptionReturn = function (startTime, endTime, providerId, index){
+
+                let sendQuery = {
                     platformId: vm.selectedPlatform.id,
                     startTime: startTime,
                     endTime: endTime,
-                    providerId:providerId,
-                    index:0,
-                    limit:10000
-                    // limit: 100
-                    // sortCol: vm.sendMultiMessage.sortCol
-                    // platformId: vm.selectedPlatform.id,
-                    // query: playerQuery,
-                    // index: vm.sendMultiMessage.index || 0,
-                    // limit: vm.sendMultiMessage.limit || 100,
-                    // sortCol: vm.sendMultiMessage.sortCol
+                    providerId: providerId
                 };
-                socketService.$socket($scope.AppSocket, 'operationDifferentReport', sendQuery, function (data) {
-                    $scope.$evalAsync(()=>{
-                        // data = getFakeData();
-                        console.log('playerData', data);
-                        let size = data.data.length;
-                        vm.providerDiffConsumption[providerId] = (data && data.data) ? data.data : [];
-                        // vm.drawConsumptionReturnTable(data.data, size, startTime, endTime);
-                    });
-                });
+                socketService.$socket($scope.AppSocket, 'operationDifferentReport', sendQuery, function (data) {})
+
             }
-            vm.syncBetRecord = function(startTime, endTime, providerId){
+            vm.syncBetRecord = function(startTime, endTime, providerId, index){
                 vm.providerDiffConsumption[providerId] = vm.resetProviderConsumptRecord(index, providerId);
                 vm.providerDiffConsumption[providerId].status = 3;
                 var sendQuery = {
@@ -2228,6 +2231,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'syncBetRecord', sendQuery, function (data) {
                     $scope.$evalAsync(()=>{
                         console.log('data', data);
+                        vm.compareConsumptionReturn(startTime, endTime, providerId, index);
                         // let size = data.data.length;
                         // vm.drawConsumptionReturnTable(data.data, size, startTime, endTime);
                     });
@@ -2282,7 +2286,7 @@ define(['js/app'], function (myApp) {
                                 let text = '';
                                 let color = '';
                                 let btnClass = '';
-                                let fetchQuery = '\''+ row.providerId+'\',\''+startTime+'\',\''+String(endTime)+'\'';
+                                let fetchQuery = '\''+ row.providerId+'\',\''+startTime+'\',\''+String(endTime)+'\',\''+row.index+'\'';
                                 switch (data) {
                                     case 1:
                                         text = $translate('Recover Bets');

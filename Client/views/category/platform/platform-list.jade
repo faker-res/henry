@@ -467,42 +467,42 @@
                                 td {{vm.providerDiffConsumption[providerId].index}}
                                 td {{vm.providerDiffConsumption[providerId].providerName}}
                                 td
-                                    div(ng-if="!vm.providerDiffConsumption[providerId].cpmsValidAmount")
+                                    div(ng-if="vm.providerDiffConsumption[providerId].cpmsValidAmount===null")
                                         i.fa.fa-spinner.fa-spin
-                                    div(ng-if="vm.providerDiffConsumption[providerId].cpmsValidAmount") {{vm.providerDiffConsumption[providerId].cpmsValidAmount}}
+                                    div(ng-if="vm.providerDiffConsumption[providerId].cpmsValidAmount !== null") {{vm.providerDiffConsumption[providerId].cpmsValidAmount}}
                                 td
-                                    div(ng-if="!vm.providerDiffConsumption[providerId].fpmsValidAmount")
+                                    div(ng-if="vm.providerDiffConsumption[providerId].fpmsValidAmount===null")
                                         i.fa.fa-spinner.fa-spin
-                                    div(ng-if="vm.providerDiffConsumption[providerId].fpmsValidAmount && vm.providerDiffConsumption[providerId].status!=3") {{vm.providerDiffConsumption[providerId].fpmsValidAmount}}
-                                    div(ng-if="vm.providerDiffConsumption[providerId].fpmsValidAmount && vm.providerDiffConsumption[providerId].status!=3") {{vm.providerDiffConsumption[providerId].fpmsValidAmount}}
+                                    div(ng-if="vm.providerDiffConsumption[providerId].fpmsValidAmount !== null && vm.providerDiffConsumption[providerId].status!=3") {{vm.providerDiffConsumption[providerId].fpmsValidAmount}}
+                                    div(ng-if="vm.providerDiffConsumption[providerId].fpmsValidAmount !== null && vm.providerDiffConsumption[providerId].status==3") {{vm.providerDiffConsumption[providerId].fpmsValidAmount}}
                                         span(style="color:red") ↑
                                 td
-                                    div(ng-if="!vm.providerDiffConsumption[providerId].validAmtSyncPercent")
+                                    div(ng-if="vm.providerDiffConsumption[providerId].validAmtSyncPercent===null")
                                         i.fa.fa-spinner.fa-spin
-                                    div(ng-if="vm.providerDiffConsumption[providerId].validAmtSyncPercent && vm.providerDiffConsumption[providerId].status!=3") {{vm.providerDiffConsumption[providerId].validAmtSyncPercent}}
-                                    div(ng-if="vm.providerDiffConsumption[providerId].validAmtSyncPercent && vm.providerDiffConsumption[providerId].status==3") {{vm.providerDiffConsumption[providerId].validAmtSyncPercent}}
+                                    div(ng-if="vm.providerDiffConsumption[providerId].validAmtSyncPercent !== null && vm.providerDiffConsumption[providerId].status!=3") {{vm.providerDiffConsumption[providerId].validAmtSyncPercent | number:2}} %
+                                    div(ng-if="vm.providerDiffConsumption[providerId].validAmtSyncPercent !== null && vm.providerDiffConsumption[providerId].status==3") {{vm.providerDiffConsumption[providerId].validAmtSyncPercent | number:2}} %
                                         span(style="color:red") ↑
 
                                 td
-                                    div(ng-if="!vm.providerDiffConsumption[providerId].cpmsConsumption")
+                                    div(ng-if="vm.providerDiffConsumption[providerId].cpmsConsumption===null")
                                         i.fa.fa-spinner.fa-spin
-                                    div(ng-if="vm.providerDiffConsumption[providerId].cpmsConsumption") {{vm.providerDiffConsumption[providerId].cpmsConsumption}}
+                                    div(ng-if="vm.providerDiffConsumption[providerId].cpmsConsumption !== null") {{vm.providerDiffConsumption[providerId].cpmsConsumption}}
                                 td
-                                    div(ng-if="!vm.providerDiffConsumption[providerId].fpmsConsumption")
+                                    div(ng-if="vm.providerDiffConsumption[providerId].fpmsConsumption===null")
                                         i.fa.fa-spinner.fa-spin
-                                    div(ng-if="vm.providerDiffConsumption[providerId].fpmsConsumption") {{vm.providerDiffConsumption[providerId].fpmsConsumption}}
+                                    div(ng-if="vm.providerDiffConsumption[providerId].fpmsConsumption !== null") {{vm.providerDiffConsumption[providerId].fpmsConsumption}}
                                 td
-                                    div(ng-if="!vm.providerDiffConsumption[providerId].consumptionDiff")
+                                    div(ng-if="vm.providerDiffConsumption[providerId].consumptionDiff===null")
                                         i.fa.fa-spinner.fa-spin
-                                    div(ng-if="vm.providerDiffConsumption[providerId].consumptionDiff && vm.providerDiffConsumption[providerId].status!='3'") {{vm.providerDiffConsumption[providerId].consumptionDiff}}
-                                    div(ng-if="vm.providerDiffConsumption[providerId].consumptionDiff && vm.providerDiffConsumption[providerId].status=='3'") {{vm.providerDiffConsumption[providerId].consumptionDiff}}
+                                    div(ng-if="vm.providerDiffConsumption[providerId].consumptionDiff !== null && vm.providerDiffConsumption[providerId].status!='3'") {{vm.providerDiffConsumption[providerId].consumptionDiff}}
+                                    div(ng-if="vm.providerDiffConsumption[providerId].consumptionDiff !== null && vm.providerDiffConsumption[providerId].status=='3'") {{vm.providerDiffConsumption[providerId].consumptionDiff}}
                                         span(style="color:red") ↓
 
                                 td
                                     div(ng-if="vm.providerDiffConsumption[providerId].status==1")
                                         div(class="btn btn-primary disabled") {{'Recover Bets' | translate}}
                                     div(ng-if="vm.providerDiffConsumption[providerId].status==2")
-                                        div(class="btn btn-primary", ng-click="vm.syncBetRecord(vm.settlementTime.settlementStartTime, vm.settlementTime.settlementEndTime, providerId )") {{'Recover Bets' | translate}}
+                                        div(class="btn btn-primary", ng-click="vm.syncBetRecord(vm.settlementTime.settlementStartTime, vm.settlementTime.settlementEndTime, providerId, vm.providerDiffConsumption[providerId].index )") {{'Recover Bets' | translate}}
                                     div(ng-if="vm.providerDiffConsumption[providerId].status==3")
                                         div(class="btn btn-danger disabled") {{'Fetching Bets' | translate}}
 
