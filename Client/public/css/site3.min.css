@@ -3272,6 +3272,10 @@ textarea.expand-on-focus {
     height: 34px;
 }
 
+textarea.expand-on-focuss {
+    height: 85px;
+}
+
 textarea.expand-on-focus:focus {
     height: 136px;
 }

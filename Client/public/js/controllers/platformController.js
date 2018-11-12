@@ -17548,19 +17548,50 @@ define(['js/app'], function (myApp) {
             vm.drawFeedbackAdminTable = function (size, newSearch, summary) {
                 var showData = [];
                 $.each(vm.feedbackAdmins, function (i, j) {
+                    let remarks = '';
+                    let breakLine = "<br>";
+
                     j.createTime$ = utilService.getFormatTime(j.createTime);
                     j.result$ = j.resultName ? j.resultName : $translate(j.result);
                     j.topupTimes$ = j.topupTimes || 0;
                     j.amount$ = j.amount ? (j.amount).toFixed(2) : new Number(0).toFixed(2);
+
+                    if (j.playerId.credibilityRemarks && j.playerId.credibilityRemarks.length > 0) {
+                        j.playerId.credibilityRemarks = vm.credibilityRemarks.filter(remark => {
+                            return j.playerId.credibilityRemarks.includes(remark._id);
+                        });
+                        j.playerId.credibilityRemarks.forEach(function (value, index) {
+                            remarks += value.name + breakLine;
+                        });
+                        j.credibilityRemarksName = remarks;
+                    } else {
+                        j.credibilityRemarksName = "--";
+                    }
+
+                    if (j.playerId && j.playerId.csOfficer) {
+                        let len = vm.adminList.length;
+                        for (let x = 0; x < len; x++) {
+                            let admin = vm.adminList[x];
+                            if (j.playerId.csOfficer.toString() === admin._id.toString()) {
+                                j.csOfficerName = admin.adminName;
+                                break;
+                            } else {
+                                j.csOfficerName = "--";
+                            }
+                        }
+                    } else {
+                        j.csOfficerName = "--";
+                    }
+
                     showData.push(j);
                 });
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: showData,
-                    order: vm.feedbackAdminQuery.aaSorting || [[2, 'desc']],
+                    order: vm.feedbackAdminQuery.aaSorting || [[4, 'desc']],
                     aoColumnDefs: [
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [2]},
-                        {'sortCol': 'topupTimes', bSortable: true, 'aTargets': [5]},
-                        {'sortCol': 'amount', bSortable: true, 'aTargets': [6]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'topupTimes', bSortable: true, 'aTargets': [8]},
+                        {'sortCol': 'amount', bSortable: true, 'aTargets': [9]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
@@ -17572,6 +17603,8 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {title: $translate('PLAYER'), data: "playerId.name"},
+                        {title: $translate('CREDIBILITY_REMARK'), data: "credibilityRemarksName"},
+                        {title: $translate('CUSTOMER_SERVICE'), data: "csOfficerName"},
                         {
                             title: $translate('CREATETIME'), data: "createTime$", bSortable: true
                             // render: function (data, type, row) {
