@@ -2053,7 +2053,7 @@
                     i.fa.fa-spin.fa-2x.fa-spinner
                 label.inlineBlk(ng-if='vm.selectedProposal.cancelled') {{"Cancel" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
-                button.btn.btn-primary.common-button(ng-if='vm.selectedProposal.status==="AutoAudit" && !vm.changeStatusToPendingFromAutoAuditMessage && !vm.selectedProposal.cancelling && !vm.selectedProposal.cancelled', ng-click='vm.changeStatusToPendingFromAutoAudit()') {{"Manual" | translate}}
+                //button.btn.btn-primary.common-button(ng-if='vm.selectedProposal.status==="AutoAudit" && !vm.changeStatusToPendingFromAutoAuditMessage && !vm.selectedProposal.cancelling && !vm.selectedProposal.cancelled', ng-click='vm.changeStatusToPendingFromAutoAudit()') {{"Manual" | translate}}
                 button.btn.btn-success.common-button(ng-if="vm.showCopyProposal()" ng-click="vm.copyTopUpProposal()") {{"COPY_TO_CLIPBOARD" | translate}}
                 label.inlineBlk.wordWrap(ng-if='vm.changeStatusToPendingFromAutoAuditMessage') {{vm.changeStatusToPendingFromAutoAuditMessage}}
                 .inlineBlk.pull-left(ng-show='vm.rightPanelTitle == "APPROVAL_PROPOSAL"')

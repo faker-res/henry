@@ -12,6 +12,12 @@ let tsDistributedPhoneSchema = new Schema({
     tsDistributedPhoneList: {type: Schema.ObjectId, ref: 'tsDistributedPhoneList', index: true},
     // ts phone that it based on
     tsPhone: {type: Schema.ObjectId, ref: 'tsPhone', index: true},
+    // assignee (whose phone is this)
+    assignee: {type: Schema.Types.ObjectId, ref: 'admin', index: true},
+    // time that it can be start using
+    startTime: {type: Date, index: true, default: new Date()},
+    // time that it expired
+    endTime: {type: Date, index: true},
 
 });
 //record is unique by name and platform
