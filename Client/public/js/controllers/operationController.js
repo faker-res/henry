@@ -908,6 +908,8 @@ define(['js/app'], function (myApp) {
                 result = $translate(val);
             } else if (fieldName === 'applyForDate') {
                 result = new Date(val).toLocaleDateString("en-US", {timeZone: "Asia/Singapore"});
+            } else if (fieldName === 'applyTargetDate') {
+                result = $scope.timeReformat(new Date(vm.selectedProposal.data.applyTargetDate)) ;
             } else if (fieldName === 'DOB') {
                 result = commonService.convertDOBDateFormat(val);
             } else if (fieldName === 'returnDetail') {
