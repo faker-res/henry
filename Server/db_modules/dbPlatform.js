@@ -5050,17 +5050,25 @@ var dbPlatform = {
 
     sendFileFTP: function(platformId, token, fileStream, fileName) {
         let ftpClient = new Client();
-        let fs = require('fs');
         let deferred = Q.defer();
-        let bufs = [];
 
-        console.log("LH check FTP 1 --------------",platformId)
-        console.log("LH check FTP 2 --------------",token)
-        console.log("LH check FTP 3 --------------",fileStream)
-        console.log("LH check FTP 4 --------------",fileName)
+        if(!fileStream){
+            deferred.reject({
+                status: constServerCode.DB_ERROR,
+                name: "DataError",
+                errorMessage: "File content is required."
+            });
+        }
+
+        if(!fileName){
+            deferred.reject({
+                status: constServerCode.DB_ERROR,
+                name: "DataError",
+                errorMessage: "File name is required."
+            });
+        }
+
         ftpClient.on('ready', function() {
-
-            console.log("LH check FTP 5 -------------- FTP is ready")
             //get current directory list
             ftpClient.list("/", function (err, list) {
                 if (err) {
@@ -5071,12 +5079,9 @@ var dbPlatform = {
                     });
                 }
 
-                console.log("LH check FTP 6 --------------", list);
-
                 if (list && list.length > 0) {
                     //check if folder is exist in directory
                     let folderIndex = list.findIndex(l => l.name == platformId);
-                    console.log("LH check FTP 7 --------------", folderIndex);
                     if (folderIndex > -1) {
                         ftpClient.cwd(platformId, function (err, currentDir) {
                             if (err) {
@@ -5108,10 +5113,8 @@ var dbPlatform = {
                                     })
                                 }
 
-                                console.log("LH check FTP 8 --------------", fileList);
                                 if (fileList && fileList.length > 0) {
                                     let fileIndex = fileList.findIndex(f => f.name == fileName);
-                                    console.log("LH check FTP 9 --------------", fileIndex);
                                     if (fileIndex > -1) {
                                         deferred.reject({
                                             status: constServerCode.DB_ERROR,
@@ -5130,7 +5133,9 @@ var dbPlatform = {
                                         });
                                     }
 
-                                    deferred.resolve({result: "success"});
+                                    var url = constSystemParam.FTP_URL + "/" + platformId + "/" + fileName;
+
+                                    deferred.resolve({result: "success", url: url});
                                     ftpClient.end();
                                 });
                             });
@@ -5175,7 +5180,9 @@ var dbPlatform = {
                                     });
                                 }
 
-                                deferred.resolve({result: "success"});
+                                var url = constSystemParam.FTP_URL + "/" + platformId + "/" + fileName;
+
+                                deferred.resolve({result: "success", url: url});
                                 ftpClient.end();
                             });
                         });
