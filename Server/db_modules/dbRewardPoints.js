@@ -757,11 +757,11 @@ let dbRewardPoints = {
                     });
                 }
 
-                dbRewardPoints.createRewardPointsLog(logDetail).catch(errorUtils.reportError);
-                // Reset BState
-                dbPlayerUtil.setPlayerBState(playerObjId, 'applyRewardPoint', false).catch(errorUtils.reportError);
-
-                return logDetail;
+                return Promise.all([
+                    dbRewardPoints.createRewardPointsLog(logDetail).catch(errorUtils.reportError),
+                    // Reset BState
+                    dbPlayerUtil.setPlayerBState(playerObjId, 'applyRewardPoint', false).catch(errorUtils.reportError)
+                ]).then(() => logDetail);
             }
         ).catch(
             err => {
