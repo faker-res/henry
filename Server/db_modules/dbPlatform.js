@@ -5052,21 +5052,18 @@ var dbPlatform = {
         let ftpClient = new Client();
         let deferred = Q.defer();
 
-        if(!fileStream){
-            deferred.reject({
-                status: constServerCode.DB_ERROR,
-                name: "DataError",
-                errorMessage: "File content is required."
-            });
+        if (fileName.includes(".zip")) {
+            var zip = new admZip(fileStream);
+            var zipEntries = zip.getEntries();
+            zipEntries.forEach(function (zipEntry) {
+                if (zipEntry.entryName) {
+                    fileName = zipEntry.entryName;
+                }
+                fileStream = zip.readFile(zipEntry); // decompressed buffer of the entry
+            })
         }
 
-        if(!fileName){
-            deferred.reject({
-                status: constServerCode.DB_ERROR,
-                name: "DataError",
-                errorMessage: "File name is required."
-            });
-        }
+        let url = constSystemParam.FTP_URL + "/" + platformId + "/" + fileName;
 
         ftpClient.on('ready', function() {
             //get current directory list
@@ -5102,17 +5099,6 @@ var dbPlatform = {
                                     });
                                 }
 
-                                if (fileName.includes(".zip")) {
-                                    var zip = new admZip(fileStream);
-                                    var zipEntries = zip.getEntries();
-                                    zipEntries.forEach(function (zipEntry) {
-                                        if (zipEntry.entryName) {
-                                            fileName = zipEntry.entryName;
-                                        }
-                                        fileStream = zip.readFile(zipEntry); // decompressed buffer of the entry
-                                    })
-                                }
-
                                 if (fileList && fileList.length > 0) {
                                     let fileIndex = fileList.findIndex(f => f.name == fileName);
                                     if (fileIndex > -1) {
@@ -5132,8 +5118,6 @@ var dbPlatform = {
                                             errorMessage: "Failed to create file: " + err
                                         });
                                     }
-
-                                    var url = constSystemParam.FTP_URL + "/" + platformId + "/" + fileName;
 
                                     deferred.resolve({result: "success", url: url});
                                     ftpClient.end();
@@ -5160,17 +5144,6 @@ var dbPlatform = {
                                 });
                             }
 
-                            if (fileName.includes(".zip")) {
-                                var zip = new admZip(fileStream);
-                                var zipEntries = zip.getEntries();
-                                zipEntries.forEach(function (zipEntry) {
-                                    if (zipEntry.entryName) {
-                                        fileName = zipEntry.entryName;
-                                    }
-                                    fileStream = zip.readFile(zipEntry); // decompressed buffer of the entry
-                                })
-                            }
-
                             ftpClient.put(fileStream, fileName, function (err) {
                                 if (err) {
                                     deferred.reject({
@@ -5179,8 +5152,6 @@ var dbPlatform = {
                                         errorMessage: "Failed to create file: " + err
                                     });
                                 }
-
-                                var url = constSystemParam.FTP_URL + "/" + platformId + "/" + fileName;
 
                                 deferred.resolve({result: "success", url: url});
                                 ftpClient.end();
