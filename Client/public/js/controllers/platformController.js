@@ -1746,7 +1746,6 @@ define(['js/app'], function (myApp) {
             vm.prepareSettlementHistory = function () {
                 vm.initQueryTimeFilter('modalUpdatePlatform');
                 vm.queryPara.modalUpdatePlatform.interval = 'daily';
-                vm.searchConsumptionObj = { totalCount:0, pageObj:{}}
                 $scope.safeApply();
                 // vm.processDataTableinModal('#modalUpdatePlatform', '#platformSettlementHistoryTbl');
                 // vm.getSettlementHistory();
@@ -2232,107 +2231,8 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(()=>{
                         console.log('data', data);
                         vm.compareConsumptionReturn(startTime, endTime, providerId, index);
-                        // let size = data.data.length;
-                        // vm.drawConsumptionReturnTable(data.data, size, startTime, endTime);
                     });
                 });
-            }
-            vm.drawConsumptionReturnTable = function (data, size, startTime, endTime) {
-                var option = $.extend({}, vm.generalDataTableOptions, {
-                    data: data,
-                    // order: [[2, 'desc']],
-                    aoColumnDefs: [
-                        // {'sortCol': 'createTime', bSortable: true, 'aTargets': [2]},
-                        {targets: '_all', defaultContent: ' ', bSortable: false}
-                    ],
-                    columns: [
-                        {'title': $translate('sequence'), data:'index'},
-                        {'title': $translate('provider(ID)'), data: 'providerName'},
-                        {'title': $translate('CPMS Valid Bet Amount'),data: 'cpmsValidAmount'},
-                        {'title': $translate('FPMS Valid Bet Amount'), data: 'fpmsValidAmount',
-                            render: function(data, type, row){
-                                let text = data;
-                                let updateIcon = '';
-                                if(row.status==3){
-                                    updateIcon = '<span style="color:red">↑</span>';
-                                }
-                                return text + updateIcon;
-                            }
-                        },
-                        {'title': $translate('FPMS Valid Bet Sync％'), data: 'validAmtSyncPercent',
-                            render: function(data, type, row){
-                                let text = data;
-                                let updateIcon = '';
-                                if(row.status==3){
-                                    updateIcon = '<span style="color:red">↑</span>';
-                                }
-                                return text + updateIcon;
-                            }
-                        },
-                        {'title': $translate('CPMS Qty'), data: 'cpmsConsumption'},
-                        {'title': $translate('FPMS Qty'), data: 'fpmsConsumption'},
-                        {'title': $translate('Subtract (CPMS-FPMS)'), data: 'consumptionDiff',
-                            render: function(data, type, row){
-                                let text = data;
-                                let updateIcon = '';
-                                if(row.status==3){
-                                    updateIcon = '<span style="color:red">↓</span>';
-                                }
-                                return text + updateIcon;
-                            }
-                        },
-                        {'title': $translate('ACTION_BUTTON'), data: 'status',
-                            render: function (data, type, row) {
-                                let text = '';
-                                let color = '';
-                                let btnClass = '';
-                                let fetchQuery = '\''+ row.providerId+'\',\''+startTime+'\',\''+String(endTime)+'\',\''+row.index+'\'';
-                                switch (data) {
-                                    case 1:
-                                        text = $translate('Recover Bets');
-                                        btnClass = 'btn btn-primary disabled';
-                                      break;
-                                    case 2:
-                                        text = $translate('Recover Bets');
-                                        btnClass = 'btn btn-primary';
-                                        break;
-                                    case 3:
-                                        text = $translate('Fetching Bets');
-                                        btnClass = 'btn btn-danger disabled';
-                                        break;
-
-                              }
-                              return '<div class="'+btnClass+'" '+' '+color+' ng-click="vm.syncBetRecord('+fetchQuery+')">'+text+'</div>';
-                            }
-                        }
-                    ],
-                    bSortClasses: false,
-                    paging: false,
-                    autoWidth : false,
-                    fnInitComplete: function(settings){
-                        $compile(angular.element('#' + settings.sTableId).contents())($scope);
-                    }
-                });
-
-                // $scope.$evalAsync(()=>{
-                    // vm.searchConsumptionObj.tableObj = $('#playerConsumptionReturnRecoverTbl').DataTable(option);
-                    // $('#playerConsumptionReturnRecoverTbl').DataTable(option);
-                    // $('#playerConsumptionReturnRecoverTbl').off('order.dt');
-                    var table = $('#playerConsumptionReturnRecoverTbl').DataTable(option);
-                    // vm.searchConsumptionObj.pageObj.init({maxCount: vm.searchConsumptionObj.totalCount}, true);
-
-                    // $('#playerConsumptionReturnRecoverTbl').on('order.dt', function (event, a, b) {
-                    //     vm.commonSortChangeHandler(a, 'consumptionReturnQuery', vm.compareConsumptionReturn);
-                    // });
-                    // setTimeout(function () {
-                    //     $('#playerConsumptionReturnRecoverTbl').resize();
-                    //
-                    // }, 10);
-                    // table.columns.adjust().draw();
-
-
-                // })
-
             }
 
             vm.performPlayerConsumptionReturnSettlement = function () {
