@@ -7157,11 +7157,7 @@ let dbPartner = {
             if (rawCommissionsArr && rawCommissionsArr.length > 0) {
                 let latestNettCommission = nettCommission;
 
-                if (totalPlatformFee > 0) {
-                    latestNettCommission += totalPlatformFee;
-                } else {
-                    latestNettCommission -= totalPlatformFee;
-                }
+                latestNettCommission += totalPlatformFee;
 
                 return dbconfig.collection_partnerCommissionLog.findOneAndUpdate(
                     {
