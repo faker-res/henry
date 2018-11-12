@@ -30381,7 +30381,18 @@ console.log('typeof ',typeof gameProviders);
 
             // right panel required functions
             vm.loadAlldepartment = function (callback) {
-                socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
+                let departmentIdArr = [];
+                // get multiple departments for current user
+                let departmentIds = authService.departmentIds();
+                if (departmentIds && departmentIds.length > 1) {
+                    for (let i = 0, len = departmentIds.length; i < len; i++) {
+                        if (departmentIds[i] && departmentIds[i]._id) {
+                            departmentIdArr.push(departmentIds[i]._id);
+                        }
+                    }
+                }
+
+                socketService.$socket($scope.AppSocket, 'getDepartmentTreeByIds', {departmentIds: departmentIdArr}, success);
 
                 function success(data) {
                     $scope.$evalAsync(() => {
