@@ -5058,13 +5058,8 @@ var dbPlatform = {
                 var zip = new admZip(fileStream);
                 var zipEntries = zip.getEntries();
                 zipEntries.forEach(function (zipEntry) {
-                    if (zipEntry.entryName) {
-                        fileName = zipEntry.entryName;
-
-                        if(!zipFileDirectory){
-                            zipFileDirectory = zipEntry.entryName.replace("/", "");
-                        }
-                    }
+                    let indexOfFileType = fileName.indexOf(".");
+                    zipFileDirectory = fileName.substring(0, indexOfFileType);
 
                     if(!zipEntry.isDirectory){
                         let lastIndex = zipEntry.entryName.lastIndexOf("/") || 0;
