@@ -2213,8 +2213,8 @@ var dbPlatform = {
         type ? queryObject.type = new RegExp(["^", type, "$"].join(""), "i") : '';
         provider ? queryObject.providerId = provider : '';
 
-        let countProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).count();
-        let recordProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).sort(sortCol).skip(index).limit(limit);
+        let countProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).count().read("secondaryPreferred");
+        let recordProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).sort(sortCol).skip(index).limit(limit).read("secondaryPreferred");
         return Q.all([countProm, recordProm]).then(data => {
             return {total: data[0], data: data[1]};
         })
