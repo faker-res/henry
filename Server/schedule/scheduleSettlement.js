@@ -58,6 +58,7 @@ var minuteJob = new CronJob('0 * * * * *', function () {
                     var task1 = null;
                     var task2 = null;
                     var task3 = null;
+                    var task4 = null;
 
                     //start daily settlement for platform
                     if (platformData.dailySettlementHour != null && platformData.dailySettlementMinute != null) {
@@ -108,7 +109,20 @@ var minuteJob = new CronJob('0 * * * * *', function () {
                         );
                     }
 
-                    return promiseUtils.each([task1, task2, task3], task => task && task() );
+                    task4 = () => dailyPlatformSettlement.startDailyTsDistributePhone(platformData).then(
+                        data => {
+                            if (data) {
+                                console.log(new Date().toString() + "Daily Distribute tsPhone Done", platformData._id, data)
+                            }
+                        }
+                    ).catch(
+                        function (error) {
+                            console.log("Daily  Distribute tsPhone error doing", platformData._id);
+                            errorUtils.reportError(error);
+                        }
+                    );
+
+                    return promiseUtils.each([task1, task2, task3, task4], task => task && task() );
                 });
             }
         },
