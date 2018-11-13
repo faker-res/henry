@@ -30,7 +30,7 @@ const constSystemParam = {
         password: "CallHank@163",
         mode: 'Active'
     },
-    FTP_URL: "http://callfpms-ftp.neweb.me"
+    FTP_URL: "https://callfpms-ftp.neweb.me"
 };
 
 module.exports = constSystemParam;
