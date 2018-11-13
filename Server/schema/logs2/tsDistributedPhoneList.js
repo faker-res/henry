@@ -26,8 +26,6 @@ let tsDistributedPhoneListSchema = new Schema({
     effectivePlayerCount: {type: Number, default: 0},
 
 });
-//record is unique by name and platform
-tsDistributedPhoneListSchema.index({name: 1, platform: 1}, {unique: true});
 
 module.exports = tsDistributedPhoneListSchema;
 
