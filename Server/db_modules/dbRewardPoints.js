@@ -782,7 +782,7 @@ let dbRewardPoints = {
             let p = Promise.resolve();
             rewardPointsEventObjIds.forEach(
                 rewardPointsEventObjId => {
-                    p.then(dbRewardPoints.applyRewardPoint(playerObjId, rewardPointsEventObjId, inputDevice, rewardPointsConfig));
+                    p = p.then(() => dbRewardPoints.applyRewardPoint(playerObjId, rewardPointsEventObjId, inputDevice, rewardPointsConfig));
                 }
             );
             return p;

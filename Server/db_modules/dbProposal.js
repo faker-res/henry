@@ -182,7 +182,7 @@ var proposal = {
                 log => {
                     return Boolean(log && log[0]);
                 }
-            );
+            ).read("secondaryPreferred");
         }
 
         return isRepairableTransfer(proposalData.data.transferId).then(
