@@ -174,8 +174,8 @@ var PlatformServiceImplement = function () {
 
     this.sendFileFTP.onRequest = function(wsFunc, conn, data) {
         console.log("check FTP WS DATA --------------", data);
-        let isValidData = Boolean(data.platformId && data.token);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.sendFileFTP, [data.platformId, data.token, data.file, data.fileName], isValidData, null, null, true);
+        let isValidData = Boolean(data.platformId && data.token && data.fileName && data.fileStream);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.sendFileFTP, [data.platformId, data.token, data.fileStream, data.fileName], isValidData, null, null, true);
     }
 };
 

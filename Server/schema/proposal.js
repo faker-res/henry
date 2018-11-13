@@ -84,7 +84,7 @@ proposalSchema.index({"data.line": 1});
 proposalSchema.index({"data.applyTargetDate": 1});
 proposalSchema.index({"data.lastLoginIp": 1});
 proposalSchema.index({"data.promoCode": 1});
-
+proposalSchema.index({"data.providerGroup": 1});
 /*
  // Ensure that the caller does not accidentally save an ObjectId in proposal.data.playerId
  proposalSchema.pre('validate', function (next) {

@@ -29,7 +29,8 @@ const constSystemParam = {
         user: 'hank',
         password: "CallHank@163",
         mode: 'Active'
-    }
+    },
+    FTP_URL: "http://callfpms-ftp.neweb.me"
 };
 
 module.exports = constSystemParam;

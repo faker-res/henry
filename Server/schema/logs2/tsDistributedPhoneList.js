@@ -10,13 +10,22 @@ let tsDistributedPhoneListSchema = new Schema({
     tsPhoneList: {type: Schema.ObjectId, ref: 'tsPhoneList', index: true},
     // assignee (whose list is this)
     assignee: {type: Schema.Types.ObjectId, ref: 'admin', index: true},
-    // time that it can be start using
-    startTime: {type: Date, index: true},
-    // time that it expired
-    endTime: {type: Date, index: true},
+    // number of phone distributed
+    phoneCount: {type: Number, default: 0},
+    // number of phone used
+    phoneUsed: {type: Number, default: 0},
+    // number of Successful call
+    successfulCount: {type: Number, default: 0},
+    // number of registration
+    registrationCount: {type: Number, default: 0},
+    // number of single top up
+    singleTopUpCount: {type: Number, default: 0},
+    // number of player who top up multiple times that registered under this list
+    multipleTopUpCount: {type: Number, default: 0},
+    // effective player registered under this list
+    effectivePlayerCount: {type: Number, default: 0},
+
 });
-//record is unique by name and platform
-tsDistributedPhoneListSchema.index({name: 1, platform: 1}, {unique: true});
 
 module.exports = tsDistributedPhoneListSchema;
 
