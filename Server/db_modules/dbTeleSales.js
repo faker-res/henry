@@ -112,7 +112,7 @@ let dbTeleSales = {
                                         remindTime: phoneNumberEndTime.endTime
                                     }).save().catch(errorUtils.reportError);
                                 });
-                                dbconfig.collection_tsPhone.update({_id:{$in: tsAssignee.updateObj.tsPhone}}, {$inc: {assignTimes: 1}, distributedEndTime: phoneNumberEndTime.startTime}, {multi: true}).catch(errorUtils.reportError);
+                                dbconfig.collection_tsPhone.update({_id:{$in: tsAssignee.updateObj.tsPhone}}, {assignee: {$addToSet: tsAssignee.admin} , $inc: {assignTimes: 1}, distributedEndTime: phoneNumberEndTime.startTime}, {multi: true}).catch(errorUtils.reportError);
                             })
                         promArr.push(distributedPhoneListProm);
                     }
