@@ -672,6 +672,15 @@ let dbPlayerInfo = {
                 isVerified => {
                     //player flag for new system
                     inputData.isNewSystem = true;
+
+                    if (inputData.name && !adminId && !/^[a-z0-9]+$/i.test(inputData.name)) {
+                        return Promise.reject({
+                            status: constServerCode.PLAYER_NAME_INVALID,
+                            name: "DBError",
+                            message: "Username should be alphanumeric"
+                        });
+                    }
+
                     let playerNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
                         name: inputData.name,
                         platform: platformObjId
