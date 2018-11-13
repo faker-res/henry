@@ -1465,6 +1465,7 @@ var dbPlayerTopUpRecord = {
                     updateData.data.bankCardNo = request.result.bankCardNo;
                     updateData.data.cardOwner = request.result.cardOwner;
                     updateData.data.bankTypeId = request.result.bankTypeId;
+                    updateData.data.bankName = request.result.bankName;
                     updateData.data.resultData = request.result;
                     updateData.data.cardQuota = 0;
                     if (request.result && request.result.changeAmount) {
