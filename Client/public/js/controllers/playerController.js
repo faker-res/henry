@@ -6504,6 +6504,12 @@ define(['js/app'], function (myApp) {
                                     changeObj.forbidPlayerFromEnteringGame = !changeObj.forbidPlayerFromEnteringGame;
                                 }
 
+                                // Invert third render
+                                vm.permissionPlayer.permission.banReward = !vm.permissionPlayer.permission.banReward;
+                                vm.permissionPlayer.permission.disableWechatPay = !vm.permissionPlayer.permission.disableWechatPay;
+                                vm.permissionPlayer.permission.forbidPlayerFromLogin = !vm.permissionPlayer.permission.forbidPlayerFromLogin;
+                                vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;
+
                                 let selectedMainPermission = $selectedMainPermission.val() ? $selectedMainPermission.val() : "";
                                 let status = selectedMainPermission && vm.permissionPlayer.permission ? vm.permissionPlayer.permission[selectedMainPermission] : "";
 
