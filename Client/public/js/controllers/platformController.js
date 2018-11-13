@@ -17569,7 +17569,7 @@ define(['js/app'], function (myApp) {
                     }
 
                     if (j.playerId && j.playerId.csOfficer) {
-                        let len = vm.adminList.length;
+                        let len = vm.adminList ? vm.adminList.length : 0;
                         for (let x = 0; x < len; x++) {
                             let admin = vm.adminList[x];
                             if (j.playerId.csOfficer.toString() === admin._id.toString()) {
