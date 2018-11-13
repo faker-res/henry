@@ -41,7 +41,7 @@ define(['js/app'], function (myApp) {
             2: "NOT_ENOUGH_CALLER",
             3: "MANUAL_PAUSED",
             4: "HALF_COMPLETE",
-            5: "COMPLETED",
+            5: "PERFECTLY_COMPLETED",
             6: "FORCE_COMPLETED",
             7: "DECOMPOSED"
         };

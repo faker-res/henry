@@ -953,7 +953,7 @@
             .modal-body
                 ul.nav.nav-tabs.common-nav-tabs
                     li(ng-class="vm.selectedTopupTab == 'manual' ? 'active' : null", ng-if="checkViewPermission('Player', 'TopUp', 'ApplyManualTopup')")
-                        a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('manual');vm.initPlayerManualTopUp();") {{"MANUAL_TOPUP" | translate}}
+                        a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('manual');vm.initPlayerManualTopUp();") {{"MANUAL_TOPUP" | translate}} {{"BACKUP_LIST" | translate}}
                     li(ng-class="vm.selectedTopupTab == 'alipay' ? 'active' : null", ng-if="checkViewPermission('Player', 'TopUp', 'ApplyAlipayTopup')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('alipay');vm.initPlayerAlipayTopUp();") {{"ALIPAY" | translate}}
                     li(ng-class="vm.selectedTopupTab == 'wechatpay' ? 'active' : null", ng-if="checkViewPermission('Player', 'TopUp', 'ApplyWechatPayTopup')")

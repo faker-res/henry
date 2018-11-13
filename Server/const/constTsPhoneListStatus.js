@@ -7,7 +7,7 @@ const constTsPhoneListStatus = {
     NOT_ENOUGH_CALLER: 2,
     MANUAL_PAUSED: 3,
     HALF_COMPLETE: 4,
-    COMPLETED: 5,
+    PERFECTLY_COMPLETED: 5,
     FORCE_COMPLETED: 6,
     DECOMPOSED: 7
 };
