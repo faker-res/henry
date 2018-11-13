@@ -19,7 +19,9 @@ let tsPhoneSchema = new Schema({
     remark: {type: String},
 
     // assign times 过手次数
-    assignTimes: {type: Number, default: 0},
+    assignTimes: {type: Number, default: 0, index: true},
+    // time that it expired - same with endTime in tsDistributedPhone.js
+    distributedEndTime: {type: Date, index: true},
 
 });
 

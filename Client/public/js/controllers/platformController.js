@@ -30391,9 +30391,12 @@ console.log('typeof ',typeof gameProviders);
                             departmentIdArr.push(departmentIds[i]._id);
                         }
                     }
-                }
 
-                socketService.$socket($scope.AppSocket, 'getDepartmentTreeByIds', {departmentIds: departmentIdArr}, success);
+                    socketService.$socket($scope.AppSocket, 'getDepartmentTreeByIds', {departmentIds: departmentIdArr}, success);
+                }
+                else{
+                    socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
+                }
 
                 function success(data) {
                     $scope.$evalAsync(() => {

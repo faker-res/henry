@@ -3146,3 +3146,16 @@ table.simple-table.platformFrontEndDisplayTable tbody td {
     left: 0;
     width: 100%;
 }
+
+table.simple-table-single > tbody > tr > td,
+table.simple-table-single > thead > tr > th {
+    padding: 5px;
+    text-align: center;
+    border: solid 1px rgba(43, 102, 152, 0.5);
+}
+
+.no-border td,
+.no-border th {
+    padding: 0px !important;
+    line-height: 2em !important;
+}
