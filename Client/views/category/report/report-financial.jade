@@ -21,7 +21,7 @@
     div
         label &nbsp;
         label &nbsp;
-        button.btn.btn-success(ng-click='') {{'SEARCH' | translate}}
+        button.btn.btn-success(ng-click='vm.searchFinancialReportByDay()') {{'SEARCH' | translate}}
         span#financialReportSpin.collapse
             i.fa.fa-spinner.fa-spin
     div
@@ -29,9 +29,75 @@
         label &nbsp;
         button.btn.btn-danger(data-toggle="modal", data-target='#modalDepositGroupSetting', ng-click='vm.initDepositGroupSetting()') {{'Deposit Group Setting' | translate}}（{{'Impact report display' | translate}}）
 .clearfix
-label {{"Total" | translate}} {{vm.financialReport.totalCount}} {{"records" | translate}}
-table.common-table#financialReportTable.display(style="width:100% ;overflow-x: scroll")
-#financialReportTablePage
+    div(style="min-width:100% ;overflow-x: scroll; display; none !important" ng-if="vm.dailyFinancialReportList.length > 0")
+        table.simple-table-single.table-vertical-middle.text-center(style='width:100%')
+            thead
+                tr
+                    th(rowspan=2 style="min-width:100px") {{vm.financialReportPlatformName}}
+                    th(ng-repeat="a in vm.manualTopUpHeader | orderBy: 'groupName'" style="min-width:150px") {{a.groupName}}
+                    th(ng-repeat="a in vm.onlineTopUpHeader | orderBy: 'groupName'" style="min-width:150px") {{a.groupName}}
+                    th(colspan=2 ng-if="vm.alipayTopUpHeader.groupName") {{vm.alipayTopUpHeader.groupName}}
+                    th(colspan=2 ng-if="vm.wechatPayTopUpHeader.groupName") {{vm.wechatPayTopUpHeader.groupName}}
+                    th(colspan="{{vm.bonusHeader.bonusDetail.length + 1}}") {{'All Withdrawal' | translate}}
+                    th(rowspan=2 style="min-width:100px") {{'Total Platform Fee' | translate}}
+                tr.no-border
+                    th(ng-repeat="a in vm.manualTopUpHeader | orderBy: 'groupName'" style="min-width:150px;")
+                        table
+                            th.text-center(ng-repeat="detail in a.topUpDetail | orderBy: 'depositMethod' track by $index" style="min-width:210px; max-width:220px;border-right: 1px solid rgba(43, 102, 152, 0.5);height: 120px")
+                                span {{ detail.depositMethodName || 0}}
+                            th.text-center(style="color:red;min-width:210px; max-width:220px" ) {{a.groupName}}（{{'Total Sum' | translate}}）
+                    th(ng-repeat="a in vm.onlineTopUpHeader | orderBy: 'groupName'" style="min-width:150px;")
+                        table
+                            th.text-center(ng-repeat="detail in a.topUpDetail | orderBy: 'depositMethod' track by $index" style="min-width:210px; max-width:220px;border-right: 1px solid rgba(43, 102, 152, 0.5);height: 120px")
+                                span {{ detail.depositMethodName | translate}}({{detail.depositMethodName}}): {{detail.depositMethod}}
+                            th.text-center(style="color:red;min-width:210px; max-width:220px" ) {{a.groupName}}（{{'Total Sum' | translate}}
+                    th(style="min-width: 100px" ng-if="vm.alipayTopUpHeader.typeName") {{vm.alipayTopUpHeader.typeName | translate}}
+                    th(style="color:red;min-width: 100px" ng-if="vm.alipayTopUpHeader.groupName") {{vm.alipayTopUpHeader.groupName}}（{{'Total Sum' | translate}}）
+                    th(style="min-width: 100px" ng-if="vm.wechatPayTopUpHeader.typeName") {{vm.wechatPayTopUpHeader.typeName| translate}}
+                    th(style="color:red;min-width: 100px" ng-if="vm.wechatPayTopUpHeader.groupName") {{vm.wechatPayTopUpHeader.groupName}}（{{'Total Sum' | translate}}）
+                    th(ng-repeat="a in vm.bonusHeader.bonusDetail | orderBy: 'typeName'" style="min-width: 100px") {{a.typeName | translate}}
+                    th(style="color:red;min-width: 100px;") {{'All Withdrawal' | translate}}（{{'Total Sum' | translate}}）
+
+            tbody
+                tr.no-border(ng-repeat="financialReport in vm.dailyFinancialReportList track by $index" style="padding:0 !important;")
+                    td
+                        span {{ financialReport.date }}
+
+                    td(ng-repeat="manualTopUp in financialReport.manualTopUpList | orderBy: 'groupName' track by $index")
+                        table(style='width:100%')
+                            td(ng-repeat="detail in manualTopUp.topUpDetail | orderBy: 'depositMethod' track by $index" style="min-width: 210px; max-width:220px;border-right: 1px solid rgba(43, 102, 152, 0.5)")
+                                span {{ detail.amount || 0}}
+                            td(style="color:red;min-width: 210px; max-width:220px")
+                                span {{ manualTopUp.totalAmount || 0}}
+
+                    td(ng-repeat="onlineTopUp in financialReport.onlineTopUpList | orderBy: 'groupName' track by $index")
+                        table(style='width:100%')
+                            td(ng-repeat="detail in onlineTopUp.topUpDetail | orderBy: 'depositMethod' track by $index" style="min-width: 210px; max-width:220px;border-right: 1px solid rgba(43, 102, 152, 0.5)")
+                                span {{ detail.amount || 0}}
+                            td(style="color:red;min-width: 210px; max-width:220px")
+                                span {{ onlineTopUp.totalAmount || 0}}
+
+                    td(ng-if="vm.alipayTopUpHeader.groupName")
+                        span {{ financialReport.alipayTopUpList.amount || 0}}
+
+                    td(style="color:red" ng-if="vm.alipayTopUpHeader.groupName")
+                        span {{ financialReport.alipayTopUpList.amount || 0}}
+
+                    td(ng-if="vm.wechatPayTopUpHeader.groupName")
+                        span {{ financialReport.wechatPayTopUpList.amount || 0}}
+
+                    td(style="color:red" ng-if="vm.wechatPayTopUpHeader.groupName")
+                        span {{ financialReport.wechatPayTopUpList.amount || 0}}
+
+                    td(ng-repeat="bonus in financialReport.bonusList.bonusDetail | orderBy: 'typeName' track by $index")
+                        span {{ bonus.amount || 0}}
+
+                    td(style="color:red")
+                        span {{ financialReport.bonusList.totalAmount || 0}}
+
+                    td
+                        span {{ financialReport.platformFeeEstimateList.totalPlatformFeeEstimate || 0}}
+
 
 #modalDepositGroupSetting.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
@@ -99,7 +165,7 @@ table.common-table#financialReportTable.display(style="width:100% ;overflow-x: s
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button.pull-right(ng-if='vm.editConfig', ng-click='vm.editConfig=!vm.editConfig;vm.initDepositGroupSetting()') {{"CANCEL" | translate}}
-                    button.btn.btn-primary.common-button.pull-right(ng-if='vm.editConfig', ng-click='vm.updateDepositGroup()') {{"CONFIRM" | translate}}
+                    button.btn.btn-primary.common-button.pull-right(data-dismiss='modal', ng-if='vm.editConfig', ng-click='vm.updateDepositGroup()') {{"CONFIRM" | translate}}
 
 #modalDeleteDepositGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
