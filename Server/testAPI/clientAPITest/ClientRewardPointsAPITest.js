@@ -51,6 +51,13 @@
         this.rewardPointsService.applyRewardPoint.once(callback);
     };
 
+    proto.applyRewardPoints = function (callback, requestData) {
+        let data = requestData || {};
+
+        this.rewardPointsService.applyRewardPoints.request(data);
+        this.rewardPointsService.applyRewardPoints.once(callback);
+    };
+
     proto.getLoginRewardPoints = function (callback, requestData) {
         let data = requestData || {};
 
