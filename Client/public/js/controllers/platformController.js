@@ -17548,19 +17548,50 @@ define(['js/app'], function (myApp) {
             vm.drawFeedbackAdminTable = function (size, newSearch, summary) {
                 var showData = [];
                 $.each(vm.feedbackAdmins, function (i, j) {
+                    let remarks = '';
+                    let breakLine = "<br>";
+
                     j.createTime$ = utilService.getFormatTime(j.createTime);
                     j.result$ = j.resultName ? j.resultName : $translate(j.result);
                     j.topupTimes$ = j.topupTimes || 0;
                     j.amount$ = j.amount ? (j.amount).toFixed(2) : new Number(0).toFixed(2);
+
+                    if (j.playerId.credibilityRemarks && j.playerId.credibilityRemarks.length > 0) {
+                        j.playerId.credibilityRemarks = vm.credibilityRemarks.filter(remark => {
+                            return j.playerId.credibilityRemarks.includes(remark._id);
+                        });
+                        j.playerId.credibilityRemarks.forEach(function (value, index) {
+                            remarks += value.name + breakLine;
+                        });
+                        j.credibilityRemarksName = remarks;
+                    } else {
+                        j.credibilityRemarksName = "--";
+                    }
+
+                    if (j.playerId && j.playerId.csOfficer) {
+                        let len = vm.adminList.length;
+                        for (let x = 0; x < len; x++) {
+                            let admin = vm.adminList[x];
+                            if (j.playerId.csOfficer.toString() === admin._id.toString()) {
+                                j.csOfficerName = admin.adminName;
+                                break;
+                            } else {
+                                j.csOfficerName = "--";
+                            }
+                        }
+                    } else {
+                        j.csOfficerName = "--";
+                    }
+
                     showData.push(j);
                 });
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: showData,
-                    order: vm.feedbackAdminQuery.aaSorting || [[2, 'desc']],
+                    order: vm.feedbackAdminQuery.aaSorting || [[4, 'desc']],
                     aoColumnDefs: [
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [2]},
-                        {'sortCol': 'topupTimes', bSortable: true, 'aTargets': [5]},
-                        {'sortCol': 'amount', bSortable: true, 'aTargets': [6]},
+                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [4]},
+                        {'sortCol': 'topupTimes', bSortable: true, 'aTargets': [8]},
+                        {'sortCol': 'amount', bSortable: true, 'aTargets': [9]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
@@ -17572,6 +17603,8 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {title: $translate('PLAYER'), data: "playerId.name"},
+                        {title: $translate('CREDIBILITY_REMARK'), data: "credibilityRemarksName"},
+                        {title: $translate('REGISTRATION_ADMIN'), data: "csOfficerName"},
                         {
                             title: $translate('CREATETIME'), data: "createTime$", bSortable: true
                             // render: function (data, type, row) {
@@ -23988,7 +24021,7 @@ console.log('typeof ',typeof gameProviders);
                             status: 1
                         };
 
-                        if (data && !data.isBlockPromoCodeUser) {
+                        if (data && !data.isBlockPromoCodeUser && !data.isBlockByMainPermission) {
                             if (!data.amount) {
                                 if (type == 3) {
                                     return socketService.showErrorMessage($translate("Promo Reward % is required"));
@@ -24174,12 +24207,13 @@ console.log('typeof ',typeof gameProviders);
                                 item.promoCodeStatus = item.status;
                             }
 
-                            // special handling for openPromoCode gettign from proposal
+                            // special handling for openPromoCode getting from proposal
                             if (item.data && item.data.templateId ){
                                 item.amount = item.data.amount$ || null;
                                 item.minTopUpAmount = item.data.minTopUpAmount$ || null;
                                 item.maxRewardAmount = item.data.maxRewardAmount$ || null;
                                 item.requiredConsumption = item.data.requiredConsumption$ || null;
+                                item.isSharedWithXIMA$ = item.data.useConsumption ? $translate("false") : $translate("true");
                                 item.code = item.data.promoCode || null;
                                 item.adminName = item.creator ? item.creator.name : null;
                                 item.acceptedTime$ = utilService.$getTimeFromStdTimeFormat(item.createTime);
@@ -30348,7 +30382,18 @@ console.log('typeof ',typeof gameProviders);
 
             // right panel required functions
             vm.loadAlldepartment = function (callback) {
-                socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
+                let departmentIdArr = [];
+                // get multiple departments for current user
+                let departmentIds = authService.departmentIds();
+                if (departmentIds && departmentIds.length > 1) {
+                    for (let i = 0, len = departmentIds.length; i < len; i++) {
+                        if (departmentIds[i] && departmentIds[i]._id) {
+                            departmentIdArr.push(departmentIds[i]._id);
+                        }
+                    }
+                }
+
+                socketService.$socket($scope.AppSocket, 'getDepartmentTreeByIds', {departmentIds: departmentIdArr}, success);
 
                 function success(data) {
                     $scope.$evalAsync(() => {

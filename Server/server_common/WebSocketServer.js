@@ -34,6 +34,9 @@ var WebSocketServer = function (port, useSSL) {
 
 var proto = WebSocketServer.prototype;
 
+var tempParam = {};
+var fileToTransferToFTP;
+
 /**
  * Set message web socket client
  */
@@ -161,10 +164,26 @@ proto.run = function () {
         self.addClient(ws);
         //add ws to array
         ws.on("message", function (message, flags) {   //需注意Socket的 4k上限
-            console.log("server message: ", message);
-            if (!message || !IsJsonString(message))
+            if(message && message.includes("sendFileFTP")){
+                tempParam = message;
                 return;
+            }
+
+            if(Object.keys(tempParam).length > 0 && typeof message == "object"){
+                fileToTransferToFTP = message;
+                message = tempParam;
+                tempParam = {};
+            }
+
+            if (!message || (!IsJsonString(message) && typeof message != "object")){
+                return;
+            }
+
             message = JSON.parse(message);
+
+            if(fileToTransferToFTP && message["data"]){
+                message["data"].fileStream = fileToTransferToFTP;
+            }
 
             self._dispatch(ws, message);
         });

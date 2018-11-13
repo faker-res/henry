@@ -881,7 +881,7 @@ define(['js/app'], function (myApp) {
 
         // import phone number to system
         vm.importTSNewList = function (uploadData, tsNewListObj) {
-            let dailyDistributeTaskData = $('#dxTimePicker').data('datetimepicker').getLocalDate();
+            let dailyDistributeTaskDate = $('#dxTimePicker').data('datetimepicker').getLocalDate();
             let sendData = {
                 phoneListDetail: uploadData,
                 isUpdateExisting: vm.tsNewList && vm.tsNewList.checkBoxA || false,
@@ -895,9 +895,9 @@ define(['js/app'], function (myApp) {
                     failFeedBackContent: tsNewListObj.failFeedBackContent,
                     callerCycleCount: tsNewListObj.callerCycleCount,
                     dailyCallerMaximumTask: tsNewListObj.dailyCallerMaximumTask,
-                    dailyDistributeTaskHour: dailyDistributeTaskData.getHours(),
-                    dailyDistributeTaskMinute: dailyDistributeTaskData.getMinutes(),
-                    dailyDistributeTaskSecond: dailyDistributeTaskData.getSeconds(),
+                    dailyDistributeTaskHour: dailyDistributeTaskDate.getHours(),
+                    dailyDistributeTaskMinute: dailyDistributeTaskDate.getMinutes(),
+                    dailyDistributeTaskSecond: dailyDistributeTaskDate.getSeconds(),
                     distributeTaskStartTime: $('#dxDatePicker').data('datetimepicker').getLocalDate(),
                     reclaimDayCount: tsNewListObj.reclaimDayCount,
                     isCheckWhiteListAndRecycleBin: tsNewListObj.isCheckWhiteListAndRecycleBin,
@@ -1111,15 +1111,15 @@ define(['js/app'], function (myApp) {
                 rowArrayMerge = [].concat.apply([], rowArray);
                 phoneList[rows[z][vm.tsNewList.phoneIdx].value] = {
                     phoneNumber: rows[z][vm.tsNewList.phoneIdx].value,
-                    playerName: rows[z][vm.tsNewList.phoneIdx+1].value,
-                    realName: rows[z][vm.tsNewList.phoneIdx+2].value,
-                    gender: rows[z][vm.tsNewList.phoneIdx+3].value,
-                    dob: rows[z][vm.tsNewList.phoneIdx+4].value,
-                    wechat: rows[z][vm.tsNewList.phoneIdx+5].value,
-                    qq: rows[z][vm.tsNewList.phoneIdx+6].value,
-                    email: rows[z][vm.tsNewList.phoneIdx+7].value,
-                    remark: rows[z][vm.tsNewList.phoneIdx+8].value
                 };
+                phoneList[rows[z][vm.tsNewList.phoneIdx].value].playerName = rows[z][vm.tsNewList.phoneIdx+2] && rows[z][vm.tsNewList.phoneIdx+2].value;
+                phoneList[rows[z][vm.tsNewList.phoneIdx].value].realName = rows[z][vm.tsNewList.phoneIdx+3] && rows[z][vm.tsNewList.phoneIdx+3].value;
+                phoneList[rows[z][vm.tsNewList.phoneIdx].value].gender = rows[z][vm.tsNewList.phoneIdx+4] && rows[z][vm.tsNewList.phoneIdx+4].value;
+                phoneList[rows[z][vm.tsNewList.phoneIdx].value].dob = rows[z][vm.tsNewList.phoneIdx+5] && rows[z][vm.tsNewList.phoneIdx+5].value;
+                phoneList[rows[z][vm.tsNewList.phoneIdx].value].wechat = rows[z][vm.tsNewList.phoneIdx+6] && rows[z][vm.tsNewList.phoneIdx+6].value;
+                phoneList[rows[z][vm.tsNewList.phoneIdx].value].qq = rows[z][vm.tsNewList.phoneIdx+7] && rows[z][vm.tsNewList.phoneIdx+7].value;
+                phoneList[rows[z][vm.tsNewList.phoneIdx].value].email = rows[z][vm.tsNewList.phoneIdx+8] && rows[z][vm.tsNewList.phoneIdx+8].value;
+                phoneList[rows[z][vm.tsNewList.phoneIdx].value].remark = rows[z][vm.tsNewList.phoneIdx+9] && rows[z][vm.tsNewList.phoneIdx+9].value;
             }
 
             let sendData = {
@@ -4960,6 +4960,102 @@ define(['js/app'], function (myApp) {
             vm.tsCity = "";
         }
 
+
+        vm.initAnalyticsFilterAndImportDXSystem = function (rowData) {
+            vm.isShowNewListModal = true;
+            vm.tsNewListEnableSubmit = true;
+            vm.analyticsdisableAll = true;
+            vm.analyticsPhoneListEdit = true;
+            vm.tsAnalyticsPhoneList = {dangerZoneList: [], time_operator_description: []};
+            vm.checkFilterIsDisable = true;
+
+            utilService.actionAfterLoaded("#tsAnalyticsDatePicker", function () {
+                $('#tsAnalyticsDatePicker').datetimepicker({
+                    language: 'en',
+                    format: 'dd/MM/yyyy',
+                    pickTime: false,
+                });
+
+                $('#tsAnalyticsTimePicker').datetimepicker({
+                    language: 'en',
+                    format: 'HH:mm:ss',
+                    pick12HourFormat: true,
+                    pickDate: false,
+                });
+
+                if (rowData) {
+                    vm.tsAnalyticsPhoneList._id = rowData._id;
+                    vm.tsAnalyticsPhoneList.name = rowData.name;
+                    vm.tsAnalyticsPhoneList.failFeedBackResult = rowData.failFeedBackResult;
+                    vm.tsAnalyticsPhoneList.failFeedBackTopic = rowData.failFeedBackTopic;
+                    vm.tsAnalyticsPhoneList.failFeedBackContent = rowData.failFeedBackContent;
+                    vm.tsAnalyticsPhoneList.callerCycleCount = rowData.callerCycleCount;
+                    vm.tsAnalyticsPhoneList.dailyCallerMaximumTask = rowData.dailyCallerMaximumTask;
+                    let tsPhoneListTime = new Date();
+                    if (rowData.hasOwnProperty("dailyDistributeTaskHour") && rowData.hasOwnProperty("dailyDistributeTaskMinute")
+                        && rowData.hasOwnProperty("dailyDistributeTaskSecond")) {
+                        tsPhoneListTime.setHours(rowData.dailyDistributeTaskHour);
+                        tsPhoneListTime.setMinutes(rowData.dailyDistributeTaskMinute);
+                        tsPhoneListTime.setSeconds(rowData.dailyDistributeTaskSecond);
+                        $('#tsAnalyticsTimePicker').data('datetimepicker').setDate(utilService.getLocalTime(tsPhoneListTime));
+                    } else {
+                        $('#tsAnalyticsTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
+                    }
+                    $('#tsAnalyticsDatePicker').data('datetimepicker').setDate(utilService.getLocalTime(new Date(rowData.distributeTaskStartTime)));
+                    vm.tsAnalyticsPhoneList.reclaimDayCount = rowData.reclaimDayCount;
+                    vm.tsAnalyticsPhoneList.isCheckWhiteListAndRecycleBin = rowData.isCheckWhiteListAndRecycleBin;
+                    vm.tsAnalyticsPhoneList.dangerZoneList = rowData.dangerZoneList;
+                    vm.checkAnalyticsFilterAndImportSystem();
+                }
+
+                socketService.$socket($scope.AppSocket, 'getTsPhoneImportRecord', {platform: vm.selectedPlatform.id, tsPhoneList: rowData._id}, function (data) {
+                    if (data && data.data  && data.data.length) {
+                        $scope.$evalAsync(() => {
+                            data.data.forEach(tsImportRecord => {
+                                if (tsImportRecord.description) {
+                                    vm.tsAnalyticsPhoneList.time_operator_description.push(tsImportRecord.description);
+                                }
+                            });
+                        });
+                    }
+                })
+            });
+
+            vm.editTsNewList = function () {
+                let dailyDistributeTaskDate = $('#tsAnalyticsTimePicker').data('datetimepicker').getLocalDate();
+                let sendData = {
+                    query: {
+                        _id: vm.tsAnalyticsPhoneList._id
+                    },
+                    updateData: {
+                        failFeedBackResult: vm.tsAnalyticsPhoneList.failFeedBackResult,
+                        failFeedBackTopic: vm.tsAnalyticsPhoneList.failFeedBackTopic,
+                        failFeedBackContent: vm.tsAnalyticsPhoneList.failFeedBackContent,
+                        callerCycleCount: vm.tsAnalyticsPhoneList.callerCycleCount,
+                        dailyCallerMaximumTask:vm. tsAnalyticsPhoneList.dailyCallerMaximumTask,
+                        dailyDistributeTaskHour: dailyDistributeTaskDate.getHours(),
+                        dailyDistributeTaskMinute: dailyDistributeTaskDate.getMinutes(),
+                        dailyDistributeTaskSecond: dailyDistributeTaskDate.getSeconds(),
+                        reclaimDayCount: vm.tsAnalyticsPhoneList.reclaimDayCount,
+                        dangerZoneList: vm.tsAnalyticsPhoneList.dangerZoneList
+                    }
+                };
+
+                socketService.$socket($scope.AppSocket, 'updateTsPhoneList', sendData, function () {})
+            }
+
+
+
+            vm.tsAnalyticsProvince = "";
+            vm.tsAnalyticsCity = "";
+
+        }
+
+        vm.resetAnalyticsProvince = function () {
+            vm.tsAnalyticsProvince = "";
+            vm.tsAnalyticsCity = "";
+        }
+
         vm.resetProvince = function () {
             vm.tsProvince = "";
             vm.tsCity = "";
@@ -4995,7 +5091,17 @@ define(['js/app'], function (myApp) {
                 "sScrollY": 550,
                 "scrollCollapse": true,
                 columns: [
-                    {title: $translate('NAME_LIST_TITLE'), data: "name"},
+                    {
+                        title: $translate('NAME_LIST_TITLE'), data: "name",
+                        render: function (data, type, row, index) {
+                            var link = $('<a>', {
+                                'ng-click': 'vm.initAnalyticsFilterAndImportDXSystem(' + JSON.stringify(row) + ');',
+                                'data-toggle': 'modal',
+                                'data-target': '#modaltsAnalyticsPhoneList'
+                            }).text(data);
+                            return link.prop('outerHTML');
+                        }
+                    },
                     {
                         title: $translate('SEND_STATUS'), data: "status",
                         render: function (data, type, row, index) {
@@ -5098,8 +5204,8 @@ define(['js/app'], function (myApp) {
             //     }
             //
             // }
-            $('#phoneListManagementTable tbody').off('click', "**");
-            $('#phoneListManagementTable tbody').on('click', 'tr', tableRowClicked);
+            // $('#phoneListManagementTable tbody').off('click', "**");
+            // $('#phoneListManagementTable tbody').on('click', 'tr', tableRowClicked);
 
             $('#phoneListManagementTable').off('order.dt');
             $('#phoneListManagementTable').on('order.dt', function (event, a, b) {
@@ -5115,6 +5221,28 @@ define(['js/app'], function (myApp) {
             })
         }
 
+
+        vm.tsAnalyticsPhoneListEdit = () => {
+            vm.analyticsPhoneListEdit = false;
+        }
+
+        vm.checkAnalyticsFilterAndImportSystem = () => {
+            vm.checkFilterIsDisable = true;
+            if (vm.isShowNewListModal) {
+                let tsTimePicker = $('#tsAnalyticsTimePicker').data('datetimepicker').getLocalDate();
+                let tsDatePicker = $('#tsAnalyticsDatePicker').data('datetimepicker').getLocalDate();
+
+                if (vm.tsAnalyticsPhoneList) {
+                    if (vm.tsAnalyticsPhoneList.failFeedBackResult && vm.tsAnalyticsPhoneList.failFeedBackTopic
+                        && vm.tsAnalyticsPhoneList.failFeedBackContent && vm.tsAnalyticsPhoneList.callerCycleCount
+                        && vm.tsAnalyticsPhoneList.dailyCallerMaximumTask
+                        && vm.tsAnalyticsPhoneList.reclaimDayCount && tsTimePicker) {
+                        vm.checkFilterIsDisable = false;
+                    }
+                }
+            }
+            return vm.checkFilterIsDisable;
+        };
 
         vm.checkFilterAndImportSystem = () => {
           vm.checkFilterIsDisable = true;
@@ -5134,13 +5262,14 @@ define(['js/app'], function (myApp) {
         };
 
 
+
         vm.checkBox = () => {
             let isDisable = true;
                 if(vm.tsNewList.checkBoxA == true || vm.tsNewList.checkBoxB == true){
                     isDisable = false;
                 }
             return isDisable;
-        }
+        };
 
         vm.checkTsNewListName = () => {
            if(vm.platformTsListName.indexOf(vm.tsNewList.name) == -1){
@@ -5155,7 +5284,7 @@ define(['js/app'], function (myApp) {
                $('#modalTSNewListNameRepeat').css("z-index", "12000");
 
            }
-        }
+        };
 
         vm.returnToInput = () => {
             vm.disableAll = false;
@@ -5193,7 +5322,7 @@ define(['js/app'], function (myApp) {
                 })
 
             }
-        }
+        };
 
         vm.closeModalTSNewListNameRepeat = function () {
             $('#modalTSNewListNameRepeat').hide();

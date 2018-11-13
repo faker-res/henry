@@ -30,7 +30,7 @@ let tsAssignee = new Schema({
     effectivePlayerCount: {type: Number, default: 0},
     // number of holding phone that have not been register
     holdingCount: {type: Number, default: 0},
-    // status of TsAssignee - consTsAssigneeStatus
+    // status of TsAssignee - constTsAssigneeStatus
     status: {type: Number, default: 0}
 
 

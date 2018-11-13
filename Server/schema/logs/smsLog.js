@@ -30,7 +30,7 @@ var smsLogSchema = new Schema ({
     // Date of creation
     createTime: {type: Date, default: Date.now, index: true},
     // sms sending status: success or fail
-    status: {type: String, required: true, enum: ['success', 'failure']},
+    status: {type: String, required: true, enum: ['success', 'failure'], index: true},
     // sms sending error
     error: {type: Schema.Types.Mixed, required: false},
     // is this sms code used

@@ -674,7 +674,9 @@ const dbPlayerMail = {
                             };
                             if (isPartner) {
                                 delete query.isRealPlayer;
-                                delete query.permission.forbidPlayerFromLogin;
+                                if(query.permission){
+                                    delete query.permission.forbidPlayerFromLogin;
+                                }
                                 query['permission.forbidPartnerFromLogin'] = false;
                             }
                             if (platform[sameTelPermission] === true) {

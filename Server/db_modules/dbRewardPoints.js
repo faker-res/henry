@@ -757,11 +757,11 @@ let dbRewardPoints = {
                     });
                 }
 
-                dbRewardPoints.createRewardPointsLog(logDetail).catch(errorUtils.reportError);
-                // Reset BState
-                dbPlayerUtil.setPlayerBState(playerObjId, 'applyRewardPoint', false).catch(errorUtils.reportError);
-
-                return logDetail;
+                return Promise.all([
+                    dbRewardPoints.createRewardPointsLog(logDetail).catch(errorUtils.reportError),
+                    // Reset BState
+                    dbPlayerUtil.setPlayerBState(playerObjId, 'applyRewardPoint', false).catch(errorUtils.reportError)
+                ]).then(() => logDetail);
             }
         ).catch(
             err => {
@@ -779,13 +779,13 @@ let dbRewardPoints = {
 
     applyRewardPoints: (playerObjId, rewardPointsEventObjIds, inputDevice, rewardPointsConfig) => {
         if(rewardPointsEventObjIds && rewardPointsEventObjIds.length > 0){
-            let proms = [];
+            let p = Promise.resolve();
             rewardPointsEventObjIds.forEach(
                 rewardPointsEventObjId => {
-                    proms.push(dbRewardPoints.applyRewardPoint(playerObjId, rewardPointsEventObjId, inputDevice, rewardPointsConfig));
+                    p.then(dbRewardPoints.applyRewardPoint(playerObjId, rewardPointsEventObjId, inputDevice, rewardPointsConfig));
                 }
             );
-            return Q.all(proms)
+            return p;
         }
         else{
             return Promise.reject(false)
