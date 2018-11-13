@@ -33,7 +33,6 @@ let tsAssignee = new Schema({
     // status of TsAssignee - constTsAssigneeStatus
     status: {type: Number, default: 0}
 
-
 });
 
 
