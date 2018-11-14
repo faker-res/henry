@@ -16,6 +16,10 @@ let dbTeleSales = {
         return dbconfig.collection_tsPhoneList.findOne(query).lean();
     },
 
+    getTSPhoneListName: function (query) {
+        return dbconfig.collection_tsPhoneList.distinct("name", query);
+    },
+
     distributePhoneNumber: function (inputData) {
         console.log("tsListObjId", inputData.tsListObjId);
         console.log("tsListPlatform", inputData.platform);

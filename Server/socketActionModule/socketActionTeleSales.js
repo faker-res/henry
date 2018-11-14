@@ -44,6 +44,12 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.getOneTsNewList, [data], actionName, isValidData);
         },
 
+        getTSPhoneListName: function getTSPhoneListName(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbTeleSales.getTSPhoneListName, [data], actionName, isValidData);
+        },
+
         distributePhoneNumber: function distributePhoneNumber (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platform && data.tsListObjId);

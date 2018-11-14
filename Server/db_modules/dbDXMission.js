@@ -1367,6 +1367,14 @@ let dbDXMission = {
             },
         };
 
+        if (data.status) {
+            sendQuery.status = {$in: data.status};
+        }
+
+        if (data.name) {
+            sendQuery.name = {$in: data.name};
+        }
+
         return dbconfig.collection_tsPhoneList.find(sendQuery);
     }
 };
