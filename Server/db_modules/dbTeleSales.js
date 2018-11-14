@@ -16,6 +16,38 @@ let dbTeleSales = {
         return dbconfig.collection_tsPhoneList.findOne(query).lean();
     },
 
+    getTsDistributedPhoneDetail: (distributedPhoneObjId) => {
+        let tsDistributedPhone;
+        return dbconfig.collection_tsDistributedPhone.findOne({_id: distributedPhoneObjId}).lean().then(
+            dPhoneData => {
+                if (!dPhoneData) {
+                    return Promise.reject({message: "Phone detail not found"});
+                }
+                tsDistributedPhone = dPhoneData;
+
+                let tsPhoneProm = dbconfig.collection_tsPhone.findOne({_id: tsDistributedPhone.tsPhone}).lean();
+                let tsAssigneeProm = dbconfig.collection_tsAssignee.findOne({_id: tsDistributedPhone.assignee}).lean();
+                let feedbackProm = dbconfig.collection_tsPhoneFeedback.find({tsPhone: tsDistributedPhone.tsPhone}).lean();
+
+                return Promise.all([tsPhoneProm, tsAssigneeProm, feedbackProm]);
+            }
+        ).then(
+            ([tsPhone, tsAssignee, feedbacks]) => {
+                if (!tsPhone) {
+                    return Promise.reject({message: "tsPhone not found"});
+                }
+                if (!tsAssignee) {
+                    return Promise.reject({message: "tsAssignee not found"});
+                }
+                tsDistributedPhone.tsPhone = tsPhone;
+                tsDistributedPhone.assignee = tsAssignee;
+                tsDistributedPhone.feedbacks = feedbacks;
+
+                return tsDistributedPhone;
+            }
+        );
+    },
+
     distributePhoneNumber: function (inputData) {
         console.log("tsListObjId", inputData.tsListObjId);
         console.log("tsListPlatform", inputData.platform);

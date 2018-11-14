@@ -206,10 +206,12 @@ const cpmsAPI = {
     },
 
     consumption_getConsumptionSummary: function(data){
+        console.log('-mark--getConsumptionSummary', data);
         return callCPMSAPI("consumption", "getConsumptionSummary", data);
     },
 
     consumption_reSendConsumption: function(data){
+        console.log('-mark--reSendConsumption', data);
         return callCPMSAPI("consumption", "reSendConsumption", data);
     }
 };

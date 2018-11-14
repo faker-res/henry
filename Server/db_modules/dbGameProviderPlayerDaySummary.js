@@ -302,26 +302,26 @@ var dbGameProviderPlayerDaySummary = {
     syncBetRecord: function (startTime, endTime, platformId, proId, index, count) {
         var sendData = {
             providerId: proId,
-            startTime: startTime,
-            endTime: endTime,
+            startDate: startTime,
+            endDate: endTime,
             platformId: platformId
-        }
+        };
         return cpmsAPI.consumption_reSendConsumption(sendData);
-
     },
     getProviderDifferDaySummaryForTimeFrame: function (startTime, endTime, platformId, proId, index, count) {
 
         let sendQuery = {
             platformId: platformId,
             providerId: proId,
-            startTime: startTime,
-            endTime: endTime
+            startDate: startTime,
+            endDate: endTime
         };
         let fpmsSummary = dbGameProviderPlayerDaySummary.getProviderDaySummaryForTimeFrame(startTime, endTime, platformId, proId, index, count);
         let cpmsSummary = cpmsAPI.consumption_getConsumptionSummary(sendQuery).catch(err=>{console.log(err)});
         return Promise.all([fpmsSummary, cpmsSummary])
 
         .then(data=>{
+            console.log(data);
             let fpmsData = (data && data[0] && data[0].data) ? data[0].data : {consumption:0, validAmount:0};
             console.log(fpmsData);
             let cpmsData = dbGameProviderPlayerDaySummary.sumCPMSBetsRecord(data[1]);
@@ -425,7 +425,6 @@ var dbGameProviderPlayerDaySummary = {
 
     getProviderDaySummaryForTimeFrame: function (startTime, endTime, platformId, providerId, index, count) {
         var deferred = Q.defer();
-        // console.log('data', startTime, endTime, platformId, providerId);
         var result = {};
         dbconfig.collection_gameProvider.findOne({_id: providerId})
             .then(
@@ -491,6 +490,7 @@ var dbGameProviderPlayerDaySummary = {
             )
             .then(
                 function (data) {
+                    console.log(data);
                     if (data && data.length > 0) {
                         result.amount = data[0].total_amount;
                         result.consumption = data[0].total_consumption;
