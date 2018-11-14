@@ -18,6 +18,7 @@ const dbPlayerCredibility = require('../db_modules/dbPlayerCredibility');
 const dbPlayerOnlineTime = require('../db_modules/dbPlayerOnlineTime');
 const dbPlatformAutoFeedback = require('../db_modules/dbPlatformAutoFeedback');
 const dbSmsGroup = require('../db_modules/dbSmsGroup');
+const dbDepositGroup = require('../db_modules/dbDepositGroup');
 const constProposalType = require('./../const/constProposalType');
 const constFinancialPointsType = require('./../const/constFinancialPointsType');
 
@@ -463,6 +464,30 @@ function socketActionPlatform(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = true;
             socketUtil.emitter(self.socket, dbGameProvider.getGameProviders, [{}], actionName, isValidData);
+        },
+
+        getDepositGroups: function getDepositGroups() {
+            let actionName = arguments.callee.name;
+            let isValidData = true;
+            socketUtil.emitter(self.socket, dbDepositGroup.getDepositGroups, [{}], actionName, isValidData);
+        },
+
+        addNewDepositGroup: function addNewDepositGroup() {
+            let actionName = arguments.callee.name;
+            let isValidData = true;
+            socketUtil.emitter(self.socket, dbDepositGroup.addNewDepositGroup, [], actionName, isValidData);
+        },
+
+        updateDepositGroups: function updateDepositGroups(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.depositGroups);
+            socketUtil.emitter(self.socket, dbDepositGroup.updateDepositGroups, [data.depositGroups], actionName, isValidData);
+        },
+
+        deleteDepositGroup: function deleteDepositGroup(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id);
+            socketUtil.emitter(self.socket, dbDepositGroup.deleteDepositGroup, [data._id], actionName, isValidData);
         },
 
         addNewSmsGroup: function addNewSmsGroup(data) {

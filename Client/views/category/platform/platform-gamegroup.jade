@@ -82,7 +82,7 @@
                                     a(ng-click='vm.allGametoGameGroup("remove","in");$event.stopPropagation();') {{"Clear All" | translate}}
                         #includedGroupGames.panel-collapse.collapse.in
                             .panel-body(style='height:250px;overflow-y:auto')
-                                div.platformGame(ng-repeat='(i,v) in vm.includedGamesGroup | orderBy: "index"', class='{{vm.highlightGame[v._id]}}')
+                                div.platformGame(ng-repeat='(i,v) in vm.includedGamesGroup', class='{{vm.highlightGame[v._id]}}')
                                     a(ng-click='vm.gameInGroupClicked(i,v,"in");vm.newIndex=v.index')
                                         img(async=on ng-if="vm.gameSmallShow[v._id]",ng-src='{{vm.gameSmallShow[v._id]}}')
                                         div(ng-if="!vm.gameSmallShow[v._id]")

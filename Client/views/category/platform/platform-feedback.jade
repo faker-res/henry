@@ -175,7 +175,7 @@
     .text-center.text-danger
         label {{"NO_PLATFORM_MESSAGE" | translate}}
 .col-md-12
-    label.inlineBlk(ng-show='vm.platformPlayerCount') {{"Search Result" | translate}} : {{vm.feedbackPlayersPara.total}}
+    label.inlineBlk(ng-show='vm.feedbackPlayersPara.total!=null') {{"Search Result" | translate}} : {{vm.feedbackPlayersPara.total}}
     .inlineBlk
     label.inlineBlk(ng-show='vm.ctiData.hasOnGoingMission') {{vm.callOutMissionStatus}}
     label.inlineBlk(ng-show='vm.ctiData.hasOnGoingMission') {{vm.ctiData.adminName}} : {{vm.callOutMissionStatusText}}  /  {{"Completed" | translate}} : ({{vm.callOutMissionProgressText}})

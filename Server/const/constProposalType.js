@@ -3,6 +3,9 @@
  */
 const constProposalType = {
     UPDATE_PLAYER_INFO: "UpdatePlayerInfo",
+    UPDATE_PLAYER_INFO_PARTNER: "UpdatePlayerInfoPartner",
+    UPDATE_PLAYER_INFO_LEVEL: "UpdatePlayerInfoLevel",
+    UPDATE_PLAYER_INFO_ACC_ADMIN: "UpdatePlayerInfoAccAdmin",
     UPDATE_PLAYER_CREDIT: "UpdatePlayerCredit",
     FIX_PLAYER_CREDIT_TRANSFER: "FixPlayerCreditTransfer",
     UPDATE_PLAYER_EMAIL: "UpdatePlayerEmail",

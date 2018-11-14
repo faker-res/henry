@@ -447,6 +447,9 @@
 
   "UpdatePlayer":"Update Player",
   "UpdatePlayerInfo":"Update Player Info",
+  "UpdatePlayerInfoPartner": "Update Player Partner",
+  "UpdatePlayerInfoLevel": "Update Player Level",
+  "UpdatePlayerInfoAccAdmin": "Update Player Acc Admin",
   "UpdatePlayerCredit":"Update Player Credit",
   "UpdatePlayerEmail":"Update Player Email",
   "UpdatePlayerQQ":"Update Player QQ",
@@ -947,6 +950,7 @@
   "COPIED_SUCCESS": "Copied",
   "ADD_PHONE_NUMBER_XLS_INSTRUCTION": "First row in spreadsheet will be treated as header",
   "ADD_PHONE_NUMBER_XLS_INSTRUCTION_2": "Please set the phone number format to 'General'",
+  "ADD_PHONE_NUMBER_XLS_INSTRUCTION_3": "Arrange Excel data in order：1.Phone number, 2.Player account, 3.Real name, 4.Gender, 5.DOB, 6.Wechat, 7.QQ, 8.Email, 9.Remark",
   "RESET_GRID": "Reset",
   "FILTER_THEN_EXPORT_XLS": "Filter and Export",
   "FILTER_THEN_IMPORT_XLS": "Filter and Import",
@@ -1714,5 +1718,7 @@
   "rateAfterRebateTotalDeposit": "Rate of the total deposit fee to be deducted (preset value)",
   "rateAfterRebateTotalWithdrawal": "Rate of the total withdrawal fee to be deducted (preset value)",
   "isResetAll": "Reset All Commission Rate",
-  "FrontendConfiguration": "Frontend Configuration"
+  "FrontendConfiguration": "Frontend Configuration",
+  "FINANCIAL_REPORT": "Financial Report (Deposit(s), Withdrawal(s), Platform Fee(s))",
+  "DELETE_DEPOSIT_GROUP": "Delete Deposit Group"
 }

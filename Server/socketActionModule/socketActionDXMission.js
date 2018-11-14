@@ -109,6 +109,12 @@ function socketActionDXMission(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform && data.dxMission);
             socketUtil.emitter(self.socket, dbDXMission.updatePhoneNumberRemark, [data.platform, data.dxMission, data.remarkObj], actionName, isValidData);
+        },
+
+        getTsPhoneList: function getTsPhoneList(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbDXMission.getTsPhoneList, [data], actionName, isValidData);
         }
 
     };

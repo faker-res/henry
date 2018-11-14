@@ -757,11 +757,11 @@ let dbRewardPoints = {
                     });
                 }
 
-                dbRewardPoints.createRewardPointsLog(logDetail).catch(errorUtils.reportError);
-                // Reset BState
-                dbPlayerUtil.setPlayerBState(playerObjId, 'applyRewardPoint', false).catch(errorUtils.reportError);
-
-                return logDetail;
+                return Promise.all([
+                    dbRewardPoints.createRewardPointsLog(logDetail).catch(errorUtils.reportError),
+                    // Reset BState
+                    dbPlayerUtil.setPlayerBState(playerObjId, 'applyRewardPoint', false).catch(errorUtils.reportError)
+                ]).then(() => logDetail);
             }
         ).catch(
             err => {
@@ -779,13 +779,13 @@ let dbRewardPoints = {
 
     applyRewardPoints: (playerObjId, rewardPointsEventObjIds, inputDevice, rewardPointsConfig) => {
         if(rewardPointsEventObjIds && rewardPointsEventObjIds.length > 0){
-            let proms = [];
+            let p = Promise.resolve();
             rewardPointsEventObjIds.forEach(
                 rewardPointsEventObjId => {
-                    proms.push(dbRewardPoints.applyRewardPoint(playerObjId, rewardPointsEventObjId, inputDevice, rewardPointsConfig));
+                    p = p.then(() => dbRewardPoints.applyRewardPoint(playerObjId, rewardPointsEventObjId, inputDevice, rewardPointsConfig));
                 }
             );
-            return Q.all(proms)
+            return p;
         }
         else{
             return Promise.reject(false)
@@ -2115,7 +2115,7 @@ function isRelevantGameEvent(event, consumptionRecord, playerLevelData, specialC
 
     if (event.target && event.target.betType && event.target.betType.length > 0) {
         let relevantBetType = event.target.betType;
-        let delimiters = [' ','|','@'];
+        let delimiters = [' ','|','@',','];
         let betTypes = consumptionRecord && consumptionRecord.betType ? consumptionRecord.betType.split(new RegExp('[' + delimiters.join('') + ']', 'g')).filter(function(el) {return el.length != 0}) : [];
 
         if (betTypes && betTypes.length > 0) {

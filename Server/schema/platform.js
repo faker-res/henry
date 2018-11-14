@@ -258,8 +258,8 @@ var platformSchema = new Schema({
     autoApproveProfitTimesMinAmount: {type: Number, default: 2000},
     // Auto approve abnormal bonus check offset
     autoApproveBonusProfitOffset: {type: Number, default: 2000},
-    // Enable check on continous apply bonus
-    checkContinousApplyBonusTimes: {type: Number},
+    // Enable check on continuous apply bonus
+    checkContinuousApplyBonusTimes: {type: Number},
     // Player forbid apply bonus, apply bonus proposal need cs approval
     playerForbidApplyBonusNeedCsApproval: {type: Boolean, default: false},
     //can apply multiple reward
@@ -421,6 +421,8 @@ var platformSchema = new Schema({
     manualRewardSkipAuditAmount: {type: Number, min: 0, default: 0},
     // checks that if the balance is lower than the winning or losing limit, it will be unlocked immediately (after re-locking)
     autoUnlockWhenInitAmtLessThanLostThreshold: {type: Boolean, default: false},
+    // to check consecutive transfer-in/ transfer-out
+    consecutiveTransferInOut: {type: Boolean, default: false},
     // set the maximum duration for the unread mail to be showing up
     unreadMailMaxDuration: {type: Number, min: 0},
     // call out mission max ring times
@@ -483,7 +485,21 @@ var platformSchema = new Schema({
         themeId: {type: String},
         themeIdObjId: {type: Schema.ObjectId, index: true}
     },
-    frontendConfigurationDomainName: {type: String}
+    frontendConfigurationDomainName: {type: String},
+    // call out mission max ring times
+    teleMarketingMaxRingTime: {type: Number},
+    // call out mission redial times
+    teleMarketingRedialTimes: {type: Number},
+    // call out mission minimum redial interval,
+    teleMarketingMinRedialInterval: {type: Number},
+    // call out mission number of call in parallel happen per idle agent
+    teleMarketingIdleAgentMultiple: {type: Number},
+    // Definition of Answered Phone Call
+    definitionOfAnsweredPhone: {type: JSON},
+    // Decompose after N days
+    decomposeAfterNDays: {type: Number},
+    // Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday
+    phoneWhiteListExportMaxNumber: {type: Number},
 });
 
 //add platform id before save

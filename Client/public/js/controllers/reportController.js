@@ -106,6 +106,38 @@ define(['js/app'], function (myApp) {
             expired: "EXPIRED"
         };
 
+        vm.merchantTopUpTypeArr = [
+            {typeId: 1, name:'NetPay'},
+            {typeId: 2, name:'WechatQR'},
+            {typeId: 3, name:'AlipayQR'},
+            {typeId: 4, name:'WechatApp'},
+            {typeId: 5, name:'AlipayApp'},
+            {typeId: 6, name:'FASTPAY'},
+            {typeId: 7, name:'QQPAYQR'},
+            {typeId: 8, name:'UnPayQR'},
+            {typeId: 9, name:'JdPayQR'},
+            {typeId: 10, name:'WXWAP'},
+            {typeId: 11, name:'ALIWAP'},
+            {typeId: 12, name:'QQWAP'},
+            {typeId: 13, name:'PCard'},
+            {typeId: 14, name:'JDWAP'},
+            {typeId: 15, name:'WXBARCODE'}
+        ];
+
+        vm.depositMethodArr = [
+            {typeId: 1, name: '网银转账(Online Transfer)'},
+            {typeId: 2, name: '自动取款机(ATM)'},
+            {typeId: 3, name: '银行柜台(Counter)'},
+            {typeId: 4, name: '支付宝转账(AliPay Transfer)'},
+            {typeId: 5, name: '微信转帐(WeChatPay Transfer)'},
+            {typeId: 6, name: '云闪付(CloudFlashPay)'},
+        ];
+
+        vm.alipayWechatPayArr = [
+            {typeId: 3, name: 'ALIPAY'},
+            {typeId: 4, name: 'WechatPay'}
+        ];
+
         //get all platform data from server
         vm.setPlatform = function (platObj) {
             $scope.$evalAsync(() => {
@@ -3604,6 +3636,62 @@ define(['js/app'], function (myApp) {
         // player report
         vm.clearDatePicker = function (id) {
             utilService.clearDatePickerDate(id);
+        };
+
+        vm.searchFinancialReportByDay = function () {
+            $('#financialReportSpin').show();
+
+            if (vm.financialReport && vm.financialReport.displayMethod && vm.financialReport.displayMethod == 'daily') {
+                let sendData = {
+                    startTime: vm.financialReport.startTime.data('datetimepicker').getLocalDate(),
+                    endTime: vm.financialReport.endTime.data('datetimepicker').getLocalDate(),
+                    platform: vm.financialReport.platform,
+                    displayMethod: vm.financialReport.displayMethod
+                };
+
+                console.log('sendData', sendData);
+                socketService.$socket($scope.AppSocket, 'getFinancialReportByDay', sendData, function (data) {
+                    console.log('getFinancialReportByDay', data);
+                    $scope.$evalAsync(() => {
+                        vm.dailyFinancialReportList = data && data.data && data.data.length > 0 ? data.data : [];
+                        vm.financialReportPlatformName = '';
+                        if (vm.financialReport.platform && vm.financialReport.platform[0] && vm.platformList && vm.platformList.length) {
+                            let indexNo = vm.platformList.findIndex(x => x && x._id && x._id.toString() == vm.financialReport.platform[0].toString());
+                            vm.financialReportPlatformName = vm.platformList[indexNo] && vm.platformList[indexNo].name ? vm.platformList[indexNo].name : '';
+                        }
+                        vm.manualTopUpHeader = {};
+                        vm.onlineTopUpHeader = {};
+                        vm.alipayTopUpHeader = {};
+                        vm.wechatPayTopUpHeader = {};
+                        vm.bonusHeader = {};
+                        vm.platformFeeHeader = {};
+                        if(vm.dailyFinancialReportList && vm.dailyFinancialReportList.length > 0) {
+                            if(vm.dailyFinancialReportList[0] && vm.dailyFinancialReportList[0].manualTopUpList) {
+                                vm.manualTopUpHeader = vm.dailyFinancialReportList[0].manualTopUpList;
+                            }
+
+                            if(vm.dailyFinancialReportList[0] && vm.dailyFinancialReportList[0].onlineTopUpList) {
+                                vm.onlineTopUpHeader= vm.dailyFinancialReportList[0].onlineTopUpList;
+                            }
+
+                            if(vm.dailyFinancialReportList[0] && vm.dailyFinancialReportList[0].alipayTopUpList) {
+                                vm.alipayTopUpHeader.groupName= vm.dailyFinancialReportList[0].alipayTopUpList.groupName;
+                                vm.alipayTopUpHeader.typeName= vm.dailyFinancialReportList[0].alipayTopUpList.typeName;
+                            }
+
+                            if(vm.dailyFinancialReportList[0] && vm.dailyFinancialReportList[0].wechatPayTopUpList) {
+                                vm.wechatPayTopUpHeader.groupName= vm.dailyFinancialReportList[0].wechatPayTopUpList.groupName;
+                                vm.wechatPayTopUpHeader.typeName= vm.dailyFinancialReportList[0].wechatPayTopUpList.typeName;
+                            }
+
+                            if(vm.dailyFinancialReportList[0] && vm.dailyFinancialReportList[0].bonusList) {
+                                vm.bonusHeader.bonusDetail= vm.dailyFinancialReportList[0].bonusList.bonusDetail;
+                            }
+                        }
+                    });
+                    $('#financialReportSpin').hide();
+                });
+            }
         };
 
         vm.searchPlayerReport = function (newSearch, isExport = false) {
@@ -8608,6 +8696,61 @@ define(['js/app'], function (myApp) {
                     vm.selectedProposal.data = proposalDetail;
                 }
 
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePlayerInfoPartner") {
+                    let proposalDetail = {};
+                    let inputDevice = "";
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                    proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
+                    proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
+                    proposalDetail["oldPartnerName"] = vm.selectedProposal.data.oldPartnerName;
+                    proposalDetail["newPartnerName"] = vm.selectedProposal.data.newPartnerName;
+
+                    for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                        if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == vm.selectedProposal.inputDevice ){
+                            inputDevice =  $translate(Object.keys(vm.inputDevice)[i]);
+                        }
+                    }
+
+                    proposalDetail["INPUT_DEVICE"] = inputDevice;
+                    proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
+
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePlayerInfoLevel") {
+                    let proposalDetail = {};
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                    proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
+                    proposalDetail["oldLevelName"] = vm.selectedProposal.data.oldLevelName;
+                    proposalDetail["newLevelName"] = vm.selectedProposal.data.newLevelName;
+                    proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
+
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePlayerInfoAccAdmin") {
+                    let proposalDetail = {};
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                    proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
+                    proposalDetail["oldAccAdmin"] = vm.selectedProposal.data.oldAccAdmin;
+                    proposalDetail["newAccAdmin"] = vm.selectedProposal.data.newAccAdmin;
+                    proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
+
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
                         vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
@@ -9337,7 +9480,185 @@ define(['js/app'], function (myApp) {
                     vm.playerAlipayAccReport = {};
                     commonService.commonInitTime(utilService, vm, 'playerAlipayAccReport', 'startTime', '#playerAlipayAccountReportStartTime', utilService.getTodayStartTime());
                     commonService.commonInitTime(utilService, vm, 'playerAlipayAccReport', 'endTime', '#playerAlipayAccountReportEndTime', utilService.getTodayEndTime());
+                    break;
+                case 'FINANCIAL_REPORT':
+                    vm.financialReport = {};
+                    vm.financialReport.displayMethod = 'sum';
+                    vm.dailyFinancialReportList = [];
+
+                    utilService.actionAfterLoaded(('#financialReport'), function () {
+                        $('select#selectFinancialReportPlatform').multipleSelect({
+                            allSelected: $translate("All Selected"),
+                            selectAllText: $translate("Select All"),
+                            displayValues: true,
+                            countSelected: $translate('# of % selected'),
+                        });
+                        let $multi = ($('select#selectFinancialReportPlatform').next().find('.ms-choice'))[0];
+                        $('select#selectFinancialReportPlatform').next().on('click', 'li input[type=checkbox]', function () {
+
+                            $scope.$evalAsync(() => {
+                                if ($($multi).text() == '') {
+                                    vm.financialReport.displayMethod = '';
+                                } else if ($($multi).text().includes('/') || $($multi).text().includes('全选')) {
+                                    vm.financialReport.displayMethod = 'sum';
+                                } else {
+                                    let selectedPlatform = $($multi).text().split(',');
+                                    let count = selectedPlatform.length;
+
+                                    if (count === 1) {
+                                        vm.financialReport.displayMethod = 'daily';
+                                    } else {
+                                        vm.financialReport.displayMethod = 'sum';
+                                    }
+                                }
+                            });
+
+                            let upText = $($multi).text().split(',').map(item => {
+                                let textShow = '';
+                                vm.platformList.forEach(platform => {
+                                    if (platform && platform._id && item && (platform._id.toString() == item.trim().toString())) {
+                                        textShow = platform.name;
+                                    } else if (item.trim().includes('/') || item.trim().includes('全选')){
+                                        textShow = item;
+                                    }
+                                });
+                                return textShow;
+                            }).join(',');
+                            $($multi).find('span').text(upText)
+                        });
+                        $("select#selectFinancialReportPlatform").multipleSelect("checkAll");
+
+                        let today = new Date();
+                        let todayEndTime = today.setHours(23, 59, 59, 999);
+                        vm.financialReport.startTime = utilService.createDatePicker('#financialReport .startTime');
+                        vm.financialReport.endTime = utilService.createDatePicker('#financialReport .endTime');
+                        vm.financialReport.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
+                        vm.financialReport.endTime.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                        //vm.searchFinancialReportByDay();
+                    });
+                    break;
             }
+
+            // start of financial report's deposit group setting
+            vm.initDepositGroupSetting = function () {
+                vm.deletingDepositGroup = null;
+                vm.editConfig = false;
+                vm.noGroupDepositMethodList = vm.depositMethodArr;
+                vm.noGroupMerchantTopUpTypeList = vm.merchantTopUpTypeArr;
+                vm.noGroupAlipayWechatPayList = vm.alipayWechatPayArr;
+                vm.getDepositGroups();
+            };
+
+            vm.getDepositGroups = () => {
+                return $scope.$socketPromise('getDepositGroups', {}).then(function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.depositGroups = data.data;
+                        console.log('vm.depositGroups', vm.depositGroups);
+                        vm.getNoInGroupDepositSetting();
+                    });
+                });
+            };
+
+            vm.addDepositSettingToGroup = (depositSetting, index, typeId) => {
+                if (!depositSetting || !depositSetting.group) return;
+                vm.depositGroups.push({
+                    depositName: depositSetting.name,
+                    depositParentDepositId: depositSetting.group,
+                    topUpTypeId: typeId,
+                    topUpMethodId: typeId != 3 && typeId != 4 ? depositSetting.typeId : null
+                });
+
+                if (typeId == 1) {
+                    //manual topup
+                    vm.noGroupDepositMethodList.splice(index, 1);
+                } else if (typeId == 2) {
+                    //online topup
+                    vm.noGroupMerchantTopUpTypeList.splice(index, 1);
+                } else if (typeId == 3 || typeId == 4) {
+                    // alipay or wechatpay
+                    vm.noGroupAlipayWechatPayList.splice(index, 1);
+                }
+            };
+
+            vm.addNewDepositGroup = () => {
+                socketService.$socket($scope.AppSocket, 'addNewDepositGroup', {}, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.depositGroups.push(data.data);
+                    });
+                });
+            };
+
+            vm.updateDepositGroup = () => {
+                return $scope.$socketPromise('updateDepositGroups', {
+                    depositGroups: vm.depositGroups,
+                }).then(function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.initDepositGroupSetting();
+                    });
+                });
+            };
+
+            vm.filterDepositSettingGroup = (parentDepositId) => {
+                return (depositSettingGroup) => {
+                    return depositSettingGroup.depositParentDepositId == parentDepositId;
+                }
+            };
+
+            vm.removeDepositSettingFromGroup = (depositSettingGroup) => {
+                vm.depositGroups = vm.depositGroups.filter(depositGroup => depositGroup.depositName !== depositSettingGroup.depositName && depositSettingGroup.depositParentDepositId !== -1);
+                vm.getNoInGroupDepositSetting();
+                $scope.$evalAsync();
+            };
+
+            vm.getNoInGroupDepositSetting = () => {
+                vm.noGroupDepositMethodList = [];
+                vm.noGroupMerchantTopUpTypeList = [];
+                vm.noGroupAlipayWechatPayList = [];
+
+                filterInGroupDeposit(vm.depositMethodArr, vm.noGroupDepositMethodList);
+                filterInGroupDeposit(vm.merchantTopUpTypeArr, vm.noGroupMerchantTopUpTypeList);
+                filterInGroupDeposit(vm.alipayWechatPayArr, vm.noGroupAlipayWechatPayList);
+
+                function filterInGroupDeposit(oriDepositList, noGroupDepositList) {
+                    for (let depositMethod in oriDepositList) {
+                        let isInGroup = false;
+                        vm.depositGroups.forEach((depositGroup) => {
+                            if (depositGroup.depositParentDepositId !== -1 && oriDepositList[depositMethod].name === depositGroup.depositName
+                                && oriDepositList[depositMethod].typeId === depositGroup.topUpMethodId) {
+                                //manual and online topup
+                                isInGroup = true;
+                            } else if (depositGroup.depositParentDepositId !== -1 && oriDepositList[depositMethod].name === depositGroup.depositName
+                                && (depositGroup.topUpTypeId === 3 || depositGroup.topUpTypeId === 4) && oriDepositList[depositMethod].typeId === depositGroup.topUpTypeId) {
+                                //alipay and wechatPay topup
+                                isInGroup = true;
+                            }
+                        });
+
+                        if (!isInGroup)
+                            noGroupDepositList.push(oriDepositList[depositMethod]);
+
+                        vm.removeGroupKey(noGroupDepositList);
+                    }
+                }
+                $scope.$evalAsync();
+            };
+
+            vm.removeGroupKey = (list) => {
+                if (list && list.length > 0) {
+                    list.forEach(el => {
+                        if(el && el.hasOwnProperty('group')) {
+                            delete el.group;
+                        }
+                    });
+                }
+            };
+
+            vm.deleteDepositGroup = (depositGroup) => {
+                socketService.$socket($scope.AppSocket, 'deleteDepositGroup', {_id: depositGroup._id}, function (data) {
+                    vm.initDepositGroupSetting();
+                });
+            };
+            // end of financial report's deposit group setting
 
             vm.dynamicGameType = function () {
                 if (vm.consumptionModeQuery.gameProvider) {

@@ -1,5 +1,5 @@
 #modalNewTSPhoneListXLS.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog(style='width:80%;')
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -10,17 +10,129 @@
                         .row
                             .col-md-12
                                 .well
-                                    div.padding-all-5
-                                        label {{"NAME" | translate}}
-                                        input.form-control(ng-model="vm.tsNewList.name")
-                                    div.padding-all-5
-                                        label {{"DESCRIPTION" | translate}}
-                                        input.form-control(ng-model="vm.tsNewList.description")
+                                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%;white-space:normal;')
+                                        thead
+                                            tr
+                                                th {{'Setting Item' | translate}}
+                                                th {{'VALUE' | translate}}
+                                        tbody
+                                            tr
+                                                td {{'Name Of List (Required) (Unique)' | translate}}
+                                                td
+                                                    input#nameInput.form-control(type='text',ng-focus='vm.tsNewListEnableSubmit = false;' ng-blur='vm.checkTsNewListName()' ng-model='vm.tsNewList.name' ng-disabled='vm.disableAll')
+                                            tr
+                                                td {{'Description Of List (Required)' | translate}}
+                                                td
+                                                    input#descInput.form-control(type='text', ng-model='vm.tsNewList.description' ng-change='vm.checkFilterAndImportSystem()')
+                                            tr
+                                                td {{'Feedback Result Of Default Failure System Call (Required)' | translate}}
+                                                td
+                                                    select.form-control(ng-model='vm.tsNewList.failFeedBackResult',  ng-options='v.key as v.value for (i,v) in vm.allPlayerFeedbackResults' ng-change='vm.checkFilterAndImportSystem()' ng-disabled='vm.disableAll')
+                                            tr
+                                                td {{'Feedback Topic Of Default Failure System Call (Required)' | translate}}
+                                                td
+                                                    select.form-control(ng-model='vm.tsNewList.failFeedBackTopic',  ng-options='v.key as v.value for (i,v) in vm.playerFeedbackTopic' ng-change='vm.checkFilterAndImportSystem()' ng-disabled='vm.disableAll')
+                                            tr
+                                                td {{'Feedback Content Of Default Failure System Call (Required)' | translate}}
+                                                td
+                                                    input.form-control(type='text', ng-model='vm.tsNewList.failFeedBackContent' ng-change='vm.checkFilterAndImportSystem()' ng-disabled='vm.disableAll')
+                                            tr
+                                                td {{'Assign To N Caller For Each Unregistered Phone Number (Required)' | translate}}
+                                                td
+                                                    input.form-control(type='number', min=0, ng-model='vm.tsNewList.callerCycleCount' ng-change='vm.checkFilterAndImportSystem()' ng-disabled='vm.disableAll')
+                                            tr
+                                                td {{'Daily Distribute Task Count Equally Divide For Each Caller (Required)' | translate}}
+                                                td
+                                                    input.form-control(type='number', min=0, ng-model='vm.tsNewList.dailyCallerMaximumTask' ng-change='vm.checkFilterAndImportSystem()' ng-disabled='vm.disableAll')
+                                            tr
+                                                td {{'Daily Distribute Task Time (Required)' | translate}}
+                                                td
+                                                    #dxTimePicker.datetimepicker.form-control
+                                                        input.input-append.playerDate(style='border:0;', data-format="hh:mm:ss", type='text' ng-disabled='vm.disableAll')
+                                                        span.add-on
+                                                            i.fa-clock-o.fa(data-time-icon='fa fa-clock-o' ng-show='!vm.disableAll')
+                                            tr
+                                                td {{'Distribute Task Start Date (Required)' | translate}}
+                                                td
+                                                    #dxDatePicker.datetimepicker.form-control
+                                                        input.input-append.playerDate(style='border:0;', data-format="dd/MM/yyyy", type='text' ng-disabled='vm.disableAll')
+                                                        span.add-on
+                                                            i.fa-calendar.fa(data-date-icon='fa fa-calendar' ng-show='!vm.disableAll')
+                                            tr
+                                                td {{'Reclaim Task After X Days And Re-assign Task (Required)' | translate}}
+                                                td
+                                                    input.form-control(type='number', min=0, ng-model='vm.tsNewList.reclaimDayCount' ng-change='vm.checkFilterAndImportSystem()' ng-disabled='vm.disableAll')
+                                            tr
+                                                td {{'Filter Phone Number From White List And Recycle Bin' | translate}}
+                                                td
+                                                    input(type='checkbox', min=0, ng-model='vm.tsNewList.isCheckWhiteListAndRecycleBin' ng-disabled='vm.disableAll')
+                                            tr
+                                                td {{'Zone Will Not Be Call' | translate}}
+                                                td
+                                                    table.common-table.playerLvlTable
+                                                        thead
+                                                            tr
+                                                                th(style="width:50%") {{"CITY" | translate}}
+                                                                th(style="width:50%") {{"PROVINCE" | translate}}
+                                                                th
+                                                        tbody
+                                                            tr(ng-repeat='(i, v) in vm.tsNewList.dangerZoneList')
+                                                                td
+                                                                    select.form-control(ng-model='vm.tsNewList.dangerZoneList[i].province',  ng-options='i as i for (i, v) in constPhoneArea' ng-disabled='vm.disableAll')
+                                                                td
+                                                                    select.form-control(ng-model='vm.tsNewList.dangerZoneList[i].city',  ng-options='val as val for (n, val) in constPhoneArea[vm.tsNewList.dangerZoneList[i].province]' ng-disabled='vm.disableAll')
+                                                                td
+                                                                    i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.tsNewList.dangerZoneList, $index)'  ng-disabled='vm.disableAll')
+                                                            tr
+                                                                td(colspan=3) {{'ADD' | translate}}
+                                                            tr
+                                                                td
+                                                                    select.form-control(ng-model='vm.tsProvince',  ng-options='i as i for (i, v) in constPhoneArea' ng-disabled='vm.disableAll')
+                                                                td
+                                                                    select.form-control(ng-model='vm.tsCity',  ng-options='val as val for (n, val) in constPhoneArea[vm.tsProvince]' ng-disabled='vm.disableAll')
+                                                                td
+                                                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.tsNewList.dangerZoneList, {province: vm.tsProvince, city: vm.tsCity}); vm.resetProvince();' ng-show='vm.tsProvince && vm.tsCity' ng-disabled='vm.disableAll')
+
             .modal-footer
                 div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
-                button.btn.btn-success.common-button(ng-if="!vm.importPhoneResult" ng-click="vm.uploadPhoneFileXLS('', true)")
+                button.btn.btn-success.common-button(data-dismiss='modal'  ng-if="!vm.importPhoneResult" ng-click="vm.uploadPhoneFileXLS('', true, null, true)" ng-disabled="vm.checkFilterIsDisable || !vm.tsNewListEnableSubmit")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
-                bbutton.btn.btn-danger.common-button(data-dismiss='modal')
+                button.btn.btn-danger.common-button(data-dismiss='modal')
+                    i.fa.fa-ban
+                    text {{"CANCEL" | translate}}
+
+
+#modalTSNewListNameRepeat.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:25%; margin-top: 12.5em;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal' ng-click='vm.closeModalTSNewListNameRepeat()')
+                h4.modal-title {{"Warning!" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                                        thead
+                                            tr
+                                                th {{'This name of List already exists in the product. Please select an option below' | translate}}
+                                        tbody
+                                            tr
+                                                td
+                                                    input#checkBoxOne(type='checkbox', style='margin-right:.5em', ng-model='vm.tsNewList.checkBoxA' ng-change='vm.tsNewList.checkBoxB = false')
+                                                    label(for='checkBoxOne') {{'Add into the same list' | translate}}
+                                            tr
+                                                td
+                                                    input#checkBoxTwo(type='checkbox', style='margin-right:.5em', ng-model='vm.tsNewList.checkBoxB' ng-change='vm.tsNewList.checkBoxA = false')
+                                                    label(for='checkBoxTwo') {{'Go back and modify the name of list' | translate}}
+
+            .modal-footer
+                div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
+                button.btn.btn-success.common-button(data-dismiss='modal'  ng-if="!vm.importPhoneResult" ng-click="vm.returnToInput()" ng-disabled="vm.checkBox()")
+                    i.fa.fa-check
+                    text {{"CONFIRM" | translate}}
+                button.btn.btn-danger.common-button(data-dismiss='modal', ng-click='vm.closeModalTSNewListNameRepeat()')
                     i.fa.fa-ban
                     text {{"CANCEL" | translate}}

@@ -217,13 +217,15 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                         table.common-table.playerLvlTable
                             thead
                                 tr
-                                    th {{"receive status" | translate}}
+                                    th
+                                        input.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.checkAllNoSmsGroup" ng-init="vm.isAllNoSmsGroupChecked()" ng-change="vm.toggleAllNoSmsGroup()")
+                                        | {{"receive status" | translate}}
                                     th {{"no group sms setting" | translate}}
 
                             tbody
                                 tr(ng-repeat='(i, v) in vm.noGroupSmsSetting')
                                     td
-                                        input.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting[v.name]")
+                                        input.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting[v.name]" ng-change="vm.isAllNoSmsGroupChecked()")
                                     td
                                         span {{v.name | translate}}
 
@@ -231,12 +233,14 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                         table.common-table.playerLvlTable
                             thead
                                 tr
-                                    th {{"receive status/sms group" | translate}}
+                                    th
+                                        input.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.checkAllIsSmsGroup" ng-init="vm.isAllIsSmsGroupChecked()" ng-change="vm.toggleAllIsSmsGroup()")
+                                        | {{"receive status/sms group" | translate}}
                                     th {{"sms group settings" | translate}}
                             tbody
                                 tr(ng-repeat='(i, v) in vm.smsGroups | filter: {smsParentSmsId: -1}')
                                     td
-                                        input.margin-right-5(type="checkbox" ng-model='vm.playerSmsSetting.smsGroup[v.smsId]' ng-init='vm.isAllSmsInGroupChecked(v)' ng-change='vm.smsGroupCheckChange(v)')
+                                        input.margin-right-5(type="checkbox" ng-model='vm.playerSmsSetting.smsGroup[v.smsId]' ng-init='vm.isAllSmsInGroupChecked(v)' ng-change='vm.smsGroupCheckChange(v);vm.isAllIsSmsGroupChecked()')
                                         span(ng-if='!vm.configTableEdit') {{v.smsName}}
                                     td
                                         div(ng-repeat='(ii, vv) in vm.smsGroups | filter: {smsParentSmsId: v.smsId}')

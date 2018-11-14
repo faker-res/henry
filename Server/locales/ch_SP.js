@@ -25,6 +25,8 @@ var simplifiedChinese = {
     "SUBMIT": "提交",
     "The same bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他玩家绑定，请更换卡号或联系客服，谢谢！",
     "The identical bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他代理绑定，请更换卡号或联系客服，谢谢！",
+    "Exceeded available application quantity": "超过申请次数",
+    "No available consumption list for the reward": "沒有符合申请的投注单",
     "Editing bank information is successful": "银行资料绑定成功",
     "CLOSED_COMMISSION": "关闭",
     "DAILY_BONUS_AMOUNT": "1天-输赢值",
@@ -149,6 +151,7 @@ var simplifiedChinese = {
     "SettlePartnerCommission": "代理佣金",
     "PlayerRegistrationIntention": "玩家注册意向",
 
+    "No data is selected": "您好，当前未中奖，请继续投注多多加油！",
     "Error in getting ID": "获得ID出错",
     "Error in getting player, game or provider": "无法获得玩家，游戏或供应商",
     "Error in getting player, paymentChannel or platform": "没能得到玩家， 支付渠道或平台",
@@ -494,6 +497,7 @@ var simplifiedChinese = {
     "This reward event is expired": "活动已经结束，感谢您的支持",
     "First time bound to the bank info": "首次绑定银行",
     "allTopUp": "所有存款",
+    "Username should be alphanumeric": "用户名只能包含数字和字母",
 
     //todo::add missing messages here
 

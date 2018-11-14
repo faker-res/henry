@@ -36,9 +36,12 @@ var playerCreditTransferLogSchema = new Schema({
     // is the transfer repaired?
     isRepaired: {type: Boolean, default: false},
     //if this log has been used
-    bUsed: {type: Boolean}
+    bUsed: {type: Boolean},
+    //if this log is for Ebet provider
+    isEbet: {type: Boolean, default: false}
 });
 
 playerCreditTransferLogSchema.index({createTime: 1, platformObjId: 1});
+playerCreditTransferLogSchema.index({createTime: 1, platformObjId: 1, status: 1, playerObjId: 1});
 
 module.exports = playerCreditTransferLogSchema;

@@ -175,7 +175,7 @@ let dbPlatformAutoFeedback = {
         }).then(promoCodes => {
             if(promoCodes && promoCodes.length > 0) {
                 promoCodes.forEach(item => {
-                    item.playerName = item.playerObjId.name;
+                    item.player = item.playerObjId;
                     item.name = autoFeedbackName;
                     item.type = item.promoCodeTemplateObjId.type;
                 });
@@ -212,6 +212,7 @@ let dbPlatformAutoFeedback = {
         console.log("new date getLocalTime",dbutility.getLocalTime(new Date()));
 
         return dbPlatformAutoFeedback.getAutoFeedback(query, null, null, true).then(autoFeedbacks => {
+            autoFeedbacks = autoFeedbacks.data;
             if(!autoFeedbacks || autoFeedbacks.length < 1) {
                 return {message: 'No auto feedback for processing at this time.'};
             }

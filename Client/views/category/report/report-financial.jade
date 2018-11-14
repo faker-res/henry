@@ -1,0 +1,187 @@
+#financialReport.block-query.col-md-12.well
+    div
+        label(style='color: red; font-size:10pt') {{"*Default 00:00:00" | translate}}
+        label {{"Search Date (Start)" | translate}}
+        .startTime
+    div
+        label(style='color: red; font-size:10pt') {{"*Default 23:59:59" | translate}}
+        label {{"Search Date (End)" | translate}}
+        .endTime
+    div(style='width:155px')
+        label &nbsp;
+        label {{"Platform (Multiple Selection)" | translate}}
+        select.form-control#selectFinancialReportPlatform(multiple='multiple', ng-model='vm.financialReport.platform')
+            option(ng-repeat='(i,v) in vm.platformList', value='{{v._id}}') {{v.name}}
+    div
+        label &nbsp;
+        label {{"Display Method"|translate}} &nbsp;
+        select.form-control(ng-model='vm.financialReport.displayMethod', ng-change='')
+            option(value='sum') {{"A. Sum" | translate}}
+            option(value='daily') {{"B. Daily" | translate}}
+    div
+        label &nbsp;
+        label &nbsp;
+        button.btn.btn-success(ng-click='vm.searchFinancialReportByDay()') {{'SEARCH' | translate}}
+        span#financialReportSpin.collapse
+            i.fa.fa-spinner.fa-spin
+    div
+        label &nbsp;
+        label &nbsp;
+        button.btn.btn-danger(data-toggle="modal", data-target='#modalDepositGroupSetting', ng-click='vm.initDepositGroupSetting()') {{'Deposit Group Setting' | translate}}（{{'Impact report display' | translate}}）
+.clearfix
+    div(style="min-width:100% ;overflow-x: scroll; display; none !important" ng-if="vm.dailyFinancialReportList.length > 0")
+        table.simple-table-single.table-vertical-middle.text-center(style='width:100%')
+            thead
+                tr
+                    th(rowspan=2 style="min-width:100px") {{vm.financialReportPlatformName}}
+                    th(ng-repeat="a in vm.manualTopUpHeader | orderBy: 'groupName'" style="min-width:150px") {{a.groupName}}
+                    th(ng-repeat="a in vm.onlineTopUpHeader | orderBy: 'groupName'" style="min-width:150px") {{a.groupName}}
+                    th(colspan=2 ng-if="vm.alipayTopUpHeader.groupName") {{vm.alipayTopUpHeader.groupName}}
+                    th(colspan=2 ng-if="vm.wechatPayTopUpHeader.groupName") {{vm.wechatPayTopUpHeader.groupName}}
+                    th(colspan="{{vm.bonusHeader.bonusDetail.length + 1}}") {{'All Withdrawal' | translate}}
+                    th(rowspan=2 style="min-width:100px") {{'Total Platform Fee' | translate}}
+                tr.no-border
+                    th(ng-repeat="a in vm.manualTopUpHeader | orderBy: 'groupName'" style="min-width:150px;")
+                        table
+                            th.text-center(ng-repeat="detail in a.topUpDetail | orderBy: 'depositMethod' track by $index" style="min-width:210px; max-width:220px;border-right: 1px solid rgba(43, 102, 152, 0.5);height: 120px")
+                                span {{ detail.depositMethodName || 0}}
+                            th.text-center(style="color:red;min-width:210px; max-width:220px" ) {{a.groupName}}（{{'Total Sum' | translate}}）
+                    th(ng-repeat="a in vm.onlineTopUpHeader | orderBy: 'groupName'" style="min-width:150px;")
+                        table
+                            th.text-center(ng-repeat="detail in a.topUpDetail | orderBy: 'depositMethod' track by $index" style="min-width:210px; max-width:220px;border-right: 1px solid rgba(43, 102, 152, 0.5);height: 120px")
+                                span {{ detail.depositMethodName | translate}}({{detail.depositMethodName}}): {{detail.depositMethod}}
+                            th.text-center(style="color:red;min-width:210px; max-width:220px" ) {{a.groupName}}（{{'Total Sum' | translate}}
+                    th(style="min-width: 100px" ng-if="vm.alipayTopUpHeader.typeName") {{vm.alipayTopUpHeader.typeName | translate}}
+                    th(style="color:red;min-width: 100px" ng-if="vm.alipayTopUpHeader.groupName") {{vm.alipayTopUpHeader.groupName}}（{{'Total Sum' | translate}}）
+                    th(style="min-width: 100px" ng-if="vm.wechatPayTopUpHeader.typeName") {{vm.wechatPayTopUpHeader.typeName| translate}}
+                    th(style="color:red;min-width: 100px" ng-if="vm.wechatPayTopUpHeader.groupName") {{vm.wechatPayTopUpHeader.groupName}}（{{'Total Sum' | translate}}）
+                    th(ng-repeat="a in vm.bonusHeader.bonusDetail | orderBy: 'typeName'" style="min-width: 100px") {{a.typeName | translate}}
+                    th(style="color:red;min-width: 100px;") {{'All Withdrawal' | translate}}（{{'Total Sum' | translate}}）
+
+            tbody
+                tr.no-border(ng-repeat="financialReport in vm.dailyFinancialReportList track by $index" style="padding:0 !important;")
+                    td
+                        span {{ financialReport.date }}
+
+                    td(ng-repeat="manualTopUp in financialReport.manualTopUpList | orderBy: 'groupName' track by $index")
+                        table(style='width:100%')
+                            td(ng-repeat="detail in manualTopUp.topUpDetail | orderBy: 'depositMethod' track by $index" style="min-width: 210px; max-width:220px;border-right: 1px solid rgba(43, 102, 152, 0.5)")
+                                span {{ detail.amount || 0}}
+                            td(style="color:red;min-width: 210px; max-width:220px")
+                                span {{ manualTopUp.totalAmount || 0}}
+
+                    td(ng-repeat="onlineTopUp in financialReport.onlineTopUpList | orderBy: 'groupName' track by $index")
+                        table(style='width:100%')
+                            td(ng-repeat="detail in onlineTopUp.topUpDetail | orderBy: 'depositMethod' track by $index" style="min-width: 210px; max-width:220px;border-right: 1px solid rgba(43, 102, 152, 0.5)")
+                                span {{ detail.amount || 0}}
+                            td(style="color:red;min-width: 210px; max-width:220px")
+                                span {{ onlineTopUp.totalAmount || 0}}
+
+                    td(ng-if="vm.alipayTopUpHeader.groupName")
+                        span {{ financialReport.alipayTopUpList.amount || 0}}
+
+                    td(style="color:red" ng-if="vm.alipayTopUpHeader.groupName")
+                        span {{ financialReport.alipayTopUpList.amount || 0}}
+
+                    td(ng-if="vm.wechatPayTopUpHeader.groupName")
+                        span {{ financialReport.wechatPayTopUpList.amount || 0}}
+
+                    td(style="color:red" ng-if="vm.wechatPayTopUpHeader.groupName")
+                        span {{ financialReport.wechatPayTopUpList.amount || 0}}
+
+                    td(ng-repeat="bonus in financialReport.bonusList.bonusDetail | orderBy: 'typeName' track by $index")
+                        span {{ bonus.amount || 0}}
+
+                    td(style="color:red")
+                        span {{ financialReport.bonusList.totalAmount || 0}}
+
+                    td
+                        span {{ financialReport.platformFeeEstimateList.totalPlatformFeeEstimate || 0}}
+
+
+#modalDepositGroupSetting.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Deposit Group Setting" | translate}}
+            .modal-body(style='overflow:auto;')
+                div(style='position: relative;')
+                    .col-md-4
+                        table.common-table.playerLvlTable
+                            thead
+                                tr
+                                    th {{"All Deposit Method" | translate}}
+                                    th {{"add to group" | translate}}
+                            tbody
+                                tr(ng-repeat='(i, v) in vm.noGroupDepositMethodList')
+                                    td
+                                        span {{v.name | translate}}
+                                    td
+                                        select.form-control(ng-disabled='!vm.editConfig' ng-model='v.group' style='width:80%;display:inline-block')
+                                            option(ng-repeat="(k, t) in vm.depositGroups | filter: {depositParentDepositId: -1}", value="{{t.depositId}}") {{t.depositName | translate}}
+                                        i.fa.fa-plus.fa-lg(ng-if='vm.editConfig' ng-click='vm.addDepositSettingToGroup(v, i, 1);')
+
+                                tr(ng-repeat='(i, v) in vm.noGroupMerchantTopUpTypeList')
+                                    td
+                                        span {{v.name | translate}}
+                                    td
+                                        select.form-control(ng-disabled='!vm.editConfig' ng-model='v.group' style='width:80%;display:inline-block')
+                                            option(ng-repeat="(k, t) in vm.depositGroups | filter: {depositParentDepositId: -1}", value="{{t.depositId}}") {{t.depositName | translate}}
+                                        i.fa.fa-plus.fa-lg(ng-if='vm.editConfig' ng-click='vm.addDepositSettingToGroup(v, i, 2);')
+
+                                tr(ng-repeat='(i, v) in vm.noGroupAlipayWechatPayList')
+                                    td
+                                        span {{v.name | translate}}
+                                    td
+                                        select.form-control(ng-disabled='!vm.editConfig' ng-model='v.group' style='width:80%;display:inline-block')
+                                            option(ng-repeat="(k, t) in vm.depositGroups | filter: {depositParentDepositId: -1}", value="{{t.depositId}}") {{t.depositName | translate}}
+                                        i.fa.fa-plus.fa-lg(ng-if='vm.editConfig' ng-click='vm.addDepositSettingToGroup(v, i, v.typeId);')
+
+                    .col-md-8
+                        table.common-table.playerLvlTable
+                            thead
+                                tr
+                                    th {{"Deposit Group" | translate}}
+                                    th {{"Deposit Group Setting Detail" | translate}}
+                                    th {{"Function" | translate}}
+                            tbody
+                                tr(ng-repeat='(i, v) in vm.depositGroups | filter: {depositParentDepositId: -1}')
+                                    td
+                                        input.form-control(type='text' ng-if='vm.editConfig' ng-model='v.depositName')
+                                        span(ng-if='!vm.editConfig') {{v.depositName}}
+                                    td
+                                        div(ng-repeat='(ii, vv) in vm.depositGroups | filter: vm.filterDepositSettingGroup(v.depositId)')
+                                            span {{ vv.depositName | translate}}
+                                            i.fa.fa-minus.fa-lg(ng-if='vm.editConfig' ng-click='vm.removeDepositSettingFromGroup(vv)')
+                                    td
+                                        button.btn.common-btn.btn-primary(ng-if='vm.editConfig' data-toggle="modal", data-target='#modalDeleteDepositGroup' ng-click="vm.deletingDepositGroup=v") {{'DELETE' | translate}}
+                        br
+                        button.btn.btn-primary.common-button.pull-right(ng-if='vm.editConfig' ng-click='vm.addNewDepositGroup()')
+                            text {{"ADD GROUP" | translate}}
+                            img.img-edit
+
+                    button.btn.btn-primary.common-button.pull-right(ng-if="!vm.editConfig && checkViewPermission('Report', 'General', 'DepositGroupSetting')", ng-click='vm.editConfig=!vm.editConfig')
+                        text {{'EDIT' | translate}}
+                        img.img-edit
+                    button.btn.btn-danger.common-button.pull-right(ng-if='vm.editConfig', ng-click='vm.editConfig=!vm.editConfig;vm.initDepositGroupSetting()') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button.pull-right(data-dismiss='modal', ng-if='vm.editConfig', ng-click='vm.updateDepositGroup()') {{"CONFIRM" | translate}}
+
+#modalDeleteDepositGroup.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"DELETE_DEPOSIT_GROUP" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    label {{"Are you sure you want to delete sms setting group"|translate}}
+                                    strong.text-danger &nbsp;{{vm.deletingDepositGroup.depositName}}
+                                    label ?
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal' ng-click='vm.deleteDepositGroup(vm.deletingDepositGroup)') {{"DELETE" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}

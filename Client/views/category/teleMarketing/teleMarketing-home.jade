@@ -1,32 +1,24 @@
 .row.padding-left-right-5(ng-show="checkViewPermission('TeleMarketing')")
     #marketingContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
         .col-md-12
-            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'phoneNumFilter', 'Read')" ng-class='{active: vm.selectedTab === "NEW_PHONE_LIST"}', ng-click='vm.loadTab("NEW_PHONE_LIST")')
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'phoneNumFilter', 'Read')" ng-class='{active: vm.selectedTab === "NEW_PHONE_LIST"}', ng-click='vm.loadTab("NEW_PHONE_LIST")' title='过滤，导入白名单到系统当中')
                 span {{"NEW_PHONE_LIST" | translate}}
-            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'PHONE_LISTS', 'Read')" ng-class='{active: vm.selectedTab === "PHONE_LISTS"}', ng-click='vm.loadTab("PHONE_LISTS")')
-                span {{"PHONE_LISTS" | translate}}
-            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'PHONE_LIST_MANAGEMENT', 'Read')" ng-class='{active: vm.selectedTab === "PHONE_LIST_MANAGEMENT"}', ng-click='vm.loadTab("PHONE_LIST_MANAGEMENT")')
-                span {{"PHONE_LIST_MANAGEMENT" | translate}}
-            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'PHONE_LIST_ASSIGNMENT', 'Read')" ng-class='{active: vm.selectedTab === "PHONE_LIST_ASSIGNMENT"}', ng-click='vm.loadTab("PHONE_LIST_ASSIGNMENT")')
-                span {{"PHONE_LIST_ASSIGNMENT" | translate}}
-            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'SALES_CONFIGURATION', 'Read')" ng-class='{active: vm.selectedTab === "SALES_CONFIGURATION"}', ng-click='vm.loadTab("SALES_CONFIGURATION")')
-                span {{"SALES_CONFIGURATION" | translate}}
-            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'MEMBER_INFO', 'Read')" ng-class='{active: vm.selectedTab === "MEMBER_INFO"}', ng-click='vm.loadTab("MEMBER_INFO")')
-                span {{"MEMBER_INFO" | translate}}
-            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'PHONE_LOOKUP', 'Read')" ng-class='{active: vm.selectedTab === "PHONE_LOOKUP"}', ng-click='vm.loadTab("PHONE_LOOKUP")')
-                span {{"PHONE_LOOKUP" | translate}}
-            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'SALES_REPORT', 'Read')" ng-class='{active: vm.selectedTab === "SALES_REPORT"}', ng-click='vm.loadTab("SALES_REPORT")')
-                span {{"SALES_REPORT" | translate}}
-            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'MEMBER_REPORT', 'Read')" ng-class='{active: vm.selectedTab === "MEMBER_REPORT"}', ng-click='vm.loadTab("MEMBER_REPORT")')
-                span {{"MEMBER_REPORT" | translate}}
-            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'Task', 'Read')" ng-class='{active: vm.selectedTab === "PHONE_MISSION"}', ng-click='vm.loadTab("PHONE_MISSION")')
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'PHONE_LIST_ANALYSE_AND_MANAGEMENT', 'Read')" ng-class='{active: vm.selectedTab === "PHONE_LISTS"}', ng-click='vm.loadTab("PHONE_LIST_ANALYSE_AND_MANAGEMENT")', title='分析名单数据并分配名单给指定的销售人员')
+                span {{"PHONE_LIST_ANALYSE_AND_MANAGEMENT" | translate}}
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'MY_PHONE_LIST_OR_REMINDER_PHONE_LIST', 'Read')" ng-class='{active: vm.selectedTab === "REMINDER_PHONE_LIST"}', ng-click='vm.loadTab("REMINDER_PHONE_LIST")', title='销售员所分配到的会员名单、资料')
+                span {{"MY_PHONE_LIST_OR_REMINDER_PHONE_LIST" | translate}}
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'WORKLOAD REPORT', 'Read')" ng-class='{active: vm.selectedTab === "WORKLOAD REPORT"}', ng-click='vm.loadTab("WORKLOAD REPORT")', title='查询指定时间内，电销员的业务量情况')
+                span {{"WORKLOAD REPORT" | translate}}
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'RECYCLE_BIN', 'Read')" ng-class='{active: vm.selectedTab === "RECYCLE_BIN"}', ng-click='vm.loadTab("RECYCLE_BIN")', title='名单皆被使用过后，没开户成功将近入此回收桶')
+                span {{"RECYCLE_BIN" | translate}}
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'Task', 'Read')" ng-class='{active: vm.selectedTab === "PHONE_MISSION"}', ng-click='vm.loadTab("PHONE_MISSION")', title='通过短信让客户触击即可开户')
                 span {{"PHONE_MISSION" | translate}}
         .col-md-12
             .panel.panel-primary
                 div(ng-switch="vm.selectedTab")
                     div(ng-switch-when="NEW_PHONE_LIST")
                         include ./teleMarketing-phone-num-filter
-                    div(ng-switch-when="PHONE_LISTS")
+                    div(ng-switch-when="PHONE_LIST_ANALYSE_AND_MANAGEMENT")
                         include ./teleMarketing-phone-list
                     div(ng-switch-when="PHONE_MISSION")
                         include ./teleMarketing-task
@@ -317,13 +309,15 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                         table.common-table.playerLvlTable
                             thead
                                 tr
-                                    th {{"receive status" | translate}}
+                                    th
+                                        input.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.checkAllNoSmsGroup" ng-init="vm.isAllNoSmsGroupChecked()" ng-change="vm.toggleAllNoSmsGroup()")
+                                        | {{"receive status" | translate}}
                                     th {{"no group sms setting" | translate}}
 
                             tbody
                                 tr(ng-repeat='(i, v) in vm.noGroupSmsSetting')
                                     td
-                                        input.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting[v.name]")
+                                        input.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.smsSetting[v.name]" ng-change="vm.isAllNoSmsGroupChecked()")
                                     td
                                         span {{v.name | translate}}
 
@@ -331,12 +325,14 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                         table.common-table.playerLvlTable
                             thead
                                 tr
-                                    th {{"receive status/sms group" | translate}}
+                                    th
+                                        input.margin-right-5(type="checkbox", ng-model="vm.playerBeingEdited.checkAllIsSmsGroup" ng-init="vm.isAllIsSmsGroupChecked()" ng-change="vm.toggleAllIsSmsGroup()")
+                                        | {{"receive status/sms group" | translate}}
                                     th {{"sms group settings" | translate}}
                             tbody
                                 tr(ng-repeat='(i, v) in vm.smsGroups | filter: {smsParentSmsId: -1}')
                                     td
-                                        input.margin-right-5(type="checkbox" ng-model='vm.playerSmsSetting.smsGroup[v.smsId]' ng-init='vm.isAllSmsInGroupChecked(v)' ng-change='vm.smsGroupCheckChange(v)')
+                                        input.margin-right-5(type="checkbox" ng-model='vm.playerSmsSetting.smsGroup[v.smsId]' ng-init='vm.isAllSmsInGroupChecked(v)' ng-change='vm.smsGroupCheckChange(v);vm.isAllIsSmsGroupChecked()')
                                         span(ng-if='!vm.configTableEdit') {{v.smsName}}
                                     td
                                         div(ng-repeat='(ii, vv) in vm.smsGroups | filter: {smsParentSmsId: v.smsId}')

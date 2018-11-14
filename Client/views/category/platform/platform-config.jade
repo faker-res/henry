@@ -1328,46 +1328,62 @@
                             tr
                                 th {{'NAME' | translate}}
                                 th {{'VALUE' | translate}}
+                                th {{'REMARK' | translate}}
                         tbody
                             tr
                                 td {{'Player Bonus Auto Approval' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.autoApprovalBasic.enableAutoApplyBonus', ng-disabled='!vm.configTableEdit')
+                                td
                             tr
                                 td {{'Single Withdrawal Limit' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveWhenSingleBonusApplyLessThan')
+                                td(style="text-align: left;") {{"Returned error message of proposal-Failed" | translate }} {{': '}} {{"per transaction limit" | translate }}
                             tr
                                 td {{'Single Day Withdrawal Limit' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.showAutoApproveWhenSingleDayTotalBonusApplyLessThan')
+                                td(style="text-align: left;")  {{"Returned error message of proposal-Failed" | translate }} {{': '}}  {{"per day limit" | translate }}
                             tr
                                 td {{'Lost Threshold' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.lostThreshold}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.lostThreshold')
+                                td
                             tr
                                 td {{'Consumption Offset' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.consumptionOffset}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.consumptionOffset')
+                                td
                             tr
                                 td {{'Profit Times' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.profitTimes}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.profitTimes')
+                                td
+                                    div(style="display: grid; text-align: left;")
+                                        span 1. {{"Returned error message of proposal-Failed" | translate }} {{': '}} {{"(win lose/deposit) during the interval of the second withdrawal is too high" | translate }}
+                                        span 2. {{"Consecutive withdrawal will skip until it found the last withdrawal with deposit" | translate }}
+                                        span {{"For instance" | translate}}: {{'withdrawal1' | translate}}->{{'deposit1' | translate}}->{{'deposit2' | translate}}->{{'withdrawal2' | translate}}->{{'withdrawal3' | translate}}({{'current' |translate}}), {{"the duration is counted from withdrawal1~withdrawal3" | translate }}
                             tr
                                 td {{'Profit Times Minimum Amount' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.profitTimesMinAmount}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.profitTimesMinAmount')
+                                td
                             tr
                                 td {{'Abnormal Profit Offset' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.bonusProfitOffset}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.bonusProfitOffset')
+                                td
+                                    div(style="display: grid; text-align: left;")
+                                        span 1. {{"Returned error message of proposal-Failed" | translate }} {{': '}} {{"The transferring-out amount is larger than (transferring-in amount+report_win_lose)" | translate }}
+                                        span 2. {{"During withdrawing, the system will check the transferring-in/transferring-out amount to ensure the amount does not exceed the limit(transferring-in amount+report_win_lose)" | translate }}
                             //tr
                             //    td {{'FIRST_WITHDRAWAL_MANUAL_AUDIT' | translate}}
                             //    td
@@ -1377,11 +1393,13 @@
                                 td
                                     text(ng-if='!vm.configTableEdit') {{vm.autoApprovalBasic.firstWithdrawExceedAmount}}
                                     input(type='number' ng-if='vm.configTableEdit' ng-model='vm.autoApprovalBasic.firstWithdrawExceedAmount')
+                                td(style="text-align: left;") {{"Returned error message of proposal-Failed" | translate }} {{': '}}  {{"The first withdrawing amount exceeds the limit" | translate }}
                             tr
                                 td {{'FIRST_WITHDRAWAL_AND_CURRENT_MINUS_TOPUP_EXCEED_AMOUNT' | translate}}
                                 td
                                     text(ng-if='!vm.configTableEdit') {{vm.autoApprovalBasic.firstWithdrawAndCurrentMinusTopupExceedAmount}}
                                     input(type='number' ng-if='vm.configTableEdit' ng-model='vm.autoApprovalBasic.firstWithdrawAndCurrentMinusTopupExceedAmount')
+                                td(style="text-align: left;") {{"Returned error message of proposal-Failed" | translate }} {{': '}}  {{"The first withdrawing amount is larger than the deposit amount" | translate }}
                             tr
                                 td {{'FIRST_WITHDRAWAL_TOTAL_BET_OVER_TOTAL_TOPUP_EXCEED_TIMES' | translate}}
                                 td
@@ -1390,54 +1408,77 @@
                                     text &nbsp&&nbsp
                                     text(ng-if='!vm.configTableEdit') {{vm.autoApprovalBasic.firstWithdrawCondBExceedAmount}}
                                     input(type='number' ng-if='vm.configTableEdit' ng-model='vm.autoApprovalBasic.firstWithdrawCondBExceedAmount')
+                                td(style="text-align: left;") {{"Returned error message of proposal-Failed" | translate }} {{': '}}  {{"The consumption/deposit of the the withdraw is too low" | translate }}
                             tr
                                 td {{'FIRST_WITHDRAWAL_DIFFERENT_IP_CHECK' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.autoApprovalBasic.firstWithdrawDifferentIPCheck', ng-disabled='!vm.configTableEdit')
+                                td(style="text-align: left;") {{"Returned error message of proposal-Failed" | translate }} {{': '}}  {{"The IP, phone number or bank detail of not the first withdraw is not matched with the recorded province" | translate }}
                             tr
                                 td {{'MANUAL_AUDIT_AFTER_BANK_CHANGED' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.autoApprovalBasic.manualAuditAfterBankChanged', ng-disabled='!vm.configTableEdit')
+                                td(style="text-align: left;") {{"Returned error message of proposal-Failed" | translate }} {{': '}}  {{"The withdrawing details are not matched with the record of the last amendment" | translate }}
                             tr
                                 td {{'MANUAL_AUDIT_BAN_WITHDRAWAL' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.autoApprovalBasic.manualAuditBanWithdrawal', ng-disabled='!vm.configTableEdit')
+                                td
                             tr
                                 td {{'UNLOCK_IF_INIT_AMT_LESS_THAN_LOST_THRESHOLD' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.autoApprovalBasic.autoUnlockWhenInitAmtLessThanLostThreshold', ng-disabled='!vm.configTableEdit')
-                            tr
-                                td {{'Check Continous Apply Bonus Times' | translate}}
                                 td
-                                    text(ng-if='!vm.configTableEdit') {{vm.autoApprovalBasic.checkContinousApplyBonusTimes}}
-                                    input(type='number' ng-if='vm.configTableEdit' ng-model='vm.autoApprovalBasic.checkContinousApplyBonusTimes')
-                    
+                            tr
+                                td {{'Check Continuous Apply Bonus Times' | translate}}
+                                td
+                                    text(ng-if='!vm.configTableEdit') {{vm.autoApprovalBasic.checkContinuousApplyBonusTimes}}
+                                    input(type='number' ng-if='vm.configTableEdit' ng-model='vm.autoApprovalBasic.checkContinuousApplyBonusTimes')
+                                td(style="text-align: left;") {{"Returned error message of proposal-Failed" | translate }} {{': '}}  {{"unusual frequency of withdrawal request" | translate }}
+                            tr
+                                td
+                                    div(style="display: grid;")
+                                        span {{"Consecutive transferring-in (without top-up/reward/credit change during the interval)" | translate }}
+                                        span {{"Consecutive transferring-out from the same provider (without transferring-in record during the interval)" | translate }}
+                                td
+                                    input(type='checkbox', ng-model='vm.autoApprovalBasic.consecutiveTransferInOut', ng-disabled='!vm.configTableEdit')
+                                td
+                                    div(style="display: grid; text-align: left;")
+                                        span 1. {{"Returned error message of proposal-Failed" | translate }} {{': '}} {{"Consecutive transferring-in/ transferring-out)" | translate }}
+                                        span 2. {{"Exclude ebet when checking as it contains many providers in which will easily trigger consecutive transferring-in/ transferring out events" | translate }}
+
+
                     br
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
                                 th {{'PARTNER_WITHDRAWAL_AUTO_APPROVAL' | translate}}
                                 th {{'VALUE' | translate}}
+                                th {{'REMARK' | translate}}
                         tbody
                             tr
                                 td {{'Partner Bonus Auto Approval' | translate}}
                                 td
                                     input(type='checkbox', ng-model='vm.autoApprovalBasic.partnerEnableAutoApplyBonus', ng-disabled='!vm.configTableEdit')
+                                td
                             tr
                                 td {{'Partner single Withdrawal Limit' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.partnerAutoApproveWhenSingleBonusApplyLessThan}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.partnerAutoApproveWhenSingleBonusApplyLessThan')
+                                td(style="text-align: left;") {{"Returned error message of proposal-Failed" | translate }} {{': '}} {{"per transaction limit" | translate }}
                             tr
                                 td {{'Partner single Day Withdrawal Limit' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.partnerAutoApproveWhenSingleDayTotalBonusApplyLessThan')
+                                td(style="text-align: left;")  {{"Returned error message of proposal-Failed" | translate }} {{': '}}  {{"per day limit" | translate }}
                             tr
                                 td {{'Partner current withdrawal amount minus total commission from the last withdrawal(include first level partner commission) >= X (transfer to manual approval)' | translate}}
                                 td
                                     text(ng-show='!vm.configTableEdit') {{vm.autoApprovalBasic.partnerWithdrawalCommissionDifference}}
                                     input(type='number', ng-show='vm.configTableEdit', min=0, ng-model='vm.autoApprovalBasic.partnerWithdrawalCommissionDifference')
+                                td(style="text-align: left;")  {{"Returned error message of proposal-Failed" | translate }} {{': '}}  {{"The withdrawing amount is larger than the commission" | translate }}
                             
                     br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'autoApproval')", ng-click='vm.configTableEdit=!vm.configTableEdit')
@@ -1814,7 +1855,7 @@
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
-                                th {{'NAME' | translate}}
+                                th {{'BATCH_FEEDBACK_SETTING' | translate}}
                                 th {{'VALUE' | translate}}
                         tbody
                             tr
@@ -1833,6 +1874,42 @@
                                 td {{'Parallel Call Per Agent (In One Decimal)' | translate}}
                                 td
                                     input(ng-model='vm.bulkCallBasic.idleAgentMultiple' ng-disabled='!vm.configTableEdit' type="number" step="0.1" min="0.1")
+                    br
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th {{'BATCH_TELEMARKETING_SETTING(FOR WHITELIST)' | translate}}
+                                th {{'VALUE' | translate}}
+                        tbody
+                            tr
+                                td {{'Max Ring Time' | translate}}
+                                td
+                                    input(ng-model='vm.bulkCallBasic.teleMarketingMaxRingTime' ng-disabled='!vm.configTableEdit' type="number" step="1" min="1")
+                            tr
+                                td {{'Redial Times' | translate}}
+                                td
+                                    input(ng-model='vm.bulkCallBasic.teleMarketingRedialTimes' ng-disabled='!vm.configTableEdit' type="number" step="1" min="0")
+                            tr
+                                td {{'Minimum Redial Interval' | translate}}
+                                td
+                                    input(ng-model='vm.bulkCallBasic.teleMarketingMinRedialInterval' ng-disabled='!vm.configTableEdit' type="number" step="1" min="1")
+                            tr
+                                td {{'Parallel Call Per Agent (In One Decimal)' | translate}}
+                                td
+                                    input(ng-model='vm.bulkCallBasic.teleMarketingIdleAgentMultiple' ng-disabled='!vm.configTableEdit' type="number" step="0.1" min="0.1")
+                            tr
+                                td {{'Definition of Answered Phone Call(Choose from feedback status/ multi selection)' | translate}}
+                                td
+                                    input.form-control(ng-if="!vm.configTableEdit" ng-model="vm.bulkCallBasic.definitionOfAnsweredPhone" ng-disabled="true")
+                                    select.form-control#selectFeedBackTopic(ng-if='vm.configTableEdit' ng-model="vm.bulkCallBasic.definitionOfAnsweredPhone" ng-options="a.key as a.key for (i,a) in vm.playerAllFeedBackResult" multiple bsp)
+                            tr
+                                td {{'Decompose after N days(Start to deal with other departments)' | translate}}
+                                td
+                                    input(ng-model='vm.bulkCallBasic.decomposeAfterNDays' ng-disabled='!vm.configTableEdit' type="number" step="1" min="0")
+                            tr
+                                td {{'Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday' | translate}}
+                                td
+                                    input(ng-model='vm.bulkCallBasic.phoneWhiteListExportMaxNumber' ng-disabled='!vm.configTableEdit' type="number" step="1" min="0")
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'BulkCall')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit

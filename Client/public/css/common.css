@@ -223,7 +223,7 @@ ul.roleList {
 }
 
 .panel {
-    -webkit-border-radius: 9px !important;
+    -webkit-border-radius: 5px !important;
     -moz-border-radius: 9px !important;
     border-radius: 9px !important;
 }
@@ -1475,6 +1475,7 @@ form[name='form_new_platform'] button.btn-default {
 
 .playerLvlTable thead th {
     padding: 5px;
+    border: 1px solid #2B6698;
 }
 
 .playerLvlTable tbody td {
@@ -2209,6 +2210,10 @@ table.table-vertical-middle td * {
 
 textarea.expand-on-focus {
     height: 34px;
+}
+
+textarea.expand-on-focus-eightyfive {
+    height: 85px;
 }
 
 textarea.expand-on-focus:focus {
@@ -3140,4 +3145,17 @@ table.simple-table.platformFrontEndDisplayTable tbody td {
     top: 0;
     left: 0;
     width: 100%;
+}
+
+table.simple-table-single > tbody > tr > td,
+table.simple-table-single > thead > tr > th {
+    padding: 5px;
+    text-align: center;
+    border: solid 1px rgba(43, 102, 152, 0.5);
+}
+
+.no-border td,
+.no-border th {
+    padding: 0px !important;
+    line-height: 2em !important;
 }

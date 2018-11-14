@@ -591,6 +591,8 @@ var roleChecker = {
                 REAL_TIME_COMMISSION_REPORT: ['getCurrentPartnerCommissionDetail'],
                 PAST_COMMISSION_SETTLEMENT: ['settlePastCommission'],
                 PLAYER_ALIPAY_ACCOUNT_REPORT: ['getPlayerAlipayAccReport'],
+                FINANCIAL_REPORT: [],
+                DepositGroupSetting: ['addNewDepositGroup', 'updateDepositGroups', 'deleteDepositGroup']
             },
             Reward: {
                 Read: ['getPlatformRewardPageReport', 'getRewardProposalReportByType','getRewardProposalReport'],
@@ -880,28 +882,16 @@ var roleChecker = {
                 queryByTotalDepositAmount: [],
                 queryByTotalValidConsumption: [],
             },
-            PHONE_LISTS: {
+            PHONE_LIST_ANALYSE_AND_MANAGEMENT: {
                 Read: []
             },
-            PHONE_LIST_MANAGEMENT: {
+            MY_PHONE_LIST_OR_REMINDER_PHONE_LIST: {
                 Read: []
             },
-            PHONE_LIST_ASSIGNMENT: {
+            "WORKLOAD REPORT": {
                 Read: []
             },
-            SALES_CONFIGURATION: {
-                Read: []
-            },
-            MEMBER_INFO: {
-                Read: []
-            },
-            PHONE_LOOKUP: {
-                Read: []
-            },
-            SALES_REPORT: {
-                Read: []
-            },
-            MEMBER_REPORT: {
+            RECYCLE_BIN: {
                 Read: []
             }
         },

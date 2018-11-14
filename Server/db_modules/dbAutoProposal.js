@@ -252,17 +252,34 @@ function checkRewardTaskGroup(proposal, platformObj) {
     let abnormalMessageChinese = "";
     let checkMsg = "", checkMsgChinese = "";
     let bTransferAbnormal = false;
+    let continuousApplyBonusTimes;
+    let bConsecutiveTransferAbnormal = false;
 
     return getBonusRecordsOfPlayer(proposal.data.playerObjId, proposal.type).then(
         bonusRecord => {
             todayBonusAmount = bonusRecord && bonusRecord[0] && bonusRecord[0].amount ? bonusRecord[0].amount : 0;
 
-            return getLastValidWithdrawTime(platformObj, proposal.data.playerObjId, proposal.createTime);
+            let lastWithdrawalDateProm = getLastValidWithdrawTime(platformObj, proposal.data.playerObjId, proposal.createTime);
+            let haveWithdrawalProm = dbconfig.collection_proposal.findOne({
+                'data.platformId': ObjectId(platformObj._id),
+                'data.playerObjId': ObjectId(proposal.data.playerObjId),
+                mainType: 'PlayerBonus',
+                $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}],
+                createTime: {$lt: proposal.createTime}
+            }, {_id: 1}).lean();
+
+            return Promise.all([lastWithdrawalDateProm, haveWithdrawalProm]);
         }
     ).then(
-        lastWithdrawDate => {
+        ([lastWithdrawDate, haveWithdrawal]) => {
+            bFirstWithdraw = !Boolean(haveWithdrawal);
             // settleTime of last withdraw proposal
-            bFirstWithdraw = !lastWithdrawDate;
+            // if (lastWithdrawDate) {
+            //     bFirstWithdraw = !lastWithdrawDate[0];
+            // } else {
+            //     bFirstWithdraw = !lastWithdrawDate;
+            // }
+            continuousApplyBonusTimes = lastWithdrawDate && lastWithdrawDate[1] ? lastWithdrawDate[1] : null;
 
             let transferLogQuery = {
                 platformObjId: ObjectId(proposal.data.platformId),
@@ -294,15 +311,15 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 createTime: {$lt: proposal.createTime}
             };
 
-            if (lastWithdrawDate) {
-                dLastWithdraw = lastWithdrawDate;
-                transferLogQuery.createTime["$gt"] = lastWithdrawDate;
-                creditLogQuery.operationTime["$gt"] = lastWithdrawDate;
-                consumptionQuery.createTime["$gt"] = lastWithdrawDate;
+            if (lastWithdrawDate && lastWithdrawDate[0]) {
+                dLastWithdraw = lastWithdrawDate[0];
+                transferLogQuery.createTime["$gt"] = lastWithdrawDate[0];
+                creditLogQuery.operationTime["$gt"] = lastWithdrawDate[0];
+                consumptionQuery.createTime["$gt"] = lastWithdrawDate[0];
             }
 
             let RTGPromise = dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: proposal.data.playerObjId}, proposal.createTime);
-            let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).sort({createTime: 1}).lean();
+            let transferLogsWithinPeriodPromise = dbconfig.collection_playerCreditTransferLog.find(transferLogQuery).sort({createTime: 1}).lean().read("secondaryPreferred");
             let playerInfoPromise = dbconfig.collection_players.findOne(playerQuery, {similarPlayers: 0}).lean();
             let creditLogPromise = dbconfig.collection_creditChangeLog.find(creditLogQuery).sort({operationTime: 1}).lean();
 
@@ -347,14 +364,18 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
                 let transferLogs = data[1];
                 let creditChangeLogs = data[4];
-
+                
                 return findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, proposal.data.playerObjId).then(
                     transferAbnormalities => {
                         if (transferAbnormalities) {
                             for (let i = 0; i < transferAbnormalities.length; i++) {
                                 abnormalMessage += transferAbnormalities[i].en + "; ";
                                 abnormalMessageChinese += transferAbnormalities[i].ch + "; ";
-                                bTransferAbnormal = true;
+                                if(transferAbnormalities[i].bConsecutiveTransferAbnormal){
+                                    bConsecutiveTransferAbnormal = true;
+                                } else if (transferAbnormalities[i].bTransferAbnormal){
+                                    bTransferAbnormal = true;
+                                }
                             }
                         }
                         return data;
@@ -501,8 +522,14 @@ function checkRewardTaskGroup(proposal, platformObj) {
             }
 
             if (bTransferAbnormal) {
-                checkMsg += ' Denied: Abnormal Transfer;';
-                checkMsgChinese += ' 失败：转账异常;';
+                checkMsg += ' Denied: Transfer-out amount is larger than (transfer-in amount + winning/losing amount from the report);';
+                checkMsgChinese += ' 失败：带出大于（带入+报表输赢）;';
+                canApprove = false;
+            }
+
+            if (bConsecutiveTransferAbnormal) {
+                checkMsg += ' Denied: Consecutive transferring-in/ transferring-out;';
+                checkMsgChinese += ' 失败：连续转入/转出;';
                 canApprove = false;
             }
 
@@ -516,6 +543,13 @@ function checkRewardTaskGroup(proposal, platformObj) {
                 && ((playerTotalBonus / playerTotalTopupAmount) >= platformObj.autoApproveProfitTimes)) {
                 checkMsg += ' Denied: Max profit times;';
                 checkMsgChinese += ' 失败：二提款间（输赢/存款）过高;';
+                canApprove = false;
+            }
+
+            if (continuousApplyBonusTimes && platformObj.checkContinuousApplyBonusTimes && platformObj.checkContinuousApplyBonusTimes != 0
+                && ((continuousApplyBonusTimes + 1) >= platformObj.checkContinuousApplyBonusTimes)) {
+                checkMsg += ' Denied: Continuous Apply Bonus' + (continuousApplyBonusTimes + 1) + 'Times;';
+                checkMsgChinese += ' 失败：连续提款' + (continuousApplyBonusTimes + 1) + '次;';
                 canApprove = false;
             }
 
@@ -1258,8 +1292,10 @@ function sendToAudit(proposalObjId, playerData, createTime, remark, remarkChines
         model: dbconfig.collection_proposalType
     }).lean().then(
         proposalData => {
-            if (proposalData) {
-                if (!proposalData.noSteps) {
+            //add status check
+            if (proposalData && proposalData.status == constProposalStatus.AUTOAUDIT) {
+                //temp fix
+                if (true || !proposalData.noSteps) {
                     let dataToUpdate = {
                         status: constProposalStatus.PENDING,
                         'data.autoAuditTime': Date.now(),
@@ -1372,6 +1408,8 @@ function getPlayerLastProposalDateOfType(playerObjId, type) {
  */
 function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
     thisWithdrawTime = new Date(thisWithdrawTime);
+    let lastWithdrawTimeBeforeTopUp;
+    let withdrawCount = 0;
 
     // TODO:: May be enhanced to limit search to 1 year time -
 
@@ -1384,22 +1422,54 @@ function getLastValidWithdrawTime(platform, playerObjId, thisWithdrawTime) {
     }, {createTime: 1}).sort({createTime: -1}).limit(1).lean().then(
         lastTopUpProp => {
             if (lastTopUpProp && lastTopUpProp[0] && lastTopUpProp[0].createTime) {
-                return dbconfig.collection_proposal.find({
-                    'data.platformId': ObjectId(platform._id),
-                    'data.playerObjId': ObjectId(playerObjId),
-                    mainType: 'PlayerBonus',
-                    $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}],
-                    createTime: {$lt: lastTopUpProp[0].createTime}
-                }, {createTime: 1}).sort({createTime: -1}).limit(1).lean().then(
-                    retData => {
-                        if (retData && retData[0]) {
-                            return retData[0].createTime;
+                // get last withdraw time before topup
+                let lastValidWithdrawProm = getWithdrawTime(platform._id, playerObjId, lastTopUpProp[0].createTime);
+                let lastValidCountProm = getWithdrawTime(platform._id, playerObjId, thisWithdrawTime).then(
+                    lastWithdrawTimeAfterTopUp => {
+                        if (lastWithdrawTimeAfterTopUp && lastWithdrawTimeAfterTopUp[0] && lastWithdrawTimeAfterTopUp[0].createTime
+                            && (lastTopUpProp[0].createTime.getTime() < lastWithdrawTimeAfterTopUp[0].createTime.getTime())) {
+
+                            let countBonusQuery = {
+                                'data.platformId': ObjectId(platform._id),
+                                'data.playerObjId': ObjectId(playerObjId),
+                                mainType: 'PlayerBonus',
+                                $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}],
+                                createTime: {$gte: lastTopUpProp[0].createTime, $lt: thisWithdrawTime}
+                            };
+
+                            // count total withdraw times after topup
+                            return dbconfig.collection_proposal.find(countBonusQuery).count();
                         }
+                    }
+                )
+
+                return Promise.all([lastValidWithdrawProm, lastValidCountProm]).then(
+                    retData => {
+                        if (retData && retData[0] && retData[0][0]) {
+                            lastWithdrawTimeBeforeTopUp = retData[0][0].createTime;
+                        }
+
+                        if (retData && retData[1]) {
+                            withdrawCount = retData[1];
+                        }
+
+                        // get last withdraw time after topup
+                        return [lastWithdrawTimeBeforeTopUp, withdrawCount];
                     }
                 );
             }
         }
     )
+}
+
+function getWithdrawTime(platformId, playerId, createTime) {
+    return dbconfig.collection_proposal.find({
+        'data.platformId': ObjectId(platformId),
+        'data.playerObjId': ObjectId(playerId),
+        mainType: 'PlayerBonus',
+        $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}],
+        createTime: {$lt: createTime}
+    }, {createTime: 1}).sort({createTime: -1}).limit(1).lean();
 }
 
 function getPlayerConsumptionSummary(platformId, playerId, dateFrom, dateTo, providerIdArr) {
@@ -1455,54 +1525,60 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
 
     let logsLength = transferLogs.length;
     for (let i = 0; i < logsLength; i++) {
-        if (transferLogs[i].type === 'TransferIn') {
-            auditTransferInLog(transferLogs[i]);
-            lastTransferInLogTime = transferLogs[i].createTime;
+        if(transferLogs[i].isEbet === false) {
+            if (transferLogs[i].type === 'TransferIn') {
+                auditTransferInLog(transferLogs[i], platformObj.consecutiveTransferInOut);
+                lastTransferInLogTime = transferLogs[i].createTime;
 
-            // bonus <> transfer amount check
-            completeCycle = false;
-            inAmt = transferLogs[i].amount;
-            inTime = transferLogs[i].createTime;
-        } else {
-            auditTransferOutLog(transferLogs[i]);
+                // bonus <> transfer amount check
+                completeCycle = false;
+                inAmt = transferLogs[i].amount;
+                inTime = transferLogs[i].createTime;
+            } else {
+                auditTransferOutLog(transferLogs[i], platformObj.consecutiveTransferInOut);
 
-            // bonus <> transfer amount check
-            // if first transfer is not out, set completeCycle to true
-            completeCycle = i != 0;
-            outAmt = transferLogs[i].amount;
-            outTime = transferLogs[i].createTime;
-        }
-        lastTransferLogType = transferLogs[i].type;
-        lastTransferLogProviderId = transferLogs[i].providerId;
+                // bonus <> transfer amount check
+                // if first transfer is not out, set completeCycle to true
+                completeCycle = i != 0;
+                outAmt = transferLogs[i].amount;
+                outTime = transferLogs[i].createTime;
+            }
+            lastTransferLogType = transferLogs[i].type;
+            lastTransferLogProviderId = transferLogs[i].providerId;
 
-        if (completeCycle && inTime && outTime) {
-            let consumedAmt = outAmt - inAmt;
-            promBonusCheck.push(
-                getPlayerConsumptionSummary(platformObj._id, playerId, inTime, outTime).then(
-                    res => {
-                        let transferOutId = transferLogs[i].transferId;
-                        let transDifference = consumedAmt;
-                        let bonusAmt = res && res[0] ? res[0].bonusAmount : 0;
-                        let profitDifference = bonusAmt - transDifference;
-
-                        if ((profitDifference < 0 && profitDifference < -platformObj.autoApproveBonusProfitOffset)
-                            || profitDifference > 0 && profitDifference > platformObj.autoApproveBonusProfitOffset) {
-                            abnormalities.push({
-                                en: "Abnormal Bonus (ID: " + transferOutId + ")",
-                                ch: "异常盈利 (ID: " + transferOutId + ")"
-                            });
+            if (completeCycle && inTime && outTime) {
+                let consumedAmt = outAmt - inAmt;
+                promBonusCheck.push(
+                    getPlayerConsumptionSummary(platformObj._id, playerId, inTime, outTime).then(
+                        res => {
+                            let transferOutId = transferLogs[i].transferId;
+                            let transDifference = consumedAmt;
+                            let bonusAmt = res && res[0] ? res[0].bonusAmount : 0;
+                            let profitDifference = bonusAmt - transDifference;
+                            
+                            if ((profitDifference < 0 && profitDifference < -platformObj.autoApproveBonusProfitOffset)
+                                || profitDifference > 0 && profitDifference > platformObj.autoApproveBonusProfitOffset) {
+                                abnormalities.push({
+                                    en: "Transfer In transfer out (ID: " + transferOutId + ")",
+                                    ch: "带入带出 (ID: " + transferOutId + ")",
+                                    bTransferAbnormal: true
+                                });
+                            }
                         }
-                    }
-                )
-            );
-            completeCycle = !completeCycle;
+                    )
+                );
+                completeCycle = !completeCycle;
+            }
         }
     }
 
     if (multipleTransferInWithoutOtherCreditInput) {
         abnormalities.push({
-            en: "Multi TransferIn (ID: " + multipleTransferInId + ")",
-            ch: "连续转入 (ID: " + multipleTransferInId + ")"
+            en: "Transfer In transfer out (ID: " + multipleTransferInId + ")",
+            ch: "带入带出 (ID: " + multipleTransferInId + ")",
+            bConsecutiveTransferAbnormal: true
+            // en: "Multi TransferIn (ID: " + multipleTransferInId + ")",
+            // ch: "连续转入 (ID: " + multipleTransferInId + ")"
         });
     }
 
@@ -1515,8 +1591,11 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
 
     if (multipleTransferOutStreakExist) {
         abnormalities.push({
-            en: "Multi TransferOut (ID: " + multipleTransferOutId + ")",
-            ch: "连续转出 (ID: " + multipleTransferOutId + ")"
+            en: "Transfer In transfer out (ID: " + multipleTransferOutId + ")",
+            ch: "带入带出 (ID: " + multipleTransferOutId + ")",
+            bConsecutiveTransferAbnormal: true
+            // en: "Multi TransferOut (ID: " + multipleTransferOutId + ")",
+            // ch: "连续转出 (ID: " + multipleTransferOutId + ")"
         });
     }
 
@@ -1527,9 +1606,10 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
         res => abnormalities
     );
 
-    function auditTransferInLog(log) {
+    function auditTransferInLog(log, isCheckConsecutiveTransferInOut) {
+
         if (lastTransferLogType === "TransferIn") {
-            if (!hasTopUpOrRewardWithinPeriod(lastTransferInLogTime, log.createTime)) {
+            if (!hasTopUpOrRewardWithinPeriod(lastTransferInLogTime, log.createTime) && isCheckConsecutiveTransferInOut) {
                 multipleTransferInWithoutOtherCreditInput = true;
                 if (!multipleTransferInId) {
                     multipleTransferInId = log.transferId;
@@ -1555,8 +1635,8 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
         }
     }
 
-    function auditTransferOutLog(log) {
-        if (lastTransferLogType === "TransferOut" && log.providerId === lastTransferLogProviderId) {
+    function auditTransferOutLog(log, isCheckConsecutiveTransferInOut) {
+        if (lastTransferLogType === "TransferOut" && log.providerId === lastTransferLogProviderId && isCheckConsecutiveTransferInOut) {
             multipleTransferOutStreakExist = true;
             if (!multipleTransferOutId) {
                 multipleTransferOutId = log.transferId;

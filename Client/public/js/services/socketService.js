@@ -91,6 +91,7 @@ define([], function () {
         this.$socket = function ($skt, key, sendData, successFunc, failFunc, showConfirm) {
             //if socket is disconnect, try to reconnect and show error message
             if (!$skt.connected) {
+                console.log('key!', key);
                 reconnectSocket();
                 // @consider: Rather than failing immediately, it may be preferable to queue the request until the reconnection succeeds, or until a timeout is reached.
                 servi.showErrorMessage("Server can't be connected, please try again! 伺服器连接失败，请再度尝试！");

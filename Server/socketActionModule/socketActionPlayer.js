@@ -274,7 +274,7 @@ function socketActionPlayer(socketIO, socket) {
         updateBatchPlayerForbidRewardEvents: function updateBatchPlayerForbidRewardEvents(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.playerNames && data.forbidRewardEvents);
-            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerForbidRewardEvents, [data.platformObjId, data.playerNames, data.forbidRewardEvents], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.updateBatchPlayerForbidRewardEvents, [data.platformObjId, data.playerNames, data.forbidRewardEvents, data.forbidPromoCode], actionName, isValidData);
         },
 
         updatePlayerForbidRewardPointsEvent: function updatePlayerForbidRewardPointsEvent(data) {
@@ -1212,8 +1212,18 @@ function socketActionPlayer(socketIO, socket) {
 
         importTSNewList: function importTSNewList(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platform && data.phoneNumber && data.listName && data.listDesc);
-            socketUtil.emitter(self.socket, dbPlayerInfo.importTSNewList, [ObjectId(data.platform), data.phoneNumber, data.listName, data.listDesc, getAdminId()], actionName, isValidData);
+            let isValidData = Boolean(data && data.updateData && data.updateData.platform && data.phoneListDetail && data.updateData.creator && data.updateData.name
+                && data.updateData.description && data.updateData.failFeedBackResult && data.updateData.failFeedBackTopic
+                && data.updateData.failFeedBackContent && data.updateData.hasOwnProperty("callerCycleCount") && data.updateData.hasOwnProperty("dailyCallerMaximumTask")
+                && data.updateData.hasOwnProperty("dailyDistributeTaskHour") && data.updateData.hasOwnProperty("dailyDistributeTaskMinute")
+                && data.updateData.hasOwnProperty("dailyDistributeTaskSecond") && data.updateData.distributeTaskStartTime && data.updateData.hasOwnProperty("reclaimDayCount"));
+            socketUtil.emitter(self.socket, dbPlayerInfo.importTSNewList, [data.phoneListDetail, data.updateData, data.isUpdateExisting, getAdminId(), getAdminName()], actionName, isValidData);
+        },
+
+        getTsNewListName: function getTsNewListName (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getTsNewListName, [data.platform], actionName, isValidData);
         },
 
         downloadTranslationCSV: function downloadTranslationCSV(data) {

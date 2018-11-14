@@ -287,7 +287,7 @@ style.
                         td {{vm.dateReformat(vm.largeWithdrawLog.withdrawalTime) || " "}}
                     tr(ng-if="vm.largeWithdrawalSetting.showLastWithdrawalTime")
                         td {{"LAST_WITHDRAWAL_TIME" | translate}}
-                        td {{vm.dateReformat(vm.largeWithdrawLog.lastWithdrawalTime) || " "}}
+                        td {{vm.largeWithdrawLog.lastWithdrawalTime ? vm.dateReformat(vm.largeWithdrawLog.lastWithdrawalTime) : " "}}
                     tr(ng-if="vm.largeWithdrawalSetting.showCurrentCredit")
                         td {{"providerCreditAmount" | translate}}
                         td {{$fixTwoDecimalStr(vm.largeWithdrawLog.currentCredit)}}

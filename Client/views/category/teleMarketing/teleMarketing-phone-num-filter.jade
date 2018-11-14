@@ -173,6 +173,10 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                         i.fa.fa-info-circle.margin-right-5
                         text
                             strong {{"ADD_PHONE_NUMBER_XLS_INSTRUCTION_2" | translate}}
+                        br
+                        i.fa.fa-info-circle.margin-right-5
+                        text
+                            strong {{"ADD_PHONE_NUMBER_XLS_INSTRUCTION_3" | translate}}
                     div
                         #grid1.grid(ng-if='vm.gridOptions', ui-grid='vm.gridOptions', ui-grid-edit='', ui-grid-exporter='', ui-grid-resize-columns='', ui-grid-move-columns='')
                             .grid-msg-overlay(ng-show='!vm.gridOptions.data.length')
@@ -200,7 +204,7 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                             | &nbsp;
                             label(style="color:red") {{vm.diffPhoneTotalXLS}}
                         .pull-right
-                            button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalNewTSPhoneListXLS' ng-click="vm.importPhoneResult = ''; ")
+                            button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalNewTSPhoneListXLS' ng-click="vm.importPhoneResult = ''; vm.initFilterAndImportDXSystem();")
                                 i.fa.fa-upload
                                 text {{"FILTER_THEN_IMPORT_XLS_TS" | translate}}
                             button.btn.btn-success.common-button(data-toggle="modal", data-target='#modalSelectDxMissionXLS' ng-click="vm.importPhoneResult = ''; vm.getAllDxMission();")

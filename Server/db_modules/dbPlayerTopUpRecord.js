@@ -97,70 +97,73 @@ var dbPlayerTopUpRecord = {
     },
 
     assignTopUpRecordUsedEvent: function (platformObjId, playerObjId, eventObjId, spendingAmount, startTime, endTime, byPassedEvent, usedProposal, rewardType, isNoLimit) {
-        let topUpQuery = {
-            platformId: platformObjId,
-            playerId: playerObjId,
-        };
+        // if spendingAmount (i.e., the requiredTopUpAmount) is 0, ignore it as no top up record has to be used up
+        if (spendingAmount) {
+            let topUpQuery = {
+                platformId: platformObjId,
+                playerId: playerObjId,
+            };
 
-        if (startTime) {
-            topUpQuery.createTime = {$gte: startTime};
-            if (endTime) {
-                topUpQuery.createTime.$lte = endTime;
-            }
-        }
-
-        let updateValue = {
-            bDirty: true,
-            $push: {usedEvent: eventObjId}
-        };
-
-        if (rewardType) {
-            updateValue.usedType = rewardType;
-        }
-
-        if (usedProposal) {
-            updateValue.usedProposal = usedProposal;
-        }
-
-        let recordIds = [];
-
-        let rewardEventQuery = {platform: platformObjId};
-
-        if (byPassedEvent && byPassedEvent.length > 0) {
-            byPassedEvent.forEach(byPassedEventId => {
-                byPassedEvent.push(ObjectId(byPassedEventId));
-            });
-            rewardEventQuery._id = {$nin: byPassedEvent};
-        }
-
-        return dbconfig.collection_rewardEvent.distinct("_id", rewardEventQuery).then(
-            rewardEventIds => {
-                topUpQuery.usedEvent = {$nin: rewardEventIds};
-                return dbconfig.collection_playerTopUpRecord.find(topUpQuery).lean()
-            }
-        ).then(
-            toUpRecords => {
-                let curAmount = 0;
-
-                for (var i = 0; i < toUpRecords.length; i++) {
-                    let record = toUpRecords[i];
-                    recordIds.push(record._id);
-                    curAmount += record.amount;
-
-                    if (!isNoLimit && curAmount >= spendingAmount) {
-                        break;
-                    }
+            if (startTime) {
+                topUpQuery.createTime = {$gte: startTime};
+                if (endTime) {
+                    topUpQuery.createTime.$lte = endTime;
                 }
-
-                dbconfig.collection_playerTopUpRecord.update(
-                    {_id: {$in: recordIds}},
-                    updateValue,
-                    {multi: true}
-                ).exec();
-
-                return recordIds;
             }
-        );
+
+            let updateValue = {
+                bDirty: true,
+                $push: {usedEvent: eventObjId}
+            };
+
+            if (rewardType) {
+                updateValue.usedType = rewardType;
+            }
+
+            if (usedProposal) {
+                updateValue.usedProposal = usedProposal;
+            }
+
+            let recordIds = [];
+
+            let rewardEventQuery = {platform: platformObjId};
+
+            if (byPassedEvent && byPassedEvent.length > 0) {
+                byPassedEvent.forEach(byPassedEventId => {
+                    byPassedEvent.push(ObjectId(byPassedEventId));
+                });
+                rewardEventQuery._id = {$nin: byPassedEvent};
+            }
+
+            return dbconfig.collection_rewardEvent.distinct("_id", rewardEventQuery).then(
+                rewardEventIds => {
+                    topUpQuery.usedEvent = {$nin: rewardEventIds};
+                    return dbconfig.collection_playerTopUpRecord.find(topUpQuery).lean()
+                }
+            ).then(
+                toUpRecords => {
+                    let curAmount = 0;
+
+                    for (var i = 0; i < toUpRecords.length; i++) {
+                        let record = toUpRecords[i];
+                        recordIds.push(record._id);
+                        curAmount += record.amount;
+
+                        if (!isNoLimit && curAmount >= spendingAmount) {
+                            break;
+                        }
+                    }
+
+                    dbconfig.collection_playerTopUpRecord.update(
+                        {_id: {$in: recordIds}},
+                        updateValue,
+                        {multi: true}
+                    ).exec();
+
+                    return recordIds;
+                }
+            );
+        }
     },
 
     /**
@@ -776,8 +779,6 @@ var dbPlayerTopUpRecord = {
             eventData => {
                 rewardEvent = eventData;
                 if (player && player.platform) {
-
-                    let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
                     let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount, topupRequest.limitedOfferObjId);
                     let merchantGroupProm = () => {
                         return pmsAPI.merchant_getMerchantList(
@@ -787,7 +788,7 @@ var dbPlayerTopUpRecord = {
                             }
                         )
                     };
-                    let proms = [firstTopUpProm, limitedOfferProm, merchantGroupProm()];
+                    let proms = [limitedOfferProm, merchantGroupProm()];
                     if (topupRequest.bonusCode) {
                         let bonusCodeCheckProm;
                         let isOpenPromoCode = topupRequest.bonusCode.toString().trim().length == 3 ? true : false;
@@ -812,17 +813,10 @@ var dbPlayerTopUpRecord = {
             }
         ).then(
             res => {
-                let minTopUpAmount;
-                let isPlayerFirstTopUp = res[0];
-                let limitedOfferTopUp = res[1];
-                merchantGroupList = res[2];
-                let bonusCodeValidity = res[3];
-
-                if (isPlayerFirstTopUp) {
-                    minTopUpAmount = 1;
-                } else {
-                    minTopUpAmount = player.platform.minTopUpAmount || 0;
-                }
+                let minTopUpAmount = player.platform.minTopUpAmount || 0;
+                let limitedOfferTopUp = res[0];
+                merchantGroupList = res[1];
+                let bonusCodeValidity = res[2];
 
                 // check bonus code validity if exist
                 if (topupRequest.bonusCode && !bonusCodeValidity) {
@@ -1183,12 +1177,8 @@ var dbPlayerTopUpRecord = {
             playerState => {
                if (playerState) {
                    if (player && player.platform && ((player.bankCardGroup && player.bankCardGroup.banks && player.bankCardGroup.banks.length > 0) || bPMSGroup || fromFPMS )) {
-                       // player = playerData;
-
-                       let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
-
                        let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, inputData.amount, inputData.limitedOfferObjId);
-                       let proms = [firstTopUpProm, limitedOfferProm];
+                       let proms = [limitedOfferProm];
 
                        if (inputData.bonusCode) {
                            let bonusCodeCheckProm;
@@ -1217,23 +1207,9 @@ var dbPlayerTopUpRecord = {
             }
         ).then(
             res => {
-                //disable bankaccount check for now
-                // if (inputData.lastBankcardNo.length > 0 && fromFPMS) {
-                //     let isCorrectBankAcc = player.bankCardGroup.banks.find((bankAcc) => {
-                //         return inputData.lastBankcardNo == bankAcc.slice(-(inputData.lastBankcardNo.length));
-                //     });
-                //     if (!isCorrectBankAcc) {
-                //         return Q.reject({
-                //             status: constServerCode.PLAYER_TOP_UP_FAIL,
-                //             name: "DataError",
-                //             errorMessage: "Bank Account is not correct"
-                //         });
-                //     }
-                // }
-                let minTopUpAmount;
-                let isPlayerFirstTopUp = res[0];
-                let limitedOfferTopUp = res[1];
-                let bonusCodeValidity = res[2];
+                let minTopUpAmount = player.platform.minTopUpAmount || 0;
+                let limitedOfferTopUp = res[0];
+                let bonusCodeValidity = res[1];
 
                 if (inputData.bonusCode && !bonusCodeValidity) {
                     return Promise.reject({
@@ -1241,12 +1217,6 @@ var dbPlayerTopUpRecord = {
                         name: "DataError",
                         errorMessage: "Wrong promo code has entered"
                     });
-                }
-
-                if (isPlayerFirstTopUp) {
-                    minTopUpAmount = 1;
-                } else {
-                    minTopUpAmount = player.platform.minTopUpAmount || 0;
                 }
 
                 if (inputData.amount < minTopUpAmount && entryType != "ADMIN") {
@@ -1495,6 +1465,7 @@ var dbPlayerTopUpRecord = {
                     updateData.data.bankCardNo = request.result.bankCardNo;
                     updateData.data.cardOwner = request.result.cardOwner;
                     updateData.data.bankTypeId = request.result.bankTypeId;
+                    updateData.data.bankName = request.result.bankName;
                     updateData.data.resultData = request.result;
                     updateData.data.cardQuota = 0;
                     if (request.result && request.result.changeAmount) {
@@ -2347,10 +2318,8 @@ var dbPlayerTopUpRecord = {
                 eventData => {
                     rewardEvent = eventData;
                     if (player && player.platform && player.alipayGroup && player.alipayGroup.alipays && player.alipayGroup.alipays.length > 0) {
-
-                        let firstTopUpProm = dbPlayerTopUpRecord.isPlayerFirstTopUp(player.playerId);
                         let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, amount, limitedOfferObjId);
-                        let proms = [firstTopUpProm, limitedOfferProm];
+                        let proms = [limitedOfferProm];
 
                         if (bonusCode) {
                             let bonusCodeCheckProm;
@@ -2374,13 +2343,9 @@ var dbPlayerTopUpRecord = {
             .then(
                 res => {
                     let minTopUpAmount = player.platform.minTopUpAmount || 0;
-                    let isPlayerFirstTopUp = res[0];
-                    let limitedOfferTopUp = res[1];
-                    let bonusCodeValidity = res[2];
+                    let limitedOfferTopUp = res[0];
+                    let bonusCodeValidity = res[1];
 
-                    if (isPlayerFirstTopUp) {
-                        minTopUpAmount = 1;
-                    }
                     if (entryType === "ADMIN") {
                         minTopUpAmount = 1;
                     }

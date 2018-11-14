@@ -182,7 +182,7 @@ var proposal = {
                 log => {
                     return Boolean(log && log[0]);
                 }
-            );
+            ).read("secondaryPreferred");
         }
 
         return isRepairableTransfer(proposalData.data.transferId).then(
@@ -3364,6 +3364,113 @@ var proposal = {
         );
 
         return deferred.promise;
+    },
+
+    getFinancialReportByDay: function (reqData)  {
+        let manualTopUpDetail = [];
+        let onlineTopUpDetail = [];
+        let alipayTopUpDetail = [];
+        let wechatPayTopUpDetail = [];
+        let bonusDetail = [];
+        let platformFeeEstimateDetail = [];
+        let depositGroupDetail = []
+        let result = [];
+        let bonusTypeList = [constProposalType.PLAYER_BONUS, constProposalType.PARTNER_BONUS];
+        let platformObjId = reqData.platform[0];
+
+        let manualTopUpProm = getTopUpDetail(1, constProposalType.PLAYER_MANUAL_TOP_UP, platformObjId, reqData.startTime, reqData.endTime);
+        let onlineTopUpProm = getTopUpDetail(2, constProposalType.PLAYER_TOP_UP, platformObjId, reqData.startTime, reqData.endTime);
+        let alipayTopUpProm = getTopUpDetail(3, constProposalType.PLAYER_ALIPAY_TOP_UP, platformObjId, reqData.startTime, reqData.endTime);
+        let wechatPayTopUpProm = getTopUpDetail(4, constProposalType.PLAYER_WECHAT_TOP_UP, platformObjId, reqData.startTime, reqData.endTime);
+        let bonusProm = getBonusDetail(platformObjId, reqData.startTime, reqData.endTime);
+        let platformFeeEstimateProm = getPlatformFeeEstimate(platformObjId, reqData.startTime, reqData.endTime);
+        let depositGroupProm = dbconfig.collection_depositGroup.find({depositParentDepositId: -1}, {depositId: 1, depositName: 1}).lean().then(
+            parentDepositData => {
+                return dbconfig.collection_depositGroup.aggregate([
+                    {
+                        "$match": {
+                            "depositParentDepositId": {$ne: -1}
+                        }
+                    },
+                    { $sort : { topUpTypeId : 1, topUpMethodId: 1 } },
+                    {
+                        "$group": {
+                            _id: "$depositParentDepositId",
+                            topUpTypeId: {$first: "$topUpTypeId"},
+                            groupDetail: {$push:{depositId: "$depositId", depositName: "$depositName", topUpMethodId: "$topUpMethodId"}}
+                        }
+                    }
+                ]).then(
+                    depositGroup => {
+                        if (parentDepositData && parentDepositData.length > 0) {
+                            parentDepositData.forEach(parent => {
+                                if (depositGroup && depositGroup.length > 0) {
+                                    let indexNo = depositGroup.findIndex(x => x && x._id == parent.depositId);
+
+                                    if (indexNo != -1) {
+                                        depositGroup[indexNo].groupName = parent.depositName;
+                                    }
+                                }
+                            })
+
+                            return depositGroup;
+                        }
+                    }
+                )
+            }
+        );
+
+        return Promise.all([manualTopUpProm, onlineTopUpProm, alipayTopUpProm, wechatPayTopUpProm, bonusProm, platformFeeEstimateProm, depositGroupProm]).then(
+            data => {
+                if(data) {
+                    manualTopUpDetail = data[0] ? data[0]: [];
+                    onlineTopUpDetail = data[1] ? data[1]: [];
+                    alipayTopUpDetail = data[2] ? data[2]: [];
+                    wechatPayTopUpDetail = data[3] ? data[3]: [];
+                    bonusDetail = data[4] ? data[4] : [];
+                    platformFeeEstimateDetail = data[5] ? data[5] : [];
+                    depositGroupDetail = data[6] ? data[6] : [];
+
+                    let tempStartDate = new Date(reqData.startTime).toISOString().slice(0, 10);
+                    let tempEndDate = new Date(reqData.endTime).toISOString().slice(0, 10);
+
+                    let dayStartTime = new Date(tempStartDate);
+                    let endDate = new Date(tempEndDate);
+                    let getNextDate;
+                    let dateRange = 0;
+                    let periodRange = 0;
+
+                    periodRange = 24 * 3600 * 1000;
+                    dateRange = (new Date(endDate) - new Date(dayStartTime)) || 0;
+
+                    getNextDate = function (date, day) {
+                        var newDate = new Date(date);
+                        return new Date(newDate.setDate(newDate.getDate() + day));
+                    }
+
+                    let loopTimes = dateRange / periodRange;
+                    for(let i = 0; i < loopTimes; i++){
+                        let nextDate = getNextDate.call(this, dayStartTime, i + 1);
+                        let splitNextDate = nextDate.toISOString().slice(0, 10).split('-');
+                        let convertedDate = splitNextDate[0] + '-' + splitNextDate[1] + '-' + splitNextDate[2];
+
+                        let resultObj = {};
+
+                        resultObj.date = convertedDate;
+                        resultObj.manualTopUpList = rearrangeTopUpDetail(1, convertedDate, depositGroupDetail, manualTopUpDetail);
+                        resultObj.onlineTopUpList = rearrangeTopUpDetail(2, convertedDate, depositGroupDetail, onlineTopUpDetail);
+                        resultObj.alipayTopUpList = rearrangeTopUpDetail(3, convertedDate, depositGroupDetail, alipayTopUpDetail, constProposalType.PLAYER_ALIPAY_TOP_UP);
+                        resultObj.wechatPayTopUpList = rearrangeTopUpDetail(4, convertedDate, depositGroupDetail, wechatPayTopUpDetail, constProposalType.PLAYER_WECHAT_TOP_UP);
+                        resultObj.bonusList = rearrangeBonusDetail(convertedDate, bonusTypeList, bonusDetail);
+                        resultObj.platformFeeEstimateList = rearrangePlatformFeeEstimateDetail(convertedDate, platformFeeEstimateDetail);
+
+                        result.push(resultObj);
+                    }
+
+                    return result;
+                }
+            }
+        )
     },
 
     getFinancialPointsReport: function (reqData, index, count, sortObj) {
@@ -6990,8 +7097,8 @@ function insertRepeatCount(proposals, platformList) {
                 nextSuccessQuery["$and"] = bankCardNoRegExp;
             }
 
-            let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery).sort({createTime: -1}).limit(1);
-            let nextSuccessProm = dbconfig.collection_proposal.find(nextSuccessQuery).sort({createTime: 1}).limit(1);
+            let prevSuccessProm = dbconfig.collection_proposal.find(prevSuccessQuery).read("secondaryPreferred").sort({createTime: -1}).limit(1);
+            let nextSuccessProm = dbconfig.collection_proposal.find(nextSuccessQuery).read("secondaryPreferred").sort({createTime: 1}).limit(1);
 
             // for debug usage
             // let pS, nS, fISQ;
@@ -7051,9 +7158,9 @@ function insertRepeatCount(proposals, platformList) {
                     // nS = nextSuccess[0];
                     // fISQ = firstInStreakQuery;
 
-                    let allCountProm = dbconfig.collection_proposal.find(allCountQuery).count();
-                    let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).count();
-                    let firstInStreakProm = dbconfig.collection_proposal.find(firstInStreakQuery).sort({createTime: 1}).limit(1);
+                    let allCountProm = dbconfig.collection_proposal.find(allCountQuery).read("secondaryPreferred").count();
+                    let currentCountProm = dbconfig.collection_proposal.find(currentCountQuery).read("secondaryPreferred").count();
+                    let firstInStreakProm = dbconfig.collection_proposal.find(firstInStreakQuery).read("secondaryPreferred").sort({createTime: 1}).limit(1);
 
                     return Promise.all([allCountProm, currentCountProm, firstInStreakProm]);
                 }
@@ -7787,6 +7894,549 @@ function isBankInfoMatched(proposalData, playerId){
                 return true;
             }
         );
+}
+
+function getTopUpDetail(topUpType, proposalType, platformId, startDate, endDate) {
+    if (topUpType == 1 || topUpType == 2) {
+        // 1 - manual topup, 2 - online topup
+        return dbconfig.collection_depositGroup.find({topUpTypeId: topUpType}, {
+            topUpMethodId: 1,
+            depositParentDepositId: 1
+        }).lean().then(
+            depositGroupDetails => {
+                if (depositGroupDetails && depositGroupDetails.length > 0) {
+                    let depositMethods = [];
+                    let depositGroup = [];
+                    let parentDepositGroupIds = [];
+
+                    for (let i = 0, len = depositGroupDetails.length; i < len; i++) {
+                        let topUpMethod = depositGroupDetails[i];
+
+                        if (topUpMethod && topUpMethod.topUpMethodId) {
+                            depositMethods.push(topUpMethod.topUpMethodId.toString());
+                            depositGroup.push({depositParentDepositId: topUpMethod.depositParentDepositId, topUpMethodId: topUpMethod.topUpMethodId.toString()});
+                        }
+
+                        if (topUpMethod && topUpMethod.depositParentDepositId) {
+                            let indexNo = parentDepositGroupIds.findIndex(x => x == topUpMethod.depositParentDepositId);
+
+                            if (indexNo == -1) {
+                                parentDepositGroupIds.push(topUpMethod.depositParentDepositId);
+                            }
+                        }
+                    }
+
+                    if (parentDepositGroupIds && parentDepositGroupIds.length > 0 && depositGroup && depositGroup.length > 0) {
+                        return dbconfig.collection_depositGroup.find({depositId: {$in: parentDepositGroupIds}}, {depositId: 1, depositName: 1}).lean().then(
+                            parentGroup => {
+                                if (parentGroup && parentGroup.length > 0) {
+                                    return dbconfig.collection_proposalType.findOne({
+                                        name: proposalType,
+                                        platformId: ObjectId(platformId)
+                                    }, {_id: 1}).lean().then(
+                                        proposalTypeData => {
+                                            if (proposalTypeData && proposalTypeData._id) {
+                                                let query = {
+                                                    type: proposalTypeData._id,
+                                                    createTime: {
+                                                        "$gte": new Date(startDate),
+                                                        "$lte": new Date(endDate)
+                                                    },
+                                                    mainType: "TopUp",
+                                                    status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                                };
+                                                let group1 = {};
+                                                let group2 = {};
+
+                                                if (topUpType == 1) {
+                                                    query['data.depositMethod'] = {"$in": depositMethods};
+                                                    group1 = {
+                                                        _id: {
+                                                            depositMethod: "$data.depositMethod",
+                                                            date: {
+                                                                $dateToString: {
+                                                                    format: "%Y-%m-%d",
+                                                                    date: "$createTime"
+                                                                }
+                                                            }
+                                                        },
+                                                        amount: {"$sum": "$data.amount"}
+                                                    };
+                                                    group2 = {
+                                                        "_id": "$_id.date",
+                                                        topUpDetail: {
+                                                            $push: {
+                                                                depositMethod: "$_id.depositMethod",
+                                                                amount: "$amount"
+                                                            }
+                                                        },
+                                                        totalAmount: {$sum: '$amount'}
+                                                    };
+                                                } else if (topUpType == 2) {
+                                                    query['data.topupType'] = {"$in": depositMethods};
+                                                    group1 = {
+                                                        _id: {
+                                                            depositMethod: "$data.topupType",
+                                                            date: {
+                                                                $dateToString: {
+                                                                    format: "%Y-%m-%d",
+                                                                    date: "$createTime"
+                                                                }
+                                                            }
+                                                        },
+                                                        amount: {"$sum": "$data.amount"}
+                                                    };
+                                                    group2 = {
+                                                        "_id": "$_id.date",
+                                                        topUpDetail: {
+                                                            $push: {
+                                                                depositMethod: "$_id.depositMethod",
+                                                                amount: "$amount"
+                                                            }
+                                                        },
+                                                        totalAmount: {$sum: '$amount'}
+                                                    }
+                                                }
+
+                                                return dbconfig.collection_proposal.aggregate([
+                                                    {
+                                                        $match: query
+                                                    },
+                                                    {
+                                                        $group: group1
+                                                    },
+                                                    {
+                                                        $group: group2
+                                                    }
+                                                ]).read("secondaryPreferred").then(
+                                                    proposalData => {
+
+                                                        if (proposalData && proposalData.length > 0) {
+                                                            proposalData.forEach(data => {
+                                                                if (data.topUpDetail && data.topUpDetail.length > 0 && depositGroup.length > 0) {
+                                                                    for (let i = 0, len = data.topUpDetail.length; i < len; i++) {
+                                                                        let detail = data.topUpDetail[i];
+
+                                                                        if (detail && detail.depositMethod) {
+                                                                            let methodIndexNo = depositGroup.findIndex(x => x.topUpMethodId == detail.depositMethod);
+
+                                                                            if (methodIndexNo != -1) {
+                                                                                let groupIndexNo = parentGroup.findIndex(y => y.depositId && depositGroup[methodIndexNo]
+                                                                                    && (y.depositId == depositGroup[methodIndexNo].depositParentDepositId));
+
+                                                                                if (groupIndexNo != -1) {
+                                                                                    detail.groupName = parentGroup[groupIndexNo].depositName;
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    };
+                                                                }
+                                                            });
+                                                        }
+
+                                                        return proposalData;
+                                                    }
+                                                );
+                                            }
+                                        });
+                                }
+                            });
+                    }
+                }
+            });
+    } else if (topUpType == 3 || topUpType == 4) {
+        // 3 - alipay topup, 4 - wechatpay topup
+        return dbconfig.collection_depositGroup.findOne({topUpTypeId: topUpType}, {depositParentDepositId: 1}).lean().then(
+            depositGroup => {
+                if (depositGroup && depositGroup.depositParentDepositId) {
+                    return dbconfig.collection_depositGroup.findOne({depositId: depositGroup.depositParentDepositId}, {depositName: 1}).lean().then(
+                        parentGroup => {
+                            let groupName = parentGroup && parentGroup.depositName ? parentGroup.depositName : '';
+
+                            return dbconfig.collection_proposalType.findOne({name: proposalType, platformId: ObjectId(platformId)}, {_id: 1, name: 1}).lean().then(
+                                proposalTypeData => {
+                                    if (proposalTypeData && proposalTypeData._id) {
+                                        return dbconfig.collection_proposal.aggregate([
+                                            {
+                                                $match: {
+                                                    type: proposalTypeData._id,
+                                                    createTime: {
+                                                        "$gte": new Date(startDate),
+                                                        "$lte": new Date(endDate)
+                                                    },
+                                                    mainType: "TopUp",
+                                                    status: {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                                }
+                                            },
+                                            {
+                                                $group: {
+                                                    _id: {$dateToString: {format: "%Y-%m-%d", date: "$createTime"}},
+                                                    amount: {"$sum": "$data.amount"},
+                                                    typeName: {$first: proposalTypeData.name},
+                                                    groupName: {$first: groupName},
+                                                }
+                                            }
+                                        ]).read("secondaryPreferred");
+                                    }
+                                });
+                        });
+                }
+            });
+    }
+}
+
+function getBonusDetail(platformId, startDate, endDate) {
+    return dbconfig.collection_proposalType.find(
+        {
+            name: {$in: [constProposalType.PLAYER_BONUS, constProposalType.PARTNER_BONUS]},
+            platformId: ObjectId(platformId)
+        }, {_id: 1, name: 1}
+    ).then(
+        proposalTypeData => {
+            if (proposalTypeData && proposalTypeData.length > 0) {
+                let proposalObjIds = [];
+                let proposalTypeObj = {};
+
+                for (let i = 0, len = proposalTypeData.length; i < len; i++) {
+                    let proposalType = proposalTypeData[i];
+
+                    if (proposalType && proposalType._id) {
+                        proposalObjIds.push(proposalType._id);
+                        proposalTypeObj[proposalType._id] = proposalType.name;
+                    }
+                }
+
+                if (proposalObjIds && proposalObjIds.length > 0) {
+                    return dbconfig.collection_proposal.aggregate([
+                        {
+                            "$match": {
+                                "createTime": {
+                                    "$gte": new Date(startDate),
+                                    "$lte": new Date(endDate)
+                                },
+                                "mainType": 'PlayerBonus',
+                                "type": {"$in": proposalObjIds},
+                                "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                            }
+                        },
+                        {
+                            "$group": {
+                                "_id": {type: "$type", date: {$dateToString: {format: "%Y-%m-%d", date: "$createTime"}}},
+                                "amount": {"$sum": "$data.amount"}
+                            }
+                        },
+                        {
+                            "$group": {
+                                "_id": "$_id.date",
+                                bonusDetail: {
+                                    $push: {
+                                        type: "$_id.type",
+                                        amount: "$amount"
+                                    }
+                                },
+                                totalAmount: {$sum: '$amount'}
+                            }
+                        }
+                    ]).read("secondaryPreferred").then(
+                        bonusData => {
+                            if (bonusData && bonusData.length > 0) {
+                                for (let i = 0, len = bonusData.length; i < len; i++) {
+                                    let bonus = bonusData[i];
+
+                                    if (bonus.bonusDetail && bonus.bonusDetail.length > 0) {
+                                        for (let j = 0, jLen = bonus.bonusDetail.length; j < jLen; j++) {
+                                            let bonusType = bonus.bonusDetail[j];
+
+                                            if (bonusType && bonusType.type) {
+                                                bonusType.typeName = proposalTypeObj[bonusType.type];
+                                                delete bonusType.type;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            return bonusData;
+                        }
+                    );
+                }
+            }
+        }
+    );
+}
+
+function getPlatformFeeEstimate(platformId, startDate, endDate) {
+    return dbconfig.collection_playerConsumptionRecord.aggregate([
+        {
+            $match: {
+                createTime: {
+                    $gte: new Date(startDate),
+                    $lte: new Date(endDate)
+                },
+                $or: [
+                    {isDuplicate: {$exists: false}},
+                    {
+                        $and: [
+                            {isDuplicate: {$exists: true}},
+                            {isDuplicate: false}
+                        ]
+                    }
+                ]
+            }
+        },
+        {
+            $group: {
+                _id: {providerId: "$providerId", date: {$dateToString: {format: "%Y-%m-%d", date: "$createTime"}}},
+                bonusAmount: {$sum: "$bonusAmount"}
+            }
+        },
+        {
+            $group: {
+                "_id": "$_id.date",
+                providerDetail: {
+                    $push: {
+                        providerId: "$_id.providerId",
+                        bonusAmount: "$bonusAmount"
+                    }
+                }
+            }
+        }
+    ]).allowDiskUse(true).read("secondaryPreferred").then(
+        consumptionData => {
+
+            return dbconfig.collection_platformFeeEstimate.findOne({platform: platformId}).populate({
+                path: 'platformFee.gameProvider',
+                model: dbconfig.collection_gameProvider
+            }).then(
+                feeData => {
+                    if (consumptionData && consumptionData.length > 0) {
+                        for (let i = 0, len = consumptionData.length; i < len; i++) {
+                            let consumptionDetail = consumptionData[i];
+                            consumptionDetail.totalPlatformFeeEstimate = 0;
+                            let tempTotalPlatformFeeEstimate = 0;
+
+                            if (consumptionDetail && consumptionDetail.providerDetail && consumptionDetail.providerDetail.length > 0) {
+                                for (let j = 0, jLen = consumptionDetail.providerDetail.length; j < jLen; j++) {
+                                    let tempConsumptionDetail = consumptionDetail.providerDetail[j];
+
+                                    if (tempConsumptionDetail && feeData && feeData.platformFee && feeData.platformFee.length) {
+                                        for (let k = 0, kLen = feeData.platformFee.length; k < kLen; k++) {
+                                            let provider = feeData.platformFee[k];
+
+                                            if (provider.gameProvider && provider.gameProvider._id && tempConsumptionDetail.providerId
+                                                && provider.gameProvider._id.toString() == tempConsumptionDetail.providerId.toString()) {
+                                                let gameProviderName = provider.gameProvider.name;
+                                                tempConsumptionDetail.gameProviderName = gameProviderName;
+                                                tempConsumptionDetail.platformFeeEstimate = (tempConsumptionDetail.bonusAmount * -1) * provider.feeRate;
+                                                tempTotalPlatformFeeEstimate += tempConsumptionDetail.platformFeeEstimate;
+                                            }
+                                        }
+
+                                    }
+                                }
+                                consumptionDetail.totalPlatformFeeEstimate = tempTotalPlatformFeeEstimate;
+                            }
+
+                        }
+                        return consumptionData;
+                    }
+                }
+            );
+        }
+    );
+}
+
+function rearrangeTopUpDetail (topUpType, currentDate, depositGroup, currentList, constType) {
+    let newObj;
+    let newDepositGroup = [];
+    if (topUpType == 1 || topUpType == 2) {
+        // 1 - manual topup, 2 - online topup
+        newObj = [];
+        if (depositGroup && depositGroup.length > 0) {
+            depositGroup.forEach(x => {
+                if (x && x.topUpTypeId && x.topUpTypeId == topUpType) {
+                    newDepositGroup.push(x);
+                }
+            });
+        }
+
+        if (currentList && currentList.length > 0) {
+            let indexNo = currentList.findIndex(x => x._id == currentDate);
+
+            if (indexNo != -1 && newDepositGroup && newDepositGroup.length > 0) {
+                if (currentList[indexNo] && currentList[indexNo].topUpDetail && currentList[indexNo].topUpDetail.length > 0) {
+                    newDepositGroup.forEach(group => {
+                        if (group && group.groupName) {
+                            let groupIndexNo = currentList[indexNo].topUpDetail.findIndex(y => y && y.groupName && y.groupName == group.groupName);
+                            let newTopUpDetail = [];
+                            if (groupIndexNo != -1) {
+                                group.groupDetail.forEach(type => {
+                                    let typeIndexNo = currentList[indexNo].topUpDetail.findIndex(z => z.depositMethod == type.topUpMethodId);
+
+                                    if (typeIndexNo != -1) {
+                                        newTopUpDetail.push({
+                                            depositMethod: Number(currentList[indexNo].topUpDetail[typeIndexNo].depositMethod),
+                                            depositMethodName: type.depositName,
+                                            amount: currentList[indexNo].topUpDetail[typeIndexNo].amount
+                                        });
+                                    } else {
+                                        newTopUpDetail.push({
+                                            depositMethod: type.topUpMethodId,
+                                            depositMethodName: type.depositName,
+                                            amount: 0
+                                        });
+                                    }
+                                });
+                            } else {
+                                group.groupDetail.forEach(type => {
+                                    newTopUpDetail.push({
+                                        depositMethod: type.topUpMethodId,
+                                        depositMethodName: type.depositName,
+                                        amount: 0
+                                    })
+                                });
+                            }
+
+                            newObj.push({
+                                groupName: group.groupName,
+                                topUpDetail: newTopUpDetail,
+                                totalAmount: newTopUpDetail.reduce((sum, value) => sum + value.amount, 0) || 0
+                            });
+                        }
+                    });
+                }
+            }
+            else {
+                if (newDepositGroup && newDepositGroup.length > 0) {
+                    newDepositGroup.forEach(group => {
+                        let temp = [];
+                        group.groupDetail.forEach(type => {
+                            temp.push({
+                                depositMethod: type.topUpMethodId,
+                                depositMethodName: type.depositName,
+                                amount: 0
+                            })
+                        })
+                        newObj.push({topUpDetail: temp, groupName: group.groupName, totalAmount: 0});
+                    })
+                }
+            }
+        } else {
+            if (newDepositGroup && newDepositGroup.length > 0) {
+                newDepositGroup.forEach(group => {
+                    let temp = [];
+                    group.groupDetail.forEach(type => {
+                        temp.push({
+                            depositMethod: type.topUpMethodId,
+                            depositMethodName: type.depositName,
+                            amount: 0
+                        })
+                    })
+                    newObj.push({topUpDetail: temp, groupName: group.groupName, totalAmount: 0});
+                })
+            }
+        }
+    } else if (topUpType == 3 || topUpType == 4) {
+        // 3 - alipay topup, 4 - wechat topup
+        newObj = {};
+        if (currentList && currentList.length > 0) {
+            let indexNo = currentList.findIndex(x => x._id == currentDate);
+
+            if (indexNo != -1) {
+                let groupIndexNo = depositGroup.findIndex(y => y.groupName == currentList[indexNo].groupName);
+                if(groupIndexNo != -1) {
+                    newObj.typeName = currentList[indexNo].typeName;
+                    newObj.amount = currentList[indexNo].amount;
+                    newObj.groupName = currentList[indexNo].groupName;
+                } else {
+                    newObj.typeName = constType;
+                    newObj.amount = 0;
+                    newObj.groupName = currentList[indexNo].groupName;
+                }
+            } else {
+                let tempTypeName = '';
+                let indexNo = depositGroup.findIndex(y => y.topUpTypeId == topUpType);
+
+                if(indexNo != -1) {
+                    depositGroup[indexNo].groupDetail.forEach(type => {
+                        tempTypeName = type.depositName;
+                    });
+                }
+
+                newObj.typeName = tempTypeName;
+                newObj.amount = 0;
+                newObj.groupName = depositGroup[indexNo].groupName;
+            }
+        } else {
+            let tempTypeName = '';
+            let indexNo = depositGroup.findIndex(y => y.topUpTypeId == topUpType);
+
+            if(indexNo != -1) {
+                depositGroup[indexNo].groupDetail.forEach(type => {
+                    tempTypeName = type.depositName;
+                });
+            }
+
+            if (depositGroup[indexNo]) {
+                newObj.typeName = tempTypeName;
+                newObj.amount = 0;
+                newObj.groupName = depositGroup[indexNo].groupName;
+            }
+        }
+    }
+    return newObj;
+}
+
+function rearrangeBonusDetail(currentDate, bonusType, currentList) {
+    let newObj = {};
+    if (currentList && currentList.length > 0) {
+        let indexNo = currentList.findIndex(x => x._id == currentDate);
+
+        if (indexNo != -1) {
+            bonusType.forEach(type => {
+                let bonusIndexNo = currentList[indexNo].bonusDetail.findIndex(x => x.typeName == type);
+
+                if (bonusIndexNo == -1) {
+                    currentList[indexNo].bonusDetail.push({typeName: type, amount: 0});
+                }
+            });
+
+            newObj.bonusDetail= currentList[indexNo].bonusDetail;
+            newObj.totalAmount= currentList[indexNo].totalAmount;
+
+        } else {
+            let temp = [];
+
+            bonusType.forEach(type => {
+                temp.push({typeName: type, amount: 0});
+            });
+
+            newObj.bonusDetail= temp;
+            newObj.totalAmount= 0;
+        }
+    } else {
+        let temp = [];
+
+        bonusType.forEach(type => {
+            temp.push({typeName: type, amount: 0});
+        });
+
+        newObj.bonusDetail= temp;
+        newObj.totalAmount= 0;
+    }
+    return newObj;
+}
+
+function rearrangePlatformFeeEstimateDetail(currentDate, currentList) {
+    let newObj = {totalPlatformFeeEstimate: 0};
+
+    if (currentList && currentList.length > 0) {
+        let indexNo = currentList.findIndex(x => x._id == currentDate);
+
+        if (indexNo != -1) {
+            newObj.totalPlatformFeeEstimate = currentList[indexNo].totalPlatformFeeEstimate;
+        }
+    }
+    return newObj;
 }
 
 var proto = proposalFunc.prototype;

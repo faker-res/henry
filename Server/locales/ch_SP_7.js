@@ -25,6 +25,8 @@ var simplifiedChinese = {
     "Authentification Passed": "身份验证通过",
     "To facilitate withdrawing process, please complete your bank information else the previous amendment will not be processed": "为确保正常提款，请同时完善您的银行资料修改，名字修改才可完成",
     "SUBMIT": "提交",
+    "Exceeded available application quantity": "超过申请次数",
+    "No available consumption list for the reward": "沒有符合申请的投注单",
     "Editing bank information is successful": "银行资料绑定成功",
     "The same bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他玩家绑定，请更换卡号或联系客服，谢谢！",
     "The identical bank account has been registered, please change a new bank card or contact our cs, thank you!": "该银行卡号已被其他代理绑定，请更换卡号或联系客服，谢谢！",
@@ -50,6 +52,7 @@ var simplifiedChinese = {
     "Old phone number doesn't match": "旧的电话号码匹配失败，请重新输入。",
     "Guest ID cannot update password": "游客不可更改密码",
 
+    "No data is selected": "您好，当前未中奖，请继续投注多多加油！",
     "Reset password failed": "找回密码失败",
     "Attention! This player does not bind phone number (or inconvenient to receive sms code), cannot verify bank card. Please contact customer service to reset password manually": "提示！此玩家无绑定电话（或不方便短信验证）、银行卡，无法进行核对，请客服人工进行其他方式核对后手动修改密码。",
     "Attention! This player has been forbidden to login": "提示！此玩家已被禁止登录。",
@@ -484,6 +487,7 @@ var simplifiedChinese = {
     "This reward event is expired": "活动已经结束，感谢您的支持",
     "First time bound to the bank info": "首次绑定银行",
     "allTopUp": "所有存款",
+    "Username should be alphanumeric": "用户名只能包含数字和字母",
 
     //todo::add missing messages here
 

@@ -73,6 +73,9 @@ define(['js/app'], function (myApp) {
 
         vm.constProposalType = {
             UPDATE_PLAYER_INFO: "UpdatePlayerInfo",
+            UPDATE_PLAYER_INFO_PARTNER: "UpdatePlayerInfoPartner",
+            UPDATE_PLAYER_INFO_LEVEL: "UpdatePlayerInfoLevel",
+            UPDATE_PLAYER_INFO_ACC_ADMIN: "UpdatePlayerInfoAccAdmin",
             UPDATE_PLAYER_CREDIT: "UpdatePlayerCredit",
             FIX_PLAYER_CREDIT_TRANSFER: "FixPlayerCreditTransfer",
             UPDATE_PLAYER_EMAIL: "UpdatePlayerEmail",
@@ -6501,6 +6504,12 @@ define(['js/app'], function (myApp) {
                                     changeObj.forbidPlayerFromEnteringGame = !changeObj.forbidPlayerFromEnteringGame;
                                 }
 
+                                // Invert third render
+                                vm.permissionPlayer.permission.banReward = !vm.permissionPlayer.permission.banReward;
+                                vm.permissionPlayer.permission.disableWechatPay = !vm.permissionPlayer.permission.disableWechatPay;
+                                vm.permissionPlayer.permission.forbidPlayerFromLogin = !vm.permissionPlayer.permission.forbidPlayerFromLogin;
+                                vm.permissionPlayer.permission.forbidPlayerFromEnteringGame = !vm.permissionPlayer.permission.forbidPlayerFromEnteringGame;
+
                                 let selectedMainPermission = $selectedMainPermission.val() ? $selectedMainPermission.val() : "";
                                 let status = selectedMainPermission && vm.permissionPlayer.permission ? vm.permissionPlayer.permission[selectedMainPermission] : "";
 
@@ -8124,6 +8133,9 @@ define(['js/app'], function (myApp) {
             }
             oldPlayerData.partner = oldPlayerData.partner ? oldPlayerData.partner._id : null;
             var updateData = newAndModifiedFields(oldPlayerData, newPlayerData);
+            let updateDataPartner = {};
+            let updateDataLevel = {};
+            let updateDataAccAdmin = {};
             let updatedKeys = Object.keys(updateData);
             var updateSMS = {
                 receiveSMS: updateData.receiveSMS != null ? updateData.receiveSMS : undefined,
@@ -8146,6 +8158,9 @@ define(['js/app'], function (myApp) {
             if (Object.keys(updateData).length > 0) {
                 updateData._id = playerId;
                 var isUpdate = false;
+                let isUpdatePlayerInfoPartner = false;
+                let isUpdatePlayerInfoLevel = false;
+                let isUpdatePlayerAccAdmin = false;
                 var isRealName = false;
                 let realNameObj = {
                     playerName: newPlayerData.name || vm.editPlayer.name,
@@ -8174,9 +8189,39 @@ define(['js/app'], function (myApp) {
                 if (updateData.partner == null) {
                     updateData.partnerName = '';
                 }
+
+                if (updateData.partnerName) {
+                    updateDataPartner._id = updateData._id;
+                    updateDataPartner.playerName = updateData.playerName;
+                    updateDataPartner.oldPartnerName = vm.editPlayer.partner && vm.editPlayer.partner.partnerName ? vm.editPlayer.partner.partnerName : '';
+                    updateDataPartner.newPartnerName = updateData.partnerName;
+                    updateDataPartner.partner = updateData.partner;
+                    updateDataPartner.remark = $translate("partner");
+                    isUpdatePlayerInfoPartner = true;
+                    isUpdate = false;
+                }
+
                 if (updateData.playerLevel) {
-                    updateData.oldLevelName = getPlayerLevelName(vm.editPlayer.playerLevel);
-                    updateData.newLevelName = getPlayerLevelName(updateData.playerLevel);
+                    updateDataLevel._id = updateData._id;
+                    updateDataLevel.playerName = updateData.playerName;
+                    updateDataLevel.oldLevelName = getPlayerLevelName(vm.editPlayer.playerLevel);
+                    updateDataLevel.newLevelName = getPlayerLevelName(updateData.playerLevel);
+                    updateDataLevel.playerLevel = updateData.playerLevel;
+                    updateDataLevel.remark = $translate("PLAYER_LEVEL");
+                    isUpdatePlayerInfoLevel = true;
+                    isUpdate = false;
+                }
+
+                if (updateData.accAdmin && vm.csOfficer) {
+                    updateDataAccAdmin._id = updateData._id;
+                    updateDataAccAdmin.playerName = updateData.playerName;
+                    updateDataAccAdmin.csOfficer = vm.csOfficer;
+                    updateDataAccAdmin.oldAccAdmin = vm.editPlayer.accAdmin ? vm.editPlayer.accAdmin : '';
+                    updateDataAccAdmin.newAccAdmin = updateData.accAdmin;
+                    updateDataAccAdmin.accAdmin = updateData.accAdmin;
+                    updateDataAccAdmin.remark = $translate("AdminName");
+                    isUpdatePlayerAccAdmin = true;
+                    isUpdate = false;
                 }
 
                 // if (updateData.bankCardGroup == 'NULL') {
@@ -8209,52 +8254,72 @@ define(['js/app'], function (myApp) {
                 delete updateData.alipayGroup;
                 delete updateData.quickPayGroup;
 
-                updateData.remark = ""
-                if (updateData.partnerName) {
-                    if (updateData.remark) {
-                        updateData.remark += ", ";
-                    }
-                    updateData.remark += $translate("partner");
-                }
-                if (updateData.playerLevel) {
-                    if (updateData.remark) {
-                        updateData.remark += ", ";
-                    }
-                    updateData.remark += $translate("PLAYER_LEVEL");
-                }
+                updateData.remark = "";
                 if (updateData.referralName) {
                     if (updateData.remark) {
                         updateData.remark += ", ";
                     }
+                    isUpdate = true;
                     updateData.remark += $translate("REFERRAL");
                 }
                 if (updateData.DOB) {
                     if (updateData.remark) {
                         updateData.remark += ", ";
                     }
+                    isUpdate = true;
                     updateData.remark += $translate("DOB");
                 }
                 if (updateData.hasOwnProperty("gender")) {
                     if (updateData.remark) {
                         updateData.remark += ", ";
                     }
+                    isUpdate = true;
                     updateData.remark += $translate("GENDER");
-                }
-                if (updateData.accAdmin) {
-                    if (updateData.remark) {
-                        updateData.remark += ", ";
-                    }
-                    updateData.remark += $translate("AdminName");
-                }
-
-                if (updateData.accAdmin && vm.csOfficer) {
-                    updateData.csOfficer = vm.csOfficer;
                 }
 
                 if (isUpdate) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: updateData,
+                        platformId: vm.selectedPlatform.id
+                    }, function (data) {
+                        if (data.data && data.data.stepInfo) {
+                            socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                        }
+                        vm.getPlatformPlayersData();
+                    }, null, true);
+                }
+
+                if (isUpdatePlayerInfoPartner) {
+                    socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoPartnerProposal', {
+                        creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                        data: updateDataPartner,
+                        platformId: vm.selectedPlatform.id
+                    }, function (data) {
+                        if (data.data && data.data.stepInfo) {
+                            socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                        }
+                        vm.getPlatformPlayersData();
+                    }, null, true);
+                }
+
+                if (isUpdatePlayerInfoLevel) {
+                    socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoLevelProposal', {
+                        creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                        data: updateDataLevel,
+                        platformId: vm.selectedPlatform.id
+                    }, function (data) {
+                        if (data.data && data.data.stepInfo) {
+                            socketService.showProposalStepInfo(data.data.stepInfo, $translate);
+                        }
+                        vm.getPlatformPlayersData();
+                    }, null, true);
+                }
+
+                if (isUpdatePlayerAccAdmin) {
+                    socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoAccAdminProposal', {
+                        creator: {type: "admin", name: authService.adminName, id: authService.adminId},
+                        data: updateDataAccAdmin,
                         platformId: vm.selectedPlatform.id
                     }, function (data) {
                         if (data.data && data.data.stepInfo) {
@@ -9325,6 +9390,71 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         };
 
+        vm.isAllNoSmsGroupChecked = () => {
+            let isAllChecked = true;
+            for (let i = 0; i < vm.noGroupSmsSetting.length; i++) {
+                if (vm.playerBeingEdited.smsSetting[vm.noGroupSmsSetting[i].name] === false) {
+                    isAllChecked = false;
+                    break;
+                }
+            }
+            vm.playerBeingEdited.checkAllNoSmsGroup = isAllChecked;
+        };
+
+        vm.toggleAllNoSmsGroup = () => {
+            if (vm.playerBeingEdited.checkAllNoSmsGroup === false) {
+                vm.noGroupSmsSetting.forEach(
+                    noGroup => {
+                        vm.playerBeingEdited.smsSetting[noGroup.name] = false;
+                    }
+                );
+            } else {
+                vm.noGroupSmsSetting.forEach(
+                    noGroup => {
+                        vm.playerBeingEdited.smsSetting[noGroup.name] = true;
+                    }
+                );
+            }
+        };
+
+        vm.isAllIsSmsGroupChecked = () => {
+            let smsSettingInThisGroup = vm.smsGroups.filter(smsGroup => smsGroup.smsParentSmsId === -1);
+            let isAllChecked = true;
+            for (let i = 0; i < smsSettingInThisGroup.length; i++) {
+                let groupSmsId = smsSettingInThisGroup[i].smsId;
+                if (vm.playerSmsSetting.smsGroup[groupSmsId] === false) {
+                    isAllChecked = false;
+                    break;
+                }
+            }
+            vm.playerBeingEdited.checkAllIsSmsGroup = isAllChecked;
+        };
+
+        vm.toggleAllIsSmsGroup = () => {
+            if (vm.playerBeingEdited.checkAllIsSmsGroup === false) {
+                vm.smsGroups.forEach(
+                    smsGroup => {
+                        if (smsGroup.smsParentSmsId !== -1) {
+                            vm.playerBeingEdited.smsSetting[smsGroup.smsName] = false;
+                        } else {
+                            vm.playerSmsSetting.smsGroup[smsGroup.smsId] = false;
+                        }
+
+                    }
+                );
+            } else {
+                vm.smsGroups.forEach(
+                    smsGroup => {
+                        if (smsGroup.smsParentSmsId !== -1) {
+                            vm.playerBeingEdited.smsSetting[smsGroup.smsName] = true;
+                        } else {
+                            vm.playerSmsSetting.smsGroup[smsGroup.smsId] = true;
+                        }
+                    }
+                );
+            }
+        };
+
         vm.smsGroupCheckChange = (smsParentGroup) => {
             let smsSettingInThisGroup = vm.smsGroups.filter(smsGroup => smsGroup.smsParentSmsId === smsParentGroup.smsId);
             let isGroupChecked = vm.playerSmsSetting.smsGroup[smsParentGroup.smsId];
@@ -9345,6 +9475,7 @@ define(['js/app'], function (myApp) {
                 }
             }
             vm.playerSmsSetting.smsGroup[smsParentGroup.smsId] = isAllChecked;
+            vm.isAllIsSmsGroupChecked();
         };
 
         vm.initPlayerDisplayDataModal = function () {
@@ -10380,13 +10511,13 @@ define(['js/app'], function (myApp) {
                         data: vm.playerApplyRewardShow.returnData.list,
                         // "aaSorting": vm.consumptionSlipReward.aaSorting || [[2, 'desc']],
                         aoColumnDefs: [
-                            {'sortCol': 'orderNo', bSortable: false, 'aTargets': [1]},
-                            {'sortCol': 'gameProvider', bSortable: false, 'aTargets': [2]},
-                            {'sortCol': 'consumptionCreateTime', bSortable: true, 'aTargets': [3]},
+                            // {'sortCol': 'orderNo', bSortable: false, 'aTargets': [1]},
+                            // {'sortCol': 'gameProvider', bSortable: false, 'aTargets': [2]},
+                            {'sortCol': 'consumptionCreateTime', bSortable: true, 'aTargets': [2]},
                             {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [4]},
                             {'sortCol': 'consumptionAmount', bSortable: true, 'aTargets': [5]},
-                            {'sortCol': 'rewardAmount', bSortable: true, 'aTargets': [6]},
-                            {'sortCol': 'spendingTimes', bSortable: true, 'aTargets': [7]},
+                            // {'sortCol': 'rewardAmount', bSortable: true, 'aTargets': [6]},
+                            // {'sortCol': 'spendingTimes', bSortable: false, 'aTargets': [7]},
                             {targets: '_all', defaultContent: ' ', bSortable: false}
                         ],
 
@@ -10406,7 +10537,7 @@ define(['js/app'], function (myApp) {
                                 },
                             },
                             {
-                                title: $translate('orderNo'),
+                                title: $translate('orderSlip'),
                                 data: "orderNo",
                                 render: function (data, type, row) {
                                     let text = row.orderNo;
@@ -12396,7 +12527,7 @@ define(['js/app'], function (myApp) {
             utilService.actionAfterLoaded('#rewardTaskLogQuery .endTime', function () {
                 vm.rewardTaskLog.query.startTime = utilService.createDatePicker('#rewardTaskLogQuery .startTime');
                 vm.rewardTaskLog.query.endTime = utilService.createDatePicker('#rewardTaskLogQuery .endTime');
-                vm.rewardTaskLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 1)));
+                vm.rewardTaskLog.query.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 30)));
                 vm.rewardTaskLog.query.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
                 vm.rewardTaskLog.pageObj = utilService.createPageForPagingTable("#rewardTaskLogTblPage", {}, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "rewardTaskLog", vm.getRewardTaskLogData)
@@ -17244,7 +17375,7 @@ define(['js/app'], function (myApp) {
                     vm.noGroupSmsSetting.push(vm.allMessageTypes[messageType]);
             }
             $scope.safeApply();
-        }
+        };
 
         function updateSmsGroup() {
             socketService.$socket($scope.AppSocket, 'updatePlatformSmsGroups', {
@@ -17253,7 +17384,7 @@ define(['js/app'], function (myApp) {
             }, function (data) {
                 vm.configTabClicked("smsGroup")
             });
-        }
+        };
 
         vm.addSmsSettingToGroup = (smsSetting, index) => {
             if (!smsSetting.group) return;
@@ -17263,7 +17394,7 @@ define(['js/app'], function (myApp) {
                 platformObjId: vm.selectedPlatform.data._id
             });
             vm.noGroupSmsSetting.splice(index, 1);
-        }
+        };
 
         vm.filterSmsSettingGroup = (parentSmsId) => {
             return (smsSettingGroup) => {
@@ -17276,7 +17407,7 @@ define(['js/app'], function (myApp) {
                 vm.smsGroups.push(data.data)
                 $scope.safeApply();
             });
-        }
+        };
 
         vm.removeSmsSettingFromGroup = (smsSettingGroup) => {
             vm.smsGroups = vm.smsGroups.filter(smsGroup => smsGroup.smsName !== smsSettingGroup.smsName && smsSettingGroup.smsParentSmsId !== -1);
@@ -19121,6 +19252,61 @@ define(['js/app'], function (myApp) {
                             proposalDetail["pmsOperator"] = pmsRemark.substring(indexOfDivider + 1, pmsRemark.length);
                         }
                     }
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
+
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePlayerInfoPartner") {
+                    let proposalDetail = {};
+                    let inputDevice = "";
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                    proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
+                    proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
+                    proposalDetail["oldPartnerName"] = vm.selectedProposal.data.oldPartnerName;
+                    proposalDetail["newPartnerName"] = vm.selectedProposal.data.newPartnerName;
+
+                    for (let i = 0; i < Object.keys(vm.inputDevice).length; i++){
+                        if (vm.inputDevice[Object.keys(vm.inputDevice)[i]] == vm.selectedProposal.inputDevice ){
+                            inputDevice =  $translate(Object.keys(vm.inputDevice)[i]);
+                        }
+                    }
+
+                    proposalDetail["INPUT_DEVICE"] = inputDevice;
+                    proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
+
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePlayerInfoLevel") {
+                    let proposalDetail = {};
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                    proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
+                    proposalDetail["oldLevelName"] = vm.selectedProposal.data.oldLevelName;
+                    proposalDetail["newLevelName"] = vm.selectedProposal.data.newLevelName;
+                    proposalDetail["remark"] = vm.selectedProposal.data.remark;
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
+
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "UpdatePlayerInfoAccAdmin") {
+                    let proposalDetail = {};
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                    proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
+                    proposalDetail["oldAccAdmin"] = vm.selectedProposal.data.oldAccAdmin;
+                    proposalDetail["newAccAdmin"] = vm.selectedProposal.data.newAccAdmin;
+                    proposalDetail["remark"] = vm.selectedProposal.data.remark;
 
                     vm.selectedProposal.data = proposalDetail;
                 }

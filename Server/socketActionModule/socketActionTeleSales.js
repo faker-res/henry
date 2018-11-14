@@ -37,6 +37,31 @@ function socketActionTeleSales(socketIO, socket) {
             let isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbTeleSales.getAllTSPhoneList, [data.platformObjId], actionName, isValidData);
         },
+
+        getOneTsNewList: function getOneTsNewList (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && ((data.platform && data.name) || data._id));
+            socketUtil.emitter(self.socket, dbTeleSales.getOneTsNewList, [data], actionName, isValidData);
+        },
+
+        distributePhoneNumber: function distributePhoneNumber (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform && data.tsListObjId);
+            socketUtil.emitter(self.socket, dbTeleSales.distributePhoneNumber, [data], actionName, isValidData);
+        },
+
+        getTsPhoneImportRecord: function getTsPhoneImportRecord (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && ((data.platform && data.tsPhoneList) || data._id));
+            socketUtil.emitter(self.socket, dbTeleSales.getTsPhoneImportRecord, [data], actionName, isValidData);
+        },
+
+        updateTsPhoneList: function updateTsPhoneList (data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbTeleSales.updateTsPhoneList, [data.query, data.updateData], actionName, isValidData);
+        },
+
     };
     socketActionTeleSales.actions = this.actions;
 }

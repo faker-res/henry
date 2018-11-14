@@ -739,7 +739,7 @@ var dbLogger = {
      * @param apiRes
      * @param status
      */
-    createPlayerCreditTransferStatusLog: function (playerObjId, playerId, playerName, platformObjId, platformId, type, transferId, providerId, amount, lockedAmount, adminName, apiRes, status) {
+    createPlayerCreditTransferStatusLog: function (playerObjId, playerId, playerName, platformObjId, platformId, type, transferId, providerId, amount, lockedAmount, adminName, apiRes, status, isEbet) {
         var logData = {
             playerObjId: playerObjId,
             playerId: playerId,
@@ -753,7 +753,8 @@ var dbLogger = {
             amount: amount,
             lockedAmount: lockedAmount,
             apiRes: apiRes,
-            status: status
+            status: status,
+            isEbet: isEbet === true ? true : false
         };
         var record = new dbconfig.collection_playerCreditTransferLog(logData);
         record.save().then().catch(err => errorSavingLog(err, logData));

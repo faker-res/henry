@@ -239,15 +239,22 @@ var dbRewardEvent = {
                             condition: {
                                 ximaRatios: []
                             }
-                        }
+                        };
                         return dbPlayerConsumptionWeekSummary.getPlayerConsumptionReturn(playerObj.playerId, rewardEvent.code).then(
                             ximaData => {
                                 if (ximaData) {
-                                    returnData.status = 1;
+                                    // Check minimum xima amount
+                                    if (ximaData && ximaData.event && ximaData.event.param && ximaData.event.param.earlyXimaMinAmount && ximaData.totalAmount && ximaData.totalAmount < ximaData.event.param.earlyXimaMinAmount) {
+                                        // Not enough xima amount
+                                        returnData.status = 2;
+                                    } else {
+                                        returnData.status = 1;
+                                    }
+
                                     returnData.result = {
                                         rewardAmount: ximaData.totalAmount? ximaData.totalAmount: 0,
                                         betTimes: ximaData.event && ximaData.event.param && ximaData.event.param.consumptionTimesRequired? ximaData.event.param.consumptionTimesRequired: 0,
-                                    }
+                                    };
                                     delete ximaData.totalAmount;
                                     delete ximaData.totalConsumptionAmount;
                                     delete ximaData.event;
@@ -260,7 +267,7 @@ var dbRewardEvent = {
                                                         gameType: gameType[key],
                                                         ratio: ximaData[key].ratio || 0,
                                                         amountBet: ximaData[key].consumptionAmount || 0
-                                                    }
+                                                    };
                                                     returnData.condition.ximaRatios.push(ximaObj);
                                                 }
                                             }
@@ -360,7 +367,7 @@ var dbRewardEvent = {
                                                 checkRewardData.status = 3;
                                             }
 
-                                            if(rewardEvent.type.name == constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP){
+                                            if (rewardEvent.type.name == constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP) {
                                                 if (checkRewardData.condition.deposit.status == 1 || checkRewardData.condition.bet.status == 1) {
                                                     checkRewardData.status = 1;
                                                 }
@@ -368,7 +375,7 @@ var dbRewardEvent = {
                                                     checkRewardData.status = 2;
                                                 }
                                             }
-                                            else{
+                                            else {
                                                 if (checkRewardData.status == 1 && (checkRewardData.condition.deposit.status == 2 || checkRewardData.condition.bet.status == 2 || checkRewardData.condition.telephone.status == 2 || checkRewardData.condition.ip.status == 2 || checkRewardData.condition.SMSCode.status == 2)) {
                                                     checkRewardData.status = 2;
                                                 }
@@ -397,7 +404,17 @@ var dbRewardEvent = {
                                             }
                                             if (checkRewardData.status == 2) {
                                                 delete checkRewardData.result;
-                                            }                                      
+                                            }
+
+                                            if (rewardEvent.code){
+                                                checkRewardData.code = rewardEvent.code;
+                                            }
+                                            if (rewardEvent.name){
+                                                checkRewardData.eventName = rewardEvent.name;
+                                            }
+                                            if (rewardEvent.type && rewardEvent.type.name){
+                                                checkRewardData.rewardType = rewardEvent.type.name;
+                                            }
 
                                             return checkRewardData;
                                         }
@@ -493,7 +510,7 @@ var dbRewardEvent = {
                                     }
                                 )
                             }
-                        )
+                        );
                         break;
                     default:
                         return Q.reject({
@@ -1129,7 +1146,7 @@ var dbRewardEvent = {
                   
                     case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
                         let consumptionSlipRewardDetail = rewardSpecificData[0];
-
+                        
                         returnData.condition.deposit.list = [];
                         returnData.condition.bet.list = [];
 

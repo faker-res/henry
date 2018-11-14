@@ -11,7 +11,7 @@ var playerRegistrationIntentRecordSchema = new Schema({
     //Operation List
     operationList: [],
     //Status
-    status: {type: String, default: constRegistrationIntentRecordStatus.INTENT},
+    status: {type: String, default: constRegistrationIntentRecordStatus.INTENT, index: true},
     //name of player
     name: String,
     //mobile phone
@@ -28,5 +28,7 @@ var playerRegistrationIntentRecordSchema = new Schema({
 playerRegistrationIntentRecordSchema.index({"data.name": 1});
 playerRegistrationIntentRecordSchema.index({"data.playerId": 1});
 playerRegistrationIntentRecordSchema.index({"data.partnerId": 1});
+playerRegistrationIntentRecordSchema.index({"data.smsCode": 1});
+playerRegistrationIntentRecordSchema.index({"data.phoneNumber": 1});
 
 module.exports = playerRegistrationIntentRecordSchema;
