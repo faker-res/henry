@@ -302,8 +302,8 @@ var dbGameProviderPlayerDaySummary = {
     syncBetRecord: function (startTime, endTime, platformId, proId, index, count) {
         var sendData = {
             providerId: proId,
-            startTime: startTime,
-            endTime: endTime,
+            startDate: startTime,
+            endDate: endTime,
             platformId: platformId
         };
         return cpmsAPI.consumption_reSendConsumption(sendData);
@@ -313,8 +313,8 @@ var dbGameProviderPlayerDaySummary = {
         let sendQuery = {
             platformId: platformId,
             providerId: proId,
-            startTime: startTime,
-            endTime: endTime
+            startDate: startTime,
+            endDate: endTime
         };
         let fpmsSummary = dbGameProviderPlayerDaySummary.getProviderDaySummaryForTimeFrame(startTime, endTime, platformId, proId, index, count);
         let cpmsSummary = cpmsAPI.consumption_getConsumptionSummary(sendQuery).catch(err=>{console.log(err)});
