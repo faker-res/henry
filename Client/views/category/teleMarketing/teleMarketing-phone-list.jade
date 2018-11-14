@@ -127,8 +127,8 @@ label(ng-show='vm.platformPlayerCount') {{'Total Players' | translate}} : {{vm.p
                                                     input.form-control(type='text', ng-model='vm.tsAnalyticsPhoneList.time_operator_description[i]' ng-disabled='true')
 
             .modal-footer
-                div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
-                button.btn.btn-success.common-button(data-dismiss='modal'  ng-if="!vm.importPhoneResult" ng-click="vm.editTsNewList()" ng-disabled="vm.checkFilterIsDisable" ng-show="!vm.analyticsPhoneListEdit")
+                div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px')
+                button.btn.btn-success.common-button(data-dismiss='modal'  ng-click="vm.editTsNewList()" ng-disabled="vm.checkFilterIsDisable" ng-show="!vm.analyticsPhoneListEdit")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
                 button.btn.btn-danger.common-button(data-dismiss='modal' ng-show="vm.analyticsPhoneListEdit")

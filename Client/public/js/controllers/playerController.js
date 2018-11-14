@@ -14492,11 +14492,10 @@ define(['js/app'], function (myApp) {
             vm.freezeZoneSelection = false;
             vm.playerAssignTopUp = {submitted: false};
             vm.filterBankname("playerAssignTopUp");
-            vm.existingAssignTopup = null;
+            vm.existingAssignTopup = false;
             vm.chosenBankAcc = {};
             socketService.$socket($scope.AppSocket, 'getAssignTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
                 vm.existingAssignTopup = data.data ? data.data : false;
-                console.log('hello')
                 $scope.safeApply();
             });
             // utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
