@@ -5109,58 +5109,163 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {title: $translate('TOTAL_NAME_LIST'), data: "totalPhone"},
-                    {title: $translate('TOTAL_DISTRIBUTED'), data: "totalDistributed"},
-                    {title: $translate('TOTAL_USED'), data: "totalUsed"},
+                    {
+                        title: $translate('TOTAL_DISTRIBUTED'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "曾经指派给电销员的总电话数量。（同一电话循环2人，派发＝1）",
+                                'text': row.totalDistributed
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_USED'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "所有曾经添加『回访结果』的电话。（同一电话循环2人，使用＝1）",
+                                'text': row.totalUsed
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
                     {
                         title: $translate('TOTAL_UNUSED'),
                         render: function(data, type, row, index){
-                            return row.totalPhone - row.totalUsed;
+                            let divWithToolTip = $('<div>', {
+                                'title': "名单总数当中，尚未添加回访的电话量",
+                                'text': row.totalPhone - row.totalUsed
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
                         }
                     },
-                    {title: $translate('TOTAL_SUCCESS'), data: "totalSuccess"},
+                    {
+                        title: $translate('TOTAL_SUCCESS'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "基础数据中，定义何谓成功接听（选择回访状态）的设定（同一电话 2 电销员都有接听，接听人＝1）",
+                                'text': row.totalSuccess
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
                     {
                         title: $translate('TOTAL_SUCCESS_RATE'),
                         render: function(data, type, row, index){
                             let percentage = (row.totalSuccess / row.totalDistributed) || 0;
-                            return $noRoundTwoDecimalToFix(percentage);
+                            let divWithToolTip = $('<div>', {
+                                'title': "成功接听量/已使用量",
+                                'text': $noRoundTwoDecimalToFix(percentage)
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
                         }
                     },
-                    {title: $translate('TOTAL_REGISTERED'), data: "totalRegistration"},
+                    {
+                        title: $translate('TOTAL_REGISTERED'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "已使用量当中，电话在系统有开户（不管帐号禁用与否）",
+                                'text': row.totalRegistration
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
                     {
                         title: $translate('TOTAL_REGISTERED_RATE'),
                         render: function(data, type, row, index){
                             let percentage = (row.totalRegistration / row.totalDistributed) || 0;
-                            return $noRoundTwoDecimalToFix(percentage);
+                            let divWithToolTip = $('<div>', {
+                                'title': "成功开户量/已使用量",
+                                'text': $noRoundTwoDecimalToFix(percentage)
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
                         }
                     },
-                    {title: $translate('TOTAL_TOPUP'), data: "totalTopUp"},
+                    {
+                        title: $translate('TOTAL_TOPUP'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "已使用量当中，有成功存款的人数",
+                                'text': row.totalTopUp
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
                     {
                         title: $translate('TOTAL_TOPUP_RATE'),
                         render: function(data, type, row, index){
                             let percentage =  (row.totalTopUp / row.totalDistributed) || 0;
-                            return $noRoundTwoDecimalToFix(percentage)
+                            let divWithToolTip = $('<div>', {
+                                'title': "成功存款人数/已使用量",
+                                'text': $noRoundTwoDecimalToFix(percentage)
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
                         }
                     },
-                    {title: $translate('TOTAL_MULTIPLE_TOPUP'), data: "totalMultipleTopUp"},
+                    {
+                        title: $translate('TOTAL_MULTIPLE_TOPUP'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "已使用量当中，存款 2 笔以上的人数",
+                                'text': row.totalMultipleTopUp
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
                     {
                         title: $translate('TOTAL_MULTIPLE_TOPUP_RATE'),
                         render: function(data, type, row, index){
                             let percentage = (row.totalMultipleTopUp / row.totalDistributed) || 0;
-                            return $noRoundTwoDecimalToFix(percentage)
+                            let divWithToolTip = $('<div>', {
+                                'title': "成功存款2笔人数/已使用量",
+                                'text': $noRoundTwoDecimalToFix(percentage)
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
                         }
                     },
-                    {title: $translate('TOTAL_VALID'), data: "totalValidPlayer"},
+                    {
+                        title: $translate('TOTAL_VALID'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "已使用量当中，系统定义的有效开户人数",
+                                'text': row.totalValidPlayer
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
                     {
                         title: $translate('TOTAL_VALID_RATE'),
                         render: function(data, type, row, index){
                             let percentage = (row.totalValidPlayer / row.totalDistributed) || 0;
-                            return $noRoundTwoDecimalToFix(percentage)
+                            let divWithToolTip = $('<div>', {
+                                'title': "有效开户量/已使用量",
+                                'text': $noRoundTwoDecimalToFix(percentage)
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
                         }
                     },
                     {
                         title: $translate('PLAYER_RETENTION'),
                         render: function(data, type, row, index){
-                            return "详情";
+                            let divWithToolTip = $('<div>', {
+                                'title': "根据『分析』功能给出报表。（首次导入后30日分析）",
+                                'text': "详情"
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
                         }
                     },
                 ],
