@@ -20732,7 +20732,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.checkPlatformRewardIsView = function (){
-
+                // check to disable the input of each tab if playerLevel is selected
                 setTimeout(function () {
                     vm.disableAllRewardInput(vm.rewardDisabledInput);
                 }, 5)
