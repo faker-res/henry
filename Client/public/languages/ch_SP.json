@@ -4064,6 +4064,9 @@
   "Time/Operator/Description": "导入时间/操作员/描述",
   "FIELD":"栏位",
 
+  "Distribution": "参与派发",
+  "Distribution Name List Settings": "名单派发设定",
+  "Distribution Name List Details": "名单派发详情（曾经派发过的电销员状况）",
   "PRE_DISTRIBUTION": "尚未开始派发",
   "DISTRIBUTING": "派发中",
   "NOT_ENOUGH_CALLER": "电销员不足",

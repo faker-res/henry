@@ -111,6 +111,36 @@ define(['js/app'], function (myApp) {
             PLAYER_AUTO_CONVERT_REWARD_POINTS: "PlayerAutoConvertRewardPoints"
         };
 
+        vm.loadAdminNames = function () {
+            vm.adminList = [];
+            vm.platformDepartmentObjId = "";
+            socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform.id},
+                data => {
+                    vm.currentPlatformDepartment = data.data;
+
+                    if (vm.currentPlatformDepartment && vm.currentPlatformDepartment.length) {
+                        vm.currentPlatformDepartment.map(department => {
+                            if (department.departmentName == vm.selectedPlatform.data.name) {
+                                vm.platformDepartmentObjId = department._id;
+                                socketService.$socket($scope.AppSocket, 'getAdminNameByDepartment', {departmentId: vm.platformDepartmentObjId}, function (data) {
+                                    vm.adminList = data.data;
+                                    vm.adminList.sort((a, b) => {
+                                        if(a.adminName > b.adminName) {
+                                            return 1;
+                                        } else if(a.adminName < b.adminName) {
+                                            return -1;
+                                        } else {
+                                            return 0;
+                                        }
+                                    })
+                                });
+                            }
+                        });
+                    }
+                }
+            );
+        };
+
         vm.toggleShowPlatformList = function (flag) {
             if (flag) {
                 vm.leftPanelClass = 'widthto25';
@@ -147,7 +177,7 @@ define(['js/app'], function (myApp) {
                 if (storedPlatform) {
                     vm.searchAndSelectPlatform(storedPlatform, option);
                 }
-
+                vm.loadAdminNames();
             }, function (err) {
                 vm.showPlatformSpin = false;
             });
@@ -5071,10 +5101,184 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getTsPhoneList', sendQuery, function (data) {
                 if(data && data.data){
                     $scope.$evalAsync(() => {
+                        vm.tsPhoneList = data.data;
                         vm.drawPhoneListManagementTable(data.data);
                     })
                 }
             });
+        };
+
+        vm.showAssignmentStatusDetail = (tsPhoneListObjId)=>{
+            vm.currentPhoneListObjId = tsPhoneListObjId;
+            vm.allowDistributionSettingsEdit = false;
+            vm.tsAssigneesDisplay = [];
+            vm.selectedAssignees = [];
+            vm.newAssigneesExecuteStatus = 1;   //refer to constTsAssigneeStatus.js at 'Server/const/' directory
+            vm.newAssignees = [];
+            vm.assigneeRemovalList = [];
+            vm.getTsAssignees();
+            $('#modalAssignmentStatusDetail').modal('show');
+            $('.spicker').selectpicker('refresh');
+        };
+        vm.getTsAssignees = () => {
+            vm.tsAssignees = [];
+            return $scope.$socketPromise('getTsAssignees', {tsPhoneListObjId: vm.currentPhoneListObjId}).then(data => {
+                console.log("getTsAssignees_ret", data);
+                if(data && data.data){
+                    $scope.$evalAsync(() => {
+                        vm.tsAssignees = data.data;
+                        vm.updateTsAssigneesDisplay();
+                        vm.selectedAssignees = vm.tsAssigneesDisplay.map(assignee=>assignee.adminName);
+                    })
+                }
+            });
+        };
+
+        vm.removeAssignee = (adminName) => {
+            vm.assigneeRemovalList = [];
+            let isNew = true;
+
+            if(vm.tsAssignees && vm.tsAssignees.length > 0) {
+                vm.tsAssignees.forEach(assignee => {
+                    if (assignee.adminName == adminName) {
+                        isNew = false;
+                    }
+                });
+            }
+            if(vm.selectedAssignees && vm.selectedAssignees.length > 0) {
+                let selectedAssigneeIndex = vm.selectedAssignees.indexOf(adminName);
+                if (selectedAssigneeIndex > -1) {
+                    vm.selectedAssignees.splice(selectedAssigneeIndex, 1);
+                }
+            }
+            if(isNew) {
+                if(vm.newAssignees && vm.newAssignees.length > 0) {
+                    vm.newAssignees.forEach((assignee, index) => {
+                        if (assignee.adminName == adminName) {
+                            vm.newAssignees.splice(index, 1);
+                        }
+                    });
+                }
+            } else {
+                if(vm.assigneeRemovalList.indexOf(adminName) < 0) {
+                    vm.assigneeRemovalList.push(adminName);
+                }
+            }
+
+            vm.updateTsAssigneesDisplay();
+            setTimeout(()=>{
+                $('.spicker').selectpicker('refresh');
+            }, 1);
+        };
+        vm.addAssignee = () => {
+            vm.newAssignees = [];
+            if(vm.selectedAssignees && vm.selectedAssignees.length > 0) {
+                // get vm.newAssignees by filtering all selected assignees against existing assignees
+                vm.selectedAssignees.forEach(adminName => {
+                    let isNew = true;
+                    vm.tsAssignees.forEach(assignee => {
+                        if (assignee.adminName == adminName) {
+                            isNew = false;
+                        }
+                    });
+                    if (isNew) {
+                        vm.newAssignees.push({
+                            adminName: adminName,
+                            status: vm.newAssigneesExecuteStatus
+                        });
+                    }
+                    // delete from removalList if it has been removed before this
+                    let removeAssigneeIndex = vm.assigneeRemovalList.indexOf(adminName);
+                    if(removeAssigneeIndex > -1) {
+                        vm.assigneeRemovalList.splice(removeAssigneeIndex, 1);
+                    }
+                });
+                vm.updateTsAssigneesDisplay();
+            }
+        };
+        vm.updateAssigneeStatus = (currentAssignee) => {
+            let exist = false;
+            vm.newAssignees.forEach((assignee, index) => {
+                if(assignee.adminName == currentAssignee.adminName) {
+                    vm.newAssignees.splice(index, 1, currentAssignee);
+                    exist = true;
+                }
+            });
+            if(!exist) {
+                vm.newAssignees.push(currentAssignee);
+            }
+        };
+        vm.updateTsAssigneesDisplay = () => {
+            vm.tsAssigneesDisplay = [];
+            // get vm.tsAssigneesDisplay by filtering existing assignees against removed assignees, display what is left
+            vm.tsAssignees.forEach(assignee => {
+                let removed = false;
+                vm.assigneeRemovalList.forEach(adminName => {
+                    if(assignee.adminName == adminName) {
+                        removed = true;
+                    }
+                });
+                if(!removed) {
+                    vm.tsAssigneesDisplay.push(assignee);
+                }
+            });
+            // merge (existing assignees less removed assignees) with new assignees
+            vm.tsAssigneesDisplay = vm.tsAssigneesDisplay.concat(vm.newAssignees);
+        };
+
+        vm.enableDistributionSettingsEdit = () => {
+            vm.allowDistributionSettingsEdit = true;
+            $('.spicker').selectpicker('refresh');
+        };
+        vm.cancelDistributionSettingsEdit = () => {
+            vm.newAssignees = [];
+            vm.assigneeRemovalList = [];
+            vm.tsAssigneesDisplay = vm.tsAssignees;
+            vm.allowDistributionSettingsEdit = false;
+            vm.updateTsAssigneesDisplay();
+            vm.selectedAssignees = vm.tsAssigneesDisplay.map(assignee=>assignee.adminName);
+        };
+        vm.updateDistributionSettings = () => {
+            //add and remove ts Assignee commands will be triggered synchronously
+            let commonSendData = {
+                platformObjId: vm.selectedPlatform.id,
+                tsPhoneListObjId: vm.currentPhoneListObjId
+            };
+            let socketProms = [];
+            if(vm.newAssignees && vm.newAssignees.length > 0) {
+                let addAssigneeSendData = Object.assign(commonSendData, {
+                    assignees: vm.tsAssigneesDisplay
+                });
+                console.log("updateTsAssignees_send", addAssigneeSendData);
+                socketProms.push(
+                    $scope.$socketPromise('updateTsAssignees', addAssigneeSendData).then(data => {
+                        if(data){
+                            console.log("updateTsAssignees_ret", data);
+                        }
+                    })
+                );
+            }
+            if(vm.assigneeRemovalList && vm.assigneeRemovalList.length > 0) {
+                let removeAssigneeSendData = Object.assign(commonSendData, {
+                    adminNames: vm.assigneeRemovalList
+                });
+                console.log("removeTsAssignees_send", removeAssigneeSendData);
+                socketProms.push(
+                    $scope.$socketPromise('removeTsAssignees', removeAssigneeSendData).then(data => {
+                        if(data){
+                            console.log("removeTsAssignees_ret", data);
+                        }
+                    })
+                );
+            }
+            if(socketProms && socketProms.length > 0) {
+                return Promise.all(socketProms).then(() => {
+                    vm.newAssignees = [];
+                    vm.assigneeRemovalList = [];
+                    vm.getTsAssignees();
+                    vm.allowDistributionSettingsEdit = false;
+                })
+            }
         };
 
         vm.drawPhoneListManagementTable = function (tblData) {
@@ -5105,7 +5309,10 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('SEND_STATUS'), data: "status",
                         render: function (data, type, row, index) {
-                            return $translate(vm.constTsPhoneListStatus[data]);
+                            let link = $('<a>', {
+                                'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'");',
+                            }).text($translate(vm.constTsPhoneListStatus[data]));
+                            return link.prop('outerHTML');
                         }
                     },
                     {title: $translate('TOTAL_NAME_LIST'), data: "totalPhone"},
