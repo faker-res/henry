@@ -305,9 +305,8 @@ var dbGameProviderPlayerDaySummary = {
             startTime: startTime,
             endTime: endTime,
             platformId: platformId
-        }
+        };
         return cpmsAPI.consumption_reSendConsumption(sendData);
-
     },
     getProviderDifferDaySummaryForTimeFrame: function (startTime, endTime, platformId, proId, index, count) {
 
