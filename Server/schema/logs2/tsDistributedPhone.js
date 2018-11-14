@@ -18,6 +18,8 @@ let tsDistributedPhoneSchema = new Schema({
     startTime: {type: Date, index: true, default: new Date()},
     // time that it expired - same with distributedEndTime in tsPhone.js
     endTime: {type: Date, required: true, index: true},
+    // time to remind admin
+    remindTime: {type: Date, required: true, index: true},
 
 });
 
