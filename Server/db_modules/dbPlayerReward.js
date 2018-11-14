@@ -5870,11 +5870,12 @@ let dbPlayerReward = {
                     $match: {
                         "createTime": freeTrialQuery.createTime,
                         "data.eventId": eventData._id,
-                        "status": 'Approved',
+                        "status": constProposalStatus.APPROVED,
                         $or: [
                             {'data.playerObjId': playerData._id},
                             {'data.lastLoginIp': playerData.lastLoginIp},
-                            {'data.phoneNumber': playerData.phoneNumber}
+                            {'data.phoneNumber': playerData.phoneNumber},
+                            {'data.deviceId': playerData.deviceId},
                         ]
                     }
                 },
@@ -5886,6 +5887,7 @@ let dbPlayerReward = {
                         'data.eventId': 1,
                         'data.lastLoginIp': 1,
                         'data.phoneNumber': 1,
+                        'data.deviceId': 1,
                         _id: 0
                     }
                 }
@@ -5896,9 +5898,11 @@ let dbPlayerReward = {
                     let samePlayerObjIdResult;
                     let sameIPAddressResult;
                     let samePhoneNumResult;
+                    let sameMobileDeviceResult;
                     let samePlayerId = 0;
                     let sameIPAddress = 0;
                     let samePhoneNum = 0;
+                    let sameMobileDevice = 0;
 
                     // check playerId
                     if (countReward) {
@@ -5962,6 +5966,29 @@ let dbPlayerReward = {
                         resultArr.push(samePhoneNumResult);
                     }
 
+                    // check mobile device
+                    if (eventData.condition.checkIsMobileDeviceAppliedBefore) {
+                        for (let i = 0; i < countReward.length; i++) {
+                            // check if same mobile device has already received this reward
+                            console.log('DEVICEID===11', countReward[i].data.deviceId);
+                            countReward[i].data.deviceId =  "device123";
+                            console.log('DEVICEID===22', countReward[i].data.deviceId);
+                            if (playerData.deviceId === countReward[i].data.deviceId) {
+                                sameMobileDevice++;
+                            }
+                        }
+
+                        if (sameMobileDevice >= 1) {
+                            sameMobileDeviceResult = 0; //fail
+                        } else {
+                            sameMobileDeviceResult = 1;
+                        }
+                        resultArr.push(sameMobileDeviceResult);
+                    } else {
+                        sameMobileDeviceResult = 1;
+                        resultArr.push(sameMobileDeviceResult);
+                    }
+
                     return resultArr;
                 }
             );
@@ -5972,8 +5999,51 @@ let dbPlayerReward = {
                 checkSMSProm = dbPlayerMail.verifySMSValidationCode(playerData.phoneNumber, playerData.platform, rewardData.smsCode);
             }
 
+            // check if player has applied for other forbidden reward
+            let checkForbidRewardProm = Promise.resolve(true); // default promise as true if checking is not required
+            if (eventData.condition.forbidApplyReward && eventData.condition.forbidApplyReward.length > 0) {
+                let forbidRewardEventIds = eventData.condition.forbidApplyReward;
+
+                for (let x = 0; x  < forbidRewardEventIds.length; x++) {
+                    forbidRewardEventIds.push(forbidRewardEventIds[x].toString());
+                }
+                console.log('forbidRewardEventIds===', forbidRewardEventIds);
+
+                // check other reward apply in period
+                checkForbidRewardProm = dbConfig.collection_proposal.aggregate(
+                    {
+                        $match: {
+                            "createTime": freeTrialQuery.createTime,
+                            "data.eventId": {$in: forbidRewardEventIds},
+                            "status": constProposalStatus.APPROVED,
+                            "data.playerObjId": playerData._id
+                        }
+                    },
+                    {
+                        $project: {
+                            createTime: 1,
+                            status: 1,
+                            'data.playerObjId': 1,
+                            'data.eventId': 1,
+                            _id: 0
+                        }
+                    }
+                ).read("secondaryPreferred").then(
+                    countReward => {
+                        if (countReward) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "This player has applied for other reward in event period"
+                            });
+                        }
+                    }
+                );
+            }
+
             promArr.push(countInRewardInterval.then(data => {console.log('countInRewardInterval'); return data;}));
             promArr.push(checkSMSProm.then(data => {console.log('checkSMSProm'); return data;}));
+            promArr.push(checkForbidRewardProm.then(data => {console.log('checkForbidRewardProm'); return data;}));
         }
 
         return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
@@ -6429,6 +6499,7 @@ let dbPlayerReward = {
                             let matchPlayerId = rewardSpecificData[0][0];
                             let matchIPAddress = rewardSpecificData[0][1];
                             let matchPhoneNum = rewardSpecificData[0][2];
+                            let matchMobileDevice = rewardSpecificData[0][3];
 
                             if (!matchPlayerId) {
                                 return Q.reject({
@@ -6451,6 +6522,14 @@ let dbPlayerReward = {
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
                                     message: "This phone number has applied for max reward times in event period"
+                                });
+                            }
+
+                            if (!matchMobileDevice) {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "This mobile device has applied for max reward times in event period"
                                 });
                             }
                         }
