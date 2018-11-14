@@ -20809,13 +20809,11 @@ define(['js/app'], function (myApp) {
                                 }
                             }
 
-
                             if (v && v.name && v.name == "PlayerRetentionRewardGroup" && vm.allPlayerLvl && vm.allPlayerLvl.length) {
                                if (!vm.selectedPlayerLvlTab){
                                     // set the default as the first level
                                     vm.selectedPlayerLvlTab = 0;
                                }
-                               
                             }
 
                             vm.showRewardTypeData = v;
@@ -21421,7 +21419,6 @@ console.log('typeof ',typeof gameProviders);
                                 break;
                         }
 
-
                         if (vm.isPlayerLevelDiff){
                             vm.allPlayerLvl.forEach((e, idx) => {
                                 vm.rewardMainParamTable.push({
@@ -21644,9 +21641,7 @@ console.log('typeof ',typeof gameProviders);
                                 )
                                 break
                         }
-
                     }
-
                 })
 
                 // $scope.safeApply();
