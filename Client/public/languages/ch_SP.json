@@ -20,7 +20,8 @@
   "BTN_OR_IMAGE": "图片或按钮",
   "SETTLEMENT_HISTORY": "结算历史",
   "MANUAL_TOPUP": "手工充值",
-  "BACKUP_LIST":"后补单",
+  "BACKUP_LIST":"(后补单)",
+  "ASSIGN_LIST":"(先派卡)",
   "ALIPAY": "个人支付宝",
   "WECHATPAY": "个人微信",
   "REWARD_ACTION": "优惠操作",
@@ -4070,6 +4071,16 @@
   "PERFECTLY_COMPLETED": "完美结束（进回收桶)",
   "FORCE_COMPLETED": "强制结束（进回收桶)",
   "DECOMPOSED": "已分解",
+
+  "PLAYER CAN RECEIVE MONEY FROM THE BANK":"玩家可用收款银行",
+  "ONLINE BANK NAME":"网银-姓名",
+  "ATM SAVING PROVINCE":"ATM-存款省",
+  "ATM SAVING CITY":"ATM-存款市",
+  "BANK COUNTER DEPOSIT METHOD":"银行柜台-存款方式",
+  "BANK COUNTER BANK CARD HOLDER":"银行柜台-银行卡姓名",
+  "BANK COUNTER TRANSFER NUMBER":"银行柜台-转帐编号",
+  "PLEASE INFORM BANK STAFF THIS SERIAL NUMBER, AND LET THEM FILL UP REMARK":"*请将此编号告知银行员，请他填写备注",
+
 
   "modifyPlayerCredibilityRemark": "编辑信用评价",
   "updatePlayerCredibilityRemark": "信用评价",

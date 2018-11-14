@@ -958,6 +958,8 @@
                         a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('alipay');vm.initPlayerAlipayTopUp();") {{"ALIPAY" | translate}}
                     li(ng-class="vm.selectedTopupTab == 'wechatpay' ? 'active' : null", ng-if="checkViewPermission('Player', 'TopUp', 'ApplyWechatPayTopup')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('wechatpay');vm.initPlayerWechatPayTopUp();") {{"WECHATPAY" | translate}}
+                    li(ng-class="vm.selectedTopupTab == 'assign' ? 'active' : null", ng-if="checkViewPermission('Player', 'TopUp', 'ApplyAssignTopup')")
+                        a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('assign');vm.initPlayerAssignTopUp();") {{"MANUAL_TOPUP" | translate}} {{"ASSIGN_LIST" | translate}}
                     //li(ng-class="vm.selectedTopupTab == 'quickpay' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'ApplyQuickpayTopup')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('quickpay');vm.initPlayerQuickpayTopUp();") {{"WECHATPAY" | translate}}
 
@@ -1038,7 +1040,7 @@
                                 label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingAlipayTopup.data.amount}}
                                 button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerAlipayTopUp()') {{'CANCEL' | translate}}
                     .col-md-12(ng-show='vm.existingAlipayTopup===false || vm.existingAlipayTopup.isCanceled')
-                        form(name='form_alipay_topup', style="min-height:500px;border-radius:0 4px 4px 4px;box-shadow:none;").well
+                        form.col-md-12(name='form_alipay_topup', style="border-radius:0 4px 4px 4px;box-shadow:none;").well
                             .form-group.col-md-12
                                 .control-label
                                 label {{'CREDIT' | translate}}
@@ -1100,8 +1102,8 @@
                                 label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingWechatPayTopup.data.amount}}
                                 button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerWechatPayTopUp()') {{'CANCEL' | translate}}
                     .col-md-12(ng-show='vm.existingWechatPayTopup===false || vm.existingWechatPayTopup.isCanceled')
-                        form(name='form_wechatPay_topup', style="min-height:500px;border-radius:0 4px 4px 4px;box-shadow:none;").well
-                            .form-group.col-md-12
+                        form.col-md-12(name='form_wechatPay_topup', style="border-radius:0 4px 4px 4px;box-shadow:none;").well
+                            .form-group
                                 .control-label
                                 label {{'CREDIT' | translate}}
                                 //text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}})
@@ -1181,6 +1183,66 @@
                                     label {{'DEPOSIT_TIME' | translate}}
                                     .createTime
 
+                .row(ng-show="vm.selectedTopupTab == 'assign'")
+                    .col-md-12(ng-show='vm.existingAssignTopup===null || vm.existingAssignTopup')
+                        .well.margin-bottom-5(ng-if='vm.existingAssignTopup===null')
+                            label.blink {{"Searching existing manual topup request..." | translate}}
+                        .well.margin-bottom-5(ng-if='vm.existingAssignTopup')
+                            .lineThrough(ng-if='vm.existingAssignTopup.isCanceled')
+                                button.btn.btn-primary.pull-right(disabled) {{'Cancel' | translate}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingAssignTopup.data.validTime)}}
+                                label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingAssignTopup.data.amount}}
+                            div(ng-if='!vm.existingAssignTopup.isCanceled')
+                                i.fa.fa-exclamation-triangle.text-danger.margin-right-5
+                                label.margin-right-5 {{"Player has pending manual topup request already." | translate}}
+                                label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingAssignTopup.data.validTime)}}
+                                label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingAssignTopup.data.amount}}
+                                button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerAssignTop()') {{'CANCEL' | translate}}
+                    .col-md-12(ng-show='vm.existingAssignTopup===false || vm.existingAssignTopup.isCanceled')
+                        form.col-md-12(name='form_assign_topup', style="border-radius:0 4px 4px 4px;box-shadow:none;").well
+                            .form-group
+                                label {{'DEPOSIT_METHOD' | translate}}
+                                select.form-control(ng-model='vm.playerAssignTopUp.depositMethod', ng-change='vm.selectedDepositMethod(vm.playerAssignTopUp.depositMethod)')
+                                    option(ng-repeat="(i,v) in vm.depositMethodList", value='{{v}}') {{i | translate}}
+                            .form-group
+                                label.control-label {{'SINGLELIMIT' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.bonusCode')
+                            .form-group
+                                label.control-label {{'PLAYER CAN RECEIVE MONEY FROM THE BANK' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.bonusCode')
+                            .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "1"')
+                                label.control-label {{'ONLINE BANK NAME' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.bonusCode')
+                            .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "2"')
+                                label.control-label {{'ATM SAVING PROVINCE' | translate}}
+                                select.form-control(ng-model='vm.playerAssignTopUp.provinceId', ng-change='vm.getZoneList(vm.playerAssignTopUp.provinceId)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "2"')
+                                    option(ng-repeat='(i,v) in vm.provinceList', value='{{v.id}}') {{v.name}}
+                            .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "2"')
+                                label.control-label {{'ATM SAVING CITY' | translate}}
+                                select.form-control(ng-model='vm.playerAssignTopUp.cityId', ng-change='vm.getZoneList(vm.playerAssignTopUp.provinceId,vm.playerAssignTopUp.cityId)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "2" ')
+                                    option(ng-repeat='(i,v) in vm.cityList', value='{{v.id}}') {{v.name}}
+                            .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "3"')
+                                label.control-label {{'BANK COUNTER DEPOSIT METHOD' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.bonusCode')
+                            .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "3"')
+                                label.control-label {{'BANK COUNTER BANK CARD HOLDER' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.topUpReturnCode')
+                            .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "3"')
+                                label.control-label {{'BANK COUNTER TRANSFER NUMBER' | translate}}
+                                span(style="color:red;") {{'PLEASE INFORM BANK STAFF THIS SERIAL NUMBER, AND LET THEM FILL UP REMARK' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.remark')
+                            .form-group
+                                label.control-label {{'TopupAmount' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.bonusCode')
+                            .form-group
+                                label.control-label {{'promoCode' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.bonusCode')
+                            .form-group
+                                label.control-label {{'topUpReturnCode' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.topUpReturnCode')
+                            .form-group
+                                label.control-label {{'Remark' | translate}}
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.remark')
             .modal-footer
                 //manual
                 div(ng-show="vm.selectedTopupTab == 'manual'")
@@ -1219,6 +1281,13 @@
                     button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_quickpay_topup.$invalid || form_quickpay_topup.$pristine || (vm.existingQuickpayTopup && !vm.existingQuickpayTopup.isCanceled)', ng-show='!vm.playerQuickpayTopUp.submitted', ng-click='vm.applyPlayerQuickpayTopUp()') {{'APPLY' | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
                     label.inlineBlk.wordWrap(ng-if='vm.playerQuickpayTopUp.submitted && vm.playerQuickpayTopUp.responseMsg', style="width: calc(100% - 210px)") {{vm.playerQuickpayTopUp.responseMsg}}
+
+                //assign
+                div(ng-show="vm.selectedTopupTab == 'assign'")
+                    button.common-button.margin-right-5.btn.btn-success(disabled, ng-show='vm.playerAssignTopUp.submitted') {{'Submitted' | translate}}
+                    button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_assign_topup.$invalid || form_assign_topup.$pristine || (vm.existingAssignTopup && !vm.existingAssignTopup.isCanceled)', ng-show='!vm.AssignTopUp.submitted', ng-click='vm.applyAssignTopUp()') {{'APPLY' | translate}}
+                    button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+                    label.inlineBlk.wordWrap(ng-if='vm.playerAssignTopUp.submitted && vm.playerAssignTopUp.responseMsg', style="width: calc(100% - 210px)") {{vm.playerAssignTopUp.responseMsg}}
 
 #modalPlayerBonus.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:50%;')
