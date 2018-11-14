@@ -438,6 +438,31 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                         }
                     }
                 })
+                .state('teleMarketingPhoneDetail', {
+                    url: '/teleMarketing/tsPhone/{tsDistributedPhoneObjId}',
+                    templateUrl: 'category/teleMarketing/teleMarketing-phone-detail', // todo :: change this to new file that be create later
+                    controller: 'teleMarketingCtrl',
+                    controllerAs: 'vm',
+                    resolve: {
+                        load: function ($q, $rootScope, $stateParams) {
+                            var deferred = $q.defer();
+
+                            var dependencies = [
+                                "/js/controllers/teleMarketingController.js"
+                            ];
+
+                            $rootScope.tsDistributedPhoneObjId = $stateParams.tsDistributedPhoneObjId;
+
+                            require(dependencies, function () {
+                                $rootScope.$apply(function () {
+                                    deferred.resolve();
+                                });
+                            });
+
+                            return deferred.promise;
+                        }
+                    }
+                })
                 .state('themeControl', {
                     url: '/themeControl',
                     templateUrl: 'category/themeControl/themeControl-home',

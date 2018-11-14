@@ -8,6 +8,7 @@ define(['js/app'], function (myApp) {
 
         // For debugging:
         window.VM = vm;
+        vm.scope = $scope;
 
         vm.teleMarketingOverview = {};
         vm.teleMarketingSendSMS = {};
@@ -357,6 +358,7 @@ define(['js/app'], function (myApp) {
             vm.getPlatformProviderGroup();
             vm.getAllPlayerFeedbackResults();
             vm.getPlayerFeedbackTopic();
+            vm.getTsDistributedPhoneDetail($scope.tsDistributedPhoneObjId);
 
             // Zero dependencies variable
             [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults] = await Promise.all([
@@ -385,6 +387,19 @@ define(['js/app'], function (myApp) {
         $scope.$on(eventName, function (e, d) {
             vm.loadPlatformData();
         });
+
+        vm.getTsDistributedPhoneDetail = (distributedPhoneObjId) => {
+            if (!distributedPhoneObjId) {
+                return;
+            }
+
+            $scope.$socketPromise('getTsDistributedPhoneDetail', {tsDistributedPhoneObjId: distributedPhoneObjId}).then(function (data) {
+                console.log('getTsDistributedPhoneDetail', data);
+                if (data && data.data) {
+                    vm.targetedTsDistributedPhoneDetail = data.data;
+                }
+            }).done();
+        };
 
         vm.initTeleMarketingOverview = function () {
             vm.createTaskResult = '';
