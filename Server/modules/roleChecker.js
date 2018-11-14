@@ -378,9 +378,9 @@ var roleChecker = {
             // },
             "AutoFeedback": {
                 Read: [],
-                create: [],
-                overview: [],
-                edit: []
+                Create: [],
+                Overview: [],
+                Update: []
             },
             "Feedback": {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],
