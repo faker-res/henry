@@ -21402,7 +21402,7 @@ console.log('typeof ',typeof gameProviders);
                             // bi-weekly
                             case 3:
 
-                                for (let i = 1; i <= 15; i++) {
+                                for (let i = 1; i <= 14; i++) {
                                     value.push({loginDay: i})
                                 }
                                 break;
