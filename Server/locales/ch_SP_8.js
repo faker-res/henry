@@ -487,6 +487,7 @@ var simplifiedChinese = {
     "This reward event is expired": "活动已经结束，感谢您的支持",
     "First time bound to the bank info": "首次绑定银行",
     "allTopUp": "所有存款",
+    "Username should be alphanumeric": "用户名只能包含数字和字母",
 
     //todo::add missing messages here
 

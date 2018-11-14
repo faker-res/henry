@@ -672,6 +672,15 @@ let dbPlayerInfo = {
                 isVerified => {
                     //player flag for new system
                     inputData.isNewSystem = true;
+
+                    if (inputData.name && !adminId && !/^[a-z0-9]+$/i.test(inputData.name)) {
+                        return Promise.reject({
+                            status: constServerCode.PLAYER_NAME_INVALID,
+                            name: "DBError",
+                            message: "Username should be alphanumeric"
+                        });
+                    }
+
                     let playerNameChecker = dbPlayerInfo.isPlayerNameValidToRegister({
                         name: inputData.name,
                         platform: platformObjId
@@ -1869,7 +1878,7 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 // Add source url from ip
-                if (playerData.lastLoginIp && !promoteWay) {
+                if (playerData.lastLoginIp && !promoteWay && !playerData.partner) {
                     let todayTime = dbUtility.getTodaySGTime();
 
                     return dbconfig.collection_ipDomainLog.find({
@@ -14118,7 +14127,7 @@ let dbPlayerInfo = {
             query._id = transferObjId;
         }
 
-        return dbconfig.collection_playerCreditTransferLog.find(query).sort({"createTime": -1}).limit(constSystemParam.MAX_RECORD_NUM);
+        return dbconfig.collection_playerCreditTransferLog.find(query).sort({"createTime": -1}).limit(constSystemParam.MAX_RECORD_NUM).read("secondaryPreferred");
     },
 
     verifyPlayerPhoneNumber: function (playerObjId, phoneNumber) {

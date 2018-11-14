@@ -2058,11 +2058,16 @@ define(['js/app'], function (myApp) {
 
                 vm.allRewardEvent.map(event => {
                     if (event && event.settlementPeriod && event.type.name == "PlayerConsumptionReturn") {
-                        p = p.then(() => getConsumptionReturnPeriodTime(event))
-                    }
+                        p = p.then(() => {
+                          getConsumptionReturnPeriodTime(event);
+                          vm.compareAllConsumptionReturn(event.startTime, event.endTime);
+                        }
+                      )}
                 });
 
                 $('#playerConsumptionReturnSettlementModal').modal('show');
+
+
             };
 
             vm.startPlatformRTGEventSettlement = function (event) {
@@ -2148,6 +2153,85 @@ define(['js/app'], function (myApp) {
                             vm.playerConsumptionReturnSettlement.result = err.error ? (err.error.message ? err.error.message : err.error) : '';
                         })
                     });
+            }
+            vm.resetProviderConsumptRecord = function(index, providerId){
+
+                let providerName = vm.getProviderName(providerId);
+                return {
+                    index: index,
+                    providerId: null,
+                    providerName: providerName,
+                    fpmsConsumption: null,
+                    fpmsValidAmount: null,
+                    cpmsConsumption: null,
+                    cpmsValidAmount: null,
+                    validAmtSyncPercent: null,
+                    consumptionDiff: null,
+                    status: null
+                }
+            }
+            vm.getProviderName = function(providerId){
+                let provider = vm.platformProviderList.filter(item=>{
+                    return item.providerId == providerId;
+                })
+                provider = (provider && provider[0]) ? provider[0] : [];
+                let providerName = provider.code + '('+providerId+')';
+                return providerName;
+            }
+            vm.compareAllConsumptionReturn = function(startTime, endTime){
+                vm.settlementTime = vm.allRewardEvent.filter(item=>{
+                    return item.type.name == 'PlayerConsumptionReturn';
+                })
+                vm.settlementTime = vm.settlementTime[0] ? vm.settlementTime[0] : {};
+                vm.providerDiffConsumption = {};
+                vm.providerLists = [];
+                let proms = [];
+
+                vm.platformProviderList.sort((a,b)=>{ return a.providerId - b.providerId});
+                vm.platformProviderList.forEach((item, index)=>{
+                    vm.providerDiffConsumption[item.providerId] = vm.resetProviderConsumptRecord(index+1, item.providerId);
+                    vm.providerLists.push(item.providerId);
+                    vm.compareConsumptionReturn(startTime, endTime, item.providerId, index);
+                });
+
+                vm.renderConsumption();
+            }
+            vm.renderConsumption = function(){
+                $scope.AppSocket.removeAllListeners('_operationDifferentReport')
+                $scope.AppSocket.on('_operationDifferentReport', function(data){
+                    $scope.$evalAsync(()=>{
+                        let pId = Number(data.data.providerId);
+                        let consumptData = (data && data.data) ? data.data : [];
+                        vm.providerDiffConsumption[pId].providerName = vm.getProviderName(pId);
+                        vm.providerDiffConsumption[pId] = $.extend(vm.providerDiffConsumption[pId], consumptData);
+                    })
+                })
+            }
+            vm.compareConsumptionReturn = function (startTime, endTime, providerId, index){
+
+                let sendQuery = {
+                    platformId: vm.selectedPlatform.id,
+                    startTime: startTime,
+                    endTime: endTime,
+                    providerId: providerId
+                };
+                socketService.$socket($scope.AppSocket, 'operationDifferentReport', sendQuery, function (data) {});
+            }
+            vm.syncBetRecord = function(startTime, endTime, providerId, index){
+                vm.providerDiffConsumption[providerId] = vm.resetProviderConsumptRecord(index, providerId);
+                vm.providerDiffConsumption[providerId].status = 3;
+                var sendQuery = {
+                    platformId: vm.selectedPlatform.id,
+                    providerId: providerId,
+                    startTime: startTime,
+                    endTime: endTime
+                };
+                socketService.$socket($scope.AppSocket, 'syncBetRecord', sendQuery, function (data) {
+                    $scope.$evalAsync(()=>{
+                        console.log('data', data);
+                        vm.compareConsumptionReturn(startTime, endTime, providerId, index);
+                    });
+                });
             }
 
             vm.performPlayerConsumptionReturnSettlement = function () {
@@ -17569,7 +17653,7 @@ define(['js/app'], function (myApp) {
                     }
 
                     if (j.playerId && j.playerId.csOfficer) {
-                        let len = vm.adminList.length;
+                        let len = vm.adminList ? vm.adminList.length : 0;
                         for (let x = 0; x < len; x++) {
                             let admin = vm.adminList[x];
                             if (j.playerId.csOfficer.toString() === admin._id.toString()) {
@@ -30574,9 +30658,12 @@ console.log('typeof ',typeof gameProviders);
                             departmentIdArr.push(departmentIds[i]._id);
                         }
                     }
-                }
 
-                socketService.$socket($scope.AppSocket, 'getDepartmentTreeByIds', {departmentIds: departmentIdArr}, success);
+                    socketService.$socket($scope.AppSocket, 'getDepartmentTreeByIds', {departmentIds: departmentIdArr}, success);
+                }
+                else{
+                    socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
+                }
 
                 function success(data) {
                     $scope.$evalAsync(() => {

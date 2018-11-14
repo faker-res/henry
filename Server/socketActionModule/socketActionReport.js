@@ -91,7 +91,7 @@ function socketActionReport(socketIO, socket) {
         /**
          * Create topup record report
          * @param {json} query - query data. It has to contain correct data format
-         */
+       */
         operationReport: function operationReport(query) {
             var actionName = arguments.callee.name;
             var time = dbUtil.getYesterdaySGTime();
@@ -109,6 +109,24 @@ function socketActionReport(socketIO, socket) {
             query.limit = query.limit || 20;
             var isValidData = Boolean(query && query.platformId);
             socketUtil.emitter(self.socket, dbGameProviderPlayerDaySummary.getAllProviderReportSummaryForTimeFrame, [startTime, endTime, ObjectId(query.platformId), query.providerId, 0], actionName, isValidData);
+        },
+        operationDifferentReport: function operationDifferentReport(query) {
+            var actionName = arguments.callee.name;
+            var time = dbUtil.getYesterdaySGTime();
+            var startTime = query.startTime ? new Date(query.startTime) : time.startTime;
+            var endTime = query.endTime ? new Date(query.endTime) : time.endTime;
+            query.limit = query.limit || 20;
+            var isValidData = Boolean(query && query.platformId);
+            socketUtil.emitter(self.socket, dbGameProviderPlayerDaySummary.getProviderDifferDaySummaryForTimeFrame, [startTime, endTime, ObjectId(query.platformId), query.providerId, 0, 0], actionName, isValidData);
+        },
+        syncBetRecord: function syncBetRecord(query) {
+            var actionName = arguments.callee.name;
+            var time = dbUtil.getYesterdaySGTime();
+            var startTime = query.startTime ? new Date(query.startTime) : time.startTime;
+            var endTime = query.endTime ? new Date(query.endTime) : time.endTime;
+            query.limit = query.limit || 20;
+            var isValidData = Boolean(query && query.platformId && query.providerId);
+            socketUtil.emitter(self.socket, dbGameProviderPlayerDaySummary.syncBetRecord, [startTime, endTime, ObjectId(query.platformId), query.providerId, 0, 0], actionName, isValidData);
         },
         getProviderGameReport: function getProviderGameReport(query) {
             var actionName = arguments.callee.name;
@@ -571,6 +589,15 @@ function socketActionReport(socketIO, socket) {
             let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime && (endTime > startTime));
 
             socketUtil.emitter(self.socket, dbReport.getPlayerAlipayAccReport, [ObjectId(data.platformObjId), startTime, endTime, data.playerName, data.alipayAcc, data.alipayName, data.alipayNickname, data.alipayRemark], actionName, isValidData);
+        },
+
+        getFinancialReportByDay: function getFinancialReportByDay(data) {
+            var actionName = arguments.callee.name;
+            let startTime = new Date(data.startTime);
+            let endTime = new Date(data.endTime);
+            let isValidData = Boolean(data && data.startTime && data.endTime && (endTime > startTime) && data.platform && data.displayMethod);
+
+            socketUtil.emitter(self.socket, dbProposal.getFinancialReportByDay, [data], actionName, isValidData);
         },
     };
     socketActionReport.actions = this.actions;

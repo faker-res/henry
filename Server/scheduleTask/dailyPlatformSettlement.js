@@ -14,6 +14,8 @@ var constRewardType = require('../const/constRewardType');
 const rewardUtil = require("../modules/rewardUtility");
 var promiseUtils = require("../modules/promiseUtils");
 const constSettlementPeriod = require("../const/constSettlementPeriod");
+const constTsPhoneListStatus = require("../const/constTsPhoneListStatus");
+const dbTeleSales = require('../db_modules/dbTeleSales');
 var platformRewardSettlement = require("./platformRewardSettlement");
 var dbPlayerConsumptionDaySummary = require('../db_modules/dbPlayerConsumptionDaySummary');
 var dbLogger = require('../modules/dbLogger');
@@ -365,6 +367,31 @@ var dailyPlatformSettlement = {
         );
 
         return deferred.promise;
+    },
+
+    startDailyTsDistributePhone: function (platformData) {
+        let curTime = new Date();
+        return dbconfig.collection_tsPhoneList.find({
+            platform: platformData._id,
+            distributeTaskStartTime: {$lte: curTime},
+            dailyDistributeTaskHour: curTime.getHours(),
+            dailyDistributeTaskMinute: curTime.getMinutes(),
+            status: {$in: [constTsPhoneListStatus.PRE_DISTRIBUTION, constTsPhoneListStatus.DISTRIBUTING]}
+        }).lean().then(
+           tsPhoneListData => {
+               if (tsPhoneListData && tsPhoneListData.length) {
+                   let promArr = [];
+                   tsPhoneListData.forEach(
+                       tsPhoneList => {
+                           promArr.push(dbTeleSales.distributePhoneNumber({platform: platformData._id, tsListObjId: tsPhoneList._id}));
+                       }
+                   )
+                   return Promise.all(promArr);
+               } else {
+                   return Promise.resolve(true);
+               }
+           }
+       );
     },
 
     startDailyRefreshPaymentQuota: function (platformData) {

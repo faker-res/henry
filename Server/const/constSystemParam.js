@@ -30,7 +30,8 @@ const constSystemParam = {
         password: "CallHank@163",
         mode: 'Active'
     },
-    FTP_URL: "http://callfpms-ftp.neweb.me"
+    FTP_URL: "https://callfpms-ftp.neweb.me",
+    TINIFY_API_KEY: "xfBMk74pSR4z3B0wxC7R16qY87JvWNP9" // get the api key from Hank
 };
 
 module.exports = constSystemParam;
