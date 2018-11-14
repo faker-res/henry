@@ -20647,6 +20647,13 @@ define(['js/app'], function (myApp) {
                 return isShow;
             }
 
+            vm.checkPlatformRewardIsView = function (){
+
+                setTimeout(function () {
+                    vm.disableAllRewardInput(vm.rewardDisabledInput);
+                }, 5)
+            }
+
             vm.rewardEventClicked = function (i, v) {
                 if (!v) {
                     vm.platformRewardPageName = 'showReward';
@@ -20718,6 +20725,15 @@ define(['js/app'], function (myApp) {
                                 }
                             }
 
+
+                            if (v && v.name && v.name == "PlayerRetentionRewardGroup" && vm.allPlayerLvl && vm.allPlayerLvl.length) {
+                               if (!vm.selectedPlayerLvlTab){
+                                    // set the default as the first level
+                                    vm.selectedPlayerLvlTab = 0;
+                               }
+                               
+                            }
+
                             vm.showRewardTypeData = v;
                             console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                             return true;
@@ -20784,6 +20800,14 @@ define(['js/app'], function (myApp) {
 
                                 if (cond.detail) {
                                     vm.rewardMainCondition[cond.index].detail = cond.detail;
+                                }
+
+                                if (cond.detail1) {
+                                    vm.rewardMainCondition[cond.index].detail1 = cond.detail1;
+                                }
+
+                                if (cond.detail2) {
+                                    vm.rewardMainCondition[cond.index].detail2 = cond.detail2;
                                 }
 
                                 // Get options
@@ -20904,13 +20928,54 @@ define(['js/app'], function (myApp) {
                                     }
                                 });
 
-                                if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerConsumptionSlipRewardGroup' && el == "applyType"
-                                && vm.rewardMainCondition[cond.index] && vm.rewardMainCondition[cond.index].options) {
-                                    //this reward group does not provide second selection
+                                if (vm.showRewardTypeData && vm.showRewardTypeData.name && el == "applyType"
+                                    && vm.rewardMainCondition[cond.index] && vm.rewardMainCondition[cond.index].options) {
                                     let tempApplyType = JSON.parse(JSON.stringify(vm.rewardMainCondition[cond.index].options));
-                                    tempApplyType[2] = undefined;
+
+                                    //this reward group does not provide second selection
+                                    if (vm.showRewardTypeData.name == 'PlayerConsumptionSlipRewardGroup' && tempApplyType){
+                                        if (tempApplyType[2]){
+                                            tempApplyType[2] = undefined;
+                                        }
+
+                                        if (tempApplyType[4]) {
+                                            tempApplyType[4] = undefined;
+                                        }
+                                    }
+                                    //this reward group need only the 4th selection
+                                    else if (vm.showRewardTypeData.name == 'PlayerRetentionRewardGroup' && tempApplyType) {
+                                        if (tempApplyType[1]) {
+                                            tempApplyType[1] = undefined;
+                                        }
+
+                                        if (tempApplyType[2]) {
+                                            tempApplyType[2] = undefined;
+                                        }
+
+                                        if (tempApplyType[3]) {
+                                            tempApplyType[3] = undefined;
+                                        }
+                                    }
+                                    /// the rest of the reward does not need the 4th selection
+                                    else{
+                                        if (tempApplyType && tempApplyType[4]) {
+                                            tempApplyType[4] = undefined;
+                                        }
+                                    }
 
                                     vm.rewardMainCondition[cond.index].options = JSON.parse(JSON.stringify(tempApplyType));
+                                }
+
+                                if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerRetentionRewardGroup' && el == "interval"
+                                    && vm.rewardMainCondition[cond.index]) {
+                                    let tempInterval = JSON.parse(JSON.stringify(vm.rewardMainCondition[cond.index].options));
+                                    if (tempInterval && tempInterval[1]) {
+                                        tempInterval[1] = undefined;
+                                    }
+                                    if (tempInterval && tempInterval[5]) {
+                                        tempInterval[5] = undefined;
+                                    }
+                                    vm.rewardMainCondition[cond.index].options = JSON.parse(JSON.stringify(tempInterval));
                                 }
 
                             })
@@ -21239,29 +21304,82 @@ console.log('typeof ',typeof gameProviders);
 
                     vm.rewardMainParam = Object.assign({}, paramType);
 
+                    // special design for rewardType = PlayerRetentionRewardGroup
+                    if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerRetentionRewardGroup' && vm.intervalValueOfRetentionRewardGroup) {
+                        let value = [];
 
-                    if (vm.isPlayerLevelDiff) {
-                        vm.allPlayerLvl.forEach((e, idx) => {
-                            let value = [{}];
-                            if (vm.isRandomReward) {
-                                value = [{"rewardPercentageAmount": [{percentage: "", amount: ""}]}];
-                            }
+                        switch (parseInt(vm.intervalValueOfRetentionRewardGroup)) {
+                            // weekly
+                            case 2:
+
+                                for (let i = 1; i <= 7; i++) {
+                                    value.push({loginDay: i})
+                                }
+
+                                break;
+                            // bi-weekly
+                            case 3:
+
+                                for (let i = 1; i <= 15; i++) {
+                                    value.push({loginDay: i})
+                                }
+                                break;
+                            // monthly
+                            case 4:
+
+                                let noOfDay = utilService.getNumberOfDayThisMonth();
+
+                                if (noOfDay) {
+                                    for (let i = 1; i <= noOfDay; i++) {
+                                        value.push({loginDay: i})
+                                    }
+                                }
+                                break;
+                        }
+
+
+                        if (vm.isPlayerLevelDiff){
+                            vm.allPlayerLvl.forEach((e, idx) => {
+                                vm.rewardMainParamTable.push({
+                                    header: vm.rewardMainParam.rewardParam,
+                                    value: value
+                                });
+
+                            });
+                        }
+                        else {
+
                             vm.rewardMainParamTable.push({
                                 header: vm.rewardMainParam.rewardParam,
                                 value: value
                             });
-
-                        });
-                    } else {
-                        let value = [{}];
-                        if (vm.isRandomReward) {
-                            value = [{"rewardPercentageAmount": [{percentage: "", amount: ""}]}];
                         }
+                    }
+                    // for rewardType != PlayerRetentionRewardGroup
+                    else {
+                        if (vm.isPlayerLevelDiff) {
+                            vm.allPlayerLvl.forEach((e, idx) => {
+                                let value = [{}];
+                                if (vm.isRandomReward) {
+                                    value = [{"rewardPercentageAmount": [{percentage: "", amount: ""}]}];
+                                }
+                                vm.rewardMainParamTable.push({
+                                    header: vm.rewardMainParam.rewardParam,
+                                    value: value
+                                });
 
-                        vm.rewardMainParamTable.push({
-                            header: vm.rewardMainParam.rewardParam,
-                            value: value
-                        });
+                            });
+                        } else {
+                            let value = [{}];
+                            if (vm.isRandomReward) {
+                                value = [{"rewardPercentageAmount": [{percentage: "", amount: ""}]}];
+                            }
+
+                            vm.rewardMainParamTable.push({
+                                header: vm.rewardMainParam.rewardParam,
+                                value: value
+                            });
+                        }
                     }
 
                     delete vm.rewardMainParam.rewardParam;
@@ -21373,7 +21491,7 @@ console.log('typeof ',typeof gameProviders);
                 }
 
                 if (model && model.name == "applyType") {
-                    if (model.value != 1) {
+                    if (model.value != 1 && model.value != 4) {
                         for (let x in vm.rewardMainCondition) {
                             if (vm.rewardMainCondition[x].name == "canApplyFromClient") {
                                 vm.rewardMainCondition[x].value = false;
@@ -21384,6 +21502,68 @@ console.log('typeof ',typeof gameProviders);
                         vm.rewardDisabledParam = vm.rewardDisabledParam.filter(name => name !== "canApplyFromClient");
                     }
                 }
+
+                $scope.$evalAsync( () => {
+                    if (model && model.name == "definePlayerLoginMode" && vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerRetentionRewardGroup'
+                        && vm.showRewardTypeData.params && vm.showRewardTypeData.params.param && vm.showRewardTypeData.params.param.tblOptDynamic
+                        && vm.showRewardTypeData.params.param.tblOptDynamic.rewardParam && vm.showRewardTypeData.params.param.tblOptDynamic.rewardParam.loginDay
+                        && vm.showRewardTypeData.params.param.tblOptFixed.rewardParam && vm.showRewardTypeData.params.param.tblOptFixed.rewardParam.loginDay) {
+
+                        if (model.value == 2) {
+                            vm.showRewardTypeData.params.param.tblOptDynamic.rewardParam.loginDay.des = "EXACT_LOGIN_DATE";
+                            vm.showRewardTypeData.params.param.tblOptFixed.rewardParam.loginDay.des = "EXACT_LOGIN_DATE";
+                        }
+                        else if (model.value == 1) {
+                            vm.showRewardTypeData.params.param.tblOptDynamic.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
+                            vm.showRewardTypeData.params.param.tblOptFixed.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
+                        }
+                    }
+
+                    if (model && model.name == "interval" && model.value && vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerRetentionRewardGroup') {
+                        vm.intervalValueOfRetentionRewardGroup = model.value;
+
+                        switch (parseInt(model.value)){
+                            // weekly
+                            case 2:
+                                vm.rewardMainParamTable.forEach(
+                                    param => {
+                                        param.value = [];
+                                        for (let i = 1; i <= 7; i ++){
+                                            param.value.push({loginDay: i})
+                                        }
+                                    }
+                                )
+                                break;
+                            // bi-weekly
+                            case 3:
+                                vm.rewardMainParamTable.forEach(
+                                    param => {
+                                        param.value = [];
+                                        for (let i = 1; i <= 14; i ++){
+                                            param.value.push({loginDay: i})
+                                        }
+                                    }
+                                )
+                                break;
+                            // monthly
+                            case 4:
+                                vm.rewardMainParamTable.forEach(
+                                    param => {
+                                        param.value = [];
+                                        let noOfDay = utilService.getNumberOfDayThisMonth();
+                                        if (noOfDay){
+                                            for (let i = 1; i <= noOfDay; i ++){
+                                                param.value.push({loginDay: i})
+                                            }
+                                        }
+                                    }
+                                )
+                                break
+                        }
+
+                    }
+
+                })
 
                 // $scope.safeApply();
             };
@@ -21437,6 +21617,9 @@ console.log('typeof ',typeof gameProviders);
                 if (vm.isRandomReward) {
                     $("#rewardMainTasks [data-cond-name='applyType']").prop("disabled", true);
                     $("#rewardMainTasks [data-cond-name='canApplyFromClient']").prop("disabled", disabled);
+                }
+                if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerRetentionRewardGroup') {
+                    $("#rewardMainTasks [data-cond-name='applyType']").prop("disabled", true);
                 }
             }
 
