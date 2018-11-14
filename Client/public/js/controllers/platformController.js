@@ -2157,18 +2157,18 @@ define(['js/app'], function (myApp) {
             vm.resetProviderConsumptRecord = function(index, providerId){
 
                 let providerName = vm.getProviderName(providerId);
-                  return {
-                       index:index,
-                       providerId:null,
-                       providerName:providerName,
-                       fpmsConsumption:null,
-                       fpmsValidAmount:null,
-                       cpmsConsumption:null,
-                       cpmsValidAmount:null,
-                       validAmtSyncPercent: null,
-                       consumptionDiff:null,
-                       status:null
-                 }
+                return {
+                    index: index,
+                    providerId: null,
+                    providerName: providerName,
+                    fpmsConsumption: null,
+                    fpmsValidAmount: null,
+                    cpmsConsumption: null,
+                    cpmsValidAmount: null,
+                    validAmtSyncPercent: null,
+                    consumptionDiff: null,
+                    status: null
+                }
             }
             vm.getProviderName = function(providerId){
                 let provider = vm.platformProviderList.filter(item=>{
@@ -2195,7 +2195,6 @@ define(['js/app'], function (myApp) {
                 });
 
                 vm.renderConsumption();
-
             }
             vm.renderConsumption = function(){
                 $scope.AppSocket.removeAllListeners('_operationDifferentReport')
@@ -2216,8 +2215,7 @@ define(['js/app'], function (myApp) {
                     endTime: endTime,
                     providerId: providerId
                 };
-                socketService.$socket($scope.AppSocket, 'operationDifferentReport', sendQuery, function (data) {})
-
+                socketService.$socket($scope.AppSocket, 'operationDifferentReport', sendQuery, function (data) {});
             }
             vm.syncBetRecord = function(startTime, endTime, providerId, index){
                 vm.providerDiffConsumption[providerId] = vm.resetProviderConsumptRecord(index, providerId);

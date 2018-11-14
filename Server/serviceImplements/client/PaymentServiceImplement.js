@@ -292,7 +292,15 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, getBankTypeList, [], isValidData, false, false, true);
 
         function getBankTypeList() {
-            return pmsAPI.bankcard_getBankTypeList({}).then(data => data.data);
+            return pmsAPI.bankcard_getBankTypeList({}).then(data => {
+                // bankflag: 1   // 提款银行类型
+                // bankflag: 0   // 存款银行类型
+                // Hank requested to display bankflag 1 only
+                if (data && data.data) {
+                    let withdrawalBank = data.data.filter(bank => bank.bankflag === 1);
+                    return withdrawalBank;
+                }
+            });
         }
     };
 

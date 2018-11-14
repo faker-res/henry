@@ -1949,6 +1949,16 @@ var proposal = {
                 };
             }
 
+            if(returnData[0] && returnData[0].length > 0 && statusArr){
+                let indexOfApprovedStatus = statusArr.findIndex(s => s == "approved");
+                let indexOfSuccessStatus = statusArr.findIndex(s => s == "Success");
+                if(indexOfApprovedStatus == -1 && indexOfSuccessStatus > -1){
+                    returnData[0] = returnData[0].filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
+                }else if(indexOfApprovedStatus > -1 && indexOfSuccessStatus == -1){
+                    returnData[0] = returnData[0].filter(r => !((r.type.name != "PlayerBonus" && r.type.name != "PartnerBonus" && r.type.name != "BulkExportPlayerData" ) && r.status == "Approved"));
+                }
+            }
+
             return {data: returnData[0], size: returnData[1], summary: summaryObj};
         });
     },
