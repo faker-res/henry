@@ -203,8 +203,15 @@ const cpmsAPI = {
 
     game_updateImageUrl: function (data, fileData) {
         return callCPMSAPIWithFileData("game", "updateImageUrl", data, fileData);
+    },
+
+    consumption_getConsumptionSummary: function(data){
+        return callCPMSAPI("consumption", "getConsumptionSummary", data);
+    },
+
+    consumption_reSendConsumption: function(data){
+        return callCPMSAPI("consumption", "reSendConsumption", data);
     }
 };
 
 module.exports = cpmsAPI;
-
