@@ -3638,18 +3638,19 @@ define(['js/app'], function (myApp) {
             utilService.clearDatePickerDate(id);
         };
 
-        vm.searchFinancialReportByDay = function () {
+        vm.searchFinancialReport = function () {
             $('#financialReportSpin').show();
 
-            if (vm.financialReport && vm.financialReport.displayMethod && vm.financialReport.displayMethod == 'daily') {
-                let sendData = {
-                    startTime: vm.financialReport.startTime.data('datetimepicker').getLocalDate(),
-                    endTime: vm.financialReport.endTime.data('datetimepicker').getLocalDate(),
-                    platform: vm.financialReport.platform,
-                    displayMethod: vm.financialReport.displayMethod
-                };
+            let sendData = {
+                startTime: vm.financialReport.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.financialReport.endTime.data('datetimepicker').getLocalDate(),
+                platform: vm.financialReport.platform,
+                displayMethod: vm.financialReport.displayMethod
+            };
 
-                console.log('sendData', sendData);
+            console.log('sendData', sendData);
+            if (vm.financialReport && vm.financialReport.displayMethod && vm.financialReport.displayMethod == 'daily') {
+                $('#sumFinancialReport').hide();
                 socketService.$socket($scope.AppSocket, 'getFinancialReportByDay', sendData, function (data) {
                     console.log('getFinancialReportByDay', data);
                     $scope.$evalAsync(() => {
@@ -3690,6 +3691,17 @@ define(['js/app'], function (myApp) {
                         }
                     });
                     $('#financialReportSpin').hide();
+                    $('#dailyFinancialReport').show();
+                });
+            } else if (vm.financialReport && vm.financialReport.displayMethod && vm.financialReport.displayMethod == 'sum') {
+                $('#dailyFinancialReport').hide();
+                socketService.$socket($scope.AppSocket, 'getFinancialReportBySum', sendData, function (data) {
+                    console.log('getFinancialReportBySum', data);
+                    $scope.$evalAsync(() => {
+                        vm.sumFinancialReportList = data && data.data ? data.data : [];
+                    });
+                    $('#financialReportSpin').hide();
+                    $('#sumFinancialReport').show();
                 });
             }
         };
@@ -9485,56 +9497,59 @@ define(['js/app'], function (myApp) {
                     vm.financialReport = {};
                     vm.financialReport.displayMethod = 'sum';
                     vm.dailyFinancialReportList = [];
-
-                    utilService.actionAfterLoaded(('#financialReport'), function () {
-                        $('select#selectFinancialReportPlatform').multipleSelect({
-                            allSelected: $translate("All Selected"),
-                            selectAllText: $translate("Select All"),
-                            displayValues: true,
-                            countSelected: $translate('# of % selected'),
-                        });
-                        let $multi = ($('select#selectFinancialReportPlatform').next().find('.ms-choice'))[0];
-                        $('select#selectFinancialReportPlatform').next().on('click', 'li input[type=checkbox]', function () {
-
-                            $scope.$evalAsync(() => {
-                                if ($($multi).text() == '') {
-                                    vm.financialReport.displayMethod = '';
-                                } else if ($($multi).text().includes('/') || $($multi).text().includes('全选')) {
-                                    vm.financialReport.displayMethod = 'sum';
-                                } else {
-                                    let selectedPlatform = $($multi).text().split(',');
-                                    let count = selectedPlatform.length;
-
-                                    if (count === 1) {
-                                        vm.financialReport.displayMethod = 'daily';
-                                    } else {
-                                        vm.financialReport.displayMethod = 'sum';
-                                    }
-                                }
+                    vm.sumFinancialReportList = {};
+                    setTimeout(function() {
+                        utilService.actionAfterLoaded(('#financialReport'), function () {
+                            $('select#selectFinancialReportPlatform').multipleSelect({
+                                allSelected: $translate("All Selected"),
+                                selectAllText: $translate("Select All"),
+                                displayValues: true,
+                                countSelected: $translate('# of % selected'),
                             });
+                            let $multi = ($('select#selectFinancialReportPlatform').next().find('.ms-choice'))[0];
+                            $('select#selectFinancialReportPlatform').next().on('click', 'li input[type=checkbox]', function () {
 
-                            let upText = $($multi).text().split(',').map(item => {
-                                let textShow = '';
-                                vm.platformList.forEach(platform => {
-                                    if (platform && platform._id && item && (platform._id.toString() == item.trim().toString())) {
-                                        textShow = platform.name;
-                                    } else if (item.trim().includes('/') || item.trim().includes('全选')){
-                                        textShow = item;
+                                $scope.$evalAsync(() => {
+                                    if ($($multi).text() == '') {
+                                        vm.financialReport.displayMethod = '';
+                                    } else if ($($multi).text().includes('/') || $($multi).text().includes('全选')) {
+                                        vm.financialReport.displayMethod = 'sum';
+                                    } else {
+                                        let selectedPlatform = $($multi).text().split(',');
+                                        let count = selectedPlatform.length;
+
+                                        if (count === 1) {
+                                            vm.financialReport.displayMethod = 'daily';
+                                        } else {
+                                            vm.financialReport.displayMethod = 'sum';
+                                        }
                                     }
                                 });
-                                return textShow;
-                            }).join(',');
-                            $($multi).find('span').text(upText)
-                        });
-                        $("select#selectFinancialReportPlatform").multipleSelect("checkAll");
 
-                        let today = new Date();
-                        let todayEndTime = today.setHours(23, 59, 59, 999);
-                        vm.financialReport.startTime = utilService.createDatePicker('#financialReport .startTime');
-                        vm.financialReport.endTime = utilService.createDatePicker('#financialReport .endTime');
-                        vm.financialReport.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
-                        vm.financialReport.endTime.data('datetimepicker').setLocalDate(new Date(todayEndTime));
-                        //vm.searchFinancialReportByDay();
+                                let upText = $($multi).text().split(',').map(item => {
+                                    let textShow = '';
+                                    vm.platformList.forEach(platform => {
+                                        if (platform && platform._id && item && (platform._id.toString() == item.trim().toString())) {
+                                            textShow = platform.name;
+                                        } else if (item.trim().includes('/') || item.trim().includes('全选')) {
+                                            textShow = item;
+                                        }
+                                    });
+                                    return textShow;
+                                }).join(',');
+                                $($multi).find('span').text(upText)
+                            });
+                            $("select#selectFinancialReportPlatform").multipleSelect("checkAll");
+
+                            let today = new Date();
+                            let todayEndTime = today.setHours(23, 59, 59, 999);
+                            vm.financialReport.startTime = utilService.createDatePicker('#financialReport .startTime');
+                            vm.financialReport.endTime = utilService.createDatePicker('#financialReport .endTime');
+                            vm.financialReport.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
+                            vm.financialReport.endTime.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+                            $('#dailyFinancialReport').hide();
+                            $('#sumFinancialReport').hide();
+                        });
                     });
                     break;
             }
