@@ -11742,18 +11742,15 @@ define(['js/app'], function (myApp) {
                 orderNo: vm.playerAssignTopUp.orderNo
             };
             vm.playerAssignTopUp.submitted = true;
-            $scope.safeApply();
             socketService.$socket($scope.AppSocket, 'applyAssignTopUpRequest', sendData,
                 function (data) {
                     console.log('assignTopup success', data);
                     vm.playerAssignTopUp.responseData = data.data;
                     vm.getPlatformPlayersData();
-                    $scope.safeApply();
                 }, function (error) {
                     vm.playerAssignTopUp.responseMsg = $translate(error.error.errorMessage);
                     // socketService.showErrorMessage(error.error.errorMessage);
                     vm.getPlatformPlayersData();
-                    $scope.safeApply();
                 });
         }
 

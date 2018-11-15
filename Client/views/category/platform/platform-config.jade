@@ -52,7 +52,8 @@
                         span {{"largeWithdrawalSetting" | translate}}
                     li.list-group-item(ng-class='{active: vm.selectedConfigTab === "platformFeeEstimateSetting"}', ng-click='vm.configTabClicked("platformFeeEstimateSetting")')
                         span {{"platformFeeEstimateSetting (show in report)" | translate}}
-
+                    li.list-group-item(ng-class='{active: vm.selectedConfigTab === "WeChatGroupControlSetting"}', ng-click='vm.configTabClicked("WeChatGroupControlSetting")')
+                        span {{"WeChatGroupControlSetting" | translate}}
     .col-md-9(style="padding-left:0;padding-right:15px")
         .panel.panel-primary
             .panel-heading.panel-heading-sm
@@ -1304,7 +1305,7 @@
 
                             br
                             br
-                            table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                            table.common-table.playerLvlTable(style='width:a min-width:99.9%')
                                 thead
                                     tr
                                         th {{'NAME' | translate}}
@@ -2064,8 +2065,48 @@
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("platformFeeEstimateSetting")') {{"CANCEL" | translate}}
                     button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("platformFeeEstimateSetting")') {{"CONFIRM" | translate}}
-                    
-                
+
+                div(ng-if='vm.selectedConfigTab=="WeChatGroupControlSetting"')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                        thead
+                            tr
+                                th(style="width:20%") {{'Mobile Phone Number' | translate}}
+                                th(style="width:20%") {{'Create Device Name' | translate}}
+                                th(style="width:20%") {{'ACTION_BUTTON' | translate}}
+                                th(style="width:20%") {{'ADD/Last Edited Time' | translate}}
+                                th(style="width:20%") {{'ADD/Who Last Edited' | translate}}
+
+                        tbody
+                            tr
+                                td
+                                td
+                                td
+                                    i.fa.fa-minus {{'Delete' | translate}}
+                                td
+                                td
+                            tr
+                                td(colspan=5) {{'Adding In' | translate}}
+                            tr
+                                td
+                                td
+                                td
+                                    i.fa.fa-plus {{'ADD' | translate}}
+                                td
+                                td
+
+                    div(style='display:inline-block;margin:20px 0 0 0;font-size:15px;float:right;')
+                        button.btn.btn-primary.common-button
+                            i.fa.fa-pencil-square-o
+                            text {{"EDIT" | translate}}
+                        button.btn.btn-success.common-button
+                            i.fa.fa-check
+                            text {{"CONFIRM" | translate}}
+                        button.btn.btn-danger.common-button
+                            i.fa.fa-ban
+                            text {{"CANCEL" | translate}}
+
+
+
                 div(ng-if='vm.selectedConfigTab=="largeWithdrawalSetting"')
                     h4(style='text-align:center;font-weight:bold') {{"PLAYER" | translate}}
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')

@@ -4081,6 +4081,10 @@
   "BANK COUNTER TRANSFER NUMBER":"银行柜台-转帐编号",
   "PLEASE INFORM BANK STAFF THIS SERIAL NUMBER, AND LET THEM FILL UP REMARK":"*请将此编号告知银行员，请他填写备注",
 
+  "Mobile Phone Number":"*手机设备号",
+  "Create Device Name":"*绑定设备腻称",
+  "ADD/Last Edited Time":"添加/上次编辑时间",
+  "ADD/Who Last Edited":"添加/上次编辑人员",
 
   "modifyPlayerCredibilityRemark": "编辑信用评价",
   "updatePlayerCredibilityRemark": "信用评价",
@@ -4730,6 +4734,7 @@
   "platform fee setting %": "平台费用设定％",
   "platformFeeEstimateSetting": "平台费估算设置",
   "platformFeeEstimateSetting (show in report)": "平台费估算设置（报表中呈现）",
+  "WeChatGroupControlSetting":"微信群控设置",
   "PLAYER_CONSUMPTION_TREND": "投注人数趋势",
   "Credit Charge(Service Charge Deducted)": "提款金额（已扣手续费）",
   "ximaWithdrawUsed": "提款洗码金额",
