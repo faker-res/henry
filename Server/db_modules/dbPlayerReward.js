@@ -5970,9 +5970,6 @@ let dbPlayerReward = {
                     if (eventData.condition.checkIsMobileDeviceAppliedBefore) {
                         for (let i = 0; i < countReward.length; i++) {
                             // check if same mobile device has already received this reward
-                            console.log('DEVICEID===11', countReward[i].data.deviceId);
-                            countReward[i].data.deviceId =  "device123";
-                            console.log('DEVICEID===22', countReward[i].data.deviceId);
                             if (playerData.deviceId === countReward[i].data.deviceId) {
                                 sameMobileDevice++;
                             }
@@ -6007,7 +6004,6 @@ let dbPlayerReward = {
                 for (let x = 0; x  < forbidRewardEventIds.length; x++) {
                     forbidRewardEventIds.push(forbidRewardEventIds[x].toString());
                 }
-                console.log('forbidRewardEventIds===', forbidRewardEventIds);
 
                 // check other reward apply in period
                 checkForbidRewardProm = dbConfig.collection_proposal.aggregate(
