@@ -31,7 +31,7 @@ let tsAssignee = new Schema({
     // number of holding phone that have not been register
     holdingCount: {type: Number, default: 0},
     // status of TsAssignee - constTsAssigneeStatus
-    status: {type: Number, default: 0}
+    status: {type: Number, default: 0, index: true}
 
 });
 
