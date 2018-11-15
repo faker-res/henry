@@ -5126,7 +5126,12 @@ var dbPlatform = {
             }else if(fileName.includes(".jpg") || fileName.includes(".png")){ // if file type is jpg or png, compress before upload to ftp, max 500 images per month
 
                 let tinify = require('tinify');
-                tinify.key = constSystemParam.TINIFY_API_KEY;
+
+                if (env.mode != "local" && env.mode != "qa") {
+                    tinify.key = constSystemParam.TINIFY_API_KEY;
+                }else{
+                    tinify.key = constSystemParam.TINIFY_DEV_API_KEY;
+                }
 
                 tinify.fromBuffer(fileStream).toBuffer(function(err, buffer){
 
