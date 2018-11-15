@@ -788,6 +788,17 @@ db.rewardParam.update({
                     index: 25,
                     type: "checkbox",
                     des: "Need SMS verification"
+                },
+                forbidApplyReward: {
+                    index: 26,
+                    type: "multiSelect",
+                    des: "Forbid to apply other reward within reward interval",
+                    options: "allRewardEvent"
+                },
+                checkIsMobileDeviceAppliedBefore: {
+                    index: 27,
+                    type: "checkbox",
+                    des: "Check if this mobile device has received free trial"
                 }
             }
         },

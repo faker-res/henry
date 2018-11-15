@@ -1,33 +1,30 @@
-.text-center
-    p(ng-if="!vm.curPlatformText")
-        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
-.col-md-12(ng-show="checkViewPermission('Player', 'Player', 'AdvancedSearch') && vm.curPlatformText")
-    .col-md-12.search-filters-container#playerTable-search-filter.well
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label.control-label {{'PHONE_LIST' | translate}}
-            select.form-control(ng-model='vm.phoneListSearch.listId' ng-options='list._id as list.name for list in vm.allTSList')
-                option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
-                option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
-                option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
-                option(value='Test Player') {{'TEST_PLAYER' | translate}}
-        .search-filter.col-xs-12.col-sm-6.col-md-3
-            label {{"SEND_STATUS"|translate}}
-            select.spicker.form-control(ng-model='vm.phoneListSearch.sendStatus', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryRole(vm.phoneListSearch)", ng-options='dp._id as dp.departmentName | translate for dp in vm.queryDepartments')
-        .col-xs-12.col-sm-6.col-md-3(style='width: 250px !important')
-            label.control-label {{'FIRST_IMPORT_TIME(START)' | translate}}
-            #phoneListStartTimePicker
-        .col-xs-12.col-sm-6.col-md-3(style='width: 250px !important')
-            label.control-label {{'FIRST_IMPORT_TIME(END)' | translate}}
-            #phoneListEndTimePicker
-        .search-filter.col-md-3(style="padding-top: 25px;")
-            label.control-label
-            //button#resetPlayerQuery.btn.btn-primary.common-button-sm {{'Reset' | translate}}
-            button#searchPlayerQuery.btn.btn-primary.common-button-sm(ng-click="vm.filterPhoneListManagement();") {{'SEARCH' | translate}}
-label(ng-show='vm.platformPlayerCount') {{'Total Players' | translate}} : {{vm.platformPlayerCount}} ({{"Search Result" | translate}} : {{vm.searchPlayerCount}})
-.col-md-12(ng-show="checkViewPermission('Player', 'Player', 'AdvancedSearch') && vm.curPlatformText")
-    div
-        table#phoneListManagementTable.common-table.display(style="min-width:100% ;overflow: scroll")
-        #phoneListManagementTablePage
+#phoneListSearch
+    .text-center
+        p(ng-if="!vm.curPlatformText")
+            label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+    .col-md-12(ng-show="vm.curPlatformText")
+        .col-md-12.search-filters-container#phoneListManageTable-search-filter.well
+            .search-filter.col-xs-12.col-sm-6.col-md-3
+                label.control-label {{'PHONE_LIST' | translate}}
+                select.spicker.form-control#phoneListMangementName(ng-model='vm.phoneListSearch.name', bsp, multiple, data-actions-box='true', ng-options='v as v for (i,v) in vm.allTSList')
+            .search-filter.col-xs-12.col-sm-6.col-md-3
+                label {{"SEND_STATUS"|translate}}
+                select.spicker.form-control#phoneListMangementStatus(ng-model='vm.phoneListSearch.sendStatus', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.constTsPhoneListStatus')
+            .col-xs-12.col-sm-6.col-md-3(style='width: 250px !important')
+                label.control-label {{'FIRST_IMPORT_TIME(START)' | translate}}
+                #phoneListStartTimePicker
+            .col-xs-12.col-sm-6.col-md-3(style='width: 250px !important')
+                label.control-label {{'FIRST_IMPORT_TIME(END)' | translate}}
+                #phoneListEndTimePicker
+            .search-filter.col-md-3(style="padding-top: 25px;")
+                label.control-label
+                //button#resetPlayerQuery.btn.btn-primary.common-button-sm {{'Reset' | translate}}
+                //button#searchPhoneListManagement.btn.btn-primary.common-button-sm(ng-click="vm.filterPhoneListManagement();") {{'SEARCH' | translate}}
+                button#searchPhoneListManagement.btn.btn-primary.common-button-sm(ng-click="vm.showPhoneListManagement(true);") {{'SEARCH' | translate}}
+    .col-md-12(ng-show="vm.curPlatformText")
+        div
+            table#phoneListManagementTable.common-table.display(style="min-width:100% ;overflow: scroll")
+            #phoneListManagementTablePage
 
 
 //ModaltsAnalyticsPhoneList
@@ -121,14 +118,14 @@ label(ng-show='vm.platformPlayerCount') {{'Total Players' | translate}} : {{vm.p
                                                 td {{'Filter Phone Number From White List And Recycle Bin' | translate}}
                                                 td
                                                     input(type='checkbox', min=0, ng-model='vm.tsAnalyticsPhoneList.isCheckWhiteListAndRecycleBin' ng-disabled='vm.analyticsdisableAll')
-                                            tr(ng-repeat='(i,v) in vm.tsAnalyticsPhoneList.time_operator_description')
+                                            tr(ng-repeat='(i,v) in vm.tsAnalyticsPhoneList.time_operator_description track by $index')
                                                 td {{'Time/Operator/Description' | translate}}
                                                 td
-                                                    input.form-control(type='text', ng-model='vm.tsAnalyticsPhoneList.time_operator_description[i]' ng-disabled='true')
+                                                    text.form-control {{vm.tsAnalyticsPhoneList.time_operator_description[i].importTime | date : 'yyyy-MM-dd HH:mm:ss'}}  {{" - " + vm.tsAnalyticsPhoneList.time_operator_description[i].adminName + " - " + vm.tsAnalyticsPhoneList.time_operator_description[i].description}}
 
             .modal-footer
-                div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
-                button.btn.btn-success.common-button(data-dismiss='modal'  ng-if="!vm.importPhoneResult" ng-click="vm.editTsNewList()" ng-disabled="vm.checkFilterIsDisable" ng-show="!vm.analyticsPhoneListEdit")
+                div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px')
+                button.btn.btn-success.common-button(data-dismiss='modal'  ng-click="vm.editTsNewList()" ng-disabled="vm.checkFilterIsDisable" ng-show="!vm.analyticsPhoneListEdit")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
                 button.btn.btn-danger.common-button(data-dismiss='modal' ng-show="vm.analyticsPhoneListEdit")

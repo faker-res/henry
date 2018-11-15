@@ -10011,6 +10011,10 @@ function getCommissionRate (commissionRateTable, consumptionAmount, activeCount)
         consumptionAmount *= -1;
     }
 
+    commissionRateTable = commissionRateTable.sort((requirementA, requirementB) => {
+        return requirementA.commissionRate - requirementB.commissionRate;
+    });
+
     for (let i = 0; i < commissionRateTable.length; i++) {
         let commissionRequirement = commissionRateTable[i];
 
@@ -10170,6 +10174,9 @@ function getPlayerCommissionConsumptionDetail (playerObjId, startTime, endTime, 
             consumptionData.map(providerConsumptionData => {
                 if (providerGroups && providerGroups.length > 0) {
                     providerGroups.map(group => {
+                        if (!group || !group.providers) {
+                            return;
+                        }
                         group.providers.map(groupProviderId => {
                             if (String(groupProviderId) === String(providerConsumptionData.provider)) {
                                 consumptionProviderDetail[group.name].consumptionTimes += providerConsumptionData.count;

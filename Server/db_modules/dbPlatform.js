@@ -2213,8 +2213,8 @@ var dbPlatform = {
         type ? queryObject.type = new RegExp(["^", type, "$"].join(""), "i") : '';
         provider ? queryObject.providerId = provider : '';
 
-        let countProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).count().read("secondaryPreferred");
-        let recordProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).sort(sortCol).skip(index).limit(limit).read("secondaryPreferred");
+        let countProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).read("secondaryPreferred").count();
+        let recordProm = dbconfig.collection_playerCreditTransferLog.find(queryObject).read("secondaryPreferred").sort(sortCol).skip(index).limit(limit);
         return Q.all([countProm, recordProm]).then(data => {
             return {total: data[0], data: data[1]};
         })
@@ -5126,7 +5126,12 @@ var dbPlatform = {
             }else if(fileName.includes(".jpg") || fileName.includes(".png")){ // if file type is jpg or png, compress before upload to ftp, max 500 images per month
 
                 let tinify = require('tinify');
-                tinify.key = constSystemParam.TINIFY_API_KEY;
+
+                if (env.mode != "local" && env.mode != "qa") {
+                    tinify.key = constSystemParam.TINIFY_API_KEY;
+                }else{
+                    tinify.key = constSystemParam.TINIFY_DEV_API_KEY;
+                }
 
                 tinify.fromBuffer(fileStream).toBuffer(function(err, buffer){
 
@@ -5195,6 +5200,39 @@ var dbPlatform = {
                                         });
                                     });
                                 });
+                            }else{
+                                ftpClient.mkdir(platformId, false, function(err){
+                                    if(err) {
+                                        deferred.reject({
+                                            status: constServerCode.DB_ERROR,
+                                            name: "DataError",
+                                            errorMessage: "Failed to create folder: " + err
+                                        });
+                                    }
+
+                                    ftpClient.cwd(platformId, function (err, currentDir) {
+                                        if(err){
+                                            deferred.reject({
+                                                status: constServerCode.DB_ERROR,
+                                                name: "DataError",
+                                                errorMessage: err
+                                            });
+                                        }
+
+                                        ftpClient.put(buffer, fileName, function (err) {
+                                            if (err) {
+                                                deferred.reject({
+                                                    status: constServerCode.DB_ERROR,
+                                                    name: "DataError",
+                                                    errorMessage: "Failed to create file: " + err
+                                                });
+                                            }
+
+                                            deferred.resolve({result: "success", url: url});
+                                            ftpClient.end();
+                                        });
+                                    });
+                                });
                             }
                         }else{
                             ftpClient.mkdir(platformId, false, function(err){
@@ -5215,7 +5253,7 @@ var dbPlatform = {
                                         });
                                     }
 
-                                    ftpClient.put(fileStream, fileName, function (err) {
+                                    ftpClient.put(buffer, fileName, function (err) {
                                         if (err) {
                                             deferred.reject({
                                                 status: constServerCode.DB_ERROR,
@@ -5275,6 +5313,39 @@ var dbPlatform = {
                                                 errorMessage: "File name exists"
                                             });
                                         }
+                                    }
+
+                                    ftpClient.put(fileStream, fileName, function (err) {
+                                        if (err) {
+                                            deferred.reject({
+                                                status: constServerCode.DB_ERROR,
+                                                name: "DataError",
+                                                errorMessage: "Failed to create file: " + err
+                                            });
+                                        }
+
+                                        deferred.resolve({result: "success", url: url});
+                                        ftpClient.end();
+                                    });
+                                });
+                            });
+                        }else{
+                            ftpClient.mkdir(platformId, false, function(err){
+                                if(err) {
+                                    deferred.reject({
+                                        status: constServerCode.DB_ERROR,
+                                        name: "DataError",
+                                        errorMessage: "Failed to create folder: " + err
+                                    });
+                                }
+
+                                ftpClient.cwd(platformId, function (err, currentDir) {
+                                    if(err){
+                                        deferred.reject({
+                                            status: constServerCode.DB_ERROR,
+                                            name: "DataError",
+                                            errorMessage: err
+                                        });
                                     }
 
                                     ftpClient.put(fileStream, fileName, function (err) {

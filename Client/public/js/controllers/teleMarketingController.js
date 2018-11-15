@@ -112,6 +112,36 @@ define(['js/app'], function (myApp) {
             PLAYER_AUTO_CONVERT_REWARD_POINTS: "PlayerAutoConvertRewardPoints"
         };
 
+        vm.loadAdminNames = function () {
+            vm.adminList = [];
+            vm.platformDepartmentObjId = "";
+            socketService.$socket($scope.AppSocket, 'getDepartmentDetailsByPlatformObjId', {platformObjId: vm.selectedPlatform.id},
+                data => {
+                    vm.currentPlatformDepartment = data.data;
+
+                    if (vm.currentPlatformDepartment && vm.currentPlatformDepartment.length) {
+                        vm.currentPlatformDepartment.map(department => {
+                            if (department.departmentName == vm.selectedPlatform.data.name) {
+                                vm.platformDepartmentObjId = department._id;
+                                socketService.$socket($scope.AppSocket, 'getAdminNameByDepartment', {departmentId: vm.platformDepartmentObjId}, function (data) {
+                                    vm.adminList = data.data;
+                                    vm.adminList.sort((a, b) => {
+                                        if(a.adminName > b.adminName) {
+                                            return 1;
+                                        } else if(a.adminName < b.adminName) {
+                                            return -1;
+                                        } else {
+                                            return 0;
+                                        }
+                                    })
+                                });
+                            }
+                        });
+                    }
+                }
+            );
+        };
+
         vm.toggleShowPlatformList = function (flag) {
             if (flag) {
                 vm.leftPanelClass = 'widthto25';
@@ -148,7 +178,7 @@ define(['js/app'], function (myApp) {
                 if (storedPlatform) {
                     vm.searchAndSelectPlatform(storedPlatform, option);
                 }
-
+                vm.loadAdminNames();
             }, function (err) {
                 vm.showPlatformSpin = false;
             });
@@ -362,7 +392,7 @@ define(['js/app'], function (myApp) {
 
             // Zero dependencies variable
             [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults] = await Promise.all([
-                commonService.getAllTSPhoneList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                commonService.getTSPhoneListName($scope, {platform: vm.selectedPlatform.id}).catch(err => Promise.resolve([])),
                 commonService.getAllDepartmentInfo($scope, vm.selectedPlatform.id, vm.selectedPlatform.data.name).catch(err => Promise.resolve([[], [], []])),
                 commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([])),
@@ -5028,7 +5058,7 @@ define(['js/app'], function (myApp) {
                         $scope.$evalAsync(() => {
                             data.data.forEach(tsImportRecord => {
                                 if (tsImportRecord.description) {
-                                    vm.tsAnalyticsPhoneList.time_operator_description.push(tsImportRecord.description);
+                                    vm.tsAnalyticsPhoneList.time_operator_description.push(tsImportRecord);
                                 }
                             });
                         });
@@ -5076,23 +5106,221 @@ define(['js/app'], function (myApp) {
             vm.tsCity = "";
         }
 
-        vm.filterPhoneListManagement = () => {
+        vm.showPhoneListManagement = function () {
+            vm.responseMsg = false;
+            utilService.actionAfterLoaded(('#phoneListSearch'), function () {
+                vm.phoneListSearch.pageObj = utilService.createPageForPagingTable("#phoneListManagementTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "phoneListSearch", vm.filterPhoneListManagement);
+                });
+                vm.filterPhoneListManagement(true);
+            });
+        }
+
+        vm.filterPhoneListManagement = (newSearch) => {
             let sendQuery = {
                 platform: vm.selectedPlatform.id,
                 startTime: $('#phoneListStartTimePicker').data('datetimepicker').getLocalDate(),
-                endTime: $('#phoneListEndTimePicker').data('datetimepicker').getLocalDate()
+                endTime: $('#phoneListEndTimePicker').data('datetimepicker').getLocalDate(),
+                index: newSearch ? 0 : (vm.phoneListSearch.index || 0),
+                limit: vm.phoneListSearch.limit || 10,
+                sortCol: vm.phoneListSearch.sortCol,
+            }
+
+            if (vm.phoneListSearch) {
+                if (vm.phoneListSearch.name && vm.phoneListSearch.name.length) {
+                    sendQuery.name = vm.phoneListSearch.name;
+                }
+
+                if (vm.phoneListSearch.sendStatus && vm.phoneListSearch.sendStatus.length) {
+                    sendQuery.status = vm.phoneListSearch.sendStatus;
+                }
             }
 
             socketService.$socket($scope.AppSocket, 'getTsPhoneList', sendQuery, function (data) {
-                if(data && data.data){
+                if(data && data.data && data.data.data){
                     $scope.$evalAsync(() => {
-                        vm.drawPhoneListManagementTable(data.data);
+                        vm.tsPhoneList = data.data.data;
+                        let size = data.data.size || 0;
+                        vm.drawPhoneListManagementTable(newSearch, vm.tsPhoneList, size);
                     })
                 }
             });
         };
 
-        vm.drawPhoneListManagementTable = function (tblData) {
+        vm.showAssignmentStatusDetail = (tsPhoneListObjId) => {
+            vm.currentPhoneListObjId = tsPhoneListObjId;
+            vm.allowDistributionSettingsEdit = false;
+            vm.tsAssigneesDisplay = [];
+            vm.selectedAssignees = [];
+            vm.newAssigneesExecuteStatus = 1;   //refer to constTsAssigneeStatus.js at 'Server/const/' directory
+            vm.newAssignees = [];
+            vm.assigneeRemovalList = [];
+            vm.getTsAssignees();
+            $('#modalAssignmentStatusDetail').modal('show');
+            $('.spicker').selectpicker('refresh');
+        };
+        vm.getTsAssignees = () => {
+            vm.tsAssignees = [];
+            return $scope.$socketPromise('getTsAssignees', {tsPhoneListObjId: vm.currentPhoneListObjId}).then(data => {
+                console.log("getTsAssignees_ret", data);
+                if(data && data.data){
+                    $scope.$evalAsync(() => {
+                        vm.tsAssignees = data.data;
+                        vm.updateTsAssigneesDisplay();
+                        vm.selectedAssignees = vm.tsAssigneesDisplay.map(assignee=>assignee.adminName);
+                    })
+                }
+            });
+        };
+
+        vm.removeAssignee = (adminName) => {
+            vm.assigneeRemovalList = [];
+            let isNew = true;
+
+            if(vm.tsAssignees && vm.tsAssignees.length > 0) {
+                vm.tsAssignees.forEach(assignee => {
+                    if (assignee.adminName == adminName) {
+                        isNew = false;
+                    }
+                });
+            }
+            if(vm.selectedAssignees && vm.selectedAssignees.length > 0) {
+                let selectedAssigneeIndex = vm.selectedAssignees.indexOf(adminName);
+                if (selectedAssigneeIndex > -1) {
+                    vm.selectedAssignees.splice(selectedAssigneeIndex, 1);
+                }
+            }
+            if(isNew) {
+                if(vm.newAssignees && vm.newAssignees.length > 0) {
+                    vm.newAssignees.forEach((assignee, index) => {
+                        if (assignee.adminName == adminName) {
+                            vm.newAssignees.splice(index, 1);
+                        }
+                    });
+                }
+            } else {
+                if(vm.assigneeRemovalList.indexOf(adminName) < 0) {
+                    vm.assigneeRemovalList.push(adminName);
+                }
+            }
+
+            vm.updateTsAssigneesDisplay();
+            setTimeout(()=>{
+                $('.spicker').selectpicker('refresh');
+            }, 1);
+        };
+        vm.addAssignee = () => {
+            vm.newAssignees = [];
+            if(vm.selectedAssignees && vm.selectedAssignees.length > 0) {
+                // get vm.newAssignees by filtering all selected assignees against existing assignees
+                vm.selectedAssignees.forEach(adminName => {
+                    let isNew = true;
+                    vm.tsAssignees.forEach(assignee => {
+                        if (assignee.adminName == adminName) {
+                            isNew = false;
+                        }
+                    });
+                    if (isNew) {
+                        vm.newAssignees.push({
+                            adminName: adminName,
+                            status: vm.newAssigneesExecuteStatus
+                        });
+                    }
+                    // delete from removalList if it has been removed before this
+                    let removeAssigneeIndex = vm.assigneeRemovalList.indexOf(adminName);
+                    if(removeAssigneeIndex > -1) {
+                        vm.assigneeRemovalList.splice(removeAssigneeIndex, 1);
+                    }
+                });
+                vm.updateTsAssigneesDisplay();
+            }
+        };
+        vm.updateAssigneeStatus = (currentAssignee) => {
+            let exist = false;
+            vm.newAssignees.forEach((assignee, index) => {
+                if(assignee.adminName == currentAssignee.adminName) {
+                    vm.newAssignees.splice(index, 1, currentAssignee);
+                    exist = true;
+                }
+            });
+            if(!exist) {
+                vm.newAssignees.push(currentAssignee);
+            }
+        };
+        vm.updateTsAssigneesDisplay = () => {
+            vm.tsAssigneesDisplay = [];
+            // get vm.tsAssigneesDisplay by filtering existing assignees against removed assignees, display what is left
+            vm.tsAssignees.forEach(assignee => {
+                let removed = false;
+                vm.assigneeRemovalList.forEach(adminName => {
+                    if(assignee.adminName == adminName) {
+                        removed = true;
+                    }
+                });
+                if(!removed) {
+                    vm.tsAssigneesDisplay.push(assignee);
+                }
+            });
+            // merge (existing assignees less removed assignees) with new assignees
+            vm.tsAssigneesDisplay = vm.tsAssigneesDisplay.concat(vm.newAssignees);
+        };
+
+        vm.enableDistributionSettingsEdit = () => {
+            vm.allowDistributionSettingsEdit = true;
+            $('.spicker').selectpicker('refresh');
+        };
+        vm.cancelDistributionSettingsEdit = () => {
+            vm.newAssignees = [];
+            vm.assigneeRemovalList = [];
+            vm.tsAssigneesDisplay = vm.tsAssignees;
+            vm.allowDistributionSettingsEdit = false;
+            vm.updateTsAssigneesDisplay();
+            vm.selectedAssignees = vm.tsAssigneesDisplay.map(assignee=>assignee.adminName);
+        };
+        vm.updateDistributionSettings = () => {
+            //add and remove ts Assignee commands will be triggered synchronously
+            let commonSendData = {
+                platformObjId: vm.selectedPlatform.id,
+                tsPhoneListObjId: vm.currentPhoneListObjId
+            };
+            let socketProms = [];
+            if(vm.newAssignees && vm.newAssignees.length > 0) {
+                let addAssigneeSendData = Object.assign(commonSendData, {
+                    assignees: vm.tsAssigneesDisplay
+                });
+                console.log("updateTsAssignees_send", addAssigneeSendData);
+                socketProms.push(
+                    $scope.$socketPromise('updateTsAssignees', addAssigneeSendData).then(data => {
+                        if(data){
+                            console.log("updateTsAssignees_ret", data);
+                        }
+                    })
+                );
+            }
+            if(vm.assigneeRemovalList && vm.assigneeRemovalList.length > 0) {
+                let removeAssigneeSendData = Object.assign(commonSendData, {
+                    adminNames: vm.assigneeRemovalList
+                });
+                console.log("removeTsAssignees_send", removeAssigneeSendData);
+                socketProms.push(
+                    $scope.$socketPromise('removeTsAssignees', removeAssigneeSendData).then(data => {
+                        if(data){
+                            console.log("removeTsAssignees_ret", data);
+                        }
+                    })
+                );
+            }
+            if(socketProms && socketProms.length > 0) {
+                return Promise.all(socketProms).then(() => {
+                    vm.newAssignees = [];
+                    vm.assigneeRemovalList = [];
+                    vm.getTsAssignees();
+                    vm.allowDistributionSettingsEdit = false;
+                })
+            }
+        };
+
+        vm.drawPhoneListManagementTable = function (newSearch, tblData, size) {
             console.log("phoneListManagementTable",tblData);
             vm.phoneNumberInfo.remark = {};
             var tableOptions = $.extend({}, vm.generalDataTableOptions, {
@@ -5120,16 +5348,28 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('SEND_STATUS'), data: "status",
                         render: function (data, type, row, index) {
-                            return $translate(vm.constTsPhoneListStatus[data]);
+                            let link = $('<a>', {
+                                'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'");',
+                            }).text($translate(vm.constTsPhoneListStatus[data]));
+                            return link.prop('outerHTML');
                         }
                     },
-                    {title: $translate('TOTAL_NAME_LIST'), data: "totalPhone"},
+                    {
+                        title: $translate('TOTAL_NAME_LIST'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'text': row.totalPhone || 0
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
                     {
                         title: $translate('TOTAL_DISTRIBUTED'),
                         render: function(data, type, row, index){
                             let divWithToolTip = $('<div>', {
                                 'title': "曾经指派给电销员的总电话数量。（同一电话循环2人，派发＝1）",
-                                'text': row.totalDistributed
+                                'text': row.totalDistributed || 0
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -5140,7 +5380,7 @@ define(['js/app'], function (myApp) {
                         render: function(data, type, row, index){
                             let divWithToolTip = $('<div>', {
                                 'title': "所有曾经添加『回访结果』的电话。（同一电话循环2人，使用＝1）",
-                                'text': row.totalUsed
+                                'text': row.totalUsed || 0
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -5149,9 +5389,10 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_UNUSED'),
                         render: function(data, type, row, index){
+                            let totalUnused = (row.totalPhone - row.totalUsed) || 0;
                             let divWithToolTip = $('<div>', {
                                 'title': "名单总数当中，尚未添加回访的电话量",
-                                'text': row.totalPhone - row.totalUsed
+                                'text': totalUnused
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -5162,7 +5403,7 @@ define(['js/app'], function (myApp) {
                         render: function(data, type, row, index){
                             let divWithToolTip = $('<div>', {
                                 'title': "基础数据中，定义何谓成功接听（选择回访状态）的设定（同一电话 2 电销员都有接听，接听人＝1）",
-                                'text': row.totalSuccess
+                                'text': row.totalSuccess || 0
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -5185,7 +5426,7 @@ define(['js/app'], function (myApp) {
                         render: function(data, type, row, index){
                             let divWithToolTip = $('<div>', {
                                 'title': "已使用量当中，电话在系统有开户（不管帐号禁用与否）",
-                                'text': row.totalRegistration
+                                'text': row.totalRegistration || 0
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -5208,7 +5449,7 @@ define(['js/app'], function (myApp) {
                         render: function(data, type, row, index){
                             let divWithToolTip = $('<div>', {
                                 'title': "已使用量当中，有成功存款的人数",
-                                'text': row.totalTopUp
+                                'text': row.totalTopUp || 0
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -5231,7 +5472,7 @@ define(['js/app'], function (myApp) {
                         render: function(data, type, row, index){
                             let divWithToolTip = $('<div>', {
                                 'title': "已使用量当中，存款 2 笔以上的人数",
-                                'text': row.totalMultipleTopUp
+                                'text': row.totalMultipleTopUp || 0
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -5254,7 +5495,7 @@ define(['js/app'], function (myApp) {
                         render: function(data, type, row, index){
                             let divWithToolTip = $('<div>', {
                                 'title': "已使用量当中，系统定义的有效开户人数",
-                                'text': row.totalValidPlayer
+                                'text': row.totalValidPlayer || 0
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -5284,55 +5525,22 @@ define(['js/app'], function (myApp) {
                         }
                     },
                 ],
-                "paging": true,
+                "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     $compile(nRow)($scope);
                 }
             });
             tableOptions.language.emptyTable=$translate("No data available in table");
 
-            if (reportTbl) {
-                reportTbl.clear();
-            }
-            var reportTbl = $("#phoneListManagementTable").DataTable(tableOptions);
-            utilService.setDataTablePageInput('phoneListManagementTable', reportTbl, $translate);
+            utilService.createDatatableWithFooter('#phoneListManagementTable', tableOptions, {
+            });
 
-            // var $checkAll = $(".dataTables_scrollHead thead .customerSelected");
-            // if ($checkAll.length == 1) {
-            //     var $showBtn = $('<input>', {
-            //         type: 'checkbox',
-            //         class: "customerSelected transform150 checkAllProposal"
-            //     });
-            //     $checkAll.html($showBtn);
-            //     $('.customerSelected.checkAllProposal').on('click', function () {
-            //         var $checkAll = $(this) && $(this).length == 1 ? $(this)[0] : null;
-            //         setCheckAllProposal($checkAll.checked);
-            //     })
-            // }
-            // function setCheckAllProposal(flag) {
-            //     var s = $("#phoneListManagementTable tbody td.customerSelected input").each(function () {
-            //         $(this).prop("checked", flag);
-            //     });
-            //     vm.updateMultiselectCustomer();
-            // }
-            //
-            // function tableRowClicked(event) {
-            //     if (event.target.tagName == "INPUT" && event.target.type == 'checkbox') {
-            //         var flagAllChecked = $("#phoneListManagementTable tbody td.customerSelected input[type='checkbox']:not(:checked)");
-            //         $('.customerSelected.checkAllProposal').prop('checked', flagAllChecked.length == 0);
-            //         vm.updateMultiselectCustomer();
-            //     }
-            //
-            // }
-            // $('#phoneListManagementTable tbody').off('click', "**");
-            // $('#phoneListManagementTable tbody').on('click', 'tr', tableRowClicked);
-
+            vm.phoneListSearch.pageObj.init({maxCount: size}, newSearch);
             $('#phoneListManagementTable').off('order.dt');
             $('#phoneListManagementTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'phoneListManagementTable', vm.drawPhoneListManagementTable);
+                vm.commonSortChangeHandler(a, 'phoneListSearch', vm.getTeleMarketingOverview);
             });
             $('#phoneListManagementTable').resize();
-
         }
 
         vm.distributePhoneNumber = (tsListObjId) => {

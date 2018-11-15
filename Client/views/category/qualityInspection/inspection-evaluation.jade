@@ -2,7 +2,7 @@
     p(ng-if="!vm.curPlatformText")
         label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
 div(ng-if="vm.curPlatformText", style='padding-left:0')
-    .panel.panel-primary(ng-if="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation','Read')")
+    .panel.panel-primary(style="border:none;", ng-if="checkViewPermission('QualityInspection', 'QualityInsectionEvaluation','Read')")
         .tab-content
             .panel.panel-primary
                 .panel-heading.common-left-panel-heading

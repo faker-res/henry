@@ -1354,20 +1354,36 @@ let dbDXMission = {
         return Promise.all(promArr);
     },
 
-    getTsPhoneList: function(data){
-        if(!data || !data.platform){
+    getTsPhoneList: function(platform, startTime, endTime, status, name, index, limit, sortCol){
+        if(!platform){
             return;
         }
 
         let sendQuery = {
-            platform: data.platform,
+            platform: platform,
             createTime: {
-                $gte: data.startTime,
-                $lt: data.endTime
+                $gte: startTime,
+                $lt: endTime
             },
         };
 
-        return dbconfig.collection_tsPhoneList.find(sendQuery);
+        if (status) {
+            sendQuery.status = {$in: status};
+        }
+
+        if (name) {
+            sendQuery.name = {$in: name};
+        }
+
+        let phoneListResult = dbconfig.collection_tsPhoneList.find(sendQuery).skip(index).limit(limit).sort(sortCol).lean();
+        let totalPhoneListResult = dbconfig.collection_tsPhoneList.find(sendQuery).count();
+        return Promise.all([phoneListResult, totalPhoneListResult]).then(
+            result => {
+                if(result && result.length > 0){
+                    return {data: result[0], size: result[1]};
+                }
+            }
+        )
     }
 };
 
