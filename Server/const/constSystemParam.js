@@ -31,7 +31,8 @@ const constSystemParam = {
         mode: 'Active'
     },
     FTP_URL: "https://callfpms-ftp.neweb.me",
-    TINIFY_API_KEY: "Db3dqwprnM5wscR7wZn3KpF6NJNtP7LR"
+    TINIFY_API_KEY: "xfBMk74pSR4z3B0wxC7R16qY87JvWNP9", // get the api key from Hank
+    TINIFY_DEV_API_KEY: "Db3dqwprnM5wscR7wZn3KpF6NJNtP7LR"
 };
 
 module.exports = constSystemParam;

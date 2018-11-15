@@ -51,7 +51,8 @@ define(['js/app'], function (myApp) {
             RECOVER: "Recover",
             MANUAL: "Manual",
             CSPENDING: "CsPending",
-            NOVERIFY: "NoVerify"
+            NOVERIFY: "NoVerify",
+            APPROVED: "approved"
         };
 
         vm.depositMethodList = $scope.depositMethodList;
@@ -462,7 +463,7 @@ define(['js/app'], function (myApp) {
                 vm.proposalStatusSelected.forEach(
                     status => {
                         selectedStatus.push(status);
-                        if (status == "Success") {
+                        if (status == "Success" || status == "approved") {
                             selectedStatus.push("Approved");
                         }
                         if (status == "Fail") {

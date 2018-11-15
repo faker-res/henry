@@ -34,8 +34,11 @@ const dbLargeWithdrawal = {
     fillUpLargeWithdrawalLogDetail: (largeWithdrawalLogObjId) => {
         let largeWithdrawalLog, proposal, player;
         let lastWithdrawalObj;
+        let updateObj;
+        let debugStep = 0;
         return dbconfig.collection_largeWithdrawalLog.findOne({_id: largeWithdrawalLogObjId}).lean().then(
             largeWithdrawalLogData => {
+                debugStep++;
                 if (!largeWithdrawalLogData) {
                     console.log("no large withdrawal log found:", largeWithdrawalLogObjId);
                     return Promise.reject({message: "no large withdrawal log found"});
@@ -46,6 +49,7 @@ const dbLargeWithdrawal = {
             }
         ).then(
             proposalData => {
+                debugStep++;
                 if (!proposalData) {
                     console.log("proposal of large withdrawal not found", largeWithdrawalLogObjId);
                     return Promise.reject({message: "proposal of large withdrawal not found"});
@@ -62,6 +66,7 @@ const dbLargeWithdrawal = {
             }
         ).then(
             playerData => {
+                debugStep++;
                 player = playerData;
                 if (!playerData) {
                     return Promise.reject({name: "DataError", message: "Cannot find player"});
@@ -82,6 +87,7 @@ const dbLargeWithdrawal = {
             }
         ).then(
             ([lastWithdraw, lastTopUp]) => {
+                debugStep++;
                 lastWithdrawalObj = lastWithdraw;
                 let lastWithdrawalCreateTime = lastWithdraw && lastWithdraw.createTime || new Date("1990-01-01");
                 let lastTopUpCreateTime = lastTopUp && lastTopUp.createTime || new Date("1990-01-01");
@@ -99,8 +105,8 @@ const dbLargeWithdrawal = {
                     },
                 }).count();
 
-                let bankCityProm = pmsAPI.foundation_getCityList({provinceId: player.bankAccountProvince});
-                let gameCreditProm = getTotalUniqueProviderCredit(player);
+                let bankCityProm = pmsAPI.foundation_getCityList({provinceId: player.bankAccountProvince}).catch(err => {return traceError("foundation_getCityList", err)});
+                let gameCreditProm = getTotalUniqueProviderCredit(player).catch(err => {return traceError("getTotalUniqueProviderCredit", err)});
 
                 let totalTopUpFromLastWithdrawal = Promise.resolve(0); //default amount
                 let totalXIMAFromLastWithdrawal = Promise.resolve(0);
@@ -113,11 +119,11 @@ const dbLargeWithdrawal = {
                     aboveHundredThousand: 0
                 });
                 let providerInfoFromLastWithdrawal = Promise.resolve([]);
-                totalTopUpFromLastWithdrawal = getTotalTopUpByTime(player, lastWithdrawalCreateTime, proposal.createTime);
-                totalXIMAFromLastWithdrawal = getTotalXIMAByTime(player, lastWithdrawalCreateTime, proposal.createTime);
-                totalRewardFromLastWithdrawal = getTotalRewardByTime(player, lastWithdrawalCreateTime, proposal.createTime);
-                consumptionTimesFromLastWithdrawal = getConsumptionTimesByTime(player, lastWithdrawalCreateTime, proposal.createTime);
-                providerInfoFromLastWithdrawal = getProviderInfoByTime(player, lastWithdrawalCreateTime, proposal.createTime);
+                totalTopUpFromLastWithdrawal = getTotalTopUpByTime(player, lastWithdrawalCreateTime, proposal.createTime).catch(err => {return traceError("getTotalTopUpByTime6", err)});
+                totalXIMAFromLastWithdrawal = getTotalXIMAByTime(player, lastWithdrawalCreateTime, proposal.createTime).catch(err => {return traceError("getTotalXIMAByTime", err)});
+                totalRewardFromLastWithdrawal = getTotalRewardByTime(player, lastWithdrawalCreateTime, proposal.createTime).catch(err => {return traceError("getTotalRewardByTime8", err)});
+                consumptionTimesFromLastWithdrawal = getConsumptionTimesByTime(player, lastWithdrawalCreateTime, proposal.createTime).catch(err => {return traceError("getConsumptionTimesByTime7", err)});
+                providerInfoFromLastWithdrawal = getProviderInfoByTime(player, lastWithdrawalCreateTime, proposal.createTime).catch(err => {return traceError("getProviderInfoByTime9", err)});
                 let totalTopUpFromLastTopUp = Promise.resolve(0);
                 let totalXIMAFromLastTopUp = Promise.resolve(0);
                 let totalRewardFromLastTopUp = Promise.resolve(0);
@@ -129,30 +135,30 @@ const dbLargeWithdrawal = {
                     aboveHundredThousand: 0
                 });
                 let providerInfoFromLastTopUp = Promise.resolve([]);
-                let todayTopUpAmt = getTotalTopUpByTime(player, todayTime.startTime, todayTime.endTime);
-                let todayWithdrawalAmt = getTotalWithdrawalByTime(player, todayTime.startTime, todayTime.endTime);
-                let totalTopUpAmt = getTotalTopUpByTime(player);
-                let totalWithdrawalAmt = getTotalWithdrawalByTime(player);
+                let todayTopUpAmt = getTotalTopUpByTime(player, todayTime.startTime, todayTime.endTime).catch(err => {return traceError("getTotalTopUpByTime1", err)});
+                let todayWithdrawalAmt = getTotalWithdrawalByTime(player, todayTime.startTime, todayTime.endTime).catch(err => {return traceError("getTotalWithdrawalByTime1", err)});
+                let totalTopUpAmt = getTotalTopUpByTime(player).catch(err => {return traceError("getTotalTopUpByTime2", err)});
+                let totalWithdrawalAmt = getTotalWithdrawalByTime(player).catch(err => {return traceError("getTotalWithdrawalByTime2", err)});
 
-                let currentMonthTopUpAmt = getTotalTopUpByTime(player, currentMonthDate.startTime, currentMonthDate.endTime);
-                let lastMonthTopUpAmt = getTotalTopUpByTime(player, lastMonthDate.startTime, lastMonthDate.endTime);
-                let secondLastMonthTopUpAmt = getTotalTopUpByTime(player, secondLastMonthDate.startTime, secondLastMonthDate.endTime);
+                let currentMonthTopUpAmt = getTotalTopUpByTime(player, currentMonthDate.startTime, currentMonthDate.endTime).catch(err => {return traceError("getTotalTopUpByTime3", err)});
+                let lastMonthTopUpAmt = getTotalTopUpByTime(player, lastMonthDate.startTime, lastMonthDate.endTime).catch(err => {return traceError("getTotalTopUpByTime4", err)});
+                let secondLastMonthTopUpAmt = getTotalTopUpByTime(player, secondLastMonthDate.startTime, secondLastMonthDate.endTime).catch(err => {return traceError("getTotalTopUpByTime5", err)});
 
-                let currentMonthWithdrawAmt = getTotalWithdrawalByTime(player, currentMonthDate.startTime, currentMonthDate.endTime);
-                let lastMonthWithdrawAmt = getTotalWithdrawalByTime(player, lastMonthDate.startTime, lastMonthDate.endTime);
-                let secondLastMonthWithdrawAmt = getTotalWithdrawalByTime(player, secondLastMonthDate.startTime, secondLastMonthDate.endTime);
+                let currentMonthWithdrawAmt = getTotalWithdrawalByTime(player, currentMonthDate.startTime, currentMonthDate.endTime).catch(err => {return traceError("getTotalWithdrawalByTime3", err)});
+                let lastMonthWithdrawAmt = getTotalWithdrawalByTime(player, lastMonthDate.startTime, lastMonthDate.endTime).catch(err => {return traceError("getTotalWithdrawalByTime4", err)});
+                let secondLastMonthWithdrawAmt = getTotalWithdrawalByTime(player, secondLastMonthDate.startTime, secondLastMonthDate.endTime).catch(err => {return traceError("getTotalWithdrawalByTime5", err)});
 
-                let currentMonthConsumptionAmt = getTotalConsumptionByTime(player, currentMonthDate.startTime, currentMonthDate.endTime);
-                let lastMonthConsumptionAmt = getTotalConsumptionByTime(player, lastMonthDate.startTime, lastMonthDate.endTime);
-                let secondLastMonthConsumptionAmt = getTotalConsumptionByTime(player, secondLastMonthDate.startTime, secondLastMonthDate.endTime);
+                let currentMonthConsumptionAmt = getTotalConsumptionByTime(player, currentMonthDate.startTime, currentMonthDate.endTime).catch(err => {return traceError("getTotalConsumptionByTime3", err)});
+                let lastMonthConsumptionAmt = getTotalConsumptionByTime(player, lastMonthDate.startTime, lastMonthDate.endTime).catch(err => {return traceError("getTotalConsumptionByTime4", err)});
+                let secondLastMonthConsumptionAmt = getTotalConsumptionByTime(player, secondLastMonthDate.startTime, secondLastMonthDate.endTime).catch(err => {return traceError("getTotalConsumptionByTime5", err)});
 
                 if (lastTopUp && lastTopUp.createTime) {
                     totalTopUpFromLastTopUp = lastTopUp.amount ? lastTopUp.amount : 0;
                 }
-                totalXIMAFromLastTopUp = getTotalXIMAByTime(player, lastTopUpCreateTime, proposal.createTime);
-                totalRewardFromLastTopUp = getTotalRewardByTime(player, lastTopUpCreateTime, proposal.createTime);
-                consumptionTimesFromLastTopUp = getConsumptionTimesByTime(player, lastTopUpCreateTime, proposal.createTime);
-                providerInfoFromLastTopUp = getProviderInfoByTime(player, lastTopUpCreateTime, proposal.createTime);
+                totalXIMAFromLastTopUp = getTotalXIMAByTime(player, lastTopUpCreateTime, proposal.createTime).catch(err => {return traceError("getTotalXIMAByTimeD", err)});
+                totalRewardFromLastTopUp = getTotalRewardByTime(player, lastTopUpCreateTime, proposal.createTime).catch(err => {return traceError("getTotalRewardByTimeD", err)});
+                consumptionTimesFromLastTopUp = getConsumptionTimesByTime(player, lastTopUpCreateTime, proposal.createTime).catch(err => {return traceError("getConsumptionTimesByTimeD", err)});
+                providerInfoFromLastTopUp = getProviderInfoByTime(player, lastTopUpCreateTime, proposal.createTime).catch(err => {return traceError("getProviderInfoByTimeD", err)});
 
 
                 return Promise.all([largeWithdrawalSettingProm, todayLargeAmountProm, bankCityProm, gameCreditProm, totalTopUpFromLastWithdrawal
@@ -167,6 +173,7 @@ const dbLargeWithdrawal = {
                  , totalXIMAFromLastTopUp, totalRewardFromLastTopUp, consumptionTimesFromLastTopUp, providerInfoFromLastTopUp
                  , todayTopUpAmt, todayWithdrawalAmt, totalTopUpAmt, totalWithdrawalAmt, currentMonthTopUpAmt, lastMonthTopUpAmt, secondLastMonthTopUpAmt
                 , currentMonthWithdrawAmt, lastMonthWithdrawAmt, secondLastMonthWithdrawAmt, currentMonthConsumptionAmt, lastMonthConsumptionAmt, secondLastMonthConsumptionAmt]) => {
+                debugStep++;
                 let bankCityName;
                 let withdrawalAmount;
                 let currentCredit = gameCredit + player.validCredit;
@@ -185,7 +192,7 @@ const dbLargeWithdrawal = {
                     }
                 }
 
-                let updateObj = {
+                updateObj = {
                     emailNameExtension: largeWithdrawalSetting.emailNameExtension,
                     todayLargeAmountNo: todayLargeAmountNo,
                     playerName: player.name,
@@ -258,6 +265,11 @@ const dbLargeWithdrawal = {
                     console.log("fill up failure", largeWithdrawalLogObjId, updateObj);
                     return Promise.reject(err);
                 });
+            }
+        ).catch(
+            err => {
+                console.trace('fill up error trace', largeWithdrawalLogObjId, debugStep, updateObj);
+                return Promise.reject(err);
             }
         );
     },
@@ -2180,7 +2192,12 @@ function getTotalUniqueProviderCredit (playerObj) {
             )
         }
     );
-};
+}
+
+function traceError(functionName, err) {
+    console.log("fill up prom error:", functionName);
+    return Promise.reject(err);
+}
 // ======== large withdrawal log input common function END ========
 
 module.exports = dbLargeWithdrawal;

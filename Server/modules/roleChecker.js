@@ -379,9 +379,9 @@ var roleChecker = {
             // },
             "AutoFeedback": {
                 Read: [],
-                create: [],
-                overview: [],
-                edit: []
+                Create: [],
+                Overview: [],
+                Update: []
             },
             "Feedback": {
                 Read: ['getPlayerFeedbacks', 'getPlayerFeedbackResults', 'getPlayerLastNFeedbackRecord', 'getAllPlayerFeedbacks'],
@@ -592,7 +592,7 @@ var roleChecker = {
                 REAL_TIME_COMMISSION_REPORT: ['getCurrentPartnerCommissionDetail'],
                 PAST_COMMISSION_SETTLEMENT: ['settlePastCommission'],
                 PLAYER_ALIPAY_ACCOUNT_REPORT: ['getPlayerAlipayAccReport'],
-                FINANCIAL_REPORT: [],
+                FINANCIAL_REPORT: ['getFinancialReportByDay', 'getFinancialReportBySum', 'getDepositGroups'],
                 DepositGroupSetting: ['addNewDepositGroup', 'updateDepositGroups', 'deleteDepositGroup']
             },
             Reward: {
