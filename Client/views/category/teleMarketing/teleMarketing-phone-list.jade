@@ -124,8 +124,8 @@
                                                     text.form-control {{vm.tsAnalyticsPhoneList.time_operator_description[i].importTime | date : 'yyyy-MM-dd HH:mm:ss'}}  {{" - " + vm.tsAnalyticsPhoneList.time_operator_description[i].adminName + " - " + vm.tsAnalyticsPhoneList.time_operator_description[i].description}}
 
             .modal-footer
-                div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px') {{vm.importPhoneResult | translate}}
-                button.btn.btn-success.common-button(data-dismiss='modal'  ng-if="!vm.importPhoneResult" ng-click="vm.editTsNewList()" ng-disabled="vm.checkFilterIsDisable" ng-show="!vm.analyticsPhoneListEdit")
+                div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px')
+                button.btn.btn-success.common-button(data-dismiss='modal'  ng-click="vm.editTsNewList()" ng-disabled="vm.checkFilterIsDisable" ng-show="!vm.analyticsPhoneListEdit")
                     i.fa.fa-check
                     text {{"CONFIRM" | translate}}
                 button.btn.btn-danger.common-button(data-dismiss='modal' ng-show="vm.analyticsPhoneListEdit")

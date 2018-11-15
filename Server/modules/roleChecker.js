@@ -252,6 +252,7 @@ var roleChecker = {
                 ApplyAlipayTopup: ['getAlipayTopUpRequestList', 'applyAlipayTopUpRequest', 'cancelAlipayTopup'],
                 ApplyWechatPayTopup: ['getWechatPayTopUpRequestList', 'applyWechatPayTopUpRequest', 'cancelWechatPayTopup'],
                 ApplyQuickpayTopup: ['getQuickpayTopUpRequestList', 'applyQuickpayTopUpRequest', 'cancelQuickpayTopup'],
+                ApplyAssignTopup: ['applyAssignTopUpRequest', 'cancelAssignTopupRequest'],
                 TopupRecord: ['getPlayerTopUpRecords'],
             },
             "Credit": {
@@ -591,7 +592,7 @@ var roleChecker = {
                 REAL_TIME_COMMISSION_REPORT: ['getCurrentPartnerCommissionDetail'],
                 PAST_COMMISSION_SETTLEMENT: ['settlePastCommission'],
                 PLAYER_ALIPAY_ACCOUNT_REPORT: ['getPlayerAlipayAccReport'],
-                FINANCIAL_REPORT: [],
+                FINANCIAL_REPORT: ['getFinancialReportByDay', 'getFinancialReportBySum', 'getDepositGroups'],
                 DepositGroupSetting: ['addNewDepositGroup', 'updateDepositGroups', 'deleteDepositGroup']
             },
             Reward: {
