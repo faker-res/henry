@@ -25645,12 +25645,23 @@ console.log('typeof ',typeof gameProviders);
                     let p = Promise.resolve();
 
                     table1Data.forEach((elem, idx, arr) => {
-                        p = p.then(function () {
-                            return $scope.$socketPromise('getPromoCodeTypeByObjId', elem._id).then(res => {
-                                elem.promoCodeType = res.data;
-                                elem.totalPlayer$ = elem.totalPlayer.length || 0;
-                            })
-                        });
+                        if(elem._id && elem._id.promoCodeTemplateObjId) {
+                            p = p.then(function () {
+                                return $scope.$socketPromise('promoCodeTemplateByObjId', elem._id.promoCodeTemplateObjId).then(res => {
+                                    elem.promoCodeTemplate = res.data;
+                                    elem.promoCodeSubType$ = res.data.name;
+                                    elem.totalPlayer$ = elem.totalPlayer.length || 0;
+                                })
+                            });
+                        } else if(elem._id && elem._id.promoCodeTypeObjId) {
+                            p = p.then(function () {
+                                return $scope.$socketPromise('getPromoCodeTypeByObjId', elem._id.promoCodeTypeObjId).then(res => {
+                                    elem.promoCodeType = res.data;
+                                    elem.promoCodeSubType$ = res.data.name;
+                                    elem.totalPlayer$ = elem.totalPlayer.length || 0;
+                                })
+                            });
+                        }
                     });
 
                     return p.then(res => {
@@ -25665,7 +25676,7 @@ console.log('typeof ',typeof gameProviders);
                             columns: [
                                 {
                                     title: $translate('PROMO_CODE_SUB_TYPE'),
-                                    data: "promoCodeType.name"
+                                    data: "promoCodeSubType$"
                                 },
                                 {
                                     title: $translate('sendCount'),

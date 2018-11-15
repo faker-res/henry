@@ -1763,6 +1763,8 @@ let dbPlayerReward = {
 
     getPromoCodeTypeByObjId: (promoCodeTypeObjId) => dbConfig.collection_promoCodeType.findOne({_id: promoCodeTypeObjId}).lean(),
 
+    promoCodeTemplateByObjId: (promoCodeTemplateObjId) => dbConfig.collection_promoCodeTemplate.findOne({_id: promoCodeTemplateObjId}).lean(),
+
     /*
      * player apply for consecutive login reward
      * @param {String} playerId
@@ -4421,6 +4423,7 @@ let dbPlayerReward = {
                         $project: {
                             playerObjId: 1,
                             promoCodeTypeObjId: 1,
+                            promoCodeTemplateObjId: 1,
                             acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
                             acceptedAmount: 1,
                             amount: 1
@@ -4428,7 +4431,7 @@ let dbPlayerReward = {
                     },
                     {
                         $group: {
-                            _id: "$promoCodeTypeObjId",
+                            _id: {promoCodeTypeObjId: "$promoCodeTypeObjId", promoCodeTemplateObjId: "$promoCodeTemplateObjId"},
                             amount: {$sum: "$amount"},
                             acceptedCount: {$sum: "$acceptedCount"},
                             acceptedAmount: {$sum: "$acceptedAmount"},

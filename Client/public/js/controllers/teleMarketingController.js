@@ -5133,7 +5133,7 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.showAssignmentStatusDetail = (tsPhoneListObjId)=>{
+        vm.showAssignmentStatusDetail = (tsPhoneListObjId) => {
             vm.currentPhoneListObjId = tsPhoneListObjId;
             vm.allowDistributionSettingsEdit = false;
             vm.tsAssigneesDisplay = [];
