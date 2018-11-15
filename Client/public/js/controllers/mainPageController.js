@@ -275,7 +275,7 @@ define(['js/app'], function (myApp) {
                     vm.departmentNodes[v._id] = newNode;
                 });
 
-                vm.SelectedDepartmentNode = finalNodeTree[0];
+                //vm.SelectedDepartmentNode = finalNodeTree[0];
                 //vm.departmentNodes["root"] = finalNodeTree[0];
                 let count = 0;
                 if (filteredDepartments && filteredDepartments.length > 0 && finalNodeTree && finalNodeTree.length > 0) {

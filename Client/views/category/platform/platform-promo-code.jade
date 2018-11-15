@@ -62,18 +62,18 @@
                                     input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
                                     input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "true", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
-                                    text {{'Yes' | translate}}
+                                    text.radio-space {{'Yes' | translate}}
                                     br
                                     input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
-                                    text {{'No' | translate}}
+                                    text.radio-space {{'No' | translate}}
                                 td
                                     div(id="expDate1-{{$index}}", ng-disabled="!promoCode.code")
                                 td
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "true", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
-                                    text {{'Yes' | translate}}
+                                    text.radio-space {{'Yes' | translate}}
                                     br
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
-                                    text {{'No' | translate}}
+                                    text.radio-space {{'No' | translate}}
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', data-actions-box='true', data-dropup-auto='true')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
@@ -102,10 +102,10 @@
                                     div(style="display:block;min-width:90px;max-height:70px;overflow:auto;") {{promoCode.promoCodeType.smsContent}}
                                 td
                                     input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "true", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
-                                    text {{'Yes' | translate}}
+                                    text.radio-space {{'Yes' | translate}}
                                     br
                                     input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
-                                    text {{'No' | translate}}
+                                    text.radio-space {{'No' | translate}}
                                 td
                                     input.form-control(style="display:block;overflow:auto;" type='string', ng-model='promoCode.remark', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
@@ -151,18 +151,18 @@
                                     input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
                                     input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "true", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
-                                    text {{'Yes' | translate}}
+                                    text.radio-space {{'Yes' | translate}}
                                     br
                                     input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
-                                    text {{'No' | translate}}
+                                    text.radio-space {{'No' | translate}}
                                 td
                                     div(id="expDate2-{{$index}}", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "true", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
-                                    text {{'Yes' | translate}}
+                                    text.radio-space {{'Yes' | translate}}
                                     br
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
-                                    text {{'No' | translate}}
+                                    text.radio-space {{'No' | translate}}
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup",data-width="150px", ng-model='promoCode.allowedProviders', data-actions-box='true', data-dropup-auto='true')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
@@ -191,10 +191,10 @@
                                     div(style="display:block;min-width:90px;max-height:70px;overflow:auto;") {{promoCode.promoCodeType.smsContent}}
                                 td
                                     input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "true", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
-                                    text {{'Yes' | translate}}
+                                    text.radio-space {{'Yes' | translate}}
                                     br
                                     input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
-                                    text {{'No' | translate}}
+                                    text.radio-space {{'No' | translate}}
                                 td
                                     input.form-control(type='string', ng-model='promoCode.remark', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
@@ -245,18 +245,18 @@
                                     input.form-control(type='number', ng-model='promoCode.requiredConsumption', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
                                     input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "true", ng-disabled="promoCode.code || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
-                                    text {{'Yes' | translate}}
+                                    text.radio-space {{'Yes' | translate}}
                                     br
                                     input(type="radio", ng-model="promoCode.isSharedWithXIMA", ng-value = "false", ng-disabled="promoCode.code || promoCode.isBlockPromoCodeUser || promoCode.isBlockByMainPermission")
-                                    text {{'No' | translate}}
+                                    text.radio-space {{'No' | translate}}
                                 td
                                     div(id="expDate3-{{$index}}", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "true", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
-                                    text {{'Yes' | translate}}
+                                    text.radio-space {{'Yes' | translate}}
                                     br
                                     input(type="radio", ng-model="promoCode.disableWithdraw", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
-                                    text {{'No' | translate}}
+                                    text.radio-space {{'No' | translate}}
                                 td
                                     select.spicker.form-control(ng-if="!vm.selectedPlatform.data.useProviderGroup" data-width="150px" ng-model='promoCode.allowedProviders', data-actions-box='true', data-dropup-auto='true')
                                         option(style="display: inline-block" value='') {{"LOCAL_CREDIT" | translate}}
@@ -285,10 +285,10 @@
                                     div(style="display:block;min-width:90px;max-height:70px;overflow:auto;") {{promoCode.promoCodeType.smsContent}}
                                 td
                                     input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "true", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
-                                    text {{'Yes' | translate}}
+                                    text.radio-space {{'Yes' | translate}}
                                     br
                                     input(type="radio", ng-model="promoCode.allowedSendSms", ng-value = "false", ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
-                                    text {{'No' | translate}}
+                                    text.radio-space {{'No' | translate}}
                                 td
                                     input.form-control(type='string', ng-model='promoCode.remark', ng-disabled="vm.checkPromoCodeDisabled(promoCode)")
                                 td

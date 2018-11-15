@@ -121,7 +121,7 @@ let dbTeleSales = {
                                 };
                             }
                             totalPhoneAdded ++;
-                            tsAssigneeArr[j].updateObj.tsPhone.push(tsPhoneData[i]._id);
+                            tsAssigneeArr[j].updateObj.tsPhone.push({id: tsPhoneData[i]._id, assignTimes: tsPhoneData[i].assignTimes});
                             tsAssigneeArr.sort(sortAssigneePhoneCount);
                             break;
                         }
@@ -143,7 +143,8 @@ let dbTeleSales = {
                                         platform: inputData.platform,
                                         tsPhoneList: inputData.tsListObjId,
                                         tsDistributedPhoneList: distributedPhoneListData._id,
-                                        tsPhone: ObjectId(tsPhoneUpdate),
+                                        tsPhone: ObjectId(tsPhoneUpdate.id),
+                                        assignTimes: tsPhoneUpdate.assignTimes || 1,
                                         assignee: tsAssignee.admin,
                                         endTime: phoneNumberEndTime.endTime,
                                         remindTime: phoneNumberEndTime.endTime

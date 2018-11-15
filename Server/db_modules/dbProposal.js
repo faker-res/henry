@@ -178,11 +178,11 @@ var proposal = {
                 transferId,
                 isRepaired: {$ne: true},
                 status: {$ne: constPlayerCreditTransferStatus.SUCCESS}
-            }, {_id: 1}).limit(1).lean().then(
+            }, {_id: 1}).limit(1).read("secondaryPreferred").lean().then(
                 log => {
                     return Boolean(log && log[0]);
                 }
-            ).read("secondaryPreferred");
+            );
         }
 
         return isRepairableTransfer(proposalData.data.transferId).then(
