@@ -362,7 +362,7 @@ define(['js/app'], function (myApp) {
 
             // Zero dependencies variable
             [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults] = await Promise.all([
-                commonService.getAllTSPhoneList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
+                commonService.getTSPhoneListName($scope, {platform: vm.selectedPlatform.id}).catch(err => Promise.resolve([])),
                 commonService.getAllDepartmentInfo($scope, vm.selectedPlatform.id, vm.selectedPlatform.data.name).catch(err => Promise.resolve([[], [], []])),
                 commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([])),
@@ -5028,7 +5028,7 @@ define(['js/app'], function (myApp) {
                         $scope.$evalAsync(() => {
                             data.data.forEach(tsImportRecord => {
                                 if (tsImportRecord.description) {
-                                    vm.tsAnalyticsPhoneList.time_operator_description.push(tsImportRecord.description);
+                                    vm.tsAnalyticsPhoneList.time_operator_description.push(tsImportRecord);
                                 }
                             });
                         });
@@ -5081,6 +5081,16 @@ define(['js/app'], function (myApp) {
                 platform: vm.selectedPlatform.id,
                 startTime: $('#phoneListStartTimePicker').data('datetimepicker').getLocalDate(),
                 endTime: $('#phoneListEndTimePicker').data('datetimepicker').getLocalDate()
+            }
+
+            if (vm.phoneListSearch) {
+                if (vm.phoneListSearch.name && vm.phoneListSearch.name.length) {
+                    sendQuery.name = vm.phoneListSearch.name;
+                }
+
+                if (vm.phoneListSearch.sendStatus && vm.phoneListSearch.sendStatus.length) {
+                    sendQuery.status = vm.phoneListSearch.sendStatus;
+                }
             }
 
             socketService.$socket($scope.AppSocket, 'getTsPhoneList', sendQuery, function (data) {

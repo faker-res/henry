@@ -22,6 +22,25 @@
                         include ./teleMarketing-phone-list
                     div(ng-switch-when="PHONE_MISSION")
                         include ./teleMarketing-task
+                    div(ng-switch-when="REMINDER_PHONE_LIST")
+                        #reminderPhoneContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
+                            .padding-all-5
+                                .panel.panel-primary
+                                    .panel-heading.common-left-panel-heading
+                                        ul.nav.nav-tabs.common-nav-tabs.padding-left-5.margi
+                                            li.active
+                                                a.common-tab(data-toggle="tab", href="#tsNameList")
+                                                    text.span {{"MY_NAME_LIST" | translate}}
+                                            li
+                                                a.common-tab(data-toggle="tab", href="#tsFeedbackReminder")
+                                                    text.span {{"FEEDBACK_REMINDER_LIST" | translate}}
+
+                                    .panel-body.common-right-panel-body
+                                        div.tab-content
+                                            #tsNameList.tab-pane.fade.in.active
+                                                //include ./payment-bankCardGroup
+                                            #tsFeedbackReminder.tab-pane.fade
+                                                //include ./payment-merchantGroup
 
 
 

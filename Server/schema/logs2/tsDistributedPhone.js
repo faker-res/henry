@@ -14,6 +14,12 @@ let tsDistributedPhoneSchema = new Schema({
     tsPhone: {type: Schema.ObjectId, ref: 'tsPhone', index: true},
     // assignee (whose phone is this)
     assignee: {type: Schema.Types.ObjectId, ref: 'admin', index: true},
+    // N th assign time
+    assignTimes: {type: Number, default: 1},
+    // feedback times
+    feedbackTimes: {type: Number, default: 0, index: true},
+    // last feedback result name
+    resultName: String,
     // time that it can be start using
     startTime: {type: Date, index: true, default: new Date()},
     // time that it expired - same with distributedEndTime in tsPhone.js
