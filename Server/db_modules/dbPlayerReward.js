@@ -1601,7 +1601,7 @@ let dbPlayerReward = {
                     endTime: event.validEndTime,
                     deposit: event.param.requiredTopUpAmount,
                     effectiveBet: event.param.requiredConsumptionAmount,
-                    checkResult: checkResults[0],
+                    checkResult: checkAllResults[0],
                     list: outputList[0]
                 }
             }
