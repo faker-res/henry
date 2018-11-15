@@ -235,6 +235,10 @@ define([], () => {
             return $scope.$socketPromise("getAllTSPhoneList", {platformObjId: platformObjId}).then(data => data.data)
         };
 
+        self.getTSPhoneListName = function ($scope, query) {
+            return $scope.$socketPromise("getTSPhoneListName", query).then(data => data.data)
+        };
+
         self.getAllDepartmentInfo = function ($scope, platformObjId, platformName) {
             return $scope.$socketPromise("getDepartmentDetailsByPlatformObjId", {platformObjId: platformObjId}).then(
                 data => {

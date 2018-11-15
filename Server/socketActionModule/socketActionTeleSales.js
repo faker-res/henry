@@ -44,6 +44,13 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.getOneTsNewList, [data], actionName, isValidData);
         },
 
+
+        getTSPhoneListName: function getTSPhoneListName(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbTeleSales.getTSPhoneListName, [data], actionName, isValidData);
+        },
+
         getTsDistributedPhoneDetail: function getTsDistributedPhoneDetail (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.tsDistributedPhoneObjId);
@@ -67,6 +74,24 @@ function socketActionTeleSales(socketIO, socket) {
             let isValidData = Boolean(data && data.query && data.updateData);
             socketUtil.emitter(self.socket, dbTeleSales.updateTsPhoneList, [data.query, data.updateData], actionName, isValidData);
         },
+
+        getTsAssignees: function getTsAssignees(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.tsPhoneListObjId);
+            socketUtil.emitter(self.socket, dbTeleSales.getTsAssignees, [data.tsPhoneListObjId], actionName, isValidData);
+        },
+
+        updateTsAssignees: function updateTsAssignees(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.assignees);
+            socketUtil.emitter(self.socket, dbTeleSales.updateTsAssignees, [data.platformObjId, data.tsPhoneListObjId, data.assignees], actionName, isValidData);
+        },
+
+        removeTsAssignees: function removeTsAssignees(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.adminNames);
+            socketUtil.emitter(self.socket, dbTeleSales.removeTsAssignees, [data.platformObjId, data.tsPhoneListObjId, data.adminNames], actionName, isValidData);
+        }
 
     };
     socketActionTeleSales.actions = this.actions;
