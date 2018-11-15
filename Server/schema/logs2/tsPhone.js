@@ -18,6 +18,10 @@ let tsPhoneSchema = new Schema({
     email: {type: String},
     remark: {type: String},
 
+    // phone number's province
+    province: {type: String, index: true},
+    // phone number's city
+    city: {type: String, index: true},
     // create time
     createTime: {type: Date, default: new Date()},
     // assign times 过手次数

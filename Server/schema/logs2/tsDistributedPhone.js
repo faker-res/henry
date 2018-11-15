@@ -18,8 +18,16 @@ let tsDistributedPhoneSchema = new Schema({
     assignTimes: {type: Number, default: 1},
     // feedback times
     feedbackTimes: {type: Number, default: 0, index: true},
+    // last feedback date time
+    lastFeedbackTime: {type: Date, index: true},
+    // is phone number in danger zone
+    isInDangerZone: {type: Boolean, default: false, index: true},
     // last feedback result name
-    resultName: String,
+    resultName: {type: String, index: true},
+    // phone number's province
+    province: {type: String, index: true},
+    // phone number's city
+    city: {type: String, index: true},
     // time that it can be start using
     startTime: {type: Date, index: true, default: new Date()},
     // time that it expired - same with distributedEndTime in tsPhone.js
