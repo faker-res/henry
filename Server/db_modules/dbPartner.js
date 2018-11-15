@@ -10015,8 +10015,6 @@ function getCommissionRate (commissionRateTable, consumptionAmount, activeCount)
         return requirementA.commissionRate - requirementB.commissionRate;
     });
 
-    console.log('commissionRateTable', commissionRateTable)
-
     for (let i = 0; i < commissionRateTable.length; i++) {
         let commissionRequirement = commissionRateTable[i];
 
