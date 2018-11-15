@@ -98,7 +98,8 @@ var proposalExecutor = {
             || executionType === 'executeManualPlayerTopUp'
 
             // Group reward
-            || executionType === 'executePlayerLoseReturnRewardGroup';
+            || executionType === 'executePlayerLoseReturnRewardGroup'
+            || executionType === 'executePlayerRetentionRewardGroup';
 
         if (isNewFunc) {
             return proposalExecutor.approveOrRejectProposal2(executionType, rejectionType, bApprove, proposalData, rejectIfMissing);
@@ -3067,8 +3068,9 @@ var proposalExecutor = {
                 }
             },
 
-            executePlayerRetentionRewardGroup: function (proposalData, deferred) {
-                if (proposalData && proposalData.data && proposalData.data.playerObjId && !isNaN(parseInt(proposalData.data.rewardAmount)) ) {
+             executePlayerRetentionRewardGroup: function (proposalData) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                    let rtgData;
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
                         type: constRewardType.PLAYER_RETENTION_REWARD_GROUP,
@@ -3083,44 +3085,37 @@ var proposalExecutor = {
                         providerGroup: proposalData.data.providerGroup
                     };
 
-                    let deferred1 = Q.defer();
-                    createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.PLAYER_RETENTION_REWARD_GROUP, proposalData);
-                    deferred1.promise.then(
+                    return createRTGForProposal(proposalData, taskData, constRewardType.PLAYER_RETENTION_REWARD_GROUP, proposalData).then(
                         data => {
+                            rtgData = data;
                             let updateData = {$set: {}};
 
                             if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
                                 updateData.$set["permission.applyBonus"] = false;
                             }
 
-                            dbconfig.collection_players.findOneAndUpdate(
+                            return dbconfig.collection_players.findOneAndUpdate(
                                 {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
                                 updateData
-                            ).then(
-                                playerData => {
-                                    if(proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply){
-                                        let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
-                                        let newPermissionObj = {applyBonus: false};
-                                        let remark = "优惠提案：" + proposalData.proposalId +  "(领取优惠后禁用提款)";
-                                        dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj);
-                                    }
-                                    return playerData;
-                                }
-                            ).then(
-                                () => {
-                                    deferred.resolve(data);
-                                },
-                                deferred.reject
-                            );
-                        },
-                        deferred.reject
-                    );
+                            )
+                        }
+                    ).then(
+                        playerData => {
+                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
+                                let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
+                                let newPermissionObj = {applyBonus: false};
+                                let remark = "优惠提案：" + proposalData.proposalId + "(领取优惠后禁用提款)";
+                                dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj);
+                            }
+
+                            return rtgData;
+                        }
+                    )
                 }
                 else {
-                    deferred.reject({name: "DataError", message: "Incorrect player top up return group proposal data"});
+                    return Promise.reject({name: "DataError", message: "Incorrect player retention group proposal data"});
                 }
             },
-
 
             executePlayerLoseReturnRewardGroup: function (proposalData) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
