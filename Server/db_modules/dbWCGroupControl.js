@@ -2,7 +2,7 @@ var dbConfig = require('./../modules/dbproperties');
 var constWCSessionStatus = require('./../const/constWCGroupControlSessionStatus');
 
 var dbWCGroupControl = {
-    sendWCGroupControlSessionToFPMS: (deviceId, csWechatId) => {
+    sendWCGroupControlSessionToFPMS: (deviceId, adminId, status, connectionAbnormalClickTimes) => {
         let deviceSettingRecord;
 
         return dbConfig.collection_wcDevice.findOne({deviceId: deviceId}).lean().then(
@@ -20,8 +20,8 @@ var dbWCGroupControl = {
                 if (!wcGroupControlSessionData) {
                     let newSession = {
                         deviceId: deviceId,
-                        csWechatId: csWechatId,
-                        status: csWechatId ? constWCSessionStatus.ONLINE : constWCSessionStatus.OFFLINE,
+                        csOfficer: adminId,
+                        status: status,
                         platformObjId: deviceSettingRecord.platformObjId
                     };
 
@@ -31,7 +31,7 @@ var dbWCGroupControl = {
                     return dbConfig.collection_wcGroupControlSession.findOneAndUpdate(
                         {_id: wcGroupControlSessionData._id},
                         {
-                            status: csWechatId ? constWCSessionStatus.ONLINE : constWCSessionStatus.OFFLINE,
+                            status: status,
                             lastUpdateTime: new Date()
                         },
                         {new: true}

@@ -180,8 +180,8 @@ var PlatformServiceImplement = function () {
     }
 
     this.sendWCGroupControlSessionToFPMS.onRequest = function(wsFunc, conn, data) {
-        let isValidData = Boolean(data.deviceId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbWCGroupControl.sendWCGroupControlSessionToFPMS, [data.deviceId, data.csWechatId], isValidData, null, null, true);
+        let isValidData = Boolean(data.deviceId && data.adminId && data.status && data.connectionAbnormalClickTimes);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbWCGroupControl.sendWCGroupControlSessionToFPMS, [data.deviceId, data.adminId, data.status, data.connectionAbnormalClickTimes], isValidData, null, null, true);
     }
 };
 

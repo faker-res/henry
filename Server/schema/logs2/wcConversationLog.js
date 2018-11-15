@@ -11,8 +11,8 @@ let wcConversationLogSchema = new Schema({
     // Platform
     platformObjId: {type: Schema.Types.ObjectId, ref: 'platform', required: true, index: true},
 
-    // csOfficer - wechat account
-    csWechatId: {type: String, required: true, index: true},
+    // csOfficer
+    csOfficer: {type: Schema.ObjectId, ref: 'admin', index: true},
 
     // chatting wechat Id
     conversationWechatId: {type: String, index: true},
