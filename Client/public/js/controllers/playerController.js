@@ -11742,18 +11742,19 @@ define(['js/app'], function (myApp) {
                 orderNo: vm.playerAssignTopUp.orderNo
             };
             vm.playerAssignTopUp.submitted = true;
-            $scope.$evalAsync(() => {
                 socketService.$socket($scope.AppSocket, 'applyAssignTopUpRequest', sendData,
                 function (data) {
-                    console.log('assignTopup success', data);
-                    vm.playerAssignTopUp.responseData = data.data;
-                    vm.getPlatformPlayersData();
+                    $scope.$evalAsync(() => {
+                        console.log('assignTopup success', data);
+                        vm.playerAssignTopUp.responseData = data.data;
+                        vm.getPlatformPlayersData();
+                    });
                 }, function (error) {
                     vm.playerAssignTopUp.responseMsg = $translate(error.error.errorMessage);
                     // socketService.showErrorMessage(error.error.errorMessage);
                     vm.getPlatformPlayersData();
                 });
-            });
+
         }
 
         vm.applyPlayerBonus = function () {
@@ -14484,29 +14485,29 @@ define(['js/app'], function (myApp) {
 
         // Player assign topup
         vm.initPlayerAssignTopUp = function () {
-            $scope.$evalAsync(() => {
-                vm.getZoneList();
-                vm.provinceList = [];
-                vm.cityList = [];
-                vm.districtList = [];
-                vm.freezeZoneSelection = false;
-                vm.playerAssignTopUp = {submitted: false};
-                vm.filterBankname("playerAssignTopUp");
-                vm.existingAssignTopup = false;
-                vm.chosenBankAcc = {};
+            vm.getZoneList();
+            vm.provinceList = [];
+            vm.cityList = [];
+            vm.districtList = [];
+            vm.freezeZoneSelection = false;
+            vm.playerAssignTopUp = {submitted: false};
+            vm.filterBankname("playerAssignTopUp");
+            vm.existingAssignTopup = false;
+            vm.chosenBankAcc = {};
 
-                socketService.$socket($scope.AppSocket, 'getAssignTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getAssignTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
+                $scope.$evalAsync(() => {
                     vm.existingAssignTopup = data.data ? data.data : false;
-                });
-                // utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
-                //     vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerManualTopUp .createTime');
-                utilService.actionAfterLoaded('#modalPlayerTopUp', function () {
-                    vm.playerAssignTopUp.createTime = utilService.createDatePicker('#modalPlayerTopUp [name="form_assign_topup"] .createTime');
-                    vm.playerAssignTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
-                });
-                vm.refreshSPicker();
-            });
+                })
 
+            });
+            // utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
+            //     vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerManualTopUp .createTime');
+            utilService.actionAfterLoaded('#modalPlayerTopUp', function () {
+                vm.playerAssignTopUp.createTime = utilService.createDatePicker('#modalPlayerTopUp [name="form_assign_topup"] .createTime');
+                vm.playerAssignTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
+            });
+            vm.refreshSPicker();
         };
 
         vm.initPlayerManualTopUp = function () {
