@@ -1,6 +1,6 @@
-.panel.panel-primary
+.panel.panel-primary(style="border: none;box-shadow: none;")
     .panel-body
-        .well
+        .col-md-12(style="margin-bottom: 1em;")
             label {{'PLEASE_CHOOSE' | translate}}
             p
             label.radio-inline {{'EMAIL' | translate}}
@@ -11,7 +11,7 @@
                 input.pull-left.relative(type='radio', ng-model='modifyCritical.changeType', value='qq')
             label.radio-inline {{'WECHAT' | translate}}
                 input.pull-left.relative(type='radio', ng-model='modifyCritical.changeType', value='weChat')
-        .col-md-12.well
+        .col-md-12
             div(ng-show='modifyCritical.changeType=="email"')
                 div.form-group.col-md-7
                     label.control-label {{"CURRENT_EMAIL" | translate}}

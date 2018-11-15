@@ -788,6 +788,17 @@ db.rewardParam.update({
                     index: 25,
                     type: "checkbox",
                     des: "Need SMS verification"
+                },
+                forbidApplyReward: {
+                    index: 26,
+                    type: "multiSelect",
+                    des: "Forbid to apply other reward within reward interval",
+                    options: "allRewardEvent"
+                },
+                checkIsMobileDeviceAppliedBefore: {
+                    index: 27,
+                    type: "checkbox",
+                    des: "Check if this mobile device has received free trial"
                 }
             }
         },
@@ -957,3 +968,116 @@ var param106Cursor = db.rewardParam.find({"name": type106});
 var param106 = param106Cursor.next();
 
 db.rewardType.update({"name": type106}, {$set: {params: param106._id, des: type106, isGrouped: true}}, {upsert: true});
+
+// 提升留存（组）
+var type107 = "PlayerRetentionRewardGroup";
+db.rewardParam.update({
+    "name": type107
+}, {
+    $set: {
+        condition: {
+            generalCond: Object.assign({}, generalCond, {
+                applyType: {
+                    index: 2,
+                    type: "select",
+                    des: "Reward apply type",
+                    options: "rewardApplyType",
+                    disabled: true,
+                    value: "4",
+                    detail: "This reward has to be applied first by the player, and once the requirement is fulfilled the reward will be generated automatically"
+                },
+            }),
+            topUpCond: topUpCond,
+            periodCond: periodCond,
+            consumptionCond: consumptionCond,
+            dynamicCond: dynamicCond,
+            customCond: {
+                checkIPPlayerRetentionReward: {
+                    index: 43,
+                    type: "checkbox",
+                    des: "Check if this IP address has received the reward"
+                },
+                checkPhonePlayerRetentionReward: {
+                    index: 44,
+                    type: "checkbox",
+                    des: "Check if this phone number has received the reward"
+                },
+                checkDevicePlayerRetentionReward: {
+                    index: 45,
+                    type: "checkbox",
+                    des: "Check if this portable device has received the reward",
+                    detail: "Check the IMEI value/unique code of each handset when applying through APP"
+                },
+                quantityLimitInInterval: {
+                    index: 46,
+                    type: "number",
+                    des: "The quantity limit of the reward application for the interval",
+                    detail: "Only limited quantity of reward is open for applying"
+                },
+                minimumTopUpAmountInInterval: {
+                    index: 47,
+                    type: "number",
+                    des: "The minimum required top up amount for the interval",
+                    detail: "Only 1 top up record can be used for the reward during the interval"
+                },
+                latestTopUpRecord: {
+                    index: 48,
+                    type: "checkbox",
+                    des: "Check if this is the latest top up record",
+                    detail: "Only the latest new top up record without consumption record and withdrawal record can be used to apply"
+                },
+                ignoreLatestTopUpDirtyCheckForReward: {
+                    index: 49,
+                    type: "multiSelect",
+                    des: "Ignore the following rewards that applied with the latest top up",
+                    options: "allRewardEvent"
+                },
+                definePlayerLoginMode: {
+                    index: 52,
+                    type: "select",
+                    options: "playerLoginMode",
+                    des: "Define player login mode",
+                    detail1: "1. Accumulative login day: login at  day 1, 2 and 3, collect the reward for day 1, 2 and 3.",
+                    detail2: "2. Exact login date: login at 1st, 3rd and 5th, collect the reward for day 1, 3 and 5."
+                },
+            }
+        },
+        param: {
+            tblOptFixed: {
+                rewardParam: {
+                    loginDay: {type: "number"},
+                    rewardAmount: {type: "number", des: "Actual Reward Amount"},
+                    spendingTimes: {type: "number", des: "Spending times on reward"},
+                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+                    forbidWithdrawIfBalanceAfterUnlock: {
+                        type: "number",
+                        des: "Forbid withdraw if there is balance after unlock"
+                    },
+                    remark: {type: "text", des: "Remark"},
+                }
+            },
+            tblOptDynamic: {
+                rewardParam: {
+                    loginDay: {type: "number"},
+                    rewardPercentage: {type: "percentage", des: "Reward Percentage %"},
+                    maxRewardAmountInSingleReward: {type: "number", des: "Max Reward Amount In Single Reward"},
+                    spendingTimes: {type: "number", des: "Spending times on reward"},
+                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+                    forbidWithdrawIfBalanceAfterUnlock: {
+                        type: "number",
+                        des: "Forbid withdraw if there is balance after unlock"
+                    },
+                    remark: {type: "text", des: "Remark"},
+                }
+            }
+        }
+    }
+}, {
+    upsert: true
+});
+
+
+var param107Cursor = db.rewardParam.find({"name": type107});
+var param107 = param107Cursor.next();
+
+db.rewardType.update({"name": type107}, {$set: {params: param107._id, des: type107, isGrouped: true}}, {upsert: true});

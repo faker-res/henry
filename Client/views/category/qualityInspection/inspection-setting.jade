@@ -25,7 +25,7 @@
                     label.text-danger {{'Please select a type' | translate}}
 
                 div(ng-if='vm.selectedConfigTab=="definition" && checkViewPermission("QualityInspection", "QualityInsectionSetting", "Edit")')
-                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%;')
                         thead
                             tr
                                 th(style='width:30%') {{'PROFILE' | translate}}
@@ -53,11 +53,12 @@
                                     input.form-control(style="text-align:center;width:90%;margin: 0 auto;", type='text', ng-show='vm.configTableEdit', ng-model='vm.conversationDefinition.replyingSentence')
                             br
                             // !!! take not on checkViewPermission !!!!
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'Edit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
-                        text {{'EDIT' | translate}}
-                        img.img-edit
-                    button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("definition")') {{"CANCEL" | translate}}
-                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("definition")') {{"CONFIRM" | translate}}
+                    div(style='float:right; margin:1em 0')
+                        button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('QualityInspection', 'QualityInsectionSetting', 'Edit')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("definition")') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("definition")') {{"CONFIRM" | translate}}
 
 
                 div(ng-if='vm.selectedConfigTab=="setting" && checkViewPermission("QualityInspection", "QualityInsectionSetting", "Edit")')
@@ -125,7 +126,7 @@
                                     i.fa.fa-plus(style="font-size:2em", ng-if='vm.newOvertimeSetting.conversationInterval && vm.newOvertimeSetting.presetMark')
                             br
                             // !!! take not on checkViewPermission !!!!
-                    .pull-right
+                    .pull-right(style='margin:1em 0')
                         button.btn.btn-primary.common-button(ng-if="!vm.overtimeSettingAdd", ng-click='vm.overtimeSettingAdd=!vm.overtimeSettingAdd')
                             i.fa.fa-plus
                             text {{'ADD' | translate}}

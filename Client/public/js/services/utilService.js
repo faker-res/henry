@@ -287,6 +287,13 @@ define([], function () {
             var n = $.isNumeric(n) ? parseInt(n) : 0;
             return new Date(util.getTodayStartTime().getTime() + 24 * 60 * 60 * 1000 * n);
         }
+        this.getNumberOfDayThisMonth = function () {
+            var todayDate = new Date();
+            let startDate = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1, 0, 0, 0);
+            let endDate = new Date(todayDate.getFullYear(), todayDate.getMonth()+1, 1, 0, 0, 0);
+
+            return ((endDate-startDate)/(24 * 60 * 60 * 1000))
+        }
         this.actionAfterLoaded = function (id, func, times) {
             let count = times || 0;
             if ($(id) && $(id)[0] && func) {

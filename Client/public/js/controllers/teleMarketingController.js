@@ -5106,11 +5106,24 @@ define(['js/app'], function (myApp) {
             vm.tsCity = "";
         }
 
-        vm.filterPhoneListManagement = () => {
+        vm.showPhoneListManagement = function () {
+            vm.responseMsg = false;
+            utilService.actionAfterLoaded(('#phoneListSearch'), function () {
+                vm.phoneListSearch.pageObj = utilService.createPageForPagingTable("#phoneListManagementTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "phoneListSearch", vm.filterPhoneListManagement);
+                });
+                vm.filterPhoneListManagement(true);
+            });
+        }
+
+        vm.filterPhoneListManagement = (newSearch) => {
             let sendQuery = {
                 platform: vm.selectedPlatform.id,
                 startTime: $('#phoneListStartTimePicker').data('datetimepicker').getLocalDate(),
-                endTime: $('#phoneListEndTimePicker').data('datetimepicker').getLocalDate()
+                endTime: $('#phoneListEndTimePicker').data('datetimepicker').getLocalDate(),
+                index: newSearch ? 0 : (vm.phoneListSearch.index || 0),
+                limit: vm.phoneListSearch.limit || 10,
+                sortCol: vm.phoneListSearch.sortCol,
             }
 
             if (vm.phoneListSearch) {
@@ -5124,10 +5137,11 @@ define(['js/app'], function (myApp) {
             }
 
             socketService.$socket($scope.AppSocket, 'getTsPhoneList', sendQuery, function (data) {
-                if(data && data.data){
+                if(data && data.data && data.data.data){
                     $scope.$evalAsync(() => {
-                        vm.tsPhoneList = data.data;
-                        vm.drawPhoneListManagementTable(data.data);
+                        vm.tsPhoneList = data.data.data;
+                        let size = data.data.size || 0;
+                        vm.drawPhoneListManagementTable(newSearch, vm.tsPhoneList, size);
                     })
                 }
             });
@@ -5306,7 +5320,7 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        vm.drawPhoneListManagementTable = function (tblData) {
+        vm.drawPhoneListManagementTable = function (newSearch, tblData, size) {
             console.log("phoneListManagementTable",tblData);
             vm.phoneNumberInfo.remark = {};
             var tableOptions = $.extend({}, vm.generalDataTableOptions, {
@@ -5340,13 +5354,22 @@ define(['js/app'], function (myApp) {
                             return link.prop('outerHTML');
                         }
                     },
-                    {title: $translate('TOTAL_NAME_LIST'), data: "totalPhone"},
+                    {
+                        title: $translate('TOTAL_NAME_LIST'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'text': row.totalPhone || 0
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
                     {
                         title: $translate('TOTAL_DISTRIBUTED'),
                         render: function(data, type, row, index){
                             let divWithToolTip = $('<div>', {
                                 'title': "曾经指派给电销员的总电话数量。（同一电话循环2人，派发＝1）",
-                                'text': row.totalDistributed
+                                'text': row.totalDistributed || 0
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -5357,7 +5380,7 @@ define(['js/app'], function (myApp) {
                         render: function(data, type, row, index){
                             let divWithToolTip = $('<div>', {
                                 'title': "所有曾经添加『回访结果』的电话。（同一电话循环2人，使用＝1）",
-                                'text': row.totalUsed
+                                'text': row.totalUsed || 0
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -5366,9 +5389,10 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_UNUSED'),
                         render: function(data, type, row, index){
+                            let totalUnused = (row.totalPhone - row.totalUsed) || 0;
                             let divWithToolTip = $('<div>', {
                                 'title': "名单总数当中，尚未添加回访的电话量",
-                                'text': row.totalPhone - row.totalUsed
+                                'text': totalUnused
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -5379,7 +5403,7 @@ define(['js/app'], function (myApp) {
                         render: function(data, type, row, index){
                             let divWithToolTip = $('<div>', {
                                 'title': "基础数据中，定义何谓成功接听（选择回访状态）的设定（同一电话 2 电销员都有接听，接听人＝1）",
-                                'text': row.totalSuccess
+                                'text': row.totalSuccess || 0
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -5402,7 +5426,7 @@ define(['js/app'], function (myApp) {
                         render: function(data, type, row, index){
                             let divWithToolTip = $('<div>', {
                                 'title': "已使用量当中，电话在系统有开户（不管帐号禁用与否）",
-                                'text': row.totalRegistration
+                                'text': row.totalRegistration || 0
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -5425,7 +5449,7 @@ define(['js/app'], function (myApp) {
                         render: function(data, type, row, index){
                             let divWithToolTip = $('<div>', {
                                 'title': "已使用量当中，有成功存款的人数",
-                                'text': row.totalTopUp
+                                'text': row.totalTopUp || 0
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -5448,7 +5472,7 @@ define(['js/app'], function (myApp) {
                         render: function(data, type, row, index){
                             let divWithToolTip = $('<div>', {
                                 'title': "已使用量当中，存款 2 笔以上的人数",
-                                'text': row.totalMultipleTopUp
+                                'text': row.totalMultipleTopUp || 0
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -5471,7 +5495,7 @@ define(['js/app'], function (myApp) {
                         render: function(data, type, row, index){
                             let divWithToolTip = $('<div>', {
                                 'title': "已使用量当中，系统定义的有效开户人数",
-                                'text': row.totalValidPlayer
+                                'text': row.totalValidPlayer || 0
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -5501,55 +5525,22 @@ define(['js/app'], function (myApp) {
                         }
                     },
                 ],
-                "paging": true,
+                "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     $compile(nRow)($scope);
                 }
             });
             tableOptions.language.emptyTable=$translate("No data available in table");
 
-            if (reportTbl) {
-                reportTbl.clear();
-            }
-            var reportTbl = $("#phoneListManagementTable").DataTable(tableOptions);
-            utilService.setDataTablePageInput('phoneListManagementTable', reportTbl, $translate);
+            utilService.createDatatableWithFooter('#phoneListManagementTable', tableOptions, {
+            });
 
-            // var $checkAll = $(".dataTables_scrollHead thead .customerSelected");
-            // if ($checkAll.length == 1) {
-            //     var $showBtn = $('<input>', {
-            //         type: 'checkbox',
-            //         class: "customerSelected transform150 checkAllProposal"
-            //     });
-            //     $checkAll.html($showBtn);
-            //     $('.customerSelected.checkAllProposal').on('click', function () {
-            //         var $checkAll = $(this) && $(this).length == 1 ? $(this)[0] : null;
-            //         setCheckAllProposal($checkAll.checked);
-            //     })
-            // }
-            // function setCheckAllProposal(flag) {
-            //     var s = $("#phoneListManagementTable tbody td.customerSelected input").each(function () {
-            //         $(this).prop("checked", flag);
-            //     });
-            //     vm.updateMultiselectCustomer();
-            // }
-            //
-            // function tableRowClicked(event) {
-            //     if (event.target.tagName == "INPUT" && event.target.type == 'checkbox') {
-            //         var flagAllChecked = $("#phoneListManagementTable tbody td.customerSelected input[type='checkbox']:not(:checked)");
-            //         $('.customerSelected.checkAllProposal').prop('checked', flagAllChecked.length == 0);
-            //         vm.updateMultiselectCustomer();
-            //     }
-            //
-            // }
-            // $('#phoneListManagementTable tbody').off('click', "**");
-            // $('#phoneListManagementTable tbody').on('click', 'tr', tableRowClicked);
-
+            vm.phoneListSearch.pageObj.init({maxCount: size}, newSearch);
             $('#phoneListManagementTable').off('order.dt');
             $('#phoneListManagementTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'phoneListManagementTable', vm.drawPhoneListManagementTable);
+                vm.commonSortChangeHandler(a, 'phoneListSearch', vm.getTeleMarketingOverview);
             });
             $('#phoneListManagementTable').resize();
-
         }
 
         vm.distributePhoneNumber = (tsListObjId) => {
