@@ -599,6 +599,15 @@ function socketActionReport(socketIO, socket) {
 
             socketUtil.emitter(self.socket, dbProposal.getFinancialReportByDay, [data], actionName, isValidData);
         },
+
+        getFinancialReportBySum: function getFinancialReportBySum(data) {
+            var actionName = arguments.callee.name;
+            let startTime = new Date(data.startTime);
+            let endTime = new Date(data.endTime);
+            let isValidData = Boolean(data && data.startTime && data.endTime && (endTime > startTime) && data.platform && data.displayMethod);
+
+            socketUtil.emitter(self.socket, dbProposal.getFinancialReportBySum, [data], actionName, isValidData);
+        },
     };
     socketActionReport.actions = this.actions;
 };
