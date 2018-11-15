@@ -12884,6 +12884,48 @@ let dbPlayerInfo = {
         );
     },
 
+    getAssignTopupRequestList: function (playerId) {
+        var platformObjectId = null;
+        return dbconfig.collection_players.findOne({playerId: playerId}).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
+        }).lean().then(
+            playerData => {
+                if (playerData && playerData.platform) {
+                    platformObjectId = playerData.platform._id;
+                    return dbconfig.collection_proposalType.findOne({
+                        platformId: platformObjectId,
+                        name: constProposalType.PLAYER_ASSIGN_TOP_UP
+                    });
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find player"});
+                }
+            }
+        ).then(
+            proposalTypeData => {
+                if (proposalTypeData) {
+                    var queryObject = {
+                        "data.playerId": playerId,
+                        type: proposalTypeData._id,
+                        status: constProposalStatus.PENDING
+                    };
+                    return dbconfig.collection_proposal.findOne(queryObject).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find proposal type"});
+                }
+            }
+        ).then(
+            proposalData => {
+                if (proposalData && proposalData.data && proposalData.data.validTime) {
+                    proposalData.restTime = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.validTime).getTime()) / 1000));
+                }
+                return proposalData;
+            }
+        );
+    },
+
     /*
      * player apply for top up return reward
      * @param {String} playerId

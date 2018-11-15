@@ -353,10 +353,10 @@ style.
                             br
                             label &nbsp;
                             button.common-button.margin-right-5.btn.btn-primary(ng-click='vm.isEditRandomData = true' ng-if = "!vm.isEditRandomData && checkViewPermission('Platform', 'rewardPoints', 'Create')") {{'EDIT' | translate}}
-                            button.btn.btn-warning.margin-right-5(ng-click='vm.isEditRandomData = false; vm.playerRankingRandom = vm.playerRankingRandomClone' ng-if = 'vm.isEditRandomData') {{'CANCEL' | translate}}
+                            button.common-button.btn.btn-warning.margin-right-5(ng-click='vm.isEditRandomData = false; vm.playerRankingRandom = vm.playerRankingRandomClone' ng-if = 'vm.isEditRandomData') {{'CANCEL' | translate}}
                             button.common-button.margin-right-5.btn.btn-primary(ng-click='vm.playerRankingRandom.push({})' ng-if = 'vm.isEditRandomData') {{'ADD' | translate}}
-                            button.btn.btn-success(ng-click='vm.isEditRandomData = false; vm.submitRankingRandomConfig()' ng-if = 'vm.isEditRandomData') {{'CONFIRM' | translate}}
-                            button.btn.btn-success(ng-click='vm.insertRandomData()' ng-if = "!vm.isEditRandomData && checkViewPermission('Platform', 'rewardPoints', 'Create')") {{'RANDOM_GENERATE' | translate}}
+                            button.common-button.btn.btn-success(ng-click='vm.isEditRandomData = false; vm.submitRankingRandomConfig()' ng-if = 'vm.isEditRandomData') {{'CONFIRM' | translate}}
+                            button.common-button.btn.btn-success(ng-click='vm.insertRandomData()' ng-if = "!vm.isEditRandomData && checkViewPermission('Platform', 'rewardPoints', 'Create')") {{'RANDOM_GENERATE' | translate}}
                     br
                     div(style="margin-top:25px;")
                         //label {{'INCLUDE_FAKE_ACC' | translate}}
