@@ -16,6 +16,43 @@ let dbTeleSales = {
         return dbconfig.collection_tsPhoneList.findOne(query).lean();
     },
 
+
+    getTSPhoneListName: function (query) {
+        return dbconfig.collection_tsPhoneList.distinct("name", query);
+    },
+
+    getTsDistributedPhoneDetail: (distributedPhoneObjId) => {
+        let tsDistributedPhone;
+        return dbconfig.collection_tsDistributedPhone.findOne({_id: distributedPhoneObjId}).lean().then(
+            dPhoneData => {
+                if (!dPhoneData) {
+                    return Promise.reject({message: "Phone detail not found"});
+                }
+                tsDistributedPhone = dPhoneData;
+
+                let tsPhoneProm = dbconfig.collection_tsPhone.findOne({_id: tsDistributedPhone.tsPhone}).lean();
+                let tsAssigneeProm = dbconfig.collection_tsAssignee.findOne({_id: tsDistributedPhone.assignee}).lean();
+                let feedbackProm = dbconfig.collection_tsPhoneFeedback.find({tsPhone: tsDistributedPhone.tsPhone}).lean();
+
+                return Promise.all([tsPhoneProm, tsAssigneeProm, feedbackProm]);
+            }
+        ).then(
+            ([tsPhone, tsAssignee, feedbacks]) => {
+                if (!tsPhone) {
+                    return Promise.reject({message: "tsPhone not found"});
+                }
+                if (!tsAssignee) {
+                    return Promise.reject({message: "tsAssignee not found"});
+                }
+                tsDistributedPhone.tsPhone = tsPhone;
+                tsDistributedPhone.assignee = tsAssignee;
+                tsDistributedPhone.feedbacks = feedbacks;
+
+                return tsDistributedPhone;
+            }
+        );
+    },
+
     distributePhoneNumber: function (inputData) {
         console.log("tsListObjId", inputData.tsListObjId);
         console.log("tsListPlatform", inputData.platform);
@@ -132,6 +169,56 @@ let dbTeleSales = {
     updateTsPhoneList: function (query, updateData) {
         return dbconfig.collection_tsPhoneList.findOneAndUpdate(query, updateData).lean()
     },
+
+    getTsAssignees: function(tsPhoneListObjId){
+        let query = {
+            tsPhoneList: tsPhoneListObjId
+        };
+
+        return dbconfig.collection_tsAssignee.find(query).then(assignees=>assignees);
+    },
+
+    updateTsAssignees: (platformObjId, tsPhoneListObjId, assignees) => {
+        if(assignees && assignees.length > 0) {
+            let updateOrAddProm = [];
+            assignees.forEach(assignee => {
+                updateOrAddProm.push(
+                    dbconfig.collection_admin.findOne({adminName: assignee.adminName}).lean().then(admin => {
+                        let updateData = {
+                            platform: assignee.platform || platformObjId,
+                            tsPhoneList: assignee.tsPhoneList || tsPhoneListObjId,
+                            adminName: assignee.adminName,
+                            admin: assignee.admin || admin._id,
+                            status: assignee.status,
+                            createTime: assignee.createTime || new Date
+                        };
+                        let updateQuery = {
+                            tsPhoneList: tsPhoneListObjId,
+                            admin: admin._id
+                        };
+                        return dbconfig.collection_tsAssignee.findOneAndUpdate(updateQuery, updateData, {upsert: true});
+                    })
+                )
+            });
+            return Promise.all(updateOrAddProm);
+        }
+    },
+
+    removeTsAssignees: (platformObjId, tsPhoneListObjId, adminNames) => {
+        if(adminNames && adminNames.length > 0) {
+            let removeProm = [];
+            adminNames.forEach(adminName => {
+                removeProm.push(
+                    dbconfig.collection_tsAssignee.remove({
+                        platform: platformObjId,
+                        tsPhoneList: tsPhoneListObjId,
+                        adminName: adminName
+                    })
+                )
+            });
+            return Promise.all(removeProm);
+        }
+    }
 };
 
 module.exports = dbTeleSales;
