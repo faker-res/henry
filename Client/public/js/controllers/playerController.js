@@ -11742,7 +11742,8 @@ define(['js/app'], function (myApp) {
                 orderNo: vm.playerAssignTopUp.orderNo
             };
             vm.playerAssignTopUp.submitted = true;
-            socketService.$socket($scope.AppSocket, 'applyAssignTopUpRequest', sendData,
+            $scope.$evalAsync(() => {
+                socketService.$socket($scope.AppSocket, 'applyAssignTopUpRequest', sendData,
                 function (data) {
                     console.log('assignTopup success', data);
                     vm.playerAssignTopUp.responseData = data.data;
@@ -11752,6 +11753,7 @@ define(['js/app'], function (myApp) {
                     // socketService.showErrorMessage(error.error.errorMessage);
                     vm.getPlatformPlayersData();
                 });
+            });
         }
 
         vm.applyPlayerBonus = function () {
@@ -14482,27 +14484,29 @@ define(['js/app'], function (myApp) {
 
         // Player assign topup
         vm.initPlayerAssignTopUp = function () {
-            vm.getZoneList();
-            vm.provinceList = [];
-            vm.cityList = [];
-            vm.districtList = [];
-            vm.freezeZoneSelection = false;
-            vm.playerAssignTopUp = {submitted: false};
-            vm.filterBankname("playerAssignTopUp");
-            vm.existingAssignTopup = false;
-            vm.chosenBankAcc = {};
-            socketService.$socket($scope.AppSocket, 'getAssignTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
-                vm.existingAssignTopup = data.data ? data.data : false;
-                $scope.safeApply();
+            $scope.$evalAsync(() => {
+                vm.getZoneList();
+                vm.provinceList = [];
+                vm.cityList = [];
+                vm.districtList = [];
+                vm.freezeZoneSelection = false;
+                vm.playerAssignTopUp = {submitted: false};
+                vm.filterBankname("playerAssignTopUp");
+                vm.existingAssignTopup = false;
+                vm.chosenBankAcc = {};
+
+                socketService.$socket($scope.AppSocket, 'getAssignTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
+                    vm.existingAssignTopup = data.data ? data.data : false;
+                });
+                // utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
+                //     vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerManualTopUp .createTime');
+                utilService.actionAfterLoaded('#modalPlayerTopUp', function () {
+                    vm.playerAssignTopUp.createTime = utilService.createDatePicker('#modalPlayerTopUp [name="form_assign_topup"] .createTime');
+                    vm.playerAssignTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
+                });
+                vm.refreshSPicker();
             });
-            // utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
-            //     vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerManualTopUp .createTime');
-            utilService.actionAfterLoaded('#modalPlayerTopUp', function () {
-                vm.playerAssignTopUp.createTime = utilService.createDatePicker('#modalPlayerTopUp [name="form_assign_topup"] .createTime');
-                vm.playerAssignTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
-            });
-            vm.refreshSPicker();
-            $scope.safeApply();
+
         };
 
         vm.initPlayerManualTopUp = function () {
@@ -14701,11 +14705,12 @@ define(['js/app'], function (myApp) {
                 proposalId: vm.existingAssignTopup.proposalId
             };
             socketService.$socket($scope.AppSocket, 'cancelAssignTopupRequest', sendQuery, function (data) {
-                console.log(data.data);
-                if (vm.existingAssignTopup.proposalId == data.data.proposalId) {
-                    vm.existingAssignTopup.isCanceled = true;
-                }
-                $scope.safeApply();
+                $scope.$evalAsync(() => {
+                        console.log(data.data);
+                    if (vm.existingAssignTopup.proposalId == data.data.proposalId) {
+                        vm.existingAssignTopup.isCanceled = true;
+                    }
+                });
             });
         }
 
