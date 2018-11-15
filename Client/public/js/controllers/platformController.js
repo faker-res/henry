@@ -2210,10 +2210,11 @@ define(['js/app'], function (myApp) {
             vm.compareConsumptionReturn = function (startTime, endTime, providerId, index){
 
                 let sendQuery = {
-                    platformId: vm.selectedPlatform.id,
+                    platformObjId: vm.selectedPlatform.id,
                     startTime: startTime,
                     endTime: endTime,
-                    providerId: providerId
+                    providerId: providerId,
+                    platformId: vm.selectedPlatform.data.platformId
                 };
                 socketService.$socket($scope.AppSocket, 'operationDifferentReport', sendQuery, function (data) {});
             }
@@ -2221,7 +2222,7 @@ define(['js/app'], function (myApp) {
                 vm.providerDiffConsumption[providerId] = vm.resetProviderConsumptRecord(index, providerId);
                 vm.providerDiffConsumption[providerId].status = 3;
                 var sendQuery = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.selectedPlatform.data.platformId,
                     providerId: providerId,
                     startTime: startTime,
                     endTime: endTime

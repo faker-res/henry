@@ -117,7 +117,7 @@ function socketActionReport(socketIO, socket) {
             var endTime = query.endTime ? new Date(query.endTime) : time.endTime;
             query.limit = query.limit || 20;
             var isValidData = Boolean(query && query.platformId);
-            socketUtil.emitter(self.socket, dbGameProviderPlayerDaySummary.getProviderDifferDaySummaryForTimeFrame, [startTime, endTime, ObjectId(query.platformId), query.providerId, 0, 0], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbGameProviderPlayerDaySummary.getProviderDifferDaySummaryForTimeFrame, [startTime, endTime, ObjectId(query.platformObjId), query.providerId, query.platformId, 0, 0], actionName, isValidData);
         },
         syncBetRecord: function syncBetRecord(query) {
             var actionName = arguments.callee.name;

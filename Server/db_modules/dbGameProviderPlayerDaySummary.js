@@ -308,7 +308,7 @@ var dbGameProviderPlayerDaySummary = {
         };
         return cpmsAPI.consumption_reSendConsumption(sendData);
     },
-    getProviderDifferDaySummaryForTimeFrame: function (startTime, endTime, platformId, proId, index, count) {
+    getProviderDifferDaySummaryForTimeFrame: function (startTime, endTime, platformObjId, proId, platformId, index, count) {
 
         let sendQuery = {
             platformId: platformId,
@@ -316,7 +316,7 @@ var dbGameProviderPlayerDaySummary = {
             startDate: startTime,
             endDate: endTime
         };
-        let fpmsSummary = dbGameProviderPlayerDaySummary.getProviderDaySummaryForTimeFrame(startTime, endTime, platformId, proId, index, count);
+        let fpmsSummary = dbGameProviderPlayerDaySummary.getProviderDaySummaryForTimeFrame(startTime, endTime, platformObjId, proId, index, count);
         let cpmsSummary = cpmsAPI.consumption_getConsumptionSummary(sendQuery).catch(err=>{console.log(err)});
         return Promise.all([fpmsSummary, cpmsSummary])
 
