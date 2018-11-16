@@ -14,17 +14,17 @@ let wcConversationLogSchema = new Schema({
     // csOfficer
     csOfficer: {type: Schema.ObjectId, ref: 'admin', index: true},
 
-    // chatting wechat Id
-    conversationWechatId: {type: String, index: true},
+    // cs dealing with which player wechatId
+    playerWechatId: {type: String, index: true},
 
-    // chatting wechat name
-    conversationWechatName: {type: String},
+    // cs dealing with which player wechat's name
+    playerWechatName: {type: String, index: true},
 
-    // chatting datetime
-    conversationTime: {type: Date, index: true},
+    // cs reply player datetime
+    csReplyTime: {type: Date, index: true},
 
-    // chatting content
-    conversationContent: {type: String},
+    // cs reply player content
+    csReplyContent: {type: String},
 
     // Create time
     createTime: {type: Date, default: new Date(), index: true}

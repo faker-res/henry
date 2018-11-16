@@ -140,8 +140,7 @@
                 "getLockedLobbyConfig",
                 "saveFrontEndData",
                 "getFrontEndData",
-                "sendFileFTP",
-                "sendWCGroupControlSessionToFPMS"
+                "sendFileFTP"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -485,6 +484,25 @@
 
         rootObj.DXMissionService = DXMissionService;
     };
+
+    var defineWCGroupControlService = function (sinonet) {
+        var WCGroupControlService = function (connection) {
+            sinonet.WebSocketService.call(this, "wcgroupcontrol", connection);
+
+            //define functions
+            var functionNames = [
+                "sendWCGroupControlSessionToFPMS",
+                "sendWechatConversationToFPMS"
+            ];
+            addServiceFunctions(sinonet, this, functionNames);
+        };
+
+        WCGroupControlService.prototype = Object.create(sinonet.WebSocketService.prototype);
+        WCGroupControlService.prototype.constructor = WCGroupControlService;
+
+        rootObj.WCGroupControlService = WCGroupControlService;
+    };
+
     // Individual services should be declared above, and called in here
     var defineServices = function (sinonet) {
         defineConnectionService(sinonet);
@@ -500,6 +518,7 @@
         defineGameService(sinonet);
         definePartnerService(sinonet);
         defineDXMissionService(sinonet);
+        defineWCGroupControlService(sinonet);
     };
 
     if (isNode) {
