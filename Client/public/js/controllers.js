@@ -657,7 +657,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.rewardApplyType = {
         1: "Manual Apply",
         2: "Auto Apply",
-        3: "Batch Apply"
+        3: "Batch Apply",
+        4: "Manual Subscribe Auto Apply"
     };
 
     $scope.intervalType = {
@@ -712,6 +713,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         1: "deposit - withdrawal",
         2: "consumption - reward",
         3: "consumtion sum"
+    };
+
+    $scope.playerLoginMode = {
+        1: "ACCUMULATIVE_LOGIN_DAY",
+        2: "EXACT_LOGIN_DATE",
     };
 
     $scope.constRewardPointsTaskCategory = {

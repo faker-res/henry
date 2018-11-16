@@ -9,9 +9,9 @@ var depositGroupSchema = new Schema({
     depositId: {type: Number, index: true},
     // -1 means this record is a deposit group
     // else means deposit setting parent deposit group's depositId
-    depositParentDepositId: {type: Number, required: true, default: -1},
+    depositParentDepositId: {type: Number, required: true, default: -1, index: true},
     // topUpTypeId - 1 Manual, 2 Online, 3 Alipay, 4 Wechat
-    topUpTypeId: {type: Number},
+    topUpTypeId: {type: Number, index: true},
     // DepositMethodId or MerchantTopUpTypeId
     topUpMethodId: {type: Number}
 });

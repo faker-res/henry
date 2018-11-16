@@ -1601,7 +1601,7 @@ let dbPlayerReward = {
                     endTime: event.validEndTime,
                     deposit: event.param.requiredTopUpAmount,
                     effectiveBet: event.param.requiredConsumptionAmount,
-                    checkResult: checkResults[0],
+                    checkResult: checkAllResults[0],
                     list: outputList[0]
                 }
             }
@@ -1762,6 +1762,8 @@ let dbPlayerReward = {
     }),
 
     getPromoCodeTypeByObjId: (promoCodeTypeObjId) => dbConfig.collection_promoCodeType.findOne({_id: promoCodeTypeObjId}).lean(),
+
+    promoCodeTemplateByObjId: (promoCodeTemplateObjId) => dbConfig.collection_promoCodeTemplate.findOne({_id: promoCodeTemplateObjId}).lean(),
 
     /*
      * player apply for consecutive login reward
@@ -4338,11 +4340,14 @@ let dbPlayerReward = {
         }
 
         let promoTypeProm = dbConfig.collection_promoCodeType.find(promoTypeQ).lean();
+        let promoTemplateProm = dbConfig.collection_promoCodeTemplate.find(promoTypeQ).lean();
 
-        return Promise.all([playerProm, promoTypeProm]).then(res => {
+        return Promise.all([playerProm, promoTypeProm, promoTemplateProm]).then(res => {
             let playerData = res[0];
             let promoCodeTypeData = res[1];
+            let promoCodeTemplateData = res[2];
             let promoCodeTypeObjIds = promoCodeTypeData.map(e => e._id);
+            let promoCodeTemplateObjIds = promoCodeTemplateData.map(e => e._id);
 
             let matchObj = {
                 platformObjId: platformObjId,
@@ -4353,8 +4358,15 @@ let dbPlayerReward = {
                 matchObj.playerObjId = playerData._id;
             }
 
-            if (promoCodeTypeObjIds && promoCodeTypeObjIds.length > 0) {
+            if (promoCodeTypeObjIds && promoCodeTypeObjIds.length > 0 && promoCodeTemplateObjIds && promoCodeTemplateObjIds.length > 0) {
+                matchObj['$or'] = [
+                    {promoCodeTypeObjId: {$in: promoCodeTypeObjIds}},
+                    {promoCodeTemplateObjId: {$in: promoCodeTemplateObjIds}}
+                ];
+            } else if (promoCodeTypeObjIds && promoCodeTypeObjIds.length > 0) {
                 matchObj.promoCodeTypeObjId = {$in: promoCodeTypeObjIds};
+            } else if (promoCodeTemplateObjIds && promoCodeTemplateObjIds.length > 0) {
+                matchObj.promoCodeTemplateObjId = {$in: promoCodeTemplateObjIds};
             }
             let aggregateQ;
             let distinctField;
@@ -4421,6 +4433,7 @@ let dbPlayerReward = {
                         $project: {
                             playerObjId: 1,
                             promoCodeTypeObjId: 1,
+                            promoCodeTemplateObjId: 1,
                             acceptedCount: {$cond: [{$eq: ['$status', 2]}, 1, 0]},
                             acceptedAmount: 1,
                             amount: 1
@@ -4428,7 +4441,7 @@ let dbPlayerReward = {
                     },
                     {
                         $group: {
-                            _id: "$promoCodeTypeObjId",
+                            _id: {promoCodeTypeObjId: "$promoCodeTypeObjId", promoCodeTemplateObjId: "$promoCodeTemplateObjId"},
                             amount: {$sum: "$amount"},
                             acceptedCount: {$sum: "$acceptedCount"},
                             acceptedAmount: {$sum: "$acceptedAmount"},

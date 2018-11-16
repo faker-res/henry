@@ -12884,6 +12884,48 @@ let dbPlayerInfo = {
         );
     },
 
+    getAssignTopupRequestList: function (playerId) {
+        var platformObjectId = null;
+        return dbconfig.collection_players.findOne({playerId: playerId}).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
+        }).lean().then(
+            playerData => {
+                if (playerData && playerData.platform) {
+                    platformObjectId = playerData.platform._id;
+                    return dbconfig.collection_proposalType.findOne({
+                        platformId: platformObjectId,
+                        name: constProposalType.PLAYER_ASSIGN_TOP_UP
+                    });
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find player"});
+                }
+            }
+        ).then(
+            proposalTypeData => {
+                if (proposalTypeData) {
+                    var queryObject = {
+                        "data.playerId": playerId,
+                        type: proposalTypeData._id,
+                        status: constProposalStatus.PENDING
+                    };
+                    return dbconfig.collection_proposal.findOne(queryObject).lean();
+                }
+                else {
+                    return Q.reject({name: "DataError", message: "Cannot find proposal type"});
+                }
+            }
+        ).then(
+            proposalData => {
+                if (proposalData && proposalData.data && proposalData.data.validTime) {
+                    proposalData.restTime = Math.abs(parseInt((new Date().getTime() - new Date(proposalData.data.validTime).getTime()) / 1000));
+                }
+                return proposalData;
+            }
+        );
+    },
+
     /*
      * player apply for top up return reward
      * @param {String} playerId
@@ -18779,16 +18821,6 @@ let dbPlayerInfo = {
     },
 
     getCreditDetail: function (playerObjId) {
-
-        function sortRankingRecord(a, b) {
-            if (parseInt(a.providerId) < parseInt(b.providerId))
-                return 1;
-            if (parseInt(a.providerId) > parseInt(b.providerId))
-                return -1;
-
-            return 0;
-        }
-
         let returnData = {
             gameCreditList: [],
             lockedCreditList: []
@@ -18803,6 +18835,7 @@ let dbPlayerInfo = {
         let amountGameProviderList = [];
         let totalLockedCredit = 0;
         let totalGameCreditAmount = 0;
+
         return dbconfig.collection_players.findOne({_id: playerObjId}, {
             platform: 1,
             validCredit: 1,
@@ -18828,17 +18861,15 @@ let dbPlayerInfo = {
                     .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).lean();
             }).then(
             platformData => {
-                let providerCredit = {gameCreditList: []}
+                let providerCredit = {gameCreditList: []};
 
                 if (platformData && platformData.gameProviders.length > 0) {
-
                     // sorting to reduce chances of getting joint-list
                     platformData.gameProviders.sort(sortRankingRecord);
 
                     for (let i = 0; i < platformData.gameProviders.length; i++) {
                         gameProviderIdList.push(platformData.gameProviders[i].providerId);
                         // check each of the game provider for the sameLineProvider
-                        console.log("checking--Yh groupSameLineProviders", groupSameLineProviders)
                         if (platformData.gameProviders[i] && platformData.gameProviders[i].sameLineProviders && platformData.gameProviders[i].sameLineProviders[playerDetails.platformId] &&
                             platformData.gameProviders[i].sameLineProviders[playerDetails.platformId].length) {
 
@@ -18848,13 +18879,9 @@ let dbPlayerInfo = {
                             else {
                                 // check each of the providerId
                                 let isAdded = false;
-
                                 let nextProviderIdList = platformData.gameProviders[i].sameLineProviders[playerDetails.platformId];
-                                console.log("checking--Yh nextProviderIdList", nextProviderIdList)
 
                                 for (let count = 0; count < groupSameLineProviders.length; count++) {
-                                    console.log("checking---yH count", count)
-                                    console.log("checking--Yh inner groupSameLineProviders", groupSameLineProviders[count])
                                     let interceptProviderIdList = groupSameLineProviders[count].filter(q => nextProviderIdList.indexOf(q) > -1);
                                     if (interceptProviderIdList && interceptProviderIdList.length) {
                                         nextProviderIdList.forEach(
@@ -18863,7 +18890,7 @@ let dbPlayerInfo = {
                                                     groupSameLineProviders[count].push(nextItem);
                                                 }
                                             }
-                                        )
+                                        );
 
                                         isAdded = true;
                                         break;
@@ -18949,7 +18976,6 @@ let dbPlayerInfo = {
                         }
                     }
 
-                    console.log("checking-- yH tempSameLineProviderList", tempSameLineProviderList)
                     // remove the unrelated provderID and return data
                     returnData.sameLineProviders = {};
                     for (let i = 0; i < tempSameLineProviderList.length; i ++) {
@@ -19011,7 +19037,6 @@ let dbPlayerInfo = {
                             providerId: gameCreditList[i].providerId
                         };
                         // check the game credit from the same platform
-                        console.log("checking---yH amountGameProviderList", amountGameProviderList)
                        if (amountGameProviderList.indexOf(gameCreditList[i].providerId) > -1){
                            totalGameCreditAmount +=  parseInt(gameCreditList[i].gameCredit) || 0;
                        }
@@ -19029,7 +19054,6 @@ let dbPlayerInfo = {
             }
         ).then(
             rewardTaskGroup => {
-
                 if (rewardTaskGroup && rewardTaskGroup.length > 0) {
                     usedTaskGroup = rewardTaskGroup;
                     for (let i = 0; i < rewardTaskGroup.length; i++) {
@@ -19103,6 +19127,15 @@ let dbPlayerInfo = {
 
                 return returnData;
             });
+
+        function sortRankingRecord(a, b) {
+            if (parseInt(a.providerId) < parseInt(b.providerId))
+                return 1;
+            if (parseInt(a.providerId) > parseInt(b.providerId))
+                return -1;
+
+            return 0;
+        }
     },
 
     avaiCreditForInOut: function avaiCreditForInOut(platformId, playerName, providerId) {
