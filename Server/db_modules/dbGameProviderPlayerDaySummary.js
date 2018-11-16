@@ -491,7 +491,6 @@ var dbGameProviderPlayerDaySummary = {
             .then(
                 function (data) {
                     console.log(data);
-
                     if (data && data.length > 0) {
                         result.amount = data[0].total_amount;
                         result.consumption = data[0].total_consumption;
