@@ -14,7 +14,6 @@ var jwt = require('jsonwebtoken');
 var md5 = require('md5');
 let rsaCrypto = require("../modules/rsaCrypto");
 let apiRequest = require("request");
-const queryPhoneLocation = require('query-mobile-phone-area');
 
 let env = require('../config/env').config();
 
