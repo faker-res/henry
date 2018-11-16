@@ -161,7 +161,7 @@ let dbTeleSales = {
                 tsDistributedPhone = dPhoneData;
 
                 let tsPhoneProm = dbconfig.collection_tsPhone.findOne({_id: tsDistributedPhone.tsPhone}).lean();
-                let tsAssigneeProm = dbconfig.collection_tsAssignee.findOne({_id: tsDistributedPhone.assignee}).lean();
+                let tsAssigneeProm = dbconfig.collection_tsAssignee.findOne({admin: tsDistributedPhone.assignee, tsPhoneList: tsDistributedPhone.tsPhoneList}).lean();
                 let feedbackProm = dbconfig.collection_tsPhoneFeedback.find({tsPhone: tsDistributedPhone.tsPhone}).lean();
 
                 return Promise.all([tsPhoneProm, tsAssigneeProm, feedbackProm]);
@@ -289,7 +289,6 @@ let dbTeleSales = {
                                         province: tsPhoneUpdate.province,
                                         city: tsPhoneUpdate.city,
                                         isInDangerZone: isInDangerZone,
-                                        assignTimes: tsPhoneUpdate.assignTimes || 1,
                                         tsPhone: ObjectId(tsPhoneUpdate.tsPhoneObjId),
                                         assignTimes: (tsPhoneUpdate.assignTimes + 1) || 1,
                                         assignee: tsAssignee.admin,

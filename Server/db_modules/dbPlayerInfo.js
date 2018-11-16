@@ -18559,8 +18559,6 @@ let dbPlayerInfo = {
                 filteredPhones.forEach(phone => {
                     let encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
                     let phoneLocation = queryPhoneLocation(phone.phoneNumber);
-                    console.log()
-                    console.log('phoneLocation', phoneLocation, phone.phoneNumber);
                     let phoneProvince = phoneLocation && phoneLocation.province || "";
                     let phoneCity = phoneLocation && phoneLocation.city || "";
 
