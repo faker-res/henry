@@ -19,6 +19,12 @@ define([], function () {
         this.initTranslate = function (func) {
             $trans = func ? func : null;
         }
+
+        this.encodePhoneNum = function (str) {
+            str = str || '';
+            return str.substring(0, 3) + "******" + str.slice(-4);
+        }
+
         this.setNDaysAgo = function (inputDate, n) {
             if (!(inputDate instanceof Date) || !Number.isInteger(n)) {
                 return;
