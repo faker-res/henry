@@ -1171,7 +1171,7 @@ define(['js/app'], function (myApp) {
                 filterAllPlatform: vm.filterAllPlatform,
                 platformObjId: vm.selectedPlatform.id,
                 arrayPhoneXLS: rowArrayMerge,
-                isTSNewList: isTSNewList
+                isTSNewList: isTSNewList && vm.tsNewList && vm.tsNewList.isCheckWhiteListAndRecycleBin
             };
 
             socketService.$socket($scope.AppSocket, 'uploadPhoneFileXLS', sendData, function (data) {
