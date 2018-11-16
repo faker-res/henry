@@ -140,7 +140,8 @@
                 "getLockedLobbyConfig",
                 "saveFrontEndData",
                 "getFrontEndData",
-                "sendFileFTP"
+                "sendFileFTP",
+                "sendWCGroupControlSessionToFPMS"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

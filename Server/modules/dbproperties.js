@@ -91,6 +91,7 @@ let promoCodeTemplateSchema = require('./../schema/promoCodeTemplate');
 let depositGroupSchema = require('./../schema/depositGroup');
 let qualityInspectionSchema = require('./../schema/qualityInspection');
 let live800RecordDaySummarySchema = require('./../schema/live800RecordDaySummary');
+let wcDeviceSchema = require('./../schema/admindb/wcDevice');
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
@@ -238,6 +239,7 @@ let smsGroupModel = db_admin.model('smsGroup', smsGroupSchema, 'smsGroup');
 let promoCodeTemplateModel = db_admin.model('promoCodeTemplate', promoCodeTemplateSchema, 'promoCodeTemplate');
 
 let depositGroupModel = db_admin.model('depositGroup', depositGroupSchema, 'depositGroup');
+let wcDeviceModel = db_admin.model('wcDevice', wcDeviceSchema, 'wcDevice');
 
 let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
 let platformAutoFeedbackModel = db_admin.model('platformAutoFeedback', platformAutoFeedbackSchema, 'platformAutoFeedback');
@@ -423,6 +425,10 @@ let tsAssigneeSchema = require('./../schema/logs2/tsAssignee');
 let tsAssigneeModel = dbLogs2.model('tsAssignee', tsAssigneeSchema, 'tsAssignee');
 let tsPhoneFeedbackSchema = require('./../schema/logs2/tsPhoneFeedback');
 let tsPhoneFeedbackModel = dbLogs2.model('tsPhoneFeedback', tsPhoneFeedbackSchema, 'tsPhoneFeedback');
+let wcGroupControlSessionSchema = require('./../schema/logs2/wcGroupControlSession');
+let wcGroupControlSessionModel = dbLogs2.model('wcGroupControlSession', wcGroupControlSessionSchema, 'wcGroupControlSession');
+let wcConversationLogSchema = require('./../schema/logs2/wcConversationLog');
+let wcConversationLogModel = dbLogs2.model('wcConversationLog', wcConversationLogSchema, 'wcConversationLog');
 
 let openPromoCodeTemplateSchema = require('./../schema/logs2/openPromoCodeTemplate');
 let openPromoCodeTemplateModel = dbLogs2.model('openPromoCodeTemplate', openPromoCodeTemplateSchema, 'openPromoCodeTemplate');
@@ -610,6 +616,7 @@ var dbProperties = {
     collection_smsGroup: smsGroupModel,
     collection_promoCodeTemplate: promoCodeTemplateModel,
     collection_depositGroup: depositGroupModel,
+    collection_wcDevice: wcDeviceModel,
 
     //logs
     collection_playerMail: playerMailModel,
@@ -687,6 +694,8 @@ var dbProperties = {
     collection_tsAssignee: tsAssigneeModel,
     collection_tsPhoneFeedback: tsPhoneFeedbackModel,
     collection_frontendData: frontendDataModel,
+    collection_wcGroupControlSession: wcGroupControlSessionModel,
+    collection_wcConversationLog: wcConversationLogModel,
 
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,

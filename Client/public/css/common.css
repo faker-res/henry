@@ -640,7 +640,7 @@ ul.roleList {
     padding: 10px 15px;
     /*min-height: 650px;*/
     overflow-y: auto;
-    min-height: 700px;
+    min-height: auto;
 }
 
 .common-right-sub-panel-body {
@@ -719,7 +719,7 @@ ul.roleList {
 #adminPolicy .adminleafPanel > div {
     display: inline-flex;
     min-width: 100px;
-    align-items: left;
+    /*align-items: left;*/
     margin-right: 10px;
 }
 
@@ -1813,6 +1813,28 @@ input[type='Number'] {
     text-align: end !important;
 }
 
+.radio-space{
+    margin: 0 .5em .5em;
+}
+
+.panel-heading {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+.paymentGroup-btn{
+    width: 100%;
+    min-width: 100%;
+}
+
+.paymentGroup-btn text {
+    float: none;
+}
+
+.paymentCard{
+    border-bottom: 1px solid;
+    padding-bottom: 1em;
+}
+
 .modal-footer .btn {
     float: right;
 }
@@ -2771,6 +2793,10 @@ input[type='number'].leftALignNumber {
     border-bottom: none;
 }
 
+#platformRewardSetting .nav-tabs>li.active>a {
+    border: 1px solid #337AB7;
+    border-bottom: none;
+}
 
 #modalPlayerTopUp .nav-tabs>li {
     cursor: pointer;

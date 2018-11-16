@@ -144,6 +144,7 @@
                         .full-width-input-block(ng-hide="vm.rewardDisabledParam.indexOf(vm.rewardMainCondition[i].name) > -1")
                             label.control-label {{v.des | translate}}
                                 i.fa.fa-question-circle(style='margin-left: 0.3em; color: #A9A9A9' ng-attr-title='{{v.detail | translate}}' ng-if="v.detail")
+                                i.fa.fa-question-circle(style='margin-left: 0.3em; color: #A9A9A9' ng-attr-title='{{v.detail1 | translate}}' + '; ' + '{{v.detail2 | translate}}' ng-if="v.detail1 && v.detail2")
 
                             div(ng-if="v.type == 'ImageURLText'" style="display:inline-block")
                                 table(style="width:100%")
@@ -196,7 +197,7 @@
                                     input.form-control(style="width:33%;display: inline-block" type="number" ng-model="vm.rewardMainCondition[i].value2")
 
 
-                    .col-md-12.well.scrollRecord
+                    .col-md-12.well.scrollRecord(ng-if="vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name != 'PlayerRetentionRewardGroup'")
                         div.full-width-input-block(ng-repeat="(i,v) in vm.rewardMainParam")
                             label {{v.des | translate}}
                                 i.fa.fa-question-circle(style='margin-left: 0.3em; color: #A9A9A9' ng-attr-title='{{v.detail | translate}}' ng-if="v.detail")
@@ -232,6 +233,37 @@
                                                 td
                                                     i.fa.fa-minus(ng-click='vm.rewardPercentageAmountDeleteRow(idx,entry[i])' ng-show='vm.platformRewardIsEnabled && idx!=0')
                                                     i.fa.fa-plus(ng-click='vm.rewardPercentageAmountNewRow(entry[i])' ng-show='vm.platformRewardIsEnabled && idx==0')
+
+                    .col-md-12.well.scrollRecord(ng-if="vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerRetentionRewardGroup' && !vm.isPlayerLevelDiff" style="height: 400px;")
+
+                        table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTable track by $index" ng-cloak)
+                            thead
+                                th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
+                            tbody
+                                tr(ng-repeat="entry in cond.value track by $index" style="overflow: auto;")
+
+                                    td(ng-repeat="(i,v) in cond.header track by $index")
+                                        input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
+                                        span.percentage(ng-if="v.type == 'percentage'")
+                                            input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
+
+                    #platformRewardSetting.col-md-12.well(ng-if="vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerRetentionRewardGroup' && vm.isPlayerLevelDiff")
+                        ul.nav.nav-tabs.common-nav-tabs(ng-if="vm.isPlayerLevelDiff")
+                            li(ng-repeat="(i,v) in vm.allPlayerLvl" ng-class="vm.selectedPlayerLvlTab == i ? 'active' : null")
+                                a.common-tab(data-toggle="tab" ng-click="vm.selectedPlayerLvlTab = i; vm.checkPlatformRewardIsView(vm.platformRewardIsEnabled);") {{v.name}}
+
+                        .panel.panel-primary(style="border-radius:0 !important; overflow: auto; height: 400px;")
+                            .panel-body(style="min-width: fit-content;")
+                                div(ng-repeat="cond in vm.rewardMainParamTable track by $index" ng-cloak)
+                                    table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-if="vm.selectedPlayerLvlTab == $index")
+                                        thead
+                                            th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
+                                        tbody
+                                            tr(ng-repeat="entry in cond.value")
+                                                td(ng-repeat="(i,v) in cond.header")
+                                                    input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
+                                                    span.percentage(ng-if="v.type == 'percentage'")
+                                                        input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
 
 
                 .col-md-12.well.scrollRecord(ng-if='vm.showRewardTypeData.isGrouped === true || (vm.showRewardTypeData && vm.showRewardTypeData.name ==="PlayerConsumptionReturn") ||(vm.showReward.type && vm.showReward.type.name ==="PlayerConsumptionReturn")')
