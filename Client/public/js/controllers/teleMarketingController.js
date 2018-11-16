@@ -380,11 +380,6 @@ define(['js/app'], function (myApp) {
 
                     vm.queryAdminPhoneList = {totalCount: 0, sortCol: {assignTimes: 1, endTime: 1}};
                     utilService.actionAfterLoaded("#adminPhoneListTablePage", function () {
-                        // $timeout(function(){
-                        //   $('.merchantNoList').selectpicker('refresh');
-                        // },50)
-                        // vm.commonInitTime(vm.queryAdminPhoneList, '#topUpReportQuery')
-                        // vm.queryAdminPhoneList.merchantType = null;
                         commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'startTime', '#adminPhoneListLastFeedbackStart', utilService.getNdayagoStartTime(30));
                         commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'endTime', '#adminPhoneListLastFeedbackEnd', utilService.getTodayEndTime());
                         commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'startTime', '#adminPhoneListDistributeStart', utilService.getNdayagoStartTime(30));
