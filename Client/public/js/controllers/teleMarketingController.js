@@ -340,7 +340,6 @@ define(['js/app'], function (myApp) {
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#phoneListEndTimePicker', utilService.getTodayEndTime());
                     break;
                 case 'REMINDER_PHONE_LIST':
-                    // vm.reminderListSearch = {};
                     commonService.getTSPhoneListName($scope, {assignees: authService.adminId, platform: vm.selectedPlatform.id}).then(
                         data => {
                             vm.adminPhoneListName = data;
