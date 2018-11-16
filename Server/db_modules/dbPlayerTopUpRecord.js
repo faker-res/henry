@@ -1395,17 +1395,13 @@ var dbPlayerTopUpRecord = {
                     } else {
                         return pmsAPI.payment_requestManualBankCard(requestData).then(cardData => {
                             if (cardData && cardData.result && cardData.result.bankTypeId) {
-                                // find bankName for this bank card
-                                return pmsAPI.bankcard_getBankTypeList({}).then(
-                                    list => {
-                                        if (list && list.data && list.data.length > 0) {
-                                            let selectedBankType = list.data.filter(bankType => bankType.bankTypeId === cardData.result.bankTypeId);
-
-                                            if (selectedBankType && selectedBankType.length > 0) {
-                                                cardData.result.bankName = selectedBankType[0].name;
-                                            } else {
-                                                cardData.result.bankName = "";
-                                            }
+                                // find bankName for this card
+                                return pmsAPI.bankcard_getBankType({bankTypeId: cardData.result.bankTypeId}).then(
+                                    bankData => {
+                                        if (bankData && bankData.data && bankData.data.name) {
+                                            cardData.result.bankName = bankData.data.name;
+                                        } else {
+                                            cardData.result.bankName = "";
                                         }
                                         return cardData;
                                     }
