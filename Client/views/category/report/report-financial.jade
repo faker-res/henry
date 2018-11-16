@@ -101,11 +101,12 @@
     div#sumFinancialReport(style="min-width:100% ;overflow-x: scroll; display; none !important")
         table.simple-table-single.table-vertical-middle.text-center(style='width:100%')
             thead
-                tr
+                tr.no-border
                     th(colspan=2)
                     th
-                        table
-                            td(ng-repeat="header in vm.sumFinancialReportList.platformFeeEstimateList | orderBy: 'platformId'" style="min-width:230px") {{header.platformName}}
+                        table.simple-table(style='width:100%; border: none')
+                            td(ng-repeat="header in vm.sumFinancialReportList.platformFeeEstimateList | orderBy: 'platformId'" style="min-width:230px")
+                                span.text-center {{header.platformName}}
 
             tbody
                 tr.no-border(ng-repeat="manual in vm.sumFinancialReportList.manualTopUpList | orderBy: 'groupName' track by $index" style="padding:0 !important;")
