@@ -29,7 +29,7 @@ let tsDistributedPhoneSchema = new Schema({
     // phone number's city
     city: {type: String, index: true},
     // time that it can be start using
-    startTime: {type: Date, index: true, default: new Date()},
+    startTime: {type: Date, index: true},
     // time that it expired - same with distributedEndTime in tsPhone.js
     endTime: {type: Date, required: true, index: true},
     // time to remind admin
