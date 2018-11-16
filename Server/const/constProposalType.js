@@ -80,7 +80,8 @@ const constProposalType = {
     PLAYER_LOSE_RETURN_REWARD_GROUP: "PlayerLoseReturnRewardGroup",
     FINANCIAL_POINTS_ADD: "FinancialPointsAdd",
     FINANCIAL_POINTS_DEDUCT: "FinancialPointsDeduct",
-    PLAYER_CONSUMPTION_SLIP_REWARD_GROUP: "PlayerConsumptionSlipRewardGroup"
+    PLAYER_CONSUMPTION_SLIP_REWARD_GROUP: "PlayerConsumptionSlipRewardGroup",
+    PLAYER_RETENTION_REWARD_GROUP: "PlayerRetentionRewardGroup"
 };
 
 module.exports = constProposalType;

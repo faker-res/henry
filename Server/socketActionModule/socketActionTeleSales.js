@@ -80,6 +80,24 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.updateTsPhoneList, [data.query, data.updateData], actionName, isValidData);
         },
 
+        getTsAssignees: function getTsAssignees(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.tsPhoneListObjId);
+            socketUtil.emitter(self.socket, dbTeleSales.getTsAssignees, [data.tsPhoneListObjId], actionName, isValidData);
+        },
+
+        updateTsAssignees: function updateTsAssignees(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.assignees);
+            socketUtil.emitter(self.socket, dbTeleSales.updateTsAssignees, [data.platformObjId, data.tsPhoneListObjId, data.assignees], actionName, isValidData);
+        },
+
+        removeTsAssignees: function removeTsAssignees(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.adminNames);
+            socketUtil.emitter(self.socket, dbTeleSales.removeTsAssignees, [data.platformObjId, data.tsPhoneListObjId, data.adminNames], actionName, isValidData);
+        }
+
     };
     socketActionTeleSales.actions = this.actions;
 }

@@ -117,7 +117,7 @@ function socketActionReport(socketIO, socket) {
             var endTime = query.endTime ? new Date(query.endTime) : time.endTime;
             query.limit = query.limit || 20;
             var isValidData = Boolean(query && query.platformId);
-            socketUtil.emitter(self.socket, dbGameProviderPlayerDaySummary.getProviderDifferDaySummaryForTimeFrame, [startTime, endTime, ObjectId(query.platformId), query.providerId, 0, 0], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbGameProviderPlayerDaySummary.getProviderDifferDaySummaryForTimeFrame, [startTime, endTime, ObjectId(query.platformObjId), query.platformId,  ObjectId(query.providerObjId), query.providerId, 0, 0], actionName, isValidData);
         },
         syncBetRecord: function syncBetRecord(query) {
             var actionName = arguments.callee.name;
@@ -126,7 +126,7 @@ function socketActionReport(socketIO, socket) {
             var endTime = query.endTime ? new Date(query.endTime) : time.endTime;
             query.limit = query.limit || 20;
             var isValidData = Boolean(query && query.platformId && query.providerId);
-            socketUtil.emitter(self.socket, dbGameProviderPlayerDaySummary.syncBetRecord, [startTime, endTime, ObjectId(query.platformId), query.providerId, 0, 0], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbGameProviderPlayerDaySummary.syncBetRecord, [startTime, endTime, query.platformId, query.providerId, 0, 0], actionName, isValidData);
         },
         getProviderGameReport: function getProviderGameReport(query) {
             var actionName = arguments.callee.name;
@@ -598,6 +598,15 @@ function socketActionReport(socketIO, socket) {
             let isValidData = Boolean(data && data.startTime && data.endTime && (endTime > startTime) && data.platform && data.displayMethod);
 
             socketUtil.emitter(self.socket, dbProposal.getFinancialReportByDay, [data], actionName, isValidData);
+        },
+
+        getFinancialReportBySum: function getFinancialReportBySum(data) {
+            var actionName = arguments.callee.name;
+            let startTime = new Date(data.startTime);
+            let endTime = new Date(data.endTime);
+            let isValidData = Boolean(data && data.startTime && data.endTime && (endTime > startTime) && data.platform && data.displayMethod);
+
+            socketUtil.emitter(self.socket, dbProposal.getFinancialReportBySum, [data], actionName, isValidData);
         },
     };
     socketActionReport.actions = this.actions;

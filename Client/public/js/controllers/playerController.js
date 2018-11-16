@@ -52,7 +52,8 @@ define(['js/app'], function (myApp) {
             EXPIRED: "Expired",
             UNDETERMINED: "Undetermined",
             CSPENDING: "CsPending",
-            NOVERIFY: "NoVerify"
+            NOVERIFY: "NoVerify",
+            APPROVED: "approved"
         };
         vm.allProposalStatus = [
             "PrePending",
@@ -68,7 +69,8 @@ define(['js/app'], function (myApp) {
             "Undetermined",
             "Recover",
             "CsPending",
-            "NoVerify"
+            "NoVerify",
+            "approved"
         ];
 
         vm.constProposalType = {
@@ -11022,7 +11024,7 @@ define(['js/app'], function (myApp) {
             if (vm.proposalFilterstatus == "all") {
                 newproposalQuery.status = vm.allProposalStatus;
             } else {
-                if (vm.proposalFilterstatus == vm.proposalStatusList.SUCCESS) {
+                if (vm.proposalFilterstatus == vm.proposalStatusList.SUCCESS || vm.proposalFilterstatus == vm.proposalStatusList.APPROVED) {
                     newproposalQuery.status.push("Approved");
                 } else if (vm.proposalFilterstatus == vm.proposalStatusList.FAIL) {
                     newproposalQuery.status.push("Rejected");
@@ -11721,6 +11723,42 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 });
         }
+
+        vm.applyPlayerAssignTopUp = function () {
+            var sendData = {
+                playerId: vm.isOneSelectedPlayer().playerId,
+                depositMethod: vm.playerAssignTopUp.depositMethod,
+                amount: vm.playerAssignTopUp.amount,
+                lastBankcardNo: vm.playerAssignTopUp.lastBankcardNo,
+                bankTypeId: vm.playerAssignTopUp.bankTypeId,
+                provinceId: vm.playerAssignTopUp.provinceId,
+                cityId: vm.playerAssignTopUp.cityId,
+                districtId: vm.playerAssignTopUp.districtId,
+                fromFPMS: true,
+                createTime: vm.playerAssignTopUp.createTime.data('datetimepicker').getLocalDate(),
+                remark: vm.playerAssignTopUp.remark,
+                groupBankcardList: vm.playerAssignTopUp.groupBankcardList,
+                bonusCode: vm.playerAssignTopUp.bonusCode,
+                realName: vm.playerAssignTopUp.realName,
+                topUpReturnCode: vm.playerAssignTopUp.topUpReturnCode,
+                orderNo: vm.playerAssignTopUp.orderNo
+            };
+            vm.playerAssignTopUp.submitted = true;
+                socketService.$socket($scope.AppSocket, 'applyAssignTopUpRequest', sendData,
+                function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('assignTopup success', data);
+                        vm.playerAssignTopUp.responseData = data.data;
+                        vm.getPlatformPlayersData();
+                    });
+                }, function (error) {
+                    vm.playerAssignTopUp.responseMsg = $translate(error.error.errorMessage);
+                    // socketService.showErrorMessage(error.error.errorMessage);
+                    vm.getPlatformPlayersData();
+                });
+
+        }
+
         vm.applyPlayerBonus = function () {
 
             // retrieve the related rewardTasks
@@ -14447,6 +14485,33 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         };
 
+        // Player assign topup
+        vm.initPlayerAssignTopUp = function () {
+            vm.getZoneList();
+            vm.provinceList = [];
+            vm.cityList = [];
+            vm.districtList = [];
+            vm.freezeZoneSelection = false;
+            vm.playerAssignTopUp = {submitted: false};
+            vm.filterBankname("playerAssignTopUp");
+            vm.existingAssignTopup = false;
+            vm.chosenBankAcc = {};
+
+            socketService.$socket($scope.AppSocket, 'getAssignTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.existingAssignTopup = data.data ? data.data : false;
+                })
+
+            });
+            // utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
+            //     vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerManualTopUp .createTime');
+            utilService.actionAfterLoaded('#modalPlayerTopUp', function () {
+                vm.playerAssignTopUp.createTime = utilService.createDatePicker('#modalPlayerTopUp [name="form_assign_topup"] .createTime');
+                vm.playerAssignTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
+            });
+            vm.refreshSPicker();
+        };
+
         vm.initPlayerManualTopUp = function () {
             vm.getZoneList();
             vm.provinceList = [];
@@ -14631,6 +14696,24 @@ define(['js/app'], function (myApp) {
                     vm.existingManualTopup.isCanceled = true;
                 }
                 $scope.safeApply();
+            });
+        }
+
+        vm.cancelPlayerAssignTop = function () {
+            if (!vm.existingAssignTopup) {
+                return;
+            }
+            var sendQuery = {
+                playerId: vm.selectedSinglePlayer.playerId,
+                proposalId: vm.existingAssignTopup.proposalId
+            };
+            socketService.$socket($scope.AppSocket, 'cancelAssignTopupRequest', sendQuery, function (data) {
+                $scope.$evalAsync(() => {
+                        console.log(data.data);
+                    if (vm.existingAssignTopup.proposalId == data.data.proposalId) {
+                        vm.existingAssignTopup.isCanceled = true;
+                    }
+                });
             });
         }
 

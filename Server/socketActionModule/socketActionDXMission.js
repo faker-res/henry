@@ -114,7 +114,10 @@ function socketActionDXMission(socketIO, socket) {
         getTsPhoneList: function getTsPhoneList(data){
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platform);
-            socketUtil.emitter(self.socket, dbDXMission.getTsPhoneList, [data], actionName, isValidData);
+            var index = data.index || 0;
+            var limit = data.limit || 10;
+            var sortCol = data.sortCol || {"createTime": -1};
+            socketUtil.emitter(self.socket, dbDXMission.getTsPhoneList, [data.platform, data.startTime, data.endTime, data.status, data.name, index, limit, sortCol], actionName, isValidData);
         }
 
     };

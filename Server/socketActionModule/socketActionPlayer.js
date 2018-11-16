@@ -932,6 +932,19 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerTopUpRecord.cancelManualTopupRequest, [data.playerId, data.proposalId, getAdminName()], actionName, isValidData);
         },
 
+        // Assign TopUp
+        getAssignTopupRequestList: function getAssignTopupRequestList(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId != null);
+            socketUtil.emitter(self.socket, dbPlayerInfo.getAssignTopupRequestList, [data.playerId], actionName, isValidData);
+        },
+
+        cancelAssignTopupRequest: function cancelAssignTopupRequest(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId != null && data.proposalId != null);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.cancelAssignTopupRequest, [data.playerId, data.proposalId, getAdminName()], actionName, isValidData);
+        },
+
         // Alipay TopUp
         getAlipayTopUpRequestList: function getAlipayTopUpRequestList(data) {
             let actionName = arguments.callee.name;

@@ -9,6 +9,7 @@ const dbPlayerConsumptionRecord = require('./../../db_modules/dbPlayerConsumptio
 const constSystemParam = require('../../const/constSystemParam');
 const constPlayerRegistrationInterface = require('../../const/constPlayerRegistrationInterface');
 const dbSmsGroup = require('./../../db_modules/dbSmsGroup');
+const dbWCGroupControl = require('./../../db_modules/dbWCGroupControl');
 
 var PlatformServiceImplement = function () {
     PlatformService.call(this);
@@ -176,7 +177,7 @@ var PlatformServiceImplement = function () {
         console.log("check FTP WS DATA --------------", data);
         let isValidData = Boolean(data.platformId && data.token && data.fileName && data.fileStream);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.sendFileFTP, [data.platformId, data.token, data.fileStream, data.fileName], isValidData, null, null, true);
-    }
+    };
 };
 
 var proto = PlatformServiceImplement.prototype = Object.create(PlatformService.prototype);

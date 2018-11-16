@@ -269,16 +269,28 @@ let dbTeleSales = {
                             platform: inputData.platform,
                             tsPhoneList: inputData.tsListObjId,
                             assignee: tsAssignee.admin
-                        }
+                        };
                         let distributedPhoneListProm = dbconfig.collection_tsDistributedPhoneList.findOneAndUpdate(
                             distributeListSaveData, distributeListSaveData, {upsert: true, new: true}).lean().then(
                             distributedPhoneListData => {
                                 tsAssignee.updateObj.tsPhone.forEach(tsPhoneUpdate => {
+                                    let dangerZoneList = tsPhoneListObj.dangerZoneList || [];
+                                    let isInDangerZone = false;
+
+                                    dangerZoneList.map(dangerZone => {
+                                       if (dangerZone.province == tsPhoneUpdate.province && dangerZone.city == tsPhoneUpdate.city) {
+                                           isInDangerZone = true;
+                                       }
+                                    });
+
                                     dbconfig.collection_tsDistributedPhone({
                                         platform: inputData.platform,
                                         tsPhoneList: inputData.tsListObjId,
                                         tsDistributedPhoneList: distributedPhoneListData._id,
                                         tsPhone: ObjectId(tsPhoneUpdate.tsPhoneObjId),
+                                        province: tsPhoneUpdate.province,
+                                        city: tsPhoneUpdate.city,
+                                        isInDangerZone: isInDangerZone,
                                         assignTimes: (tsPhoneUpdate.assignTimes + 1) || 1,
                                         assignee: tsAssignee.admin,
                                         startTime: phoneNumberStartTime,
@@ -288,13 +300,14 @@ let dbTeleSales = {
                                 });
                                 dbconfig.collection_tsPhone.update({_id:{$in: tsAssignee.updateObj.tsPhone.map(tsPhone => tsPhone.tsPhoneObjId)}}, {$addToSet: {assignee: tsAssignee.admin} , $inc: {assignTimes: 1}, distributedEndTime: phoneNumberEndTime.endTime}, {multi: true}).catch(errorUtils.reportError);
                             })
+
                         promArr.push(distributedPhoneListProm);
                     }
                 });
 
                 return Promise.all(promArr);
             }
-        )
+        );
 
         return inputData;
     },
@@ -306,6 +319,56 @@ let dbTeleSales = {
     updateTsPhoneList: function (query, updateData) {
         return dbconfig.collection_tsPhoneList.findOneAndUpdate(query, updateData).lean()
     },
+
+    getTsAssignees: function(tsPhoneListObjId){
+        let query = {
+            tsPhoneList: tsPhoneListObjId
+        };
+
+        return dbconfig.collection_tsAssignee.find(query).then(assignees=>assignees);
+    },
+
+    updateTsAssignees: (platformObjId, tsPhoneListObjId, assignees) => {
+        if(assignees && assignees.length > 0) {
+            let updateOrAddProm = [];
+            assignees.forEach(assignee => {
+                updateOrAddProm.push(
+                    dbconfig.collection_admin.findOne({adminName: assignee.adminName}).lean().then(admin => {
+                        let updateData = {
+                            platform: assignee.platform || platformObjId,
+                            tsPhoneList: assignee.tsPhoneList || tsPhoneListObjId,
+                            adminName: assignee.adminName,
+                            admin: assignee.admin || admin._id,
+                            status: assignee.status,
+                            createTime: assignee.createTime || new Date
+                        };
+                        let updateQuery = {
+                            tsPhoneList: tsPhoneListObjId,
+                            admin: admin._id
+                        };
+                        return dbconfig.collection_tsAssignee.findOneAndUpdate(updateQuery, updateData, {upsert: true});
+                    })
+                )
+            });
+            return Promise.all(updateOrAddProm);
+        }
+    },
+
+    removeTsAssignees: (platformObjId, tsPhoneListObjId, adminNames) => {
+        if(adminNames && adminNames.length > 0) {
+            let removeProm = [];
+            adminNames.forEach(adminName => {
+                removeProm.push(
+                    dbconfig.collection_tsAssignee.remove({
+                        platform: platformObjId,
+                        tsPhoneList: tsPhoneListObjId,
+                        adminName: adminName
+                    })
+                )
+            });
+            return Promise.all(removeProm);
+        }
+    }
 };
 
 module.exports = dbTeleSales;

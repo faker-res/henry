@@ -571,10 +571,12 @@ let dbDXMission = {
             });
         }
 
+        console.log("LH check DX ------------2 ", code);
         return dbconfig.collection_dxPhone.findOne({code: code})
             .populate({path: "dxMission", model: dbconfig.collection_dxMission})
             .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
             function (dxPhone) {
+                console.log("LH check DX ------------3 ", dxPhone);
                 if (!dxPhone) {
                     return Promise.reject({
                         code: constServerCode.DATA_INVALID,
@@ -1354,28 +1356,36 @@ let dbDXMission = {
         return Promise.all(promArr);
     },
 
-    getTsPhoneList: function(data){
-        if(!data || !data.platform){
+    getTsPhoneList: function(platform, startTime, endTime, status, name, index, limit, sortCol){
+        if(!platform){
             return;
         }
 
         let sendQuery = {
-            platform: data.platform,
+            platform: platform,
             createTime: {
-                $gte: data.startTime,
-                $lt: data.endTime
+                $gte: startTime,
+                $lt: endTime
             },
         };
 
-        if (data.status) {
-            sendQuery.status = {$in: data.status};
+        if (status) {
+            sendQuery.status = {$in: status};
         }
 
-        if (data.name) {
-            sendQuery.name = {$in: data.name};
+        if (name) {
+            sendQuery.name = {$in: name};
         }
 
-        return dbconfig.collection_tsPhoneList.find(sendQuery);
+        let phoneListResult = dbconfig.collection_tsPhoneList.find(sendQuery).skip(index).limit(limit).sort(sortCol).lean();
+        let totalPhoneListResult = dbconfig.collection_tsPhoneList.find(sendQuery).count();
+        return Promise.all([phoneListResult, totalPhoneListResult]).then(
+            result => {
+                if(result && result.length > 0){
+                    return {data: result[0], size: result[1]};
+                }
+            }
+        )
     }
 };
 
