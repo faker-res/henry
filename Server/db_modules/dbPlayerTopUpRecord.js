@@ -1393,7 +1393,31 @@ var dbPlayerTopUpRecord = {
                     if (isFPMS) {
                         return dbPlayerTopUpRecord.manualTopUpValidate(requestData, fromFPMS);
                     } else {
-                        return pmsAPI.payment_requestManualBankCard(requestData);
+                        return pmsAPI.payment_requestManualBankCard(requestData).then(cardData => {
+                            if (cardData && cardData.result && cardData.result.bankTypeId) {
+                                // find bankName for this bank card
+                                return pmsAPI.bankcard_getBankTypeList({}).then(
+                                    list => {
+                                        if (list && list.data && list.data.length > 0) {
+                                            let selectedBankType = list.data.filter(bankType => bankType.bankTypeId === cardData.result.bankTypeId);
+
+                                            if (selectedBankType && selectedBankType.length > 0) {
+                                                cardData.result.bankName = selectedBankType[0].name;
+                                            } else {
+                                                cardData.result.bankName = "";
+                                            }
+                                        }
+                                        return cardData;
+                                    }
+                                );
+                            } else {
+                                return Q.reject({
+                                    status: constServerCode.INVALID_DATA,
+                                    name: "DataError",
+                                    errorMessage: "Bank card not found"
+                                });
+                            }
+                        });
                     }
                 }
                 else {
