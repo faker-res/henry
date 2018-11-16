@@ -21230,14 +21230,20 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
 
         return dbconfig.collection_proposal.findOne({_id: proposalData.data.limitedOfferObjId}).then(
             limitedOfferProposal => {
-                if(limitedOfferProposal && typeof limitedOfferProposal.data.spendingTimes != "undefined" && typeof limitedOfferProposal.data.rewardAmount != "undefined"
-                    && proposalData.data.actualAmountReceived){
-                    updateObj["data.spendingAmount"] = (proposalData.data.actualAmountReceived + limitedOfferProposal.data.rewardAmount) * limitedOfferProposal.data.spendingTimes;
+                if (limitedOfferProposal && limitedOfferProposal.data && limitedOfferProposal.data.isUsed) {
+                    return Promise.reject({name: "DBError", message: "Reward is applied"});
                 }
-                return;
-            }
-        ).then(
-            () => {
+
+                if (
+                    limitedOfferProposal
+                    && typeof limitedOfferProposal.data.spendingTimes != "undefined"
+                    && typeof limitedOfferProposal.data.rewardAmount != "undefined"
+                    && proposalData.data.actualAmountReceived
+                ) {
+                    updateObj["data.spendingAmount"] = (proposalData.data.actualAmountReceived + limitedOfferProposal.data.rewardAmount) * limitedOfferProposal.data.spendingTimes;
+                    updateObj["data.isUsed"] = true;
+                }
+
                 return dbUtility.findOneAndUpdateForShard(
                     dbconfig.collection_proposal,
                     {_id: proposalData.data.limitedOfferObjId},
