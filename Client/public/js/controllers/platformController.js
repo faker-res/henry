@@ -17652,17 +17652,8 @@ define(['js/app'], function (myApp) {
                         j.credibilityRemarksName = "--";
                     }
 
-                    if (j.playerId && j.playerId.csOfficer) {
-                        let len = vm.adminList ? vm.adminList.length : 0;
-                        for (let x = 0; x < len; x++) {
-                            let admin = vm.adminList[x];
-                            if (j.playerId.csOfficer.toString() === admin._id.toString()) {
-                                j.csOfficerName = admin.adminName;
-                                break;
-                            } else {
-                                j.csOfficerName = "--";
-                            }
-                        }
+                    if (j.playerId && j.playerId.accAdmin) {
+                        j.csOfficerName = j.playerId.accAdmin;
                     } else {
                         j.csOfficerName = "--";
                     }
