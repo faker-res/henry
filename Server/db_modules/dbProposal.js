@@ -2956,6 +2956,7 @@ var proposal = {
         var totalSize = 0;
         var summary = {};
         let isApprove = false;
+        let isSuccess = false;
 
         if (reqData.inputDevice) {
             reqData.inputDevice = Number(reqData.inputDevice);
@@ -2963,6 +2964,7 @@ var proposal = {
 
         if (reqData.status) {
             if (reqData.status == constProposalStatus.SUCCESS) {
+                isSuccess = true;
                 reqData.status = {
                     $in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]
                 };
@@ -3067,6 +3069,11 @@ var proposal = {
                         totalSize = data[0];
                         resultArray = Object.assign([], data[1]);
                         summary = data[2];
+
+                        if(resultArray && resultArray.length > 0 && isSuccess){
+                            resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
+                        }
+                        
                         dataDeferred.resolve(resultArray);
                     }
                 },
@@ -3299,6 +3306,11 @@ var proposal = {
                     totalSize = data[0];
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
+
+                    if(resultArray && resultArray.length > 0 && isSuccess){
+                        resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
+                    }
+
                     dataDeferred.resolve(resultArray);
                 },
                 function (err) {

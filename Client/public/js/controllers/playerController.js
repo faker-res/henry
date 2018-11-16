@@ -52,7 +52,8 @@ define(['js/app'], function (myApp) {
             EXPIRED: "Expired",
             UNDETERMINED: "Undetermined",
             CSPENDING: "CsPending",
-            NOVERIFY: "NoVerify"
+            NOVERIFY: "NoVerify",
+            APPROVED: "approved"
         };
         vm.allProposalStatus = [
             "PrePending",
@@ -68,7 +69,8 @@ define(['js/app'], function (myApp) {
             "Undetermined",
             "Recover",
             "CsPending",
-            "NoVerify"
+            "NoVerify",
+            "approved"
         ];
 
         vm.constProposalType = {
@@ -11022,7 +11024,7 @@ define(['js/app'], function (myApp) {
             if (vm.proposalFilterstatus == "all") {
                 newproposalQuery.status = vm.allProposalStatus;
             } else {
-                if (vm.proposalFilterstatus == vm.proposalStatusList.SUCCESS) {
+                if (vm.proposalFilterstatus == vm.proposalStatusList.SUCCESS || vm.proposalFilterstatus == vm.proposalStatusList.APPROVED) {
                     newproposalQuery.status.push("Approved");
                 } else if (vm.proposalFilterstatus == vm.proposalStatusList.FAIL) {
                     newproposalQuery.status.push("Rejected");
