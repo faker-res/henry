@@ -141,6 +141,20 @@ define(['js/app'], function (myApp) {
                 }
             );
         };
+        vm.commonTableOption = {
+            dom: 'Zrtlp',
+            "autoWidth": true,
+            "scrollX": true,
+            // "scrollY": "455px",
+            columnDefs: [{targets: '_all', defaultContent: ' '}],
+            "scrollCollapse": true,
+            "destroy": true,
+            "paging": false,
+            //"dom": '<"top">rt<"bottom"ilp><"clear">Zlfrtip',
+            "language": {
+                "emptyTable": $translate("No data available in table"),
+            },
+        }
 
         vm.toggleShowPlatformList = function (flag) {
             if (flag) {
@@ -354,7 +368,30 @@ define(['js/app'], function (myApp) {
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#phoneListStartTimePicker', utilService.getNdayagoStartTime(30));
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#phoneListEndTimePicker', utilService.getTodayEndTime());
                     break;
-                case 'MY_PHONE_LIST_OR_REMINDER_PHONE_LIST':
+                case 'REMINDER_PHONE_LIST':
+                    // vm.reminderListSearch = {};
+                    commonService.getTSPhoneListName($scope, {assignees: authService.adminId, platform: vm.selectedPlatform.id}).then(
+                        data => {
+                            vm.adminPhoneListName = data;
+                            $scope.$evalAsync();
+                        }
+                    );
+
+                    vm.queryAdminPhoneList = {totalCount: 0, sortCol: {assignTimes: 1, endTime: 1}};
+                    utilService.actionAfterLoaded("#adminPhoneListTablePage", function () {
+                        // $timeout(function(){
+                        //   $('.merchantNoList').selectpicker('refresh');
+                        // },50)
+                        // vm.commonInitTime(vm.queryAdminPhoneList, '#topUpReportQuery')
+                        // vm.queryAdminPhoneList.merchantType = null;
+                        commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'startTime', '#adminPhoneListLastFeedbackStart', utilService.getNdayagoStartTime(30));
+                        commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'endTime', '#adminPhoneListLastFeedbackEnd', utilService.getTodayEndTime());
+                        commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'startTime', '#adminPhoneListDistributeStart', utilService.getNdayagoStartTime(30));
+                        commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'endTime', '#adminPhoneListDistributeEnd', utilService.getTodayEndTime());
+                        vm.queryAdminPhoneList.pageObj = utilService.createPageForPagingTable("#adminPhoneListTablePage", {}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "queryAdminPhoneList", vm.searchAdminPhoneList)
+                        });
+                    })
                     break;
                 case 'WORKLOAD REPORT':
                     break;
@@ -398,6 +435,178 @@ define(['js/app'], function (myApp) {
                 commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([])),
             ]);
         };
+
+        vm.searchAdminPhoneList = function (newSearch) {
+
+            console.log('vm.queryAdminPhoneList', vm.queryAdminPhoneList);
+            $('#adminPhoneListTableSpin').show();
+
+
+            var sendObj = {
+                platform: vm.selectedPlatform.id,
+                admin: authService.adminId,
+                phoneListName: vm.queryAdminPhoneList.phoneListName,
+                resultName: vm.queryAdminPhoneList.resultName,
+                feedbackStart: $('#adminPhoneListLastFeedbackStart').data('datetimepicker').getLocalDate(),
+                feedbackEnd: $('#adminPhoneListLastFeedbackEnd').data('datetimepicker').getLocalDate(),
+                distributeStart: $('#adminPhoneListDistributeStart').data('datetimepicker').getLocalDate(),
+                distributeEnd: $('#adminPhoneListDistributeEnd').data('datetimepicker').getLocalDate(),
+                reclaimDayOperator: vm.queryAdminPhoneList.reclaimDayOperator,
+                reclaimDays: vm.queryAdminPhoneList.reclaimDays,
+                reclaimDaysTwo: vm.queryAdminPhoneList.reclaimDaysTwo,
+                feedbackTimesOperator: vm.queryAdminPhoneList.feedbackTimesOperator,
+                feedbackTimes: vm.queryAdminPhoneList.feedbackTimes,
+                feedbackTimesTwo: vm.queryAdminPhoneList.feedbackTimesTwo,
+                assignTimesOperator: vm.queryAdminPhoneList.assignTimesOperator,
+                assignTimes: vm.queryAdminPhoneList.assignTimes,
+                assignTimesTwo: vm.queryAdminPhoneList.assignTimesTwo,
+                isFilterDangerZone: vm.queryAdminPhoneList.isFilterDangerZone,
+
+
+                index: newSearch ? 0 : (vm.queryAdminPhoneList.index || 0),
+                limit: vm.queryAdminPhoneList.limit || 10,
+                sortCol: vm.queryAdminPhoneList.sortCol || {assignTimes: 1, endTime: 1}
+
+            }
+
+            console.log("walaosend", sendObj)
+
+
+
+
+            socketService.$socket($scope.AppSocket, 'getAdminPhoneList', sendObj, function (data) {
+                $('#adminPhoneListTableSpin').hide();
+                console.log('getAdminPhoneList', data);
+                vm.queryAdminPhoneList.totalCount = data.data.size;
+                vm.drawAdminPhoneList(
+                    data.data.data.map(item => {
+                        return item;
+                    }), data.data.size, {}, newSearch
+                );
+                $scope.$evalAsync();
+            }, function (err) {
+                $('#adminPhoneListTableSpin').hide();
+                console.log(err);
+            }, true);
+        }
+
+        vm.drawAdminPhoneList = function (data, size, summary, newSearch) {
+            var tableOptions = {
+                retrieve: true,
+                data: data,
+                "order": vm.queryAdminPhoneList.aaSorting || [[0, 'desc']],
+                aoColumnDefs: [
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                    {'sortCol': 'data.amount', bSortable: true, 'aTargets': [13]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [14]},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {
+                        "title": $translate('proposalId'),
+                        data: "proposalId",
+                        render: function (data, type, row) {
+                            data = String(data);
+                            return '<a ng-click="vm.showProposalModal2(\'' + data + '\')">' + data + '</a>';
+                        }
+                    },
+                    {
+                        "title": $translate('topupType'), "data": "type",
+                        render: function (data, type, row) {
+                            var text = $translate(row.type ? row.type.name : "");
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('DEVICE'), data: "data.userAgent",
+                        render: function (data, type, row) {
+                            var text = $translate(data ? $scope.userAgentType[data] : $scope.userAgentType['0']);
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+                    {
+                        "title": $translate('Online Topup Type'), "data": "data.topupType",
+                        render: function (data, type, row) {
+                            var text = $translate(data && $scope.merchantTopupTypeJson[data] ? $scope.merchantTopupTypeJson[data] : "");
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+                    {
+                        "title": $translate('3rd Party Platform'), "data": 'data.merchantUseName',
+                        render: function (data, type, row) {
+                            let merchantName = row.merchantName ? row.merchantName : '';
+                            var text = data ? data : merchantName;
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+                    {
+                        "title": $translate('DEPOSIT_METHOD'), "data": 'data.depositMethod',
+                        render: function (data, type, row) {
+                            var text = $translate(data ? vm.getDepositMethodbyId[data] : "");
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('From Bank Type'), data: "data.bankTypeId",
+                        render: function (data, type, row) {
+                            if (data) {
+                                // var text = $translate(vm.allBankTypeList[data] ? vm.allBankTypeList[data]: "");
+                                var text = vm.allBankTypeList ? vm.allBankTypeList[data] : "";
+                                return "<div>" + $translate(text) + "</div>";
+                            } else {
+                                return "<div>" + '' + "</div>";
+                            }
+                        }
+                    },
+                    {
+                        title: $translate('Business Acc/ Bank Acc'), data: "merchantNoDisplay",
+                        render: function (data, type, row) {
+                            let addititionalText = '';
+                            if (row.data.line && row.data.line == '2') {
+                                addititionalText = '(MMM)';
+                            }
+                            return "<div>" + data + addititionalText + "</div>";
+                        }
+                    },
+                    {title: $translate('Total Business Acc'), data: "merchantCount$"},
+                    {title: $translate('STATUS'), data: "status$"},
+                    {title: $translate('PLAYER_NAME'), data: "data.playerName"},
+                    {title: $translate('Real Name'), data: "data.playerObjId.realName", sClass: "sumText"},
+                    {title: $translate('Total Members'), data: "playerCount$", sClass: "sumText"},
+                    // {title: $translate('PARTNER'), data: "playerId.partner", sClass: "sumText"},
+                    {title: $translate('TopUp Amount'), data: "amount$", sClass: "sumFloat alignRight"},
+
+                    {title: $translate('START_TIME'), data: "startTime$"},
+                    {
+                        title: $translate('Approved Time'), data: "endTime$",
+                        render: function (data, type, row) {
+                            var text = '';
+                            if (row.status == 'Success' || row.status == 'Approved') {
+                                text = data ? data : '';
+                            }
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+                ],
+                "paging": false,
+                fnDrawCallback: function () {
+                    $scope.safeApply();
+                }
+
+            }
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            // vm.adminPhoneListTable = $('#adminPhoneListTable').DataTable(tableOptions);
+
+            utilService.createDatatableWithFooter('#adminPhoneListTable', tableOptions, {});
+            vm.queryAdminPhoneList.pageObj.init({maxCount: size}, newSearch);
+
+            $('#adminPhoneListTable').off('order.dt');
+            $('#adminPhoneListTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'queryAdminPhoneList', vm.searchAdminPhoneList);
+            });
+            $('#adminPhoneListTable').resize();
+
+        }
 
         //search and select platform node
         vm.searchAndSelectPlatform = function (text, option) {
@@ -1171,7 +1380,7 @@ define(['js/app'], function (myApp) {
                 filterAllPlatform: vm.filterAllPlatform,
                 platformObjId: vm.selectedPlatform.id,
                 arrayPhoneXLS: rowArrayMerge,
-                isTSNewList: isTSNewList
+                isTSNewList: isTSNewList && vm.tsNewList && vm.tsNewList.isCheckWhiteListAndRecycleBin
             };
 
             socketService.$socket($scope.AppSocket, 'uploadPhoneFileXLS', sendData, function (data) {
