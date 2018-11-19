@@ -4132,6 +4132,8 @@
   "Create Device Name":"*绑定设备腻称",
   "ADD/Last Edited Time":"添加/上次编辑时间",
   "ADD/Who Last Edited":"添加/上次编辑人员",
+  "Duplicate Device Id": "手机设备号不可重复",
+  "Duplicate Device Nickname": "绑定设备腻称不可重复",
 
   "modifyPlayerCredibilityRemark": "编辑信用评价",
   "updatePlayerCredibilityRemark": "信用评价",

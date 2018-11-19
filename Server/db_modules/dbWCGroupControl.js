@@ -104,5 +104,68 @@ var dbWCGroupControl = {
             }
         )
     },
+
+    updateWechatGroupControlSetting: (platformId, wcGroupControlSettingData, deleteWechatGroupControlSetting, adminInfo) => {
+        let proms = [];
+        let tempSetting = [];
+
+        if (wcGroupControlSettingData && wcGroupControlSettingData.length > 0) {
+            wcGroupControlSettingData.forEach(setting => {
+                if (setting && (setting.isEdit || setting.isNew)) {
+                    tempSetting.push(setting);
+                }
+            });
+        }
+
+        if (deleteWechatGroupControlSetting && deleteWechatGroupControlSetting.length > 0) {
+            deleteWechatGroupControlSetting.forEach(deleteSetting => {
+                if (deleteSetting && deleteSetting._id) {
+                    proms.push(dbConfig.collection_wcDevice.remove({
+                        _id: deleteSetting._id,
+                        platformObjId: platformId
+                    }));
+                }
+            })
+        }
+
+        if (tempSetting && tempSetting.length > 0) {
+            tempSetting.forEach(setting => {
+
+                if (!setting._id) {
+                    let newWCGroupControlSetting = {
+                        platformObjId: platformId,
+                        deviceId: setting.deviceId,
+                        deviceNickName: setting.deviceNickName,
+                        lastUpdateTime: new Date(),
+                        lastUpdateAdmin: adminInfo.id
+                    };
+                    proms.push(new dbConfig.collection_wcDevice(newWCGroupControlSetting).save());
+                } else {
+                    let updateWCGroupControlSetting = {
+                        platformObjId: platformId,
+                        deviceId: setting.deviceId,
+                        deviceNickName: setting.deviceNickName,
+                        lastUpdateTime: new Date(),
+                        lastUpdateAdmin: adminInfo.id
+                    };
+
+                    if (setting.isEdit) {
+                        proms.push(dbConfig.collection_wcDevice.update(
+                            {platformObjId: platformId, _id: setting._id},
+                            {$set: updateWCGroupControlSetting},
+                            {upsert: true}
+                        ).exec());
+                    }
+                }
+            });
+        }
+
+        return Promise.all(proms);
+    },
+
+    getWechatGroupControlSetting: (platformId) => {
+        return dbConfig.collection_wcDevice.find({platformObjId: platformId})
+            .populate({path: 'lastUpdateAdmin', model: dbConfig.collection_admin, select: "adminName"}).sort({_id:1}).lean();
+    },
 };
 module.exports = dbWCGroupControl;
