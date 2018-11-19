@@ -98,6 +98,95 @@ const dbProposalUtility = {
             }
         );
     },
+
+    // check reward apply restriction on ip, phone and IMEI
+    checkRestrictionOnDeviceForApplyReward: (intervalTime, player, rewardEvent) => {
+        return dbConfig.collection_proposal.aggregate(
+            {
+                $match: {
+                    "createTime": {$gte: intervalTime.startTime, $lte: intervalTime.endTime},
+                    "data.eventId": rewardEvent._id,
+                    "status": constProposalStatus.APPROVED,
+                    $or: [
+                        {'data.playerObjId': player._id},
+                        {'data.lastLoginIp': player.lastLoginIp},
+                        {'data.phoneNumber': player.phoneNumber},
+                        {'data.deviceId': player.deviceId},
+                    ]
+                }
+            },
+            {
+                $project: {
+                    createTime: 1,
+                    status: 1,
+                    'data.playerObjId': 1,
+                    'data.eventId': 1,
+                    'data.lastLoginIp': 1,
+                    'data.phoneNumber': 1,
+                    'data.deviceId': 1,
+                    _id: 0
+                }
+            }
+        ).read("secondaryPreferred").then(
+            countReward => {
+
+                let samePlayerHasReceived = false;
+                let sameIPAddressHasReceived = false;
+                let samePhoneNumHasReceived = false;
+                let sameDeviceIdHasReceived = false;
+                let samePlayerId = 0;
+                let sameIPAddress = 0;
+                let samePhoneNum = 0;
+                let sameDeviceId = 0;
+
+                // check playerId
+                if (countReward && countReward.length) {
+                    for (let i = 0; i < countReward.length; i++) {
+                        // check if same player  has already received this reward
+                        if (player._id.toString() === countReward[i].data.playerObjId.toString()) {
+                            samePlayerId++;
+                        }
+
+                        if (player.lastLoginIp !== '' && rewardEvent.condition.checkSameIP && player.lastLoginIp === countReward[i].data.lastLoginIp) {
+                            sameIPAddress++;
+                        }
+
+                        if (rewardEvent.condition.checkSamePhoneNumber && player.phoneNumber === countReward[i].data.phoneNumber) {
+                            samePhoneNum++;
+                        }
+
+                        if (rewardEvent.condition.checkSameDeviceId &&  countReward[i].data.deviceId && player.deviceId && player.deviceId === countReward[i].data.deviceId) {
+                            sameDeviceId++;
+                        }
+                    }
+
+                    if (samePlayerId >= 1) {
+                        samePlayerHasReceived = true;
+                    }
+                    if (sameIPAddress >= 1) {
+                        sameIPAddressHasReceived = true;
+                    }
+                    if (samePhoneNum >= 1) {
+                        samePhoneNumHasReceived = true;
+                    }
+                    if (sameDeviceId >= 1) {
+                        sameDeviceIdHasReceived = true;
+                    }
+
+                }
+
+                let resultArr = {
+                    samePlayerHasReceived: samePlayerHasReceived,
+                    sameIPAddressHasReceived: sameIPAddressHasReceived,
+                    samePhoneNumHasReceived: samePhoneNumHasReceived,
+                    sameDeviceIdHasReceived: sameDeviceIdHasReceived
+                };
+
+
+                return resultArr;
+            }
+        );
+    },
 };
 
 module.exports = dbProposalUtility;
