@@ -162,7 +162,7 @@ let dbTeleSales = {
                 tsDistributedPhone = dPhoneData;
 
                 let tsPhoneProm = dbconfig.collection_tsPhone.findOne({_id: tsDistributedPhone.tsPhone}).lean();
-                let tsAssigneeProm = dbconfig.collection_tsAssignee.findOne({_id: tsDistributedPhone.assignee}).lean();
+                let tsAssigneeProm = dbconfig.collection_tsAssignee.findOne({admin: tsDistributedPhone.assignee, tsPhoneList: tsDistributedPhone.tsPhoneList}).lean();
                 let feedbackProm = dbconfig.collection_tsPhoneFeedback.find({tsPhone: tsDistributedPhone.tsPhone}).lean();
 
                 return Promise.all([tsPhoneProm, tsAssigneeProm, feedbackProm]);
@@ -298,6 +298,7 @@ let dbTeleSales = {
                                         remindTime: phoneNumberEndTime.endTime
                                     }).save().catch(errorUtils.reportError);
                                 });
+
                                 dbconfig.collection_tsPhone.update({_id:{$in: tsAssignee.updateObj.tsPhone.map(tsPhone => tsPhone.tsPhoneObjId)}}, {$addToSet: {assignee: tsAssignee.admin} , $inc: {assignTimes: 1}, distributedEndTime: phoneNumberEndTime.endTime}, {multi: true}).catch(errorUtils.reportError);
                             })
 

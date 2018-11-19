@@ -18538,7 +18538,7 @@ let dbPlayerInfo = {
     importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName) {
         let tsPhoneList;
         if (phoneListDetail.length <= 0) {
-            return;
+            return Promise.reject("None of the phone has pass the filter");
         }
 
         return getTsPhoneList(saveObj.platform, saveObj.name, isUpdateExisting, saveObj).then(
@@ -18570,8 +18570,8 @@ let dbPlayerInfo = {
                 filteredPhones.forEach(phone => {
                     let encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
                     let phoneLocation = queryPhoneLocation(phone.phoneNumber);
-                    let phoneProvince = phoneLocation.province;
-                    let phoneCity = phoneLocation.city;
+                    let phoneProvince = phoneLocation && phoneLocation.province || "";
+                    let phoneCity = phoneLocation && phoneLocation.city || "";
 
                     let prom = dbconfig.collection_tsPhone({
                         platform: tsPhoneList.platform,
@@ -21913,7 +21913,7 @@ function recalculateTsPhoneListPhoneNumber (platformObjId, tsPhoneListObjId) {
         tsPhoneList: tsPhoneListObjId
     }).count().then(
         totalPhone => {
-            return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneList._id}, {totalPhone: totalPhone}).lean();
+            return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObjId}, {totalPhone: totalPhone}).lean();
         }
     );
 }
