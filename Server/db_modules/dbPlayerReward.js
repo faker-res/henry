@@ -34,6 +34,7 @@ const dbPlayerTopUpRecord = require('../db_modules/dbPlayerTopUpRecord');
 const dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionRecord');
 const dbPlayerFeedback = require('./../db_modules/dbPlayerFeedback');
 const dbRewardTask = require('./../db_modules/dbRewardTask');
+const dbPropUtil = require('./../db_common/dbProposalUtility');
 
 const dbConfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
@@ -6225,6 +6226,7 @@ let dbPlayerReward = {
                         break;
 
                     case constRewardType.PLAYER_RETENTION_REWARD_GROUP:
+                        let lastTopUpRecord = null;
                         //check if there is consumption after this top up
                         if (rewardSpecificData && rewardSpecificData[1] && rewardSpecificData[1].length > 0){
                             return Promise.reject({
@@ -6252,7 +6254,10 @@ let dbPlayerReward = {
                                 });
                             }
 
-                            let lastTopUpRecord = topupInPeriodData[topupInPeriodData.length-1];
+                            if (topupInPeriodData && topupInPeriodData.length){
+                                lastTopUpRecord = topupInPeriodData[topupInPeriodData.length-1];
+                            }
+
                             if (eventData.condition.allowOnlyLatestTopUp && lastTopUpRecord && rewardData && rewardData.selectedTopup) {
                                 // check if the top up record is the latest
                                 if (lastTopUpRecord._id.toString() !== rewardData.selectedTopup._id.toString()) {
@@ -6308,7 +6313,7 @@ let dbPlayerReward = {
                                         }
                                     }
                                     else{
-                                        return Q.reject({
+                                        return Promise.reject({
                                             status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                             name: "DataError",
                                             message: "The reward level that matched with the apply date is not found"
@@ -6317,7 +6322,7 @@ let dbPlayerReward = {
 ;
                                 }
                                 else{
-                                    return Q.reject({
+                                    return Promise.reject({
                                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                         name: "DataError",
                                         message: "no available definePlayerLoginMode"
@@ -6325,7 +6330,7 @@ let dbPlayerReward = {
                                 }
                             }
                             else{
-                                return Q.reject({
+                                return Promise.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
                                     message: "definePlayerLoginMode is not found"
@@ -7267,7 +7272,7 @@ let dbPlayerReward = {
         let curTime = new Date();
         if ((rewardEvent.validStartTime && curTime.getTime() < rewardEvent.validStartTime.getTime()) ||
             (rewardEvent.validEndTime && curTime.getTime() > rewardEvent.validEndTime.getTime())) {
-            return Q.reject({
+            return Promise.reject({
                 status: constServerCode.REWARD_EVENT_INVALID,
                 name: "DataError",
                 message: "This reward event is not valid anymore"
@@ -7348,105 +7353,20 @@ let dbPlayerReward = {
         }
 
         // check reward apply restriction on ip, phone and IMEI
-        let checkHasReceivedProm = dbConfig.collection_proposal.aggregate(
-            {
-                $match: {
-                    "createTime": {$gte: intervalTime.startTime, $lte: intervalTime.endTime},
-                    "data.eventId": rewardEvent._id,
-                    "status": constProposalStatus.APPROVED,
-                    $or: [
-                        {'data.playerObjId': player._id},
-                        {'data.lastLoginIp': player.lastLoginIp},
-                        {'data.phoneNumber': player.phoneNumber},
-                        {'data.deviceId': player.deviceId},
-                    ]
-                }
-            },
-            {
-                $project: {
-                    createTime: 1,
-                    status: 1,
-                    'data.playerObjId': 1,
-                    'data.eventId': 1,
-                    'data.lastLoginIp': 1,
-                    'data.phoneNumber': 1,
-                    'data.deviceId': 1,
-                    _id: 0
-                }
-            }
-        ).read("secondaryPreferred").then(
-            countReward => {
-
-                let samePlayerHasReceived = false;
-                let sameIPAddressHasReceived = false;
-                let samePhoneNumHasReceived = false;
-                let sameDeviceIdHasReceived = false;
-                let samePlayerId = 0;
-                let sameIPAddress = 0;
-                let samePhoneNum = 0;
-                let sameDeviceId = 0;
-
-                // check playerId
-                if (countReward && countReward.length) {
-                    for (let i = 0; i < countReward.length; i++) {
-                        // check if same player  has already received this reward
-                        if (player._id.toString() === countReward[i].data.playerObjId.toString()) {
-                            samePlayerId++;
-                        }
-
-                        if (player.lastLoginIp !== '' && rewardEvent.condition.checkSameIP && player.lastLoginIp === countReward[i].data.lastLoginIp) {
-                            sameIPAddress++;
-                        }
-
-                        if (rewardEvent.condition.checkSamePhoneNumber && player.phoneNumber === countReward[i].data.phoneNumber) {
-                            samePhoneNum++;
-                        }
-
-                        if (rewardEvent.condition.checkSameDeviceId &&  countReward[i].data.deviceId && player.deviceId && player.deviceId === countReward[i].data.deviceId) {
-                            sameDeviceId++;
-                        }
-                    }
-
-                    if (samePlayerId >= 1) {
-                        samePlayerHasReceived = true;
-                    }
-                    if (sameIPAddress >= 1) {
-                        sameIPAddressHasReceived = true;
-                    }
-                    if (samePhoneNum >= 1) {
-                        samePhoneNumHasReceived = true;
-                    }
-                    if (sameDeviceId >= 1) {
-                        sameDeviceIdHasReceived = true;
-                    }
-
-                }
-
-                let resultArr = {
-                    samePlayerHasReceived: samePlayerHasReceived,
-                    sameIPAddressHasReceived: sameIPAddressHasReceived,
-                    samePhoneNumHasReceived: samePhoneNumHasReceived,
-                    sameDeviceIdHasReceived: sameDeviceIdHasReceived
-                };
-
-
-                return resultArr;
-            }
-        );
+        let checkHasReceivedProm =  dbPropUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, player, rewardEvent);
 
         return Promise.all([pendingCount, eventInPeriodProm, topupInPeriodProm, checkHasReceivedProm]).then(
             checkList => {
 
                 let rewardPendingCount = checkList[0]
                 let eventInPeriodCount = checkList[1];
-                // if apply from font end, top up record + 1 to include current top up
-                let topupInPeriodCount = isFontEndApply ? checkList[2].length + 1 : checkList[2].length
+                let topupInPeriodCount = isFrontEndApply ? checkList[2].length + 1 : checkList[2].length; /* if apply from font end, top up record + 1 to include current top up */
                 let listHasApplied = checkList[3];
 
                 // if there is a pending reward, then no other reward can be applied.
                 if (rewardPendingCount && rewardPendingCount > 0) {
                     if (rewardTypeWithProposalList.indexOf(rewardEvent.type.name) != -1) {
-                        return Q.reject({
+                        return Promise.reject({
                             status: constServerCode.PLAYER_PENDING_REWARD_PROPOSAL,
                             name: "DataError",
                             message: "Player or partner already has a pending reward proposal for this type"
@@ -7467,7 +7387,7 @@ let dbPlayerReward = {
                 }
 
                 if (matchPlayerId) {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
                         message: "This player has applied for the reward in event period"
@@ -7475,7 +7395,7 @@ let dbPlayerReward = {
                 }
 
                 if (matchIPAddress) {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
                         message: "This IP address has applied for the reward in event period"
@@ -7483,7 +7403,7 @@ let dbPlayerReward = {
                 }
 
                 if (matchPhoneNum) {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
                         message: "This phone number has applied for the reward in event period"
@@ -7491,7 +7411,7 @@ let dbPlayerReward = {
                 }
 
                 if (matchMobileDevice) {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
                         message: "This mobile device has applied for the reward in event period"
@@ -7508,9 +7428,8 @@ let dbPlayerReward = {
                 }
 
                 // check the min deposit amount is sufficient to apply the reward
-                // applyAmount = 1;
                 if (rewardEvent && rewardEvent.condition && rewardEvent.condition.minDepositAmount && applyAmount < rewardEvent.condition.minDepositAmount) {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
                         message: "您需要有新存款(" + rewardEvent.condition.minDepositAmount + ")元才能领取此优惠，千万别错过了！"
@@ -7522,7 +7441,7 @@ let dbPlayerReward = {
                     let topUpDevice = dbUtility.getInputDevice(userAgentStr, false);
 
                     if (checkInterfaceRewardPermission(rewardEvent, topUpDevice)) {
-                        return Q.reject({
+                        return Promise.reject({
                             status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                             name: "DataError",
                             message: "Top up device does not match, fail to claim reward"
@@ -7552,21 +7471,21 @@ let dbPlayerReward = {
                 }
 
                 if (!correctTopUpType) {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
                         message: "Top up type does not match, fail to claim reward"
                     });
                 }
                 if (!correctBankCardType) {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
                         message: "Bank card type does not match, fail to claim reward"
                     });
                 }
                 if (!correctMerchantType) {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
                         message: "Online top up type does not match, fail to claim reward"
@@ -7585,7 +7504,7 @@ let dbPlayerReward = {
                         || intervalType == "4" && topupInPeriodCount >= value1 && topupInPeriodCount < value2;
 
                     if (!hasMetTopupCondition) {
-                        return Q.reject({
+                        return Promise.reject({
                             status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                             name: "DataError",
                             message: "Top up count does not meet period condition, fail to claim reward"
