@@ -8,7 +8,6 @@ const Q = require("q");
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 var cpmsAPI = require("./../externalAPI/cpmsAPI");
-const moment = require('moment-timezone');
 
 var dbGameProviderPlayerDaySummary = {
 
