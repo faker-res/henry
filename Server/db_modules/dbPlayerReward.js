@@ -6025,50 +6025,55 @@ let dbPlayerReward = {
             }
 
             // check if player has applied for other forbidden reward
-            // let checkForbidRewardProm = Promise.resolve(true); // default promise as true if checking is not required
-            // if (eventData.condition.forbidApplyReward && eventData.condition.forbidApplyReward.length > 0) {
-            //     let forbidRewardEventIds = eventData.condition.forbidApplyReward;
-            //
-            //     for (let x = 0; x  < forbidRewardEventIds.length; x++) {
-            //         forbidRewardEventIds.push(forbidRewardEventIds[x].toString());
-            //     }
-            //     console.log('forbidRewardEventIds===', forbidRewardEventIds);
-            //
-            //     // check other reward apply in period
-            //     checkForbidRewardProm = dbConfig.collection_proposal.aggregate(
-            //         {
-            //             $match: {
-            //                 "createTime": freeTrialQuery.createTime,
-            //                 "data.eventId": {$in: forbidRewardEventIds},
-            //                 "status": constProposalStatus.APPROVED,
-            //                 "data.playerObjId": playerData._id
-            //             }
-            //         },
-            //         {
-            //             $project: {
-            //                 createTime: 1,
-            //                 status: 1,
-            //                 'data.playerObjId': 1,
-            //                 'data.eventId': 1,
-            //                 _id: 0
-            //             }
-            //         }
-            //     ).read("secondaryPreferred").then(
-            //         countReward => {
-            //             if (countReward) {
-            //                 return Q.reject({
-            //                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-            //                     name: "DataError",
-            //                     message: "This player has applied for other reward in event period"
-            //                 });
-            //             }
-            //         }
-            //     );
-            // }
+            let checkForbidRewardProm = Promise.resolve(true); // default promise as true if checking is not required
+            if (eventData.condition.forbidApplyReward && eventData.condition.forbidApplyReward.length > 0) {
+                let forbidRewardEventIds = eventData.condition.forbidApplyReward;
+
+                for (let x = 0; x  < forbidRewardEventIds.length; x++) {
+                    forbidRewardEventIds[x] = forbidRewardEventIds[x].toString();
+                }
+
+                // check other reward apply in period
+                checkForbidRewardProm = dbConfig.collection_proposal.aggregate(
+                    {
+                        $match: {
+                            "createTime": freeTrialQuery.createTime,
+                            "data.eventId": {$in: forbidRewardEventIds},
+                            "status": constProposalStatus.APPROVED,
+                            "data.playerObjId": playerData._id
+                        }
+                    },
+                    {
+                        $project: {
+                            createTime: 1,
+                            status: 1,
+                            'data.playerObjId': 1,
+                            'data.eventId': 1,
+                            _id: 0
+                        }
+                    }
+                ).read("secondaryPreferred").then(
+                    countReward => {
+                        if (countReward) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "This player has applied for other reward in event period"
+                            });
+                        }
+                    }
+                ).catch(
+                    error => {
+                        //add debug log
+                        console.error("checkForbidRewardProm:", error);
+                        resolve(error);
+                    }
+                );
+            }
 
             promArr.push(countInRewardInterval.then(data => {console.log('countInRewardInterval'); return data;}));
             promArr.push(checkSMSProm.then(data => {console.log('checkSMSProm'); return data;}));
-            // promArr.push(checkForbidRewardProm.then(data => {console.log('checkForbidRewardProm'); return data;}));
+            promArr.push(checkForbidRewardProm.then(data => {console.log('checkForbidRewardProm'); return data;}).catch(errorUtils.reportError));
         }
 
         return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
