@@ -128,7 +128,7 @@ let dbTeleSales = {
                 let tsDistributePhoneCountProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).count();
                 let tsDistributePhoneProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).sort(sortObj).sort(sortObj).skip(index).limit(limit)
                     .populate({path: 'tsPhoneList', model: dbconfig.collection_tsPhoneList, select: "name"})
-                    .populate({path: 'tsPhone', model: dbconfig.collection_tsPhone, select: "phoneNumber assignTimes"}).lean();
+                    .populate({path: 'tsPhone', model: dbconfig.collection_tsPhone}).lean();
 
                 return Promise.all([tsDistributePhoneCountProm, tsDistributePhoneProm]);
             }
@@ -220,7 +220,7 @@ let dbTeleSales = {
                     platform: inputData.platform,
                     registered: false,
                     assignTimes: {$lt: tsPhoneListObj.callerCycleCount},
-                    $or: [{distributedEndTime: null}, {distributedEndTime: {$gt: new Date()}}]
+                    $or: [{distributedEndTime: null}, {distributedEndTime: {$lt: new Date()}}]
                 }).sort({assignTimes: 1, createTime: 1}).lean();
             }
         ).then(

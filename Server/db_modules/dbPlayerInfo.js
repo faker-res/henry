@@ -21919,7 +21919,7 @@ function recalculateTsPhoneListPhoneNumber (platformObjId, tsPhoneListObjId) {
 }
 
 function filterPhoneWithOldTsPhone (platformObjId, phones) {
-    phones = phones.map(phone => {
+    phones = phones.forEach(phone => {
         phone.encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
     });
 
