@@ -307,7 +307,6 @@ var dbGameProviderPlayerDaySummary = {
             endDate: dbUtil.getSGTimeToString(endTime),
             platformId: platformId
         };
-
         return cpmsAPI.consumption_reSendConsumption(sendData).then(
             data=>{
                 return data;
@@ -324,13 +323,11 @@ var dbGameProviderPlayerDaySummary = {
             startDate: dbUtil.getSGTimeToString(startTime),
             endDate: dbUtil.getSGTimeToString(endTime)
         };
-
         // modify the date to cpms datetime format -> "2018-11-07 02:00:00" and cpms are using gmt +8 timezone for date query
         let fpmsSummary = dbGameProviderPlayerDaySummary.getProviderDaySummaryForTimeFrame(startTime, endTime, platformObjId, providerObjId, index, count);
         let cpmsSummary = new Promise((resolve, reject)=>{
             cpmsAPI.consumption_getConsumptionSummary(sendQuery).then(
                 function (result) {
-
                     resolve(result);
                 },
                 function (err) {
