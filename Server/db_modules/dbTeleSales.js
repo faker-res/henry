@@ -220,7 +220,7 @@ let dbTeleSales = {
                     platform: inputData.platform,
                     registered: false,
                     assignTimes: {$lt: tsPhoneListObj.callerCycleCount},
-                    $or: [{distributedEndTime: null}, {distributedEndTime: {$lt: new Date()}}]
+                    $or: [{distributedEndTime: null}, {distributedEndTime: {$gt: new Date()}}]
                 }).sort({assignTimes: 1, createTime: 1}).lean();
             }
         ).then(
