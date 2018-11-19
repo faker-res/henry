@@ -4164,7 +4164,14 @@ let dbPlayerInfo = {
                                     console.log('Apply reward after top up', proposalData.data.playerId, proposalData.data.topUpReturnCode);
                                     dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
                                         , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
-                                } else {
+                                }
+                                else if (proposalData.data.retentionRewardCode){
+                                    let requiredData = {topUpRecordId: topupRecordData._id};
+                                    console.log('Apply reward after top up', proposalData.data.playerId, proposalData.data.retentionRewardCode);
+                                    dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
+                                        , proposalData.data.retentionRewardCode, requiredData).catch(errorUtils.reportError);
+                                }
+                                else {
                                     // Check reward group task to apply on player top up
                                     // Only happen when no top up return reward selected during top up
                                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(player.platform, player, topupRecordData).catch(errorUtils.reportError);
@@ -13893,7 +13900,8 @@ let dbPlayerInfo = {
                         constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,
                         constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,
                         constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,
-                        constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP
+                        constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP,
+                        constRewardType.PLAYER_RETENTION_REWARD_GROUP
                     ];
 
                     // Check any consumption after topup upon apply reward
@@ -14021,6 +14029,7 @@ let dbPlayerInfo = {
                                 case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
                                 case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
                                 case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
+                                case constRewardType.PLAYER_RETENTION_REWARD_GROUP:
                                     // Check whether platform allowed for reward group
                                     // if (!playerInfo.platform.useProviderGroup) {
                                     //     return Q.reject({
@@ -21919,7 +21928,7 @@ function recalculateTsPhoneListPhoneNumber (platformObjId, tsPhoneListObjId) {
 }
 
 function filterPhoneWithOldTsPhone (platformObjId, phones) {
-    phones = phones.map(phone => {
+    phones.forEach(phone => {
         phone.encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
     });
 

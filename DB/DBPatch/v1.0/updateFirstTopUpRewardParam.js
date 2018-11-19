@@ -992,17 +992,17 @@ db.rewardParam.update({
             consumptionCond: consumptionCond,
             dynamicCond: dynamicCond,
             customCond: {
-                checkIPPlayerRetentionReward: {
+                checkSameIP: {
                     index: 43,
                     type: "checkbox",
                     des: "Check if this IP address has received the reward"
                 },
-                checkPhonePlayerRetentionReward: {
+                checkSamePhoneNumber: {
                     index: 44,
                     type: "checkbox",
                     des: "Check if this phone number has received the reward"
                 },
-                checkDevicePlayerRetentionReward: {
+                checkSameDeviceId: {
                     index: 45,
                     type: "checkbox",
                     des: "Check if this portable device has received the reward",
@@ -1014,19 +1014,19 @@ db.rewardParam.update({
                     des: "The quantity limit of the reward application for the interval",
                     detail: "Only limited quantity of reward is open for applying"
                 },
-                minimumTopUpAmountInInterval: {
+                minDepositAmount: {
                     index: 47,
                     type: "number",
-                    des: "The minimum required top up amount for the interval",
+                    des: "The minimum required top up amount to apply for the reward",
                     detail: "Only 1 top up record can be used for the reward during the interval"
                 },
-                latestTopUpRecord: {
+                allowOnlyLatestTopUp: {
                     index: 48,
                     type: "checkbox",
                     des: "Check if this is the latest top up record",
                     detail: "Only the latest new top up record without consumption record and withdrawal record can be used to apply"
                 },
-                ignoreLatestTopUpDirtyCheckForReward: {
+                ignoreTopUpDirtyCheckForReward: {
                     index: 49,
                     type: "multiSelect",
                     des: "Ignore the following rewards that applied with the latest top up",
