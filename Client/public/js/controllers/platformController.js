@@ -22614,6 +22614,13 @@ console.log('typeof ',typeof gameProviders);
                     case 'platformFeeEstimateSetting':
                         vm.getPlatformFeeEstimateSetting();
                         break;
+                    case 'WeChatGroupControlSetting':
+                        vm.wechatGroupControlEdit = false;
+                        vm.oriWechatGroupControlSettingData = [];
+                        vm.wechatGroupControlSettingData = [];
+                        vm.newWechatGroupControlSetting = {};
+                        vm.deleteWechatGroupControl = [];
+                        vm.getWechatGroupControlSetting();
                 }
             };
 
@@ -28745,6 +28752,106 @@ console.log('typeof ',typeof gameProviders);
 
                 return true;
             };
+
+            // wechat group setting
+            vm.addNewWechatGroupControl = function (collection, data) {
+                if (collection && data && data.deviceId && data.deviceNickName) {
+                    if (vm.isDeviceIdExist(data.deviceId)) {
+                        return socketService.showErrorMessage($translate('Duplicate Device Id'));
+                    } else if (vm.isDeviceNicknameExist(data.deviceNickName)) {
+                        return socketService.showErrorMessage($translate('Duplicate Device Nickname'));
+                    } else {
+                        data.isNew = true;
+                        collection.push(data);
+                        $scope.$evalAsync(() => {
+                            vm.newWechatGroupControlSetting = {};
+                        });
+                    }
+                }
+            };
+
+            vm.isDeviceIdExist = (deviceId) => {
+                let allDeviceId = [];
+
+                if (vm.wechatGroupControlSettingData && vm.wechatGroupControlSettingData.length > 0) {
+                    vm.wechatGroupControlSettingData.map(wechatGroupControl => {
+                        allDeviceId.push(wechatGroupControl.deviceId);
+                    });
+
+                    return allDeviceId.includes(deviceId);
+                }
+            };
+
+            vm.isDeviceNicknameExist = (nickname) => {
+                let allDeviceNickname = [];
+
+                if (vm.wechatGroupControlSettingData && vm.wechatGroupControlSettingData.length > 0) {
+                    vm.wechatGroupControlSettingData.map(wechatGroupControl => {
+                        allDeviceNickname.push(wechatGroupControl.deviceNickName);
+                    });
+
+                    return allDeviceNickname.includes(nickname);
+                }
+            };
+
+            vm.disableWechatGroupControl = function (flag) {
+                vm.wechatGroupControlEdit = flag;
+            };
+
+            vm.editWechatGroupControl = function (data) {
+                if (data && data._id) {
+                    data.isEdit = true;
+                }
+            }
+
+            vm.submitWechatGroupControlSetting = function () {
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    wechatGroupControlSetting: vm.wechatGroupControlSettingData,
+                    deleteWechatGroupControlSetting: vm.deleteWechatGroupControl
+                };
+
+                socketService.$socket($scope.AppSocket, 'updateWechatGroupControlSetting', sendData, function (data) {
+                    console.log('updateWechatGroupControlSetting', data);
+                    $scope.$evalAsync(() => {
+                        vm.getWechatGroupControlSetting();
+                    })
+                });
+            };
+
+            vm.getWechatGroupControlSetting = function () {
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getWechatGroupControlSetting', sendData, function (data) {
+                    console.log('getWechatGroupControlSetting', data);
+                    $scope.$evalAsync(() => {
+                        if (data && data.data) {
+                            vm.wechatGroupControlSettingData = JSON.parse(JSON.stringify(data.data));
+                            vm.oriWechatGroupControlSettingData = JSON.parse(JSON.stringify(data.data));
+                        }
+                    })
+                });
+            };
+
+            vm.cancelWechatGroupControlSetting = function () {
+                vm.deleteWechatGroupControl = [];
+                vm.newWechatGroupControlSetting = {};
+                vm.wechatGroupControlSettingData = JSON.parse(JSON.stringify(vm.oriWechatGroupControlSettingData));
+            };
+
+            vm.deleteWechatGroupControlSetting = function (data, collection, idx) {
+                if (data) {
+                    vm.deleteWechatGroupControl.push(data);
+
+                    if (collection && collection.length > 0) {
+                        collection.splice(idx, 1);
+                    }
+                }
+            }
+
+            // end of wechat group setting
 
             vm.updatePromoCodeTemplateInEdit = function (func, collection, data, type, tab, index) {
                 if (func == 'add') {
