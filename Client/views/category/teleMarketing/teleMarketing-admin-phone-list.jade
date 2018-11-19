@@ -70,74 +70,71 @@ div(ng-show="vm.curPlatformText")
     table.common-table#adminPhoneListTable.display(style="width:100%;overflow: scroll;max-height:700px")
     #adminPhoneListTablePage
 
-#modalAdminPhoneListDetails.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:25%; margin-top: 12.5em;')
-        .modal-content
-            .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"DATA_DETAILS" | translate}}
-            .modal-body
-                .panel.panel-primary
-                    .panel-body
-                        .row
-                            .col-md-12
-                                table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
-                                    thead
-                                        tr
-                                            th {{'TITLE' | translate}}
-                                            th {{'VALUE' | translate}}
-                                    tbody
-                                        tr
-                                            td
-                                                text {{'PLAYER_NAME' | translate}}
-                                            td
-                                                text {{vm.tsPhoneDetails.playerName}}
-                                        tr
-                                            td
-                                                text {{'REAL_NAME' | translate}}
-                                            td
-                                                text {{vm.tsPhoneDetails.realName}}
-                                        tr
-                                            td
-                                                text {{'PHONE' | translate}}
-                                            td
-                                                text {{vm.tsPhoneDetails.phoneNumber}}
-                                        tr
-                                            td
-                                                text {{'GENDER' | translate}}
-                                            td
-                                                text {{vm.tsPhoneDetails.gender}}
-                                        tr
-                                            td
-                                                text {{'DOB' | translate}}
-                                            td
-                                                text {{vm.tsPhoneDetails.dob}}
-                                        tr
-                                            td
-                                                text {{'WECHAT' | translate}}
-                                            td
-                                                text {{vm.tsPhoneDetails.wechat}}
-                                        tr
-                                            td
-                                                text {{'QQ' | translate}}
-                                            td
-                                                text {{vm.tsPhoneDetails.qq}}
-                                        tr
-                                            td
-                                                text {{'EMAIL' | translate}}
-                                            td
-                                                text {{vm.tsPhoneDetails.email}}
-                                        tr
-                                            td
-                                                text {{'REMARKS' | translate}}
-                                            td
-                                                text {{vm.tsPhoneDetails.remark}}
-                                        tr
-                                            td
-                                                text {{'PHONE_LOCATION' | translate}}
-                                            td
-                                                text {{vm.tsPhoneDetails.province}} {{vm.tsPhoneDetails.city}}
-
-
-            .modal-footer
-                button.btn.btn-primary.common-button(data-dismiss='modal') {{"Closed" | translate}}
+//#modalAdminPhoneListDetails.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+//    .modal-dialog(style='width:25%; margin-top: 12.5em;')
+//        .modal-content
+//            .modal-header
+//                a.fa.fa-times.close(type='button', data-dismiss='modal')
+//                h4.modal-title {{"DATA_DETAILS" | translate}}
+//            .modal-body
+//                .panel.panel-primary
+//                    .panel-body
+//                        .row
+//                            .col-md-12
+#modalAdminPhoneListDetails.hide(style="width: 600px")
+    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+        thead
+            tr
+                th {{'TITLE' | translate}}
+                th {{'VALUE' | translate}}
+        tbody
+            tr
+                td
+                    text {{'PLAYER_NAME' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.playerName}}
+            tr
+                td
+                    text {{'REAL_NAME' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.realName}}
+            tr
+                td
+                    text {{'PHONE' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.phoneNumber}}
+            tr
+                td
+                    text {{'GENDER' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.gender}}
+            tr
+                td
+                    text {{'DOB' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.dob}}
+            tr
+                td
+                    text {{'WECHAT' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.wechat}}
+            tr
+                td
+                    text {{'QQ' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.qq}}
+            tr
+                td
+                    text {{'EMAIL' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.email}}
+            tr
+                td
+                    text {{'REMARKS' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.remark}}
+            tr
+                td
+                    text {{'PHONE_LOCATION' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.province}} {{vm.tsPhoneDetails.city}}

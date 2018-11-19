@@ -505,11 +505,14 @@ define(['js/app'], function (myApp) {
                         title: $translate('PHONENUMBER'), data: "encodedPhoneNumber$",
                         render: function (data, type, row) {
                             let link = $('<a>', {
+                                'class': 'modalAdminPhoneListDetails',
                                 'ng-click': 'vm.initAdminPhoneListDetails(' + JSON.stringify(row) + ');',
                                 'data-row': JSON.stringify(row),
-                                'data-toggle': 'modal',
-                                'data-target': '#modalAdminPhoneListDetails',
-                                'data-placement': 'left',
+                                'href': '',
+                                'data-toggle': 'popover',
+                                'data-trigger': 'focus',
+                                'data-placement': 'bottom',
+                                'data-container': 'body'
                             }).text(data);
                             return link.prop('outerHTML');
                         }
@@ -587,6 +590,24 @@ define(['js/app'], function (myApp) {
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     $compile(nRow)($scope);
+                },
+                fnDrawCallback: function (oSettings) {
+                    var container = oSettings.nTable;
+
+                    $(container).find('[title]').tooltip();
+
+                    utilService.setupPopover({
+                        context: container,
+                        elem: '.modalAdminPhoneListDetails',
+                        onClickAsync: function (showPopover) {
+                            var that = this;
+                            var row = JSON.parse(this.dataset.row);
+
+                            $scope.$evalAsync();
+                            showPopover(that, '#modalAdminPhoneListDetails', data);
+
+                        }
+                    });
                 }
 
             }
