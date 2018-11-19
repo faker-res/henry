@@ -1394,14 +1394,14 @@ define(['js/app'], function (myApp) {
                 phoneList[rows[z][vm.tsNewList.phoneIdx].value] = {
                     phoneNumber: rows[z][vm.tsNewList.phoneIdx].value,
                 };
-                phoneList[rows[z][vm.tsNewList.phoneIdx].value].playerName = rows[z][vm.tsNewList.phoneIdx+2] && rows[z][vm.tsNewList.phoneIdx+2].value;
-                phoneList[rows[z][vm.tsNewList.phoneIdx].value].realName = rows[z][vm.tsNewList.phoneIdx+3] && rows[z][vm.tsNewList.phoneIdx+3].value;
-                phoneList[rows[z][vm.tsNewList.phoneIdx].value].gender = rows[z][vm.tsNewList.phoneIdx+4] && rows[z][vm.tsNewList.phoneIdx+4].value;
-                phoneList[rows[z][vm.tsNewList.phoneIdx].value].dob = rows[z][vm.tsNewList.phoneIdx+5] && rows[z][vm.tsNewList.phoneIdx+5].value;
-                phoneList[rows[z][vm.tsNewList.phoneIdx].value].wechat = rows[z][vm.tsNewList.phoneIdx+6] && rows[z][vm.tsNewList.phoneIdx+6].value;
-                phoneList[rows[z][vm.tsNewList.phoneIdx].value].qq = rows[z][vm.tsNewList.phoneIdx+7] && rows[z][vm.tsNewList.phoneIdx+7].value;
-                phoneList[rows[z][vm.tsNewList.phoneIdx].value].email = rows[z][vm.tsNewList.phoneIdx+8] && rows[z][vm.tsNewList.phoneIdx+8].value;
-                phoneList[rows[z][vm.tsNewList.phoneIdx].value].remark = rows[z][vm.tsNewList.phoneIdx+9] && rows[z][vm.tsNewList.phoneIdx+9].value;
+                phoneList[rows[z][vm.tsNewList.phoneIdx].value].playerName = rows[z][vm.tsNewList.phoneIdx+1] && rows[z][vm.tsNewList.phoneIdx+1].value;
+                phoneList[rows[z][vm.tsNewList.phoneIdx].value].realName = rows[z][vm.tsNewList.phoneIdx+2] && rows[z][vm.tsNewList.phoneIdx+2].value;
+                phoneList[rows[z][vm.tsNewList.phoneIdx].value].gender = rows[z][vm.tsNewList.phoneIdx+3] && rows[z][vm.tsNewList.phoneIdx+3].value;
+                phoneList[rows[z][vm.tsNewList.phoneIdx].value].dob = rows[z][vm.tsNewList.phoneIdx+4] && rows[z][vm.tsNewList.phoneIdx+4].value;
+                phoneList[rows[z][vm.tsNewList.phoneIdx].value].wechat = rows[z][vm.tsNewList.phoneIdx+5] && rows[z][vm.tsNewList.phoneIdx+5].value;
+                phoneList[rows[z][vm.tsNewList.phoneIdx].value].qq = rows[z][vm.tsNewList.phoneIdx+6] && rows[z][vm.tsNewList.phoneIdx+6].value;
+                phoneList[rows[z][vm.tsNewList.phoneIdx].value].email = rows[z][vm.tsNewList.phoneIdx+7] && rows[z][vm.tsNewList.phoneIdx+7].value;
+                phoneList[rows[z][vm.tsNewList.phoneIdx].value].remark = rows[z][vm.tsNewList.phoneIdx+8] && rows[z][vm.tsNewList.phoneIdx+8].value;
             }
 
             let sendData = {
