@@ -4838,6 +4838,7 @@
   "Recover Bets": "补收录",
   "Fetching Bets":"重新收录中",
   "Submit Consumption Return": "提交洗码",
+  "Can not resend consumption": "收录失败",
   "Check Continuous Apply Bonus Times": "连续提款次数 ≥ X（转人工审核）",
   "BATCH_FEEDBACK_SETTING": "批量回访配置",
   "BATCH_TELEMARKETING_SETTING(FOR WHITELIST)": "批量电销配置(拨打白名单用)",
