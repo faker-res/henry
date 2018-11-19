@@ -2044,6 +2044,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         event.settlementStartTime = vm.dateReformat(res.data.startTime);
                         event.settlementEndTime = vm.dateReformat(res.data.endTime);
+                        vm.compareAllConsumptionReturn(event.settlementStartTime, event.settlementEndTime);
                     })
                 })
             };
@@ -2060,7 +2061,6 @@ define(['js/app'], function (myApp) {
                     if (event && event.settlementPeriod && event.type.name == "PlayerConsumptionReturn") {
                         p = p.then(() => {
                           getConsumptionReturnPeriodTime(event);
-                          vm.compareAllConsumptionReturn(event.startTime, event.endTime);
                         }
                       )}
                 });
