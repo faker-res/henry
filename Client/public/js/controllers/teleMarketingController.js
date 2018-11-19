@@ -504,7 +504,14 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('PHONENUMBER'), data: "encodedPhoneNumber$",
                         render: function (data, type, row) {
-                            return '<a>' + data + '</a>';
+                            let link = $('<a>', {
+                                'ng-click': 'vm.initAdminPhoneListDetails(' + JSON.stringify(row) + ');',
+                                'data-row': JSON.stringify(row),
+                                'data-toggle': 'modal',
+                                'data-target': '#modalAdminPhoneListDetails',
+                                'data-placement': 'left',
+                            }).text(data);
+                            return link.prop('outerHTML');
                         }
                     },
                     {
@@ -578,8 +585,8 @@ define(['js/app'], function (myApp) {
                     },
                 ],
                 "paging": false,
-                fnDrawCallback: function () {
-                    $scope.safeApply();
+                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    $compile(nRow)($scope);
                 }
 
             }
@@ -595,6 +602,10 @@ define(['js/app'], function (myApp) {
             });
             $('#adminPhoneListTable').resize();
 
+        }
+
+        vm.initAdminPhoneListDetails = function (rowData) {
+            vm.tsPhoneDetails = rowData && rowData.tsPhone || {}
         }
 
         //search and select platform node

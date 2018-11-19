@@ -4880,5 +4880,6 @@
   "TOTAL_MULTIPLE_TOPUP": "成功存款2笔人数",
   "TOTAL_MULTIPLE_TOPUP_RATE": "成功存款2笔率%",
   "TOTAL_VALID": "有效开户量",
-  "TOTAL_VALID_RATE": "有效开户率%"
+  "TOTAL_VALID_RATE": "有效开户率%",
+  "DATA_DETAILS": "资料详情"
 }
