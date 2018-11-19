@@ -8,6 +8,7 @@ const Q = require("q");
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 var cpmsAPI = require("./../externalAPI/cpmsAPI");
+const moment = require('moment-timezone');
 
 var dbGameProviderPlayerDaySummary = {
 
@@ -302,8 +303,8 @@ var dbGameProviderPlayerDaySummary = {
     syncBetRecord: function (startTime, endTime, platformId, proId, index, count) {
         var sendData = {
             providerId: proId,
-            startDate: startTime,
-            endDate: endTime,
+            startDate: getCPMSTimeFormat(startTime),
+            endDate: getCPMSTimeFormat(endTime),
             platformId: platformId
         };
         return cpmsAPI.consumption_reSendConsumption(sendData);
@@ -312,12 +313,10 @@ var dbGameProviderPlayerDaySummary = {
         let sendQuery = {
             platformId: platformId,
             providerId: proId,
-            startDate: startTime.toISOString().substr(0,19),
-            endDate: endTime.toISOString().substr(0,19)
+            startDate: getCPMSTimeFormat(startTime),
+            endDate: getCPMSTimeFormat(endTime)
         };
-        // modify the date to cpms datetime format -> "2018-11-07 02:00:00"
-        sendQuery.startDate = sendQuery.startDate.replace("T", " ");
-        sendQuery.endDate = sendQuery.endDate.replace("T", " ");
+        // modify the date to cpms datetime format -> "2018-11-07 02:00:00" and cpms are using gmt +8 timezone for date query
         let fpmsSummary = dbGameProviderPlayerDaySummary.getProviderDaySummaryForTimeFrame(startTime, endTime, platformObjId, providerObjId, index, count);
         let cpmsSummary = new Promise((resolve, reject)=>{
             cpmsAPI.consumption_getConsumptionSummary(sendQuery).then(
@@ -1143,5 +1142,7 @@ var dbGameProviderPlayerDaySummary = {
 
 
 }
-
+function getCPMSTimeFormat(date) {
+    return moment(date).tz('Asia/Singapore').format("YYYY-MM-DD HH:mm:ss");
+}
 module.exports = dbGameProviderPlayerDaySummary;
