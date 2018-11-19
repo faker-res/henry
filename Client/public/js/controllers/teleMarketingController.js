@@ -1014,7 +1014,14 @@ define(['js/app'], function (myApp) {
         /****************** TXT - start ******************/
         // upload phone file: txt
         vm.uploadPhoneFileTXT = function (content) {
-            vm.arrayPhoneTXT = content.split(/,|, /).map((item) => item.trim());
+            if(content.indexOf(",") > -1){
+                vm.arrayPhoneTXT = content.split(/,|, /).map((item) => item.trim());
+            }else{
+                vm.arrayPhoneTXT = content.split(/\n/).map((item) => item.trim()); // split by newline when phone list is not separate by comma
+            }
+
+            vm.arrayPhoneTXT = vm.arrayPhoneTXT.filter((v,i) => vm.arrayPhoneTXT.indexOf(v) === i); // filter duplicate phone number is the list
+
             vm.arrayPhoneTXT = vm.arrayPhoneTXT.filter(Boolean); //filter out empty strings (due to extra comma)
 
             let sendData = {
