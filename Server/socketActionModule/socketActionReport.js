@@ -117,7 +117,7 @@ function socketActionReport(socketIO, socket) {
             var endTime = query.endTime ? new Date(query.endTime) : time.endTime;
             query.limit = query.limit || 20;
             var isValidData = Boolean(query && query.platformId);
-            socketUtil.emitter(self.socket, dbGameProviderPlayerDaySummary.getProviderDifferDaySummaryForTimeFrame, [startTime, endTime, ObjectId(query.platformId), query.providerId, 0, 0], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbGameProviderPlayerDaySummary.getProviderDifferDaySummaryForTimeFrame, [startTime, endTime, ObjectId(query.platformObjId), query.platformId,  ObjectId(query.providerObjId), query.providerId, 0, 0], actionName, isValidData);
         },
         syncBetRecord: function syncBetRecord(query) {
             var actionName = arguments.callee.name;
@@ -126,7 +126,7 @@ function socketActionReport(socketIO, socket) {
             var endTime = query.endTime ? new Date(query.endTime) : time.endTime;
             query.limit = query.limit || 20;
             var isValidData = Boolean(query && query.platformId && query.providerId);
-            socketUtil.emitter(self.socket, dbGameProviderPlayerDaySummary.syncBetRecord, [startTime, endTime, ObjectId(query.platformId), query.providerId, 0, 0], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbGameProviderPlayerDaySummary.syncBetRecord, [startTime, endTime, query.platformId, query.providerId, 0, 0], actionName, isValidData);
         },
         getProviderGameReport: function getProviderGameReport(query) {
             var actionName = arguments.callee.name;
