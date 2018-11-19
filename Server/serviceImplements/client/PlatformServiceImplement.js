@@ -177,12 +177,7 @@ var PlatformServiceImplement = function () {
         console.log("check FTP WS DATA --------------", data);
         let isValidData = Boolean(data.platformId && data.token && data.fileName && data.fileStream);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.sendFileFTP, [data.platformId, data.token, data.fileStream, data.fileName], isValidData, null, null, true);
-    }
-
-    this.sendWCGroupControlSessionToFPMS.onRequest = function(wsFunc, conn, data) {
-        let isValidData = Boolean(data.deviceId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbWCGroupControl.sendWCGroupControlSessionToFPMS, [data.deviceId, data.csWechatId], isValidData, null, null, true);
-    }
+    };
 };
 
 var proto = PlatformServiceImplement.prototype = Object.create(PlatformService.prototype);

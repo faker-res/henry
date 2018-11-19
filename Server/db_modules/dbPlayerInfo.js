@@ -15323,6 +15323,7 @@ let dbPlayerInfo = {
     },
 
     getPlayerReport: function (platform, query, index, limit, sortCol) {
+        console.log('RT - getPlayerReport start');
         limit = limit ? limit : 20;
         index = index ? index : 0;
         query = query ? query : {};
@@ -15369,6 +15370,7 @@ let dbPlayerInfo = {
 
         return getPlayerProm.then(
             playerData => {
+                console.log('RT - getPlayerReport 1');
                 let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}};
 
                 if (isSinglePlayer) {
@@ -15384,6 +15386,7 @@ let dbPlayerInfo = {
                     {$group: {_id: "$playerId"}}
                 ]).read("secondaryPreferred").then(
                     consumptionData => {
+                        console.log('RT - getPlayerReport 2');
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
                                 return String(playerIdObj._id);
@@ -15410,6 +15413,7 @@ let dbPlayerInfo = {
                     }
                 ).then(
                     proposalData => {
+                        console.log('RT - getPlayerReport 3');
                         if (proposalData && proposalData.length) {
                             for (let i = 0; i < proposalData.length; i++) {
                                 if (proposalData[i]._id && playerObjArr.indexOf(String(proposalData[i]._id)) === -1) {
@@ -15428,6 +15432,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
+                console.log('RT - getPlayerReport 4');
                 let playerProm = dbconfig.collection_players.find({
                     _id: {$in: playerObjArrData},
                     isRealPlayer: true
@@ -15465,6 +15470,7 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
+                console.log('RT - getPlayerReport 5');
                 // handle index limit sortcol here
                 if (Object.keys(sortCol).length > 0) {
                     result.sort(function (a, b) {
@@ -15543,6 +15549,7 @@ let dbPlayerInfo = {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
 
+                console.log('RT - getPlayerReport end');
                 return {size: result.length, data: outputResult, total: resultSum};
             }
         );
@@ -17205,6 +17212,7 @@ let dbPlayerInfo = {
     },
 
     getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option, isPromoteWay) {
+        console.log('getConsumptionDetailOfPlayers - start');
         option = option || {};
         let proms = [];
         let proposalType = [];
@@ -17212,7 +17220,7 @@ let dbPlayerInfo = {
 
         return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
             platformData => {
-
+                console.log('getConsumptionDetailOfPlayers - 1');
                 if (platformData && platformData.platformId) {
                     return pmsAPI.merchant_getMerchantList(
                         {
@@ -17221,6 +17229,7 @@ let dbPlayerInfo = {
                         }
                     ).then(
                         data => {
+                            console.log('getConsumptionDetailOfPlayers - 2');
                             return data.merchants || [];
                         }
                     )
@@ -17228,6 +17237,7 @@ let dbPlayerInfo = {
             }
         ).then(
             merchantData => {
+                console.log('getConsumptionDetailOfPlayers - 3');
                 merchantList = merchantData;
 
                 return dbconfig.collection_proposalType.find({platformId: platformObjId}, {name: 1}).lean().then(
@@ -17298,6 +17308,7 @@ let dbPlayerInfo = {
                     }
                 ).then(
                     data => {
+                        console.log('getConsumptionDetailOfPlayers - end');
                         return data.filter(result => {
                             return result !== "";
                         });
@@ -18534,78 +18545,70 @@ let dbPlayerInfo = {
     },
 
     importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName) {
-        if (phoneListDetail.length > 0) {
-            let tsPhoneProm = dbconfig.collection_tsPhoneList.findOne({
-                platform: saveObj.platform,
-                name: saveObj.name
-            }).lean().then(
-                list => {
-                    if (isUpdateExisting) {
-                        return list;
-                    }
-                    if (list) {
-                        return Promise.reject({
-                            name: "DataError",
-                            message: "List with same name exist"
-                        })
-                    }
-
-                    return new dbconfig.collection_tsPhoneList(saveObj).save();
-                }
-            );
-
-            return tsPhoneProm.then(
-                tsList => {
-                    if (tsList) {
-                        dbconfig.collection_tsPhoneImportRecord({
-                            platform: saveObj.platform,
-                            tsPhoneList: tsList._id,
-                            description: saveObj.description,
-                            adminName: adminName,
-                            admin: adminId
-                        }).save().catch(errorUtils.reportError);
-
-                        let promArr = [];
-
-                        phoneListDetail.forEach(phone => {
-                            let encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
-
-                            promArr.push(
-                                dbconfig.collection_tsPhone({
-                                    platform: saveObj.platform,
-                                    phoneNumber: encryptedNumber,
-                                    playerName: phone.playerName,
-                                    realName: phone.realName,
-                                    gender: phone.gender,
-                                    dob: phone.dob,
-                                    wechat: phone.wechat,
-                                    qq: phone.qq,
-                                    email: phone.email,
-                                    remark: phone.remark,
-                                    tsPhoneList: tsList._id
-                                }).save()
-                            )
-                        });
-
-                        return Promise.all(promArr).then(
-                            resData => {
-                                dbconfig.collection_tsPhone.find({
-                                    platform: saveObj.platform,
-                                    tsPhoneList: tsList._id
-                                }).count().then(
-                                    totalPhone => {
-                                        if (totalPhone) {
-                                            return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsList._id}, {totalPhone: totalPhone}).lean()
-                                        }
-                                    }
-                                ).catch(errorUtils.reportError);
-                                return resData;
-                            }
-                        );
-                    }
-                }
-            ).then(() => true);
+        let tsPhoneList;
+        if (phoneListDetail.length <= 0) {
+            return Promise.reject("None of the phone has pass the filter");
         }
+
+        return getTsPhoneList(saveObj.platform, saveObj.name, isUpdateExisting, saveObj).then(
+            tsList => {
+                if (!tsList) {
+                    return Promise.reject({message: "tsPhoneList not found"})
+                }
+                tsPhoneList = tsList;
+
+                // generate ts phone import record
+                dbconfig.collection_tsPhoneImportRecord({
+                    platform: saveObj.platform,
+                    tsPhoneList: tsList._id,
+                    description: saveObj.description,
+                    adminName: adminName,
+                    admin: adminId
+                }).save().catch(errorUtils.reportError);
+
+                let filteredPhonesProm = Promise.resolve(phoneListDetail);
+                if (saveObj.isCheckWhiteListAndRecycleBin) {
+                    filteredPhonesProm = filterPhoneWithOldTsPhone(saveObj.platform, phoneListDetail);
+                }
+
+                return filteredPhonesProm;
+            }
+        ).then(
+            filteredPhones => {
+                let promArr = [];
+                filteredPhones.forEach(phone => {
+                    let encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
+                    let phoneLocation = queryPhoneLocation(phone.phoneNumber);
+                    let phoneProvince = phoneLocation && phoneLocation.province || "";
+                    let phoneCity = phoneLocation && phoneLocation.city || "";
+
+                    let prom = dbconfig.collection_tsPhone({
+                        platform: tsPhoneList.platform,
+                        phoneNumber: encryptedNumber,
+                        playerName: phone.playerName,
+                        realName: phone.realName,
+                        gender: phone.gender,
+                        dob: phone.dob,
+                        wechat: phone.wechat,
+                        qq: phone.qq,
+                        email: phone.email,
+                        remark: phone.remark,
+                        province: phoneProvince,
+                        city: phoneCity,
+                        tsPhoneList: tsPhoneList._id
+                    }).save();
+
+                    promArr.push(prom);
+                });
+
+                return Promise.all(promArr);
+            }
+        ).then(
+            () => {
+                recalculateTsPhoneListPhoneNumber(tsPhoneList.platform, tsPhoneList._id).catch(errorUtils.reportError);
+                return true;
+            }
+        );
     },
 
     filterDxPhoneExist: function (dxMission, phoneArr) {
@@ -21247,14 +21250,20 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
 
         return dbconfig.collection_proposal.findOne({_id: proposalData.data.limitedOfferObjId}).then(
             limitedOfferProposal => {
-                if(limitedOfferProposal && typeof limitedOfferProposal.data.spendingTimes != "undefined" && typeof limitedOfferProposal.data.rewardAmount != "undefined"
-                    && proposalData.data.actualAmountReceived){
-                    updateObj["data.spendingAmount"] = (proposalData.data.actualAmountReceived + limitedOfferProposal.data.rewardAmount) * limitedOfferProposal.data.spendingTimes;
+                if (limitedOfferProposal && limitedOfferProposal.data && limitedOfferProposal.data.isUsed) {
+                    return Promise.reject({name: "DBError", message: "Reward is applied"});
                 }
-                return;
-            }
-        ).then(
-            () => {
+
+                if (
+                    limitedOfferProposal
+                    && typeof limitedOfferProposal.data.spendingTimes != "undefined"
+                    && typeof limitedOfferProposal.data.rewardAmount != "undefined"
+                    && proposalData.data.actualAmountReceived
+                ) {
+                    updateObj["data.spendingAmount"] = (proposalData.data.actualAmountReceived + limitedOfferProposal.data.rewardAmount) * limitedOfferProposal.data.spendingTimes;
+                    updateObj["data.isUsed"] = true;
+                }
+
                 return dbUtility.findOneAndUpdateForShard(
                     dbconfig.collection_proposal,
                     {_id: proposalData.data.limitedOfferObjId},
@@ -21882,6 +21891,68 @@ function createLargeWithdrawalLog (proposalData, platformObjId) {
             } else {
                 return Promise.reject({message: "Save to proposal failed"}); // the only time here is reach are when there is bug
             }
+        }
+    );
+}
+
+function getTsPhoneList (platformObjId, listName, isUpdateExisting, newTsPhoneListDetail) {
+    return dbconfig.collection_tsPhoneList.findOne({
+        platform: platformObjId,
+        name: listName
+    }).lean().then(
+        list => {
+            if (isUpdateExisting) {
+                return list;
+            }
+            if (list) {
+                return Promise.reject({
+                    name: "DataError",
+                    message: "List with same name exist"
+                })
+            }
+
+            return new dbconfig.collection_tsPhoneList(newTsPhoneListDetail).save();
+        }
+    );
+}
+
+function recalculateTsPhoneListPhoneNumber (platformObjId, tsPhoneListObjId) {
+    return dbconfig.collection_tsPhone.find({
+        platform: platformObjId,
+        tsPhoneList: tsPhoneListObjId
+    }).count().then(
+        totalPhone => {
+            return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObjId}, {totalPhone: totalPhone}).lean();
+        }
+    );
+}
+
+function filterPhoneWithOldTsPhone (platformObjId, phones) {
+    phones = phones.map(phone => {
+        phone.encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
+    });
+
+    let proms = []
+    phones.map(phone => {
+        let prom = dbconfig.collection_tsPhone.findOne({platform: platformObjId, phoneNumber: phone.encryptedNumber}, {_id:1}).lean().then(
+            isExist => {
+                return isExist ? false : phone;
+            }
+        );
+
+        proms.push(prom);
+    });
+
+    return Promise.all(proms).then(
+        phones => {
+            let output = [];
+            phones.map(phone => {
+                if (phone) {
+                    output.push(phone);
+                }
+            });
+
+            return output;
         }
     );
 }

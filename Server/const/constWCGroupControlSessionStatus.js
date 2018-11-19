@@ -3,7 +3,7 @@
  */
 const constWCGroupControlStatus = {
     ONLINE: 1,
-    OFFLINE: 0
+    OFFLINE: 2
 };
 
 module.exports = constWCGroupControlStatus;

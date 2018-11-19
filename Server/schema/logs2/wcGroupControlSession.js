@@ -6,7 +6,7 @@ let wcGroupControlSessionSchema = new Schema({
     deviceId: {type: String, required: true, index: true},
 
     // csOfficer - wechat account
-    csWechatId: {type: String, required: true, index: true},
+    csOfficer: {type: Schema.ObjectId, ref: 'admin', index: true},
 
     // status - online / offline
     status: {type: Number},

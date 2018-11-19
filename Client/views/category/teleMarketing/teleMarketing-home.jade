@@ -29,7 +29,7 @@
                                     .panel-heading.common-left-panel-heading
                                         ul.nav.nav-tabs.common-nav-tabs.padding-left-5.margi
                                             li.active
-                                                a.common-tab(data-toggle="tab", href="#tsNameList")
+                                                a.common-tab(data-toggle="tab", href="#tsAdminNameList")
                                                     text.span {{"MY_NAME_LIST" | translate}}
                                             li
                                                 a.common-tab(data-toggle="tab", href="#tsFeedbackReminder")
@@ -37,10 +37,10 @@
 
                                     .panel-body.common-right-panel-body
                                         div.tab-content
-                                            #tsNameList.tab-pane.fade.in.active
-                                                //include ./payment-bankCardGroup
+                                            #tsAdminNameList.tab-pane.fade.in.active
+                                                include ./teleMarketing-admin-phone-list
                                             #tsFeedbackReminder.tab-pane.fade
-                                                //include ./payment-merchantGroup
+                                                include ./teleMarketing-reminder-list
 
 
 

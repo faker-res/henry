@@ -4341,11 +4341,14 @@ let dbPlayerReward = {
         }
 
         let promoTypeProm = dbConfig.collection_promoCodeType.find(promoTypeQ).lean();
+        let promoTemplateProm = dbConfig.collection_promoCodeTemplate.find(promoTypeQ).lean();
 
-        return Promise.all([playerProm, promoTypeProm]).then(res => {
+        return Promise.all([playerProm, promoTypeProm, promoTemplateProm]).then(res => {
             let playerData = res[0];
             let promoCodeTypeData = res[1];
+            let promoCodeTemplateData = res[2];
             let promoCodeTypeObjIds = promoCodeTypeData.map(e => e._id);
+            let promoCodeTemplateObjIds = promoCodeTemplateData.map(e => e._id);
 
             let matchObj = {
                 platformObjId: platformObjId,
@@ -4356,8 +4359,15 @@ let dbPlayerReward = {
                 matchObj.playerObjId = playerData._id;
             }
 
-            if (promoCodeTypeObjIds && promoCodeTypeObjIds.length > 0) {
+            if (promoCodeTypeObjIds && promoCodeTypeObjIds.length > 0 && promoCodeTemplateObjIds && promoCodeTemplateObjIds.length > 0) {
+                matchObj['$or'] = [
+                    {promoCodeTypeObjId: {$in: promoCodeTypeObjIds}},
+                    {promoCodeTemplateObjId: {$in: promoCodeTemplateObjIds}}
+                ];
+            } else if (promoCodeTypeObjIds && promoCodeTypeObjIds.length > 0) {
                 matchObj.promoCodeTypeObjId = {$in: promoCodeTypeObjIds};
+            } else if (promoCodeTemplateObjIds && promoCodeTemplateObjIds.length > 0) {
+                matchObj.promoCodeTemplateObjId = {$in: promoCodeTemplateObjIds};
             }
             let aggregateQ;
             let distinctField;

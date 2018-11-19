@@ -1,0 +1,71 @@
+.text-center
+    p(ng-if="!vm.curPlatformText")
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+div(ng-show="vm.curPlatformText")
+    #phoneListManageTable-search-filter.block-query.col-md-12.well
+        div(style='max-width: 200px')
+            label.control-label {{'PHONE_LIST' | translate}}
+            select.spicker.form-control#phoneListMangementName(ng-model='vm.queryAdminPhoneList.phoneListName', bsp, multiple, data-actions-box='true', ng-options='v as v for (i,v) in vm.adminPhoneListName')
+        div(style='max-width: 200px')
+            label {{"SEND_STATUS"|translate}}
+            select.spicker.form-control#phoneListMangementStatus(ng-model='vm.queryAdminPhoneList.resultName', bsp, multiple, data-actions-box='true', ng-options='v.value as v.value for (i,v) in vm.allPlayerFeedbackResults')
+        div
+            label.control-label {{'My last feedback time (start)' | translate}}
+            #adminPhoneListLastFeedbackStart
+        div
+            label.control-label {{'My last feedback time (end)' | translate}}
+            #adminPhoneListLastFeedbackEnd
+        div
+            label.control-label {{'My feedback times' | translate}}
+            select.form-control(ng-init='vm.queryAdminPhoneList.feedbackTimesOperator = ">="' ng-model="vm.queryAdminPhoneList.feedbackTimesOperator" style="width:75px;display:inline-block")
+                option(value='>=') {{'>='}}
+                option(value='=') {{'='}}
+                option(value='<=') {{'<='}}
+                option(value='range') {{'range'|translate}}
+            div(style="width:8px;display:inline-block")
+            input.form-control(type="number" ng-model="vm.queryAdminPhoneList.feedbackTimes" style="width:80px;display:inline-block")
+            div.text-center(style="width:15px;display:inline-block" ng-if="vm.queryAdminPhoneList.feedbackTimesOperator === 'range'") ~
+            input.form-control(type="number" ng-model="vm.queryAdminPhoneList.feedbackTimesTwo" style="width:80px;display:inline-block" ng-if="vm.queryAdminPhoneList.feedbackTimesOperator === 'range'")
+        div
+            label.control-label {{'Phone distributed time (start)' | translate}}
+            #adminPhoneListDistributeStart
+        div
+            label.control-label {{'Phone distributed time (end)' | translate}}
+            #adminPhoneListDistributeEnd
+        div
+            //label.control-label(style='display: block') {{'Phone number reclaim in X day' | translate}}
+            label.control-label {{'Phone number reclaim in X day' | translate}}
+            select.form-control(ng-init='vm.queryAdminPhoneList.reclaimDayOperator = ">="' ng-model="vm.queryAdminPhoneList.reclaimDayOperator" style="width:75px;display:inline-block")
+                option(value='>=') {{'>='}}
+                option(value='=') {{'='}}
+                option(value='<=') {{'<='}}
+                option(value='range') {{'range'|translate}}
+            div(style="width:8px;display:inline-block")
+            input.form-control(type="number" ng-model="vm.queryAdminPhoneList.reclaimDays" style="width:80px;display:inline-block")
+            div.text-center(style="width:15px;display:inline-block" ng-if="vm.queryAdminPhoneList.reclaimDayOperator === 'range'") ~
+            input.form-control(type="number" ng-model="vm.queryAdminPhoneList.reclaimDaysTwo" style="width:80px;display:inline-block" ng-if="vm.queryAdminPhoneList.reclaimDayOperator === 'range'")
+        div
+            label.control-label {{'Assign times (numerator)' | translate}}
+            select.form-control(ng-init='vm.queryAdminPhoneList.assignTimesOperator = ">="' ng-model="vm.queryAdminPhoneList.assignTimesOperator" style="width:75px;display:inline-block")
+                option(value='>=') {{'>='}}
+                option(value='=') {{'='}}
+                option(value='<=') {{'<='}}
+                option(value='range') {{'range'|translate}}
+            div(style="width:8px;display:inline-block")
+            input.form-control(type="number" ng-model="vm.queryAdminPhoneList.assignTimes" style="width:80px;display:inline-block")
+            div.text-center(style="width:15px;display:inline-block" ng-if="vm.queryAdminPhoneList.assignTimesOperator === 'range'") ~
+            input.form-control(type="number" ng-model="vm.queryAdminPhoneList.assignTimesTwo" style="width:80px;display:inline-block" ng-if="vm.queryAdminPhoneList.assignTimesOperator === 'range'")
+        div
+            label.control-label {{'Filter non-dial areas' | translate}}
+            select.form-control(ng-init='vm.queryAdminPhoneList.isFilterDangerZone="true"' ng-model="vm.queryAdminPhoneList.isFilterDangerZone")
+                option(value='true') {{'YES' | translate}}
+                option(value='') {{'NO' | translate}}
+        div
+            label &nbsp;
+            button.btn.btn-primary.common-button(ng-click="vm.searchAdminPhoneList(true);") {{'SEARCH' | translate}}
+            span#adminPhoneListTableSpin.collapse
+                i.fa.fa-spinner.fa-spin
+    .clearfix
+    label {{"Total" | translate}} {{vm.queryAdminPhoneList.totalCount}} {{"records" | translate}}
+    table.common-table#adminPhoneListTable.display(style="width:100%;overflow: scroll;max-height:700px")
+    #adminPhoneListTablePage

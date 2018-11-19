@@ -1207,6 +1207,12 @@ var proposal = {
                             {new: true}
                         );
                     })
+                    .then( // todo :: for debug only, check if proposalData found actually have wrong expire time. delete when it doesn't need anymore (may be 2 months without this issue)
+                        data => {
+                            console.log("autoCancelProposal successful", proposalData, data);
+                            return data;
+                        }
+                    );
             }
             else {
                 return Q.reject({message: "incorrect proposal status or authentication."});
@@ -2956,6 +2962,7 @@ var proposal = {
         var totalSize = 0;
         var summary = {};
         let isApprove = false;
+        let isSuccess = false;
 
         if (reqData.inputDevice) {
             reqData.inputDevice = Number(reqData.inputDevice);
@@ -2963,6 +2970,7 @@ var proposal = {
 
         if (reqData.status) {
             if (reqData.status == constProposalStatus.SUCCESS) {
+                isSuccess = true;
                 reqData.status = {
                     $in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]
                 };
@@ -3067,6 +3075,11 @@ var proposal = {
                         totalSize = data[0];
                         resultArray = Object.assign([], data[1]);
                         summary = data[2];
+
+                        if(resultArray && resultArray.length > 0 && isSuccess){
+                            resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
+                        }
+                        
                         dataDeferred.resolve(resultArray);
                     }
                 },
@@ -3299,6 +3312,11 @@ var proposal = {
                     totalSize = data[0];
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
+
+                    if(resultArray && resultArray.length > 0 && isSuccess){
+                        resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
+                    }
+
                     dataDeferred.resolve(resultArray);
                 },
                 function (err) {
@@ -8515,7 +8533,7 @@ function getPlatformFeeEstimate (platformId, startDate, endDate, displayMethod) 
                                         }
                                     }
                                 }
-                                consumptionDetail.totalPlatformFeeEstimate = tempTotalPlatformFeeEstimate;
+                                consumptionDetail.totalPlatformFeeEstimate = dbutility.noRoundTwoDecimalPlaces(tempTotalPlatformFeeEstimate);
                             }
                         }
                         else if (displayMethod == 'daily') {
@@ -8544,7 +8562,7 @@ function getPlatformFeeEstimate (platformId, startDate, endDate, displayMethod) 
 
                                         }
                                     }
-                                    consumptionDetail.totalPlatformFeeEstimate = tempTotalPlatformFeeEstimate;
+                                    consumptionDetail.totalPlatformFeeEstimate = dbutility.noRoundTwoDecimalPlaces(tempTotalPlatformFeeEstimate);
                                 }
                             }
                         }
@@ -8588,7 +8606,7 @@ function rearrangeTopUpDetail (topUpType, currentDate, depositGroup, currentList
                                         newTopUpDetail.push({
                                             depositMethod: Number(currentList[indexNo].topUpDetail[typeIndexNo].depositMethod),
                                             depositMethodName: type.depositName,
-                                            amount: currentList[indexNo].topUpDetail[typeIndexNo].amount
+                                            amount: dbutility.noRoundTwoDecimalPlaces(currentList[indexNo].topUpDetail[typeIndexNo].amount)
                                         });
                                     } else {
                                         newTopUpDetail.push({
@@ -8611,7 +8629,7 @@ function rearrangeTopUpDetail (topUpType, currentDate, depositGroup, currentList
                             newObj.push({
                                 groupName: group.groupName,
                                 topUpDetail: newTopUpDetail,
-                                totalAmount: newTopUpDetail.reduce((sum, value) => sum + value.amount, 0) || 0
+                                totalAmount: dbutility.noRoundTwoDecimalPlaces(newTopUpDetail.reduce((sum, value) => sum + value.amount, 0)) || 0
                             });
                         }
                     });
@@ -8657,7 +8675,7 @@ function rearrangeTopUpDetail (topUpType, currentDate, depositGroup, currentList
                 let groupIndexNo = depositGroup.findIndex(y => y.groupName == currentList[indexNo].groupName);
                 if(groupIndexNo != -1) {
                     newObj.typeName = currentList[indexNo].typeName;
-                    newObj.amount = currentList[indexNo].amount;
+                    newObj.amount = dbutility.noRoundTwoDecimalPlaces(currentList[indexNo].amount);
                     newObj.groupName = currentList[indexNo].groupName;
                 } else {
                     newObj.typeName = constType;
@@ -8709,11 +8727,13 @@ function rearrangeBonusDetail(currentDate, bonusType, currentList) {
 
                 if (bonusIndexNo == -1) {
                     currentList[indexNo].bonusDetail.push({typeName: type, amount: 0});
+                } else {
+                    currentList[indexNo].bonusDetail.map(x => dbutility.noRoundTwoDecimalPlaces(x.amount));
                 }
             });
 
             newObj.bonusDetail= currentList[indexNo].bonusDetail;
-            newObj.totalAmount= currentList[indexNo].totalAmount;
+            newObj.totalAmount= dbutility.noRoundTwoDecimalPlaces(currentList[indexNo].totalAmount);
 
         } else {
             let temp = [];
@@ -8824,7 +8844,7 @@ function rearrangeTopUpDetailByMultiplePlatform(topUpType, currentList, depositG
                                                     platformTopUpDetail.push({
                                                         platformId: currentList[groupIndexNo].methods[typeIndexNo].topUpDetail[platformIndexNo].platformId,
                                                         platformName: platform.name,
-                                                        amount: currentList[groupIndexNo].methods[typeIndexNo].topUpDetail[platformIndexNo].amount
+                                                        amount: dbutility.noRoundTwoDecimalPlaces(currentList[groupIndexNo].methods[typeIndexNo].topUpDetail[platformIndexNo].amount)
                                                     })
                                                 } else {
                                                     platformTopUpDetail.push({
@@ -8898,8 +8918,47 @@ function rearrangeTopUpDetailByMultiplePlatform(topUpType, currentList, depositG
 
                 }
             }
-            return newObj;
+
+        } else {
+            let newDepositGroup = [];
+            if (depositGroup && depositGroup.length > 0) {
+                depositGroup.forEach(x => {
+                    if (x && x.topUpTypeId && x.topUpTypeId == topUpType) {
+                        newDepositGroup.push(x);
+                    }
+                });
+            }
+
+            if (newDepositGroup && newDepositGroup.length > 0) {
+                newDepositGroup.forEach(group => {
+                    let newTopUpDetail = [];
+                    group.groupDetail.forEach(type => {
+                        let platformTopUpDetail = [];
+                        platformRecord.forEach(platform => {
+                            platformTopUpDetail.push({
+                                platformId: platform._id,
+                                platformName: platform.name,
+                                amount: 0
+                            })
+                        });
+
+                        newTopUpDetail.push({
+                            depositMethod: type.topUpMethodId,
+                            depositMethodName: type.depositName,
+                            topUpDetail: platformTopUpDetail
+                        });
+                    });
+
+                    newObj.push({
+                        groupId: group.groupId,
+                        groupName: group.groupName,
+                        methods: newTopUpDetail,
+                        totalAmount: 0
+                    });
+                });
+            }
         }
+        return newObj;
     } else if (topUpType == 3 || topUpType == 4) {
         newObj = [];
 
@@ -9007,7 +9066,7 @@ function rearrangeBonusDetailByMutilplePlatform(bonusType, currentList, platform
                             platformTopUpDetail.push({
                                 platformId: currentList[indexNo].bonusDetail[platformIndexNo].platformId,
                                 platformName: platform.name,
-                                amount: currentList[indexNo].bonusDetail[platformIndexNo].amount
+                                amount: dbutility.noRoundTwoDecimalPlaces(currentList[indexNo].bonusDetail[platformIndexNo].amount)
                             })
                         } else {
                             platformTopUpDetail.push({
@@ -9080,7 +9139,7 @@ function rearrangePlatformFeeEstimateDetailByMutilplePlatform(currentList, platf
                 newObj.push({
                     platformId: currentList[platformIndexNo]._id,
                     platformName: platform.name,
-                    totalPlatformFeeEstimate: currentList[platformIndexNo].totalPlatformFeeEstimate
+                    totalPlatformFeeEstimate: dbutility.noRoundTwoDecimalPlaces(currentList[platformIndexNo].totalPlatformFeeEstimate)
                 })
             } else {
                 newObj.push({
@@ -9324,7 +9383,7 @@ function rearrangeSumTopup (topUpType, currentList, platformRecord, depositGroup
                                         platformDetail.push({
                                             platformId: tempSumList[groupIndexNo].platformDetail[platformIndexNo].platformId,
                                             platformName: platform.name,
-                                            amount: tempSumList[groupIndexNo].platformDetail[platformIndexNo].amount
+                                            amount: dbutility.noRoundTwoDecimalPlaces(tempSumList[groupIndexNo].platformDetail[platformIndexNo].amount)
                                         })
                                     } else {
                                         platformDetail.push({
@@ -9367,7 +9426,7 @@ function rearrangeSumTopup (topUpType, currentList, platformRecord, depositGroup
                         sumList.push({
                             platformId: currentList[platformIndexNo]._id,
                             platformName: platform.name,
-                            amount: currentList[platformIndexNo].amount
+                            amount: dbutility.noRoundTwoDecimalPlaces(currentList[platformIndexNo].amount)
                         })
                     } else {
                         sumList.push({
@@ -9396,7 +9455,7 @@ function rearrangeSumBonus (currentList, platformRecord) {
                     sumList.push({
                         platformId: currentList[platformIndexNo]._id,
                         platformName: platform.name,
-                        amount: currentList[platformIndexNo].amount
+                        amount: dbutility.noRoundTwoDecimalPlaces(currentList[platformIndexNo].amount)
                     })
                 } else {
                     sumList.push({
