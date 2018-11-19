@@ -49,6 +49,7 @@ var socketActionModules = [
     require('./../socketActionModule/socketActionTeleSales'),
     require('./../socketActionModule/socketActionThemeControl'),
     require('./../socketActionModule/socketActionLargeWithdrawal'),
+    require('./../socketActionModule/socketActionWCGroupControl'),
 ];
 
 var socketActions = [
