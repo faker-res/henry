@@ -4425,9 +4425,7 @@ function checkApplyTopUpReturn(player, topUpReturnCode, userAgentStr, inputData,
                 }
             }
             else if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.type.name == constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
-                // return checkApplyRetentionReward(player, rewardEvent, applyAmount, userAgentStr, inputData, topUpMethod);
                 return dbPlayerReward.checkApplyRetentionReward(player, rewardEvent, applyAmount, userAgentStr, inputData, topUpMethod, true);
-
             }
             else {
                 return Q.reject({

@@ -7260,10 +7260,9 @@ let dbPlayerReward = {
         );
     },
 
-    checkApplyRetentionReward: function (player, rewardEvent, applyAmount, userAgentStr, inputData, topUpMethod, isFontEndApply) {
+    checkApplyRetentionReward: function (player, rewardEvent, applyAmount, userAgentStr, inputData, topUpMethod, isFrontEndApply) {
         let intervalTime = null;
 
-        console.log("checking is this apply method??? now")
         //check valid time for reward event
         let curTime = new Date();
         if ((rewardEvent.validStartTime && curTime.getTime() < rewardEvent.validStartTime.getTime()) ||
@@ -7594,7 +7593,7 @@ let dbPlayerReward = {
                     }
                 }
 
-                if (isFontEndApply){
+                if (isFrontEndApply){
                     return Promise.resolve(rewardEvent);
                 }
                 else{
