@@ -15314,6 +15314,7 @@ let dbPlayerInfo = {
     },
 
     getPlayerReport: function (platform, query, index, limit, sortCol) {
+        console.log('RT - getPlayerReport start');
         limit = limit ? limit : 20;
         index = index ? index : 0;
         query = query ? query : {};
@@ -15360,6 +15361,7 @@ let dbPlayerInfo = {
 
         return getPlayerProm.then(
             playerData => {
+                console.log('RT - getPlayerReport 1');
                 let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}};
 
                 if (isSinglePlayer) {
@@ -15375,6 +15377,7 @@ let dbPlayerInfo = {
                     {$group: {_id: "$playerId"}}
                 ]).read("secondaryPreferred").then(
                     consumptionData => {
+                        console.log('RT - getPlayerReport 2');
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
                                 return String(playerIdObj._id);
@@ -15401,6 +15404,7 @@ let dbPlayerInfo = {
                     }
                 ).then(
                     proposalData => {
+                        console.log('RT - getPlayerReport 3');
                         if (proposalData && proposalData.length) {
                             for (let i = 0; i < proposalData.length; i++) {
                                 if (proposalData[i]._id && playerObjArr.indexOf(String(proposalData[i]._id)) === -1) {
@@ -15419,6 +15423,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
+                console.log('RT - getPlayerReport 4');
                 let playerProm = dbconfig.collection_players.find({
                     _id: {$in: playerObjArrData},
                     isRealPlayer: true
@@ -15456,6 +15461,7 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
+                console.log('RT - getPlayerReport 5');
                 // handle index limit sortcol here
                 if (Object.keys(sortCol).length > 0) {
                     result.sort(function (a, b) {
@@ -15534,6 +15540,7 @@ let dbPlayerInfo = {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
 
+                console.log('RT - getPlayerReport end');
                 return {size: result.length, data: outputResult, total: resultSum};
             }
         );
@@ -17196,6 +17203,7 @@ let dbPlayerInfo = {
     },
 
     getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option, isPromoteWay) {
+        console.log('getConsumptionDetailOfPlayers - start');
         option = option || {};
         let proms = [];
         let proposalType = [];
@@ -17203,7 +17211,7 @@ let dbPlayerInfo = {
 
         return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
             platformData => {
-
+                console.log('getConsumptionDetailOfPlayers - 1');
                 if (platformData && platformData.platformId) {
                     return pmsAPI.merchant_getMerchantList(
                         {
@@ -17212,6 +17220,7 @@ let dbPlayerInfo = {
                         }
                     ).then(
                         data => {
+                            console.log('getConsumptionDetailOfPlayers - 2');
                             return data.merchants || [];
                         }
                     )
@@ -17219,6 +17228,7 @@ let dbPlayerInfo = {
             }
         ).then(
             merchantData => {
+                console.log('getConsumptionDetailOfPlayers - 3');
                 merchantList = merchantData;
 
                 return dbconfig.collection_proposalType.find({platformId: platformObjId}, {name: 1}).lean().then(
@@ -17289,6 +17299,7 @@ let dbPlayerInfo = {
                     }
                 ).then(
                     data => {
+                        console.log('getConsumptionDetailOfPlayers - end');
                         return data.filter(result => {
                             return result !== "";
                         });
@@ -21230,14 +21241,20 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
 
         return dbconfig.collection_proposal.findOne({_id: proposalData.data.limitedOfferObjId}).then(
             limitedOfferProposal => {
-                if(limitedOfferProposal && typeof limitedOfferProposal.data.spendingTimes != "undefined" && typeof limitedOfferProposal.data.rewardAmount != "undefined"
-                    && proposalData.data.actualAmountReceived){
-                    updateObj["data.spendingAmount"] = (proposalData.data.actualAmountReceived + limitedOfferProposal.data.rewardAmount) * limitedOfferProposal.data.spendingTimes;
+                if (limitedOfferProposal && limitedOfferProposal.data && limitedOfferProposal.data.isUsed) {
+                    return Promise.reject({name: "DBError", message: "Reward is applied"});
                 }
-                return;
-            }
-        ).then(
-            () => {
+
+                if (
+                    limitedOfferProposal
+                    && typeof limitedOfferProposal.data.spendingTimes != "undefined"
+                    && typeof limitedOfferProposal.data.rewardAmount != "undefined"
+                    && proposalData.data.actualAmountReceived
+                ) {
+                    updateObj["data.spendingAmount"] = (proposalData.data.actualAmountReceived + limitedOfferProposal.data.rewardAmount) * limitedOfferProposal.data.spendingTimes;
+                    updateObj["data.isUsed"] = true;
+                }
+
                 return dbUtility.findOneAndUpdateForShard(
                     dbconfig.collection_proposal,
                     {_id: proposalData.data.limitedOfferObjId},

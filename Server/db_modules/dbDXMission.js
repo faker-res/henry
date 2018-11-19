@@ -571,10 +571,12 @@ let dbDXMission = {
             });
         }
 
+        console.log("LH check DX ------------2 ", code);
         return dbconfig.collection_dxPhone.findOne({code: code})
             .populate({path: "dxMission", model: dbconfig.collection_dxMission})
             .populate({path: "platform", model: dbconfig.collection_platform}).lean().then(
             function (dxPhone) {
+                console.log("LH check DX ------------3 ", dxPhone);
                 if (!dxPhone) {
                     return Promise.reject({
                         code: constServerCode.DATA_INVALID,

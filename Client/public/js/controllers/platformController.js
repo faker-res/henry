@@ -2191,7 +2191,7 @@ define(['js/app'], function (myApp) {
                 vm.platformProviderList.forEach((item, index)=>{
                     vm.providerDiffConsumption[item.providerId] = vm.resetProviderConsumptRecord(index+1, item.providerId);
                     vm.providerLists.push(item.providerId);
-                    vm.compareConsumptionReturn(startTime, endTime, item.providerId, index);
+                    vm.compareConsumptionReturn(startTime, endTime, item.providerId, item._id, index);
                 });
 
                 vm.renderConsumption();
@@ -2207,29 +2207,39 @@ define(['js/app'], function (myApp) {
                     })
                 })
             }
-            vm.compareConsumptionReturn = function (startTime, endTime, providerId, index){
-
+            vm.compareConsumptionReturn = function (startTime, endTime, providerId, providerObjId, index){
                 let sendQuery = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.selectedPlatform.data.platformId,
+                    platformObjId: vm.selectedPlatform.id,
                     startTime: startTime,
                     endTime: endTime,
-                    providerId: providerId
+                    providerId: providerId,
+                    providerObjId: providerObjId
                 };
                 socketService.$socket($scope.AppSocket, 'operationDifferentReport', sendQuery, function (data) {});
             }
             vm.syncBetRecord = function(startTime, endTime, providerId, index){
+
+                var sendQuery = {
+                    platformId: vm.selectedPlatform.data.platformId,
+                    providerId: providerId,
+                    startDate: startTime,
+                    endDate: endTime
+                };
+                // modify the date to cpms datetime format -> "2018-11-07 02:00:00"
+                sendQuery.startDate = sendQuery.startDate.replace("/", "-");
+                sendQuery.endDate = sendQuery.endDate.replace("/", "-");
                 vm.providerDiffConsumption[providerId] = vm.resetProviderConsumptRecord(index, providerId);
                 vm.providerDiffConsumption[providerId].status = 3;
-                var sendQuery = {
-                    platformId: vm.selectedPlatform.id,
-                    providerId: providerId,
-                    startTime: startTime,
-                    endTime: endTime
-                };
+
+                let providerObjId = vm.platformProviderList.filter(item=>{
+                    return item.providerId == providerId;
+                })
+                providerObjId = providerObjId[0] ? providerObjId[0]:{}
                 socketService.$socket($scope.AppSocket, 'syncBetRecord', sendQuery, function (data) {
                     $scope.$evalAsync(()=>{
                         console.log('data', data);
-                        vm.compareConsumptionReturn(startTime, endTime, providerId, index);
+                        vm.compareConsumptionReturn(startTime, endTime, providerId,providerObjId._id, index);
                     });
                 });
             }
@@ -17652,17 +17662,8 @@ define(['js/app'], function (myApp) {
                         j.credibilityRemarksName = "--";
                     }
 
-                    if (j.playerId && j.playerId.csOfficer) {
-                        let len = vm.adminList ? vm.adminList.length : 0;
-                        for (let x = 0; x < len; x++) {
-                            let admin = vm.adminList[x];
-                            if (j.playerId.csOfficer.toString() === admin._id.toString()) {
-                                j.csOfficerName = admin.adminName;
-                                break;
-                            } else {
-                                j.csOfficerName = "--";
-                            }
-                        }
+                    if (j.playerId && j.playerId.accAdmin) {
+                        j.csOfficerName = j.playerId.accAdmin;
                     } else {
                         j.csOfficerName = "--";
                     }

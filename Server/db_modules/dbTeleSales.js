@@ -1,5 +1,6 @@
 let dbconfig = require('./../modules/dbproperties');
 let errorUtils = require('../modules/errorUtils');
+const rsaCrypto = require("../modules/rsaCrypto");
 const dbUtility = require('./../modules/dbutility');
 const constPromoCodeStatus = require('../const/constPromoCodeStatus');
 const constServerCode = require('../const/constServerCode');
@@ -36,11 +37,7 @@ let dbTeleSales = {
                 if (phoneListData && phoneListData.length && query.phoneListName && query.phoneListName.length) {
                     phoneListQuery.tsPhoneList = {$in: phoneListData.map(phoneList => phoneList._id)}
                 }
-                // query.assignee = query.admin;
-                // delete query.admin;
-                // delete query.phoneListName;
 
-                //
                 phoneListQuery["$and"] = [{startTime: {$lt: new Date()}}, {endTime: {$gte: new Date()}}];
                 if (query.resultName && query.resultName.length) {
                     phoneListQuery.resultName = {$in: query.resultName};
@@ -56,7 +53,7 @@ let dbTeleSales = {
 
 
                 if (query.hasOwnProperty("reclaimDays") && query.reclaimDays != null) {
-                    let countReclaimDate = dbUtility.getNdaylaterFromSpecificStartTime(query.reclaimDays, new Date());
+                    let countReclaimDate = dbUtility.getNdaylaterFromSpecificStartTime(query.reclaimDays + 1, new Date());
                     let reclaimDate =dbUtility.getTargetSGTime(countReclaimDate);
                     switch (query.reclaimDayOperator) {
                         case '<=':
@@ -70,7 +67,7 @@ let dbTeleSales = {
                             break;
                         case 'range':
                             if (query.hasOwnProperty("reclaimDaysTwo") && query.reclaimDaysTwo != null) {
-                                let countReclaimDate2 = dbUtility.getNdaylaterFromSpecificStartTime(query.reclaimDaysTwo, new Date());
+                                let countReclaimDate2 = dbUtility.getNdaylaterFromSpecificStartTime(query.reclaimDaysTwo + 1, new Date());
                                 let reclaimDate2 = dbUtility.getTargetSGTime(countReclaimDate2);
                                 phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime, $lte: reclaimDate2.startTime}});
                             }
@@ -128,18 +125,22 @@ let dbTeleSales = {
                     phoneListQuery.isInDangerZone = false;
                 }
 
-
-                console.log("walaoquery",JSON.stringify(phoneListQuery,null,2))
-                console.log('walaophonelist',phoneListData)
                 let tsDistributePhoneCountProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).count();
                 let tsDistributePhoneProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).sort(sortObj).sort(sortObj).skip(index).limit(limit)
-                    .populate({path: 'tsPhoneList', model: dbconfig.collection_tsPhoneList}).lean();
+                    .populate({path: 'tsPhoneList', model: dbconfig.collection_tsPhoneList, select: "name"})
+                    .populate({path: 'tsPhone', model: dbconfig.collection_tsPhone, select: "phoneNumber assignTimes"}).lean();
 
                 return Promise.all([tsDistributePhoneCountProm, tsDistributePhoneProm]);
             }
         ).then(
             ([tsDistributePhoneCount, tsDistributePhone]) => {
-                console.log("walaodata",tsDistributePhone)
+                if (tsDistributePhone && tsDistributePhone.length) {
+                    tsDistributePhone.forEach(distributePhone => {
+                        if (distributePhone.tsPhone.phoneNumber) {
+                            distributePhone.tsPhone.phoneNumber = rsaCrypto.decrypt(distributePhone.tsPhone.phoneNumber)
+                        }
+                    })
+                }
                 return {data: tsDistributePhone, size: tsDistributePhoneCount};
             }
         )
@@ -286,10 +287,10 @@ let dbTeleSales = {
                                         platform: inputData.platform,
                                         tsPhoneList: inputData.tsListObjId,
                                         tsDistributedPhoneList: distributedPhoneListData._id,
+                                        tsPhone: ObjectId(tsPhoneUpdate.tsPhoneObjId),
                                         province: tsPhoneUpdate.province,
                                         city: tsPhoneUpdate.city,
                                         isInDangerZone: isInDangerZone,
-                                        tsPhone: ObjectId(tsPhoneUpdate.tsPhoneObjId),
                                         assignTimes: (tsPhoneUpdate.assignTimes + 1) || 1,
                                         assignee: tsAssignee.admin,
                                         startTime: phoneNumberStartTime,
@@ -297,8 +298,10 @@ let dbTeleSales = {
                                         remindTime: phoneNumberEndTime.endTime
                                     }).save().catch(errorUtils.reportError);
                                 });
-                                dbconfig.collection_tsPhone.update({_id:{$in: tsAssignee.updateObj.tsPhone.map(tsPhone => tsPhone.tsPhoneObjId)}}, {$addToSet: {assignee: tsAssignee.admin} , $inc: {assignTimes: 1}, distributedEndTime: phoneNumberEndTime.startTime}, {multi: true}).catch(errorUtils.reportError);
+
+                                dbconfig.collection_tsPhone.update({_id:{$in: tsAssignee.updateObj.tsPhone.map(tsPhone => tsPhone.tsPhoneObjId)}}, {$addToSet: {assignee: tsAssignee.admin} , $inc: {assignTimes: 1}, distributedEndTime: phoneNumberEndTime.endTime}, {multi: true}).catch(errorUtils.reportError);
                             })
+
                         promArr.push(distributedPhoneListProm);
                     }
                 });
