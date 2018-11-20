@@ -385,7 +385,6 @@ var dbGameProviderPlayerDaySummary = {
             consumption:0,
             validAmount:0
         }
-        console.log(data);
         if(data && data && data.summary && data.summary.length > 0){
             data.summary.forEach(item=>{
                 if(item.summaryData){
@@ -396,7 +395,7 @@ var dbGameProviderPlayerDaySummary = {
                 }
             })
         }
-        console.log(result)
+        console.log('--mark--observe--sum-dif-type-summaryData',result);
         return result;
     },
     getAllProviderDaySummaryForTimeFrame: function (startTime, endTime, platformId, proId, index, count) {
