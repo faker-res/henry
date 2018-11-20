@@ -217,39 +217,33 @@ var dbPlatformGameStatus = {
     },
 
     searchGame: function (platformId, name, type, groupCode, playerId, playGameType, providerId) {
-        function getGameType(type) {
-            if (type != null) {
-                return dbconfig.collection_game.find({type: type}, {_id: 1}).lean();
-            }
-            else {
-                return Q.resolve(null);
-            }
-        }
+        let platformGames = null;
+        let typeProm = getGameType(type);
+        let platformProm = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
+        let groupProm = dbPlatformGameStatus.getGroupGames(platformId, groupCode);
+        let playerRouteSetting = null;
 
-        var platformGames = null;
-        var typeProm = getGameType(type);
-        var platformProm = dbconfig.collection_platform.findOne({platformId: platformId}).lean();
-        var groupProm = dbPlatformGameStatus.getGroupGames(platformId, groupCode);
-        var platformId = null;
-        var playerRouteSetting = null;
-        return Q.all([platformProm, typeProm, groupProm]).then(
+        return Promise.all([platformProm, typeProm, groupProm]).then(
             data => {
                 if (data && data[0]) {
-                    platformId = data[0].platformId;
                     playerRouteSetting = data[0].playerRouteSetting;
-                    var queryObj = {
+
+                    let games = null;
+                    let bGames = groupCode !== null || type !== null;
+                    let queryObj = {
                         platform: data[0]._id
                     };
+
                     if (name) {
                         queryObj.name = new RegExp(name);
                     }
-                    var games = null;
-                    var bGames = groupCode != null || type != null ? true : false;
+
                     if (data[1]) {
                         games = data[1].map(type => type._id);
                     }
+
                     if (data[2]) {
-                        var groupGames = data[2];//.games.map(game => game.game);
+                        let groupGames = data[2];//.games.map(game => game.game);
                         if (games) {
                             //and game arrays
                             games = games.filter(
@@ -264,10 +258,12 @@ var dbPlatformGameStatus = {
                             games = groupGames;
                         }
                     }
+
                     if (games && games.length > 0) {
                         queryObj.game = {$in: games};
                     }
-                    if (bGames && games.length == 0) {
+
+                    if (bGames && (!games || games.length === 0)) {
                         return [];
                     }
                     else {
@@ -281,17 +277,33 @@ var dbPlatformGameStatus = {
         ).then(
             data => {
                 platformGames = data;
+                let changedNameSearch = {};
+                let queryObj = {};
+                let queryField;
+
+                if (name && platformId) {
+                    // changedNameSearch[platformId] = {$regex: new RegExp(name)};
+                    queryField = 'changedName.' + platformId;
+                    changedNameSearch = {$regex: new RegExp(name)};
+                }
+
+                if (queryField && changedNameSearch) {
+                    queryObj[queryField] = changedNameSearch;
+                }
+
                 if (platformGames && platformGames.length > 0) {
-                    var queryObj = {_id: {$in: platformGames.map(game => game.game)}};
-                    if( playGameType ){
+                    queryObj = {
+                        _id: {$in: platformGames.map(game => game.game)}
+                    };
+
+                    if (playGameType) {
                         queryObj.playGameType = playGameType;
                     }
-                    return dbconfig.collection_game.find(queryObj)
-                        .populate({path: "provider", model: dbconfig.collection_gameProvider}).lean();
                 }
-                else {
-                    return platformGames;
-                }
+
+                return dbconfig.collection_game.find(queryObj)
+                    .populate({path: "provider", model: dbconfig.collection_gameProvider}).lean()
+                    .then(games => games ? games : platformGames);
             }
         ).then(
             games => {
@@ -369,6 +381,15 @@ var dbPlatformGameStatus = {
         ).then(
             games => dbGame.checkFavoriteGames(playerId, games)
         );
+
+        function getGameType(type) {
+            if (type != null) {
+                return dbconfig.collection_game.find({type: type}, {_id: 1}).lean();
+            }
+            else {
+                return Q.resolve(null);
+            }
+        }
     },
 
     searchGameByGroup: function (platformId, groups) {
