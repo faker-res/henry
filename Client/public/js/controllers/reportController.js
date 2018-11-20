@@ -10183,7 +10183,7 @@ define(['js/app'], function (myApp) {
                     {group: "PLATFORM", text: "savePartnerAdvertisementRecordChanges", action: "savePartnerAdvertisementRecordChanges"},
 
                     {group: "PLAYER", text: "CREATE_PLAYER", action: "createPlayer"},
-                    {group: "PLAYER", text: "createTestPlayerForPlatform", action: "createDemoPlayer"},
+                    {group: "PLAYER", text: "createDemoPlayer", action: "createDemoPlayer"},
                     {group: "PLAYER", text: "createUpdatePlayerInfoProposal", action: "createUpdatePlayerInfoProposal"},
                     //{group: "PLAYER", text: "Search referral", action: "getPlayerReferrals"},
                     {
@@ -10301,18 +10301,28 @@ define(['js/app'], function (myApp) {
                     {group: "Bankcard Group", text: "DELETE", action: "deleteBankCardGroup"},
                     {group: "Bankcard Group", text: "Default", action: "setPlatformDefaultBankCardGroup"},
                     {group: "Bankcard Group", text: "ADD_PLAYER", action: "addPlayersToBankCardGroup"},
+                    {group: "Bankcard Group", text: "ADD_ALL_PLAYER", action: "addAllPlayersToBankCardGroup"},
 
                     {group: "MERCHANT_GROUP", text: "ADD", action: "addPlatformMerchantGroup"},
                     {group: "MERCHANT_GROUP", text: "UPDATE", action: "renamePlatformMerchantGroup"},
                     {group: "MERCHANT_GROUP", text: "DELETE", action: "deleteMerchantGroup"},
                     {group: "MERCHANT_GROUP", text: "Default", action: "setPlatformDefaultMerchantGroup"},
                     {group: "MERCHANT_GROUP", text: "ADD_PLAYER", action: "addPlayersToMerchantGroup"},
+                    {group: "MERCHANT_GROUP", text: "ADD_ALL_PLAYER", action: "addAllPlayersToMerchantGroup"},
 
                     {group: "AlipayGroup", text: "ADD", action: "addPlatformAlipayGroup"},
                     {group: "AlipayGroup", text: "UPDATE", action: "renamePlatformAlipayGroup"},
                     {group: "AlipayGroup", text: "DELETE", action: "deleteAlipayGroup"},
                     {group: "AlipayGroup", text: "Default", action: "setPlatformDefaultAlipayGroup"},
                     {group: "AlipayGroup", text: "ADD_PLAYER", action: "addPlayersToAlipayGroup"},
+                    {group: "AlipayGroup", text: "ADD_ALL_PLAYER", action: "addAllPlayersToAlipayGroup"},
+
+                    {group: "WechatPay Group", text: "ADD", action: "addPlatformWechatGroup"},
+                    {group: "WechatPay Group", text: "UPDATE", action: "renamePlatformWechatGroup"},
+                    {group: "WechatPay Group", text: "DELETE", action: "deleteWechatGroup"},
+                    {group: "WechatPay Group", text: "Default", action: "setPlatformDefaultWechatGroup"},
+                    {group: "WechatPay Group", text: "ADD_PLAYER", action: "addPlayersToWechatGroup"},
+                    {group: "WechatPay Group", text: "ADD_ALL_PLAYER", action: "addAllPlayersToWechatGroup"},
 
                     {group: "Provider", text: "EDIT_SETTLEMENT_TIME", action: "updateGameProvider"},
                     {group: "Provider", text: "Target Settlement", action: "manualDailyProviderSettlement"},

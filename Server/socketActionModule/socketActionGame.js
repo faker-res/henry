@@ -60,7 +60,7 @@ function socketActionGame(socketIO, socket) {
         updateGame: function updateGame(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);
-            socketUtil.emitter(self.socket, dbGame.updateGame, [data.query, data.updateData], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbGame.updateGame, [data.query, data.updateData, data.platform], actionName, isValidData);
         },
 
         /**

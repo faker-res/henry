@@ -11551,7 +11551,7 @@ define(['js/app'], function (myApp) {
         vm.submitRepairPayment = function () {
             vm.submitRepairePayementStep = 1;
             $scope.safeApply();
-            socketService.$socket($scope.AppSocket, 'submitRepairPaymentProposal', {proposalId: vm.repairProposalId}, function (data) {
+            socketService.$socket($scope.AppSocket, 'submitRepairPaymentProposal', {proposalId: vm.repairProposalId, platform: vm.selectedPlatform.id}, function (data) {
                 vm.submitRepairePayementStep = 2;
                 vm.getPlatformPlayersData();
                 $scope.safeApply();
