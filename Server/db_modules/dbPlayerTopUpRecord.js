@@ -872,8 +872,20 @@ var dbPlayerTopUpRecord = {
                     name: player.name,
                     id: playerId
                 };
-                if (rewardEvent && rewardEvent._id) {
-                    proposalData.topUpReturnCode = rewardEvent.code;
+                // if (rewardEvent && rewardEvent._id) {
+                //     proposalData.topUpReturnCode = rewardEvent.code;
+                // }
+                if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){
+                    if (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN_GROUP || rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN){
+                        proposalData.topUpReturnCode = rewardEvent.code;
+                    }
+                    else if (rewardEvent.type.name == constRewardType.PLAYER_RETENTION_REWARD_GROUP){
+                        proposalData.retentionRewardCode = rewardEvent.code;
+                        // delete the unrelated rewardEvent.code
+                        if (proposalData.topUpReturnCode){
+                            delete proposalData.topUpReturnCode;
+                        }
+                    }
                 }
 
                 // Check Limited Offer Intention
@@ -1255,7 +1267,7 @@ var dbPlayerTopUpRecord = {
                 proposalData.userAgent = userAgent ? userAgent : "";
                 proposalData.bPMSGroup = Boolean(bPMSGroup);
                 proposalData.bonusCode = inputData.bonusCode;
-                proposalData.topUpReturnCode = topUpReturnCode;
+                // proposalData.topUpReturnCode = topUpReturnCode;
                 proposalData.supportMode = inputData.supportMode;
                 proposalData.creator = entryType == "ADMIN" ? {
                     type: 'admin',
@@ -1266,9 +1278,23 @@ var dbPlayerTopUpRecord = {
                     name: player.name,
                     id: playerId
                 };
-                if (rewardEvent && rewardEvent._id) {
-                    proposalData.topUpReturnCode = rewardEvent.code;
+
+                if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){
+                    if (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN_GROUP || rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN){
+                        proposalData.topUpReturnCode = rewardEvent.code;
+                    }
+                    else if (rewardEvent.type.name == constRewardType.PLAYER_RETENTION_REWARD_GROUP ){
+                        proposalData.retentionRewardCode = rewardEvent.code
+                        // delete the unrelated rewardEvent.code
+                        if (proposalData.topUpReturnCode){
+                            delete proposalData.topUpReturnCode;
+                        }
+                    }
                 }
+                //
+                // if (rewardEvent && rewardEvent._id) {
+                //     proposalData.topUpReturnCode = rewardEvent.code;
+                // }
                 // Check Limited Offer Intention
                 if (limitedOfferTopUp) {
                     proposalData.limitedOfferObjId = limitedOfferTopUp._id;
@@ -1280,7 +1306,7 @@ var dbPlayerTopUpRecord = {
 
                 }
 
-                if(lastLoginIp){
+                if (lastLoginIp){
                     proposalData.lastLoginIp = lastLoginIp;
                 }
 
@@ -1393,7 +1419,27 @@ var dbPlayerTopUpRecord = {
                     if (isFPMS) {
                         return dbPlayerTopUpRecord.manualTopUpValidate(requestData, fromFPMS);
                     } else {
-                        return pmsAPI.payment_requestManualBankCard(requestData);
+                        return pmsAPI.payment_requestManualBankCard(requestData).then(cardData => {
+                            if (cardData && cardData.result && cardData.result.bankTypeId) {
+                                // find bankName for this card
+                                return pmsAPI.bankcard_getBankType({bankTypeId: cardData.result.bankTypeId, queryId: serverInstance.getQueryId()}).then(
+                                    bankData => {
+                                        if (bankData && bankData.data && bankData.data.name) {
+                                            cardData.result.bankName = bankData.data.name;
+                                        } else {
+                                            cardData.result.bankName = "";
+                                        }
+                                        return cardData;
+                                    }
+                                );
+                            } else {
+                                return Q.reject({
+                                    status: constServerCode.INVALID_DATA,
+                                    name: "DataError",
+                                    errorMessage: "Bank card not found"
+                                });
+                            }
+                        });
                     }
                 }
                 else {
@@ -2407,8 +2453,20 @@ var dbPlayerTopUpRecord = {
                         name: player.name,
                         id: playerId
                     };
-                    if (rewardEvent && rewardEvent._id) {
-                        proposalData.topUpReturnCode = rewardEvent.code;
+                    // if (rewardEvent && rewardEvent._id) {
+                    //     proposalData.topUpReturnCode = rewardEvent.code;
+                    // }
+                    if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){
+                        if (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN_GROUP || rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN){
+                            proposalData.topUpReturnCode = rewardEvent.code;
+                        }
+                        else if (rewardEvent.type.name == constRewardType.PLAYER_RETENTION_REWARD_GROUP){
+                            proposalData.retentionRewardCode = rewardEvent.code;
+                            // delete the unrelated rewardEvent.code
+                            if (proposalData.topUpReturnCode){
+                                delete proposalData.topUpReturnCode;
+                            }
+                        }
                     }
 
                     // Check Limited Offer Intention
@@ -3008,8 +3066,18 @@ var dbPlayerTopUpRecord = {
                             name: player.name,
                             id: playerId
                         };
-                        if (rewardEvent && rewardEvent._id) {
-                            proposalData.topUpReturnCode = rewardEvent.code;
+
+                        if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){
+                            if (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN_GROUP || rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN){
+                                proposalData.topUpReturnCode = rewardEvent.code;
+                            }
+                            else if (rewardEvent.type.name == constRewardType.PLAYER_RETENTION_REWARD_GROUP){
+                                proposalData.retentionRewardCode = rewardEvent.code;
+                                // delete the unrelated rewardEvent.code
+                                if (proposalData.topUpReturnCode){
+                                    delete proposalData.topUpReturnCode;
+                                }
+                            }
                         }
                         // Check Limited Offer Intention
                         if (limitedOfferTopUp) {
@@ -3576,7 +3644,7 @@ var dbPlayerTopUpRecord = {
                 }
             }
         );
-    }
+    },
 
 };
 
@@ -4355,6 +4423,9 @@ function checkApplyTopUpReturn(player, topUpReturnCode, userAgentStr, inputData,
                         }
                     )
                 }
+            }
+            else if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.type.name == constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
+                return dbPlayerReward.checkApplyRetentionReward(player, rewardEvent, applyAmount, userAgentStr, inputData, topUpMethod, true);
             }
             else {
                 return Q.reject({

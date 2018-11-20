@@ -69,6 +69,7 @@ const constProviderStatus = require("./../const/constProviderStatus");
 const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus");
 
 // db_common
+const dbRewardUtil = require("./../db_common/dbRewardUtility");
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbPropUtil = require("../db_common/dbProposalUtility");
 const dbUtil = require('./../modules/dbutility');
@@ -4164,7 +4165,14 @@ let dbPlayerInfo = {
                                     console.log('Apply reward after top up', proposalData.data.playerId, proposalData.data.topUpReturnCode);
                                     dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
                                         , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
-                                } else {
+                                }
+                                else if (proposalData.data.retentionRewardCode){
+                                    let requiredData = {topUpRecordId: topupRecordData._id};
+                                    console.log('Apply reward after top up', proposalData.data.playerId, proposalData.data.retentionRewardCode);
+                                    dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
+                                        , proposalData.data.retentionRewardCode, requiredData).catch(errorUtils.reportError);
+                                }
+                                else {
                                     // Check reward group task to apply on player top up
                                     // Only happen when no top up return reward selected during top up
                                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(player.platform, player, topupRecordData).catch(errorUtils.reportError);
@@ -5665,6 +5673,10 @@ let dbPlayerInfo = {
                                             }
                                         })
                                     });
+
+                                    // check for playerRetentionRewardGroup
+                                    dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(errorUtils.reportError);
+
                                     if (bUpdateIp) {
                                         dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
                                         dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
@@ -5734,6 +5746,102 @@ let dbPlayerInfo = {
             }
         );
         return deferred.promise;
+    },
+
+    getRetentionRewardAfterLogin: function (platformObjId, playerObjId, userAgent) {
+        let listProm = [];
+        let playerData = null;
+        let query = {
+            platformObjId: platformObjId,
+            playerObjId: playerObjId,
+        };
+        let playerQuery = {
+            _id: playerObjId,
+            platform: platformObjId
+
+        };
+
+        return dbconfig.collection_players.findOne(playerQuery).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
+        }).then(
+            playerInfo => {
+                console.log("checking playerData", playerInfo)
+                if (!playerInfo){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Player cannot be found",
+                    })
+                }
+
+                playerData = playerInfo;
+
+                if (playerData.permission && playerData.permission.banReward) {
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: "Player do not have permission for reward"
+                    });
+                }
+
+                return dbconfig.collection_playerRetentionRewardGroupRecord.find(query).populate({
+                    path: "rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "topUpRecordObjId",
+                    model: dbconfig.collection_playerTopUpRecord
+                }).lean();
+            }
+        ).then(
+            retentionRecord => {
+                if (retentionRecord && retentionRecord.length){
+                    retentionRecord.forEach(
+                        record => {
+                            if (record && record.lastReceivedDate && record.rewardEventObjId && record.rewardEventObjId.condition && record.rewardEventObjId.condition.interval
+                                && record.rewardEventObjId.validStartTime && record.rewardEventObjId.validEndTime){
+                                let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, record.rewardEventObjId);
+                                let isRewardValid = true;
+                                let hasReceived = false;
+                                let isForbidden = false;
+
+                                // check if the reward is expired
+                                let curTime = new Date();
+                                if ((record.rewardEventObjId.validStartTime && curTime.getTime() < record.rewardEventObjId.validStartTime.getTime()) ||
+                                    (record.rewardEventObjId.validEndTime && curTime.getTime() > record.rewardEventObjId.validEndTime.getTime())) {
+                                   isRewardValid = false;
+                                }
+
+                                // check has claim the reward
+                                let todayTime = dbUtility.getTodaySGTime();
+                                if (todayTime.startTime <= record.lastReceivedDate) {
+                                    hasReceived = true;
+                                }
+
+                                // Check reward individual permission
+                                let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerData, record.rewardEventObjId._id);
+                                if (playerIsForbiddenForThisReward) {
+                                    isForbidden = true;
+                                }
+
+                                if (isRewardValid && !hasReceived && !isForbidden){
+                                    let rewardParam = {};
+                                    // Set reward param for player level to use
+                                    if (record.rewardEventObjId.isPlayerLevelDiff) {
+                                        rewardParam = record.rewardEventObjId.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
+                                    } else {
+                                        rewardParam = record.rewardEventObjId.param.rewardParam[0].value;
+                                    }
+
+                                    listProm.push(dbPlayerReward.getDistributedRetentionReward(record.rewardEventObjId, playerData, record.applyTopUpAmount, rewardParam, record, userAgent));
+                                }
+                            }
+                        }
+                    )
+                }
+
+                return Promise.all(listProm);
+            }
+        )
     },
 
     playerLoginOrRegisterWithSMS: (loginData, ua) => {
@@ -13893,7 +14001,8 @@ let dbPlayerInfo = {
                         constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,
                         constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,
                         constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,
-                        constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP
+                        constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP,
+                        constRewardType.PLAYER_RETENTION_REWARD_GROUP
                     ];
 
                     // Check any consumption after topup upon apply reward
@@ -14021,6 +14130,7 @@ let dbPlayerInfo = {
                                 case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
                                 case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
                                 case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
+                                case constRewardType.PLAYER_RETENTION_REWARD_GROUP:
                                     // Check whether platform allowed for reward group
                                     // if (!playerInfo.platform.useProviderGroup) {
                                     //     return Q.reject({
@@ -15314,6 +15424,7 @@ let dbPlayerInfo = {
     },
 
     getPlayerReport: function (platform, query, index, limit, sortCol) {
+        console.log('RT - getPlayerReport start');
         limit = limit ? limit : 20;
         index = index ? index : 0;
         query = query ? query : {};
@@ -15358,9 +15469,33 @@ let dbPlayerInfo = {
             }, {_id: 1}).lean();
         }
 
+        // function getPlayerWithConsumptionInTimeFrame () {
+        //
+        // }
+        //
+        // // Returns an array of dates between the two dates
+        // function getDates(startDate, endDate) {
+        //     let dates = [],
+        //         currentDate = startDate,
+        //         addDays = function(days) {
+        //             let date = new Date(this.valueOf());
+        //             date.setDate(date.getDate() + days);
+        //             return date;
+        //         };
+        //     while (currentDate <= endDate) {
+        //         dates.push(currentDate);
+        //         currentDate = addDays.call(currentDate, 1);
+        //     }
+        //     return dates;
+        // }
+        //
+        // let dates = getDates(startDate, endDate);
+        // console.log('dates', dates);
+
         return getPlayerProm.then(
             playerData => {
-                let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}};
+                console.log('RT - getPlayerReport 1');
+                let relevantPlayerQuery = {platformId: platform, date: {$gte: startDate, $lt: endDate}};
 
                 if (isSinglePlayer) {
                     relevantPlayerQuery.playerId = playerData._id;
@@ -15370,11 +15505,12 @@ let dbPlayerInfo = {
 
                 // relevant players are the players who played any game within given time period
                 let playerObjArr = [];
-                return dbconfig.collection_playerConsumptionRecord.aggregate([
+                return dbconfig.collection_playerConsumptionDaySummary.aggregate([
                     {$match: relevantPlayerQuery},
                     {$group: {_id: "$playerId"}}
                 ]).read("secondaryPreferred").then(
                     consumptionData => {
+                        console.log('RT - getPlayerReport 2');
                         if (consumptionData && consumptionData.length) {
                             playerObjArr = consumptionData.map(function (playerIdObj) {
                                 return String(playerIdObj._id);
@@ -15401,6 +15537,7 @@ let dbPlayerInfo = {
                     }
                 ).then(
                     proposalData => {
+                        console.log('RT - getPlayerReport 3');
                         if (proposalData && proposalData.length) {
                             for (let i = 0; i < proposalData.length; i++) {
                                 if (proposalData[i]._id && playerObjArr.indexOf(String(proposalData[i]._id)) === -1) {
@@ -15419,6 +15556,7 @@ let dbPlayerInfo = {
             }
         ).then(
             playerObjArrData => {
+                console.log('RT - getPlayerReport 4');
                 let playerProm = dbconfig.collection_players.find({
                     _id: {$in: playerObjArrData},
                     isRealPlayer: true
@@ -15431,7 +15569,7 @@ let dbPlayerInfo = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: constSystemParam.BATCH_SIZE,
+                                batchSize: 50,
                                 makeRequest: function (playerIdObjs, request) {
                                     request("player", "getConsumptionDetailOfPlayers", {
                                         platformId: platform,
@@ -15456,6 +15594,7 @@ let dbPlayerInfo = {
             }
         ).then(
             () => {
+                console.log('RT - getPlayerReport 5');
                 // handle index limit sortcol here
                 if (Object.keys(sortCol).length > 0) {
                     result.sort(function (a, b) {
@@ -15534,6 +15673,7 @@ let dbPlayerInfo = {
                     result[index + i] ? outputResult.push(result[index + i]) : null;
                 }
 
+                console.log('RT - getPlayerReport end');
                 return {size: result.length, data: outputResult, total: resultSum};
             }
         );
@@ -17196,6 +17336,7 @@ let dbPlayerInfo = {
     },
 
     getConsumptionDetailOfPlayers: function (platformObjId, startTime, endTime, query, playerObjIds, option, isPromoteWay) {
+        console.log('getConsumptionDetailOfPlayers - start');
         option = option || {};
         let proms = [];
         let proposalType = [];
@@ -17203,7 +17344,7 @@ let dbPlayerInfo = {
 
         return dbconfig.collection_platform.findOne({_id: platformObjId}).lean().then(
             platformData => {
-
+                console.log('getConsumptionDetailOfPlayers - 1');
                 if (platformData && platformData.platformId) {
                     return pmsAPI.merchant_getMerchantList(
                         {
@@ -17212,6 +17353,7 @@ let dbPlayerInfo = {
                         }
                     ).then(
                         data => {
+                            console.log('getConsumptionDetailOfPlayers - 2');
                             return data.merchants || [];
                         }
                     )
@@ -17219,6 +17361,7 @@ let dbPlayerInfo = {
             }
         ).then(
             merchantData => {
+                console.log('getConsumptionDetailOfPlayers - 3');
                 merchantList = merchantData;
 
                 return dbconfig.collection_proposalType.find({platformId: platformObjId}, {name: 1}).lean().then(
@@ -17289,6 +17432,7 @@ let dbPlayerInfo = {
                     }
                 ).then(
                     data => {
+                        console.log('getConsumptionDetailOfPlayers - end');
                         return data.filter(result => {
                             return result !== "";
                         });
@@ -17344,6 +17488,7 @@ let dbPlayerInfo = {
                 }
             }
 
+            //use summary
             let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
                 {
                     $match: consumptionPromMatchObj
@@ -18525,78 +18670,70 @@ let dbPlayerInfo = {
     },
 
     importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName) {
-        if (phoneListDetail.length > 0) {
-            let tsPhoneProm = dbconfig.collection_tsPhoneList.findOne({
-                platform: saveObj.platform,
-                name: saveObj.name
-            }).lean().then(
-                list => {
-                    if (isUpdateExisting) {
-                        return list;
-                    }
-                    if (list) {
-                        return Promise.reject({
-                            name: "DataError",
-                            message: "List with same name exist"
-                        })
-                    }
-
-                    return new dbconfig.collection_tsPhoneList(saveObj).save();
-                }
-            );
-
-            return tsPhoneProm.then(
-                tsList => {
-                    if (tsList) {
-                        dbconfig.collection_tsPhoneImportRecord({
-                            platform: saveObj.platform,
-                            tsPhoneList: tsList._id,
-                            description: saveObj.description,
-                            adminName: adminName,
-                            admin: adminId
-                        }).save().catch(errorUtils.reportError);
-
-                        let promArr = [];
-
-                        phoneListDetail.forEach(phone => {
-                            let encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
-
-                            promArr.push(
-                                dbconfig.collection_tsPhone({
-                                    platform: saveObj.platform,
-                                    phoneNumber: encryptedNumber,
-                                    playerName: phone.playerName,
-                                    realName: phone.realName,
-                                    gender: phone.gender,
-                                    dob: phone.dob,
-                                    wechat: phone.wechat,
-                                    qq: phone.qq,
-                                    email: phone.email,
-                                    remark: phone.remark,
-                                    tsPhoneList: tsList._id
-                                }).save()
-                            )
-                        });
-
-                        return Promise.all(promArr).then(
-                            resData => {
-                                dbconfig.collection_tsPhone.find({
-                                    platform: saveObj.platform,
-                                    tsPhoneList: tsList._id
-                                }).count().then(
-                                    totalPhone => {
-                                        if (totalPhone) {
-                                            return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsList._id}, {totalPhone: totalPhone}).lean()
-                                        }
-                                    }
-                                ).catch(errorUtils.reportError);
-                                return resData;
-                            }
-                        );
-                    }
-                }
-            ).then(() => true);
+        let tsPhoneList;
+        if (phoneListDetail.length <= 0) {
+            return Promise.reject("None of the phone has pass the filter");
         }
+
+        return getTsPhoneList(saveObj.platform, saveObj.name, isUpdateExisting, saveObj).then(
+            tsList => {
+                if (!tsList) {
+                    return Promise.reject({message: "tsPhoneList not found"})
+                }
+                tsPhoneList = tsList;
+
+                // generate ts phone import record
+                dbconfig.collection_tsPhoneImportRecord({
+                    platform: saveObj.platform,
+                    tsPhoneList: tsList._id,
+                    description: saveObj.description,
+                    adminName: adminName,
+                    admin: adminId
+                }).save().catch(errorUtils.reportError);
+
+                let filteredPhonesProm = Promise.resolve(phoneListDetail);
+                if (saveObj.isCheckWhiteListAndRecycleBin) {
+                    filteredPhonesProm = filterPhoneWithOldTsPhone(saveObj.platform, phoneListDetail);
+                }
+
+                return filteredPhonesProm;
+            }
+        ).then(
+            filteredPhones => {
+                let promArr = [];
+                filteredPhones.forEach(phone => {
+                    let encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
+                    let phoneLocation = queryPhoneLocation(phone.phoneNumber);
+                    let phoneProvince = phoneLocation && phoneLocation.province || "";
+                    let phoneCity = phoneLocation && phoneLocation.city || "";
+
+                    let prom = dbconfig.collection_tsPhone({
+                        platform: tsPhoneList.platform,
+                        phoneNumber: encryptedNumber,
+                        playerName: phone.playerName,
+                        realName: phone.realName,
+                        gender: phone.gender,
+                        dob: phone.dob,
+                        wechat: phone.wechat,
+                        qq: phone.qq,
+                        email: phone.email,
+                        remark: phone.remark,
+                        province: phoneProvince,
+                        city: phoneCity,
+                        tsPhoneList: tsPhoneList._id
+                    }).save();
+
+                    promArr.push(prom);
+                });
+
+                return Promise.all(promArr);
+            }
+        ).then(
+            () => {
+                recalculateTsPhoneListPhoneNumber(tsPhoneList.platform, tsPhoneList._id).catch(errorUtils.reportError);
+                return true;
+            }
+        );
     },
 
     filterDxPhoneExist: function (dxMission, phoneArr) {
@@ -21238,14 +21375,20 @@ function checkLimitedOfferToApply(proposalData, topUpRecordObjId) {
 
         return dbconfig.collection_proposal.findOne({_id: proposalData.data.limitedOfferObjId}).then(
             limitedOfferProposal => {
-                if(limitedOfferProposal && typeof limitedOfferProposal.data.spendingTimes != "undefined" && typeof limitedOfferProposal.data.rewardAmount != "undefined"
-                    && proposalData.data.actualAmountReceived){
-                    updateObj["data.spendingAmount"] = (proposalData.data.actualAmountReceived + limitedOfferProposal.data.rewardAmount) * limitedOfferProposal.data.spendingTimes;
+                if (limitedOfferProposal && limitedOfferProposal.data && limitedOfferProposal.data.isUsed) {
+                    return Promise.reject({name: "DBError", message: "Reward is applied"});
                 }
-                return;
-            }
-        ).then(
-            () => {
+
+                if (
+                    limitedOfferProposal
+                    && typeof limitedOfferProposal.data.spendingTimes != "undefined"
+                    && typeof limitedOfferProposal.data.rewardAmount != "undefined"
+                    && proposalData.data.actualAmountReceived
+                ) {
+                    updateObj["data.spendingAmount"] = (proposalData.data.actualAmountReceived + limitedOfferProposal.data.rewardAmount) * limitedOfferProposal.data.spendingTimes;
+                    updateObj["data.isUsed"] = true;
+                }
+
                 return dbUtility.findOneAndUpdateForShard(
                     dbconfig.collection_proposal,
                     {_id: proposalData.data.limitedOfferObjId},
@@ -21873,6 +22016,68 @@ function createLargeWithdrawalLog (proposalData, platformObjId) {
             } else {
                 return Promise.reject({message: "Save to proposal failed"}); // the only time here is reach are when there is bug
             }
+        }
+    );
+}
+
+function getTsPhoneList (platformObjId, listName, isUpdateExisting, newTsPhoneListDetail) {
+    return dbconfig.collection_tsPhoneList.findOne({
+        platform: platformObjId,
+        name: listName
+    }).lean().then(
+        list => {
+            if (isUpdateExisting) {
+                return list;
+            }
+            if (list) {
+                return Promise.reject({
+                    name: "DataError",
+                    message: "List with same name exist"
+                })
+            }
+
+            return new dbconfig.collection_tsPhoneList(newTsPhoneListDetail).save();
+        }
+    );
+}
+
+function recalculateTsPhoneListPhoneNumber (platformObjId, tsPhoneListObjId) {
+    return dbconfig.collection_tsPhone.find({
+        platform: platformObjId,
+        tsPhoneList: tsPhoneListObjId
+    }).count().then(
+        totalPhone => {
+            return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObjId}, {totalPhone: totalPhone}).lean();
+        }
+    );
+}
+
+function filterPhoneWithOldTsPhone (platformObjId, phones) {
+    phones.forEach(phone => {
+        phone.encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
+    });
+
+    let proms = []
+    phones.map(phone => {
+        let prom = dbconfig.collection_tsPhone.findOne({platform: platformObjId, phoneNumber: phone.encryptedNumber}, {_id:1}).lean().then(
+            isExist => {
+                return isExist ? false : phone;
+            }
+        );
+
+        proms.push(prom);
+    });
+
+    return Promise.all(proms).then(
+        phones => {
+            let output = [];
+            phones.map(phone => {
+                if (phone) {
+                    output.push(phone);
+                }
+            });
+
+            return output;
         }
     );
 }

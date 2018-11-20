@@ -434,35 +434,6 @@
     </div>
 </div>
 
-<h3>Connect Wechat Group Control Session To FPMS</h3>
-<div class="test-container">
-    <div>
-        <label>Device ID
-            <input name="deviceId">
-        </label>
-    </div>
-    <div>
-        <label>adminId
-            <input name="adminId">
-        </label>
-    </div>
-    <div>
-        <label>status
-            <input name="status">
-        </label>
-    </div>
-    <div>
-        <label>connectionAbnormalClickTimes
-            <input name="connectionAbnormalClickTimes">
-        </label>
-    </div>
-    <p></p>
-    <button data-api-name="sendWCGroupControlSessionToFPMS">connect</button>
-    <div>
-        <textarea></textarea>
-    </div>
-</div>
-
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPlatformAPITest','testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPlatformAPITest, ClientConnectionAPITest) {

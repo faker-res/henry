@@ -383,7 +383,7 @@ var dailyPlatformSettlement = {
                    let promArr = [];
                    tsPhoneListData.forEach(
                        tsPhoneList => {
-                           promArr.push(dbTeleSales.distributePhoneNumber({platform: platformData._id, tsListObjId: tsPhoneList._id}));
+                           promArr.push(dbTeleSales.distributePhoneNumber({platform: platformData._id, tsListObjId: tsPhoneList._id}).catch(error => {console.log("distribute phone number fail", error)}));
                        }
                    )
                    return Promise.all(promArr);

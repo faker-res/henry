@@ -78,7 +78,7 @@ function socketActionRewardEvent(socketIO, socket) {
         deleteRewardEventByIds: function deleteRewardEventByIds(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data._ids);
-            socketUtil.emitter(self.socket, dbRewardEvent.removeRewardEventsById, [data._ids, data.name], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRewardEvent.removeRewardEventsById, [data._ids, data.name, data.platform], actionName, isValidData);
         },
 
         removeRewardEventGroup: function removeRewardEventGroup(data) {

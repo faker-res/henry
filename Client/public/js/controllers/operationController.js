@@ -2345,6 +2345,7 @@ define(['js/app'], function (myApp) {
                 proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                 proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                 proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                 proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                 proposalDetail["SINGLE_LIMIT"] = " ";
                 proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
@@ -2384,6 +2385,7 @@ define(['js/app'], function (myApp) {
                 proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                 proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                 proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                 proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                 proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.permerchantLimits || "0";
                 proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.transactionForPlayerOneDay || "0");
@@ -2418,6 +2420,7 @@ define(['js/app'], function (myApp) {
                 proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                 proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                 proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                 proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                 proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.singleLimit || "0";
                 proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
@@ -2455,6 +2458,7 @@ define(['js/app'], function (myApp) {
                 proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                 proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                 proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                 proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                 proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.singleLimit || "0";
                 proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");

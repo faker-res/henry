@@ -1481,7 +1481,8 @@ define(['js/app'], function (myApp) {
                     appKey: vm.jiguang.appKey,
                     masterKey: vm.jiguang.masterKey,
                     tittle: vm.jiguang.tittle,
-                    text: vm.jiguang.text
+                    text: vm.jiguang.text,
+                    platform: vm.selectedPlatform.id
                 }, function (data) {
                     if (data && data.success) {
                         alert("发送成功！");
@@ -2044,6 +2045,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         event.settlementStartTime = vm.dateReformat(res.data.startTime);
                         event.settlementEndTime = vm.dateReformat(res.data.endTime);
+                        vm.compareAllConsumptionReturn(event.settlementStartTime, event.settlementEndTime);
                     })
                 })
             };
@@ -2060,7 +2062,6 @@ define(['js/app'], function (myApp) {
                     if (event && event.settlementPeriod && event.type.name == "PlayerConsumptionReturn") {
                         p = p.then(() => {
                           getConsumptionReturnPeriodTime(event);
-                          vm.compareAllConsumptionReturn(event.startTime, event.endTime);
                         }
                       )}
                 });
@@ -2191,7 +2192,7 @@ define(['js/app'], function (myApp) {
                 vm.platformProviderList.forEach((item, index)=>{
                     vm.providerDiffConsumption[item.providerId] = vm.resetProviderConsumptRecord(index+1, item.providerId);
                     vm.providerLists.push(item.providerId);
-                    vm.compareConsumptionReturn(startTime, endTime, item.providerId, index);
+                    vm.compareConsumptionReturn(startTime, endTime, item.providerId, item._id, index);
                 });
 
                 vm.renderConsumption();
@@ -2207,29 +2208,39 @@ define(['js/app'], function (myApp) {
                     })
                 })
             }
-            vm.compareConsumptionReturn = function (startTime, endTime, providerId, index){
-
+            vm.compareConsumptionReturn = function (startTime, endTime, providerId, providerObjId, index){
                 let sendQuery = {
-                    platformId: vm.selectedPlatform.id,
+                    platformId: vm.selectedPlatform.data.platformId,
+                    platformObjId: vm.selectedPlatform.id,
                     startTime: startTime,
                     endTime: endTime,
-                    providerId: providerId
+                    providerId: providerId,
+                    providerObjId: providerObjId
                 };
                 socketService.$socket($scope.AppSocket, 'operationDifferentReport', sendQuery, function (data) {});
             }
             vm.syncBetRecord = function(startTime, endTime, providerId, index){
+
+                var sendQuery = {
+                    platformId: vm.selectedPlatform.data.platformId,
+                    providerId: providerId,
+                    startDate: startTime,
+                    endDate: endTime
+                };
+                // modify the date to cpms datetime format -> "2018-11-07 02:00:00"
+                sendQuery.startDate = sendQuery.startDate.replace("/", "-");
+                sendQuery.endDate = sendQuery.endDate.replace("/", "-");
                 vm.providerDiffConsumption[providerId] = vm.resetProviderConsumptRecord(index, providerId);
                 vm.providerDiffConsumption[providerId].status = 3;
-                var sendQuery = {
-                    platformId: vm.selectedPlatform.id,
-                    providerId: providerId,
-                    startTime: startTime,
-                    endTime: endTime
-                };
+
+                let providerObjId = vm.platformProviderList.filter(item=>{
+                    return item.providerId == providerId;
+                })
+                providerObjId = providerObjId[0] ? providerObjId[0]:{}
                 socketService.$socket($scope.AppSocket, 'syncBetRecord', sendQuery, function (data) {
                     $scope.$evalAsync(()=>{
                         console.log('data', data);
-                        vm.compareConsumptionReturn(startTime, endTime, providerId, index);
+                        vm.compareConsumptionReturn(startTime, endTime, providerId,providerObjId._id, index);
                     });
                 });
             }
@@ -3254,7 +3265,7 @@ define(['js/app'], function (myApp) {
                 })
             }
             vm.removeGameGroup = function () {
-                socketService.$socket($scope.AppSocket, 'deleteGameGroup', {_id: vm.SelectedGameGroupNode.id, groupName: vm.SelectedGameGroupNode.text}, function (data) {
+                socketService.$socket($scope.AppSocket, 'deleteGameGroup', {_id: vm.SelectedGameGroupNode.id, groupName: vm.SelectedGameGroupNode.text, platform: vm.selectedPlatform.id}, function (data) {
                     console.log(data.data);
                     // vm.loadGameGroupData();
                     for (var i = 0; i < vm.platformGameGroupList.length; i++) {
@@ -3699,6 +3710,7 @@ define(['js/app'], function (myApp) {
                     newParentGroupId: $scope.gameGroupMove.isRoot ? vm.newGroupParent.id : null,
                     groupName: vm.SelectedGameGroupNode.groupData.name,
                     newParentGroupName: $scope.gameGroupMove.isRoot ? vm.newGroupParent.groupData.name : null,
+                    platform: vm.selectedPlatform.id
                 }
                 socketService.$socket($scope.AppSocket, 'updateGameGroupParent', sendData, success);
 
@@ -17652,17 +17664,8 @@ define(['js/app'], function (myApp) {
                         j.credibilityRemarksName = "--";
                     }
 
-                    if (j.playerId && j.playerId.csOfficer) {
-                        let len = vm.adminList ? vm.adminList.length : 0;
-                        for (let x = 0; x < len; x++) {
-                            let admin = vm.adminList[x];
-                            if (j.playerId.csOfficer.toString() === admin._id.toString()) {
-                                j.csOfficerName = admin.adminName;
-                                break;
-                            } else {
-                                j.csOfficerName = "--";
-                            }
-                        }
+                    if (j.playerId && j.playerId.accAdmin) {
+                        j.csOfficerName = j.playerId.accAdmin;
                     } else {
                         j.csOfficerName = "--";
                     }
@@ -22171,7 +22174,8 @@ console.log('typeof ',typeof gameProviders);
                 if (vm.rewardEventGroupAll) {
                     if (vm.showRewardEventGroup && vm.showRewardEventGroup.rewardEvents && vm.showRewardEventGroup.rewardEvents.length) {
                         socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {
-                            _ids: vm.showRewardEventGroup.rewardEvents
+                            _ids: vm.showRewardEventGroup.rewardEvents,
+                            platform: vm.selectedPlatform.id
                         }, function (data) {
                             vm.rewardTabClicked();
                         })
@@ -22367,7 +22371,7 @@ console.log('typeof ',typeof gameProviders);
             }
             vm.deleteReward = function (data) {
                 console.log('vm.showReward', vm.showReward);
-                socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {_ids: [vm.showReward._id], name: vm.showReward.name}, function (data) {
+                socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {_ids: [vm.showReward._id], name: vm.showReward.name, platform: vm.selectedPlatform.id}, function (data) {
                     //vm.allGameProvider = data.data;
                     vm.rewardTabClicked(function () {
                         vm.rewardEventClicked(0, vm.allRewardEvent[0])
@@ -22613,6 +22617,13 @@ console.log('typeof ',typeof gameProviders);
                     case 'platformFeeEstimateSetting':
                         vm.getPlatformFeeEstimateSetting();
                         break;
+                    case 'WeChatGroupControlSetting':
+                        vm.wechatGroupControlEdit = false;
+                        vm.oriWechatGroupControlSettingData = [];
+                        vm.wechatGroupControlSettingData = [];
+                        vm.newWechatGroupControlSetting = {};
+                        vm.deleteWechatGroupControl = [];
+                        vm.getWechatGroupControlSetting();
                 }
             };
 
@@ -23691,7 +23702,7 @@ console.log('typeof ',typeof gameProviders);
             };
 
             vm.deleteRewardPointsEvent = (rewardPointsEvent) => {
-                $scope.$socketPromise('deleteRewardPointsEventById', {_id: rewardPointsEvent._id, category: rewardPointsEvent.category}).then((data) => {
+                $scope.$socketPromise('deleteRewardPointsEventById', {_id: rewardPointsEvent._id, category: rewardPointsEvent.category, platform: vm.selectedPlatform.id}).then((data) => {
                     vm.getRewardPointsEventByCategory(rewardPointsEvent.category);
                     $scope.safeApply();
                 });
@@ -28745,6 +28756,106 @@ console.log('typeof ',typeof gameProviders);
                 return true;
             };
 
+            // wechat group setting
+            vm.addNewWechatGroupControl = function (collection, data) {
+                if (collection && data && data.deviceId && data.deviceNickName) {
+                    if (vm.isDeviceIdExist(data.deviceId)) {
+                        return socketService.showErrorMessage($translate('Duplicate Device Id'));
+                    } else if (vm.isDeviceNicknameExist(data.deviceNickName)) {
+                        return socketService.showErrorMessage($translate('Duplicate Device Nickname'));
+                    } else {
+                        data.isNew = true;
+                        collection.push(data);
+                        $scope.$evalAsync(() => {
+                            vm.newWechatGroupControlSetting = {};
+                        });
+                    }
+                }
+            };
+
+            vm.isDeviceIdExist = (deviceId) => {
+                let allDeviceId = [];
+
+                if (vm.wechatGroupControlSettingData && vm.wechatGroupControlSettingData.length > 0) {
+                    vm.wechatGroupControlSettingData.map(wechatGroupControl => {
+                        allDeviceId.push(wechatGroupControl.deviceId);
+                    });
+
+                    return allDeviceId.includes(deviceId);
+                }
+            };
+
+            vm.isDeviceNicknameExist = (nickname) => {
+                let allDeviceNickname = [];
+
+                if (vm.wechatGroupControlSettingData && vm.wechatGroupControlSettingData.length > 0) {
+                    vm.wechatGroupControlSettingData.map(wechatGroupControl => {
+                        allDeviceNickname.push(wechatGroupControl.deviceNickName);
+                    });
+
+                    return allDeviceNickname.includes(nickname);
+                }
+            };
+
+            vm.disableWechatGroupControl = function (flag) {
+                vm.wechatGroupControlEdit = flag;
+            };
+
+            vm.editWechatGroupControl = function (data) {
+                if (data && data._id) {
+                    data.isEdit = true;
+                }
+            }
+
+            vm.submitWechatGroupControlSetting = function () {
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id,
+                    wechatGroupControlSetting: vm.wechatGroupControlSettingData,
+                    deleteWechatGroupControlSetting: vm.deleteWechatGroupControl
+                };
+
+                socketService.$socket($scope.AppSocket, 'updateWechatGroupControlSetting', sendData, function (data) {
+                    console.log('updateWechatGroupControlSetting', data);
+                    $scope.$evalAsync(() => {
+                        vm.getWechatGroupControlSetting();
+                    })
+                });
+            };
+
+            vm.getWechatGroupControlSetting = function () {
+                let sendData = {
+                    platformObjId: vm.selectedPlatform.id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getWechatGroupControlSetting', sendData, function (data) {
+                    console.log('getWechatGroupControlSetting', data);
+                    $scope.$evalAsync(() => {
+                        if (data && data.data) {
+                            vm.wechatGroupControlSettingData = JSON.parse(JSON.stringify(data.data));
+                            vm.oriWechatGroupControlSettingData = JSON.parse(JSON.stringify(data.data));
+                        }
+                    })
+                });
+            };
+
+            vm.cancelWechatGroupControlSetting = function () {
+                vm.deleteWechatGroupControl = [];
+                vm.newWechatGroupControlSetting = {};
+                vm.wechatGroupControlSettingData = JSON.parse(JSON.stringify(vm.oriWechatGroupControlSettingData));
+            };
+
+            vm.deleteWechatGroupControlSetting = function (data, collection, idx) {
+                if (data) {
+                    vm.deleteWechatGroupControl.push(data);
+
+                    if (collection && collection.length > 0) {
+                        collection.splice(idx, 1);
+                    }
+                }
+            }
+
+            // end of wechat group setting
+
             vm.updatePromoCodeTemplateInEdit = function (func, collection, data, type, tab, index) {
                 if (func == 'add') {
                     if (collection && data && type) {
@@ -30136,7 +30247,7 @@ console.log('typeof ',typeof gameProviders);
                     title: "Delete Announcement",
                     text: `Are you sure you want to delete the announcement "${ann.title}"?`
                 }).then(function () {
-                    $scope.$socketPromise('deletePlatformAnnouncementByIds', {_ids: [ann._id], title: ann.title})
+                    $scope.$socketPromise('deletePlatformAnnouncementByIds', {_ids: [ann._id], title: ann.title, platform: vm.selectedPlatform.id})
                         .done(function (data) {
                             vm.configTabClicked("announcement");
                         });

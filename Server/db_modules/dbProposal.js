@@ -30,6 +30,7 @@ var dbProposalUtility = require('./../db_common/dbProposalUtility');
 var pmsAPI = require('../externalAPI/pmsAPI');
 var moment = require('moment-timezone');
 var errorUtils = require("../modules/errorUtils.js");
+var constRewardType = require('./../const/constRewardType');
 const serverInstance = require("../modules/serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 const constSystemParam = require("../const/constSystemParam.js");
@@ -38,6 +39,8 @@ const constPlayerTopUpType = require("../const/constPlayerTopUpType");
 const constMaxDateTime = require("../const/constMaxDateTime");
 const constPlayerCreditTransferStatus = require("../const/constPlayerCreditTransferStatus");
 const constFinancialPointsType = require("../const/constFinancialPointsType");
+const constProposalEntryType = require("./../const/constProposalEntryType");
+const constProposalUserType = require('./../const/constProposalUserType');
 const localization = require("../modules/localization");
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 let rsaCrypto = require("../modules/rsaCrypto");
@@ -234,6 +237,98 @@ var proposal = {
                 return Q.reject(error);
             }
         );
+    },
+
+    createRewardProposal: function (eventData, playerData, selectedRewardParam, rewardGroupRecord, applyAmount, rewardAmount, spendingAmount, retentionRecordObjId, userAgent, adminInfo){
+        // create reward proposal
+        let proposalData = {
+            type: eventData.executeProposal,
+            creator: adminInfo ? adminInfo :
+                {
+                    type: 'player',
+                    name: playerData.name,
+                    id: playerData._id
+                },
+            data: {
+                playerObjId: playerData._id,
+                playerId: playerData.playerId,
+                playerName: playerData.name,
+                realName: playerData.realName,
+                platformObjId: playerData.platform._id,
+                rewardAmount: rewardAmount,
+                spendingAmount: spendingAmount,
+                eventId: eventData._id,
+                eventName: eventData.name,
+                eventCode: eventData.code,
+                eventDescription: eventData.description,
+                isIgnoreAudit: eventData.condition && (typeof(eventData.condition.isIgnoreAudit) === "boolean" && eventData.condition.isIgnoreAudit === true) || (Number.isInteger(eventData.condition.isIgnoreAudit) && eventData.condition.isIgnoreAudit >= rewardAmount),
+                forbidWithdrawAfterApply: Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true),
+                remark: selectedRewardParam.remark,
+                useConsumption: Boolean(!eventData.condition.isSharedWithXIMA),
+                providerGroup: eventData.condition.providerGroup,
+                // Use this flag for auto apply reward
+                isGroupReward: true,
+                // If player credit is more than this number after unlock reward group, will ban bonus
+                forbidWithdrawIfBalanceAfterUnlock: selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0,
+                isDynamicRewardAmount: Boolean(eventData.condition.isDynamicRewardAmount)
+            },
+            entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+            userType: constProposalUserType.PLAYERS
+        };
+        proposalData.inputDevice = dbutility.getInputDevice(userAgent, false, adminInfo);
+        
+        // Custom proposal data field
+        if (applyAmount > 0) {
+            proposalData.data.applyAmount = applyAmount;
+        }
+
+        // if (consecutiveNumber) {
+        //     proposalData.data.consecutiveNumber = consecutiveNumber;
+        // }
+        
+        if (rewardGroupRecord && rewardGroupRecord.topUpRecordObjId && rewardGroupRecord.topUpRecordObjId.proposalId &&
+            eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
+            proposalData.data.topUpProposalId = rewardGroupRecord.topUpRecordObjId.proposalId;
+            proposalData.data.actualAmount = rewardGroupRecord.topUpRecordObjId.amount;
+
+        }
+
+        proposalData.data.applyTargetDate = new Date(dbutility.getTodaySGTime().startTime);
+
+        // if (useTopUpAmount !== null) {
+        //     proposalData.data.useTopUpAmount = useTopUpAmount;
+        // }
+
+        // if (useConsumptionAmount !== null) {
+        //     proposalData.data.useConsumptionAmount = useConsumptionAmount;
+        // }
+
+        if (rewardGroupRecord && rewardGroupRecord.topUpRecordObjId && rewardGroupRecord.topUpRecordObjId._id) {
+            proposalData.data.topUpRecordId = rewardGroupRecord.topUpRecordObjId._id;
+        }
+
+        if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
+            proposalData.data.lastLoginIp = playerData.lastLoginIp;
+            proposalData.data.phoneNumber = playerData.phoneNumber;
+        }
+
+        // if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && deviceId){
+        //     proposalData.data.deviceId = deviceId;
+        // }
+
+        return proposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
+            () => {
+                // update playerRetentionRewardRecord
+                let updateQuery = {lastReceivedDate: dbutility.getTodaySGTime().startTime};
+                if (eventData && eventData.condition && eventData.condition.definePlayerLoginMode){
+                    if (eventData.condition.definePlayerLoginMode == 1){
+                        // accumulative
+                        updateQuery.accumulativeDay = {$inc: {accumulativeDay: 1}}
+                    }
+                }
+
+                return dbconfig.collection_playerRetentionRewardGroupRecord.findOneAndUpdate({_id: retentionRecordObjId}, updateQuery)
+            })
     },
 
     /**
@@ -1207,6 +1302,12 @@ var proposal = {
                             {new: true}
                         );
                     })
+                    .then( // todo :: for debug only, check if proposalData found actually have wrong expire time. delete when it doesn't need anymore (may be 2 months without this issue)
+                        data => {
+                            console.log("autoCancelProposal successful", proposalData, data);
+                            return data;
+                        }
+                    );
             }
             else {
                 return Q.reject({message: "incorrect proposal status or authentication."});
@@ -2956,6 +3057,7 @@ var proposal = {
         var totalSize = 0;
         var summary = {};
         let isApprove = false;
+        let isSuccess = false;
 
         if (reqData.inputDevice) {
             reqData.inputDevice = Number(reqData.inputDevice);
@@ -2963,6 +3065,7 @@ var proposal = {
 
         if (reqData.status) {
             if (reqData.status == constProposalStatus.SUCCESS) {
+                isSuccess = true;
                 reqData.status = {
                     $in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]
                 };
@@ -3067,6 +3170,11 @@ var proposal = {
                         totalSize = data[0];
                         resultArray = Object.assign([], data[1]);
                         summary = data[2];
+
+                        if(resultArray && resultArray.length > 0 && isSuccess){
+                            resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
+                        }
+                        
                         dataDeferred.resolve(resultArray);
                     }
                 },
@@ -3299,6 +3407,11 @@ var proposal = {
                     totalSize = data[0];
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
+
+                    if(resultArray && resultArray.length > 0 && isSuccess){
+                        resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
+                    }
+
                     dataDeferred.resolve(resultArray);
                 },
                 function (err) {
@@ -8515,7 +8628,7 @@ function getPlatformFeeEstimate (platformId, startDate, endDate, displayMethod) 
                                         }
                                     }
                                 }
-                                consumptionDetail.totalPlatformFeeEstimate = tempTotalPlatformFeeEstimate;
+                                consumptionDetail.totalPlatformFeeEstimate = dbutility.noRoundTwoDecimalPlaces(tempTotalPlatformFeeEstimate);
                             }
                         }
                         else if (displayMethod == 'daily') {
@@ -8544,7 +8657,7 @@ function getPlatformFeeEstimate (platformId, startDate, endDate, displayMethod) 
 
                                         }
                                     }
-                                    consumptionDetail.totalPlatformFeeEstimate = tempTotalPlatformFeeEstimate;
+                                    consumptionDetail.totalPlatformFeeEstimate = dbutility.noRoundTwoDecimalPlaces(tempTotalPlatformFeeEstimate);
                                 }
                             }
                         }
@@ -8588,7 +8701,7 @@ function rearrangeTopUpDetail (topUpType, currentDate, depositGroup, currentList
                                         newTopUpDetail.push({
                                             depositMethod: Number(currentList[indexNo].topUpDetail[typeIndexNo].depositMethod),
                                             depositMethodName: type.depositName,
-                                            amount: currentList[indexNo].topUpDetail[typeIndexNo].amount
+                                            amount: dbutility.noRoundTwoDecimalPlaces(currentList[indexNo].topUpDetail[typeIndexNo].amount)
                                         });
                                     } else {
                                         newTopUpDetail.push({
@@ -8611,7 +8724,7 @@ function rearrangeTopUpDetail (topUpType, currentDate, depositGroup, currentList
                             newObj.push({
                                 groupName: group.groupName,
                                 topUpDetail: newTopUpDetail,
-                                totalAmount: newTopUpDetail.reduce((sum, value) => sum + value.amount, 0) || 0
+                                totalAmount: dbutility.noRoundTwoDecimalPlaces(newTopUpDetail.reduce((sum, value) => sum + value.amount, 0)) || 0
                             });
                         }
                     });
@@ -8657,7 +8770,7 @@ function rearrangeTopUpDetail (topUpType, currentDate, depositGroup, currentList
                 let groupIndexNo = depositGroup.findIndex(y => y.groupName == currentList[indexNo].groupName);
                 if(groupIndexNo != -1) {
                     newObj.typeName = currentList[indexNo].typeName;
-                    newObj.amount = currentList[indexNo].amount;
+                    newObj.amount = dbutility.noRoundTwoDecimalPlaces(currentList[indexNo].amount);
                     newObj.groupName = currentList[indexNo].groupName;
                 } else {
                     newObj.typeName = constType;
@@ -8709,11 +8822,13 @@ function rearrangeBonusDetail(currentDate, bonusType, currentList) {
 
                 if (bonusIndexNo == -1) {
                     currentList[indexNo].bonusDetail.push({typeName: type, amount: 0});
+                } else {
+                    currentList[indexNo].bonusDetail.map(x => dbutility.noRoundTwoDecimalPlaces(x.amount));
                 }
             });
 
             newObj.bonusDetail= currentList[indexNo].bonusDetail;
-            newObj.totalAmount= currentList[indexNo].totalAmount;
+            newObj.totalAmount= dbutility.noRoundTwoDecimalPlaces(currentList[indexNo].totalAmount);
 
         } else {
             let temp = [];
@@ -8824,7 +8939,7 @@ function rearrangeTopUpDetailByMultiplePlatform(topUpType, currentList, depositG
                                                     platformTopUpDetail.push({
                                                         platformId: currentList[groupIndexNo].methods[typeIndexNo].topUpDetail[platformIndexNo].platformId,
                                                         platformName: platform.name,
-                                                        amount: currentList[groupIndexNo].methods[typeIndexNo].topUpDetail[platformIndexNo].amount
+                                                        amount: dbutility.noRoundTwoDecimalPlaces(currentList[groupIndexNo].methods[typeIndexNo].topUpDetail[platformIndexNo].amount)
                                                     })
                                                 } else {
                                                     platformTopUpDetail.push({
@@ -8898,8 +9013,47 @@ function rearrangeTopUpDetailByMultiplePlatform(topUpType, currentList, depositG
 
                 }
             }
-            return newObj;
+
+        } else {
+            let newDepositGroup = [];
+            if (depositGroup && depositGroup.length > 0) {
+                depositGroup.forEach(x => {
+                    if (x && x.topUpTypeId && x.topUpTypeId == topUpType) {
+                        newDepositGroup.push(x);
+                    }
+                });
+            }
+
+            if (newDepositGroup && newDepositGroup.length > 0) {
+                newDepositGroup.forEach(group => {
+                    let newTopUpDetail = [];
+                    group.groupDetail.forEach(type => {
+                        let platformTopUpDetail = [];
+                        platformRecord.forEach(platform => {
+                            platformTopUpDetail.push({
+                                platformId: platform._id,
+                                platformName: platform.name,
+                                amount: 0
+                            })
+                        });
+
+                        newTopUpDetail.push({
+                            depositMethod: type.topUpMethodId,
+                            depositMethodName: type.depositName,
+                            topUpDetail: platformTopUpDetail
+                        });
+                    });
+
+                    newObj.push({
+                        groupId: group.groupId,
+                        groupName: group.groupName,
+                        methods: newTopUpDetail,
+                        totalAmount: 0
+                    });
+                });
+            }
         }
+        return newObj;
     } else if (topUpType == 3 || topUpType == 4) {
         newObj = [];
 
@@ -9007,7 +9161,7 @@ function rearrangeBonusDetailByMutilplePlatform(bonusType, currentList, platform
                             platformTopUpDetail.push({
                                 platformId: currentList[indexNo].bonusDetail[platformIndexNo].platformId,
                                 platformName: platform.name,
-                                amount: currentList[indexNo].bonusDetail[platformIndexNo].amount
+                                amount: dbutility.noRoundTwoDecimalPlaces(currentList[indexNo].bonusDetail[platformIndexNo].amount)
                             })
                         } else {
                             platformTopUpDetail.push({
@@ -9080,7 +9234,7 @@ function rearrangePlatformFeeEstimateDetailByMutilplePlatform(currentList, platf
                 newObj.push({
                     platformId: currentList[platformIndexNo]._id,
                     platformName: platform.name,
-                    totalPlatformFeeEstimate: currentList[platformIndexNo].totalPlatformFeeEstimate
+                    totalPlatformFeeEstimate: dbutility.noRoundTwoDecimalPlaces(currentList[platformIndexNo].totalPlatformFeeEstimate)
                 })
             } else {
                 newObj.push({
@@ -9324,7 +9478,7 @@ function rearrangeSumTopup (topUpType, currentList, platformRecord, depositGroup
                                         platformDetail.push({
                                             platformId: tempSumList[groupIndexNo].platformDetail[platformIndexNo].platformId,
                                             platformName: platform.name,
-                                            amount: tempSumList[groupIndexNo].platformDetail[platformIndexNo].amount
+                                            amount: dbutility.noRoundTwoDecimalPlaces(tempSumList[groupIndexNo].platformDetail[platformIndexNo].amount)
                                         })
                                     } else {
                                         platformDetail.push({
@@ -9367,7 +9521,7 @@ function rearrangeSumTopup (topUpType, currentList, platformRecord, depositGroup
                         sumList.push({
                             platformId: currentList[platformIndexNo]._id,
                             platformName: platform.name,
-                            amount: currentList[platformIndexNo].amount
+                            amount: dbutility.noRoundTwoDecimalPlaces(currentList[platformIndexNo].amount)
                         })
                     } else {
                         sumList.push({
@@ -9396,7 +9550,7 @@ function rearrangeSumBonus (currentList, platformRecord) {
                     sumList.push({
                         platformId: currentList[platformIndexNo]._id,
                         platformName: platform.name,
-                        amount: currentList[platformIndexNo].amount
+                        amount: dbutility.noRoundTwoDecimalPlaces(currentList[platformIndexNo].amount)
                     })
                 } else {
                     sumList.push({

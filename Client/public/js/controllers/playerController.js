@@ -52,7 +52,8 @@ define(['js/app'], function (myApp) {
             EXPIRED: "Expired",
             UNDETERMINED: "Undetermined",
             CSPENDING: "CsPending",
-            NOVERIFY: "NoVerify"
+            NOVERIFY: "NoVerify",
+            APPROVED: "approved"
         };
         vm.allProposalStatus = [
             "PrePending",
@@ -68,7 +69,8 @@ define(['js/app'], function (myApp) {
             "Undetermined",
             "Recover",
             "CsPending",
-            "NoVerify"
+            "NoVerify",
+            "approved"
         ];
 
         vm.constProposalType = {
@@ -11022,7 +11024,7 @@ define(['js/app'], function (myApp) {
             if (vm.proposalFilterstatus == "all") {
                 newproposalQuery.status = vm.allProposalStatus;
             } else {
-                if (vm.proposalFilterstatus == vm.proposalStatusList.SUCCESS) {
+                if (vm.proposalFilterstatus == vm.proposalStatusList.SUCCESS || vm.proposalFilterstatus == vm.proposalStatusList.APPROVED) {
                     newproposalQuery.status.push("Approved");
                 } else if (vm.proposalFilterstatus == vm.proposalStatusList.FAIL) {
                     newproposalQuery.status.push("Rejected");
@@ -11549,7 +11551,7 @@ define(['js/app'], function (myApp) {
         vm.submitRepairPayment = function () {
             vm.submitRepairePayementStep = 1;
             $scope.safeApply();
-            socketService.$socket($scope.AppSocket, 'submitRepairPaymentProposal', {proposalId: vm.repairProposalId}, function (data) {
+            socketService.$socket($scope.AppSocket, 'submitRepairPaymentProposal', {proposalId: vm.repairProposalId, platform: vm.selectedPlatform.id}, function (data) {
                 vm.submitRepairePayementStep = 2;
                 vm.getPlatformPlayersData();
                 $scope.safeApply();
@@ -19043,6 +19045,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                     proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                    proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                     proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                     proposalDetail["SINGLE_LIMIT"] = " ";
                     proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
@@ -19077,6 +19080,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                     proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                    proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                     proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                     proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.permerchantLimits || "0";
                     proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.transactionForPlayerOneDay || "0");
@@ -19106,6 +19110,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                     proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                    proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                     proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                     proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.singleLimit || "0";
                     proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
@@ -19138,6 +19143,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                     proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                    proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                     proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                     proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.singleLimit || "0";
                     proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
