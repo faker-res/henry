@@ -15468,7 +15468,7 @@ let dbPlayerInfo = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: constSystemParam.BATCH_SIZE,
+                                batchSize: 50,
                                 makeRequest: function (playerIdObjs, request) {
                                     request("player", "getConsumptionDetailOfPlayers", {
                                         platformId: platform,
@@ -17351,7 +17351,7 @@ let dbPlayerInfo = {
 
             let consumptionPromMatchObj = {
                 playerId: playerObjId,
-                createTime: {
+                date: {
                     $gte: new Date(startTime),
                     $lt: new Date(endTime)
                 },
@@ -17387,7 +17387,8 @@ let dbPlayerInfo = {
                 }
             }
 
-            let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+            //use summary
+            let consumptionProm = dbconfig.collection_playerConsumptionDaySummary.aggregate([
                 {
                     $match: consumptionPromMatchObj
                 },
