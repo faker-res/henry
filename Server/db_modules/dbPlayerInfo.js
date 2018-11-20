@@ -5794,14 +5794,12 @@ let dbPlayerInfo = {
             }
         ).then(
             retentionRecord => {
-                console.log(" checking step 1 rententionRecord.length", retentionRecord.length)
                 if (retentionRecord && retentionRecord.length){
                     retentionRecord.forEach(
                         record => {
                             if (record && record.lastReceivedDate && record.rewardEventObjId && record.rewardEventObjId.condition && record.rewardEventObjId.condition.interval
                                 && record.rewardEventObjId.validStartTime && record.rewardEventObjId.validEndTime){
                                 let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, record.rewardEventObjId);
-
                                 let isRewardValid = true;
                                 let hasReceived = false;
                                 let isForbidden = false;
@@ -5824,7 +5822,6 @@ let dbPlayerInfo = {
                                 if (playerIsForbiddenForThisReward) {
                                     isForbidden = true;
                                 }
-
 
                                 if (isRewardValid && !hasReceived && !isForbidden){
                                     let rewardParam = {};

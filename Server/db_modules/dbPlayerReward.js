@@ -7296,10 +7296,10 @@ let dbPlayerReward = {
     },
 
     getDistributedRetentionReward: function (rewardEvent, playerData, applyAmount, rewardParam, playerRetentionRecord, userAgent){
-
         let rewardAmount;
         let spendingAmount;
         let selectedRewardParam;
+
         // get the reward
         let retRewardData = dbPlayerReward.applyRetentionRewardParamLevel(rewardEvent, applyAmount, rewardParam, playerRetentionRecord);
         if (retRewardData && retRewardData.selectedRewardParam && retRewardData.rewardAmount != null && retRewardData.spendingAmount != null){
@@ -7307,25 +7307,8 @@ let dbPlayerReward = {
             spendingAmount = retRewardData.spendingAmount;
             selectedRewardParam = retRewardData.selectedRewardParam;
 
-            console.log("checking 3 applyAmount", applyAmount)
-
             return dbProposal.createRewardProposal(rewardEvent, playerData, selectedRewardParam, playerRetentionRecord, applyAmount, rewardAmount, spendingAmount, playerRetentionRecord._id, userAgent)
         }
-        // else{
-        //     return Promise.reject({
-        //         status: constServerCode.INVALID_DATA,
-        //         name: "DataError",
-        //         message: "Cannot get the reward data"
-        //     })
-        // }
-
-        // return dbProposal.createRewardProposal(rewardEvent, playerData, selectedRewardParam, playerRetentionRecord, rewardAmount, spendingAmount, playerRetentionRecord._id, userAgent).then(
-        //
-        // )
-
-
-
-
     },
 
     checkApplyRetentionReward: function (player, rewardEvent, applyAmount, userAgentStr, inputData, topUpMethod, isFrontEndApply) {
