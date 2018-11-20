@@ -69,6 +69,7 @@ const constProviderStatus = require("./../const/constProviderStatus");
 const constRewardPointsLogStatus = require("../const/constRewardPointsLogStatus");
 
 // db_common
+const dbRewardUtil = require("./../db_common/dbRewardUtility");
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 const dbPropUtil = require("../db_common/dbProposalUtility");
 const dbUtil = require('./../modules/dbutility');
@@ -5672,6 +5673,10 @@ let dbPlayerInfo = {
                                             }
                                         })
                                     });
+
+                                    // check for playerRetentionRewardGroup
+                                    dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(errorUtils.reportError);
+
                                     if (bUpdateIp) {
                                         dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
                                         dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
@@ -5741,6 +5746,102 @@ let dbPlayerInfo = {
             }
         );
         return deferred.promise;
+    },
+
+    getRetentionRewardAfterLogin: function (platformObjId, playerObjId, userAgent) {
+        let listProm = [];
+        let playerData = null;
+        let query = {
+            platformObjId: platformObjId,
+            playerObjId: playerObjId,
+        };
+        let playerQuery = {
+            _id: playerObjId,
+            platform: platformObjId
+
+        };
+
+        return dbconfig.collection_players.findOne(playerQuery).populate({
+            path: "platform",
+            model: dbconfig.collection_platform
+        }).then(
+            playerInfo => {
+                console.log("checking playerData", playerInfo)
+                if (!playerInfo){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Player cannot be found",
+                    })
+                }
+
+                playerData = playerInfo;
+
+                if (playerData.permission && playerData.permission.banReward) {
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: "Player do not have permission for reward"
+                    });
+                }
+
+                return dbconfig.collection_playerRetentionRewardGroupRecord.find(query).populate({
+                    path: "rewardEventObjId",
+                    model: dbconfig.collection_rewardEvent
+                }).populate({
+                    path: "topUpRecordObjId",
+                    model: dbconfig.collection_playerTopUpRecord
+                }).lean();
+            }
+        ).then(
+            retentionRecord => {
+                if (retentionRecord && retentionRecord.length){
+                    retentionRecord.forEach(
+                        record => {
+                            if (record && record.lastReceivedDate && record.rewardEventObjId && record.rewardEventObjId.condition && record.rewardEventObjId.condition.interval
+                                && record.rewardEventObjId.validStartTime && record.rewardEventObjId.validEndTime){
+                                let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, record.rewardEventObjId);
+                                let isRewardValid = true;
+                                let hasReceived = false;
+                                let isForbidden = false;
+
+                                // check if the reward is expired
+                                let curTime = new Date();
+                                if ((record.rewardEventObjId.validStartTime && curTime.getTime() < record.rewardEventObjId.validStartTime.getTime()) ||
+                                    (record.rewardEventObjId.validEndTime && curTime.getTime() > record.rewardEventObjId.validEndTime.getTime())) {
+                                   isRewardValid = false;
+                                }
+
+                                // check has claim the reward
+                                let todayTime = dbUtility.getTodaySGTime();
+                                if (todayTime.startTime <= record.lastReceivedDate) {
+                                    hasReceived = true;
+                                }
+
+                                // Check reward individual permission
+                                let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerData, record.rewardEventObjId._id);
+                                if (playerIsForbiddenForThisReward) {
+                                    isForbidden = true;
+                                }
+
+                                if (isRewardValid && !hasReceived && !isForbidden){
+                                    let rewardParam = {};
+                                    // Set reward param for player level to use
+                                    if (record.rewardEventObjId.isPlayerLevelDiff) {
+                                        rewardParam = record.rewardEventObjId.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
+                                    } else {
+                                        rewardParam = record.rewardEventObjId.param.rewardParam[0].value;
+                                    }
+
+                                    listProm.push(dbPlayerReward.getDistributedRetentionReward(record.rewardEventObjId, playerData, record.applyTopUpAmount, rewardParam, record, userAgent));
+                                }
+                            }
+                        }
+                    )
+                }
+
+                return Promise.all(listProm);
+            }
+        )
     },
 
     playerLoginOrRegisterWithSMS: (loginData, ua) => {
@@ -15368,10 +15469,33 @@ let dbPlayerInfo = {
             }, {_id: 1}).lean();
         }
 
+        // function getPlayerWithConsumptionInTimeFrame () {
+        //
+        // }
+        //
+        // // Returns an array of dates between the two dates
+        // function getDates(startDate, endDate) {
+        //     let dates = [],
+        //         currentDate = startDate,
+        //         addDays = function(days) {
+        //             let date = new Date(this.valueOf());
+        //             date.setDate(date.getDate() + days);
+        //             return date;
+        //         };
+        //     while (currentDate <= endDate) {
+        //         dates.push(currentDate);
+        //         currentDate = addDays.call(currentDate, 1);
+        //     }
+        //     return dates;
+        // }
+        //
+        // let dates = getDates(startDate, endDate);
+        // console.log('dates', dates);
+
         return getPlayerProm.then(
             playerData => {
                 console.log('RT - getPlayerReport 1');
-                let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}};
+                let relevantPlayerQuery = {platformId: platform, date: {$gte: startDate, $lt: endDate}};
 
                 if (isSinglePlayer) {
                     relevantPlayerQuery.playerId = playerData._id;
@@ -15381,7 +15505,7 @@ let dbPlayerInfo = {
 
                 // relevant players are the players who played any game within given time period
                 let playerObjArr = [];
-                return dbconfig.collection_playerConsumptionRecord.aggregate([
+                return dbconfig.collection_playerConsumptionDaySummary.aggregate([
                     {$match: relevantPlayerQuery},
                     {$group: {_id: "$playerId"}}
                 ]).read("secondaryPreferred").then(
@@ -15445,7 +15569,7 @@ let dbPlayerInfo = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: constSystemParam.BATCH_SIZE,
+                                batchSize: 50,
                                 makeRequest: function (playerIdObjs, request) {
                                     request("player", "getConsumptionDetailOfPlayers", {
                                         platformId: platform,
@@ -17364,6 +17488,7 @@ let dbPlayerInfo = {
                 }
             }
 
+            //use summary
             let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
                 {
                     $match: consumptionPromMatchObj

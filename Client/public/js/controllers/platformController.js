@@ -1481,7 +1481,8 @@ define(['js/app'], function (myApp) {
                     appKey: vm.jiguang.appKey,
                     masterKey: vm.jiguang.masterKey,
                     tittle: vm.jiguang.tittle,
-                    text: vm.jiguang.text
+                    text: vm.jiguang.text,
+                    platform: vm.selectedPlatform.id
                 }, function (data) {
                     if (data && data.success) {
                         alert("发送成功！");
@@ -3264,7 +3265,7 @@ define(['js/app'], function (myApp) {
                 })
             }
             vm.removeGameGroup = function () {
-                socketService.$socket($scope.AppSocket, 'deleteGameGroup', {_id: vm.SelectedGameGroupNode.id, groupName: vm.SelectedGameGroupNode.text}, function (data) {
+                socketService.$socket($scope.AppSocket, 'deleteGameGroup', {_id: vm.SelectedGameGroupNode.id, groupName: vm.SelectedGameGroupNode.text, platform: vm.selectedPlatform.id}, function (data) {
                     console.log(data.data);
                     // vm.loadGameGroupData();
                     for (var i = 0; i < vm.platformGameGroupList.length; i++) {
@@ -3709,6 +3710,7 @@ define(['js/app'], function (myApp) {
                     newParentGroupId: $scope.gameGroupMove.isRoot ? vm.newGroupParent.id : null,
                     groupName: vm.SelectedGameGroupNode.groupData.name,
                     newParentGroupName: $scope.gameGroupMove.isRoot ? vm.newGroupParent.groupData.name : null,
+                    platform: vm.selectedPlatform.id
                 }
                 socketService.$socket($scope.AppSocket, 'updateGameGroupParent', sendData, success);
 
@@ -22172,7 +22174,8 @@ console.log('typeof ',typeof gameProviders);
                 if (vm.rewardEventGroupAll) {
                     if (vm.showRewardEventGroup && vm.showRewardEventGroup.rewardEvents && vm.showRewardEventGroup.rewardEvents.length) {
                         socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {
-                            _ids: vm.showRewardEventGroup.rewardEvents
+                            _ids: vm.showRewardEventGroup.rewardEvents,
+                            platform: vm.selectedPlatform.id
                         }, function (data) {
                             vm.rewardTabClicked();
                         })
@@ -22368,7 +22371,7 @@ console.log('typeof ',typeof gameProviders);
             }
             vm.deleteReward = function (data) {
                 console.log('vm.showReward', vm.showReward);
-                socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {_ids: [vm.showReward._id], name: vm.showReward.name}, function (data) {
+                socketService.$socket($scope.AppSocket, 'deleteRewardEventByIds', {_ids: [vm.showReward._id], name: vm.showReward.name, platform: vm.selectedPlatform.id}, function (data) {
                     //vm.allGameProvider = data.data;
                     vm.rewardTabClicked(function () {
                         vm.rewardEventClicked(0, vm.allRewardEvent[0])
@@ -23699,7 +23702,7 @@ console.log('typeof ',typeof gameProviders);
             };
 
             vm.deleteRewardPointsEvent = (rewardPointsEvent) => {
-                $scope.$socketPromise('deleteRewardPointsEventById', {_id: rewardPointsEvent._id, category: rewardPointsEvent.category}).then((data) => {
+                $scope.$socketPromise('deleteRewardPointsEventById', {_id: rewardPointsEvent._id, category: rewardPointsEvent.category, platform: vm.selectedPlatform.id}).then((data) => {
                     vm.getRewardPointsEventByCategory(rewardPointsEvent.category);
                     $scope.safeApply();
                 });
@@ -30244,7 +30247,7 @@ console.log('typeof ',typeof gameProviders);
                     title: "Delete Announcement",
                     text: `Are you sure you want to delete the announcement "${ann.title}"?`
                 }).then(function () {
-                    $scope.$socketPromise('deletePlatformAnnouncementByIds', {_ids: [ann._id], title: ann.title})
+                    $scope.$socketPromise('deletePlatformAnnouncementByIds', {_ids: [ann._id], title: ann.title, platform: vm.selectedPlatform.id})
                         .done(function (data) {
                             vm.configTabClicked("announcement");
                         });

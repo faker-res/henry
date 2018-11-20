@@ -148,6 +148,33 @@ let dbTeleSales = {
 
     },
 
+    createTsPhoneFeedback: function (inputData) {
+        return dbconfig.collection_tsPhoneFeedback(inputData).save().then(
+            (feedbackData) => {
+                if (!feedbackData) {
+                    return Promise.reject({name: "DataError", message: "fail to save feedback data"});
+                }
+                return dbconfig.collection_tsDistributedPhone.findOneAndUpdate({
+                    tsPhone: inputData.tsPhone,
+                    assignee: inputData.adminId,
+                    platform: inputData.platform
+                }, {
+                    $inc: {feedbackTimes: 1},
+                    lastFeedbackTime: new Date(),
+                    resultName: inputData.resultName
+                }, {new: true}).lean();
+            }
+        ).then(
+            tsDistributedPhoneData => {
+                if (!tsDistributedPhoneData) {
+                    return Promise.reject({name: "DataError", message: "fail to update tsDistributedPhone data"});
+                }
+
+                return tsDistributedPhoneData;
+            }
+        );
+    },
+
     getTSPhoneListName: function (query) {
         return dbconfig.collection_tsPhoneList.distinct("name", query);
     },
@@ -220,7 +247,7 @@ let dbTeleSales = {
                     platform: inputData.platform,
                     registered: false,
                     assignTimes: {$lt: tsPhoneListObj.callerCycleCount},
-                    $or: [{distributedEndTime: null}, {distributedEndTime: {$gt: new Date()}}]
+                    $or: [{distributedEndTime: null}, {distributedEndTime: {$lt: new Date()}}]
                 }).sort({assignTimes: 1, createTime: 1}).lean();
             }
         ).then(

@@ -116,34 +116,29 @@ var playerSummary = {
      * @param {objectId} platformId - platform id
      */
     calculateYesterdayPlayerConsumptionSummary: function (platformId) {
-        var deferred = Q.defer();
-
-        dbconfig.collection_platform.findOne({_id: platformId}).then(
+        console.log('calculateYesterdayPlayerConsumptionSummary start', platformId);
+        return dbconfig.collection_platform.findOne({_id: platformId}, {_id: 1}).then(
             function (platformData) {
                 if (platformData) {
                     //var settleTime = dbutility.getDailySettlementTime(platformData.dailySettlementHour, platformData.dailySettlementMinute);
-                    var settleTime = dbutility.getYesterdaySGTime();
+                    let settleTime = dbutility.getYesterdaySGTime();
                     return dbPlayerConsumptionDaySummary.calculatePlatformDaySummaryForTimeFrame(settleTime.startTime, settleTime.endTime, platformId);
                 }
                 else {
-                    deferred.resolve("NoPlatform");
+                    return Promise.resolve("NoPlatform");
                 }
             },
             function (error) {
-                deferred.reject({name: "DBError", message: "Error finding platform!", error: error});
+                return Promise.reject({name: "DBError", message: "Error finding platform!", error: error});
             }
         ).then(
             function (data) {
-                deferred.resolve(data);
+                return Promise.resolve(data);
             },
             function (error) {
-                deferred.reject({name: "DBError", message: "Error calculating platform day summary", error: error});
+                return Promise.reject({name: "DBError", message: "Error calculating platform day summary", error: error});
             }
         );
-
-        // var prom2 = dbPlayerGameTypeConsumptionDaySummary.calculatePlatformDaySummaryForTimeFrame(startTime, endTime, platformId);
-
-        return deferred.promise;
     },
 
     /*

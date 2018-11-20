@@ -93,7 +93,7 @@ function socketActionMerchantGroup(socketIO, socket) {
         deleteMerchantGroup: function deleteMerchantGroup(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data._id);
-            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.removeMerchantGroup, [data._id], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.removeMerchantGroup, [data._id, data.platform], actionName, isValidData);
         },
 
         /**
@@ -133,7 +133,7 @@ function socketActionMerchantGroup(socketIO, socket) {
         addPlayersToMerchantGroup: function addPlayersToMerchantGroup(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.bankMerchantGroupObjId && data.playerObjIds && data.playerObjIds.length > 0);
-            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.addPlayersToMerchantGroup, [data.bankMerchantGroupObjId, data.playerObjIds], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformMerchantGroup.addPlayersToMerchantGroup, [data.bankMerchantGroupObjId, data.playerObjIds, data.platform], actionName, isValidData);
         },
 
         /**
