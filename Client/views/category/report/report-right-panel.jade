@@ -1850,6 +1850,9 @@
         div(ng-if='vm.showPageName=="ACTIONLOG_REPORT"')
             #actionLogReportQuery.block-query.col-md-12.well
                 div
+                    label {{'PLATFORM' | translate}}
+                    select.spicker.form-control(ng-model='vm.test', bsp, multiple, data-actions-box='true', ng-options='platform._id as platform.name | translate for platform in vm.platformList')
+                div
                     label {{'TYPE' | translate}}
                     select.form-control(ng-options='i.action as i.text | translate group by i.group | translate for (k,i) in vm.actionLogQuery.allActions', ng-model='vm.actionLogQuery.action')
                         option(value='') {{'any' | translate}}

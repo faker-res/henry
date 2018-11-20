@@ -65,7 +65,7 @@ function socketActionPlatformAnnouncement (socketIO, socket) {
         deletePlatformAnnouncementByIds: function deletePlatformAnnouncementByIds (data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data._ids);
-            socketUtil.emitter(self.socket, dbPlatformAnnouncement.removePlatformAnnouncementsById, [data._ids, data.title], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformAnnouncement.removePlatformAnnouncementsById, [data._ids, data.title, data.platform], actionName, isValidData);
         }
     };
     socketActionPlatformAnnouncement.actions = this.actions;

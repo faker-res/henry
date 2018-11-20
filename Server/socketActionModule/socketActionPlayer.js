@@ -854,7 +854,7 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.appKey != null && data.masterKey != null && data.tittle != null && data.text != null);
             console.log("pushNotification: " + JSON.stringify(data));
-            socketUtil.emitter(self.socket, dbPlatform.pushNotification, [data], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatform.pushNotification, [data, data.platform], actionName, isValidData);
         },
 
         sendSMSToPlayer: function sendSMSToPlayer(data) {

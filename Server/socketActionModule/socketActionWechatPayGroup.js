@@ -120,7 +120,7 @@ function socketActionWechatPayGroup(socketIO, socket) {
         deleteWechatPayGroup: function deleteWechatPayGroup(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data._id);
-            socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.removeWechatPayGroup, [data._id], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.removeWechatPayGroup, [data._id, data.platform], actionName, isValidData);
         },
 
         /**
@@ -140,7 +140,7 @@ function socketActionWechatPayGroup(socketIO, socket) {
         addPlayersToWechatPayGroup: function addPlayersToWechatPayGroup(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.weChatGroupObjId && data.playerObjIds && data.playerObjIds.length > 0);
-            socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.addPlayersToWechatPayGroup, [data.weChatGroupObjId, data.playerObjIds], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformWechatPayGroup.addPlayersToWechatPayGroup, [data.weChatGroupObjId, data.playerObjIds, data.platform], actionName, isValidData);
         },
 
         addAllPlayersToWechatPayGroup: function addAllPlayersToWechatPayGroup(data) {

@@ -103,7 +103,7 @@ function socketActionBankCardGroup(socketIO, socket) {
         deleteBankCardGroup: function deleteBankCardGroup(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data._id);
-            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.removeBankCardGroup, [data._id], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.removeBankCardGroup, [data._id, data.platform], actionName, isValidData);
         },
 
         /**
@@ -180,7 +180,7 @@ function socketActionBankCardGroup(socketIO, socket) {
         addPlayersToBankCardGroup: function addPlayersToBankCardGroup(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.bankCardGroupObjId && data.playerObjIds && data.playerObjIds.length > 0);
-            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.addPlayersToBankCardGroup, [data.bankCardGroupObjId, data.playerObjIds], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformBankCardGroup.addPlayersToBankCardGroup, [data.bankCardGroupObjId, data.playerObjIds, data.platform], actionName, isValidData);
         },
 
         /**

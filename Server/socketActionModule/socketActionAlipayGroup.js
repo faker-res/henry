@@ -125,7 +125,7 @@ function socketActionAlipayGroup(socketIO, socket) {
         deleteAlipayGroup: function deleteAlipayGroup(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data._id);
-            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.removeAlipayGroup, [data._id], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.removeAlipayGroup, [data._id, data.platform], actionName, isValidData);
         },
 
         /**
@@ -145,7 +145,7 @@ function socketActionAlipayGroup(socketIO, socket) {
         addPlayersToAlipayGroup: function addPlayersToAlipayGroup(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.bankAlipayGroupObjId && data.playerObjIds && data.playerObjIds.length > 0);
-            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.addPlayersToAlipayGroup, [data.bankAlipayGroupObjId, data.playerObjIds], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlatformAlipayGroup.addPlayersToAlipayGroup, [data.bankAlipayGroupObjId, data.playerObjIds, data.platform], actionName, isValidData);
         },
 
         /**
