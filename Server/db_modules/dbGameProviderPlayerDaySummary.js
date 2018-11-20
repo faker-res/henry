@@ -306,10 +306,9 @@ var dbGameProviderPlayerDaySummary = {
             endDate: endTime,
             platformId: platformId
         };
-        return cpmsAPI.consumption_reSendConsumption(sendData).catch(err=>{console.log(err)})
+        return cpmsAPI.consumption_reSendConsumption(sendData);
     },
     getProviderDifferDaySummaryForTimeFrame: function (startTime, endTime, platformObjId, platformId, providerObjId, proId,  index, count) {
-        console.log(typeof startTime);
         let sendQuery = {
             platformId: platformId,
             providerId: proId,
@@ -319,7 +318,6 @@ var dbGameProviderPlayerDaySummary = {
         // modify the date to cpms datetime format -> "2018-11-07 02:00:00"
         sendQuery.startDate = sendQuery.startDate.replace("T", " ");
         sendQuery.endDate = sendQuery.endDate.replace("T", " ");
-
         let fpmsSummary = dbGameProviderPlayerDaySummary.getProviderDaySummaryForTimeFrame(startTime, endTime, platformObjId, providerObjId, index, count);
         let cpmsSummary = new Promise((resolve, reject)=>{
             cpmsAPI.consumption_getConsumptionSummary(sendQuery).then(
@@ -335,18 +333,16 @@ var dbGameProviderPlayerDaySummary = {
             );
         })
         return Promise.all([fpmsSummary, cpmsSummary])
-
         .then(data=>{
-            console.log(data);
+            console.log('--mark--observe--fpms&cpms',data);
             let fpmsData = (data && data[0]) ? data[0] : {consumption:0, validAmount:0};
-            console.log(fpmsData);
             let cpmsData = dbGameProviderPlayerDaySummary.sumCPMSBetsRecord(data[1]);
             let combineData = [];
             let result = {};
             let providerId = proId;
 
             if(fpmsData){
-                console.log(cpmsData);
+                console.log('--mark--observe--cpmsdata',cpmsData);
                 if(!fpmsData.consumption){
                     fpmsData.consumption = 0;
                 }
