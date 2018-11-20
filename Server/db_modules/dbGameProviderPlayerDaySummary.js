@@ -306,23 +306,39 @@ var dbGameProviderPlayerDaySummary = {
             endDate: endTime,
             platformId: platformId
         };
-        return cpmsAPI.consumption_reSendConsumption(sendData);
+        return cpmsAPI.consumption_reSendConsumption(sendData).catch(err=>{console.log(err)})
     },
-    getProviderDifferDaySummaryForTimeFrame: function (startTime, endTime, platformObjId, proId, platformId, index, count) {
-
+    getProviderDifferDaySummaryForTimeFrame: function (startTime, endTime, platformObjId, platformId, providerObjId, proId,  index, count) {
+        console.log(typeof startTime);
         let sendQuery = {
             platformId: platformId,
             providerId: proId,
-            startDate: startTime,
-            endDate: endTime
+            startDate: startTime.toISOString().substr(0,19),
+            endDate: endTime.toISOString().substr(0,19)
         };
-        let fpmsSummary = dbGameProviderPlayerDaySummary.getProviderDaySummaryForTimeFrame(startTime, endTime, platformObjId, proId, index, count);
-        let cpmsSummary = cpmsAPI.consumption_getConsumptionSummary(sendQuery).catch(err=>{console.log(err)});
+        // modify the date to cpms datetime format -> "2018-11-07 02:00:00"
+        sendQuery.startDate = sendQuery.startDate.replace("T", " ");
+        sendQuery.endDate = sendQuery.endDate.replace("T", " ");
+
+        let fpmsSummary = dbGameProviderPlayerDaySummary.getProviderDaySummaryForTimeFrame(startTime, endTime, platformObjId, providerObjId, index, count);
+        let cpmsSummary = new Promise((resolve, reject)=>{
+            cpmsAPI.consumption_getConsumptionSummary(sendQuery).then(
+                function (result) {
+
+                    resolve(result);
+                },
+                function (err) {
+                    //todo::for debug, to be removed
+                    console.error("getConsumptionSummary error:", err);
+                    resolve(null);
+                }
+            );
+        })
         return Promise.all([fpmsSummary, cpmsSummary])
 
         .then(data=>{
             console.log(data);
-            let fpmsData = (data && data[0] && data[0].data) ? data[0].data : {consumption:0, validAmount:0};
+            let fpmsData = (data && data[0]) ? data[0] : {consumption:0, validAmount:0};
             console.log(fpmsData);
             let cpmsData = dbGameProviderPlayerDaySummary.sumCPMSBetsRecord(data[1]);
             let combineData = [];
@@ -330,7 +346,6 @@ var dbGameProviderPlayerDaySummary = {
             let providerId = proId;
 
             if(fpmsData){
-                console.log('fpms data exist');
                 console.log(cpmsData);
                 if(!fpmsData.consumption){
                     fpmsData.consumption = 0;
@@ -340,13 +355,14 @@ var dbGameProviderPlayerDaySummary = {
                 }
                 //1 - 数字相同不用补收录  2 - 需要补收录  3 - 重新收录中
                 let status = ((cpmsData.validAmount - fpmsData.validAmount == 0) && (cpmsData.consumption - fpmsData.consumption == 0)) ? 1 : 2;
+                let validAmtSyncPercent = dbGameProviderPlayerDaySummary.getValidAmtSyncPercent(fpmsData.validAmount, cpmsData.validAmount);
                 result = {
                     providerId:proId,
                     fpmsConsumption:fpmsData.consumption,
                     fpmsValidAmount:fpmsData.validAmount,
                     cpmsConsumption:cpmsData.consumption,
                     cpmsValidAmount:cpmsData.validAmount,
-                    validAmtSyncPercent: ((fpmsData.validAmount / cpmsData.validAmount)*100) || 0,
+                    validAmtSyncPercent: validAmtSyncPercent,
                     consumptionDiff:cpmsData.consumption - fpmsData.consumption,
                     status:status
                 }
@@ -357,20 +373,34 @@ var dbGameProviderPlayerDaySummary = {
             console.log(err);
         })
     },
+    getValidAmtSyncPercent: function(fpmsValidAmount, cpmsValidAmount){
+        let result;
+
+        if(!cpmsValidAmount){
+            //avoid become infinity ,because divide by 0
+            result = 0;
+        }else{
+            result = ( fpmsValidAmount / cpmsValidAmount ) * 100
+        }
+        return result;
+    },
     sumCPMSBetsRecord: function(data){
         let result = {
             consumption:0,
             validAmount:0
         }
-
-        if(data && data.data && data.data.summary && data.data.summary.length > 0){
-            data.data.summary.forEach(item=>{
+        console.log(data);
+        if(data && data && data.summary && data.summary.length > 0){
+            data.summary.forEach(item=>{
                 if(item.summaryData){
-                    result.consumption += item.summaryData.totalCount;
-                    result.validAmount += item.summaryData.totalValidAmount;
+                    item.summaryData.forEach(summary=>{
+                        result.consumption += summary.totalCount;
+                        result.validAmount += summary.totalValidAmount;
+                    })
                 }
             })
         }
+        console.log(result)
         return result;
     },
     getAllProviderDaySummaryForTimeFrame: function (startTime, endTime, platformId, proId, index, count) {
@@ -433,7 +463,6 @@ var dbGameProviderPlayerDaySummary = {
                         result._id = data._id;
                         result.providerId = data.providerId;
                         result.providerName = data.name;
-
                         return dbconfig.collection_providerPlayerDaySummary.distinct('playerId', {
                             date: {
                                 $gte: startTime,

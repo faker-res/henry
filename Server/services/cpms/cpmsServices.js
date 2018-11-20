@@ -97,7 +97,7 @@
                 "getConsumptionSummary",
                 "reSendConsumption"
             ];
-            addServiceSyncFunctions(sinonet, this, functionNames, ["platformId", "providerId", "startDate", "endDate"]);
+            addServiceSyncFunctions(sinonet, this, functionNames, ["platformId"]);
         };
         ConsumptionService.prototype = Object.create(sinonet.WebSocketService.prototype);
         ConsumptionService.prototype.constructor = ConsumptionService;
