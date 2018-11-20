@@ -17351,7 +17351,7 @@ let dbPlayerInfo = {
 
             let consumptionPromMatchObj = {
                 playerId: playerObjId,
-                date: {
+                createTime: {
                     $gte: new Date(startTime),
                     $lt: new Date(endTime)
                 },
@@ -17388,7 +17388,7 @@ let dbPlayerInfo = {
             }
 
             //use summary
-            let consumptionProm = dbconfig.collection_playerConsumptionDaySummary.aggregate([
+            let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
                 {
                     $match: consumptionPromMatchObj
                 },
