@@ -2077,39 +2077,37 @@
                                 th(style="width:20%") {{'ADD/Who Last Edited' | translate}}
 
                         tbody
-                            tr
+                            tr(ng-repeat= 'wgc in vm.wechatGroupControlSettingData track by $index')
                                 td
-                                    label.control-label
+                                    input.form-control(type='text', ng-model='wgc.deviceId' ng-disabled='!vm.wechatGroupControlEdit' ng-change='vm.editWechatGroupControl(wgc)')
                                 td
-                                    label.control-label
+                                    input.form-control(type='text', ng-model='wgc.deviceNickName' ng-disabled='!vm.wechatGroupControlEdit' ng-change='vm.editWechatGroupControl(wgc)')
                                 td
-                                    i.fa.fa-minus {{'Delete' | translate}}
+                                    i.fa.fa-minus(ng-if='vm.wechatGroupControlEdit' ng-click='vm.deleteWechatGroupControlSetting(wgc, vm.wechatGroupControlSettingData, $index)') {{'Delete' | translate}}
                                 td
-                                    label.control-label
+                                    span {{vm.dateReformat(wgc.lastUpdateTime)}}
                                 td
-                                    label.control-label
+                                    span {{wgc.lastUpdateAdmin.adminName}}
                             tr
                                 td(colspan=5) {{'Adding In' | translate}}
-                            tr
+                            tr(ng-if='vm.wechatGroupControlEdit')
                                 td
-                                    input.form-control
+                                    input.form-control(type='text', ng-model='vm.newWechatGroupControlSetting.deviceId')
                                 td
-                                    input.form-control
+                                    input.form-control(type='text', ng-model='vm.newWechatGroupControlSetting.deviceNickName')
                                 td
-                                    i.fa.fa-plus {{'ADD' | translate}}
+                                    i.fa.fa-plus(ng-click='vm.addNewWechatGroupControl(vm.wechatGroupControlSettingData, vm.newWechatGroupControlSetting);') {{'ADD' | translate}}
                                 td
-                                    label.control-label
                                 td
-                                    label.control-label
 
                     div(style='display:inline-block;margin:20px 0 0 0;font-size:15px;float:right;')
-                        button.btn.btn-primary.common-button
+                        button.btn.btn-primary.common-button(ng-click='vm.disableWechatGroupControl(true);' ng-if='!vm.wechatGroupControlEdit')
                             i.fa.fa-pencil-square-o
                             text {{"EDIT" | translate}}
-                        button.btn.btn-success.common-button
+                        button.btn.btn-success.common-button(ng-click='vm.submitWechatGroupControlSetting();vm.disableWechatGroupControl(false);' ng-if='vm.wechatGroupControlEdit')
                             i.fa.fa-check
                             text {{"CONFIRM" | translate}}
-                        button.btn.btn-danger.common-button
+                        button.btn.btn-danger.common-button(ng-click='vm.cancelWechatGroupControlSetting();vm.disableWechatGroupControl(false);' ng-if='vm.wechatGroupControlEdit')
                             i.fa.fa-ban
                             text {{"CANCEL" | translate}}
 

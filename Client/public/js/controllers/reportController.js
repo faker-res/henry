@@ -9678,7 +9678,9 @@ define(['js/app'], function (myApp) {
 
             vm.deleteDepositGroup = (depositGroup) => {
                 socketService.$socket($scope.AppSocket, 'deleteDepositGroup', {_id: depositGroup._id}, function (data) {
-                    vm.initDepositGroupSetting();
+                    $scope.$evalAsync(() => {
+                        vm.initDepositGroupSetting();
+                    });
                 });
             };
             // end of financial report's deposit group setting

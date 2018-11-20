@@ -207,6 +207,10 @@ var dbUtility = {
         return time ? moment(time).tz('Asia/Singapore').toDate() : null;
     },
 
+    getSGTimeToString: function (time) {
+        return time ? moment(time).tz('Asia/Singapore').format("YYYY-MM-DD HH:mm:ss") : null;
+    },
+
     getTargetSGTime: function (targetDate) {
         var startTime = moment(targetDate).tz('Asia/Singapore').startOf('day').toDate();
         var endTime = moment(startTime).add(1, 'days').toDate();
