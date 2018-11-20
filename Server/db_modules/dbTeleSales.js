@@ -175,6 +175,11 @@ let dbTeleSales = {
         );
     },
 
+    getTsPhoneFeedback: function (query) {
+        return dbconfig.collection_tsPhoneFeedback.find(query)
+            .populate({path: "adminId", model: dbconfig.collection_admin}).lean();
+    },
+
     getTSPhoneListName: function (query) {
         return dbconfig.collection_tsPhoneList.distinct("name", query);
     },

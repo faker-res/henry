@@ -551,12 +551,11 @@ define(['js/app'], function (myApp) {
 
                             link.append($('<br>'));
                             link.append($('<a>', {
-                                // 'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
-                                // 'data-row': JSON.stringify(row),
-                                // 'data-toggle': 'modal',
-                                // 'data-target': '#modalAddPlayerFeedback',
-                                // 'title': $translate("ADD_FEEDBACK"),
-                                // 'data-placement': 'left',
+                                'ng-click': 'vm.initTsPhoneFeedbackHistory(' + JSON.stringify(tsPhoneObjId) + ');',
+                                'data-row': JSON.stringify(row),
+                                'data-toggle': 'modal',
+                                'data-target': '#modalTsPhoneFeedbackHistory',
+                                'data-placement': 'left',
                             }).text("3. " + $translate("FeedbackHistory")));
 
                             link.append($('<br>'));
@@ -629,6 +628,23 @@ define(['js/app'], function (myApp) {
             });
             $('#adminPhoneListTable').resize();
 
+        }
+
+        vm.initTsPhoneFeedbackHistory = function (tsPhoneObjId) {
+            vm.tsPhoneFeedbackDetail = [];
+            let sendData = {
+                platform: vm.selectedPlatform.id,
+                adminId: authService.adminId,
+                tsPhone: tsPhoneObjId
+            }
+            socketService.$socket($scope.AppSocket, 'getTsPhoneFeedback', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.tsPhoneFeedbackDetail = data.data;
+                    vm.tsPhoneFeedbackDetail.forEach(item => {
+                        item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                    });
+                })
+            })
         }
 
         vm.initAdminPhoneListDetails = function (rowData) {
