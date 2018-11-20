@@ -16,37 +16,52 @@ var dbDepositGroup = {
     },
 
     updateDepositGroups: (depositGroups) => {
-        let inGroupDepositTypesName = depositGroups.map(depositGroup => depositGroup.depositName);
-        // remove depositGroup that no longer in group
-        dbConfig.collection_depositGroup.find({
-            depositParentDepositId: {$ne: -1}
-        }).then(
-            depositGroupsBeforeUpdate =>{
-                let depositGroupBeforeUpdateNames = depositGroupsBeforeUpdate.map(depositGroupsBeforeUpdate => depositGroupsBeforeUpdate.depositName);
-                let noInGroupDepositTypesName = dbutility.difArrays(inGroupDepositTypesName, depositGroupBeforeUpdateNames);
-                dbConfig.collection_depositGroup.remove({
-                    depositName: {$in: noInGroupDepositTypesName},
-                    depositParentDepositId: {$ne: -1}
-                }).exec();
-            }
-        );
+        let proms = [];
+        let inGroupDepositTypesId = []
 
         depositGroups.forEach(depositGroup => {
-            delete depositGroup.__v;
-            delete depositGroup._id;
-
-            // mongoose upsert wont trigger pre save function, so use if here, if not update with upsert is enough
-            if (!depositGroup.depositId) {
-                let depositGroupRecord = new dbConfig.collection_depositGroup(depositGroup);
-                depositGroupRecord.save();
-            } else {
-                dbConfig.collection_depositGroup.update(
-                    {depositId: depositGroup.depositId, topUpTypeId: depositGroup.topUpTypeId, topUpMethodId: depositGroup.topUpMethodId},
-                    {$set: depositGroup},
-                    {upsert: true}
-                ).exec();
+            if (depositGroup && depositGroup.depositId) {
+                inGroupDepositTypesId.push(depositGroup.depositId);
             }
         });
+
+        return dbConfig.collection_depositGroup.find({depositId: {$nin: inGroupDepositTypesId}}).lean().then(
+            notInGroupDepositData => {
+
+                if (notInGroupDepositData && notInGroupDepositData.length > 0) {
+                    let notInGroupDepositTypesId = notInGroupDepositData.map(depositGroup => depositGroup.depositId);
+
+                    // remove depositGroup that no longer in group
+                    proms.push(dbConfig.collection_depositGroup.remove({depositId: {$in: notInGroupDepositTypesId}}).exec());
+                }
+
+                depositGroups.forEach(depositGroup => {
+                    delete depositGroup.__v;
+                    delete depositGroup._id;
+
+                    if (!depositGroup.depositId) {
+                        proms.push(new dbConfig.collection_depositGroup(depositGroup).save());
+                    } else {
+                        let newDepositGroup = {
+                            depositId: depositGroup.depositId,
+                            topUpTypeId: depositGroup.topUpTypeId
+                        };
+
+                        if (depositGroup && depositGroup.topUpMethodId) {
+                            newDepositGroup.topUpMethodId = depositGroup.topUpMethodId;
+                        }
+
+                        proms.push(dbConfig.collection_depositGroup.update(
+                            newDepositGroup,
+                            {$set: depositGroup},
+                            {upsert: true}
+                        ).exec());
+                    }
+                });
+
+                return Promise.all(proms);
+            }
+        )
     },
 
     deleteDepositGroup: (depositGroupObjId) => {
