@@ -15394,7 +15394,7 @@ let dbPlayerInfo = {
         return getPlayerProm.then(
             playerData => {
                 console.log('RT - getPlayerReport 1');
-                let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}};
+                let relevantPlayerQuery = {platformId: platform, startTime: {$gte: startDate, $lte: endDate}};
 
                 if (isSinglePlayer) {
                     relevantPlayerQuery.playerId = playerData._id;
@@ -15404,7 +15404,7 @@ let dbPlayerInfo = {
 
                 // relevant players are the players who played any game within given time period
                 let playerObjArr = [];
-                return dbconfig.collection_playerConsumptionSummary.aggregate([
+                return dbconfig.collection_playerConsumptionDaySummary.aggregate([
                     {$match: relevantPlayerQuery},
                     {$group: {_id: "$playerId"}}
                 ]).read("secondaryPreferred").then(
