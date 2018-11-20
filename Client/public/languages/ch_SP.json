@@ -4295,6 +4295,7 @@
   "REQUEST_BANK_TYPE": "请求银行类型",
   "USE_PMS_CARD_GROUP": "PMS 派卡",
   "TOP_UP_RETURN_CODE": "存送金代码",
+  "RETENTION_REWARD_CODE": "提升留存代码",
   "LIMITED_OFFER_NAME": "秒杀礼包名称",
   "COMMISSION_PERIOD": "佣金周期",
   "YEN": "元",
