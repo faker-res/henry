@@ -1207,6 +1207,12 @@ var proposal = {
                             {new: true}
                         );
                     })
+                    .then( // todo :: for debug only, check if proposalData found actually have wrong expire time. delete when it doesn't need anymore (may be 2 months without this issue)
+                        data => {
+                            console.log("autoCancelProposal successful", proposalData, data);
+                            return data;
+                        }
+                    );
             }
             else {
                 return Q.reject({message: "incorrect proposal status or authentication."});

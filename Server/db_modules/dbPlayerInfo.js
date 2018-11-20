@@ -4164,7 +4164,14 @@ let dbPlayerInfo = {
                                     console.log('Apply reward after top up', proposalData.data.playerId, proposalData.data.topUpReturnCode);
                                     dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
                                         , proposalData.data.topUpReturnCode, requiredData).catch(errorUtils.reportError);
-                                } else {
+                                }
+                                else if (proposalData.data.retentionRewardCode){
+                                    let requiredData = {topUpRecordId: topupRecordData._id};
+                                    console.log('Apply reward after top up', proposalData.data.playerId, proposalData.data.retentionRewardCode);
+                                    dbPlayerInfo.applyRewardEvent(proposalData.inputDevice, proposalData.data.playerId
+                                        , proposalData.data.retentionRewardCode, requiredData).catch(errorUtils.reportError);
+                                }
+                                else {
                                     // Check reward group task to apply on player top up
                                     // Only happen when no top up return reward selected during top up
                                     dbPlayerReward.checkAvailableRewardGroupTaskToApply(player.platform, player, topupRecordData).catch(errorUtils.reportError);
@@ -13893,7 +13900,8 @@ let dbPlayerInfo = {
                         constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,
                         constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,
                         constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,
-                        constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP
+                        constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP,
+                        constRewardType.PLAYER_RETENTION_REWARD_GROUP
                     ];
 
                     // Check any consumption after topup upon apply reward
@@ -14021,6 +14029,7 @@ let dbPlayerInfo = {
                                 case constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP:
                                 case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
                                 case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
+                                case constRewardType.PLAYER_RETENTION_REWARD_GROUP:
                                     // Check whether platform allowed for reward group
                                     // if (!playerInfo.platform.useProviderGroup) {
                                     //     return Q.reject({
@@ -15359,10 +15368,33 @@ let dbPlayerInfo = {
             }, {_id: 1}).lean();
         }
 
+        // function getPlayerWithConsumptionInTimeFrame () {
+        //
+        // }
+        //
+        // // Returns an array of dates between the two dates
+        // function getDates(startDate, endDate) {
+        //     let dates = [],
+        //         currentDate = startDate,
+        //         addDays = function(days) {
+        //             let date = new Date(this.valueOf());
+        //             date.setDate(date.getDate() + days);
+        //             return date;
+        //         };
+        //     while (currentDate <= endDate) {
+        //         dates.push(currentDate);
+        //         currentDate = addDays.call(currentDate, 1);
+        //     }
+        //     return dates;
+        // }
+        //
+        // let dates = getDates(startDate, endDate);
+        // console.log('dates', dates);
+
         return getPlayerProm.then(
             playerData => {
                 console.log('RT - getPlayerReport 1');
-                let relevantPlayerQuery = {platformId: platform, createTime: {$gte: startDate, $lte: endDate}};
+                let relevantPlayerQuery = {platformId: platform, date: {$gte: startDate, $lt: endDate}};
 
                 if (isSinglePlayer) {
                     relevantPlayerQuery.playerId = playerData._id;
@@ -15372,7 +15404,7 @@ let dbPlayerInfo = {
 
                 // relevant players are the players who played any game within given time period
                 let playerObjArr = [];
-                return dbconfig.collection_playerConsumptionRecord.aggregate([
+                return dbconfig.collection_playerConsumptionDaySummary.aggregate([
                     {$match: relevantPlayerQuery},
                     {$group: {_id: "$playerId"}}
                 ]).read("secondaryPreferred").then(
@@ -15436,7 +15468,7 @@ let dbPlayerInfo = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: constSystemParam.BATCH_SIZE,
+                                batchSize: 50,
                                 makeRequest: function (playerIdObjs, request) {
                                     request("player", "getConsumptionDetailOfPlayers", {
                                         platformId: platform,
@@ -17319,7 +17351,7 @@ let dbPlayerInfo = {
 
             let consumptionPromMatchObj = {
                 playerId: playerObjId,
-                createTime: {
+                date: {
                     $gte: new Date(startTime),
                     $lt: new Date(endTime)
                 },
@@ -17355,7 +17387,8 @@ let dbPlayerInfo = {
                 }
             }
 
-            let consumptionProm = dbconfig.collection_playerConsumptionRecord.aggregate([
+            //use summary
+            let consumptionProm = dbconfig.collection_playerConsumptionDaySummary.aggregate([
                 {
                     $match: consumptionPromMatchObj
                 },
@@ -21919,7 +21952,7 @@ function recalculateTsPhoneListPhoneNumber (platformObjId, tsPhoneListObjId) {
 }
 
 function filterPhoneWithOldTsPhone (platformObjId, phones) {
-    phones = phones.map(phone => {
+    phones.forEach(phone => {
         phone.encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
     });
 

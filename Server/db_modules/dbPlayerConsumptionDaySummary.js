@@ -35,6 +35,21 @@ var dbPlayerConsumptionDaySummary = {
         );
     },
 
+    createPlayerConsumptionDaySummary: (platformId, playerId, startTime, endTime, amount, validAmount, bonusAmount, times) => {
+        let log = {
+            platformId: platformId,
+            playerId: playerId,
+            startTime: startTime,
+            endTime: endTime,
+            amount: amount,
+            validAmount: validAmount,
+            bonusAmount: bonusAmount,
+            times: times
+        };
+
+        return dbconfig.collection_playerConsumptionDaySummary(log).save();
+    },
+
     /**
      * Calculate platform players consumption day summary for time frame
      * @param {Date} startTime - It has to be at 00:00 for a specific date
@@ -75,9 +90,62 @@ var dbPlayerConsumptionDaySummary = {
                     }
                 })
             );
-
         });
+    },
 
+    /**
+     * This summary might not be accurate at any given time, records may get added, updated or duplicated
+     * Experimental, use with caution
+     * @param startTime
+     * @param endTime
+     * @param platformId
+     */
+    calcDailyPlatformPlayerConsumpSumm: function (startTime, endTime, platformId) {
+        console.log('calcDailyPlatformPlayerConsumpSumm', platformId);
+        let relevantPlayerQuery = {
+            platformId: platformId,
+            createTime: {$gte: startTime, $lte: endTime},
+            $or: [
+                {isDuplicate: {$exists: false}},
+                {
+                    $and: [
+                        {isDuplicate: {$exists: true}},
+                        {isDuplicate: false}
+                    ]
+                }
+            ]
+        };
+
+        return dbconfig.collection_playerConsumptionRecord.aggregate([
+            {$match: relevantPlayerQuery},
+            {
+                $group: {
+                    _id: "$playerId",
+                    amount: {$sum: 1},
+                    validAmount: {$sum: 1},
+                    bonusAmount: {$sum: 1},
+                    count: {$sum: 1}
+                }
+            }
+        ]).then(
+            playersSumm => {
+                if (playersSumm && playersSumm.length) {
+                    console.log('playersSumm.length', playersSumm.length);
+                    playersSumm.forEach(summ => {
+                        this.createPlayerConsumptionDaySummary(
+                            platformId,
+                            summ._id,
+                            startTime,
+                            endTime,
+                            summ.amount,
+                            summ.validAmount,
+                            summ.bonusAmount,
+                            summ.count
+                        );
+                    })
+                }
+            }
+        )
     },
 
     /**
