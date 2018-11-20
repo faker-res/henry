@@ -15394,7 +15394,7 @@ let dbPlayerInfo = {
         return getPlayerProm.then(
             playerData => {
                 console.log('RT - getPlayerReport 1');
-                let relevantPlayerQuery = {platformId: platform, startTime: {$gte: startDate, $lt: endDate}};
+                let relevantPlayerQuery = {platformId: platform, date: {$gte: startDate, $lt: endDate}};
 
                 if (isSinglePlayer) {
                     relevantPlayerQuery.playerId = playerData._id;
