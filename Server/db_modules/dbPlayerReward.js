@@ -3216,6 +3216,8 @@ let dbPlayerReward = {
                     } else {
                         return Promise.resolve();
                     }
+                }).catch(err => {
+                    console.log("generatePromoCodes Error ", param.newPromoCodeEntry, err);
                 })
             );
         });
