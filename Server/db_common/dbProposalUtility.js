@@ -172,7 +172,6 @@ const dbProposalUtility = {
                     if (sameDeviceId >= 1) {
                         sameDeviceIdHasReceived = true;
                     }
-
                 }
 
                 let resultArr = {
@@ -181,7 +180,6 @@ const dbProposalUtility = {
                     samePhoneNumHasReceived: samePhoneNumHasReceived,
                     sameDeviceIdHasReceived: sameDeviceIdHasReceived
                 };
-
 
                 return resultArr;
             }
