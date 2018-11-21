@@ -1235,13 +1235,13 @@ include modalGameCreditLog
 
 
 
-#modalNewPlayerList.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true',style='height:800px;overflow-y:scroll;')
+#modalNewPlayerList.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:95%;')
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title {{"new player list"|translate}}
-            .modal-body
+            .modal-body(style='height:800px;overflow-y:scroll')
                 .panel.panel-primary
 
                     ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu
