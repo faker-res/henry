@@ -643,7 +643,7 @@ define(['js/app'], function (myApp) {
                 vm.smsPlayer = {
                     tsDistributedPhone: data._id,
                     playerId: "",
-                    name: data.tsPhone.playerName,
+                    name: data.encodedPhoneNumber$,
                     nickName: data.tsPhone.nickName || "",
                     platformId: vm.selectedPlatform.data.platformId,
                     channel: $scope.channelList[0],
@@ -662,8 +662,8 @@ define(['js/app'], function (myApp) {
                 }
                     var phoneCall = {
                     // playerId: data.playerId,
-                    name: data.tsPhone.playerName,
-                    toText: data.tsPhone.playerName ? data.tsPhone.playerName : data.tsPhone.name || "",
+                    name: data.encodedPhoneNumber$,
+                    toText: data.encodedPhoneNumber$ ? data.encodedPhoneNumber$ : data.tsPhone.playerName || "",
                     platform: "jinshihao",
                     loadingNumber: true,
                 }
