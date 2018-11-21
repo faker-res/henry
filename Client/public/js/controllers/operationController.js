@@ -2008,7 +2008,8 @@ define(['js/app'], function (myApp) {
                 adminId: authService.adminId,
                 memo: $translate(bApprove ? "Approved" : "Rejected") + " " + $('#proposalRemark').val(),
                 bApprove: bApprove,
-                remark: $('#proposalRemark').val()
+                remark: $('#proposalRemark').val(),
+                platform: vm.selectedPlatform._id
             }, function (data) {
                 deferred.resolve(true);
             }, function (error) {
@@ -3120,6 +3121,7 @@ define(['js/app'], function (myApp) {
                 adminId: authService.adminId,
                 memo: $translate(bApprove ? "Approved" : "Rejected") + " " + $('#proposalRemark').val(),
                 bApprove: bApprove,
+                platform: vm.selectedPlatform._id
             }, function (data) {
                 console.log(data.data);
                 vm.loadProposalQueryData();

@@ -8309,7 +8309,8 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerInfoLevelProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: updateDataLevel,
-                        platformId: vm.selectedPlatform.id
+                        platformId: vm.selectedPlatform.id,
+                        playerId: vm.isOneSelectedPlayer().playerId
                     }, function (data) {
                         if (data.data && data.data.stepInfo) {
                             socketService.showProposalStepInfo(data.data.stepInfo, $translate);
@@ -8335,7 +8336,8 @@ define(['js/app'], function (myApp) {
                     socketService.$socket($scope.AppSocket, 'createUpdatePlayerRealNameProposal', {
                         creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                         data: realNameObj,
-                        platformId: vm.selectedPlatform.id
+                        platformId: vm.selectedPlatform.id,
+                        playerId: vm.isOneSelectedPlayer().playerId
                     }, function (data) {
                         if (data.data && data.data.stepInfo) {
                             socketService.showProposalStepInfo(data.data.stepInfo, $translate);
@@ -10169,7 +10171,8 @@ define(['js/app'], function (myApp) {
                     topUpRecordIds: idArr,
                     amount: vm.playerApplyRewardPara.amount,
                     referralName: vm.playerApplyRewardPara.referralName
-                }
+                },
+                platform: vm.selectedPlatform.id
             };
 
             if (vm.appliedRewardList && vm.appliedRewardList.length){
@@ -11706,7 +11709,8 @@ define(['js/app'], function (myApp) {
                 bonusCode: vm.playerManualTopUp.bonusCode,
                 realName: vm.playerManualTopUp.realName,
                 topUpReturnCode: vm.playerManualTopUp.topUpReturnCode,
-                orderNo: vm.playerManualTopUp.orderNo
+                orderNo: vm.playerManualTopUp.orderNo,
+                platform: vm.selectedPlatform.id
             };
             vm.playerManualTopUp.submitted = true;
             $scope.safeApply();
@@ -11870,7 +11874,8 @@ define(['js/app'], function (myApp) {
                 amount: vm.playerBonus.amount,
                 bonusId: vm.playerBonus.bonusId,
                 honoreeDetail: vm.playerBonus.honoreeDetail,
-                bForce: vm.playerBonus.bForce
+                bForce: vm.playerBonus.bForce,
+                platform: vm.selectedPlatform.id
             };
             console.log('applyBonusRequest', sendData);
             vm.playerBonus.resMsg = '';
@@ -12861,7 +12866,9 @@ define(['js/app'], function (myApp) {
             let sendQuery = {
                 'rewardTaskGroupId': rewardTaskGroup._id,
                 'incRewardAmount': incRewardAmt,
-                'incConsumptionAmount': incConsumptAmt
+                'incConsumptionAmount': incConsumptAmt,
+                'platform': vm.selectedPlatform.id,
+                'playerId': vm.isOneSelectedPlayer().playerId
             };
 
             socketService.$socket($scope.AppSocket, 'unlockRewardTaskInRewardTaskGroup', sendQuery, function (data) {
@@ -14568,7 +14575,8 @@ define(['js/app'], function (myApp) {
                 realName: vm.playerAlipayTopUp.realName,
                 createTime: vm.playerAlipayTopUp.createTime.data('datetimepicker').getLocalDate(),
                 topUpReturnCode: vm.playerAlipayTopUp.topUpReturnCode,
-                orderNo: vm.playerAlipayTopUp.orderNo
+                orderNo: vm.playerAlipayTopUp.orderNo,
+                platform: vm.selectedPlatform.id
             };
             vm.playerAlipayTopUp.submitted = true;
             $scope.safeApply();
@@ -14640,7 +14648,8 @@ define(['js/app'], function (myApp) {
                 createTime: vm.playerWechatPayTopUp.createTime.data('datetimepicker').getLocalDate(),
                 notUseQR: !!vm.playerWechatPayTopUp.notUseQR,
                 topUpReturnCode: vm.playerWechatPayTopUp.topUpReturnCode,
-                orderNo: vm.playerWechatPayTopUp.orderNo
+                orderNo: vm.playerWechatPayTopUp.orderNo,
+                platform: vm.selectedPlatform.id
             };
             console.log("applyPlayerWechatPayTopUp", sendData);
             vm.playerWechatPayTopUp.submitted = true;
