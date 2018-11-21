@@ -68,6 +68,12 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.getTsPhoneFeedback, [data], actionName, isValidData);
         },
 
+        searchTsSMSLog: function searchTsSMSLog(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.tsDistributedPhone);
+            socketUtil.emitter(self.socket, dbTeleSales.searchTsSMSLog, [data, data.index, data.limit], actionName, isValidData);
+        },
+
         getTsDistributedPhoneDetail: function getTsDistributedPhoneDetail (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.tsDistributedPhoneObjId);

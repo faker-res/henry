@@ -965,6 +965,11 @@ var dbLogger = {
             status: status,
             error: error,
         });
+
+        if (data.tsDistributedPhone) {
+            logData.tsDistributedPhone = data.tsDistributedPhone;
+            delete logData.playerId;
+        }
         var smsLog = new dbconfig.collection_smsLog(logData);
         smsLog.save().then().catch(err => errorSavingLog(err, logData));
     },
