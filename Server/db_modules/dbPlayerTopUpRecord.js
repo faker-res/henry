@@ -1422,7 +1422,7 @@ var dbPlayerTopUpRecord = {
                         return pmsAPI.payment_requestManualBankCard(requestData).then(cardData => {
                             if (cardData && cardData.result && cardData.result.bankTypeId) {
                                 // find bankName for this card
-                                return pmsAPI.bankcard_getBankType({bankTypeId: cardData.result.bankTypeId}).then(
+                                return pmsAPI.bankcard_getBankType({bankTypeId: cardData.result.bankTypeId, queryId: serverInstance.getQueryId()}).then(
                                     bankData => {
                                         if (bankData && bankData.data && bankData.data.name) {
                                             cardData.result.bankName = bankData.data.name;

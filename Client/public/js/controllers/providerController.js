@@ -303,7 +303,8 @@ define(['js/app'], function (myApp) {
                     status: Number(vm.showProvider.status),
                     dailySettlementHour: vm.showProvider.dailySettlementHour,
                     dailySettlementMinute: vm.showProvider.dailySettlementMinute,
-                }
+                },
+                platform: vm.selectedPlatform.id
             }
             console.log("updateProvider", obj);
             socketService.$socket($scope.AppSocket, 'updateGameProvider', obj, function (data) {
@@ -507,7 +508,8 @@ define(['js/app'], function (myApp) {
         vm.confirmGameStatusChange = function (which, value) {
             var send = {
                 query: {_id: vm.curStatusGame._id},
-                updateData: {status: vm.curStatusGame.targetStatus}
+                updateData: {status: vm.curStatusGame.targetStatus},
+                platform: vm.selectedPlatform.id
             };
             socketService.$socket($scope.AppSocket, 'updateGame', send, function (data) {
                 vm.getProviderGames(vm.SelectedProvider._id);
@@ -862,6 +864,7 @@ define(['js/app'], function (myApp) {
             };
 
             sendData.selectedPlatformID = (vm.selectedPlatformID === "_allPlatform") ? vm.allPlatformId : vm.selectedPlatformID;
+            sendData.platform = vm.selectedPlatform.id;
 
             // if(vm.selectedPlatformID !== "_allPlatform") {
             //     sendData.selectedPlatformID = vm.selectedPlatformID;

@@ -530,42 +530,46 @@ define(['js/app'], function (myApp) {
                         title: $translate('Function'),
                         render: function (data, type, row) {
                             let link = $('<a>', {
-                                // 'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
-                                // 'data-row': JSON.stringify(row),
-                                // 'data-toggle': 'modal',
-                                // 'data-target': '#modalAddPlayerFeedback',
-                                // 'title': $translate("ADD_FEEDBACK"),
-                                // 'data-placement': 'left',
+                                'ng-click': 'vm.telorMessageToTsPhoneBtn(' + '"tel",' + JSON.stringify(row) + ');',
+                                'data-row': JSON.stringify(row),
+                                'data-toggle': 'tooltip',
+                                'title': $translate("PHONE"),
+                                'data-placement': 'left',
                             }).text("1. " + $translate("CALL_OUT"));
 
-                            link.append($('<br><a>', {
-                                // 'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
-                                // 'data-row': JSON.stringify(row),
-                                // 'data-toggle': 'modal',
-                                // 'data-target': '#modalAddPlayerFeedback',
-                                // 'title': $translate("ADD_FEEDBACK"),
-                                // 'data-placement': 'left',
+                            let tsPhoneObjId = row.tsPhone._id;
+                            link.append($('<br>'));
+                            link.append($('<a>', {
+                                'ng-click': 'vm.tsPhoneAddFeedback = {tsPhone: ' + JSON.stringify(tsPhoneObjId) + '}',
+                                'data-row': JSON.stringify(row),
+                                'data-toggle': 'modal',
+                                'data-target': '#modalTsPhoneFeedback',
+                                'title': $translate("ADD_FEEDBACK"),
+                                'data-placement': 'left',
                             }).text("2. " + $translate("ADD_FEEDBACK")));
 
-                            link.append($('<br><a>', {
-                                // 'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
-                                // 'data-row': JSON.stringify(row),
-                                // 'data-toggle': 'modal',
-                                // 'data-target': '#modalAddPlayerFeedback',
-                                // 'title': $translate("ADD_FEEDBACK"),
-                                // 'data-placement': 'left',
+                            link.append($('<br>'));
+                            link.append($('<a>', {
+                                'ng-click': 'vm.initTsPhoneFeedbackHistory(' + JSON.stringify(tsPhoneObjId) + ');',
+                                'data-row': JSON.stringify(row),
+                                'data-toggle': 'modal',
+                                'data-target': '#modalTsPhoneFeedbackHistory',
+                                'title': $translate("FeedbackHistory"),
+                                'data-placement': 'left',
                             }).text("3. " + $translate("FeedbackHistory")));
 
-                            link.append($('<br><a>', {
-                                // 'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
-                                // 'data-row': JSON.stringify(row),
-                                // 'data-toggle': 'modal',
-                                // 'data-target': '#modalAddPlayerFeedback',
-                                // 'title': $translate("ADD_FEEDBACK"),
-                                // 'data-placement': 'left',
+                            link.append($('<br>'));
+                            link.append($('<a>', {
+                                'ng-click': 'vm.initSMSModal();' + "vm.telorMessageToTsPhoneBtn('" +
+                                    "msg" + "', " +  JSON.stringify(row) + ");",
+                                'data-row': JSON.stringify(row),
+                                'data-toggle': 'tooltip',
+                                'title': $translate("Send SMS to Player"),
+                                'data-placement': 'left',
                             }).text("4. " + $translate("sendSMS")));
 
-                            link.append($('<br><a>', {
+                            link.append($('<br>'));
+                            link.append($('<a>', {
                                 // 'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
                                 // 'data-row': JSON.stringify(row),
                                 // 'data-toggle': 'modal',
@@ -574,7 +578,8 @@ define(['js/app'], function (myApp) {
                                 // 'data-placement': 'left',
                             }).text("5. " + $translate("CREATE_NEW_PLAYER")));
 
-                            link.append($('<br><a>', {
+                            link.append($('<br>'));
+                            link.append($('<a>', {
                                 // 'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
                                 // 'data-row': JSON.stringify(row),
                                 // 'data-toggle': 'modal',
@@ -625,9 +630,104 @@ define(['js/app'], function (myApp) {
 
         }
 
+        vm.telorMessageToTsPhoneBtn = function (type, data) {
+            // var rowData = JSON.parse(data);
+            vm.selectedTsDistributedPhoneId = data._id;
+            console.log(type, data);
+            vm.getSMSTemplate();
+            var title, text;
+            if (type == 'msg' && authService.checkViewPermission('Player', 'Player', 'sendSMS')) {
+                if (!(data && data.tsPhone && data.tsPhone.phoneNumber)) {
+                    return;
+                }
+                vm.smsPlayer = {
+                    tsDistributedPhone: data._id,
+                    playerId: "",
+                    name: data.tsPhone.playerName,
+                    nickName: data.tsPhone.nickName || "",
+                    platformId: vm.selectedPlatform.data.platformId,
+                    channel: $scope.channelList[0],
+                    hasPhone: data.tsPhone.phoneNumber
+                }
+                vm.sendSMSResult = {};
+                $scope.safeApply();
+                $('#smsPlayerModal').modal('show');
+                vm.showSmsTab(null);
+            } else if (type == 'tel') {
+                if (!(data && data.tsPhone && data.tsPhone.phoneNumber)) {
+                    $scope.phoneCall.loadingNumber = false;
+                        $scope.phoneCall.err = err.error.message;
+                        alert($scope.phoneCall.err);
+                        $scope.$evalAsync();
+                }
+                    var phoneCall = {
+                    // playerId: data.playerId,
+                    name: data.tsPhone.playerName,
+                    toText: data.tsPhone.playerName ? data.tsPhone.playerName : data.tsPhone.name || "",
+                    platform: "jinshihao",
+                    loadingNumber: true,
+                }
+                $scope.initPhoneCall(phoneCall);
+                $scope.phoneCall.phone = data.tsPhone.phoneNumber;
+                $scope.phoneCall.loadingNumber = false;
+                $scope.$evalAsync();
+                $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
+
+                // socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: playerObjId}, function (data) {
+                //     $scope.phoneCall.phone = data.data;
+                //     $scope.phoneCall.loadingNumber = false;
+                //     $scope.safeApply();
+                //     $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
+                // }, function (err) {
+                //     $scope.phoneCall.loadingNumber = false;
+                //     $scope.phoneCall.err = err.error.message;
+                //     alert($scope.phoneCall.err);
+                //     $scope.safeApply();
+                // }, true);
+            }
+        };
+
+        vm.initTsPhoneFeedbackHistory = function (tsPhoneObjId) {
+            vm.tsPhoneFeedbackDetail = [];
+            let sendData = {
+                platform: vm.selectedPlatform.id,
+                adminId: authService.adminId,
+                tsPhone: tsPhoneObjId
+            }
+            socketService.$socket($scope.AppSocket, 'getTsPhoneFeedback', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.tsPhoneFeedbackDetail = data.data;
+                    vm.tsPhoneFeedbackDetail.forEach(item => {
+                        item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                    });
+                })
+            })
+        }
+
         vm.initAdminPhoneListDetails = function (rowData) {
             vm.tsPhoneDetails = rowData && rowData.tsPhone || {}
         }
+
+        vm.addTsPhoneFeedback = function (data) {
+            let resultName = vm.allPlayerFeedbackResults.filter(item => {
+                return item.key == data.result;
+            });
+            resultName = resultName.length > 0 ? resultName[0].value : "";
+            let sendData = {
+                tsPhone: data.tsPhone,
+                platform: vm.selectedPlatform.id,
+                adminId: authService.adminId,
+                content: data.content,
+                result: data.result,
+                resultName: resultName,
+                topic: data.topic
+            };
+            console.log('sendData', sendData);
+            socketService.$socket($scope.AppSocket, 'createTsPhoneFeedback', sendData, function (data) {
+                vm.tsPhoneAddFeedback.content = "";
+                vm.tsPhoneAddFeedback.result = "";
+            });
+        };
 
         //search and select platform node
         vm.searchAndSelectPlatform = function (text, option) {
@@ -1877,7 +1977,8 @@ define(['js/app'], function (myApp) {
         };
 
         vm.searchSMSLog = function (newSearch) {
-            var requestData = {
+            let socketActionStr = "";
+            let requestData = {
                 // playerId: vm.selectedSinglePlayer.playerId,
                 isAdmin: vm.smsLog.query.isAdmin,
                 isSystem: vm.smsLog.query.isSystem,
@@ -1887,12 +1988,20 @@ define(['js/app'], function (myApp) {
                 index: newSearch ? 0 : vm.smsLog.index,
                 limit: newSearch ? 10 : vm.smsLog.limit,
             };
-            if (vm.smsLog.type == "single") {
-                requestData.playerId = vm.selectedSinglePlayer.playerId;
+
+            if (vm.selectedTab == "REMINDER_PHONE_LIST" && vm.selectedTsDistributedPhoneId) {
+                socketActionStr = "searchTsSMSLog";
+                requestData.tsDistributedPhone = vm.selectedTsDistributedPhoneId;
+            } else {
+                socketActionStr = "searchSMSLog";
+                if (vm.smsLog.type == "single") {
+                    requestData.playerId = vm.selectedSinglePlayer.playerId;
+                }
             }
 
+
             console.log("searchSMSLog requestData:", requestData);
-            $scope.$socketPromise('searchSMSLog', requestData).then(result => {
+            $scope.$socketPromise(socketActionStr, requestData).then(result => {
                 $scope.$evalAsync(() => {
                     console.log("searchSMSLog result", result);
                     vm.smsLog.searchResults = result.data.data.map(item => {
@@ -4426,7 +4535,7 @@ define(['js/app'], function (myApp) {
                     },
                     {
                         title: $translate('TOTAL_DEPOSIT_AMOUNT'),
-                        data: "totalDepositAmount",
+                        data: "totalDpositAmount",
                         sClass: "sumFloat textRight",
                         render: function(data, type, row, index){
                             var link = $('<span>', {
