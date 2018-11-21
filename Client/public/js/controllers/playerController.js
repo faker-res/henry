@@ -10435,7 +10435,7 @@ define(['js/app'], function (myApp) {
             }, function (data) {
                 vm.playerAllTopupRecords = data.data;
 
-                if (type == "PlayerRetentionRewardGroup" && rewardObj.condition && rewardObj.condition.allowOnlyLatestTopUp && vm.playerAllTopupRecords.length){
+                if (type && type == "PlayerRetentionRewardGroup" && rewardObj.condition && rewardObj.condition.allowOnlyLatestTopUp && vm.playerAllTopupRecords && vm.playerAllTopupRecords.length){
                     for(let i=0; i < vm.playerAllTopupRecords.length; i ++){
                         if (i != 0){
                             vm.playerAllTopupRecords[i].isDisabled = true;
