@@ -100,14 +100,20 @@ function socketActionTeleSales(socketIO, socket) {
 
         updateTsAssignees: function updateTsAssignees(data){
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.assignees);
+            var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.assignees && data.assignees.length > 0);
             socketUtil.emitter(self.socket, dbTeleSales.updateTsAssignees, [data.platformObjId, data.tsPhoneListObjId, data.assignees], actionName, isValidData);
         },
 
         removeTsAssignees: function removeTsAssignees(data){
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.adminNames);
+            var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.adminNames && data.adminNames.length > 0);
             socketUtil.emitter(self.socket, dbTeleSales.removeTsAssignees, [data.platformObjId, data.tsPhoneListObjId, data.adminNames], actionName, isValidData);
+        },
+
+        getDistributionDetails: function getDistributionDetails(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.adminNames && data.adminNames.length > 0);
+            socketUtil.emitter(self.socket, dbTeleSales.getDistributionDetails, [data.platformObjId, data.tsPhoneListObjId, data.adminNames], actionName, isValidData);
         }
 
     };
