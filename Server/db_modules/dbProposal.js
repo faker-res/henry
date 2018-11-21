@@ -240,83 +240,101 @@ var proposal = {
     },
 
     createRewardProposal: function (eventData, playerData, selectedRewardParam, rewardGroupRecord, applyAmount, rewardAmount, spendingAmount, retentionRecordObjId, userAgent, adminInfo){
-        // create reward proposal
-        let proposalData = {
-            type: eventData.executeProposal,
-            creator: adminInfo ? adminInfo :
-                {
-                    type: 'player',
-                    name: playerData.name,
-                    id: playerData._id
-                },
-            data: {
-                playerObjId: playerData._id,
-                playerId: playerData.playerId,
-                playerName: playerData.name,
-                realName: playerData.realName,
-                platformObjId: playerData.platform._id,
-                rewardAmount: rewardAmount,
-                spendingAmount: spendingAmount,
-                eventId: eventData._id,
-                eventName: eventData.name,
-                eventCode: eventData.code,
-                eventDescription: eventData.description,
-                isIgnoreAudit: eventData.condition && (typeof(eventData.condition.isIgnoreAudit) === "boolean" && eventData.condition.isIgnoreAudit === true) || (Number.isInteger(eventData.condition.isIgnoreAudit) && eventData.condition.isIgnoreAudit >= rewardAmount),
-                forbidWithdrawAfterApply: Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true),
-                remark: selectedRewardParam.remark,
-                useConsumption: Boolean(!eventData.condition.isSharedWithXIMA),
-                providerGroup: eventData.condition.providerGroup,
-                // Use this flag for auto apply reward
-                isGroupReward: true,
-                // If player credit is more than this number after unlock reward group, will ban bonus
-                forbidWithdrawIfBalanceAfterUnlock: selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0,
-                isDynamicRewardAmount: Boolean(eventData.condition.isDynamicRewardAmount)
-            },
-            entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
-            userType: constProposalUserType.PLAYERS
-        };
-        proposalData.inputDevice = dbutility.getInputDevice(userAgent, false, adminInfo);
-        
-        // Custom proposal data field
-        if (applyAmount > 0) {
-            proposalData.data.applyAmount = applyAmount;
-        }
+        // get the rewardType
+        return dbconfig.collection_rewardType.findOne({_id: eventData.type}).lean().then(
+            rewardType => {
+                if (!rewardType){
+                    return Promise.reject({
+                        name: "DataError",
+                        errorMessage: "rewardType is not found"
+                    })
+                }
 
-        // if (consecutiveNumber) {
-        //     proposalData.data.consecutiveNumber = consecutiveNumber;
-        // }
-        
-        if (rewardGroupRecord && rewardGroupRecord.topUpRecordObjId && rewardGroupRecord.topUpRecordObjId.proposalId &&
-            eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
-            proposalData.data.topUpProposalId = rewardGroupRecord.topUpRecordObjId.proposalId;
-            proposalData.data.actualAmount = rewardGroupRecord.topUpRecordObjId.amount;
+                // create reward proposal
+                let proposalData = {
+                    type: eventData.executeProposal,
+                    creator: adminInfo ? adminInfo :
+                        {
+                            type: 'player',
+                            name: playerData.name,
+                            id: playerData._id
+                        },
+                    data: {
+                        playerObjId: playerData._id,
+                        playerId: playerData.playerId,
+                        playerName: playerData.name,
+                        realName: playerData.realName,
+                        platformObjId: playerData.platform._id,
+                        rewardAmount: rewardAmount,
+                        spendingAmount: spendingAmount,
+                        eventId: eventData._id,
+                        eventName: eventData.name,
+                        eventCode: eventData.code,
+                        eventDescription: eventData.description,
+                        isIgnoreAudit: eventData.condition && (typeof(eventData.condition.isIgnoreAudit) === "boolean" && eventData.condition.isIgnoreAudit === true) || (Number.isInteger(eventData.condition.isIgnoreAudit) && eventData.condition.isIgnoreAudit >= rewardAmount),
+                        forbidWithdrawAfterApply: Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true),
+                        remark: selectedRewardParam.remark,
+                        useConsumption: Boolean(!eventData.condition.isSharedWithXIMA),
+                        providerGroup: eventData.condition.providerGroup,
+                        // Use this flag for auto apply reward
+                        isGroupReward: true,
+                        // If player credit is more than this number after unlock reward group, will ban bonus
+                        forbidWithdrawIfBalanceAfterUnlock: selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0,
+                        isDynamicRewardAmount: Boolean(eventData.condition.isDynamicRewardAmount)
+                    },
+                    entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                    userType: constProposalUserType.PLAYERS
+                };
+                proposalData.inputDevice = dbutility.getInputDevice(userAgent, false, adminInfo);
 
-        }
+                // Custom proposal data field
+                // if (applyAmount > 0) {
+                //     proposalData.data.applyAmount = applyAmount;
+                // }
 
-        proposalData.data.applyTargetDate = new Date(dbutility.getTodaySGTime().startTime);
+                // if (consecutiveNumber) {
+                //     proposalData.data.consecutiveNumber = consecutiveNumber;
+                // }
 
-        // if (useTopUpAmount !== null) {
-        //     proposalData.data.useTopUpAmount = useTopUpAmount;
-        // }
+                if (rewardGroupRecord && rewardGroupRecord.topUpRecordObjId && rewardGroupRecord.topUpRecordObjId.proposalId &&
+                    eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
+                    proposalData.data.topUpProposalId = rewardGroupRecord.topUpRecordObjId.proposalId;
+                    proposalData.data.actualAmount = rewardGroupRecord.topUpRecordObjId.amount;
 
-        // if (useConsumptionAmount !== null) {
-        //     proposalData.data.useConsumptionAmount = useConsumptionAmount;
-        // }
+                }
 
-        if (rewardGroupRecord && rewardGroupRecord.topUpRecordObjId && rewardGroupRecord.topUpRecordObjId._id) {
-            proposalData.data.topUpRecordId = rewardGroupRecord.topUpRecordObjId._id;
-        }
+                proposalData.data.applyTargetDate = new Date(dbutility.getTodaySGTime().startTime);
 
-        if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
-            proposalData.data.lastLoginIp = playerData.lastLoginIp;
-            proposalData.data.phoneNumber = playerData.phoneNumber;
-        }
+                // if (useTopUpAmount !== null) {
+                //     proposalData.data.useTopUpAmount = useTopUpAmount;
+                // }
 
-        // if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && deviceId){
-        //     proposalData.data.deviceId = deviceId;
-        // }
+                // if (useConsumptionAmount !== null) {
+                //     proposalData.data.useConsumptionAmount = useConsumptionAmount;
+                // }
 
-        return proposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
+                if (rewardGroupRecord && rewardGroupRecord.topUpRecordObjId && rewardGroupRecord.topUpRecordObjId._id) {
+                    proposalData.data.topUpRecordId = rewardGroupRecord.topUpRecordObjId._id;
+                }
+
+                if (rewardType.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
+                    proposalData.data.lastLoginIp = playerData.lastLoginIp;
+                    proposalData.data.phoneNumber = playerData.phoneNumber;
+                }
+
+                if (rewardType.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && eventData.condition
+                    && eventData.condition.definePlayerLoginMode && typeof(eventData.condition.definePlayerLoginMode) != 'undefined'){
+                    proposalData.data.definePlayerLoginMode = eventData.condition.definePlayerLoginMode;
+                }
+
+
+                // if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && deviceId){
+                //     proposalData.data.deviceId = deviceId;
+                // }
+
+                return proposal.createProposalWithTypeId(eventData.executeProposal, proposalData)
+            }
+        ).then(
             () => {
                 // update playerRetentionRewardRecord
                 let updateQuery = {lastReceivedDate: dbutility.getTodaySGTime().startTime};
@@ -328,7 +346,8 @@ var proposal = {
                 }
 
                 return dbconfig.collection_playerRetentionRewardGroupRecord.findOneAndUpdate({_id: retentionRecordObjId}, updateQuery)
-            })
+            }
+        )
     },
 
     /**

@@ -1593,6 +1593,7 @@
   "Check if this phone number has received the reward": "（领优惠前）检查该电话是否曾经领过",
   "Check if this portable device has received the reward": "（领优惠前）检查该移动设备是否曾经领过",
   "Define player login mode": "定义玩家登入模式",
+  "definePlayerLoginMode": "定义玩家登入模式",
   "1. Accumulative login day: login at  day 1, 2 and 3, collect the reward for day 1, 2 and 3.": "1.累积登入天数：登入第1. 3. 5日，领取1. 2. 3天优惠",
   "2. Exact login date: login at 1st, 3rd and 5th, collect the reward for day 1, 3 and 5.": "2.准确登入日期：登入第1. 3. 5日，领取1. 3. 5优惠",
   "minimumTopUpAmountInInterval": "周期内该笔最低存款金额（上述选中的方式）",

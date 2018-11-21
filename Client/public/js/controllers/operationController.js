@@ -952,6 +952,8 @@ define(['js/app'], function (myApp) {
                 result = $translate($scope.loseValueType[val]);
             } else if (fieldName === 'rewardPercent') {
                 result = val + "%";
+            } else if (fieldName === 'definePlayerLoginMode') {
+                result = $translate($scope.playerLoginMode[val]);
             }
             return $sce.trustAsHtml(result);
         };

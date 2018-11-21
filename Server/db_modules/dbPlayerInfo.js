@@ -5674,9 +5674,6 @@ let dbPlayerInfo = {
                                         })
                                     });
 
-                                    // check for playerRetentionRewardGroup
-                                    dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(errorUtils.reportError);
-
                                     if (bUpdateIp) {
                                         dbPlayerInfo.updateGeoipws(data._id, platformId, playerData.lastLoginIp);
                                         dbPlayerInfo.checkPlayerIsIDCIp(platformId, data._id, playerData.lastLoginIp).catch(errorUtils.reportError);
@@ -5685,6 +5682,11 @@ let dbPlayerInfo = {
                                     if (updateSimilarIpPlayer) {
                                         // dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'lastLoginIp', playerData.lastLoginIp);
                                     }
+                                }
+                            ).then(
+                                () => {
+                                    // check for playerRetentionRewardGroup
+                                    return dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(errorUtils.reportError);
                                 }
                             ).then(
                                 () => {

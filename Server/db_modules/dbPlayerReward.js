@@ -7096,6 +7096,11 @@ let dbPlayerReward = {
                         //     proposalData.data.deviceId = deviceId;
                         // }
 
+                        if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && eventData.condition
+                            && eventData.condition.definePlayerLoginMode && typeof(eventData.condition.definePlayerLoginMode) != 'undefined'){
+                            proposalData.data.definePlayerLoginMode = eventData.condition.definePlayerLoginMode;
+                        }
+
                         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
                             proposalData.data.rewardAppearPeriod = showRewardPeriod;
                         }

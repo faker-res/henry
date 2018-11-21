@@ -777,6 +777,8 @@ define(['js/app'], function (myApp) {
                 result = JSON.stringify(val);
             } else if (fieldName === "upOrDown") {
                 result = $translate(val);
+            } else if (fieldName === 'definePlayerLoginMode') {
+                result = $translate($scope.playerLoginMode[val]);
             }
             return $sce.trustAsHtml(result);
         };

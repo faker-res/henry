@@ -3077,11 +3077,12 @@ var proposalExecutor = {
                         rewardType: constRewardType.PLAYER_RETENTION_REWARD_GROUP,
                         platformId: proposalData.data.platformId,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
-                        currentAmount: proposalData.data.rewardAmount,
-                        initAmount: proposalData.data.rewardAmount,
+                        // when get the reward when login, applyAmount (i.e., the top up amount) should not be included
+                        currentAmount: proposalData.data.rewardAmount + (proposalData.data.applyAmount || 0),
+                        initAmount: proposalData.data.rewardAmount + (proposalData.data.applyAmount || 0),
                         useConsumption: Boolean(proposalData.data.useConsumption),
                         eventId: proposalData.data.eventId,
-                        applyAmount: 0,
+                        applyAmount: proposalData.data.applyAmount || 0,
                         providerGroup: proposalData.data.providerGroup
                     };
 
