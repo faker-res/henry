@@ -557,7 +557,7 @@ var dbAdminInfo = {
 
     getActionLogPageReport: function (action, admin, player, startTime, endTime, index, limit, sortCol, platformObjIdList) {
         var query = {};
-        var sortCol = sortCol || {operationTime: -1}
+        var sortCol = Object.keys(sortCol).length > 0 ? sortCol : {operationTime: -1}
         index = index || 0;
         limit = limit || 100;
         if (admin) {
@@ -579,7 +579,7 @@ var dbAdminInfo = {
             }
         }
         if(platformObjIdList && platformObjIdList.length > 0) {
-            query.platforms = {$in: platformObjId.map(p => ObjectId(p))}
+            query.platforms = {$in: platformObjIdList.map(p => ObjectId(p))}
         }
 
         var a = dbconfig.collection_systemLog.find(query).sort(sortCol).skip(index).limit(limit)
