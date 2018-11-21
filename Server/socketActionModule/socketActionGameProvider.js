@@ -57,7 +57,7 @@ function socketActionGame(socketIO, socket) {
         updateGameProvider: function updateGameProvider(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);
-            socketUtil.emitter(self.socket, dbGameProvider.updateGameProvider, [data.query, data.updateData], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbGameProvider.updateGameProvider, [data.query, data.updateData, data.platform], actionName, isValidData);
         },
 
         /**
@@ -139,7 +139,7 @@ function socketActionGame(socketIO, socket) {
             var actionName = arguments.callee.name;
             let sevenDayAgo = (new Date).setDate((new Date).getDate() - 14);
             var isValidData = Boolean(data && data.providerId && data.settlementDay && new Date(data.settlementDay) > sevenDayAgo);
-            socketUtil.emitter(self.socket, dailyProviderSettlement.manualDailyProviderSettlement, [ObjectId(data.providerId), new Date(data.settlementDay), data.selectedPlatformID], actionName, isValidData);
+            socketUtil.emitter(self.socket, dailyProviderSettlement.manualDailyProviderSettlement, [ObjectId(data.providerId), new Date(data.settlementDay), data.selectedPlatformID, data.platform], actionName, isValidData);
         },
 
         /**

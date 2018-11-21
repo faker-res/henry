@@ -302,27 +302,31 @@ var dbGameProviderPlayerDaySummary = {
     syncBetRecord: function (startTime, endTime, platformId, proId, index, count) {
         var sendData = {
             providerId: proId,
-            startDate: startTime,
-            endDate: endTime,
+            startDate: dbUtil.getSGTimeToString(startTime),
+            endDate: dbUtil.getSGTimeToString(endTime),
             platformId: platformId
         };
-        return cpmsAPI.consumption_reSendConsumption(sendData);
+        return cpmsAPI.consumption_reSendConsumption(sendData).then(
+            data=>{
+                return data;
+            },
+            error=>{
+                return Promise.reject({name: 'DataError', message: 'Can not resend consumption'})
+            }
+        )
     },
     getProviderDifferDaySummaryForTimeFrame: function (startTime, endTime, platformObjId, platformId, providerObjId, proId,  index, count) {
         let sendQuery = {
             platformId: platformId,
             providerId: proId,
-            startDate: startTime.toISOString().substr(0,19),
-            endDate: endTime.toISOString().substr(0,19)
+            startDate: dbUtil.getSGTimeToString(startTime),
+            endDate: dbUtil.getSGTimeToString(endTime)
         };
-        // modify the date to cpms datetime format -> "2018-11-07 02:00:00"
-        sendQuery.startDate = sendQuery.startDate.replace("T", " ");
-        sendQuery.endDate = sendQuery.endDate.replace("T", " ");
+        // modify the date to cpms datetime format -> "2018-11-07 02:00:00" and cpms are using gmt +8 timezone for date query
         let fpmsSummary = dbGameProviderPlayerDaySummary.getProviderDaySummaryForTimeFrame(startTime, endTime, platformObjId, providerObjId, index, count);
         let cpmsSummary = new Promise((resolve, reject)=>{
             cpmsAPI.consumption_getConsumptionSummary(sendQuery).then(
                 function (result) {
-
                     resolve(result);
                 },
                 function (err) {

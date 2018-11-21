@@ -248,7 +248,7 @@ function socketActionAdmin(socketIO, socket) {
         getActionLogPageReport: function getActionLogPageReport(data) {
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data);
-            socketUtil.emitter(self.socket, dbAdminInfo.getActionLogPageReport, [data.action, data.admin, data.player, data.startTime, data.endTime, data.index, data.limit, data.sortCol, data.platformObjId], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbAdminInfo.getActionLogPageReport, [data.action, data.admin, data.player, data.startTime, data.endTime, data.index, data.limit, data.sortCol, data.platformObjIdList], actionName, isDataValid);
         },
 
         /**

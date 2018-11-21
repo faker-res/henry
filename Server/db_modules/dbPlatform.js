@@ -4820,6 +4820,60 @@ var dbPlatform = {
                 }
             );
 
+            // 代理提成设置 - 佣金设置
+            // partnerCommissionConfig
+            let copyPartnerCommissionConfigProm = dbconfig.collection_partnerCommissionConfig.remove({platform: replicateTo._id}).then(
+                () => dbconfig.collection_partnerCommissionConfig.find({platform: replicateFrom._id}).lean()
+            ).then(
+                partnerCommissionConfigs => {
+                    let proms = [];
+                    partnerCommissionConfigs.map(partnerCommissionConfig => {
+                        delete partnerCommissionConfig._id;
+                        partnerCommissionConfig.platform = replicateTo._id;
+                        let prom = dbconfig.collection_partnerCommissionConfig(partnerCommissionConfig).save().catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
+            // 代理提成设置 - 费用设置
+            // partnerCommissionRateConfig
+            let copyPartnerCommissionRateConfigProm = dbconfig.collection_partnerCommissionRateConfig.remove({platform: replicateTo._id}).then(
+                () => dbconfig.collection_partnerCommissionRateConfig.find({platform: replicateFrom._id}).lean()
+            ).then(
+                partnerCommissionRateConfigs => {
+                    let proms = [];
+                    partnerCommissionRateConfigs.map(partnerCommissionRateConfig => {
+                        delete partnerCommissionRateConfig._id;
+                        partnerCommissionRateConfig.platform = replicateTo._id;
+                        let prom = dbconfig.collection_partnerCommissionRateConfig(partnerCommissionRateConfig).save().catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
+            // 锁大厅设置
+            // gameProviderGroup
+            let copyGameProviderGroupProm = dbconfig.collection_gameProviderGroup.remove({platform: replicateTo._id}).then(
+                () => dbconfig.collection_gameProviderGroup.find({platform: replicateFrom._id}).lean()
+            ).then(
+                gameProviderGroups => {
+                    let proms = [];
+                    gameProviderGroups.map(gameProviderGroup => {
+                        delete gameProviderGroup._id;
+                        gameProviderGroup.platform = replicateTo._id;
+                        let prom = dbconfig.collection_gameProviderGroup(gameProviderGroup).save().catch(errorUtils.reportError);
+                        proms.push(prom);
+                    });
+
+                    return Promise.all(proms);
+                }
+            );
+
             return Promise.all([
                 copyPlatformDataProm,
                 copyPlayerLevelProm,
@@ -4839,6 +4893,9 @@ var dbPlatform = {
                 // copyPlayerFeedbackResultProm, // temporally feedbackResult is not base on platform
                 copyPlayerPageAdvertisementInfoProm,
                 copyPartnerPageAdvertisementInfoProm,
+                copyPartnerCommissionConfigProm,
+                copyPartnerCommissionRateConfigProm,
+                copyGameProviderGroupProm,
             ]);
         }).then(
             () => {

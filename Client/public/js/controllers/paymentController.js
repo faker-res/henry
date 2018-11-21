@@ -946,7 +946,7 @@ define(['js/app'], function (myApp) {
         }
         vm.removeBankCardGroup = function (node) {
             console.log('to del node', node);
-            socketService.$socket($scope.AppSocket, 'deleteBankCardGroup', {_id: node._id}, function (data) {
+            socketService.$socket($scope.AppSocket, 'deleteBankCardGroup', {_id: node._id, platform: vm.selectedPlatform.id}, function (data) {
                 console.log(data.data);
                 vm.loadBankCardGroupData();
                 $scope.safeApply();
@@ -1407,7 +1407,8 @@ define(['js/app'], function (myApp) {
             })
             var sendData = {
                 bankCardGroupObjId: vm.SelectedBankCardGroupNode._id,
-                playerObjIds: playerArr
+                playerObjIds: playerArr,
+                platform: vm.selectedPlatform.id
             }
             socketService.$socket($scope.AppSocket, 'addPlayersToBankCardGroup', sendData, function (data) {
                 vm.getPlatformPlayersData();
@@ -1721,7 +1722,7 @@ define(['js/app'], function (myApp) {
         }
         vm.removeMerchantGroup = function (node) {
             console.log('to del node', node);
-            socketService.$socket($scope.AppSocket, 'deleteMerchantGroup', {_id: node._id}, function (data) {
+            socketService.$socket($scope.AppSocket, 'deleteMerchantGroup', {_id: node._id, platform: vm.selectedPlatform.id}, function (data) {
                 console.log(data.data);
                 vm.loadMerchantGroupData();
                 $scope.safeApply();
@@ -1887,7 +1888,8 @@ define(['js/app'], function (myApp) {
             })
             var sendData = {
                 bankMerchantGroupObjId: vm.SelectedMerchantGroupNode._id,
-                playerObjIds: playerArr
+                playerObjIds: playerArr,
+                platform: vm.selectedPlatform.id
             }
             socketService.$socket($scope.AppSocket, 'addPlayersToMerchantGroup', sendData, function (data) {
                 vm.playerToGroupFilter(false, false, vm.curPlayerTableId);
@@ -2242,7 +2244,7 @@ define(['js/app'], function (myApp) {
 
         vm.removeAlipayGroup = function (node) {
             console.log('to del node', node);
-            socketService.$socket($scope.AppSocket, 'deleteAlipayGroup', {_id: node._id}, function (data) {
+            socketService.$socket($scope.AppSocket, 'deleteAlipayGroup', {_id: node._id, platform: vm.selectedPlatform.id}, function (data) {
                 console.log(data.data);
                 vm.loadAlipayGroupData();
                 $scope.safeApply();
@@ -2374,7 +2376,8 @@ define(['js/app'], function (myApp) {
             })
             var sendData = {
                 bankAlipayGroupObjId: vm.SelectedAlipayGroupNode._id,
-                playerObjIds: playerArr
+                playerObjIds: playerArr,
+                platform: vm.selectedPlatform.id
             }
             socketService.$socket($scope.AppSocket, 'addPlayersToAlipayGroup', sendData, function (data) {
                 // vm.getPlatformPlayersData();
@@ -2963,7 +2966,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.removeWechatPayGroup = function (node) {
-            socketService.$socket($scope.AppSocket, 'deleteWechatPayGroup', {_id: node._id}, function (data) {
+            socketService.$socket($scope.AppSocket, 'deleteWechatPayGroup', {_id: node._id, platform: vm.selectedPlatform.id}, function (data) {
                 vm.loadWechatPayGroupData();
                 $scope.safeApply();
             })
@@ -3070,7 +3073,8 @@ define(['js/app'], function (myApp) {
 
             let sendData = {
                 weChatGroupObjId: vm.SelectedWechatPayGroupNode._id,
-                playerObjIds: playerArr
+                playerObjIds: playerArr,
+                platform: vm.selectedPlatform.id
             };
 
             socketService.$socket($scope.AppSocket, 'addPlayersToWechatPayGroup', sendData, function (data) {

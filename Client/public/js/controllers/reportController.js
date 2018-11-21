@@ -218,6 +218,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                     proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                    proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                     proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                     proposalDetail["SINGLE_LIMIT"] = " ";
                     proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
@@ -252,6 +253,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                     proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                    proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                     proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                     proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.permerchantLimits || "0";
                     proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.transactionForPlayerOneDay || "0");
@@ -281,6 +283,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                     proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                    proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                     proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                     proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.singleLimit || "0";
                     proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
@@ -313,6 +316,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                     proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                    proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                     proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                     proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.singleLimit || "0";
                     proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
@@ -7636,7 +7640,7 @@ define(['js/app'], function (myApp) {
                 index: vm.actionLogQuery.index,
                 limit: vm.actionLogQuery.limit || 10,
                 sortCol: vm.actionLogQuery.sortCol || {},
-                platformObjId: vm.selectedPlatformID || null
+                platformObjIdList: vm.actionLogQuery.platform
             }
 
             console.log('query', query);
@@ -8311,6 +8315,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                     proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                    proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                     proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                     proposalDetail["SINGLE_LIMIT"] = " ";
                     proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
@@ -8350,6 +8355,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                     proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                    proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                     proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                     proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.permerchantLimits || "0";
                     proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.transactionForPlayerOneDay || "0");
@@ -8385,6 +8391,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                     proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                    proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                     proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                     proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.singleLimit || "0";
                     proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
@@ -8422,6 +8429,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                     proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                    proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                     proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                     proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.singleLimit || "0";
                     proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
@@ -9670,7 +9678,9 @@ define(['js/app'], function (myApp) {
 
             vm.deleteDepositGroup = (depositGroup) => {
                 socketService.$socket($scope.AppSocket, 'deleteDepositGroup', {_id: depositGroup._id}, function (data) {
-                    vm.initDepositGroupSetting();
+                    $scope.$evalAsync(() => {
+                        vm.initDepositGroupSetting();
+                    });
                 });
             };
             // end of financial report's deposit group setting
@@ -10173,7 +10183,7 @@ define(['js/app'], function (myApp) {
                     {group: "PLATFORM", text: "savePartnerAdvertisementRecordChanges", action: "savePartnerAdvertisementRecordChanges"},
 
                     {group: "PLAYER", text: "CREATE_PLAYER", action: "createPlayer"},
-                    {group: "PLAYER", text: "createTestPlayerForPlatform", action: "createDemoPlayer"},
+                    {group: "PLAYER", text: "createDemoPlayer", action: "createDemoPlayer"},
                     {group: "PLAYER", text: "createUpdatePlayerInfoProposal", action: "createUpdatePlayerInfoProposal"},
                     //{group: "PLAYER", text: "Search referral", action: "getPlayerReferrals"},
                     {
@@ -10291,18 +10301,28 @@ define(['js/app'], function (myApp) {
                     {group: "Bankcard Group", text: "DELETE", action: "deleteBankCardGroup"},
                     {group: "Bankcard Group", text: "Default", action: "setPlatformDefaultBankCardGroup"},
                     {group: "Bankcard Group", text: "ADD_PLAYER", action: "addPlayersToBankCardGroup"},
+                    {group: "Bankcard Group", text: "ADD_ALL_PLAYER", action: "addAllPlayersToBankCardGroup"},
 
                     {group: "MERCHANT_GROUP", text: "ADD", action: "addPlatformMerchantGroup"},
                     {group: "MERCHANT_GROUP", text: "UPDATE", action: "renamePlatformMerchantGroup"},
                     {group: "MERCHANT_GROUP", text: "DELETE", action: "deleteMerchantGroup"},
                     {group: "MERCHANT_GROUP", text: "Default", action: "setPlatformDefaultMerchantGroup"},
                     {group: "MERCHANT_GROUP", text: "ADD_PLAYER", action: "addPlayersToMerchantGroup"},
+                    {group: "MERCHANT_GROUP", text: "ADD_ALL_PLAYER", action: "addAllPlayersToMerchantGroup"},
 
                     {group: "AlipayGroup", text: "ADD", action: "addPlatformAlipayGroup"},
                     {group: "AlipayGroup", text: "UPDATE", action: "renamePlatformAlipayGroup"},
                     {group: "AlipayGroup", text: "DELETE", action: "deleteAlipayGroup"},
                     {group: "AlipayGroup", text: "Default", action: "setPlatformDefaultAlipayGroup"},
                     {group: "AlipayGroup", text: "ADD_PLAYER", action: "addPlayersToAlipayGroup"},
+                    {group: "AlipayGroup", text: "ADD_ALL_PLAYER", action: "addAllPlayersToAlipayGroup"},
+
+                    {group: "WechatPay Group", text: "ADD", action: "addPlatformWechatGroup"},
+                    {group: "WechatPay Group", text: "UPDATE", action: "renamePlatformWechatGroup"},
+                    {group: "WechatPay Group", text: "DELETE", action: "deleteWechatGroup"},
+                    {group: "WechatPay Group", text: "Default", action: "setPlatformDefaultWechatGroup"},
+                    {group: "WechatPay Group", text: "ADD_PLAYER", action: "addPlayersToWechatGroup"},
+                    {group: "WechatPay Group", text: "ADD_ALL_PLAYER", action: "addAllPlayersToWechatGroup"},
 
                     {group: "Provider", text: "EDIT_SETTLEMENT_TIME", action: "updateGameProvider"},
                     {group: "Provider", text: "Target Settlement", action: "manualDailyProviderSettlement"},

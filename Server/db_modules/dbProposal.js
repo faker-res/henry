@@ -30,6 +30,7 @@ var dbProposalUtility = require('./../db_common/dbProposalUtility');
 var pmsAPI = require('../externalAPI/pmsAPI');
 var moment = require('moment-timezone');
 var errorUtils = require("../modules/errorUtils.js");
+var constRewardType = require('./../const/constRewardType');
 const serverInstance = require("../modules/serverInstance");
 const constMessageClientTypes = require("../const/constMessageClientTypes.js");
 const constSystemParam = require("../const/constSystemParam.js");
@@ -38,6 +39,8 @@ const constPlayerTopUpType = require("../const/constPlayerTopUpType");
 const constMaxDateTime = require("../const/constMaxDateTime");
 const constPlayerCreditTransferStatus = require("../const/constPlayerCreditTransferStatus");
 const constFinancialPointsType = require("../const/constFinancialPointsType");
+const constProposalEntryType = require("./../const/constProposalEntryType");
+const constProposalUserType = require('./../const/constProposalUserType');
 const localization = require("../modules/localization");
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 let rsaCrypto = require("../modules/rsaCrypto");
@@ -234,6 +237,98 @@ var proposal = {
                 return Q.reject(error);
             }
         );
+    },
+
+    createRewardProposal: function (eventData, playerData, selectedRewardParam, rewardGroupRecord, applyAmount, rewardAmount, spendingAmount, retentionRecordObjId, userAgent, adminInfo){
+        // create reward proposal
+        let proposalData = {
+            type: eventData.executeProposal,
+            creator: adminInfo ? adminInfo :
+                {
+                    type: 'player',
+                    name: playerData.name,
+                    id: playerData._id
+                },
+            data: {
+                playerObjId: playerData._id,
+                playerId: playerData.playerId,
+                playerName: playerData.name,
+                realName: playerData.realName,
+                platformObjId: playerData.platform._id,
+                rewardAmount: rewardAmount,
+                spendingAmount: spendingAmount,
+                eventId: eventData._id,
+                eventName: eventData.name,
+                eventCode: eventData.code,
+                eventDescription: eventData.description,
+                isIgnoreAudit: eventData.condition && (typeof(eventData.condition.isIgnoreAudit) === "boolean" && eventData.condition.isIgnoreAudit === true) || (Number.isInteger(eventData.condition.isIgnoreAudit) && eventData.condition.isIgnoreAudit >= rewardAmount),
+                forbidWithdrawAfterApply: Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true),
+                remark: selectedRewardParam.remark,
+                useConsumption: Boolean(!eventData.condition.isSharedWithXIMA),
+                providerGroup: eventData.condition.providerGroup,
+                // Use this flag for auto apply reward
+                isGroupReward: true,
+                // If player credit is more than this number after unlock reward group, will ban bonus
+                forbidWithdrawIfBalanceAfterUnlock: selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0,
+                isDynamicRewardAmount: Boolean(eventData.condition.isDynamicRewardAmount)
+            },
+            entryType: adminInfo ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+            userType: constProposalUserType.PLAYERS
+        };
+        proposalData.inputDevice = dbutility.getInputDevice(userAgent, false, adminInfo);
+        
+        // Custom proposal data field
+        if (applyAmount > 0) {
+            proposalData.data.applyAmount = applyAmount;
+        }
+
+        // if (consecutiveNumber) {
+        //     proposalData.data.consecutiveNumber = consecutiveNumber;
+        // }
+        
+        if (rewardGroupRecord && rewardGroupRecord.topUpRecordObjId && rewardGroupRecord.topUpRecordObjId.proposalId &&
+            eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
+            proposalData.data.topUpProposalId = rewardGroupRecord.topUpRecordObjId.proposalId;
+            proposalData.data.actualAmount = rewardGroupRecord.topUpRecordObjId.amount;
+
+        }
+
+        proposalData.data.applyTargetDate = new Date(dbutility.getTodaySGTime().startTime);
+
+        // if (useTopUpAmount !== null) {
+        //     proposalData.data.useTopUpAmount = useTopUpAmount;
+        // }
+
+        // if (useConsumptionAmount !== null) {
+        //     proposalData.data.useConsumptionAmount = useConsumptionAmount;
+        // }
+
+        if (rewardGroupRecord && rewardGroupRecord.topUpRecordObjId && rewardGroupRecord.topUpRecordObjId._id) {
+            proposalData.data.topUpRecordId = rewardGroupRecord.topUpRecordObjId._id;
+        }
+
+        if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
+            proposalData.data.lastLoginIp = playerData.lastLoginIp;
+            proposalData.data.phoneNumber = playerData.phoneNumber;
+        }
+
+        // if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && deviceId){
+        //     proposalData.data.deviceId = deviceId;
+        // }
+
+        return proposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
+            () => {
+                // update playerRetentionRewardRecord
+                let updateQuery = {lastReceivedDate: dbutility.getTodaySGTime().startTime};
+                if (eventData && eventData.condition && eventData.condition.definePlayerLoginMode){
+                    if (eventData.condition.definePlayerLoginMode == 1){
+                        // accumulative
+                        updateQuery.accumulativeDay = {$inc: {accumulativeDay: 1}}
+                    }
+                }
+
+                return dbconfig.collection_playerRetentionRewardGroupRecord.findOneAndUpdate({_id: retentionRecordObjId}, updateQuery)
+            })
     },
 
     /**
@@ -1207,6 +1302,12 @@ var proposal = {
                             {new: true}
                         );
                     })
+                    .then( // todo :: for debug only, check if proposalData found actually have wrong expire time. delete when it doesn't need anymore (may be 2 months without this issue)
+                        data => {
+                            console.log("autoCancelProposal successful", proposalData, data);
+                            return data;
+                        }
+                    );
             }
             else {
                 return Q.reject({message: "incorrect proposal status or authentication."});

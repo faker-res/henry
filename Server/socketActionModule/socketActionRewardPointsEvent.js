@@ -45,7 +45,7 @@ function socketActionRewardPointsEvent(socketIO, socket) {
         deleteRewardPointsEventById: function deleteRewardPointsEventById(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data._id);
-            socketUtil.emitter(self.socket, dbRewardPointsEvent.removeRewardPointsEventById, [data._id, data.category], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRewardPointsEvent.removeRewardPointsEventById, [data._id, data.category, data.platform], actionName, isValidData);
         },
 
     };

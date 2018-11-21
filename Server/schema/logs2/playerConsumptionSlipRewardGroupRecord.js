@@ -51,6 +51,6 @@ let playerConsumptionSlipRewardGroupRecordSchema = new Schema({
     isUsed: {type: Boolean, default: false, index: true}
 });
 
-playerConsumptionSlipRewardGroupRecordSchema.index({platform: 1, playerObjId: 1});
+playerConsumptionSlipRewardGroupRecordSchema.index({platformObjId: 1, playerObjId: 1});
 
 module.exports = playerConsumptionSlipRewardGroupRecordSchema;
