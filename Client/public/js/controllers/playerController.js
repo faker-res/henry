@@ -3830,6 +3830,8 @@ define(['js/app'], function (myApp) {
                     destroy: true,
                     paging: false,
                     autoWidth: true,
+                    "sScrollY": "80vh",
+                    "bScrollCollapse": true,
                     initComplete: function (data, type, row) {
                         $scope.$evalAsync();
                     },
