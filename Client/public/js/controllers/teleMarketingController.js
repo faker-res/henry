@@ -538,25 +538,28 @@ define(['js/app'], function (myApp) {
                                 // 'data-placement': 'left',
                             }).text("1. " + $translate("CALL_OUT"));
 
-                            link.append($('<br><a>', {
-                                // 'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
-                                // 'data-row': JSON.stringify(row),
-                                // 'data-toggle': 'modal',
-                                // 'data-target': '#modalAddPlayerFeedback',
-                                // 'title': $translate("ADD_FEEDBACK"),
-                                // 'data-placement': 'left',
+                            let tsPhoneObjId = row.tsPhone._id;
+                            link.append($('<br>'));
+                            link.append($('<a>', {
+                                'ng-click': 'vm.tsPhoneAddFeedback = {tsPhone: ' + JSON.stringify(tsPhoneObjId) + '}',
+                                'data-row': JSON.stringify(row),
+                                'data-toggle': 'modal',
+                                'data-target': '#modalTsPhoneFeedback',
+                                // // 'title': $translate("ADD_FEEDBACK"),
+                                'data-placement': 'left',
                             }).text("2. " + $translate("ADD_FEEDBACK")));
 
-                            link.append($('<br><a>', {
-                                // 'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
-                                // 'data-row': JSON.stringify(row),
-                                // 'data-toggle': 'modal',
-                                // 'data-target': '#modalAddPlayerFeedback',
-                                // 'title': $translate("ADD_FEEDBACK"),
-                                // 'data-placement': 'left',
+                            link.append($('<br>'));
+                            link.append($('<a>', {
+                                'ng-click': 'vm.initTsPhoneFeedbackHistory(' + JSON.stringify(tsPhoneObjId) + ');',
+                                'data-row': JSON.stringify(row),
+                                'data-toggle': 'modal',
+                                'data-target': '#modalTsPhoneFeedbackHistory',
+                                'data-placement': 'left',
                             }).text("3. " + $translate("FeedbackHistory")));
 
-                            link.append($('<br><a>', {
+                            link.append($('<br>'));
+                            link.append($('<a>', {
                                 // 'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
                                 // 'data-row': JSON.stringify(row),
                                 // 'data-toggle': 'modal',
@@ -565,7 +568,8 @@ define(['js/app'], function (myApp) {
                                 // 'data-placement': 'left',
                             }).text("4. " + $translate("sendSMS")));
 
-                            link.append($('<br><a>', {
+                            link.append($('<br>'));
+                            link.append($('<a>', {
                                 // 'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
                                 // 'data-row': JSON.stringify(row),
                                 // 'data-toggle': 'modal',
@@ -574,7 +578,8 @@ define(['js/app'], function (myApp) {
                                 // 'data-placement': 'left',
                             }).text("5. " + $translate("CREATE_NEW_PLAYER")));
 
-                            link.append($('<br><a>', {
+                            link.append($('<br>'));
+                            link.append($('<a>', {
                                 // 'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
                                 // 'data-row': JSON.stringify(row),
                                 // 'data-toggle': 'modal',
@@ -625,9 +630,47 @@ define(['js/app'], function (myApp) {
 
         }
 
+        vm.initTsPhoneFeedbackHistory = function (tsPhoneObjId) {
+            vm.tsPhoneFeedbackDetail = [];
+            let sendData = {
+                platform: vm.selectedPlatform.id,
+                adminId: authService.adminId,
+                tsPhone: tsPhoneObjId
+            }
+            socketService.$socket($scope.AppSocket, 'getTsPhoneFeedback', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.tsPhoneFeedbackDetail = data.data;
+                    vm.tsPhoneFeedbackDetail.forEach(item => {
+                        item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                    });
+                })
+            })
+        }
+
         vm.initAdminPhoneListDetails = function (rowData) {
             vm.tsPhoneDetails = rowData && rowData.tsPhone || {}
         }
+
+        vm.addTsPhoneFeedback = function (data) {
+            let resultName = vm.allPlayerFeedbackResults.filter(item => {
+                return item.key == data.result;
+            });
+            resultName = resultName.length > 0 ? resultName[0].value : "";
+            let sendData = {
+                tsPhone: data.tsPhone,
+                platform: vm.selectedPlatform.id,
+                adminId: authService.adminId,
+                content: data.content,
+                result: data.result,
+                resultName: resultName,
+                topic: data.topic
+            };
+            console.log('sendData', sendData);
+            socketService.$socket($scope.AppSocket, 'createTsPhoneFeedback', sendData, function (data) {
+                vm.tsPhoneAddFeedback.content = "";
+                vm.tsPhoneAddFeedback.result = "";
+            });
+        };
 
         //search and select platform node
         vm.searchAndSelectPlatform = function (text, option) {

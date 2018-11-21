@@ -18,7 +18,7 @@ let playerRetentionRewardGroupRecordSchema = new Schema({
     // the last applied date for this reward
     lastApplyDate: {type: Date, index: true},
     //the last time when the reward is distributed
-    lastDistributedDay: {type: Date, index: true},
+    lastReceivedDate: {type: Date, index: true},
     // accumulative day
     accumulativeDay: {type: Number, default: 1},
 
