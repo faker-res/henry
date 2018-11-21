@@ -3658,39 +3658,21 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getFinancialReportByDay', sendData, function (data) {
                     console.log('getFinancialReportByDay', data);
                     $scope.$evalAsync(() => {
-                        vm.dailyFinancialReportList = data && data.data && data.data.length > 0 ? data.data : [];
+                        vm.dailyFinancialReportList = [];
                         vm.financialReportPlatformName = '';
-                        if (vm.financialReport.platform && vm.financialReport.platform[0] && vm.platformList && vm.platformList.length) {
-                            let indexNo = vm.platformList.findIndex(x => x && x._id && x._id.toString() == vm.financialReport.platform[0].toString());
-                            vm.financialReportPlatformName = vm.platformList[indexNo] && vm.platformList[indexNo].name ? vm.platformList[indexNo].name : '';
-                        }
-                        vm.manualTopUpHeader = {};
-                        vm.onlineTopUpHeader = {};
-                        vm.alipayTopUpHeader = {};
-                        vm.wechatPayTopUpHeader = {};
-                        vm.bonusHeader = {};
-                        vm.platformFeeHeader = {};
-                        if(vm.dailyFinancialReportList && vm.dailyFinancialReportList.length > 0) {
-                            if(vm.dailyFinancialReportList[0] && vm.dailyFinancialReportList[0].manualTopUpList) {
-                                vm.manualTopUpHeader = vm.dailyFinancialReportList[0].manualTopUpList;
-                            }
 
-                            if(vm.dailyFinancialReportList[0] && vm.dailyFinancialReportList[0].onlineTopUpList) {
-                                vm.onlineTopUpHeader= vm.dailyFinancialReportList[0].onlineTopUpList;
-                            }
+                        vm.topUpHeader = [];
+                        vm.bonusHeader = [];
+                        vm.platformFeeHeader = [];
 
-                            if(vm.dailyFinancialReportList[0] && vm.dailyFinancialReportList[0].alipayTopUpList) {
-                                vm.alipayTopUpHeader.groupName= vm.dailyFinancialReportList[0].alipayTopUpList.groupName;
-                                vm.alipayTopUpHeader.typeName= vm.dailyFinancialReportList[0].alipayTopUpList.typeName;
-                            }
+                        if (data && data.data) {
+                            vm.dailyFinancialReportList = data && data.data && data.data.data && data.data.data.length > 0 ? data.data.data : [];
+                            vm.financialReportPlatformName = data.data.platformName;
 
-                            if(vm.dailyFinancialReportList[0] && vm.dailyFinancialReportList[0].wechatPayTopUpList) {
-                                vm.wechatPayTopUpHeader.groupName= vm.dailyFinancialReportList[0].wechatPayTopUpList.groupName;
-                                vm.wechatPayTopUpHeader.typeName= vm.dailyFinancialReportList[0].wechatPayTopUpList.typeName;
-                            }
-
-                            if(vm.dailyFinancialReportList[0] && vm.dailyFinancialReportList[0].bonusList) {
-                                vm.bonusHeader.bonusDetail= vm.dailyFinancialReportList[0].bonusList.bonusDetail;
+                            if(vm.dailyFinancialReportList && vm.dailyFinancialReportList.length > 0) {
+                                vm.topUpHeader = vm.dailyFinancialReportList[0].topUpList;
+                                vm.bonusHeader = vm.dailyFinancialReportList[0].bonusList;
+                                vm.platformFeeHeader = vm.dailyFinancialReportList[0].platformFeeEstimate;
                             }
                         }
                     });
