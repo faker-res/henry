@@ -6,6 +6,7 @@ var dbUtility = require('./../modules/dbutility');
 var encrypt = require('./../modules/encrypt');
 const request = require('request');
 var Q = require("q");
+const ObjectId = mongoose.Types.ObjectId;
 
 var dbAdminInfo = {
 
@@ -554,7 +555,7 @@ var dbAdminInfo = {
         return dbconfig.collection_systemLog.find(query).sort({operationTime: -1}).limit(limit).exec();
     },
 
-    getActionLogPageReport: function (action, admin, player, startTime, endTime, index, limit, sortCol, platformObjId) {
+    getActionLogPageReport: function (action, admin, player, startTime, endTime, index, limit, sortCol, platformObjIdList) {
         var query = {};
         var sortCol = sortCol || {operationTime: -1}
         index = index || 0;
@@ -577,8 +578,8 @@ var dbAdminInfo = {
                 query.action = {$in: action};
             }
         }
-        if(platformObjId) {
-            query.platforms = platformObjId
+        if(platformObjIdList && platformObjIdList.length > 0) {
+            query.platforms = {$in: platformObjId.map(p => ObjectId(p))}
         }
 
         var a = dbconfig.collection_systemLog.find(query).sort(sortCol).skip(index).limit(limit)

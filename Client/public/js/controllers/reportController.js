@@ -7636,7 +7636,7 @@ define(['js/app'], function (myApp) {
                 index: vm.actionLogQuery.index,
                 limit: vm.actionLogQuery.limit || 10,
                 sortCol: vm.actionLogQuery.sortCol || {},
-                platformObjId: vm.selectedPlatformID || null
+                platformObjIdList: vm.actionLogQuery.platform
             }
 
             console.log('query', query);
