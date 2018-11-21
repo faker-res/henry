@@ -3830,8 +3830,10 @@ define(['js/app'], function (myApp) {
                     destroy: true,
                     paging: false,
                     autoWidth: true,
+                    "sScrollY": "80vh",
+                    "bScrollCollapse": true,
                     initComplete: function (data, type, row) {
-                        $scope.safeApply();
+                        $scope.$evalAsync();
                     },
                     createdRow: function (row, data, dataIndex) {
                         $compile(angular.element(row).contents())($scope);
@@ -4881,14 +4883,13 @@ define(['js/app'], function (myApp) {
                 'remarks': remarks
             }
             socketService.$socket($scope.AppSocket, 'updatePlayerProposalRemarks', sendData, function (playerCount) {
-                console.log("updatePlayerProposalRemarks", sendData);
-                vm.newPlayerProposal.remarks = remarks;
-                vm.editNewplayerRemark = false;
-                vm.getNewPlayerListByFilter(false);
-                $scope.safeApply();
+                $scope.$evalAsync(()=>{
+                    console.log("updatePlayerProposalRemarks", sendData);
+                    vm.newPlayerProposal.remarks = remarks;
+                    vm.editNewplayerRemark = false;
+                    vm.getNewPlayerListByFilter(false);
+                })
             });
-
-
         }
         /////////////////////////////////Mark::Platform players functions//////////////////
 
@@ -9335,11 +9336,12 @@ define(['js/app'], function (myApp) {
         };
 
         vm.initPlayerModal = function () {
-            $('#newPlayerListTab').addClass('active');
-            $('#attemptNumberListTab').removeClass('active');
-            $scope.safeApply();
-            vm.playerModalTab = "newPlayerListPanel";
-            vm.newPlayerList();
+            $scope.$evalAsync(()=>{
+                $('#newPlayerListTab').addClass('active');
+                $('#attemptNumberListTab').removeClass('active');
+                vm.playerModalTab = "newPlayerListPanel";
+                vm.newPlayerList();
+            })
         };
 
         vm.initFeedbackModal = function (rowData) {
@@ -10186,7 +10188,7 @@ define(['js/app'], function (myApp) {
             if (vm.playerApplyRewardShow && vm.playerApplyRewardShow.returnData && vm.playerApplyRewardShow.returnData.endTime){
                 sendQuery.data.previewDate = new Date(vm.playerApplyRewardShow.returnData.endTime);
             }
-        
+
             socketService.$socket($scope.AppSocket, 'applyRewardEvent', sendQuery, function (data) {
                 console.log('sent', data);
                 vm.applyXM = false;
@@ -10547,7 +10549,7 @@ define(['js/app'], function (myApp) {
                                     if (row.endingDigit && text.endsWith(row.endingDigit.toString())){
                                         text = text.slice(0,text.length-row.endingDigit.length) + "<span style='color: red; font-weight: bold;'>" + row.endingDigit + "</span>";
                                     }
-                    
+
                                     let $link = $('<span>').html(text);
                                     return $link.prop('outerHTML');
                                 },
@@ -10644,10 +10646,10 @@ define(['js/app'], function (myApp) {
             vm.playerApplyRewardShow.TopupRecordSelect = false;
             let type = rewardObj.type ? rewardObj.type.name : null;
             vm.playerApplyRewardShow.returnData = {};
-    
+
 
             if (type == 'PlayerConsumptionSlipRewardGroup' && rewardObj._id) {
-            
+
                 vm.playerApplyRewardShow.consumptionSlipReward = type;
                 vm.prepareShowConsumptionSlipReward();
             }
@@ -10714,7 +10716,7 @@ define(['js/app'], function (myApp) {
                     vm.playerApplyRewardShow.showRewardAmount = 'Error';
                     $scope.safeApply();
                 });
-            
+
             }
 
             if (type == 'FirstTopUp') {
@@ -11551,7 +11553,7 @@ define(['js/app'], function (myApp) {
         vm.submitRepairPayment = function () {
             vm.submitRepairePayementStep = 1;
             $scope.safeApply();
-            socketService.$socket($scope.AppSocket, 'submitRepairPaymentProposal', {proposalId: vm.repairProposalId}, function (data) {
+            socketService.$socket($scope.AppSocket, 'submitRepairPaymentProposal', {proposalId: vm.repairProposalId, platform: vm.selectedPlatform.id}, function (data) {
                 vm.submitRepairePayementStep = 2;
                 vm.getPlatformPlayersData();
                 $scope.safeApply();
@@ -19045,6 +19047,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                     proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                    proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                     proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                     proposalDetail["SINGLE_LIMIT"] = " ";
                     proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
@@ -19079,6 +19082,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                     proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                    proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                     proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                     proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.permerchantLimits || "0";
                     proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.transactionForPlayerOneDay || "0");
@@ -19108,6 +19112,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                     proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                    proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                     proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                     proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.singleLimit || "0";
                     proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
@@ -19140,6 +19145,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                     proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
                     proposalDetail["TOP_UP_RETURN_CODE"] = vm.selectedProposal.data.topUpReturnCode || " ";
+                    proposalDetail["RETENTION_REWARD_CODE"] = vm.selectedProposal.data.retentionRewardCode || " ";
                     proposalDetail["LIMITED_OFFER_NAME"] = vm.selectedProposal.data.limitedOfferName || " ";
                     proposalDetail["SINGLE_LIMIT"] = vm.selectedProposal.data.singleLimit || "0";
                     proposalDetail["DAY_LIMIT"] = (vm.selectedProposal.data.cardQuota || "0") + " / " + (vm.selectedProposal.data.dailyCardQuotaCap || "0");
@@ -19457,13 +19463,8 @@ define(['js/app'], function (myApp) {
                     vm.newPlayerProposal.data.phoneNumber = str.substring(0, 3) + "******" + str.slice(-4);
                 }
             }
-
             let tmpt = vm.proposalTemplate[templateNo];
             $(tmpt).modal('show');
-            $(tmpt).on('shown.bs.modal', function (e) {
-                $scope.safeApply();
-            })
-
         };
 
         vm.telToPlayer = function (data) {

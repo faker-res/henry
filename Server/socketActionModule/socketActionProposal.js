@@ -550,7 +550,7 @@ function socketActionProposal(socketIO, socket) {
         submitRepairPaymentProposal: function submitRepairPaymentProposal(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.proposalId);
-            socketUtil.emitter(self.socket, dbProposal.submitRepairPaymentProposal, [data.proposalId], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.submitRepairPaymentProposal, [data.proposalId, data.platform], actionName, isValidData);
         },
 
         lockProposalById: function lockProposalById(data) {

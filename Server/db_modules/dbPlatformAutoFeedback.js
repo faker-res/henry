@@ -222,6 +222,20 @@ let dbPlatformAutoFeedback = {
                 let platformObjId = feedback.platformObjId;
                 let roles = [];
                 let admins = [];
+                let curScheduleNumber = 1;
+                let curScheduleIndex = 0;
+                let dayAfterLastMission = 0;
+
+                if(feedback.schedule && feedback.schedule.length > 0) {
+                    feedback.schedule.forEach((item, index) => {
+                        if (item.triggerHour == curHour && item.triggerMinute == curMinute) {
+                            curScheduleNumber = index + 1;
+                            curScheduleIndex = index;
+                        }
+                    });
+
+                    dayAfterLastMission = feedback.schedule[curScheduleIndex].dayAfterLastMission || 0;
+                }
 
                 let departmentProm = dbDepartment.getDepartmentDetailsByPlatformObjId(feedback.platformObjId).then(departments => {
                     departments.forEach(department => {
@@ -320,16 +334,16 @@ let dbPlatformAutoFeedback = {
 
                     if (feedback.lastAccessOperator === "range") {
                         playerQuery.lastAccessTime = {
-                            $lt: dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), feedback.lastAccessFormal)),
-                            $gte: dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), feedback.lastAccessLatter)),
+                            $lt: dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), feedback.lastAccessFormal + dayAfterLastMission)),
+                            $gte: dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), feedback.lastAccessLatter + dayAfterLastMission)),
                         };
                     } else {
                         let range = feedback.lastAccessOperator.split("-");
                         playerQuery.lastAccessTime = {
-                            $lt: dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), parseInt(range[0])))
+                            $lt: dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), parseInt(range[0]) + dayAfterLastMission))
                         };
                         if (range[1]) {
-                            playerQuery.lastAccessTime["$gte"] = dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), parseInt(range[1])));
+                            playerQuery.lastAccessTime["$gte"] = dbutility.getDayEndTime(dbutility.getNDaysAgoFromSpecificStartTime(new Date(), parseInt(range[1]) + dayAfterLastMission));
                         }
                     }
 

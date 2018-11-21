@@ -229,7 +229,8 @@ var dbPlatformGameStatus = {
                     playerRouteSetting = data[0].playerRouteSetting;
 
                     let games = null;
-                    let bGames = groupCode !== null || type !== null;
+                    let bGames = groupCode != null || type != null;
+
                     let queryObj = {
                         platform: data[0]._id
                     };
@@ -281,24 +282,24 @@ var dbPlatformGameStatus = {
                 let queryObj = {};
                 let queryField;
 
-                if (name && platformId) {
-                    // changedNameSearch[platformId] = {$regex: new RegExp(name)};
-                    queryField = 'changedName.' + platformId;
-                    changedNameSearch = {$regex: new RegExp(name)};
-                }
-
-                if (queryField && changedNameSearch) {
-                    queryObj[queryField] = changedNameSearch;
-                }
-
                 if (platformGames && platformGames.length > 0) {
                     queryObj = {
                         _id: {$in: platformGames.map(game => game.game)}
                     };
-
-                    if (playGameType) {
-                        queryObj.playGameType = playGameType;
+                } else {
+                    if (name && platformId) {
+                        // changedNameSearch[platformId] = {$regex: new RegExp(name)};
+                        queryField = 'changedName.' + platformId;
+                        changedNameSearch = {$regex: new RegExp(name)};
                     }
+
+                    if (queryField && changedNameSearch) {
+                        queryObj[queryField] = changedNameSearch;
+                    }
+                }
+
+                if (playGameType) {
+                    queryObj.playGameType = playGameType;
                 }
 
                 return dbconfig.collection_game.find(queryObj)

@@ -3218,6 +3218,8 @@ let dbPlayerReward = {
                     } else {
                         return Promise.resolve();
                     }
+                }).catch(err => {
+                    console.log("generatePromoCodes Error ", param.newPromoCodeEntry, err);
                 })
             );
         });
@@ -6276,71 +6278,19 @@ let dbPlayerReward = {
                             }
 
                             // applying reward
-                            // check the apply mode and its reward level
-                            if (eventData.condition && eventData.condition.definePlayerLoginMode && rewardSpecificData[2]){
-                                // 1 - accumulative day (the first application always start with level 1)
-                                // 2 - exact date
+                            let retRewardData = dbPlayerReward.applyRetentionRewardParamLevel(eventData, applyAmount, selectedRewardParam);
 
-                                if (eventData.condition.definePlayerLoginMode == 1){
-
-                                    if (eventData.condition.isDynamicRewardAmount) {
-                                        rewardAmount = applyAmount * selectedRewardParam[0].rewardPercentage;
-                                        if (selectedRewardParam[0].maxRewardAmountInSingleReward && selectedRewardParam[0].maxRewardAmountInSingleReward > 0) {
-                                            rewardAmount = Math.min(rewardAmount, Number(selectedRewardParam[0].maxRewardAmountInSingleReward));
-                                        }
-                                        selectedRewardParam[0].spendingTimes = selectedRewardParam[0].spendingTimes || 1;
-                                        spendingAmount = (actualAmount + rewardAmount) * selectedRewardParam[0].spendingTimes;
-                                    }
-                                    else{
-                                        rewardAmount = selectedRewardParam[0].rewardAmount;
-                                        selectedRewardParam[0].spendingTimes = selectedRewardParam[0].spendingTimes || 1;
-                                        spendingAmount = (actualAmount + rewardAmount) * selectedRewardParam[0].spendingTimes;
-                                    }
-                                }
-                                else if (eventData.condition.definePlayerLoginMode == 2) {
-                                    let applyDate = new Date().getDate();
-
-                                    // if the interval is bi-weekly
-
-                                    if (selectedRewardParam[applyDate]){
-
-                                        if (eventData.condition.isDynamicRewardAmount) {
-                                            rewardAmount = applyAmount * selectedRewardParam[applyDate].rewardPercentage;
-                                            if (selectedRewardParam[applyDate].maxRewardAmountInSingleReward && selectedRewardParam[applyDate].maxRewardAmountInSingleReward > 0) {
-                                                rewardAmount = Math.min(rewardAmount, Number(selectedRewardParam[applyDate].maxRewardAmountInSingleReward));
-                                            }
-                                            selectedRewardParam[applyDate].spendingTimes = selectedRewardParam[applyDate].spendingTimes || 1;
-                                            spendingAmount = (actualAmount + rewardAmount) * selectedRewardParam[applyDate].spendingTimes;
-                                        }
-                                        else{
-                                            rewardAmount = selectedRewardParam[applyDate].rewardAmount;
-                                            selectedRewardParam[applyDate].spendingTimes = selectedRewardParam[applyDate].spendingTimes || 1;
-                                            spendingAmount = (actualAmount + rewardAmount) * selectedRewardParam[applyDate].spendingTimes;
-                                        }
-                                    }
-                                    else{
-                                        return Promise.reject({
-                                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                            name: "DataError",
-                                            message: "The reward level that matched with the apply date is not found"
-                                        });
-                                    }
-;
-                                }
-                                else{
-                                    return Promise.reject({
-                                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                        name: "DataError",
-                                        message: "no available definePlayerLoginMode"
-                                    });
-                                }
+                            if (retRewardData && retRewardData.selectedRewardParam && retRewardData.rewardAmount != null && retRewardData.spendingAmount != null){
+                                rewardAmount = retRewardData.rewardAmount;
+                                spendingAmount = retRewardData.spendingAmount;
+                                selectedRewardParam = retRewardData.selectedRewardParam
                             }
                             else{
                                 return Promise.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    status: constServerCode.INVALID_DATA,
                                     name: "DataError",
-                                    message: "definePlayerLoginMode is not found"
-                                });
+                                    message: "Cannot get the reward data"
+                                })
                             }
 
                             // Set top up record update flag
@@ -7191,7 +7141,9 @@ let dbPlayerReward = {
                                         topUpRecordObjId: rewardData.selectedTopup._id,
                                         applyTopUpAmount: applyAmount,
                                         actualTopUpAmount: actualAmount,
-                                        lastApplyDate: new Date()
+                                        lastApplyDate: todayTime.startTime,
+                                        lastReceivedDate: todayTime.startTime,
+                                        accumulativeDay: 1
                                     };
                                     let newRecord = new dbConfig.collection_playerRetentionRewardGroupRecord(newRetentionData);
 
@@ -7269,6 +7221,96 @@ let dbPlayerReward = {
                 }
             }
         );
+    },
+
+    applyRetentionRewardParamLevel: function (eventData, applyAmount, selectedRewardParam, playerRetentionRewardRecord) {
+        let rewardAmount = null;
+        let spendingAmount = null;
+        let selectedIndex = null;
+
+        if (eventData && eventData.condition && eventData.condition.definePlayerLoginMode) {
+            // 1 - accumulative day (the first application always start with level 1 regardless of the interval)
+            if (eventData.condition.definePlayerLoginMode == 1) {
+                selectedIndex = playerRetentionRewardRecord && playerRetentionRewardRecord.accumulativeDay ? playerRetentionRewardRecord.accumulativeDay : 0;
+            }
+            else if (eventData.condition.definePlayerLoginMode == 2) {
+                // 2 - exact date
+                let applyDate = new Date().getDate();
+
+                if (applyDate && eventData.condition.interval && eventData.condition.interval == 2) {
+                    applyDate = new Date().getDay();
+                    // weekly
+                    selectedIndex = applyDate - 1;
+                }
+                else if (applyDate && eventData.condition.interval && eventData.condition.interval == 3) {
+                    // bi-weekly
+                    if (applyDate >= 15) {
+                        selectedIndex = applyDate - 15; // reset the index back to zero ( a new bi-weekly interval)
+                    }
+                    else {
+                        selectedIndex = applyDate - 1;
+                    }
+                }
+                else if (applyDate && eventData.condition.interval && eventData.condition.interval == 4) {
+                    // monthly
+                    selectedIndex = applyDate - 1;
+                }
+            }
+
+            if (selectedIndex > selectedRewardParam.length - 1) {
+                selectedIndex = selectedRewardParam.length - 1 // set to the max length
+            }
+
+            if (selectedIndex == null) {
+                return Promise.reject({
+                    status: constServerCode.INVALID_DATA,
+                    name: "DataError",
+                    message: "no available definePlayerLoginMode"
+                })
+            }
+            
+            if (eventData.condition.isDynamicRewardAmount) {
+                if (selectedRewardParam[selectedIndex] && selectedRewardParam[selectedIndex].hasOwnProperty('rewardPercentage')) {
+                    rewardAmount = applyAmount * selectedRewardParam[selectedIndex].rewardPercentage;
+
+                    if (selectedRewardParam[selectedIndex] && selectedRewardParam[selectedIndex].maxRewardAmountInSingleReward && selectedRewardParam[selectedIndex].maxRewardAmountInSingleReward > 0) {
+                        rewardAmount = Math.min(rewardAmount, Number(selectedRewardParam[selectedIndex].maxRewardAmountInSingleReward));
+                    }
+                }
+            }
+            else {
+                if (selectedRewardParam[selectedIndex] && selectedRewardParam[selectedIndex].hasOwnProperty('rewardAmount')) {
+                    rewardAmount = selectedRewardParam[selectedIndex].rewardAmount;
+                }
+            }
+            selectedRewardParam[selectedIndex].spendingTimes = selectedRewardParam[selectedIndex].spendingTimes || 1;
+            spendingAmount = rewardAmount * selectedRewardParam[selectedIndex].spendingTimes;
+            return {
+                rewardAmount: rewardAmount,
+                spendingAmount: spendingAmount,
+                selectedRewardParam: selectedRewardParam[selectedIndex]
+            };
+
+        }
+        else {
+            return null;
+        }
+    },
+
+    getDistributedRetentionReward: function (rewardEvent, playerData, applyAmount, rewardParam, playerRetentionRecord, userAgent){
+        let rewardAmount;
+        let spendingAmount;
+        let selectedRewardParam;
+
+        // get the reward
+        let retRewardData = dbPlayerReward.applyRetentionRewardParamLevel(rewardEvent, applyAmount, rewardParam, playerRetentionRecord);
+        if (retRewardData && retRewardData.selectedRewardParam && retRewardData.rewardAmount != null && retRewardData.spendingAmount != null){
+            rewardAmount = retRewardData.rewardAmount;
+            spendingAmount = retRewardData.spendingAmount;
+            selectedRewardParam = retRewardData.selectedRewardParam;
+
+            return dbProposal.createRewardProposal(rewardEvent, playerData, selectedRewardParam, playerRetentionRecord, applyAmount, rewardAmount, spendingAmount, playerRetentionRecord._id, userAgent)
+        }
     },
 
     checkApplyRetentionReward: function (player, rewardEvent, applyAmount, userAgentStr, inputData, topUpMethod, isFrontEndApply) {
@@ -7387,9 +7429,9 @@ let dbPlayerReward = {
 
                 if (listHasApplied){
                     matchPlayerId = listHasApplied.samePlayerHasReceived || false;
-                    matchIPAddress = listHasApplied.sameIPAddressHasReceived || false;
-                    matchPhoneNum = listHasApplied.samePhoneNumHasReceived || false;
-                    matchMobileDevice = listHasApplied.sameDeviceIdHasReceived || false;
+                    matchIPAddress = rewardEvent.condition && rewardEvent.condition.checkSameIP ? (listHasApplied.sameIPAddressHasReceived || false) : false;
+                    matchPhoneNum = rewardEvent.condition && rewardEvent.condition.checkSamePhoneNumber ? (listHasApplied.samePhoneNumHasReceived || false) : false;
+                    matchMobileDevice = rewardEvent.condition && rewardEvent.condition.checkSameDeviceId ? (listHasApplied.sameDeviceIdHasReceived || false) : false;
                 }
 
                 if (matchPlayerId) {
