@@ -175,6 +175,45 @@ let dbTeleSales = {
         );
     },
 
+    getTsPhoneFeedback: function (query) {
+        return dbconfig.collection_tsPhoneFeedback.find(query)
+            .populate({path: "adminId", model: dbconfig.collection_admin}).lean();
+    },
+
+    searchTsSMSLog: function (data, index, limit) {
+        if (data) {
+            index = index || 0;
+            limit = limit || constSystemParam.MAX_RECORD_NUM;
+            var query = {
+                tsDistributedPhone: data.tsDistributedPhone,
+                status: data.status === 'all' ? undefined : data.status,
+                type: {$nin: ["registration"]}
+            };
+            if (data.isAdmin && !data.isSystem) {
+                query.adminName = {$exists: true, $ne: null};
+            } else if (data.isSystem && !data.isAdmin) {
+                query.adminName = {$eq: null};
+            }
+
+            if (data.platformId) {
+                query.platformId = data.platformId;
+            }
+            // Strip any fields which have value `undefined`
+            query = JSON.parse(JSON.stringify(query));
+            addOptionalTimeLimitsToQuery(data, query, 'createTime');
+            var a = dbconfig.collection_smsLog.find(query).sort({createTime: -1}).skip(index).limit(limit);
+            var b = dbconfig.collection_smsLog.find(query).count();
+            return Promise.all([a, b]).then(
+                result => {
+                    if(result[0].length > 0){
+                        result[0] = excludeTelNum(result[0]);
+                    }
+                    return {data: result[0], size: result[1]};
+                }
+            )
+        }
+    },
+
     getTSPhoneListName: function (query) {
         return dbconfig.collection_tsPhoneList.distinct("name", query);
     },
@@ -398,5 +437,36 @@ let dbTeleSales = {
         }
     }
 };
+
+function addOptionalTimeLimitsToQuery(data, query, fieldName) {
+    var createTimeQuery = {};
+    if (!data.startTime && !data.endTime) {
+        createTimeQuery = undefined;
+    } else {
+        if (data.startTime) {
+            createTimeQuery.$gte = new Date(data.startTime);
+        }
+        if (data.endTime) {
+            createTimeQuery.$lt = new Date(data.endTime);
+        }
+    }
+    if (createTimeQuery) {
+        query[fieldName] = createTimeQuery;
+    }
+}
+
+function excludeTelNum(data){
+    // mask tel number
+    data = data.map(item=>{
+        if(item.tel){
+            item.tel = dbUtility.encodePhoneNum(item.tel);
+        }
+        if(item.error && item.error.tel){
+            item.error.tel = dbUtility.encodePhoneNum(item.error.tel);
+        }
+        return item;
+    })
+    return data;
+}
 
 module.exports = dbTeleSales;
