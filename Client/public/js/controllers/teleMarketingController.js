@@ -662,8 +662,8 @@ define(['js/app'], function (myApp) {
                 }
                     var phoneCall = {
                     // playerId: data.playerId,
-                    name: data.tsPhone.playerName,
-                    toText: data.tsPhone.playerName ? data.tsPhone.playerName : data.tsPhone.name || "",
+                    name: data.encodedPhoneNumber$,
+                    toText: data.encodedPhoneNumber$ ? data.encodedPhoneNumber$ : data.tsPhone.playerName || "",
                     platform: "jinshihao",
                     loadingNumber: true,
                 }
