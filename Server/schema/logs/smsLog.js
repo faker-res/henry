@@ -38,7 +38,9 @@ var smsLogSchema = new Schema ({
     // sms code invalidated (due to exceeding amount of failing tries)
     invalidated: {type: Boolean, default: false},
     // sms log data
-    data: {type: JSON, default: {}}
+    data: {type: JSON, default: {}},
+    // ts distributed phone (for ts only)
+    tsDistributedPhone: {type: Schema.ObjectId, ref: 'tsDistributedPhone', index: true},
 });
 
 smsLogSchema.index({"data.dxMission": 1});
