@@ -1,0 +1,39 @@
+#WechatRecordQuery.well.block-query.col-md-12.well(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionCSReport', 'Read')")
+    div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'QualityInsectionCSReport', 'queryByProduct')")
+        label {{'PRODUCT' | translate}}
+        select.spicker.form-control
+
+    div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'QualityInsectionCSReport', 'queryByCSAccount')")
+        label {{'CS Account' | translate}}
+        select.spicker.form-control
+
+    div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'QualityInsectionCSReport', 'queryByCSAccount')")
+        label {{'Customer Service Account (Input, Comma Added)' | translate}}
+        select.spicker.form-control
+
+    div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'QualityInsectionCSReport', 'queryByCSAccount')")
+        label {{'Message Begin Time' | translate}}
+        select.spicker.form-control
+
+    div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'QualityInsectionCSReport', 'queryByCSAccount')")
+        label {{'Message End Time' | translate}}
+        select.spicker.form-control
+
+    div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'QualityInsectionCSReport', 'queryByCSAccount')")
+        label {{'Message Content (Keyword)' | translate}}
+        select.spicker.form-control
+
+
+
+    div
+        label &nbsp;
+        button.button.common-button.btn.btn-primary(ng-click='vm.searchQIRecord(true)' ng-show="checkViewPermission('QualityInspection', 'QualityInsectionCSReport', 'Read')") {{'SEARCH' | translate}}
+
+        span#QIReportTableSpin.collapse
+            i.fa.fa-spinner.fa-spin
+.clearfix
+label {{"Total" | translate}} {{vm.postData.length}} {{"records" | translate}}
+table#QIReportTable.common-table.display(style="min-width:100% ;overflow: scroll")
+//#QIReportTablePage
+
+

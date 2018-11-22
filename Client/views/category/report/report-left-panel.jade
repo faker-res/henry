@@ -115,6 +115,8 @@
                                 text {{'ONLINE_PAYMENT_MISMATCH_REPORT' | translate}}
                             li.list-group-item(class="{{vm.seleDataType.LIMITED_OFFER_REPORT}}" ng-click='vm.loadPage("LIMITED_OFFER_REPORT")', ng-if="checkViewPermission('Report', 'Miscellaneous', 'LIMITED_OFFER_REPORT')")
                                 text {{'LIMITED_OFFER_REPORT' | translate}}
+                            li.list-group-item(class="{{vm.seleDataType.WECHAT_GROUP_REPORT}}" ng-click='vm.loadPage("WECHAT_GROUP_REPORT")', ng-if="checkViewPermission('Report', 'Miscellaneous', 'WECHAT_GROUP_REPORT')")
+                                text {{'WECHAT_GROUP_REPORT' | translate}}
 
 
 
