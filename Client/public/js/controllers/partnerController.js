@@ -7213,7 +7213,8 @@ define(['js/app'], function (myApp) {
                         socketService.$socket($scope.AppSocket, "createUpdatePartnerRealNameProposal", {
                             creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                             data: realNameObj,
-                            platformId: vm.selectedPlatform.id
+                            platformId: vm.selectedPlatform.id,
+                            partnerId: vm.isOneSelectedPartner().partnerId
                         }, function (data) {
                             if (data.data && data.data.stepInfo) {
                                 socketService.showProposalStepInfo(data.data.stepInfo, $translate);
