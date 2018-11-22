@@ -11385,9 +11385,11 @@ let dbPlayerInfo = {
                                                 bankNameWhenSubmit: player && player.bankName ? player.bankName : ""
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                             };
-                                            if (!player.permission.applyBonus && player.platform.playerForbidApplyBonusNeedCsApproval) {
+                                            if (!player.permission.applyBonus) {
                                                 proposalData.remark = "禁用提款: " + lastBonusRemark;
-                                                proposalData.needCsApproved = true;
+                                                if(player.platform.playerForbidApplyBonusNeedCsApproval) {
+                                                    proposalData.needCsApproved = true;
+                                                }
                                             }
                                             var newProposal = {
                                                 creator: proposalData.creator,
