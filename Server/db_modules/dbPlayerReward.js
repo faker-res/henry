@@ -6235,25 +6235,9 @@ let dbPlayerReward = {
 
                     case constRewardType.PLAYER_RETENTION_REWARD_GROUP:
                         let lastTopUpRecord = null;
-                        //check if there is consumption after this top up
-                        if (rewardSpecificData && rewardSpecificData[1] && rewardSpecificData[1].length > 0){
-                            return Promise.reject({
-                                status: constServerCode.INVALID_DATA,
-                                name: "DataError",
-                                message: "There is consumption after the top up"
-                            });
-                        }
 
-                        //check if there is withdrawal after this top up
-                        if (rewardSpecificData && rewardSpecificData[0] && rewardSpecificData[0].length > 0){
-                            return Promise.reject({
-                                status: constServerCode.INVALID_DATA,
-                                name: "DataError",
-                                message: "There is withdrawal after the top up"
-                            });
-                        }
-
-                        if (rewardData && rewardData.selectedTopup) {
+                        // rewardSpecificData[2] is the result of the checking list; return true if pass all the checks
+                        if (rewardData && rewardData.selectedTopup && rewardSpecificData[2]) {
                             if (intervalTime && !isDateWithinPeriod(selectedTopUp.createTime, intervalTime)) {
                                 return Promise.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
@@ -6273,6 +6257,24 @@ let dbPlayerReward = {
                                         status: constServerCode.INVALID_DATA,
                                         name: "DataError",
                                         message: "This is not the latest top up record"
+                                    });
+                                }
+
+                                //check if there is consumption after this top up
+                                if (rewardSpecificData && rewardSpecificData[1]){
+                                    return Promise.reject({
+                                        status: constServerCode.INVALID_DATA,
+                                        name: "DataError",
+                                        message: "There is consumption after top up"
+                                    });
+                                }
+
+                                //check if there is withdrawal after this top up
+                                if (rewardSpecificData && rewardSpecificData[0]){
+                                    return Promise.reject({
+                                        status: constServerCode.INVALID_DATA,
+                                        name: "DataError",
+                                        message: "There is withdrawal after top up"
                                     });
                                 }
                             }
@@ -7067,7 +7069,7 @@ let dbPlayerReward = {
                         }
 
                         if (rewardData && rewardData.selectedTopup && rewardData.selectedTopup.proposalId &&
-                            eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
+                            (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP || eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP)) {
                             proposalData.data.topUpProposalId = rewardData.selectedTopup.proposalId;
                             proposalData.data.actualAmount = actualAmount;
                         }
@@ -7290,6 +7292,7 @@ let dbPlayerReward = {
             }
             selectedRewardParam[selectedIndex].spendingTimes = selectedRewardParam[selectedIndex].spendingTimes || 1;
             spendingAmount = rewardAmount * selectedRewardParam[selectedIndex].spendingTimes;
+
             return {
                 rewardAmount: rewardAmount,
                 spendingAmount: spendingAmount,
