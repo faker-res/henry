@@ -6032,11 +6032,11 @@ let dbPlayerReward = {
                 let forbidRewardEventIds = eventData.condition.forbidApplyReward;
 
                 for (let x = 0; x  < forbidRewardEventIds.length; x++) {
-                    forbidRewardEventIds[x] = forbidRewardEventIds[x].toString();
+                    forbidRewardEventIds[x] = ObjectId(forbidRewardEventIds[x]);
                 }
 
                 // check other reward apply in period
-                checkForbidRewardProm = dbConfig.collection_proposal.aggregate(
+                return checkForbidRewardProm = dbConfig.collection_proposal.aggregate(
                     {
                         $match: {
                             "createTime": freeTrialQuery.createTime,
@@ -6056,7 +6056,7 @@ let dbPlayerReward = {
                     }
                 ).read("secondaryPreferred").then(
                     countReward => {
-                        if (countReward) {
+                        if (countReward && countReward.length > 0) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
@@ -6068,7 +6068,7 @@ let dbPlayerReward = {
                     error => {
                         //add debug log
                         console.error("checkForbidRewardProm:", error);
-                        resolve(error);
+                        throw error;
                     }
                 );
             }
