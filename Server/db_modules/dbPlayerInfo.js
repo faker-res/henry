@@ -5682,11 +5682,9 @@ let dbPlayerInfo = {
                                     if (updateSimilarIpPlayer) {
                                         // dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'lastLoginIp', playerData.lastLoginIp);
                                     }
-                                }
-                            ).then(
-                                () => {
+
                                     // check for playerRetentionRewardGroup
-                                    return dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(errorUtils.reportError);
+                                    dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(errorUtils.reportError);
                                 }
                             ).then(
                                 () => {
