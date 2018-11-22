@@ -4937,9 +4937,13 @@
   "applyWechatPayTopUpRequest": "充值-个人微信",
   "applyBonusRequest": "提款",
   "createPlayerRewardTask": "手工优惠",
-  "unlockRewardTaskInRewardTaskGroup": "优惠操作-优惠解锁进度",
+  "Reward - createPlayerRewardTask": "优惠操作-手工优惠",
+  "Reward - applyRewardEvent": "优惠操作-系统优惠",
+  "unlockRewardTaskInRewardTaskGroup": "优惠解锁进度",
+  "Reward - unlockRewardTaskInRewardTaskGroup": "优惠操作-优惠解锁进度",
   "updatePlayerRewardPointsRecord": "修改积分",
   "createUpdatePlayerRealNameProposal": "编辑玩家真实姓名",
   "createUpdatePartnerRealNameProposal": "编辑代理真实姓名",
-  "createUpdatePlayerInfoLevelProposal": "编辑玩家等级"
+  "createUpdatePlayerInfoLevelProposal": "编辑玩家等级",
+  "attachDetachRolesFromUsersById": "编辑玩家角色"
 }

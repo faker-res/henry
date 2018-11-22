@@ -25,7 +25,7 @@ function socketActionDepartment(socketIO, socket) {
         createDepartmentWithParent: function createDepartmentWithParent(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.departmentName && data.parent);
-            socketUtil.emitter(self.socket, dbDepartment.createDepartmentWithParent, [data], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbDepartment.createDepartmentWithParent, [data, data.platform], actionName, isValidData);
         },
 
         /**
@@ -57,7 +57,7 @@ function socketActionDepartment(socketIO, socket) {
         updateDepartment: function updateDepartment(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);
-            socketUtil.emitter(self.socket, dbDepartment.updateDepartment, [data.query, data.updateData], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbDepartment.updateDepartment, [data.query, data.updateData, data.platform], actionName, isValidData);
         },
 
         /**
@@ -67,7 +67,7 @@ function socketActionDepartment(socketIO, socket) {
         deleteDepartmentsById: function deleteDepartmentsById(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data._ids);
-            socketUtil.emitter(self.socket, dbDepartment.removeDepartmentsById, [data._ids, data.departmentName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbDepartment.removeDepartmentsById, [data._ids, data.departmentName, data.platform], actionName, isValidData);
         },
 
         /**
@@ -178,7 +178,7 @@ function socketActionDepartment(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data && data.departmentId  && data.newParentId
                                       && (data.curParentId != data.newParentId) && (data.departmentId != data.newParentId));
-            socketUtil.emitter(self.socket, dbDepartment.updateDepartmentParent, [data.departmentId, data.curParentId, data.newParentId, data.departmentName], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbDepartment.updateDepartmentParent, [data.departmentId, data.curParentId, data.newParentId, data.departmentName, data.platform], actionName, isDataValid);
         },
 
         /**

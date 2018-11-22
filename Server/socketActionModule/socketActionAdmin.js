@@ -132,7 +132,7 @@ function socketActionAdmin(socketIO, socket) {
 
                 data.updateData.lastPasswordUpdateTime = Date.now();
             }
-            socketUtil.emitter(self.socket, dbAdminInfo.updateAdminInfo, [data.query, data.updateData], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbAdminInfo.updateAdminInfo, [data.query, data.updateData, data.platform], actionName, isValidData);
         },
 
         /**
@@ -161,7 +161,7 @@ function socketActionAdmin(socketIO, socket) {
         deleteAdminInfosById: function deleteAdminInfosById(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data._ids);
-            socketUtil.emitter(self.socket, dbAdminInfo.removeAdminInfosById, [data._ids, data.selectedUsers], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbAdminInfo.removeAdminInfosById, [data._ids, data.selectedUsers, data.platform], actionName, isValidData);
         },
 
         /**
@@ -232,7 +232,7 @@ function socketActionAdmin(socketIO, socket) {
         updateAdminDepartment: function updateAdminDepartment(data) {
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data && data.adminId && data.newDepartmentList);
-            socketUtil.emitter(self.socket, dbAdminInfo.updateAdminDepartment, [data.adminId, data.toBeDeletedDepartmentList, data.newDepartmentList, data.adminName], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbAdminInfo.updateAdminDepartment, [data.adminId, data.toBeDeletedDepartmentList, data.newDepartmentList, data.adminName, data.platform], actionName, isDataValid);
         },
 
         /**
@@ -264,7 +264,7 @@ function socketActionAdmin(socketIO, socket) {
             var actionName = arguments.callee.name;
             var randomPSW = chance.hash({length: constSystemParam.PASSWORD_LENGTH});
             var isValidData = Boolean(data && data.adminId);
-            socketUtil.emitter(self.socket, dbAdminInfo.resetAdminPassword, [data.adminId, randomPSW, data.adminName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbAdminInfo.resetAdminPassword, [data.adminId, randomPSW, data.adminName, data.platform], actionName, isValidData);
         },
 
         getAdminNameByDepartment: function getAdminNameByDepartment(data) {
