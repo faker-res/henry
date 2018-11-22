@@ -1,1 +1,126 @@
-div {{tsDistributedPhoneObjId}}
+.row(ng-show="checkViewPermission('TeleMarketing', 'MY_PHONE_LIST_OR_REMINDER_PHONE_LIST', 'Read')" style='padding-left:0')
+    .col-xs-6
+        .panel-body
+            table.simple-table
+                tr
+                    td.titleBackground {{"PHONE_LIST" | translate}}
+                    td {{ vm.targetedTsDistributedPhoneDetail.tsPhoneList.name || "" }}
+                tr
+                    td.titleBackground {{"Member Account" | translate}}
+                    td {{ vm.targetedTsDistributedPhoneDetail.tsPhone.playerName || "" }}
+                tr
+                    td.titleBackground {{"REAL_NAME" | translate}}
+                    td {{ vm.targetedTsDistributedPhoneDetail.tsPhone.realName || "" }}
+                tr
+                    td.titleBackground {{"PHONE" | translate}}
+                    td {{ vm.targetedTsDistributedPhoneDetail.tsPhone.phoneNumber || "" }}
+                tr
+                    td.titleBackground {{"GENDER" | translate}}
+                    td {{ vm.targetedTsDistributedPhoneDetail.tsPhone.gender || "" }}
+                tr
+                    td.titleBackground {{"DOB" | translate}}
+                    td {{ vm.targetedTsDistributedPhoneDetail.tsPhone.dob || "" }}
+                tr
+                    td.titleBackground {{"WECHAT" | translate}}
+                    td {{ vm.targetedTsDistributedPhoneDetail.tsPhone.wechat || "" }}
+                tr
+                    td.titleBackground QQ
+                    td {{ vm.targetedTsDistributedPhoneDetail.tsPhone.qq || "" }}
+                tr
+                    td.titleBackground {{"EMAIL" | translate}}
+                    td {{ vm.targetedTsDistributedPhoneDetail.tsPhone.email || "" }}
+                tr
+                    td.titleBackground {{"REMARKS" | translate}}
+                    td {{ vm.targetedTsDistributedPhoneDetail.tsPhone.remark || "" }}
+                tr
+                    td.titleBackground {{"PHONE_LOCATION" | translate}}
+                    td {{ vm.targetedTsDistributedPhoneDetail.tsPhone.province || "" }} {{ vm.targetedTsDistributedPhoneDetail.tsPhone.city || "" }}
+
+            div(style="margin-top: 5px")
+                button.btn.btn-primary(data-toggle='modal' data-target='#modalTsPhoneFeedback' style="margin: 5px") {{"ADD_FEEDBACK" | translate}}
+                button.btn.btn-warning(ng-click="" style="margin: 5px") {{"REMINDER" | translate}}
+                button.btn.btn-success(ng-click="" style="margin: 5px") {{"CREATE_NEW_PLAYER" | translate}}
+
+    .col-xs-6
+        .panel-body
+            table.simple-table
+                thead
+                    tr
+                        th.titleBackground {{"TIME" | translate}}
+                        th.titleBackground {{"RESULT" | translate}}
+                        th.titleBackground {{"CONTENT" | translate}}
+                        th.titleBackground {{"adminName" | translate}}
+                        th.titleBackground {{"FEEDBACK_TOPIC" | translate}}
+                tbody
+                    tr(ng-repeat="(i,v) in vm.targetedTsDistributedPhoneDetail.feedbacks")
+                        td {{ v.createTime ? timeReformat(v.createTime) : "" }}
+                        td {{ v.resultName }}
+                        td {{ v.content }}
+                        td {{ v.adminId.adminName }}
+                        td {{ v.topic }}
+
+#modalTsPhoneFeedback.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:55%')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_FEEDBACK" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                table(style='min-width:100%')
+                                    tbody
+                                        tr
+                                            td {{'FEEDBACK_RESULTS' | translate}}
+                                            td
+                                                select(ng-model='vm.tsPhoneAddFeedback.result', ng-options='v.key as v.value for (i,v) in vm.allPlayerFeedbackResults')
+                                                button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
+                                        tr
+                                            td {{'FEEDBACK_TOPIC' | translate}}
+                                            td
+                                                select(ng-model='vm.tsPhoneAddFeedback.topic', ng-options='v.key as v.value for (i,v) in vm.playerFeedbackTopic')
+                                                button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
+                                        tr
+                                            td
+                                                text {{"REMARK" | translate}}
+                                            td.textareaDetail
+                                                textarea.form-control(type="textarea", rows='4', ng-model='vm.tsPhoneAddFeedback.content')
+                                        tr
+                                            td(colspan=2)
+                                                .text-center
+                                                    button.btn.btn-danger.margin-right-5(ng-click='vm.tsPhoneAddFeedback.content="";vm.tsPhoneAddFeedback.result="";vm.tsPhoneAddFeedback.topic="";') {{'Reset' | translate}}
+                                                    button.btn.btn-success(data-dismiss='modal' ng-disabled="!vm.tsPhoneAddFeedback.result || !vm.tsPhoneAddFeedback.topic || !vm.tsPhoneAddFeedback.content", ng-click='vm.addTsPhoneFeedback(vm.tsPhoneAddFeedback)') {{'CONFIRM' | translate}}
+
+#modalTsPhoneFeedbackHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:65%')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Feedback History" | translate}} : {{vm.tsPhoneFeedbackDetail.length}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                table.simple-table
+                                    thead
+                                        tr
+                                            th {{'TIME' | translate}}
+                                            th {{'ADMIN' | translate}}
+                                            th {{'RESULT' | translate}}
+                                            th {{'FEEDBACK_TOPIC' | translate}}
+                                            th {{'REMARK' | translate}}
+                                    tbody
+                                        tr(ng-repeat='(i,v) in vm.tsPhoneFeedbackDetail', ng-show='vm.tsPhoneFeedbackDetail.length>0')
+                                            td
+                                                text {{vm.dateReformat(v.createTime)}}
+                                            td
+                                                text {{v.adminId.adminName || 'Unknown' | translate}}
+                                            td
+                                                text {{v.result$}}
+                                            td
+                                                text {{v.topic | translate}}
+                                            td
+                                                text {{v.content}}
