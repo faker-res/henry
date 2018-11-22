@@ -79,6 +79,7 @@ const constPlayerBillBoardMode = require('./../const/constPlayerBillBoardMode');
 
 // db_modules
 let dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
+let dbPlayerRegistrationIntentRecord = require('./../db_modules/dbPlayerRegistrationIntentRecord');
 let dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
 let dbPlayerCreditTransfer = require('../db_modules/dbPlayerCreditTransfer');
 let dbPlayerFeedback = require('../db_modules/dbPlayerFeedback');
@@ -1216,7 +1217,7 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     dbPlayerInfo.createPlayerLoginRecord(data);
-
+                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecord(data, constProposalStatus.MANUAL, null);
                     // Create feedback
                     let feedback = {
                         playerId: data._id,
