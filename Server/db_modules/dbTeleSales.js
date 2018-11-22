@@ -229,21 +229,27 @@ let dbTeleSales = {
 
                 let tsPhoneProm = dbconfig.collection_tsPhone.findOne({_id: tsDistributedPhone.tsPhone}).lean();
                 let tsAssigneeProm = dbconfig.collection_tsAssignee.findOne({admin: tsDistributedPhone.assignee, tsPhoneList: tsDistributedPhone.tsPhoneList}).lean();
-                let feedbackProm = dbconfig.collection_tsPhoneFeedback.find({tsPhone: tsDistributedPhone.tsPhone}).lean();
+                let feedbackProm = dbconfig.collection_tsPhoneFeedback.find({tsPhone: tsDistributedPhone.tsPhone}).populate({path: "adminId", model: dbconfig.collection_admin}).lean();
+                let tsPhoneListProm = dbconfig.collection_tsPhoneList.findOne({_id: tsDistributedPhone.tsPhoneList}).lean();
 
-                return Promise.all([tsPhoneProm, tsAssigneeProm, feedbackProm]);
+                return Promise.all([tsPhoneProm, tsAssigneeProm, feedbackProm, tsPhoneListProm]);
             }
         ).then(
-            ([tsPhone, tsAssignee, feedbacks]) => {
+            ([tsPhone, tsAssignee, feedbacks, tsPhoneList]) => {
                 if (!tsPhone) {
                     return Promise.reject({message: "tsPhone not found"});
                 }
                 if (!tsAssignee) {
                     return Promise.reject({message: "tsAssignee not found"});
                 }
+                if (!tsPhoneList) {
+                    return Promise.reject({message: "tsPhoneList not found"});
+                }
                 tsDistributedPhone.tsPhone = tsPhone;
                 tsDistributedPhone.assignee = tsAssignee;
                 tsDistributedPhone.feedbacks = feedbacks;
+                tsDistributedPhone.tsPhoneList = tsPhoneList;
+                tsDistributedPhone.tsPhone.phoneNumber = rsaCrypto.decrypt(tsDistributedPhone.tsPhone.phoneNumber);
 
                 return tsDistributedPhone;
             }

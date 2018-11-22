@@ -757,6 +757,8 @@ define(['js/app'], function (myApp) {
                 console.log('getTsDistributedPhoneDetail', data);
                 if (data && data.data) {
                     vm.targetedTsDistributedPhoneDetail = data.data;
+                    vm.tsPhoneAddFeedback = vm.targetedTsDistributedPhoneDetail.tsPhone;
+                    $scope.$evalAsync();
                 }
             }).done();
         };
