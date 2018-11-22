@@ -2090,7 +2090,6 @@ define(['js/app'], function (myApp) {
         $scope.$on("setPlatform", function (e, d) {
             vm.hideLeftPanel = false;
             vm.allBankTypeList = {};
-            console.log("walaoout")
             setTimeout(function () {
                 // vm.getPlatformByAdminId(authService.adminId).then(vm.selectStoredPlatform);
                 socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
