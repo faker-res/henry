@@ -28,6 +28,11 @@
                                 .fa.fa-table.margin-right-5
                                 text.span {{"INSPECTION REPORT" | translate}}
 
+                        li(ng-show="checkViewPermission('QualityInspection', 'QualityInsectionRecord', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#WechatRecord", ng-click="vm.qualityInspectionPageName='WECHAT_CONVERSATION_RECORD';vm.updatePageTile();vm.initWorkloadProgress();")
+                                .fa.fa-table.margin-right-5
+                                text.span {{"WECHAT_CONVERSATION_RECORD" | translate}}
+
                 .panel-body.common-right-panel-body
                     div.tab-content
                         #Setting.tab-pane.fade.in.active
@@ -40,3 +45,5 @@
                             include ./inspection-cs-report
                         #Report.tab-pane.fade
                             include ./inspection-report
+                        #WechatRecord.tab-pane.fade
+                            include ./inspection-wechatRecord

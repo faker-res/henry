@@ -15186,7 +15186,12 @@ define(['js/app'], function (myApp) {
                 vm.duplicatePhoneNumber.pageObj = utilService.createPageForPagingTable("#duplicatePhoneNumberLogTablePage", {}, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "duplicatePhoneNumber", vm.loadPhoneNumberRecord);
                 });
-                vm.loadPhoneNumberRecord(true);
+
+                let isPlayer = true;
+                if (vm.newPlayer && vm.newPlayer.createPartner) {
+                    isPlayer = false;
+                }
+                vm.loadPhoneNumberRecord(true, isPlayer);
             });
         }
 
