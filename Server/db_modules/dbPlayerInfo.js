@@ -5794,6 +5794,7 @@ let dbPlayerInfo = {
             }
         ).then(
             retentionRecord => {
+                let checkAndApplyRetentionReward = Promise.resolve();
                 if (retentionRecord && retentionRecord.length){
                     retentionRecord.forEach(
                         record => {
@@ -5832,14 +5833,16 @@ let dbPlayerInfo = {
                                         rewardParam = record.rewardEventObjId.param.rewardParam[0].value;
                                     }
 
-                                    listProm.push(dbPlayerReward.getDistributedRetentionReward(record.rewardEventObjId, playerData, record.applyTopUpAmount, rewardParam, record, userAgent));
+                                    checkAndApplyRetentionReward = checkAndApplyRetentionReward.then( () => {
+                                        return dbPlayerReward.getDistributedRetentionReward(record.rewardEventObjId, playerData, record.applyTopUpAmount, rewardParam, record, userAgent)
+                                    });
                                 }
                             }
                         }
                     )
                 }
 
-                return Promise.all(listProm);
+                return checkAndApplyRetentionReward;
             }
         )
     },
