@@ -10426,7 +10426,7 @@ define(['js/app'], function (myApp) {
             vm.playerApplyRewardCodeChange(vm.playerApplyRewardPara);
             // });
         }
-        vm.getPlayerTopupRecord = function (playerId, rewardObj) {
+        vm.getPlayerTopupRecord = function (playerId, rewardObj, type) {
             socketService.$socket($scope.AppSocket, 'getValidTopUpRecordList', {
                 playerId: playerId || vm.isOneSelectedPlayer().playerId,
                 playerObjId: vm.isOneSelectedPlayer()._id,
@@ -10434,6 +10434,15 @@ define(['js/app'], function (myApp) {
                 reward: rewardObj
             }, function (data) {
                 vm.playerAllTopupRecords = data.data;
+
+                if (type && type == "PlayerRetentionRewardGroup" && rewardObj.condition && rewardObj.condition.allowOnlyLatestTopUp && vm.playerAllTopupRecords && vm.playerAllTopupRecords.length){
+                    for(let i=0; i < vm.playerAllTopupRecords.length; i ++){
+                        if (i != 0){
+                            vm.playerAllTopupRecords[i].isDisabled = true;
+                        }
+                    }
+                }
+
                 console.log('topups', data.data);
                 $scope.safeApply();
             });
@@ -10727,10 +10736,10 @@ define(['js/app'], function (myApp) {
                 vm.playerApplyRewardShow.topUpRecordIds = {};
             }
 
-            if (type == "FirstTopUp" || type == "PlayerTopUpReturn" || type == "PartnerTopUpReturn" || type == "PlayerDoubleTopUpReward" || type == "PlayerTopUpReturnGroup") {
+            if (type == "FirstTopUp" || type == "PlayerTopUpReturn" || type == "PartnerTopUpReturn" || type == "PlayerDoubleTopUpReward" || type == "PlayerTopUpReturnGroup" || type == "PlayerRetentionRewardGroup") {
                 vm.playerApplyRewardShow.TopupRecordSelect = true;
                 vm.playerAllTopupRecords = null;
-                vm.getPlayerTopupRecord(null, rewardObj);
+                vm.getPlayerTopupRecord(null, rewardObj, type);
             }
 
             vm.playerApplyRewardShow.AmountInput = type == "GameProviderReward";
@@ -19627,6 +19636,8 @@ define(['js/app'], function (myApp) {
                 result = JSON.stringify(val);
             } else if (fieldName === "upOrDown") {
                 result = $translate(val);
+            } else if (fieldName === 'definePlayerLoginMode') {
+                result = $translate($scope.playerLoginMode[val]);
             }
             return $sce.trustAsHtml(result);
         };
