@@ -3727,125 +3727,132 @@ define(['js/app'], function (myApp) {
                         return record
                     }
                 );
-                var tableData = vm.newPlayerListRecords;
-                var option = $.extend({}, vm.generalDataTableOptions, {
-                    data: tableData,
-                    aoColumnDefs: [
-                        {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
-                        {'sortCol': 'name', bSortable: true, 'aTargets': [1]},
-                        {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
-                        {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
-                        {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
-                        {'sortCol': 'ipAreaName', bSortable: true, 'aTargets': [5]},
-                        {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [6]},
-                        {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [7]},
-                        {'sortCol': 'smsCode', bSortable: true, 'aTargets': [8]},
-                        {'sortCol': 'remarks', bSortable: true, 'aTargets': [9]},
-                        {'sortCol': 'device', bSortable: true, 'aTargets': [10]},
-                        {'sortCol': 'promoteWay', bSortable: true, 'aTargets': [12]},
-                        {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [13]},
-                    ],
-                    columns: [
-                        // {title: $translate('PROPOSAL_ID'), data: "proposalId"},
-                        {
-                            title: $translate('proposalId'),
-                            data: "proposalId",
-                            render: function (data, type, row) {
-
-                                var link = $('<a>', {
-                                    'ng-click': 'vm.editNewplayerRemark=false;vm.showNewPlayerModal(' + JSON.stringify(row) + ',2)'
-                                }).text(data);
-                                return link.prop('outerHTML');
-                            }
-                        },
-                        {title: $translate('PLAYERNAME'), data: "name"},
-                        {title: $translate('STATUS'), data: "statusName"},
-                        {title: $translate('SENT TIME'), data: "createTime"},
-                        {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
-                        {title: $translate('REGISTERED_IP'), data: "ipAreaName"},
-                        {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
-                        {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
-                        {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
-                        {title: $translate('REMARKS'), data: "remarks"},
-                        {title: $translate('DEVICE'), data: "device"},
-                        {
-                            title: $translate('Function'),
-                            data: "data.phoneNumber",
-                            advSearch: true,
-                            "sClass": "",
-                            render: function (data, type, row) {
-                                data = data || '';
-                                //var playerObjId = row.data._id ? row.data._id : "";
-                                let displayTXT = '';
-                                let action = '';
-                                var link = $('<div>', {});
-
-                                if (row.data.phoneNumber && row.data.phoneNumber != "") {
-                                    link.append($('<div>', {
-                                        'class': 'fa fa-volume-control-phone',
-                                        'ng-click': 'vm.callNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
-                                        'title': $translate("PHONE")
-                                    }));
-                                    link.append($('<div>', {
-                                        'class': 'fa fa-comment',
-                                        'style': 'padding-left:15px',
-                                        'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');vm.initSMSModal();',
-                                        'title': $translate("SMS")
-                                    }));
-                                }
-
-                                if (row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL) {
-                                    displayTXT = $translate('CREATE_NEW_PLAYER');
-                                    action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
-                                    link.append($('<div>', {
-                                        'class': 'fa fa-user-plus',
-                                        'style': 'padding-left:15px',
-                                        'ng-click': action,
-                                        'title': $translate(displayTXT)
-                                    }));
-
-                                } else {
-                                    displayTXT = $translate('FEEDBACK');
-                                    action = 'vm.initNewPlayerFeedbackModal(' + JSON.stringify(row) + ')';
-                                    $('#modalAddPlayerFeedback').css('z-Index', 1051);
-                                    link.append($('<div>', {
-                                        'class': 'fa fa-commenting',
-                                        'style': 'padding-left:15px',
-                                        'data-row': JSON.stringify(row),
-                                        'data-toggle': 'modal',
-                                        'data-target': '#modalAddPlayerFeedback',
-                                        'ng-click': action,
-                                        'title': $translate(displayTXT)
-                                    }));
-                                }
-
-                                return link.prop('outerHTML')
-                            }
-                        },
-
-                        {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
-                        {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
-                    ],
-                    bSortClasses: false,
-                    destroy: true,
-                    paging: false,
-                    autoWidth: true,
-                    "sScrollY": "80vh",
-                    "bScrollCollapse": true,
-                    initComplete: function (data, type, row) {
-                        $compile(angular.element(row).contents())($scope);
-                        $scope.$evalAsync();
-                    },
-                    fnRowCallback: vm.playerListTableRow
-                });
-                var a = utilService.createDatatableWithFooter('#newPlayerListTable', option, {});
-                vm.newPlayerRecords.pageObj.init({maxCount: vm.newPlayerRecords.totalCount}, newSearch);
-                setTimeout(function () {
-                    $('#newPlayerListTable').resize();
-                }, 100);
+                vm.drawNewPlayerTable(vm.newPlayerListRecords);
 
             });
         };
+        vm.drawNewPlayerTable = function(data){
+
+            var tableData = data;
+            var option = $.extend({}, vm.generalDataTableOptions, {
+                data: tableData,
+                aoColumnDefs: [
+                    {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                    {'sortCol': 'name', bSortable: true, 'aTargets': [1]},
+                    {'sortCol': 'statusName', bSortable: true, 'aTargets': [2]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
+                    {'sortCol': 'registrationTime', bSortable: true, 'aTargets': [4]},
+                    {'sortCol': 'ipAreaName', bSortable: true, 'aTargets': [5]},
+                    {'sortCol': 'combinedArea', bSortable: true, 'aTargets': [6]},
+                    {'sortCol': 'topUpTimes', bSortable: true, 'aTargets': [7]},
+                    {'sortCol': 'smsCode', bSortable: true, 'aTargets': [8]},
+                    {'sortCol': 'remarks', bSortable: true, 'aTargets': [9]},
+                    {'sortCol': 'device', bSortable: true, 'aTargets': [10]},
+                    {'sortCol': 'promoteWay', bSortable: true, 'aTargets': [12]},
+                    {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [13]},
+                ],
+                columns: [
+                    // {title: $translate('PROPOSAL_ID'), data: "proposalId"},
+                    {
+                        title: $translate('proposalId'),
+                        data: "proposalId",
+                        render: function (data, type, row) {
+
+                            var link = $('<a>', {
+                                'ng-click': 'vm.editNewplayerRemark=false;vm.showNewPlayerModal(' + JSON.stringify(row) + ',2)'
+                            }).text(data);
+                            return link.prop('outerHTML');
+                        }
+                    },
+                    {title: $translate('PLAYERNAME'), data: "name"},
+                    {title: $translate('STATUS'), data: "statusName"},
+                    {title: $translate('SENT TIME'), data: "createTime"},
+                    {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
+                    {title: $translate('REGISTERED_IP'), data: "ipAreaName"},
+                    {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
+                    {title: $translate('DEPOSIT_COUNT'), data: "topUpTimes"},
+                    {title: $translate('VERIFICATION_CODE'), data: "smsCode"},
+                    {title: $translate('REMARKS'), data: "remarks"},
+                    {title: $translate('DEVICE'), data: "device"},
+                    {
+                        title: $translate('Function'),
+                        data: "data.phoneNumber",
+                        advSearch: true,
+                        "sClass": "",
+                        render: function (data, type, row) {
+                            data = data || '';
+                            //var playerObjId = row.data._id ? row.data._id : "";
+                            let displayTXT = '';
+                            let action = '';
+                            var link = $('<div>', {});
+
+                            if (row.data.phoneNumber && row.data.phoneNumber != "") {
+                                link.append($('<div>', {
+                                    'class': 'fa fa-volume-control-phone',
+                                    'ng-click': 'vm.callNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');',
+                                    'title': $translate("PHONE")
+                                }));
+                                link.append($('<div>', {
+                                    'class': 'fa fa-comment',
+                                    'style': 'padding-left:15px',
+                                    'ng-click': 'vm.smsNewPlayerBtn(' + '"' + row.data.phoneNumber + '",' + JSON.stringify(row) + ');vm.initSMSModal();',
+                                    'title': $translate("SMS")
+                                }));
+                            }
+
+                            if (row.status != vm.constProposalStatus.SUCCESS && row.status != vm.constProposalStatus.MANUAL) {
+                                displayTXT = $translate('CREATE_NEW_PLAYER');
+                                action = 'vm.createPlayerHelper(' + JSON.stringify(row) + ')';
+                                link.append($('<div>', {
+                                    'class': 'fa fa-user-plus',
+                                    'style': 'padding-left:15px',
+                                    'ng-click': action,
+                                    'title': $translate(displayTXT)
+                                }));
+
+                            } else {
+                                displayTXT = $translate('FEEDBACK');
+                                action = 'vm.initNewPlayerFeedbackModal(' + JSON.stringify(row) + ')';
+                                $('#modalAddPlayerFeedback').css('z-Index', 1051);
+                                link.append($('<div>', {
+                                    'class': 'fa fa-commenting',
+                                    'style': 'padding-left:15px',
+                                    'data-row': JSON.stringify(row),
+                                    'data-toggle': 'modal',
+                                    'data-target': '#modalAddPlayerFeedback',
+                                    'ng-click': action,
+                                    'title': $translate(displayTXT)
+                                }));
+                            }
+
+                            return link.prop('outerHTML')
+                        }
+                    },
+
+                    {title: $translate('PROMOTE_WAY'), data: "promoteWay"},
+                    {title: $translate('CUSTOMER_SERVICE'), data: "csOfficer"},
+                ],
+                bSortClasses: false,
+                destroy: true,
+                paging: false,
+                autoWidth: true,
+                "sScrollY": "80vh",
+                "bScrollCollapse": true,
+                initComplete: function (data, type, row) {
+                    $compile(angular.element(row).contents())($scope);
+                    $scope.$evalAsync();
+                },
+                fnRowCallback: vm.playerListTableRow
+            });
+            var a = utilService.createDatatableWithFooter('#newPlayerListTable', option, {});
+            vm.newPlayerRecords.pageObj.init({maxCount: vm.newPlayerRecords.totalCount}, newSearch);
+            setTimeout(function () {
+                $('#newPlayerListTable').resize();
+            }, 100);
+
+
+
+        }
 
         vm.createPlayerHelper = function (row) {
             console.log(row);
@@ -4879,12 +4886,20 @@ define(['js/app'], function (myApp) {
                 'proposalObjId': pId,
                 'remarks': remarks
             }
-            socketService.$socket($scope.AppSocket, 'updatePlayerProposalRemarks', sendData, function (playerCount) {
+            socketService.$socket($scope.AppSocket, 'updatePlayerProposalRemarks', sendData, function (data) {
                 $scope.$evalAsync(()=>{
-                    console.log("updatePlayerProposalRemarks", sendData);
                     vm.newPlayerProposal.remarks = remarks;
                     vm.editNewplayerRemark = false;
-                    vm.getNewPlayerListByFilter(false);
+                    //update the new player obj without run query again . to avoid heavy loading ...
+                    vm.newPlayerListRecords = vm.newPlayerListRecords.map(item=>{
+                        if(item._id && item._id == pId){
+                            if(data && data.data && data.data.data){
+                                item.remarks =  data.data.data.remarks;
+                            }
+                        }
+                        return item
+                    })
+                    vm.drawNewPlayerTable(vm.newPlayerListRecords);
                 })
             });
         }
