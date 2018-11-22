@@ -1577,6 +1577,8 @@ define(['js/app'], function (myApp) {
                     vm.showPlatform.department = vm.showPlatform.department._id;
                     delete vm.showPlatform.department._id;
                 }
+
+                vm.showPlatform.platform = vm.selectedPlatform.id;
                 socketService.$socket($scope.AppSocket, 'createPlatform', vm.showPlatform, function (data) {
                     vm.curPlatformText = data.data.name;
                     loadPlatformData();
@@ -2503,7 +2505,8 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'updatePlatform',
                     {
                         query: {_id: vm.selectedPlatform.id},
-                        updateData: vm.showPlatform
+                        updateData: vm.showPlatform,
+                        isUpdatePlatform: true
                     },
                     function (data) {
                         vm.curPlatformText = vm.showPlatform.name;

@@ -2,9 +2,9 @@
 
 define(['js/app'], function (myApp) {
 
-        var injectParams = ['$scope', '$filter', '$location', '$log', 'socketService', 'authService', 'utilService', 'commonService', 'CONFIG'];
+        var injectParams = ['$scope', '$filter', '$location', '$log', 'socketService', 'authService', 'utilService', 'commonService', 'CONFIG', '$cookies'];
 
-        var mainPageController = function ($scope, $filter, $location, $log, socketService, authService, utilService, commonService, CONFIG) {
+        var mainPageController = function ($scope, $filter, $location, $log, socketService, authService, utilService, commonService, CONFIG, $cookies) {
             var $translate = $filter('translate');
             var vm = this;
 
@@ -121,7 +121,8 @@ define(['js/app'], function (myApp) {
                     var newDepartment = {
                         departmentName: departmentName,
                         parent: parentId,
-                        icon: vm.newDepartment.icon
+                        icon: vm.newDepartment.icon,
+                        platform: vm.selectedPlatform.id
                     };
                     socketService.$socket($scope.AppSocket, 'createDepartmentWithParent', newDepartment, function (data) {
                         if (typeof(callback) == 'function') {
@@ -143,7 +144,12 @@ define(['js/app'], function (myApp) {
                     ignoreCase: false,
                     exactMatch: true
                 }])[0];
-                socketService.$socket($scope.AppSocket, 'deleteDepartmentsById', {_ids: [vm.SelectedDepartmentNode.id], departmentName: vm.SelectedDepartmentNode.departData.departmentName}, success);
+                let sendData = {
+                    _ids: [vm.SelectedDepartmentNode.id],
+                    departmentName: vm.SelectedDepartmentNode.departData.departmentName,
+                    platform: vm.selectedPlatform.id
+                };
+                socketService.$socket($scope.AppSocket, 'deleteDepartmentsById', sendData, success);
                 function success(data) {
                     vm.SelectedDepartmentText = parentFindNode.text;
                     vm.getAllDepartmentData();
@@ -585,6 +591,7 @@ define(['js/app'], function (myApp) {
 
                 data.toBeDeletedDepartmentList = departmentToBeDeleted;
                 data.newDepartmentList = vm.checkedDepartmentList;
+                data.platform = vm.selectedPlatform.id;
 
                 console.log(data);
 
@@ -616,6 +623,8 @@ define(['js/app'], function (myApp) {
                 //console.log(data);
                 //if (data.curParentId == data.newParentId) {
                 //}
+
+                data.platform = vm.selectedPlatform.id;
                 socketService.$socket($scope.AppSocket, 'updateDepartmentParent', data, success, fail);
                 function success(data) {
                     //console.log(data);
@@ -635,7 +644,8 @@ define(['js/app'], function (myApp) {
                     updateData: {
                         departmentName: text,
                         icon: icon,
-                    }
+                    },
+                    platform: vm.selectedPlatform.id
                 };
                 socketService.$socket($scope.AppSocket, 'updateDepartment', queryDepartment, success, fail);
                 function success(data) {
@@ -900,7 +910,8 @@ define(['js/app'], function (myApp) {
                     let data = {
                         AdminObjIds: [vm.curUser._id],
                         AttachRoleObjIds: vm.attachedRoles,
-                        DetachRoleObjIds: vm.detachedRoles
+                        DetachRoleObjIds: vm.detachedRoles,
+                        platform: vm.selectedPlatform.id
                     };
                     console.log("send data", data);
                     socketService.$socket($scope.AppSocket, 'attachDetachRolesFromUsersById', data, success);
@@ -928,7 +939,9 @@ define(['js/app'], function (myApp) {
                         RoleObjIds: roleIds,
                         RoleDetails: {
                             curUser: vm.curUser.adminName,
-                            roleName: vm.roleNameToBeDetached}
+                            roleName: vm.roleNameToBeDetached
+                        },
+                        platform: vm.selectedPlatform.id
                     };
                     console.log("detach", data);
                     socketService.$socket($scope.AppSocket, 'detachRolesFromUsersById', data, success);
@@ -1028,6 +1041,9 @@ define(['js/app'], function (myApp) {
             };
 
             vm.createUserForDepartment = function () {
+                if(vm.newAdmin){
+                    vm.newAdmin.platform = vm.selectedPlatform.id;
+                }
                 socketService.$socket($scope.AppSocket, 'createAdminForDepartment', vm.newAdmin, function(data){
                     vm.departmentNodes[vm.SelectedDepartmentNode.id].departData.users.push(data.data._id);
                     //vm.getDepartmentFullData();
@@ -1116,7 +1132,8 @@ define(['js/app'], function (myApp) {
             vm.updateEditUser = function(){
                 socketService.$socket($scope.AppSocket, 'updateAdmin', {
                     query: {_id: vm.curUser._id},
-                    updateData: vm.newAdmin
+                    updateData: vm.newAdmin,
+                    platform: vm.selectedPlatform.id
                 }, function(data){
                     //vm.getAllDepartmentData();
                     $('#modalEditUser').modal('hide');
@@ -1145,7 +1162,12 @@ define(['js/app'], function (myApp) {
                     }
                 }
                 console.log("deleteUsers", userIds);
-                socketService.$socket($scope.AppSocket, 'deleteAdminInfosById', {_ids: userIds, selectedUsers: vm.selectedUsers}, success);
+                let sendData = {
+                    _ids: userIds,
+                    selectedUsers: vm.selectedUsers,
+                    platform: vm.selectedPlatform.id
+                };
+                socketService.$socket($scope.AppSocket, 'deleteAdminInfosById', sendData, success);
                 function success(data) {
                     console.log(data);
                     vm.selectedUsers = {};
@@ -1582,7 +1604,8 @@ define(['js/app'], function (myApp) {
                     roleName: vm.newRole.roleName,
                     icon: vm.newRole.icon,
                     views: vm.showRoleFlag,
-                    departments: [vm.SelectedDepartmentNode.id]
+                    departments: [vm.SelectedDepartmentNode.id],
+                    platform: vm.selectedPlatform.id
                 };
 
                 vm.clearAllBlink();
@@ -1606,7 +1629,13 @@ define(['js/app'], function (myApp) {
                 vm.processRoleData();
             }
             vm.deleteRole = function () {
-                socketService.$socket($scope.AppSocket, 'deleteRolesById', {_ids: [vm.roleSelected._id], roleName: vm.roleSelected.roleName}, success);
+                let sendData = {
+                    _ids: [vm.roleSelected._id],
+                    roleName: vm.roleSelected.roleName,
+                    platform: vm.selectedPlatform.id
+                };
+
+                socketService.$socket($scope.AppSocket, 'deleteRolesById', sendData, success);
                 function success(data) {
                     //todo::store data to vm
                     vm.getDepartmentFullData();
@@ -1651,7 +1680,8 @@ define(['js/app'], function (myApp) {
                         roleName: vm.newRole.roleName,
                         icon: vm.newRole.icon,
                         views: vm.showRoleFlag
-                    }
+                    },
+                    platform: vm.selectedPlatform.id
                 };
 
                 socketService.$socket($scope.AppSocket, 'updateRole', para, success);
@@ -2077,7 +2107,12 @@ define(['js/app'], function (myApp) {
             };
 
             vm.submitResetAdminPassword = function () {
-                socketService.$socket($scope.AppSocket, 'resetAdminPassword', {adminId: vm.curUser._id, adminName: vm.curUser.adminName}, function (data) {
+                let sendData = {
+                    adminId: vm.curUser._id,
+                    adminName: vm.curUser.adminName,
+                    platform: vm.selectedPlatform.id
+                };
+                socketService.$socket($scope.AppSocket, 'resetAdminPassword', sendData, function (data) {
                     vm.newAdminPassword = data.data;
                     $scope.safeApply();
                 });
@@ -2091,6 +2126,7 @@ define(['js/app'], function (myApp) {
                 $scope.$emit('childControllerLoaded', 'dashboardControllerLoaded');
             }
             $scope.$on(eventName, function (e, d) {
+                vm.loadPlatformData();
                 setTimeout(
                     function () {
                         $scope.$parent.location = $location.path();
@@ -2157,6 +2193,61 @@ define(['js/app'], function (myApp) {
                     });
                 },1000)
             });
+
+            $scope.$on('switchPlatform', () => {
+                $scope.$evalAsync(vm.loadPlatformData());
+            });
+
+            vm.loadPlatformData = function (option) {
+                vm.showPlatformSpin = true;
+                socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
+                    console.log('all platform data', data.data);
+                    vm.allPlatformData = data.data;
+                    vm.showPlatformSpin = false;
+                    //vm.buildPlatformList(data.data);
+
+                    //select platform from cookies data
+                    var storedPlatform = $cookies.get("platform");
+                    if (storedPlatform) {
+                        vm.searchAndSelectPlatform(storedPlatform, option);
+                    }
+
+                }, function (err) {
+                    vm.showPlatformSpin = false;
+                });
+            };
+
+            //search and select platform node
+            vm.searchAndSelectPlatform = function (text, option) {
+                let findNodes = vm.allPlatformData.filter(e => e.name === text);
+                if (findNodes && findNodes.length > 0) {
+                    selectPlatformNode(findNodes[0], option);
+                } else {
+                    selectPlatformNode(vm.allPlatformData[0], option);
+                }
+            };
+
+            //set selected platform node
+            async function selectPlatformNode (platformObj, option) {
+                vm.selectedPlatform = {
+                    text: platformObj.name,
+                    id: platformObj._id,
+                    selectable: true,
+                    data: platformObj,
+                    image: {
+                        url: platformObj.icon,
+                        width: 30,
+                        height: 30,
+                    }
+                };
+
+                vm.curPlatformText = vm.selectedPlatform.text;
+                $cookies.put("platform", vm.selectedPlatform.text);
+                if (option && !option.loadAll) {
+                    $scope.safeApply();
+                    return;
+                }
+            };
 
         };
         mainPageController.$inject = injectParams;

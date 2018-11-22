@@ -1874,7 +1874,7 @@
                     span#actionLogTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.queryProposal.totalCount}} {{"records" | translate}}
+            label {{"Total" | translate}} {{vm.actionLogQuery.totalCount}} {{"records" | translate}}
             table#actionLogTable.common-table.display(style="width:100%;")
             #actionLogTablePage
         div(ng-if='vm.showPageName=="WINRATE_REPORT"')

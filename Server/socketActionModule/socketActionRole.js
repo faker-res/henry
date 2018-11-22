@@ -57,7 +57,7 @@ function socketActionRole(socketIO, socket) {
         deleteRolesById: function deleteRolesById(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data._ids);
-            socketUtil.emitter(self.socket, dbRole.removeRolesById, [data._ids, data.roleName], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRole.removeRolesById, [data._ids, data.roleName, data.platform], actionName, isValidData);
         },
 
         /**
@@ -67,7 +67,7 @@ function socketActionRole(socketIO, socket) {
         updateRole: function updateRole(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.query && data.updateData);
-            socketUtil.emitter(self.socket, dbRole.updateRole, [data.query, data.updateData], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRole.updateRole, [data.query, data.updateData, data.platform], actionName, isValidData);
             socketUtil.notifyClientsPermissionUpdate(self.socketIO);
         },
 
@@ -122,7 +122,7 @@ function socketActionRole(socketIO, socket) {
         attachDetachRolesFromUsersById: function attachDetachRolesFromUsersById(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.AttachRoleObjIds && data.DetachRoleObjIds && data.AdminObjIds);
-            socketUtil.emitter(self.socket, dbRole.attachDetachRolesFromUsersById, [data.AdminObjIds, data.AttachRoleObjIds, data.DetachRoleObjIds], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRole.attachDetachRolesFromUsersById, [data.AdminObjIds, data.AttachRoleObjIds, data.DetachRoleObjIds, data.platform], actionName, isValidData);
             socketUtil.notifyClientsPermissionUpdate(self.socketIO);
         },
 
