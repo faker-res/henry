@@ -2444,15 +2444,17 @@ var proposal = {
         sortCol = sortCol || {createTime: 1};
         let duplicatePhoneNumberCount = 0;
         let duplicatePhoneNumberCountProm, duplicatePhoneNumberProm;
+        let encryptPhone = rsaCrypto.encrypt(phoneNumber);
+        let oldEncryptPhone = rsaCrypto.oldEncrypt(phoneNumber);
 
         if (isPlayer) {
-            duplicatePhoneNumberCountProm = dbconfig.collection_players.find({platform: platformId, phoneNumber: phoneNumber}).count();
-            duplicatePhoneNumberProm = dbconfig.collection_players.find({platform: platformId, phoneNumber: phoneNumber})
+            duplicatePhoneNumberCountProm = dbconfig.collection_players.find({platform: platformId, phoneNumber: {$in: [encryptPhone, oldEncryptPhone]}}).count();
+            duplicatePhoneNumberProm = dbconfig.collection_players.find({platform: platformId, phoneNumber: {$in: [encryptPhone, oldEncryptPhone]}})
                 .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
                 .sort(sortCol).skip(index).limit(limit).lean();
         } else {
-            duplicatePhoneNumberCountProm = dbconfig.collection_partner.find({platform: platformId, phoneNumber: phoneNumber}).count();
-            duplicatePhoneNumberProm = dbconfig.collection_partner.find({platform: platformId, phoneNumber: phoneNumber})
+            duplicatePhoneNumberCountProm = dbconfig.collection_partner.find({platform: platformId, phoneNumber: {$in: [encryptPhone, oldEncryptPhone]}}).count();
+            duplicatePhoneNumberProm = dbconfig.collection_partner.find({platform: platformId, phoneNumber: {$in: [encryptPhone, oldEncryptPhone]}})
                 .sort(sortCol).skip(index).limit(limit).lean();
         }
 
