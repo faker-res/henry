@@ -952,6 +952,8 @@ define(['js/app'], function (myApp) {
                 result = $translate($scope.loseValueType[val]);
             } else if (fieldName === 'rewardPercent') {
                 result = val + "%";
+            } else if (fieldName === 'definePlayerLoginMode') {
+                result = $translate($scope.playerLoginMode[val]);
             }
             return $sce.trustAsHtml(result);
         };
@@ -2008,7 +2010,8 @@ define(['js/app'], function (myApp) {
                 adminId: authService.adminId,
                 memo: $translate(bApprove ? "Approved" : "Rejected") + " " + $('#proposalRemark').val(),
                 bApprove: bApprove,
-                remark: $('#proposalRemark').val()
+                remark: $('#proposalRemark').val(),
+                platform: vm.selectedPlatform._id
             }, function (data) {
                 deferred.resolve(true);
             }, function (error) {
@@ -3120,6 +3123,7 @@ define(['js/app'], function (myApp) {
                 adminId: authService.adminId,
                 memo: $translate(bApprove ? "Approved" : "Rejected") + " " + $('#proposalRemark').val(),
                 bApprove: bApprove,
+                platform: vm.selectedPlatform._id
             }, function (data) {
                 console.log(data.data);
                 vm.loadProposalQueryData();

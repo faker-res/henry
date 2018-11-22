@@ -128,7 +128,7 @@ function socketActionRewardTask(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.rewardTaskGroupId);
             // let isValidData = Boolean(data && data.rewardTaskGroupId && data.incRewardAmount && data.incConsumptionAmount);
-            socketUtil.emitter(self.socket, dbRewardTaskGroup.unlockRewardTaskInRewardTaskGroup, [data.rewardTaskGroupId, data.incRewardAmount, data.incConsumptionAmount, getAdminId(), getAdminName()], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRewardTaskGroup.unlockRewardTaskInRewardTaskGroup, [data.rewardTaskGroupId, data.incRewardAmount, data.incConsumptionAmount, getAdminId(), getAdminName(), data.platform, data.playerId], actionName, isValidData);
         },
 
         createRewardTaskGroupUnlockedRecord: function createRewardTaskGroupUnlockedRecord(data) {

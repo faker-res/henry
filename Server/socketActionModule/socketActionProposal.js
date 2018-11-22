@@ -317,7 +317,7 @@ function socketActionProposal(socketIO, socket) {
         updateProposalProcessStep: function updateProposalProcessStep(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.proposalId && data.adminId && data.memo);
-            socketUtil.emitter(self.socket, dbProposal.updateProposalProcessStep, [data.proposalId, data.adminId, data.memo, data.bApprove, data.remark], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.updateProposalProcessStep, [data.proposalId, data.adminId, data.memo, data.bApprove, data.remark, data.platform], actionName, isValidData);
         },
 
         updatePlayerProposalRemarks: function updatePlayerProposalRemarks(data) {

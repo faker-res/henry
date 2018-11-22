@@ -57,7 +57,7 @@
                         //            text.span {{"phoneNumFilter" | translate}}
 
 #modalAssignmentStatusDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog
+    .modal-dialog(style="width: 90%;")
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -100,14 +100,49 @@
 
                         .well
                             span(style="font-weight:bold;font-size:20px;line-height:2em;") {{"B."}}{{"Distribution Name List Details" | translate}}
+                            .col-md-12.search-filters-container.well
+                                div(style="width:80%;display:inline-block;margin-right:10px;")
+                                    select.spicker.form-control(ng-options='admin.adminName as admin.adminName for admin in vm.adminList' ng-model='vm.distributionDetailsQuery.adminNames' multiple data-actions-box='true')
+                                button#searchDistributionDetails.btn.btn-primary.common-button(style="margin:0;" ng-click="vm.searchDistributionDetails();") {{"SEARCH" | translate}}
                             table.simple-table.display(style='min-width: 100%; width: 100%')
                                 thead
                                     tr
-                                        th {{"Add/Delete" | translate}}
-                                        th {{"csOfficer" | translate}}
-                                        th {{"Distribution" | translate}}
+                                        th {{"CS Officer (Assignee)" | translate}}
+                                        th {{"Distributed Count" | translate}}
+                                        th {{"Fulfilled Count" | translate}}
+                                        th {{"Success Count" | translate}}
+                                        th {{"Registered Count" | translate}}
+                                        th {{"TopUp Count" | translate}}
+                                        th {{"Multiple TopUp Count" | translate}}
+                                        th {{"Valid Player Count" | translate}}
+                                        th {{"Current List Size (Unregistered & Unreclaimed)" | translate}}
+                                        th(title='{{"Unexpired phone will be marked as distributed and be reclaimed back to phone list pool" | translate}}') {{"Reclaim Phone List in Advance (Unregistered Phone)" | translate}}
                                 tbody
-                                    tr
+                                    tr(ng-repeat='(i,v) in vm.distributionDetails.data')
+                                        td {{v.adminName}}
+                                        td {{v.distributedCount}}
+                                        td {{v.fulfilledCount}}
+                                        td {{v.successCount}}
+                                        td {{v.registeredCount}}
+                                        td {{v.topUpCount}}
+                                        td {{v.multipleTopUpCount}}
+                                        td {{v.validPlayerCount}}
+                                        td {{v.currentListSize}}
+                                        td 
+                                            a(ng-click="") {{"EXECUTION" | translate}}
+                                    tr(ng-show="vm.distributionDetails.data")
+                                        td(style="font-weight:bold;")
+                                            span {{"Total Count" | translate}}
+                                            br
+                                            span ({{"Exclude Recurrence" | translate}})
+                                        td {{vm.distributionDetails.totalDistributed}}
+                                        td {{vm.distributionDetails.totalFulfilled}}
+                                        td {{vm.distributionDetails.totalSuccess}}
+                                        td {{vm.distributionDetails.totalRegistered}}
+                                        td {{vm.distributionDetails.totalTopUp}}
+                                        td {{vm.distributionDetails.totalMultipleTopUp}}
+                                        td {{vm.distributionDetails.totalValidPlayer}}
+                                        td {{vm.distributionDetails.totalCurrentListSize}}
                                         td
             .modal-footer
 
