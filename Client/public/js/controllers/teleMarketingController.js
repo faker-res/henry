@@ -5501,6 +5501,8 @@ define(['js/app'], function (myApp) {
             vm.newAssigneesExecuteStatus = 1;   //refer to constTsAssigneeStatus.js at 'Server/const/' directory
             vm.newAssignees = [];
             vm.assigneeRemovalList = [];
+            vm.distributionDetailsQuery = {};
+            vm.distributionDetails = {};
             vm.getTsAssignees();
             $('#modalAssignmentStatusDetail').modal('show');
             $('.spicker').selectpicker('refresh');
@@ -5664,6 +5666,42 @@ define(['js/app'], function (myApp) {
                     vm.allowDistributionSettingsEdit = false;
                 })
             }
+        };
+
+        vm.searchDistributionDetails = () => {
+            let platformObjId = vm.selectedPlatform.id;
+            let adminNames = vm.distributionDetailsQuery.adminNames;
+
+            let sendData = {
+                platformObjId: platformObjId,
+                tsPhoneListObjId: vm.currentPhoneListObjId,
+                adminNames: adminNames
+            };
+            console.log("getDistributionDetails sendData", sendData);
+            socketService.$socket($scope.AppSocket, 'getDistributionDetails', sendData, function (data) {
+                console.log("getDistributionDetails ret", data);
+                if(data && data.data) {
+                    $scope.$evalAsync(() => {
+                        vm.distributionDetails.data = data.data.distributionDetails;
+                        vm.distributionDetails.totalDistributed = data.data.totalDistributed;
+                        vm.distributionDetails.totalFulfilled = data.data.totalFulfilled;
+                        vm.distributionDetails.totalSuccess = data.data.totalSuccess;
+                        vm.distributionDetails.totalRegistered = 0;
+                        vm.distributionDetails.totalTopUp = 0;
+                        vm.distributionDetails.totalMultipleTopUp = 0;
+                        vm.distributionDetails.totalValidPlayer = 0;
+                        vm.distributionDetails.totalCurrentListSize = 0;
+
+                        data.data.distributionDetails.forEach(item => {
+                            vm.distributionDetails.totalRegistered += item.registeredCount || 0;
+                            vm.distributionDetails.totalTopUp += item.topUpCount || 0;
+                            vm.distributionDetails.totalMultipleTopUp += item.multipleTopUpCount || 0;
+                            vm.distributionDetails.totalValidPlayer += item.validPlayerCount || 0;
+                            vm.distributionDetails.totalCurrentListSize += item.currentListSize || 0;
+                        });
+                    });
+                }
+            })
         };
 
         vm.drawPhoneListManagementTable = function (newSearch, tblData, size) {

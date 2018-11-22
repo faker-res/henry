@@ -435,6 +435,50 @@ let dbTeleSales = {
             });
             return Promise.all(removeProm);
         }
+    },
+
+    getDistributionDetails: (platformObjId, tsPhoneListObjId, adminNames) => {
+        let distributionDetails = [];
+        let phoneListProm = dbconfig.collection_tsPhoneList.findOne({_id: tsPhoneListObjId});
+        let assigneeProm = dbconfig.collection_tsAssignee.find({
+            platform: platformObjId,
+            tsPhoneList: tsPhoneListObjId,
+            adminName: {
+                $in: adminNames
+            }
+        });
+
+        return Promise.all([phoneListProm, assigneeProm]).then(data => {
+            let phoneList = data[0];
+            let assignees = data[1];
+
+            if(assignees && assignees.length > 0 && phoneList) {
+                let totalDistributed = phoneList.totalDistributed;
+                let totalUsed = phoneList.totalUsed;
+                let totalSuccess = phoneList.totalSuccess;
+                assignees.forEach(assignee => {
+                    let assigneeDistributionDetail = {
+                        adminName: assignee.adminName,
+                        distributedCount: assignee.assignedCount,
+                        fulfilledCount: assignee.phoneUsedCount,
+                        successCount: assignee.successfulCount,
+                        registeredCount: assignee.registrationCount,
+                        topUpCount: assignee.singleTopUpCount,
+                        multipleTopUpCount: assignee.multipleTopUpCount,
+                        validPlayerCount: assignee.effectivePlayerCount,
+                        currentListSize: assignee.holdingCount
+                    };
+                    distributionDetails.push(assigneeDistributionDetail);
+                });
+                return {
+                    distributionDetails: distributionDetails,
+                    totalDistributed: totalDistributed,
+                    totalFulfilled: totalUsed,
+                    totalSuccess: totalSuccess
+                };
+            }
+            return null;
+        });
     }
 };
 
