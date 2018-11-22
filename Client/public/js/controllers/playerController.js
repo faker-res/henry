@@ -3833,11 +3833,8 @@ define(['js/app'], function (myApp) {
                     "sScrollY": "80vh",
                     "bScrollCollapse": true,
                     initComplete: function (data, type, row) {
-                        $scope.$evalAsync();
-                    },
-                    createdRow: function (row, data, dataIndex) {
                         $compile(angular.element(row).contents())($scope);
-
+                        $scope.$evalAsync();
                     },
                     fnRowCallback: vm.playerListTableRow
                 });
@@ -3845,7 +3842,7 @@ define(['js/app'], function (myApp) {
                 vm.newPlayerRecords.pageObj.init({maxCount: vm.newPlayerRecords.totalCount}, newSearch);
                 setTimeout(function () {
                     $('#newPlayerListTable').resize();
-                }, 300);
+                }, 100);
 
             });
         };
@@ -7393,10 +7390,8 @@ define(['js/app'], function (myApp) {
                 loadingNumber: true,
             }
             $scope.initPhoneCall(phoneCall);
-
             $scope.phoneCall.phone = phoneNumber;
             $scope.phoneCall.loadingNumber = false;
-            $scope.safeApply();
             $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
         }
         vm.smsNewPlayerBtn = function (phoneNumber, data) {
