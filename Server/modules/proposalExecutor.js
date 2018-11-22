@@ -3069,17 +3069,18 @@ var proposalExecutor = {
             },
 
              executePlayerRetentionRewardGroup: function (proposalData) {
-                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && (proposalData.data.rewardAmount || (proposalData.data.applyAmount && proposalData.data.isDynamicRewardAmount))) {
                     let rtgData;
+                    /// applyAmount is 0 when getting the reward thru login
+                    let amount = proposalData.data.actualAmount ? proposalData.data.actualAmount : (proposalData.data.applyAmount || 0);
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
                         type: constRewardType.PLAYER_RETENTION_REWARD_GROUP,
                         rewardType: constRewardType.PLAYER_RETENTION_REWARD_GROUP,
                         platformId: proposalData.data.platformId,
                         requiredUnlockAmount: proposalData.data.spendingAmount,
-                        // when get the reward when login, applyAmount (i.e., the top up amount) should not be included
-                        currentAmount: proposalData.data.rewardAmount + (proposalData.data.applyAmount || 0),
-                        initAmount: proposalData.data.rewardAmount + (proposalData.data.applyAmount || 0),
+                        currentAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + amount : proposalData.data.rewardAmount,
+                        initAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + amount : proposalData.data.rewardAmount,
                         useConsumption: Boolean(proposalData.data.useConsumption),
                         eventId: proposalData.data.eventId,
                         applyAmount: proposalData.data.applyAmount || 0,

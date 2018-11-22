@@ -299,8 +299,7 @@ var proposal = {
                 if (rewardGroupRecord && rewardGroupRecord.topUpRecordObjId && rewardGroupRecord.topUpRecordObjId.proposalId &&
                     eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
                     proposalData.data.topUpProposalId = rewardGroupRecord.topUpRecordObjId.proposalId;
-                    proposalData.data.actualAmount = rewardGroupRecord.topUpRecordObjId.amount;
-
+                    // proposalData.data.actualAmount = rewardGroupRecord.topUpRecordObjId.amount;
                 }
 
                 proposalData.data.applyTargetDate = new Date(dbutility.getTodaySGTime().startTime);
@@ -341,7 +340,7 @@ var proposal = {
                 if (eventData && eventData.condition && eventData.condition.definePlayerLoginMode){
                     if (eventData.condition.definePlayerLoginMode == 1){
                         // accumulative
-                        updateQuery.accumulativeDay = {$inc: {accumulativeDay: 1}}
+                        updateQuery.$inc = {accumulativeDay: 1};
                     }
                 }
 
