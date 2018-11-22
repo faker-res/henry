@@ -3705,7 +3705,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getFinancialReportBySum', sendData, function (data) {
                     console.log('getFinancialReportBySum', data);
                     $scope.$evalAsync(() => {
-                        vm.sumFinancialReportList = data && data.data ? data.data : [];
+                        vm.sumFinancialReportList = data && data.data ? data.data : {};
                     });
                     $('#financialReportSpin').hide();
                     $('#sumFinancialReport').show();
