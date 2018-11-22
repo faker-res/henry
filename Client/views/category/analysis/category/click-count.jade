@@ -28,7 +28,7 @@
                 select.form-control(ng-model='vm.queryPara.clickCount.pageName', ng-options="i as v | translate for (i,v) in vm.clickCountPageName", style='max-width:200px', ng-change="vm.getClickCountDomain(vm.queryPara.clickCount.inputDevice, vm.queryPara.clickCount.pageName)")
             div
                 label {{'DOMAIN NAME' | translate}}
-                select.form-control(ng-model='vm.queryPara.clickCount.domain', ng-options="i as v | translate for (i,v) in vm.clickCountDomain", style='max-width:200px')
+                select.form-control(ng-model='vm.queryPara.clickCount.domain', ng-options="i as v | translate for (i,v) in vm.clickCountDomain", style='max-width:200px', ng-change="vm.getClickCountButtonName(vm.queryPara.clickCount.inputDevice, vm.queryPara.clickCount.pageName, vm.queryPara.clickCount.domain)")
                     option(value='') {{"any" | translate}}
             div
                 label &nbsp;

@@ -3833,11 +3833,8 @@ define(['js/app'], function (myApp) {
                     "sScrollY": "80vh",
                     "bScrollCollapse": true,
                     initComplete: function (data, type, row) {
-                        $scope.$evalAsync();
-                    },
-                    createdRow: function (row, data, dataIndex) {
                         $compile(angular.element(row).contents())($scope);
-
+                        $scope.$evalAsync();
                     },
                     fnRowCallback: vm.playerListTableRow
                 });
@@ -3845,7 +3842,7 @@ define(['js/app'], function (myApp) {
                 vm.newPlayerRecords.pageObj.init({maxCount: vm.newPlayerRecords.totalCount}, newSearch);
                 setTimeout(function () {
                     $('#newPlayerListTable').resize();
-                }, 300);
+                }, 100);
 
             });
         };
@@ -7393,10 +7390,8 @@ define(['js/app'], function (myApp) {
                 loadingNumber: true,
             }
             $scope.initPhoneCall(phoneCall);
-
             $scope.phoneCall.phone = phoneNumber;
             $scope.phoneCall.loadingNumber = false;
-            $scope.safeApply();
             $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
         }
         vm.smsNewPlayerBtn = function (phoneNumber, data) {
@@ -10429,7 +10424,7 @@ define(['js/app'], function (myApp) {
             vm.playerApplyRewardCodeChange(vm.playerApplyRewardPara);
             // });
         }
-        vm.getPlayerTopupRecord = function (playerId, rewardObj) {
+        vm.getPlayerTopupRecord = function (playerId, rewardObj, type) {
             socketService.$socket($scope.AppSocket, 'getValidTopUpRecordList', {
                 playerId: playerId || vm.isOneSelectedPlayer().playerId,
                 playerObjId: vm.isOneSelectedPlayer()._id,
@@ -10437,6 +10432,15 @@ define(['js/app'], function (myApp) {
                 reward: rewardObj
             }, function (data) {
                 vm.playerAllTopupRecords = data.data;
+
+                if (type && type == "PlayerRetentionRewardGroup" && rewardObj.condition && rewardObj.condition.allowOnlyLatestTopUp && vm.playerAllTopupRecords && vm.playerAllTopupRecords.length){
+                    for(let i=0; i < vm.playerAllTopupRecords.length; i ++){
+                        if (i != 0){
+                            vm.playerAllTopupRecords[i].isDisabled = true;
+                        }
+                    }
+                }
+
                 console.log('topups', data.data);
                 $scope.safeApply();
             });
@@ -10730,10 +10734,10 @@ define(['js/app'], function (myApp) {
                 vm.playerApplyRewardShow.topUpRecordIds = {};
             }
 
-            if (type == "FirstTopUp" || type == "PlayerTopUpReturn" || type == "PartnerTopUpReturn" || type == "PlayerDoubleTopUpReward" || type == "PlayerTopUpReturnGroup") {
+            if (type == "FirstTopUp" || type == "PlayerTopUpReturn" || type == "PartnerTopUpReturn" || type == "PlayerDoubleTopUpReward" || type == "PlayerTopUpReturnGroup" || type == "PlayerRetentionRewardGroup") {
                 vm.playerApplyRewardShow.TopupRecordSelect = true;
                 vm.playerAllTopupRecords = null;
-                vm.getPlayerTopupRecord(null, rewardObj);
+                vm.getPlayerTopupRecord(null, rewardObj, type);
             }
 
             vm.playerApplyRewardShow.AmountInput = type == "GameProviderReward";
@@ -15182,7 +15186,12 @@ define(['js/app'], function (myApp) {
                 vm.duplicatePhoneNumber.pageObj = utilService.createPageForPagingTable("#duplicatePhoneNumberLogTablePage", {}, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "duplicatePhoneNumber", vm.loadPhoneNumberRecord);
                 });
-                vm.loadPhoneNumberRecord(true);
+
+                let isPlayer = true;
+                if (vm.newPlayer && vm.newPlayer.createPartner) {
+                    isPlayer = false;
+                }
+                vm.loadPhoneNumberRecord(true, isPlayer);
             });
         }
 
@@ -19636,6 +19645,8 @@ define(['js/app'], function (myApp) {
                 result = JSON.stringify(val);
             } else if (fieldName === "upOrDown") {
                 result = $translate(val);
+            } else if (fieldName === 'definePlayerLoginMode') {
+                result = $translate($scope.playerLoginMode[val]);
             }
             return $sce.trustAsHtml(result);
         };

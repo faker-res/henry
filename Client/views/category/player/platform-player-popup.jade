@@ -1374,14 +1374,14 @@
                                 label.control-label {{"REWARD_EVENT" | translate}}
                                 select.form-control(ng-model='vm.playerApplyRewardPara.rewardObj',ng-change='vm.playerApplyRewardCodeChange(vm.playerApplyRewardPara.rewardObj)', required)
                                     option(value='{"name": "系统升级优惠", "code": "MANUAL_PLAYER_LEVEL_UP_REWARD"}') {{"系统升级优惠"}}
-                                    option(ng-repeat='(i,v) in vm.allRewardEvent', ng-if='v.needApply || v.condition.applyType == 1', value='{{v}}') {{v.name}}({{v.code}})
+                                    option(ng-repeat='(i,v) in vm.allRewardEvent', ng-if='v.needApply || v.condition.applyType == 1 || v.condition.applyType == 4', value='{{v}}') {{v.name}}({{v.code}})
                             .form-group(ng-if='vm.playerApplyRewardShow.TopupRecordSelect')
                                 label.control-label {{'TOP_UP_LIST' | translate}}
                                 .clearfix
                                 label.control-label(ng-show='!vm.playerAllTopupRecords') {{'Loading' | translate}}
                                     i.fa.fa-spin.fa-spinner
                                 select.form-control(ng-model='vm.playerApplyRewardPara.topUpRecordId', ng-if='vm.playerApplyRewardShow.selectTopupRecordsMulti===false', required)
-                                    option(ng-repeat='(i,v) in vm.playerAllTopupRecords', value='{{v._id}}') {{vm.dateReformat(v.createTime)}} --- (${{v.amount}})
+                                    option(ng-repeat='(i,v) in vm.playerAllTopupRecords', ng-disabled="v.isDisabled ? true: false", value='{{v._id}}') {{vm.dateReformat(v.createTime)}} --- (${{v.amount}})
                                 .form-control(ng-repeat='(i,v) in vm.playerAllTopupRecords', ng-if='vm.playerApplyRewardShow.selectTopupRecordsMulti')
                                     label {{vm.dateReformat(v.createTime)}} --- (${{v.amount}})
                                         input.margin-right-5.pull-left(type='checkbox', ng-model='vm.playerApplyRewardShow.topUpRecordIds[v._id]')

@@ -919,6 +919,8 @@ define(['js/app'], function (myApp) {
                 result = JSON.stringify(val);
             } else if (fieldName === "upOrDown") {
                 result = $translate(val);
+            } else if (fieldName === 'definePlayerLoginMode') {
+                result = $translate($scope.playerLoginMode[val]);
             }
             return $sce.trustAsHtml(result);
         };
@@ -2656,6 +2658,25 @@ define(['js/app'], function (myApp) {
 
         };
 
+        vm.getWechatGroupReport = function () {
+            $('#wechatGroupReportTable').show();
+            let sendQuery = {
+                platform: vm.selectedPlatform._id,
+                platformId: vm.selectedPlatform.platformId,
+                startTime: vm.wechatGroupQuery.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.wechatGroupQuery.endTime.data('datetimepicker').getLocalDate(),
+                type: vm.wechatGroupQuery.type
+            };
+
+            console.log('sendQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getWechatGroupReport', sendQuery, function (data) {
+                console.log('_getWechatGroupReport', data);
+                $('#wechatGroupReportTable').hide();
+                $scope.safeApply();
+            });
+        };
+
         vm.getLimitedOfferReport = function (newSearch) {
             $('#limitedOfferTableSpin').show();
             vm.limitedOfferQuery.index = 0;
@@ -3800,39 +3821,21 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getFinancialReportByDay', sendData, function (data) {
                     console.log('getFinancialReportByDay', data);
                     $scope.$evalAsync(() => {
-                        vm.dailyFinancialReportList = data && data.data && data.data.length > 0 ? data.data : [];
+                        vm.dailyFinancialReportList = [];
                         vm.financialReportPlatformName = '';
-                        if (vm.financialReport.platform && vm.financialReport.platform[0] && vm.platformList && vm.platformList.length) {
-                            let indexNo = vm.platformList.findIndex(x => x && x._id && x._id.toString() == vm.financialReport.platform[0].toString());
-                            vm.financialReportPlatformName = vm.platformList[indexNo] && vm.platformList[indexNo].name ? vm.platformList[indexNo].name : '';
-                        }
-                        vm.manualTopUpHeader = {};
-                        vm.onlineTopUpHeader = {};
-                        vm.alipayTopUpHeader = {};
-                        vm.wechatPayTopUpHeader = {};
-                        vm.bonusHeader = {};
-                        vm.platformFeeHeader = {};
-                        if(vm.dailyFinancialReportList && vm.dailyFinancialReportList.length > 0) {
-                            if(vm.dailyFinancialReportList[0] && vm.dailyFinancialReportList[0].manualTopUpList) {
-                                vm.manualTopUpHeader = vm.dailyFinancialReportList[0].manualTopUpList;
-                            }
 
-                            if(vm.dailyFinancialReportList[0] && vm.dailyFinancialReportList[0].onlineTopUpList) {
-                                vm.onlineTopUpHeader= vm.dailyFinancialReportList[0].onlineTopUpList;
-                            }
+                        vm.topUpHeader = [];
+                        vm.bonusHeader = [];
+                        vm.platformFeeHeader = [];
 
-                            if(vm.dailyFinancialReportList[0] && vm.dailyFinancialReportList[0].alipayTopUpList) {
-                                vm.alipayTopUpHeader.groupName= vm.dailyFinancialReportList[0].alipayTopUpList.groupName;
-                                vm.alipayTopUpHeader.typeName= vm.dailyFinancialReportList[0].alipayTopUpList.typeName;
-                            }
+                        if (data && data.data) {
+                            vm.dailyFinancialReportList = data && data.data && data.data.data && data.data.data.length > 0 ? data.data.data : [];
+                            vm.financialReportPlatformName = data.data.platformName;
 
-                            if(vm.dailyFinancialReportList[0] && vm.dailyFinancialReportList[0].wechatPayTopUpList) {
-                                vm.wechatPayTopUpHeader.groupName= vm.dailyFinancialReportList[0].wechatPayTopUpList.groupName;
-                                vm.wechatPayTopUpHeader.typeName= vm.dailyFinancialReportList[0].wechatPayTopUpList.typeName;
-                            }
-
-                            if(vm.dailyFinancialReportList[0] && vm.dailyFinancialReportList[0].bonusList) {
-                                vm.bonusHeader.bonusDetail= vm.dailyFinancialReportList[0].bonusList.bonusDetail;
+                            if(vm.dailyFinancialReportList && vm.dailyFinancialReportList.length > 0) {
+                                vm.topUpHeader = vm.dailyFinancialReportList[0].topUpList;
+                                vm.bonusHeader = vm.dailyFinancialReportList[0].bonusList;
+                                vm.platformFeeHeader = vm.dailyFinancialReportList[0].platformFeeEstimate;
                             }
                         }
                     });
@@ -3844,7 +3847,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getFinancialReportBySum', sendData, function (data) {
                     console.log('getFinancialReportBySum', data);
                     $scope.$evalAsync(() => {
-                        vm.sumFinancialReportList = data && data.data ? data.data : [];
+                        vm.sumFinancialReportList = data && data.data ? data.data : {};
                     });
                     $('#financialReportSpin').hide();
                     $('#sumFinancialReport').show();
@@ -9369,7 +9372,7 @@ define(['js/app'], function (myApp) {
                         })
                     });
 
-                    setTimeout(function() {
+                    setTimeout(function () {
                         vm.commonInitTime(vm.financialQuery, '#financialPointsReportQuery')
 
                         $('select#selectFinancialPointsType').multipleSelect({
@@ -9382,14 +9385,14 @@ define(['js/app'], function (myApp) {
                         $('select#selectFinancialPointsType').next().on('click', 'li input[type=checkbox]', function () {
                             var upText = $($multiReward).text().split(',').map(item => {
                                 let key = item.trim();
-                                let textShow = isNaN(Number(key))? item: $scope.financialPointsList[key];
+                                let textShow = isNaN(Number(key)) ? item : $scope.financialPointsList[key];
                                 return $translate(textShow);
                             }).join(',');
                             $($multiReward).find('span').text(upText)
                         });
                         $("select#selectFinancialPointsType").multipleSelect("checkAll");
 
-                        vm.financialQuery.pageObj = utilService.createPageForPagingTable("#financialPointsTablePage", {}, $translate,  function (curP, pageSize) {
+                        vm.financialQuery.pageObj = utilService.createPageForPagingTable("#financialPointsTablePage", {}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "financialQuery", vm.searchFinancialPointsRecord)
                         });
                     });
@@ -9477,7 +9480,7 @@ define(['js/app'], function (myApp) {
                                     vm.queryRoles = [];
                                     vm.queryAdmins = [];
 
-                                    vm.queryDepartments.push({_id:'', departmentName:'N/A'});
+                                    vm.queryDepartments.push({_id: '', departmentName: 'N/A'});
 
                                     data.data.map(e => {
                                         if (e.departmentName == vm.selectedPlatform.name) {
@@ -9549,7 +9552,7 @@ define(['js/app'], function (myApp) {
                                     vm.pdQueryRoles = [];
                                     vm.pdQueryAdmins = [];
 
-                                    vm.pdQueryDepartments.push({_id:'', departmentName:'N/A'});
+                                    vm.pdQueryDepartments.push({_id: '', departmentName: 'N/A'});
 
                                     data.data.map(e => {
                                         if (e.departmentName == vm.selectedPlatform.name) {
@@ -9648,7 +9651,7 @@ define(['js/app'], function (myApp) {
                     vm.financialReport.displayMethod = 'sum';
                     vm.dailyFinancialReportList = [];
                     vm.sumFinancialReportList = {};
-                    setTimeout(function() {
+                    setTimeout(function () {
                         utilService.actionAfterLoaded(('#financialReport'), function () {
                             $('select#selectFinancialReportPlatform').multipleSelect({
                                 allSelected: $translate("All Selected"),
@@ -9805,13 +9808,14 @@ define(['js/app'], function (myApp) {
                         vm.removeGroupKey(noGroupDepositList);
                     }
                 }
+
                 $scope.$evalAsync();
             };
 
             vm.removeGroupKey = (list) => {
                 if (list && list.length > 0) {
                     list.forEach(el => {
-                        if(el && el.hasOwnProperty('group')) {
+                        if (el && el.hasOwnProperty('group')) {
                             delete el.group;
                         }
                     });
@@ -9905,7 +9909,7 @@ define(['js/app'], function (myApp) {
                                 vm.queryDepartments = [];
                                 vm.queryRoles = [];
 
-                                vm.queryDepartments.push({_id:'', departmentName:'N/A'});
+                                vm.queryDepartments.push({_id: '', departmentName: 'N/A'});
 
                                 data.data.map(e => {
                                     if (e.departmentName == vm.selectedPlatform.name) {
@@ -10075,6 +10079,15 @@ define(['js/app'], function (myApp) {
                 vm.proposalMismatchDetail = {};
                 utilService.actionAfterLoaded("#onlinePaymentMismatchTable", function () {
                     vm.commonInitTime(vm.onlinePaymentMismatchQuery, '#onlinePaymentMismatchQuery');
+                });
+                $scope.safeApply();
+            } else if (choice == "WECHAT_GROUP_REPORT") {
+                vm.wechatGroupQuery = {};
+                utilService.actionAfterLoaded("#wechatGroupReportTable", function () {
+                    vm.commonInitTime(vm.wechatGroupQuery, '#wechatGroupQuery');
+                    vm.wechatGroupQuery.pageObj = utilService.createPageForPagingTable("#wechatGroupReportTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "wechatGroupQuery", vm.drawLimitedOfferReport)
+                    });
                 });
                 $scope.safeApply();
             } else if (choice == "LIMITED_OFFER_REPORT") {
