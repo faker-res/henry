@@ -429,8 +429,7 @@ var dbRewardEvent = {
 
                                 let promArr = [];
                                 if (topUpData && topUpData.length) {
-                                    // special check if undefined
-                                    if (rewardEvent.condition.allowConsumptionAfterTopUp && !rewardEvent.condition.allowConsumptionAfterTopUp) {
+                                    if (rewardEvent.condition && rewardEvent.condition.hasOwnProperty('allowConsumptionAfterTopUp') && !rewardEvent.condition.allowConsumptionAfterTopUp) {
                                         if (consumptionData && consumptionData.length === 0) { // if no consumption, use all valid top up
                                             for (let i = 0; i < topUpData.length; i++) {
                                                 promArr.push(checkRewardEventWithTopUp(topUpData[i]));
