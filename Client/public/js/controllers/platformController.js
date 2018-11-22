@@ -1577,6 +1577,8 @@ define(['js/app'], function (myApp) {
                     vm.showPlatform.department = vm.showPlatform.department._id;
                     delete vm.showPlatform.department._id;
                 }
+
+                vm.showPlatform.platform = vm.selectedPlatform.id;
                 socketService.$socket($scope.AppSocket, 'createPlatform', vm.showPlatform, function (data) {
                     vm.curPlatformText = data.data.name;
                     loadPlatformData();
@@ -2503,7 +2505,8 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'updatePlatform',
                     {
                         query: {_id: vm.selectedPlatform.id},
-                        updateData: vm.showPlatform
+                        updateData: vm.showPlatform,
+                        isUpdatePlatform: true
                     },
                     function (data) {
                         vm.curPlatformText = vm.showPlatform.name;
@@ -6029,12 +6032,12 @@ define(['js/app'], function (myApp) {
                     vm.commonProviderGameTableOptions = {
                         columnDefs: [
                             {'sortCol': 'orderNo', bSortable: true, 'aTargets': [0]},
-                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [1]},
-                            {'sortCol': 'providerId', bSortable: true, 'aTargets': [2]},
-                            {'sortCol': 'gameId', bSortable: true, 'aTargets': [3]},
-                            {'sortCol': 'validAmount', bSortable: true, 'aTargets': [4]},
-                            {'sortCol': 'amount', bSortable: true, 'aTargets': [5]},
-                            {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [6]},
+                            {'sortCol': 'createTime', bSortable: true, 'aTargets': [7]},
+                            {'sortCol': 'providerId', bSortable: true, 'aTargets': [1]},
+                            {'sortCol': 'gameId', bSortable: true, 'aTargets': [5]},
+                            {'sortCol': 'validAmount', bSortable: true, 'aTargets': [8]},
+                            {'sortCol': 'amount', bSortable: true, 'aTargets': [10]},
+                            {'sortCol': 'bonusAmount', bSortable: true, 'aTargets': [9]},
                             {targets: '_all', defaultContent: ' ', bSortable: false}
                         ],
                         columns: [
