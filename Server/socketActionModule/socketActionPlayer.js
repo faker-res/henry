@@ -805,7 +805,7 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId && data.amount && data.amount > 0 && data.depositMethod);
             let userAgent = '';
-            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.addManualTopupRequest, [userAgent, data.playerId, data, "ADMIN", getAdminId(), getAdminName(), data.fromFPMS, null, data.topUpReturnCode], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.addManualTopupRequest, [userAgent, data.playerId, data, "ADMIN", getAdminId(), getAdminName(), data.fromFPMS, null, data.topUpReturnCode, data.platform], actionName, isValidData);
         },
         /**
          *  Get deposit methods
@@ -825,14 +825,14 @@ function socketActionPlayer(socketIO, socket) {
                 type: "admin",
                 name: getAdminName(),
                 id: getAdminId()
-            }], actionName, isValidData);
+            }, data.platform], actionName, isValidData);
         },
 
         applyRewardEvent: function applyRewardEvent(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.playerId && data.code && data.data);
             let userAgent = '';
-            socketUtil.emitter(self.socket, dbPlayerInfo.applyRewardEvent, [userAgent, data.playerId, data.code, data.data, getAdminId(), getAdminName()], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPlayerInfo.applyRewardEvent, [userAgent, data.playerId, data.code, data.data, getAdminId(), getAdminName(), data.platform], actionName, isValidData);
         },
 
         getPlayerTransferErrorLogs: function getPlayerTransferErrorLogs(data) {

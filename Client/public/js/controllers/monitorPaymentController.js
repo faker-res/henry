@@ -145,6 +145,8 @@ define(['js/app'], function (myApp) {
             socketService.clearValue();
             if(window.location.pathname == "/monitor/payment"){
                 vm.preparePaymentMonitorPage();
+            }if(window.location.pathname == "/monitor/wechatGroup") {
+                vm.prepareWechatMonitorPage();
             }else{
                 vm.preparePaymentMonitorTotalPage();
             }
@@ -210,6 +212,35 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             })
         };
+        vm.prepareWechatMonitorPage = function () {
+            $('#autoRefreshProposalFlag')[0].checked = true;
+            vm.lastTopUpRefresh = utilService.$getTimeFromStdTimeFormat();
+            vm.wechatGroupControlQuery = {};
+            vm.wechatGroupControlQuery.totalCount = 0;
+            vm.getAllPaymentAcc();
+
+            Promise.all([getMerchantList(), getMerchantTypeList()]).then(
+                data => {
+                    vm.merchants = data[0];
+                    vm.merchantTypes = data[1];
+                    vm.merchantsNBcard();
+                    vm.getMerchantTypeName();
+                    vm.merchantGroups = getMerchantGroups(vm.merchants, vm.merchantTypes);
+                    vm.merchantNumbers = getMerchantNumbers(vm.merchants);
+                    vm.getWechatMonitorRecord();
+                    vm.merchantGroupCloneList = vm.merchantGroups;
+                }
+            );
+            utilService.actionAfterLoaded("#wechatGroupMonitorTablePage", function () {
+                vm.commonInitTime(vm.wechatGroupControlQuery, '#wechatGroupControlQuery');
+                vm.wechatGroupControlQuery.merchantType = null;
+                vm.wechatGroupControlQuery.pageObj = utilService.createPageForPagingTable("#wechatGroupMonitorTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "wechatGroupControlQuery", vm.getWechatMonitorRecord)
+                });
+                $scope.safeApply();
+            })
+        };
+
         vm.merchantsNBcard = function () {
             Object.keys(vm.merchants).forEach(item => {
                 let merchantTypeId = vm.merchants[item].merchantTypeId;
@@ -861,6 +892,115 @@ define(['js/app'], function (myApp) {
             );
         };
 
+
+        vm.getWechatMonitorRecord = function (isNewSearch) {
+            // let queryStartTime = vm.wechatGroupControlQuery.startTime.data('datetimepicker').getLocalDate();
+            // let queryEndTime = vm.wechatGroupControlQuery.endTime.data('datetimepicker').getLocalDate();
+            //
+            // let searchInterval = Math.abs(new Date(queryEndTime).getTime() - new Date(queryStartTime).getTime());
+            // if (searchInterval > $scope.PROPOSAL_SEARCH_MAX_TIME_FRAME) {
+            //     socketService.showErrorMessage($translate("Exceed proposal search max time frame"));
+            //     return;
+            // }
+
+            if (isNewSearch) {
+                $('#autoRefreshProposalFlag').attr('checked', false);
+            }
+            vm.wechatGroupControlQuery.platformId = vm.curPlatformId;
+            $('#wechatGroupMonitorTableSpin').show();
+
+            var staArr = vm.wechatGroupControlQuery.status ? vm.wechatGroupControlQuery.status : [];
+            if (staArr.length > 0) {
+                staArr.forEach(item => {
+                    if (item == "Success") {
+                        staArr.push("Approved");
+                    }
+                    if (item == "Fail") {
+                        staArr.push("Rejected");
+                    }
+                })
+            }
+            vm.wechatGroupControlQuery.index = isNewSearch ? 0 : (vm.wechatGroupControlQuery.index || 0);
+            var sendObj = {
+                department: vm.wechatGroupControlQuery.department,
+                deviceName: vm.wechatGroupControlQuery.deviceName,
+                loginAccount: vm.wechatGroupControlQuery.loginAccount,
+                status: staArr,
+                platformId: vm.curPlatformId,
+                index: vm.wechatGroupControlQuery.index,
+                limit: vm.wechatGroupControlQuery.limit || 10,
+                sortCol: vm.wechatGroupControlQuery.sortCol,
+
+
+            }
+            vm.wechatGroupControlQuery.merchantNo ? sendObj.merchantNo = vm.wechatGroupControlQuery.merchantNo : null;
+            console.log('sendObj', sendObj);
+            if(vm.wechatGroupControlQuery.merchantNo && vm.wechatGroupControlQuery.merchantNo.length == 1 && vm.wechatGroupControlQuery.merchantNo.indexOf('MMM4-line2') != -1){
+                sendObj.line = '2';
+                vm.wechatGroupControlQuery.line = '2';
+                sendObj.merchantNo = vm.wechatGroupControlQuery.merchantNo.filter(merchantData=>{
+                    return merchantData != 'MMM4-line2';
+                })
+            }else{
+                vm.wechatGroupControlQuery.line = null;
+            }
+            socketService.$socket($scope.AppSocket, 'getWechatMonitorResult', sendObj, function (data) {
+                $scope.$evalAsync(() => {
+                    $('#wechatGroupMonitorTableSpin').hide();
+                    console.log('Wechat Monitor Result', data);
+                    vm.wechatGroupControlQuery.totalCount = data.data.size;
+
+                    vm.drawWechatGroupRecordTable(
+                        data.data.data.map(item => {
+                            item.amount$ = parseFloat(item.data.amount).toFixed(2);
+                            item.merchantNo$ = item.data.merchantNo ? item.data.merchantNo
+                                : item.data.wechatAccount ? item.data.wechatAccount
+                                    : item.data.weChatAccount ? item.data.weChatAccount
+                                        : item.data.alipayAccount ? item.data.alipayAccount
+                                            : item.data.bankCardNo ? item.data.bankCardNo
+                                                : item.data.accountNo ? item.data.accountNo : '';
+                            item.merchantCount$ = item.$merchantCurrentCount + "/" + item.$merchantAllCount + " (" + item.$merchantGapTime + ")";
+                            item.playerCount$ = item.$playerCurrentCount + "/" + item.$playerAllCount + " (" + item.$playerGapTime + ")";
+                            item.status$ = $translate(item.status);
+                            item.merchantName = vm.getMerchantName(item.data.merchantNo, item.inputDevice);
+
+                            if (item.data.msg && item.data.msg.indexOf(" 单号:") !== -1) {
+                                let msgSplit = item.data.msg.split(" 单号:");
+                                item.merchantName = msgSplit[0];
+                                item.merchantNo$ = msgSplit[1];
+                            }
+
+                            if (item.type.name === 'PlayerTopUp') {
+                                //show detail topup type info for online topup.
+                                let typeID = item.data.topUpType || item.data.topupType;
+                                item.topupTypeStr = typeID
+                                    ? $translate(vm.topUpTypeList[typeID])
+                                    : $translate("Unknown")
+
+                                let merchantNo = '';
+                                if(item.data.merchantNo){
+                                    merchantNo = item.data.merchantNo;
+                                }
+                                item.merchantNo$ = vm.getOnlineMerchantId(merchantNo, item.inputDevice, typeID);
+                            } else {
+                                //show topup type for other types
+                                item.topupTypeStr = $translate(item.type.name);
+                            }
+                            item.startTime$ = utilService.$getTimeFromStdTimeFormat(new Date(item.createTime));
+                            //item.endTime$ = item.data.lastSettleTime ? utilService.$getTimeFromStdTimeFormat(item.data.lastSettleTime) : "-";
+                            item.endTime$ = item.settleTime ? utilService.$getTimeFromStdTimeFormat(item.settleTime) : "-";
+                            // $('.merchantNoList').selectpicker('refresh');
+                            item.remark$ = item.data.remark? item.data.remark: "";
+                            return item;
+                        }), data.data.size, {}, isNewSearch
+                    );
+                });
+            }, function (err) {
+                console.error(err);
+            }, true);
+
+        };
+
         vm.getMerchantName = function (merchantNo, inputDevice) {
             let result = commonService.getMerchantName(merchantNo, vm.merchants, vm.merchantTypes, inputDevice);
             return result;
@@ -894,6 +1034,16 @@ define(['js/app'], function (myApp) {
             vm.paymentMonitorQuery.playerName = "";
             vm.commonInitTime(vm.paymentMonitorQuery, '#paymentMonitorQuery');
             vm.getPaymentMonitorRecord(true);
+            $('#autoRefreshProposalFlag')[0].checked = true;
+            $scope.safeApply();
+        };
+
+        vm.resetWechatMonitorQuery = function () {
+            vm.wechatGroupControlQuery.department = "";
+            vm.wechatGroupControlQuery.deviceName = "";
+            vm.wechatGroupControlQuery.loginAccount = "";
+            vm.commonInitTime(vm.wechatGroupControlQuery, '#wechatGroupControlQuery');
+            vm.getWechatMonitorRecord(true);
             $('#autoRefreshProposalFlag')[0].checked = true;
             $scope.safeApply();
         };
@@ -1394,6 +1544,122 @@ define(['js/app'], function (myApp) {
             $('#paymentMonitorTotalCompletedTable tbody').on('click', 'tr', vm.tableRowClicked);
         };
 
+
+        vm.drawWechatGroupRecordTable = function (data, size, summary, newSearch) {
+            console.log('data', data);
+            let tableOptions = {
+                data: data,
+                "order": vm.wechatGroupControlQuery.aaSorting || [[6, 'desc']],
+                aoColumnDefs: [
+                    {'sortCol': 'This Connection is Abnormally Clicked', bSortable: true, 'aTargets': [4]},
+                    {'sortCol': 'Connection Time', bSortable: true, 'aTargets': [5]},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {
+                        "title": $translate('PRODUCT'),
+                        render: function (data, type, row) {
+                            var text = $translate(row.type ? row.type.name : "");
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+                    {
+                        "title": $translate('Create Device Name'),
+                        render: function (data, type, row) {
+                            var text = $translate(row.type ? row.type.name : "");
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('Last Login Account (Offline) / Current Login Account (Online)'),
+                        render: function (data, type, row) {
+                            var text = $translate(data ? $scope.userAgentType[data] : "");
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('Current System Status'),
+                        render: function (data, type, row) {
+                            var text = $translate(data ? $scope.userAgentType[data] : "");
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('This Connection is Abnormally Clicked'),
+                        render: function (data, type, row) {
+                            var text = $translate(data ? $scope.userAgentType[data] : "");
+                            // var link =$('<div>',{});
+                            // link.append($('<a>', {
+                            //     'class': 'fa fa-envelope margin-right-5',
+                            //     'ng-click': 'vm.initMessageModal(); vm.sendMessageToPlayerBtn(' + '"msg", ' + JSON.stringify(row) + ');',
+                            //     'data-row': JSON.stringify(row),
+                            //     'data-toggle': 'tooltip',
+                            //     'title': $translate("SEND_MESSAGE_TO_PLAYER"),
+                            //     'data-placement': 'left',   // because top and bottom got hidden behind the table edges
+                            // }));
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('Connection Time'),
+                        render: function (data, type, row) {
+                            var text = $translate(data ? $scope.userAgentType[data] : "");
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+                    {
+                        title: $translate('Equipment History'),
+                        render: function (data, type, row) {
+                            var text = $translate(data ? $scope.userAgentType[data] : "");
+                            return "<div>" + text + "</div>";
+                        }
+                    },
+
+                ],
+                "autoWidth": true,
+                "paging": false,
+                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    if (aData.$merchantAllCount >= (vm.selectedPlatform.monitorMerchantCount || 10)) {
+                        $(nRow).addClass('merchantExceed');
+                        if ($('#autoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorMerchantUseSound) {
+                            checkMerchantNotificationAlert(aData);
+                        }
+                        if (!vm.lastMerchantExceedId || vm.lastMerchantExceedId < aData._id) {
+                            vm.lastMerchantExceedId = aData._id;
+                        }
+                    }
+
+                    if (aData.$playerAllCount >= (vm.selectedPlatform.monitorPlayerCount || 4)) {
+                        $(nRow).addClass('playerExceed');
+                        if ($('#autoRefreshProposalFlag')[0].checked === true && vm.selectedPlatform.monitorPlayerUseSound) {
+                            checkPlayerNotificationAlert(aData);
+                        }
+                        if (!vm.lastPlayerExceedId || vm.lastPlayerExceedId < aData._id) {
+                            vm.lastPlayerExceedId = aData._id;
+                        }
+                    }
+                },
+                createdRow: function (row, data, dataIndex) {
+                    $compile(angular.element(row).contents())($scope)
+                }
+            };
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+            vm.lastTopUpRefresh = utilService.$getTimeFromStdTimeFormat();
+
+            vm.topUpProposalTable = utilService.createDatatableWithFooter('#wechatGroupMonitorTable', tableOptions, {}, true);
+
+            vm.wechatGroupControlQuery.pageObj.init({maxCount: size}, newSearch);
+
+            $('#wechatGroupMonitorTable').off('order.dt');
+            $('#wechatGroupMonitorTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'wechatGroupControlQuery', vm.getWechatMonitorRecord);
+            });
+            $('#wechatGroupMonitorTable').resize();
+
+            $('#wechatGroupMonitorTable tbody').on('click', 'tr', vm.tableRowClicked);
+        };
+
         vm.lockProposal = function (proposalId, linkId, contentId){
             let sendObj = {
                 proposalId: proposalId,
@@ -1824,7 +2090,6 @@ define(['js/app'], function (myApp) {
         $scope.$on("setPlatform", function (e, d) {
             vm.hideLeftPanel = false;
             vm.allBankTypeList = {};
-
             setTimeout(function () {
                 // vm.getPlatformByAdminId(authService.adminId).then(vm.selectStoredPlatform);
                 socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {

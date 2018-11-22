@@ -6,11 +6,11 @@
                 option(ng-repeat='(i,v) in vm.platformList', value='{{v._id}}', ng-selected='vm.selectedPlatform._id==v._id') {{v.name}}
     .panel-body.common-left-panel-body.leftPanel-vlist
         #monitorCategory.panel-groupc
-            .panel.panel-default
+            .panel.panel-default(style="margin-bottom: 5px;")
                 .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#monitorCategory", href='#paymentMonitor')
                     h4.panel-title
                         label.text-success {{'PAYMENT_MONITOR' | translate}}
-                div
+                #paymentMonitor.panel-collapse.collapse.in
                     .panel-body
                         div
                             a.list-group-item(class="{{vm.seleDataType.PAYMENT_MONITOR}}", ng-if="checkViewPermission('Monitor', 'Payment', 'Read')",href="/monitor/payment", ng-click="vm.showPlatformList = true; vm.loadPage('PAYMENT_MONITOR');")
@@ -19,3 +19,13 @@
                                 text {{'PROPOSAL_AND_PAYMENT_MONITOR' | translate}}
                             a.list-group-item(class="{{vm.seleDataType.PAYMENT_MONITOR_TOTAL}}", ng-if="checkViewPermission('Monitor', 'Payment', 'Read')",href="/monitor/paymentTotal", ng-click="vm.showPlatformList = false;vm.loadPage('PAYMENT_MONITOR_TOTAL');")
                                 text {{'PAYMENT_MONITOR_TOTAL' | translate}}
+
+            .panel.panel-default
+                .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#monitorCategory", href='#wechatMonitor')
+                    h4.panel-title
+                        label.text-success {{'WeChatMonitor' | translate}}
+                #wechatMonitor.panel-collapse.collapse
+                    .panel-body
+                        div
+                            a.list-group-item(class="{{vm.seleDataType.WECHAT_GROUP_CONTROL_MONITOR}}", ng-if="checkViewPermission('Monitor', 'Payment', 'Read')",href="/monitor/wechatGroup", ng-click="vm.showPlatformList = false;vm.loadPage('WECHAT_GROUP_CONTROL_MONITOR');")
+                                text {{'WeChatGroupControlMonitor' | translate}}
