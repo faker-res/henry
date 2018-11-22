@@ -3728,11 +3728,9 @@ define(['js/app'], function (myApp) {
                     }
                 );
                 vm.drawNewPlayerTable(vm.newPlayerListRecords);
-
             });
         };
         vm.drawNewPlayerTable = function(data){
-
             var tableData = data;
             var option = $.extend({}, vm.generalDataTableOptions, {
                 data: tableData,
@@ -3849,9 +3847,6 @@ define(['js/app'], function (myApp) {
             setTimeout(function () {
                 $('#newPlayerListTable').resize();
             }, 100);
-
-
-
         }
 
         vm.createPlayerHelper = function (row) {
