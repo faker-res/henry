@@ -185,6 +185,7 @@ let dbTeleSales = {
             index = index || 0;
             limit = limit || constSystemParam.MAX_RECORD_NUM;
             var query = {
+                tsDistributedPhone: data.tsDistributedPhone,
                 status: data.status === 'all' ? undefined : data.status,
                 type: {$nin: ["registration"]}
             };

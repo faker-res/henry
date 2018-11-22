@@ -12,7 +12,7 @@ var depositGroupSchema = new Schema({
     depositParentDepositId: {type: Number, required: true, default: -1, index: true},
     // topUpTypeId - 1 Manual, 2 Online, 3 Alipay, 4 Wechat
     topUpTypeId: {type: Number, index: true},
-    // DepositMethodId or MerchantTopUpTypeId
+    // DepositMethodId or MerchantTopUpTypeId - null if topUpTypeId is alipay or wechat
     topUpMethodId: {type: Number}
 });
 
