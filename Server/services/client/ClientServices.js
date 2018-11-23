@@ -214,7 +214,8 @@
                 "getQuickpayTopupRequestList",
                 "isFirstTopUp",
                 "getPlayerAliPayStatus",
-                "requestBankTypeByUserName"
+                "requestBankTypeByUserName",
+                "createFKPTopupProposal"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };

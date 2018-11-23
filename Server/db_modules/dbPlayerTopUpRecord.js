@@ -3646,6 +3646,350 @@ var dbPlayerTopUpRecord = {
         );
     },
 
+    /**
+     * add FUKUAIPAY topup process
+     * @param playerID
+     * @param topupRequest
+     * @param {Number} topupRequest.amount
+     * @param {Number} topupRequest.topupType
+     */
+
+    addFKPTopupRequest: function (userAgent, playerId, topupRequest, topUpReturnCode, lastLoginIp, bankCode) {
+        let userAgentStr = userAgent;
+        let player, proposal, merchantResponse, merchantResult, rewardEvent, newProposal;
+        let merchantGroupList = [];
+        let serviceChargeRate = 0;
+
+        if (topupRequest.bonusCode && topUpReturnCode) {
+            return Q.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "Cannot apply 2 reward in 1 top up"
+            });
+        }
+
+        return dbconfig.collection_players.findOne({playerId: playerId}).populate(
+            {path: "platform", model: dbconfig.collection_platform}
+        ).populate(
+            {path: "merchantGroup", model: dbconfig.collection_platformMerchantGroup}
+        ).populate(
+            {path: "playerLevel", model: dbconfig.collection_playerLevel}
+        ).then(
+            playerData => {
+                player = playerData;
+
+                if (player && player._id) {
+                    if (!topUpReturnCode) {
+                        return Promise.resolve();
+                    }
+
+                    return checkApplyTopUpReturn(player, topUpReturnCode, userAgentStr, topupRequest, constPlayerTopUpType.ONLINE);
+
+                } else {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_DATA,
+                        name: "DataError",
+                        errorMessage: "Cannot find player"
+                    });
+                }
+            }
+        ).then(
+            eventData => {
+                rewardEvent = eventData;
+                if (player && player.platform) {
+                    let limitedOfferProm = checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount, topupRequest.limitedOfferObjId);
+                    let proms = [limitedOfferProm];
+                    if (topupRequest.bonusCode) {
+                        let bonusCodeCheckProm;
+                        let isOpenPromoCode = topupRequest.bonusCode.toString().trim().length == 3;
+                        if (isOpenPromoCode){
+                            bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount, lastLoginIp);
+                        }
+                        else {
+                            bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount);
+                        }
+                        proms.push(bonusCodeCheckProm)
+                    }
+
+                    return Promise.all(proms);
+                }
+                else {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Cannot find player for online top up proposal",
+                        error: Error()
+                    });
+                }
+            }
+        ).then(
+            res => {
+                let minTopUpAmount = player.platform.minTopUpAmount || 0;
+                let limitedOfferTopUp = res[0];
+                let bonusCodeValidity = res[1];
+
+                // check bonus code validity if exist
+                if (topupRequest.bonusCode && !bonusCodeValidity) {
+                    return Promise.reject({
+                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        name: "DataError",
+                        errorMessage: "Wrong promo code has entered"
+                    });
+                }
+
+                if (topupRequest.amount < minTopUpAmount) {
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_TOP_UP_FAIL,
+                        name: "DataError",
+                        errorMessage: "Top up amount is not enough"
+                    });
+                }
+                // if (!player.permission || !player.permission.topupOnline) {
+                //     return Promise.reject({
+                //         status: constServerCode.PLAYER_NO_PERMISSION,
+                //         name: "DataError",
+                //         errorMessage: "Player does not have online topup permission"
+                //     });
+                // }
+                //check player foridb topup type list
+                // if (player.forbidTopUpType && player.forbidTopUpType.indexOf(topupRequest.topupType) >= 0) {
+                //     return Q.reject({name: "DataError", message: "Top up type is forbidden for this player"});
+                // }
+                //check player merchant group
+                // if (!player.merchantGroup || !player.merchantGroup.merchants) {
+                //     return Q.reject({name: "DataError", message: "Player does not have valid merchant data"});
+                // }
+
+                if (userAgent) {
+                    userAgent = retrieveAgent(userAgent);
+                }
+
+                let proposalData = Object.assign({}, topupRequest);
+                proposalData.playerId = playerId;
+                proposalData.playerObjId = player._id;
+                proposalData.platformId = player.platform._id;
+                if( player.playerLevel ){
+                    proposalData.playerLevel = player.playerLevel._id;
+                }
+                proposalData.playerRealName = player.realName;
+                // proposalData.merchantGroupName = player.merchantGroup && player.merchantGroup.name || "";
+                proposalData.platform = player.platform.platformId;
+                proposalData.playerName = player.name;
+                proposalData.userAgent = userAgent ? userAgent : "";
+                // proposalData.bPMSGroup = Boolean(bPMSGroup);
+                proposalData.creator = {
+                    type: 'player',
+                    name: player.name,
+                    id: playerId
+                };
+                proposalData.bankCode = bankCode;
+                // if (rewardEvent && rewardEvent._id) {
+                //     proposalData.topUpReturnCode = rewardEvent.code;
+                // }
+                if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){
+                    if (rewardEvent.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP || rewardEvent.type.name === constRewardType.PLAYER_TOP_UP_RETURN){
+                        proposalData.topUpReturnCode = rewardEvent.code;
+                    }
+                    else if (rewardEvent.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP){
+                        proposalData.retentionRewardCode = rewardEvent.code;
+                        // delete the unrelated rewardEvent.code
+                        if (proposalData.topUpReturnCode){
+                            delete proposalData.topUpReturnCode;
+                        }
+                    }
+                }
+
+                // Check Limited Offer Intention
+                if (limitedOfferTopUp) {
+                    proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                    proposalData.limitedOfferName = limitedOfferTopUp.data.limitedOfferName;
+                    if (topupRequest.limitedOfferObjId)
+                        proposalData.remark = '优惠名称: ' + limitedOfferTopUp.data.limitedOfferName + ' (' + limitedOfferTopUp.proposalId + ')';
+                }
+
+                if(lastLoginIp){
+                    proposalData.lastLoginIp = lastLoginIp;
+                }
+
+                newProposal = {
+                    creator: proposalData.creator,
+                    data: proposalData,
+                    entryType: constProposalEntryType.CLIENT,
+                    userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                };
+                newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr, false);
+                return isLastTopUpProposalWithin30Mins(constProposalType.PLAYER_TOP_UP, player.platform._id, player);
+            }
+        ).then(
+            lastTopUpProposal => {
+                if(lastTopUpProposal && lastTopUpProposal.length > 0 && lastTopUpProposal[0].data){
+                    if(lastTopUpProposal[0].data.lockedAdminId){
+                        newProposal.data.lockedAdminId = lastTopUpProposal[0].data.lockedAdminId;
+                    }
+
+                    if(lastTopUpProposal[0].data.lockedAdminName){
+                        newProposal.data.lockedAdminName = lastTopUpProposal[0].data.lockedAdminName;
+                    }
+
+                    if(lastTopUpProposal[0].data.followUpContent){
+                        newProposal.data.followUpContent = lastTopUpProposal[0].data.followUpContent;
+                    }
+
+                    if(lastTopUpProposal[0].data.followUpCompletedTime){
+                        newProposal.data.followUpCompletedTime = lastTopUpProposal[0].data.followUpCompletedTime;
+                    }
+                }
+
+                return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_FKP_TOP_UP, newProposal);
+
+            }
+        ).then(
+            proposalData => {
+                if (proposalData) {
+                    proposal = proposalData;
+                    let ip = player.lastLoginIp && player.lastLoginIp != 'undefined' ? player.lastLoginIp : "127.0.0.1";
+                    var requestData = {
+                        charset: 'UTF-8',
+                        merchantCode: 'M310018',
+                        orderNo: proposal.proposalId,
+                        amount: topupRequest.amount,
+                        channel: 'BANK',
+                        bankCode: bankCode,
+                        // MAX 7 CHAR, MIGHT NEED TO REVISE
+                        userId: player.playerId,
+                        remark: 'test remark',
+                        notifyUrl: "",
+                        returnUrl: "",
+                        extraReturnParam: "",
+                        signType: 'RSA'
+                    };
+
+                    // FUKUAIPAY API CALL
+                }
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Cannot create online top up proposal",
+                        error: Error()
+                    });
+                }
+            }
+            //err => Q.reject({name: "DBError", message: 'Error in creating online top up proposal', error: err})
+        ).then(
+            merchantResponseData => {
+                if (merchantResponseData) {
+
+                    merchantResult = merchantResponseData;
+                    merchantResponse = merchantResponseData;
+
+                    var queryObj = {};
+                    let start = new Date();
+                    start.setHours(0, 0, 0, 0);
+                    let end = new Date();
+                    end.setHours(23, 59, 59, 999);
+                    if (merchantResponseData.result && merchantResponseData.result.merchantNo) {
+                        queryObj['data.merchantNo'] = {'$in': [String(merchantResponseData.result.merchantNo), Number(merchantResponseData.result.merchantNo)]}
+                    }
+                    queryObj['data.platformId'] = ObjectId(player.platform._id);
+                    queryObj['mainType'] = 'TopUp';
+                    queryObj["createTime"] = {};
+                    queryObj["createTime"]["$gte"] = start;
+                    queryObj["createTime"]["$lt"] = end;
+                    queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
+                    // calculate this card/acc total usage at today
+                    return dbconfig.collection_proposal.aggregate(
+                        {$match: queryObj},
+                        {
+                            $group: {
+                                _id: null,
+                                totalAmount: {$sum: "$data.amount"},
+                            }
+                        })
+
+                    // console.log("merchantResponseData", merchantResponseData);
+
+                    //add request data to proposal and update proposal status to pending
+                }
+                else {
+                    return Q.reject({
+                        status: constServerCode.PLAYER_TOP_UP_FAIL,
+                        name: "APIError",
+                        message: "Cannot create online top up request",
+                        error: Error()
+                    });
+                }
+            },
+            err => {
+                updateProposalRemark(proposal, err.errorMessage).catch(errorUtils.reportError);
+                return Promise.reject(err);
+            }
+        ).then(
+            res => {
+                var updateData = {
+                    status: constProposalStatus.PENDING
+                };
+                let merchantName = merchantResponse.result ? merchantResponse.result.merchantName : "";
+                let getRateProm;
+
+                updateData.data = Object.assign({}, proposal.data);
+                updateData.data.requestId = merchantResponse.result ? merchantResponse.result.requestId : "";
+                updateData.data.merchantNo = merchantResponse.result ? merchantResponse.result.merchantNo : "";
+                updateData.data.merchantName = merchantResponse.result ? merchantResponse.result.merchantName : "";
+                if (res[0]) {
+                    updateData.data.cardQuota = res[0].totalAmount;
+                }
+                if (merchantResponse.result && merchantResponse.result.revisedAmount) {
+                    updateData.data.inputAmount = topupRequest.amount;
+                    updateData.data.amount = merchantResponse.result.revisedAmount;
+                }
+
+                if(updateData.data.merchantNo && player.platform._id && merchantName != ""){
+                    getRateProm = getMerchantRate(updateData.data.merchantNo , player.platform.platformId, merchantName);
+                }
+
+                return Promise.all([getRateProm]).then(
+                    rate => {
+                        if(rate && rate.length > 0 && typeof rate[0] != "undefined"){
+                            serviceCharge = rate[0];
+                            updateData.data.rate = rate[0];
+                            updateData.data.actualAmountReceived = Number((topupRequest.amount - (topupRequest.amount * Number(rate[0]))).toFixed(2));
+                        }
+
+                        return updateData;
+                    }
+                )
+            }
+        ).then(
+            updateData => {
+                let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
+
+                updateOnlineTopUpProposalDailyLimit(proposalQuery, merchantResponse.result.merchantNo, merchantUseType).catch(errorUtils.reportError);
+
+                return dbconfig.collection_proposal.findOneAndUpdate(
+                    {_id: proposal._id, createTime: proposal.createTime},
+                    updateData,
+                    {new: true}
+                );
+            }
+        ).then(
+            proposalData => {
+                return {
+                    proposalId: proposalData.proposalId,
+                    topupType: topupRequest.topupType,
+                    amount: topupRequest.amount,
+                    createTime: proposalData.createTime,
+                    status: proposalData.status,
+                    topupDetail: merchantResponse.result,
+                    // serviceCharge: serviceCharge
+                    //requestId: merchantResponse.result.requestId,
+                    //result: merchantResponse.result,
+                };
+            }
+        );
+        //     .catch(
+        //     err => Q.reject({name: "DBError", message: 'Error performing online top up proposal', error: err})
+        // );
+    },
+
 };
 
 function checkLimitedOfferIntention(platformObjId, playerObjId, topUpAmount, limitedOfferObjId) {
