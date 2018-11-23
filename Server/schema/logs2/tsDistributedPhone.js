@@ -34,6 +34,8 @@ let tsDistributedPhoneSchema = new Schema({
     endTime: {type: Date, required: true, index: true},
     // time to remind admin
     remindTime: {type: Date, required: true, index: true},
+    // is registered
+    registered: {type: Boolean, default: false, index: true},
 
 });
 

@@ -62,6 +62,12 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.createTsPhoneFeedback, [data], actionName, isValidData);
         },
 
+        createTsPhonePlayerFeedback: function createTsPhonePlayerFeedback(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId && data.tsPhone && data.platform && data.adminId);
+            socketUtil.emitter(self.socket, dbTeleSales.createTsPhonePlayerFeedback, [data], actionName, isValidData);
+        },
+
         getTsPhoneFeedback: function getTsPhoneFeedback(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.tsPhone && data.platform && data.adminId);

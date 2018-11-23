@@ -338,6 +338,8 @@ var playerSchema = new Schema({
     clientData: {type: String},
     //device id
     deviceId: {type: String},
+    // tsPhoneObjId
+    tsPhone: {type: Schema.ObjectId, ref: 'tsPhone', index: true} ,
     // QnA security question total wrong count - reset when success
     qnaWrongCount: {
         forgotPassword: {type: Number, default: 0},
