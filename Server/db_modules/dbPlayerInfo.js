@@ -15437,6 +15437,7 @@ let dbPlayerInfo = {
 
         let startDate = new Date(query.start);
         let endDate = new Date(query.end);
+        let todayDate = dbUtility.getTodaySGTime();
         let getPlayerProm = Promise.resolve("");
         let result = [];
         let isSinglePlayer = false;
@@ -15511,7 +15512,20 @@ let dbPlayerInfo = {
 
                 // relevant players are the players who played any game within given time period
                 let playerObjArr = [];
-                return dbconfig.collection_playerConsumptionDaySummary.aggregate([
+                let collection;
+
+                if (endDate.getTime() > todayDate.startTime.getTime()) {
+                    collection = dbconfig.collection_playerConsumptionRecord;
+
+                    // Limit records search to provider
+                    if (query && query.providerId) {
+                        relevantPlayerQuery.providerId = ObjectId(query.providerId);
+                    }
+                } else {
+                    collection = dbconfig.collection_playerConsumptionDaySummary;
+                }
+
+                return collection.aggregate([
                     {$match: relevantPlayerQuery},
                     {$group: {_id: "$playerId"}}
                 ]).read("secondaryPreferred").then(

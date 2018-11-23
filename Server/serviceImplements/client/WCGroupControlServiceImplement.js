@@ -8,12 +8,17 @@ var WCGroupControlServiceImplement = function () {
     this.sendWCGroupControlSessionToFPMS.onRequest = function(wsFunc, conn, data) {
         let isValidData = Boolean(data.deviceId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbWCGroupControl.sendWCGroupControlSessionToFPMS, [data.deviceId, data.adminId, data.status, data.connectionAbnormalClickTimes], isValidData, false, false, true);
-    }
+    };
 
     this.sendWechatConversationToFPMS.onRequest = function(wsFunc, conn, data) {
-        let isValidData = Boolean(data.deviceId);
-        WebSocketUtil.performAction(conn, wsFunc, data, dbWCGroupControl.sendWechatConversationToFPMS, [data.deviceId, data.playerWechatId, data.playerWechatName, data.csReplyTime, data.csReplyContent], isValidData, false, false, true);
-    }
+        let isValidData = Boolean(data.deviceId && data.playerWechatRemark);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbWCGroupControl.sendWechatConversationToFPMS, [data.deviceId, data.playerWechatRemark, data.csReplyTime, data.csReplyContent], isValidData, false, false, true);
+    };
+
+    this.bindPlayerWechatInfo.onRequest = function(wsFunc, conn, data) {
+        let isValidData = Boolean(data.deviceId && data.playerWechatRemark && data.playerWechatId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbWCGroupControl.bindPlayerWechatInfo, [data.deviceId, data.playerWechatRemark, data.playerWechatId, data.playerWechatNickname], isValidData, false, false, true);
+    };
 };
 
 var proto = WCGroupControlServiceImplement.prototype = Object.create(WCGroupControlService.prototype);

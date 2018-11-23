@@ -14,11 +14,8 @@ let wcConversationLogSchema = new Schema({
     // csOfficer
     csOfficer: {type: Schema.ObjectId, ref: 'admin', index: true},
 
-    // cs dealing with which player wechatId
-    playerWechatId: {type: String, index: true},
-
-    // cs dealing with which player wechat's name
-    playerWechatName: {type: String, index: true},
+    // cs dealing with which player wechat remark
+    playerWechatRemark: {type: String, index: true},
 
     // cs reply player datetime
     csReplyTime: {type: Date, index: true},

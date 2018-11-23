@@ -80,7 +80,7 @@ var dbWCGroupControl = {
         );
     },
 
-    sendWechatConversationToFPMS: (deviceId, playerWechatId, playerWechatName, csReplyTime, csReplyContent) => {
+    sendWechatConversationToFPMS: (deviceId, playerWechatRemark, csReplyTime, csReplyContent) => {
         return dbConfig.collection_wcGroupControlSession.findOne({deviceId: deviceId, lastUpdateTime: {$exists: false}}).lean().then(
             wcGroupControlSessionData => {
                 if (wcGroupControlSessionData && wcGroupControlSessionData._id) {
@@ -89,8 +89,7 @@ var dbWCGroupControl = {
                         deviceId: wcGroupControlSessionData.deviceId,
                         platformObjId: wcGroupControlSessionData.platformObjId,
                         csOfficer: wcGroupControlSessionData.csOfficer,
-                        playerWechatId: playerWechatId,
-                        playerWechatName: playerWechatName,
+                        playerWechatRemark: playerWechatRemark.trim(),
                         csReplyTime: csReplyTime,
                         csReplyContent: csReplyContent,
                         createTime: new Date()
@@ -100,6 +99,50 @@ var dbWCGroupControl = {
                     return wcConversationLog.save();
                 } else {
                     return Promise.reject({name: "DataError", message: "Cannot find this wechat group control device's session"});
+                }
+            }
+        )
+    },
+
+    bindPlayerWechatInfo: (deviceId, playerWechatRemark, playerWechatId, playerWechatNickname) => {
+        let deviceSettingRecord;
+
+        return dbConfig.collection_wcDevice.findOne({deviceId: deviceId}).lean().then(
+            deviceSetting => {
+                if (!deviceSetting) {
+                    return Promise.reject({name: "DataError", message: "Cannot find wechat group control's setting"});
+                }
+
+                deviceSettingRecord = deviceSetting;
+
+                return dbConfig.collection_wcGroupControlPlayerWechat.findOne({deviceId: deviceSettingRecord.deviceId, playerWechatRemark: playerWechatRemark.trim(), platformObjId: deviceSettingRecord.platformObjId}).lean();
+            }
+        ).then(
+            playerWechatData => {
+                if (playerWechatData) {
+                    let wechatInfo = {
+                        playerWechatId: playerWechatId,
+                        playerWechatNickname: playerWechatNickname,
+                        lastUpdateTime: new Date()
+                    };
+
+                    return dbConfig.collection_wcGroupControlPlayerWechat.update(
+                        {deviceId: deviceSettingRecord.deviceId, playerWechatRemark: playerWechatRemark},
+                        {$set: wechatInfo},
+                        {upsert: true}
+                    ).exec()
+                } else {
+                    let newWechatInfo = {
+                        deviceId: deviceSettingRecord.deviceId,
+                        platformObjId: deviceSettingRecord.platformObjId,
+                        playerWechatRemark: playerWechatRemark.trim(),
+                        playerWechatId: playerWechatId,
+                        playerWechatNickname: playerWechatNickname,
+                        createTime: new Date()
+                    };
+
+                    let bindPlayerWechat = new dbConfig.collection_wcGroupControlPlayerWechat(newWechatInfo);
+                    return bindPlayerWechat.save();
                 }
             }
         )

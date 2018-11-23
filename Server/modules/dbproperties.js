@@ -429,6 +429,8 @@ let wcGroupControlSessionSchema = require('./../schema/logs2/wcGroupControlSessi
 let wcGroupControlSessionModel = dbLogs2.model('wcGroupControlSession', wcGroupControlSessionSchema, 'wcGroupControlSession');
 let wcConversationLogSchema = require('./../schema/logs2/wcConversationLog');
 let wcConversationLogModel = dbLogs2.model('wcConversationLog', wcConversationLogSchema, 'wcConversationLog');
+let wcGroupControlPlayerWechatSchema = require('./../schema/logs2/wcGroupControlPlayerWechat');
+let wcGroupControlPlayerWechatModel = dbLogs2.model('wcGroupControlPlayerWechat', wcGroupControlPlayerWechatSchema, 'wcGroupControlPlayerWechat');
 
 let openPromoCodeTemplateSchema = require('./../schema/logs2/openPromoCodeTemplate');
 let openPromoCodeTemplateModel = dbLogs2.model('openPromoCodeTemplate', openPromoCodeTemplateSchema, 'openPromoCodeTemplate');
@@ -700,6 +702,7 @@ var dbProperties = {
     collection_frontendData: frontendDataModel,
     collection_wcGroupControlSession: wcGroupControlSessionModel,
     collection_wcConversationLog: wcConversationLogModel,
+    collection_wcGroupControlPlayerWechat: wcGroupControlPlayerWechatModel,
 
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,
