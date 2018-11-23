@@ -29,6 +29,7 @@
         label &nbsp;
         button.btn.btn-danger(data-toggle="modal", data-target='#modalDepositGroupSetting', ng-click='vm.initDepositGroupSetting()') {{'Deposit Group Setting' | translate}}（{{'Impact report display' | translate}}）
 .clearfix
+    label {{"Search time" | translate}}: {{vm.searchFinancialReportSearchInterval}} {{"Seconds" | translate}}
     div#dailyFinancialReport(style="min-width:100% ;overflow-x: scroll; display; none !important" ng-if="vm.dailyFinancialReportList.length > 0")
         table.simple-table-single.table-vertical-middle.text-center(style='width:100%')
             thead
