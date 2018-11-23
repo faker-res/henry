@@ -8796,7 +8796,7 @@ function rearrangeSumTopUpDetailByDepositGroup (depositGroupRecord, topUpDetailD
                 if (type && type.methods && type.methods.length > 0) {
                     type.methods.forEach(method => {
                         if (method) {
-                            let indexNo = topUpDetailData.findIndex(x => x && x.topUpTypeId && x._id && type.topUpTypeId &&
+                            let indexNo = topUpDetailData.findIndex(x => x && x.topUpTypeId && type.topUpTypeId &&
                                 (((x.topUpTypeId == 1 || x.topUpTypeId == 2) && (x.topUpTypeId == type.topUpTypeId) && (x._id == method.topUpMethodId)) ||
                                     ((x.topUpTypeId == 3 || x.topUpTypeId == 3) && (x.topUpTypeId == type.topUpTypeId) && (method.depositName == 'ALIPAY' || method.depositName == 'WechatPay'))));
 
