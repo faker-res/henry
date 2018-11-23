@@ -15516,8 +15516,13 @@ let dbPlayerInfo = {
 
                 if (endDate.getTime() > todayDate.startTime.getTime()) {
                     collection = dbconfig.collection_playerConsumptionRecord;
+
+                    // Limit records search to provider
+                    if (query && query.providerId) {
+                        relevantPlayerQuery.providerId = ObjectId(query.providerId);
+                    }
                 } else {
-                    collection = dbconfig.collection_playerConsumptionDaySummary
+                    collection = dbconfig.collection_playerConsumptionDaySummary;
                 }
 
                 return collection.aggregate([
