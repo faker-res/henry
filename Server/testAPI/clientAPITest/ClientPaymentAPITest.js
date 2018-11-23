@@ -341,6 +341,11 @@
         this._service.requestBankTypeByUserName.once(callback);
     };
 
+    proto.createFKPTopupProposal = function (callback, requestData) {
+        let data = requestData || {};
+        this._service.createFKPTopupProposal.request(data);
+        this._service.createFKPTopupProposal.once(callback);
+    };
 
     if (isNode) {
         module.exports = ClientPaymentAPITest;
