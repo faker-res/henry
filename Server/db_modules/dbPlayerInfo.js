@@ -15502,7 +15502,7 @@ let dbPlayerInfo = {
         return getPlayerProm.then(
             playerData => {
                 console.log('RT - getPlayerReport 1');
-                let relevantPlayerQuery = {platformId: platform, date: {$gte: startDate, $lt: endDate}};
+                let relevantPlayerQuery = {platformId: platform};
 
                 if (isSinglePlayer) {
                     relevantPlayerQuery.playerId = playerData._id;
@@ -15515,7 +15515,9 @@ let dbPlayerInfo = {
                 let collection;
 
                 if (endDate.getTime() > todayDate.startTime.getTime()) {
+                    console.log('RT - getPlayerReport 1.1');
                     collection = dbconfig.collection_playerConsumptionRecord;
+                    relevantPlayerQuery.createTime = {$gte: startDate, $lt: endDate};
 
                     // Limit records search to provider
                     if (query && query.providerId) {
@@ -15523,6 +15525,7 @@ let dbPlayerInfo = {
                     }
                 } else {
                     collection = dbconfig.collection_playerConsumptionDaySummary;
+                    relevantPlayerQuery.date = {$gte: startDate, $lt: endDate};
                 }
 
                 return collection.aggregate([

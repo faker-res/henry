@@ -221,6 +221,7 @@ define(['js/app'], function (myApp) {
         'deleteRewardEventByIds',
         'updateRewardEvent',
         'updateProposalTypeProcessSteps',
+        'updateProposalProcessStep',
         'updatePlayerLevel',
         'updatePartnerLevelConfig',
         'createUpdatePartnerCommissionConfigWithGameProviderGroup',
@@ -10557,7 +10558,7 @@ define(['js/app'], function (myApp) {
                     {group: "REWARD", text: "updateRewardEvent", action: "updateRewardEvent"},
 
                     {group: "PROPOSAL_PROCESS", text: "updateProposalTypeProcessSteps", action: "updateProposalTypeProcessSteps"},
-                    //{group: "Proposal", text: "updateProposalProcessStep", action: "updateProposalProcessStep"},
+                    {group: "Proposal", text: "Manual Approval", action: "updateProposalProcessStep"},
 
                     {group: "CONFIG", text: "EDIT_PLAYER_LEVEL", action: "updatePlayerLevel"},
                     {group: "CONFIG", text: "VALID_ACTIVE", action: "updatePartnerLevelConfig"},
