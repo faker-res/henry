@@ -3864,9 +3864,10 @@ var dbPlayerTopUpRecord = {
                     };
 
                     // FUKUAIPAY API CALL
+
                 }
                 else {
-                    return Q.reject({
+                    return Promise.reject({
                         name: "DataError",
                         message: "Cannot create online top up proposal",
                         error: Error()
