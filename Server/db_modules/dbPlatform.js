@@ -5098,31 +5098,79 @@ var dbPlatform = {
     },
 
     saveFrontEndData: function (platformId, token, page, data) {
-        return dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
-            platformData => {
-                if (platformData && platformData._id) {
-                    let query = {
-                        platform: platformData._id,
-                        page: page
-                    };
+        let deferred = Q.defer();
 
-                    let updateData = {
-                        platform: platformData._id,
-                        page: page,
-                        data: data
-                    };
+        jwt.verify(token, jwtSecret, function (err, decoded) {
+            if (err || !decoded) {
+                // Jwt token error
+                deferred.reject({
+                    status: constServerCode.DB_ERROR,
+                    name: "DataError",
+                    errorMessage: "Failed to verify token"
+                });
+            }else{
+                if(decoded.platforms == "admin" || (decoded.platforms && decoded.platforms.length > 0)) {
+                    //check if platformId match with platformId in token
+                    let platformList = decoded.platforms == "admin" ? [] : decoded.platforms;
 
-                    return dbconfig.collection_frontendData.findOneAndUpdate(query, updateData,  {upsert: true, new: true}).lean();
+                    dbconfig.collection_platform.find({_id: {$in: platformList}}).then(
+                        platform => {
+                            if ((platform && platform.length > 0) || decoded.platforms == "admin") {
+                                let platformIndexNo = platform.findIndex(p => p.platformId == platformId);
+                                if (platformIndexNo == -1 && decoded.platforms != "admin") {
+                                    deferred.reject({
+                                        status: constServerCode.DB_ERROR,
+                                        name: "DataError",
+                                        errorMessage: "Platform Id not match"
+                                    });
+                                }else{
+                                    dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
+                                        platformData => {
+                                            if (platformData && platformData._id) {
+                                                let query = {
+                                                    platform: platformData._id,
+                                                    page: page
+                                                };
 
-                } else {
-                    return Promise.reject({
-                        status: constServerCode.INVALID_PARAM,
+                                                let updateData = {
+                                                    platform: platformData._id,
+                                                    page: page,
+                                                    data: data
+                                                };
+
+                                                deferred.resolve(dbconfig.collection_frontendData.findOneAndUpdate(query, updateData,  {upsert: true, new: true}).lean());
+
+                                            } else {
+                                                return Promise.reject({
+                                                    status: constServerCode.INVALID_PARAM,
+                                                    name: "DataError",
+                                                    errorMessage: "Cannot find platform"
+                                                });
+                                            }
+                                        }
+                                    );
+                                }
+                            }else{
+                                deferred.reject({
+                                    status: constServerCode.DB_ERROR,
+                                    name: "DataError",
+                                    errorMessage: "Platform Id not match"
+                                });
+                            }
+                        }
+                    );
+                }else{
+                    deferred.reject({
+                        status: constServerCode.DB_ERROR,
                         name: "DataError",
-                        errorMessage: "Cannot find platform"
+                        errorMessage: "Platform Id not match"
                     });
                 }
+
             }
-        );
+        });
+
+        return deferred.promise;
     },
 
     getFrontEndData: function (platformId, page) {
@@ -5526,6 +5574,12 @@ var dbPlatform = {
 
                                     ftpClient.connect(constSystemParam.FTP_CONNECTION_PROPERTIES);
                                 }
+                            }else{
+                                deferred.reject({
+                                    status: constServerCode.DB_ERROR,
+                                    name: "DataError",
+                                    errorMessage: "Platform Id not match"
+                                });
                             }
                         }
                     )
