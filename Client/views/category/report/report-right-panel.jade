@@ -75,7 +75,7 @@
                     span#topupTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.queryTopup.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.searchTopupRecordSearchInterval}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.queryTopup.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table#topupTable.common-table.display(style="min-width:100% ;overflow: scroll")
             #topupTablePage
             table#topupExcelTable.common-table.display(style="min-width:100% ;overflow: scroll; display; none !important")
@@ -133,7 +133,7 @@
                     span#proposalTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.proposalQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.searchProposalRecordSearchInterval}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.proposalQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table.common-table#proposalTable.display(style="width:100%;overflow: scroll;max-height:700px")
             #proposalTablePage
             table.common-table#proposalExcelTable.display(style="width:100%;overflow: scroll;max-height:700px")
@@ -157,7 +157,7 @@
                     span#financialPointsTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.financialQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.searchFinancialPointsRecordSearchInterval}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.financialQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table.common-table#financialPointsTable.display(style="width:100%;overflow: scroll;max-height:700px")
             #financialPointsTablePage
             table.common-table#financialPointsExcelTable.display(style="width:100%;overflow: scroll;max-height:700px")
@@ -190,7 +190,7 @@
                     span#consumptionModeTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.consumptionModeQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.searchConsumptionModeRecordSearchInterval}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.consumptionModeQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table.common-table#consumptionModeTable.display(style="width:100%;overflow: scroll;max-height:700px")
             #consumptionModeTablePage
 
@@ -217,7 +217,7 @@
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.operationReportLoadingStatus}}
             .clearfix
-            label {{"Search time" | translate}}: {{vm.searchOperationRecordSearchInterval}} {{"Seconds" | translate}}
+            label {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table#operationTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
             table.common-table.simple-table#operationSummaryTable.collapse(style='margin-top:10px;font-size:12px')
                 thead
@@ -264,7 +264,7 @@
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.operationReportLoadingStatus}}
             .clearfix
-            label {{"Total" | translate}} {{vm.playerExpenseQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.searchProviderPlayerRecordSearchInterval}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.playerExpenseQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table.common-table#playerExpenseTable.display(style="width:100% ;overflow-x: scroll")
             #playerExpenseTablePage
             table.common-table#playerExpenseExcelTable.display(style="width:100% ;overflow-x: scroll")
@@ -383,7 +383,7 @@
                     span#loadingPlayerReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.playerQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.searchPlayerReportSearchInterval}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.playerQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table.common-table#playerReportTable.display(style="width:100% ;overflow-x: scroll")
             #playerReportTablePage
             table.common-table#playerReportExcelTable.display(style="width:100% ;overflow-x: scroll")
@@ -437,7 +437,7 @@
                     span#loadingPlayerDepositAnalysisReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Search time" | translate}}: {{vm.searchPlayerDepositAnalysisReportSearchInterval}} {{"Seconds" | translate}}
+            label {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             //label {{"Total" | translate}} {{vm.depositAnalysisQuery.totalCount}} {{"records" | translate}}
             //table.common-table#playerDepositAnalysisReportTable.display(style="width:100% ;overflow-x: scroll")
             #playerDepositAnalysisReportTablePage
@@ -502,7 +502,7 @@
                     span#loadingPlayerDepositTrackingReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Search time" | translate}}: {{vm.searchPlayerDepositTrackingReportSearchInterval}} {{"Seconds" | translate}}
+            label {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             //label {{"Total" | translate}} {{vm.depositTrackingQuery.totalCount}} {{"records" | translate}}
             //table.common-table#playerDepositTrackingReportTable.display(style="width:100% ;overflow-x: scroll")
             #playerDepositTrackingReportTablePage
@@ -593,7 +593,7 @@
             //    .col-md-2
             //        label.block {{"Player with Partner" | translate}}
             //        label.block.text-danger {{vm.newPlayerQuery.totalpartnerPlayerCount || 0}}
-            label {{"Search time" | translate}}: {{vm.searchNewPlayerRecordSearchInterval}} {{"Seconds" | translate}}
+            label {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             .text-center
                 table.playerLvlTable#newAccountTable(style='width:100%')
                     thead
@@ -1153,7 +1153,7 @@
                     span#dxNewPlayerReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.dxNewPlayerQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.searchDXNewPlayerReportSearchInterval}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.dxNewPlayerQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table.common-table#dxNewPlayerReportTable.display(style="width:100% ;overflow-x: scroll")
             table.common-table#dxNewPlayerReportExcelTable.display(style="width:100% ;overflow-x: scroll")
 
@@ -1185,7 +1185,7 @@
                     span.margin-left-5 {{vm.operationReportLoadingStatus}}
             .clearfix
             table#playerPartnerTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
-                label {{"Total" | translate}} {{vm.partnerQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.searchPlayerPartnerRecordSearchInterval}} {{"Seconds" | translate}}
+                label {{"Total" | translate}} {{vm.partnerQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             #playerPartnerTablePage
             table#playerPartnerExcelTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
             table.common-table.simple-table#playerPartnerSummaryTable.collapse(style='margin-top:10px;font-size:12px')
@@ -1289,7 +1289,7 @@
                     span#playerDomainReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.playerDomain.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.searchPlayerDomainReportSearchInterval}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.playerDomain.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table#playerDomainReportTable.common-table.display(style="width:100%")
             #playerDomainReportTablePage
             table#playerDomainReportExcelTable.common-table.display(style="width:100%")
@@ -1313,7 +1313,7 @@
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.operationReportLoadingStatus}}
             .clearfix
-            label {{"Total" | translate}} {{vm.partnerPlayerBonusQuery.totalCount}} {{"records" | translate}} {{vm.partnerPlayerBonusQuery.message | translate}} / {{"Search time" | translate}}: {{vm.searchPartnerPlayerBonusDataSearchInterval}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.partnerPlayerBonusQuery.totalCount}} {{"records" | translate}} {{vm.partnerPlayerBonusQuery.message | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table.common-table#partnerPlayerBonusTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
                 thead
                     tr
@@ -1370,7 +1370,7 @@
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.partnerCommissionReportLoadingStatus}}
             .clearfix
-            label {{"Total" | translate}} {{vm.partnerCommissionQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.searchPartnerCommissionDataSearchInterval}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.partnerCommissionQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             span.text-danger.margin-left-5 {{vm.partnerCommissionQuery.message | translate}}
             table.common-table#partnerCommissionTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
             #partnerCommissionTablePage
@@ -1410,7 +1410,7 @@
                     div(style="display:block;") *{{"Green indicates executed settlement" | translate}}
                     div(style="display:block;") *{{"White indicates unexecuted settlement" | translate}}
             .clearfix
-            label {{"Total" | translate}} {{vm.partnerSettlementQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.searchPartnerSettlementHistorySearchInterval}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.partnerSettlementQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table.common-table#partnerSettlementTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
             #partnerSettlementTablePage
             table.common-table#partnerSettlementExcelTable.display(style="width:inherit;min-width:100%;overflow-x: scroll")
@@ -1443,7 +1443,7 @@
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.realTimeCommissionLoadingStatus}}
             .clearfix
-            label {{"Search time" | translate}}: {{vm.searchRealTimePartnerCommissionDataSearchInterval}} {{"Seconds" | translate}}
+            label {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table.simple-table#realTimeComissionTable
                 thead
                     tr
@@ -1578,7 +1578,7 @@
                     span#feedbackReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.feedbackQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.searchFeedbackReportSearchInterval}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.feedbackQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table.common-table#feedbackReportTable.display(style="width:100% ;overflow-x: scroll")
             #feedbackReportTablePage
             table.common-table#feedbackReportExcelTable.display(style="width:100% ;overflow-x: scroll")
@@ -1617,7 +1617,7 @@
                             span#rewardProposalTableSpin.collapse
                                 i.fa.fa-spinner.fa-spin
                     .clearfix
-                    label {{"TOTAL_PLAYER_COUNT" | translate}} : {{vm.rewardProposalQuery.totalCount}} / {{"Search time" | translate}}: {{vm.getRewardProposalReportSearchInterval}} {{"Seconds" | translate}}
+                    label {{"TOTAL_PLAYER_COUNT" | translate}} : {{vm.rewardProposalQuery.totalCount}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
                     table#rewardProposalTable.common-table.display(style="width:100%")
                     #rewardProposalTablePage
         div(ng-if='vm.currentRewardCode && vm.showPageName!="RewardReport"')
@@ -1645,7 +1645,7 @@
                             span#generalRewardProposalTableSpin.collapse
                                 i.fa.fa-spinner.fa-spin
                     .clearfix
-                    label {{"Total" | translate}} {{vm.generalRewardProposalQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.generalRewardProposalSearchSearchInterval}} {{"Seconds" | translate}}
+                    label {{"Total" | translate}} {{vm.generalRewardProposalQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
                     label(style="padding-left:15px;") {{"Total Number of Applicant" | translate}}: {{vm.generalRewardProposalQuery.totalApplicant|| 0}}
                     table#generalRewardProposalTable.common-table.display(style="width:100%")
                     #generalRewardProposalTablePage
@@ -1667,7 +1667,7 @@
                             span#generalRewardTaskSpin.collapse
                                 i.fa.fa-spinner.fa-spin
                     .clearfix
-                    label {{"Total" | translate}} {{vm.generalRewardTaskTableProp.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.searchGeneralRewardTaskSearchInterval}} {{"Seconds" | translate}}
+                    label {{"Total" | translate}} {{vm.generalRewardTaskTableProp.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
                     table#generalRewardTaskTable.common-table.display(style="width:100%")
                     #generalRewardTaskTablePage
 
@@ -1812,7 +1812,7 @@
                     span#playerFeedbackTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.playerFeedbackQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.searchPlayerFeedbackQuerySearchInterval}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.playerFeedbackQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table.common-table#playerFeedbackTable.display(style="width:100% ;overflow-x: scroll")
             #playerFeedbackTablePage
 
@@ -1830,7 +1830,7 @@
                     span#creditChangeTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.creditChangeQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.searchCreditChangeQuerySearchInterval}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.creditChangeQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table.common-table#creditChangeTable.display(style="width:100% ;overflow-x: scroll")
             #creditChangeTablePage
 
@@ -1849,7 +1849,7 @@
                     span#playerAlmostLevelUpTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.playerAlmostLevelUpQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.searchPlayerAlmostLevelUpSearchInterval}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.playerAlmostLevelUpQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table#playerAlmostLevelUpTable.common-table.display(style="width:100%;")
             #playerAlmostLevelUpTablePage
         div(ng-if='vm.showPageName=="ACTIONLOG_REPORT"')
@@ -1879,7 +1879,7 @@
                     span#actionLogTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-            label {{"Total" | translate}} {{vm.actionLogQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.searchActionLogDataSearchInterval}} {{"Seconds" | translate}}
+            label {{"Total" | translate}} {{vm.actionLogQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table#actionLogTable.common-table.display(style="width:100%;")
             #actionLogTablePage
         div(ng-if='vm.showPageName=="WINRATE_REPORT"')
@@ -1905,7 +1905,7 @@
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.winRateReportLoadingStatus}}
             .clearfix
-            label {{"Search time" | translate}}: {{vm.getWinRateReportDataSearchInterval}} {{"Seconds" | translate}}
+            label {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table#winRateTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
             table.common-table.simple-table#winRateSummaryTable(style='margin-top:10px;font-size:12px')
                 thead
@@ -1948,7 +1948,7 @@
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.winRateReportLoadingStatus}}
             .clearfix
-            label {{"Search time" | translate}}: {{vm.getMismatchReportSearchInterval}} {{"Seconds" | translate}}
+            label {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             table#onlinePaymentMismatchTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
                 thead
                     tr
@@ -1997,7 +1997,7 @@
                         i.fa.fa-spinner.fa-spin
                     span.margin-left-5 {{vm.winRateReportLoadingStatus}}
             .clearfix
-            label {{"Search time" | translate}}: {{vm.getLimitedOfferReportSearchInterval}} {{"Seconds" | translate}}
+            label {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
             //table#limitedOfferTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
                 thead
                     tr
@@ -2051,7 +2051,7 @@
                     span#wechatGroupReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-                label {{"Search time" | translate}}: {{vm.searchWechatGroupReportSearchInterval}} {{"Seconds" | translate}}
+                label {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
                 table#wechatGroupReportTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
                 #wechatGroupReportTablePage
                     thead
