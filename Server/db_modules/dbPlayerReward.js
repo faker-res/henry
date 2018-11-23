@@ -6036,7 +6036,7 @@ let dbPlayerReward = {
                 }
 
                 // check other reward apply in period
-                return checkForbidRewardProm = dbConfig.collection_proposal.aggregate(
+                checkForbidRewardProm = dbConfig.collection_proposal.aggregate(
                     {
                         $match: {
                             "createTime": freeTrialQuery.createTime,
@@ -6057,11 +6057,9 @@ let dbPlayerReward = {
                 ).read("secondaryPreferred").then(
                     countReward => {
                         if (countReward && countReward.length > 0) {
-                            return Q.reject({
-                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                name: "DataError",
-                                message: "This player has applied for other reward in event period"
-                            });
+                            return false;
+                        } else {
+                            return true;
                         }
                     }
                 ).catch(
@@ -6611,6 +6609,7 @@ let dbPlayerReward = {
                             let matchIPAddress = rewardSpecificData[0][1];
                             let matchPhoneNum = rewardSpecificData[0][2];
                             let matchMobileDevice = rewardSpecificData[0][3];
+                            let matchForbidRewardEvent = rewardSpecificData[2];
 
                             if (!matchPlayerId) {
                                 return Q.reject({
@@ -6641,6 +6640,14 @@ let dbPlayerReward = {
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
                                     message: "This mobile device has applied for max reward times in event period"
+                                });
+                            }
+
+                            if (!matchForbidRewardEvent) {
+                                return Q.reject({
+                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                    name: "DataError",
+                                    message: "This player has applied for other reward in event period"
                                 });
                             }
                         }

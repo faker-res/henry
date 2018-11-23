@@ -79,6 +79,7 @@ const constPlayerBillBoardMode = require('./../const/constPlayerBillBoardMode');
 
 // db_modules
 let dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
+let dbPlayerRegistrationIntentRecord = require('./../db_modules/dbPlayerRegistrationIntentRecord');
 let dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
 let dbPlayerCreditTransfer = require('../db_modules/dbPlayerCreditTransfer');
 let dbPlayerFeedback = require('../db_modules/dbPlayerFeedback');
@@ -1216,7 +1217,7 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     dbPlayerInfo.createPlayerLoginRecord(data);
-
+                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecord(data, constProposalStatus.MANUAL, null);
                     // Create feedback
                     let feedback = {
                         playerId: data._id,
@@ -5682,11 +5683,9 @@ let dbPlayerInfo = {
                                     if (updateSimilarIpPlayer) {
                                         // dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'lastLoginIp', playerData.lastLoginIp);
                                     }
-                                }
-                            ).then(
-                                () => {
+
                                     // check for playerRetentionRewardGroup
-                                    return dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(errorUtils.reportError);
+                                    dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(errorUtils.reportError);
                                 }
                             ).then(
                                 () => {
@@ -5796,6 +5795,7 @@ let dbPlayerInfo = {
             }
         ).then(
             retentionRecord => {
+                let checkAndApplyRetentionReward = Promise.resolve();
                 if (retentionRecord && retentionRecord.length){
                     retentionRecord.forEach(
                         record => {
@@ -5834,14 +5834,16 @@ let dbPlayerInfo = {
                                         rewardParam = record.rewardEventObjId.param.rewardParam[0].value;
                                     }
 
-                                    listProm.push(dbPlayerReward.getDistributedRetentionReward(record.rewardEventObjId, playerData, record.applyTopUpAmount, rewardParam, record, userAgent));
+                                    checkAndApplyRetentionReward = checkAndApplyRetentionReward.then( () => {
+                                        return dbPlayerReward.getDistributedRetentionReward(record.rewardEventObjId, playerData, record.applyTopUpAmount, rewardParam, record, userAgent)
+                                    });
                                 }
                             }
                         }
                     )
                 }
 
-                return Promise.all(listProm);
+                return checkAndApplyRetentionReward;
             }
         )
     },
@@ -11385,9 +11387,11 @@ let dbPlayerInfo = {
                                                 bankNameWhenSubmit: player && player.bankName ? player.bankName : ""
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                             };
-                                            if (!player.permission.applyBonus && player.platform.playerForbidApplyBonusNeedCsApproval) {
+                                            if (!player.permission.applyBonus) {
                                                 proposalData.remark = "禁用提款: " + lastBonusRemark;
-                                                proposalData.needCsApproved = true;
+                                                if(player.platform.playerForbidApplyBonusNeedCsApproval) {
+                                                    proposalData.needCsApproved = true;
+                                                }
                                             }
                                             var newProposal = {
                                                 creator: proposalData.creator,
