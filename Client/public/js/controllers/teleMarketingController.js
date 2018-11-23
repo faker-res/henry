@@ -5831,7 +5831,7 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
-                        title: $translate('TOTAL_TOPUP'),
+                        title: $translate('TOTAL_TOPUP_PERSON'),
                         render: function(data, type, row, index){
                             let divWithToolTip = $('<div>', {
                                 'title': "已使用量当中，有成功存款的人数",
