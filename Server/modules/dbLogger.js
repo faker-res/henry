@@ -150,6 +150,47 @@ var dbLogger = {
                     return dbconfig.collection_partner.findOne({partnerId: adminActionRecordData.data[2].partnerId}, {partnerName: 1});
                 }else if(adminActionRecordData.action == 'updateProposalProcessStep' && adminActionRecordData.data[0]){
                     return dbconfig.collection_proposal.findOne({_id: adminActionRecordData.data[0]}, {proposalId: 1})
+                }else if(adminActionRecordData.action == 'attachDetachRolesFromUsersById' && adminActionRecordData.data[0]){
+                    let adminProm, attachedRoleProm, detachedRoleProm = Promise.resolve();
+
+                    adminProm = dbconfig.collection_admin.findOne({_id: adminActionRecordData.data[0]});
+
+                    if(adminActionRecordData.data[1] && adminActionRecordData.data[1].length > 0){
+                        attachedRoleProm = dbconfig.collection_role.find({_id: {$in: adminActionRecordData.data[1]}}, {roleName: 1});
+                    }
+
+                    if(adminActionRecordData.data[2] && adminActionRecordData.data[2].length > 0){
+                        detachedRoleProm = dbconfig.collection_role.find({_id: {$in: adminActionRecordData.data[2]}}, {roleName: 1});
+                    }
+
+                    return Promise.all([adminProm, attachedRoleProm, detachedRoleProm]).then(
+                        result => {
+                            let adminName;
+                            let attachedRoleList = [];
+                            let detachedRoleList = [];
+
+                            if(result && result.length > 0){
+                                adminName = result[0] && result[0].adminName ? result[0].adminName : "";
+                                if(result[1] && result[1].length > 0){
+                                    result[1].forEach(role => {
+                                        if(role && role.roleName){
+                                            attachedRoleList.push(role.roleName);
+                                        }
+                                    })
+                                }
+
+                                if(result[2] && result[2].length > 0){
+                                    result[2].forEach(role => {
+                                        if(role && role.roleName){
+                                            detachedRoleList.push(role.roleName);
+                                        }
+                                    })
+                                }
+                            }
+
+                            return {adminName: adminName, attachedRoleList: attachedRoleList, detachedRoleList: detachedRoleList};
+                        }
+                    )
                 }
             }
         ).then(
@@ -159,36 +200,47 @@ var dbLogger = {
 
                 if(logAction == "createDepartmentWithParent" ){
                     adminActionRecordData.error = adminActionRecordData.data[0].departmentName;
+                    adminActionRecordData.platforms = adminActionRecordData.data[1] ? adminActionRecordData.data[1] : adminActionRecordData.platforms;
                 }else if(logAction == "updateDepartmentParent" && adminActionRecordData.data[3]){
                     adminActionRecordData.error = adminActionRecordData.data[3];
+                    adminActionRecordData.platforms = adminActionRecordData.data[4] ? adminActionRecordData.data[4] : adminActionRecordData.platforms;
                 }else if(logAction == "updateDepartment" && adminActionRecordData.data[1].departmentName){
                     adminActionRecordData.error = adminActionRecordData.data[1].departmentName;
+                    adminActionRecordData.platforms = adminActionRecordData.data[2] ? adminActionRecordData.data[2] : adminActionRecordData.platforms;
                 }else if(logAction == "deleteDepartmentsById" && adminActionRecordData.data[1]){
                     adminActionRecordData.error = adminActionRecordData.data[1];
+                    adminActionRecordData.platforms = adminActionRecordData.data[2] ? adminActionRecordData.data[2] : adminActionRecordData.platforms;
                 }else if(logAction == "createRoleForDepartment" && adminActionRecordData.data[0].roleName){
                     adminActionRecordData.error = adminActionRecordData.data[0].roleName;
+                    adminActionRecordData.platforms = adminActionRecordData.data[0] && adminActionRecordData.data[0].platform ? adminActionRecordData.data[0].platform : adminActionRecordData.platforms;
                 }else if(logAction == "deleteRolesById" && adminActionRecordData.data[1]){
                     adminActionRecordData.error = adminActionRecordData.data[1];
+                    adminActionRecordData.platforms = adminActionRecordData.data[2] ? adminActionRecordData.data[2] : adminActionRecordData.platforms;
                 }else if(logAction == "updateRole" && adminActionRecordData.data[0].roleName){
                     adminActionRecordData.error = adminActionRecordData.data[0].roleName;
-                }else if(logAction == "attachRolesToUsersById" && adminActionRecordData.data[2]){
-                    adminActionRecordData.error = "用户名: " + adminActionRecordData.data[2].curUser + " ; 添加角色: " + adminActionRecordData.data[2].roleName;
-                }else if(logAction == "detachRolesFromUsersById" && adminActionRecordData.data[2]){
-                    adminActionRecordData.error = "用户名: " + adminActionRecordData.data[2].curUser + " ; 移除角色: " + adminActionRecordData.data[2].roleName;
+                    adminActionRecordData.platforms = adminActionRecordData.data[2] ? adminActionRecordData.data[2] : adminActionRecordData.platforms;
+                }else if(logAction == "attachDetachRolesFromUsersById" && data.adminName){
+                    adminActionRecordData.error = "用户名: " + data.adminName + " ; 添加角色: " + data.attachedRoleList + " ; 移除角色: " + data.detachedRoleList;
+                    adminActionRecordData.platforms = adminActionRecordData.data[3] ? adminActionRecordData.data[3] : adminActionRecordData.platforms;
                 }else if(logAction == "createAdminForDepartment" && adminActionRecordData.data[0].adminName){
                     adminActionRecordData.error = adminActionRecordData.data[0].adminName;
+                    adminActionRecordData.platforms = adminActionRecordData.data[0] && adminActionRecordData.data[0].platform ? adminActionRecordData.data[0].platform : adminActionRecordData.platforms;
                 }else if(logAction == "updateAdmin" && adminActionRecordData.data[1].adminName){
                     adminActionRecordData.error = adminActionRecordData.data[1].adminName;
+                    adminActionRecordData.platforms = adminActionRecordData.data[2] ? adminActionRecordData.data[2] : adminActionRecordData.platforms;
                 }else if(logAction == "deleteAdminInfosById"){
                     let userNames = [];
                     for(var key in adminActionRecordData.data[1]){
                         userNames.push(adminActionRecordData.data[1][key].adminName);
                     }
                     adminActionRecordData.error = userNames;
+                    adminActionRecordData.platforms = adminActionRecordData.data[2] ? adminActionRecordData.data[2] : adminActionRecordData.platforms;
                 }else if(logAction == "updateAdminDepartment" && adminActionRecordData.data[3]){
                     adminActionRecordData.error = adminActionRecordData.data[3];
+                    adminActionRecordData.platforms = adminActionRecordData.data[4] ? adminActionRecordData.data[4] : adminActionRecordData.platforms;
                 }else if(logAction == "resetAdminPassword" && adminActionRecordData.data[2]){
                     adminActionRecordData.error = adminActionRecordData.data[2];
+                    adminActionRecordData.platforms = adminActionRecordData.data[3] ? adminActionRecordData.data[3] : adminActionRecordData.platforms;
                 }else if(logAction == 'createPlayer' && adminActionRecordData.data[0] && adminActionRecordData.data[0].name){
                     adminActionRecordData.error = "帐号：" + adminActionRecordData.data[0].name;
                     adminActionRecordData.platforms = adminActionRecordData.data[0] && adminActionRecordData.data[0].platform
@@ -238,30 +290,32 @@ var dbLogger = {
                     adminActionRecordData.platforms = data && data.platform && data.platform ? data.platform : adminActionRecordData.platforms;
                 }else if(logAction == "createPlatform" && adminActionRecordData.data[0].name){
                     adminActionRecordData.error = "创建" + adminActionRecordData.data[0].name + "产品";
+                    adminActionRecordData.platforms = adminActionRecordData.data[0] && adminActionRecordData.data[0].platform ? adminActionRecordData.data[0].platform : adminActionRecordData.platforms;
                 }else if(logAction == "deletePlatformById" && adminActionRecordData.data[1]){
                     adminActionRecordData.error = "删除" + adminActionRecordData.data[1] + "产品";
+                    adminActionRecordData.platforms = adminActionRecordData.data[0] && adminActionRecordData.data[0][0] ? adminActionRecordData.data[0][0] : adminActionRecordData.platforms;
                 }else if(logAction == "updatePlatform" && resultData.name) {
                     if(adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]
-                        && typeof adminActionRecordData.data[1].partnerNameMaxLength != "undefined"){
+                        && typeof adminActionRecordData.data[1].partnerNameMaxLength != "undefined" && !adminActionRecordData.data[2]){
                         adminActionRecordData.error = "代理基础数据";
                     }else if(adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]
-                        && typeof adminActionRecordData.data[1].minTopUpAmount != "undefined"){
+                        && typeof adminActionRecordData.data[1].minTopUpAmount != "undefined" && !adminActionRecordData.data[2]){
                         adminActionRecordData.error = "平台基础数据";
                     }else if(adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]
-                        && typeof adminActionRecordData.data[1].bonusSetting != "undefined"){
+                        && typeof adminActionRecordData.data[1].bonusSetting != "undefined" && !adminActionRecordData.data[2]){
                         adminActionRecordData.error = "提款设置";
                     }else if(adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]
-                        && typeof adminActionRecordData.data[1].monitorMerchantCount != "undefined"){
+                        && typeof adminActionRecordData.data[1].monitorMerchantCount != "undefined" && !adminActionRecordData.data[2]){
                         adminActionRecordData.error = "充值监控设置";
                     }else if(adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]
-                        && typeof adminActionRecordData.data[1].maxRingTime != "undefined"){
+                        && typeof adminActionRecordData.data[1].maxRingTime != "undefined" && !adminActionRecordData.data[2]){
                         adminActionRecordData.error = "批量拨电设置";
                     }else if(adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]
-                        && typeof adminActionRecordData.data[1].callRequestUrlConfig != "undefined"){
+                        && typeof adminActionRecordData.data[1].callRequestUrlConfig != "undefined" && !adminActionRecordData.data[2]){
                         adminActionRecordData.error = "请求回电设置";
                     }else if(adminActionRecordData.data && adminActionRecordData.data.length > 1 && adminActionRecordData.data[1]
                         && (typeof adminActionRecordData.data[1]["conversationDefinition.totalSec"] != "undefined" ||
-                        typeof adminActionRecordData.data[1].overtimeSetting != "undefined")){
+                        typeof adminActionRecordData.data[1].overtimeSetting != "undefined") && !adminActionRecordData.data[2]){
                         adminActionRecordData.error = "质检参数设置";
                     }else{
                         adminActionRecordData.error = "更新" + resultData.name + "产品";

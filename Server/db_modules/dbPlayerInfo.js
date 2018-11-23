@@ -79,6 +79,7 @@ const constPlayerBillBoardMode = require('./../const/constPlayerBillBoardMode');
 
 // db_modules
 let dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
+let dbPlayerRegistrationIntentRecord = require('./../db_modules/dbPlayerRegistrationIntentRecord');
 let dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
 let dbPlayerCreditTransfer = require('../db_modules/dbPlayerCreditTransfer');
 let dbPlayerFeedback = require('../db_modules/dbPlayerFeedback');
@@ -1216,7 +1217,7 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     dbPlayerInfo.createPlayerLoginRecord(data);
-
+                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecord(data, constProposalStatus.MANUAL, null);
                     // Create feedback
                     let feedback = {
                         playerId: data._id,
@@ -5682,11 +5683,9 @@ let dbPlayerInfo = {
                                     if (updateSimilarIpPlayer) {
                                         // dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'lastLoginIp', playerData.lastLoginIp);
                                     }
-                                }
-                            ).then(
-                                () => {
+
                                     // check for playerRetentionRewardGroup
-                                    return dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(errorUtils.reportError);
+                                    dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(errorUtils.reportError);
                                 }
                             ).then(
                                 () => {
@@ -5796,6 +5795,7 @@ let dbPlayerInfo = {
             }
         ).then(
             retentionRecord => {
+                let checkAndApplyRetentionReward = Promise.resolve();
                 if (retentionRecord && retentionRecord.length){
                     retentionRecord.forEach(
                         record => {
@@ -5834,14 +5834,16 @@ let dbPlayerInfo = {
                                         rewardParam = record.rewardEventObjId.param.rewardParam[0].value;
                                     }
 
-                                    listProm.push(dbPlayerReward.getDistributedRetentionReward(record.rewardEventObjId, playerData, record.applyTopUpAmount, rewardParam, record, userAgent));
+                                    checkAndApplyRetentionReward = checkAndApplyRetentionReward.then( () => {
+                                        return dbPlayerReward.getDistributedRetentionReward(record.rewardEventObjId, playerData, record.applyTopUpAmount, rewardParam, record, userAgent)
+                                    });
                                 }
                             }
                         }
                     )
                 }
 
-                return Promise.all(listProm);
+                return checkAndApplyRetentionReward;
             }
         )
     },
@@ -11385,9 +11387,11 @@ let dbPlayerInfo = {
                                                 bankNameWhenSubmit: player && player.bankName ? player.bankName : ""
                                                 //requestDetail: {bonusId: bonusId, amount: amount, honoreeDetail: honoreeDetail}
                                             };
-                                            if (!player.permission.applyBonus && player.platform.playerForbidApplyBonusNeedCsApproval) {
+                                            if (!player.permission.applyBonus) {
                                                 proposalData.remark = "禁用提款: " + lastBonusRemark;
-                                                proposalData.needCsApproved = true;
+                                                if(player.platform.playerForbidApplyBonusNeedCsApproval) {
+                                                    proposalData.needCsApproved = true;
+                                                }
                                             }
                                             var newProposal = {
                                                 creator: proposalData.creator,
@@ -15433,6 +15437,7 @@ let dbPlayerInfo = {
 
         let startDate = new Date(query.start);
         let endDate = new Date(query.end);
+        let todayDate = dbUtility.getTodaySGTime();
         let getPlayerProm = Promise.resolve("");
         let result = [];
         let isSinglePlayer = false;
@@ -15507,7 +15512,20 @@ let dbPlayerInfo = {
 
                 // relevant players are the players who played any game within given time period
                 let playerObjArr = [];
-                return dbconfig.collection_playerConsumptionDaySummary.aggregate([
+                let collection;
+
+                if (endDate.getTime() > todayDate.startTime.getTime()) {
+                    collection = dbconfig.collection_playerConsumptionRecord;
+
+                    // Limit records search to provider
+                    if (query && query.providerId) {
+                        relevantPlayerQuery.providerId = ObjectId(query.providerId);
+                    }
+                } else {
+                    collection = dbconfig.collection_playerConsumptionDaySummary;
+                }
+
+                return collection.aggregate([
                     {$match: relevantPlayerQuery},
                     {$group: {_id: "$playerId"}}
                 ]).read("secondaryPreferred").then(

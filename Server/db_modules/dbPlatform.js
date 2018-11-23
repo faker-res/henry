@@ -59,6 +59,8 @@ const constPartnerCommissionLogStatus = require("../const/constPartnerCommission
 
 const Client = require('ftp');
 const admZip = require('adm-zip');
+const jwt = require('jsonwebtoken');
+var jwtSecret = env.socketSecret;
 
 function randomObjectId() {
     var id = crypto.randomBytes(12).toString('hex');
@@ -5096,31 +5098,79 @@ var dbPlatform = {
     },
 
     saveFrontEndData: function (platformId, token, page, data) {
-        return dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
-            platformData => {
-                if (platformData && platformData._id) {
-                    let query = {
-                        platform: platformData._id,
-                        page: page
-                    };
+        let deferred = Q.defer();
 
-                    let updateData = {
-                        platform: platformData._id,
-                        page: page,
-                        data: data
-                    };
+        jwt.verify(token, jwtSecret, function (err, decoded) {
+            if (err || !decoded) {
+                // Jwt token error
+                deferred.reject({
+                    status: constServerCode.DB_ERROR,
+                    name: "DataError",
+                    errorMessage: "Failed to verify token"
+                });
+            }else{
+                if(decoded.platforms == "admin" || (decoded.platforms && decoded.platforms.length > 0)) {
+                    //check if platformId match with platformId in token
+                    let platformList = decoded.platforms == "admin" ? [] : decoded.platforms;
 
-                    return dbconfig.collection_frontendData.findOneAndUpdate(query, updateData,  {upsert: true, new: true}).lean();
+                    dbconfig.collection_platform.find({_id: {$in: platformList}}).then(
+                        platform => {
+                            if ((platform && platform.length > 0) || decoded.platforms == "admin") {
+                                let platformIndexNo = platform.findIndex(p => p.platformId == platformId);
+                                if (platformIndexNo == -1 && decoded.platforms != "admin") {
+                                    deferred.reject({
+                                        status: constServerCode.DB_ERROR,
+                                        name: "DataError",
+                                        errorMessage: "Platform Id not match"
+                                    });
+                                }else{
+                                    dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
+                                        platformData => {
+                                            if (platformData && platformData._id) {
+                                                let query = {
+                                                    platform: platformData._id,
+                                                    page: page
+                                                };
 
-                } else {
-                    return Promise.reject({
-                        status: constServerCode.INVALID_PARAM,
+                                                let updateData = {
+                                                    platform: platformData._id,
+                                                    page: page,
+                                                    data: data
+                                                };
+
+                                                deferred.resolve(dbconfig.collection_frontendData.findOneAndUpdate(query, updateData,  {upsert: true, new: true}).lean());
+
+                                            } else {
+                                                return Promise.reject({
+                                                    status: constServerCode.INVALID_PARAM,
+                                                    name: "DataError",
+                                                    errorMessage: "Cannot find platform"
+                                                });
+                                            }
+                                        }
+                                    );
+                                }
+                            }else{
+                                deferred.reject({
+                                    status: constServerCode.DB_ERROR,
+                                    name: "DataError",
+                                    errorMessage: "Platform Id not match"
+                                });
+                            }
+                        }
+                    );
+                }else{
+                    deferred.reject({
+                        status: constServerCode.DB_ERROR,
                         name: "DataError",
-                        errorMessage: "Cannot find platform"
+                        errorMessage: "Platform Id not match"
                     });
                 }
+
             }
-        );
+        });
+
+        return deferred.promise;
     },
 
     getFrontEndData: function (platformId, page) {
@@ -5145,359 +5195,403 @@ var dbPlatform = {
     },
 
     sendFileFTP: function(platformId, token, fileStream, fileName) {
-        let ftpClient = new Client();
         let deferred = Q.defer();
-        let url = constSystemParam.FTP_URL + "/" + platformId + "/" + fileName;
-        let zipFileDirectory = "";
-        ftpClient.on('ready', function() {
-            if (fileName.includes(".zip")) {
-                var zip = new admZip(fileStream);
-                var zipEntries = zip.getEntries();
-                zipEntries.forEach(function (zipEntry) {
-                    let indexOfFileType = fileName.indexOf(".");
-                    zipFileDirectory = fileName.substring(0, indexOfFileType);
 
-                    if(!zipEntry.isDirectory){
-                        let lastIndex = zipEntry.entryName.lastIndexOf("/") || 0;
-                        let directory = zipEntry.entryName.substring(0, lastIndex);
-                        let fName = zipEntry.entryName.substring(lastIndex + 1);
-                        let zipFileStream = zip.readFile(zipEntry); // decompressed buffer of the entry
+        jwt.verify(token, jwtSecret, function (err, decoded) {
+            if (err || !decoded) {
+                // Jwt token error
+                deferred.reject({
+                    status: constServerCode.DB_ERROR,
+                    name: "DataError",
+                    errorMessage: "Failed to verify token"
+                });
+            } else {
+                if(decoded.platforms == "admin" || (decoded.platforms && decoded.platforms.length > 0)){
+                    //check if platformId match with platformId in token
+                    let platformList = decoded.platforms == "admin" ? [] : decoded.platforms;
 
-                        ftpClient.list("/" + platformId, function(err, list){
-                            if (err){
-                                deferred.reject({
-                                    status: constServerCode.DB_ERROR,
-                                    name: "DataError",
-                                    errorMessage: "Failed to get folder list: " + err
-                                });
-                            }
+                    dbconfig.collection_platform.find({_id: {$in: platformList}}).then(
+                        platform => {
+                            if((platform && platform.length > 0) || decoded.platforms == "admin"){
+                                let platformIndexNo = platform.findIndex(p => p.platformId == platformId);
+                                if(platformIndexNo == -1 && decoded.platforms != "admin"){
+                                    deferred.reject({
+                                        status: constServerCode.DB_ERROR,
+                                        name: "DataError",
+                                        errorMessage: "Platform Id not match"
+                                    });
+                                }else{
+                                    let ftpClient = new Client();
+                                    let url = constSystemParam.FTP_URL + "/" + platformId + "/" + fileName;
+                                    let zipFileDirectory = "";
+                                    ftpClient.on('ready', function() {
+                                        if (fileName.includes(".zip")) {
+                                            var zip = new admZip(fileStream);
+                                            var zipEntries = zip.getEntries();
+                                            zipEntries.forEach(function (zipEntry) {
+                                                let indexOfFileType = fileName.indexOf(".");
+                                                zipFileDirectory = fileName.substring(0, indexOfFileType);
 
-                            let folderIndex = list.findIndex(l => l.name == zipFileDirectory);
+                                                if(!zipEntry.isDirectory){
+                                                    let lastIndex = zipEntry.entryName.lastIndexOf("/") || 0;
+                                                    let directory = zipEntry.entryName.substring(0, lastIndex);
+                                                    let fName = zipEntry.entryName.substring(lastIndex + 1);
+                                                    let zipFileStream = zip.readFile(zipEntry); // decompressed buffer of the entry
 
-                            if(folderIndex > -1){
-                                deferred.reject({
-                                    status: constServerCode.DB_ERROR,
-                                    name: "DataError",
-                                    errorMessage: "Folder name exists"
-                                });
-                            }
-                        });
+                                                    ftpClient.list("/" + platformId, function(err, list){
+                                                        if (err){
+                                                            deferred.reject({
+                                                                status: constServerCode.DB_ERROR,
+                                                                name: "DataError",
+                                                                errorMessage: "Failed to get folder list: " + err
+                                                            });
+                                                        }
 
-                        ftpClient.mkdir("/" + platformId + "/" + directory, true, function (err) {
-                            if (err) {
-                                deferred.reject({
-                                    status: constServerCode.DB_ERROR,
-                                    name: "DataError",
-                                    errorMessage: "Failed to create folder: " + err
-                                });
-                            }
+                                                        let folderIndex = list.findIndex(l => l.name == zipFileDirectory);
 
-                        });
+                                                        if(folderIndex > -1){
+                                                            deferred.reject({
+                                                                status: constServerCode.DB_ERROR,
+                                                                name: "DataError",
+                                                                errorMessage: "Folder name exists"
+                                                            });
+                                                        }
+                                                    });
 
-                        ftpClient.cwd("/" + platformId + "/" + directory, function (err, currentDir) {
-                            if (err) {
-                                deferred.reject({
-                                    status: constServerCode.DB_ERROR,
-                                    name: "DataError",
-                                    errorMessage: "Change directory failed: " + err
-                                });
-                            }
+                                                    ftpClient.mkdir("/" + platformId + "/" + directory, true, function (err) {
+                                                        if (err) {
+                                                            deferred.reject({
+                                                                status: constServerCode.DB_ERROR,
+                                                                name: "DataError",
+                                                                errorMessage: "Failed to create folder: " + err
+                                                            });
+                                                        }
 
-                        });
+                                                    });
 
-                        ftpClient.put(zipFileStream, fName, function (err) {
-                            if (err) {
-                                deferred.reject({
-                                    status: constServerCode.DB_ERROR,
-                                    name: "DataError",
-                                    errorMessage: "Failed to create file: " + err
-                                });
-                            }
+                                                    ftpClient.cwd("/" + platformId + "/" + directory, function (err, currentDir) {
+                                                        if (err) {
+                                                            deferred.reject({
+                                                                status: constServerCode.DB_ERROR,
+                                                                name: "DataError",
+                                                                errorMessage: "Change directory failed: " + err
+                                                            });
+                                                        }
 
-                            deferred.resolve({result: "success", url: constSystemParam.FTP_URL + "/" + platformId + "/" + zipFileDirectory});
-                            ftpClient.end();
-                        });
-                    }
-                })
-            }else if(fileName.includes(".jpg") || fileName.includes(".png")){ // if file type is jpg or png, compress before upload to ftp, max 500 images per month
+                                                    });
 
-                let tinify = require('tinify');
+                                                    ftpClient.put(zipFileStream, fName, function (err) {
+                                                        if (err) {
+                                                            deferred.reject({
+                                                                status: constServerCode.DB_ERROR,
+                                                                name: "DataError",
+                                                                errorMessage: "Failed to create file: " + err
+                                                            });
+                                                        }
 
-                if (env.mode != "local" && env.mode != "qa") {
-                    tinify.key = constSystemParam.TINIFY_API_KEY;
-                }else{
-                    tinify.key = constSystemParam.TINIFY_DEV_API_KEY;
-                }
+                                                        deferred.resolve({result: "success", url: constSystemParam.FTP_URL + "/" + platformId + "/" + zipFileDirectory});
+                                                        ftpClient.end();
+                                                    });
+                                                }
+                                            })
+                                        }else if(fileName.includes(".jpg") || fileName.includes(".png")){ // if file type is jpg or png, compress before upload to ftp, max 500 images per month
 
-                tinify.fromBuffer(fileStream).toBuffer(function(err, buffer){
+                                            let tinify = require('tinify');
 
-                    if(err){
-                        deferred.reject({
-                            status: constServerCode.DB_ERROR,
-                            name: "DataError",
-                            errorMessage: "Failed to compress file " + err
-                        });
-                    }
-                    //get current directory list
-                    ftpClient.list("/", function (err, list) {
-                        if (err) {
-                            deferred.reject({
-                                status: constServerCode.DB_ERROR,
-                                name: "DataError",
-                                errorMessage: "Failed to get directory list: " + err
-                            });
-                        }
+                                            if (env.mode != "local" && env.mode != "qa") {
+                                                tinify.key = constSystemParam.TINIFY_API_KEY;
+                                            }else{
+                                                tinify.key = constSystemParam.TINIFY_DEV_API_KEY;
+                                            }
 
-                        if (list && list.length > 0) {
-                            //check if folder is exist in directory
-                            let folderIndex = list.findIndex(l => l.name == platformId);
-                            if (folderIndex > -1) {
-                                ftpClient.cwd(platformId, function (err, currentDir) {
-                                    if (err) {
-                                        deferred.reject({
-                                            status: constServerCode.DB_ERROR,
-                                            name: "DataError",
-                                            errorMessage: err
-                                        });
-                                    }
+                                            tinify.fromBuffer(fileStream).toBuffer(function(err, buffer){
 
-                                    // if folder is exists,  get list and check if file name is exists
-                                    ftpClient.list(function (err, fileList) {
-                                        if (err) {
-                                            deferred.reject({
-                                                status: constServerCode.DB_ERROR,
-                                                name: "DataError",
-                                                errorMessage: "Failed to get directory list: " + err
+                                                if(err){
+                                                    deferred.reject({
+                                                        status: constServerCode.DB_ERROR,
+                                                        name: "DataError",
+                                                        errorMessage: "Failed to compress file " + err
+                                                    });
+                                                }
+                                                //get current directory list
+                                                ftpClient.list("/", function (err, list) {
+                                                    if (err) {
+                                                        deferred.reject({
+                                                            status: constServerCode.DB_ERROR,
+                                                            name: "DataError",
+                                                            errorMessage: "Failed to get directory list: " + err
+                                                        });
+                                                    }
+
+                                                    if (list && list.length > 0) {
+                                                        //check if folder is exist in directory
+                                                        let folderIndex = list.findIndex(l => l.name == platformId);
+                                                        if (folderIndex > -1) {
+                                                            ftpClient.cwd(platformId, function (err, currentDir) {
+                                                                if (err) {
+                                                                    deferred.reject({
+                                                                        status: constServerCode.DB_ERROR,
+                                                                        name: "DataError",
+                                                                        errorMessage: err
+                                                                    });
+                                                                }
+
+                                                                // if folder is exists,  get list and check if file name is exists
+                                                                ftpClient.list(function (err, fileList) {
+                                                                    if (err) {
+                                                                        deferred.reject({
+                                                                            status: constServerCode.DB_ERROR,
+                                                                            name: "DataError",
+                                                                            errorMessage: "Failed to get directory list: " + err
+                                                                        });
+                                                                    }
+
+                                                                    if (fileList && fileList.length > 0) {
+                                                                        let fileIndex = fileList.findIndex(f => f.name == fileName);
+                                                                        if (fileIndex > -1) {
+                                                                            deferred.reject({
+                                                                                status: constServerCode.DB_ERROR,
+                                                                                name: "DataError",
+                                                                                errorMessage: "File name exists"
+                                                                            });
+                                                                        }
+                                                                    }
+
+                                                                    ftpClient.put(buffer, fileName, function (err) {
+                                                                        if (err) {
+                                                                            deferred.reject({
+                                                                                status: constServerCode.DB_ERROR,
+                                                                                name: "DataError",
+                                                                                errorMessage: "Failed to create file: " + err
+                                                                            });
+                                                                        }
+
+                                                                        deferred.resolve({result: "success", url: url});
+                                                                        ftpClient.end();
+                                                                    });
+                                                                });
+                                                            });
+                                                        }else{
+                                                            ftpClient.mkdir(platformId, false, function(err){
+                                                                if(err) {
+                                                                    deferred.reject({
+                                                                        status: constServerCode.DB_ERROR,
+                                                                        name: "DataError",
+                                                                        errorMessage: "Failed to create folder: " + err
+                                                                    });
+                                                                }
+
+                                                                ftpClient.cwd(platformId, function (err, currentDir) {
+                                                                    if(err){
+                                                                        deferred.reject({
+                                                                            status: constServerCode.DB_ERROR,
+                                                                            name: "DataError",
+                                                                            errorMessage: err
+                                                                        });
+                                                                    }
+
+                                                                    ftpClient.put(buffer, fileName, function (err) {
+                                                                        if (err) {
+                                                                            deferred.reject({
+                                                                                status: constServerCode.DB_ERROR,
+                                                                                name: "DataError",
+                                                                                errorMessage: "Failed to create file: " + err
+                                                                            });
+                                                                        }
+
+                                                                        deferred.resolve({result: "success", url: url});
+                                                                        ftpClient.end();
+                                                                    });
+                                                                });
+                                                            });
+                                                        }
+                                                    }else{
+                                                        ftpClient.mkdir(platformId, false, function(err){
+                                                            if(err) {
+                                                                deferred.reject({
+                                                                    status: constServerCode.DB_ERROR,
+                                                                    name: "DataError",
+                                                                    errorMessage: "Failed to create folder: " + err
+                                                                });
+                                                            }
+
+                                                            ftpClient.cwd(platformId, function (err, currentDir) {
+                                                                if(err){
+                                                                    deferred.reject({
+                                                                        status: constServerCode.DB_ERROR,
+                                                                        name: "DataError",
+                                                                        errorMessage: err
+                                                                    });
+                                                                }
+
+                                                                ftpClient.put(buffer, fileName, function (err) {
+                                                                    if (err) {
+                                                                        deferred.reject({
+                                                                            status: constServerCode.DB_ERROR,
+                                                                            name: "DataError",
+                                                                            errorMessage: "Failed to create file: " + err
+                                                                        });
+                                                                    }
+
+                                                                    deferred.resolve({result: "success", url: url});
+                                                                    ftpClient.end();
+                                                                });
+                                                            });
+                                                        });
+                                                    };
+                                                });
+                                            });
+                                        }else{ // any type other than .zip, .jpg and .png
+                                            //get current directory list
+                                            ftpClient.list("/", function (err, list) {
+                                                if (err) {
+                                                    deferred.reject({
+                                                        status: constServerCode.DB_ERROR,
+                                                        name: "DataError",
+                                                        errorMessage: "Failed to get directory list: " + err
+                                                    });
+                                                }
+
+                                                if (list && list.length > 0) {
+                                                    //check if folder is exist in directory
+                                                    let folderIndex = list.findIndex(l => l.name == platformId);
+                                                    if (folderIndex > -1) {
+                                                        ftpClient.cwd(platformId, function (err, currentDir) {
+                                                            if (err) {
+                                                                deferred.reject({
+                                                                    status: constServerCode.DB_ERROR,
+                                                                    name: "DataError",
+                                                                    errorMessage: err
+                                                                });
+                                                            }
+
+                                                            // if folder is exists,  get list and check if file name is exists
+                                                            ftpClient.list(function (err, fileList) {
+                                                                if (err) {
+                                                                    deferred.reject({
+                                                                        status: constServerCode.DB_ERROR,
+                                                                        name: "DataError",
+                                                                        errorMessage: "Failed to get directory list: " + err
+                                                                    });
+                                                                }
+
+                                                                if (fileList && fileList.length > 0) {
+                                                                    let fileIndex = fileList.findIndex(f => f.name == fileName);
+                                                                    if (fileIndex > -1) {
+                                                                        deferred.reject({
+                                                                            status: constServerCode.DB_ERROR,
+                                                                            name: "DataError",
+                                                                            errorMessage: "File name exists"
+                                                                        });
+                                                                    }
+                                                                }
+
+                                                                ftpClient.put(fileStream, fileName, function (err) {
+                                                                    if (err) {
+                                                                        deferred.reject({
+                                                                            status: constServerCode.DB_ERROR,
+                                                                            name: "DataError",
+                                                                            errorMessage: "Failed to create file: " + err
+                                                                        });
+                                                                    }
+
+                                                                    deferred.resolve({result: "success", url: url});
+                                                                    ftpClient.end();
+                                                                });
+                                                            });
+                                                        });
+                                                    }else{
+                                                        ftpClient.mkdir(platformId, false, function(err){
+                                                            if(err) {
+                                                                deferred.reject({
+                                                                    status: constServerCode.DB_ERROR,
+                                                                    name: "DataError",
+                                                                    errorMessage: "Failed to create folder: " + err
+                                                                });
+                                                            }
+
+                                                            ftpClient.cwd(platformId, function (err, currentDir) {
+                                                                if(err){
+                                                                    deferred.reject({
+                                                                        status: constServerCode.DB_ERROR,
+                                                                        name: "DataError",
+                                                                        errorMessage: err
+                                                                    });
+                                                                }
+
+                                                                ftpClient.put(fileStream, fileName, function (err) {
+                                                                    if (err) {
+                                                                        deferred.reject({
+                                                                            status: constServerCode.DB_ERROR,
+                                                                            name: "DataError",
+                                                                            errorMessage: "Failed to create file: " + err
+                                                                        });
+                                                                    }
+
+                                                                    deferred.resolve({result: "success", url: url});
+                                                                    ftpClient.end();
+                                                                });
+                                                            });
+                                                        });
+                                                    }
+                                                }else{
+                                                    ftpClient.mkdir(platformId, false, function(err){
+                                                        if(err) {
+                                                            deferred.reject({
+                                                                status: constServerCode.DB_ERROR,
+                                                                name: "DataError",
+                                                                errorMessage: "Failed to create folder: " + err
+                                                            });
+                                                        }
+
+                                                        ftpClient.cwd(platformId, function (err, currentDir) {
+                                                            if(err){
+                                                                deferred.reject({
+                                                                    status: constServerCode.DB_ERROR,
+                                                                    name: "DataError",
+                                                                    errorMessage: err
+                                                                });
+                                                            }
+
+                                                            ftpClient.put(fileStream, fileName, function (err) {
+                                                                if (err) {
+                                                                    deferred.reject({
+                                                                        status: constServerCode.DB_ERROR,
+                                                                        name: "DataError",
+                                                                        errorMessage: "Failed to create file: " + err
+                                                                    });
+                                                                }
+
+                                                                deferred.resolve({result: "success", url: url});
+                                                                ftpClient.end();
+                                                            });
+                                                        });
+                                                    });
+                                                };
                                             });
                                         }
-
-                                        if (fileList && fileList.length > 0) {
-                                            let fileIndex = fileList.findIndex(f => f.name == fileName);
-                                            if (fileIndex > -1) {
-                                                deferred.reject({
-                                                    status: constServerCode.DB_ERROR,
-                                                    name: "DataError",
-                                                    errorMessage: "File name exists"
-                                                });
-                                            }
-                                        }
-
-                                        ftpClient.put(buffer, fileName, function (err) {
-                                            if (err) {
-                                                deferred.reject({
-                                                    status: constServerCode.DB_ERROR,
-                                                    name: "DataError",
-                                                    errorMessage: "Failed to create file: " + err
-                                                });
-                                            }
-
-                                            deferred.resolve({result: "success", url: url});
-                                            ftpClient.end();
-                                        });
                                     });
-                                });
+
+                                    ftpClient.connect(constSystemParam.FTP_CONNECTION_PROPERTIES);
+                                }
                             }else{
-                                ftpClient.mkdir(platformId, false, function(err){
-                                    if(err) {
-                                        deferred.reject({
-                                            status: constServerCode.DB_ERROR,
-                                            name: "DataError",
-                                            errorMessage: "Failed to create folder: " + err
-                                        });
-                                    }
-
-                                    ftpClient.cwd(platformId, function (err, currentDir) {
-                                        if(err){
-                                            deferred.reject({
-                                                status: constServerCode.DB_ERROR,
-                                                name: "DataError",
-                                                errorMessage: err
-                                            });
-                                        }
-
-                                        ftpClient.put(buffer, fileName, function (err) {
-                                            if (err) {
-                                                deferred.reject({
-                                                    status: constServerCode.DB_ERROR,
-                                                    name: "DataError",
-                                                    errorMessage: "Failed to create file: " + err
-                                                });
-                                            }
-
-                                            deferred.resolve({result: "success", url: url});
-                                            ftpClient.end();
-                                        });
-                                    });
-                                });
-                            }
-                        }else{
-                            ftpClient.mkdir(platformId, false, function(err){
-                                if(err) {
-                                    deferred.reject({
-                                        status: constServerCode.DB_ERROR,
-                                        name: "DataError",
-                                        errorMessage: "Failed to create folder: " + err
-                                    });
-                                }
-
-                                ftpClient.cwd(platformId, function (err, currentDir) {
-                                    if(err){
-                                        deferred.reject({
-                                            status: constServerCode.DB_ERROR,
-                                            name: "DataError",
-                                            errorMessage: err
-                                        });
-                                    }
-
-                                    ftpClient.put(buffer, fileName, function (err) {
-                                        if (err) {
-                                            deferred.reject({
-                                                status: constServerCode.DB_ERROR,
-                                                name: "DataError",
-                                                errorMessage: "Failed to create file: " + err
-                                            });
-                                        }
-
-                                        deferred.resolve({result: "success", url: url});
-                                        ftpClient.end();
-                                    });
-                                });
-                            });
-                        };
-                    });
-                });
-            }else{ // any type other than .zip, .jpg and .png
-                //get current directory list
-                ftpClient.list("/", function (err, list) {
-                    if (err) {
-                        deferred.reject({
-                            status: constServerCode.DB_ERROR,
-                            name: "DataError",
-                            errorMessage: "Failed to get directory list: " + err
-                        });
-                    }
-
-                    if (list && list.length > 0) {
-                        //check if folder is exist in directory
-                        let folderIndex = list.findIndex(l => l.name == platformId);
-                        if (folderIndex > -1) {
-                            ftpClient.cwd(platformId, function (err, currentDir) {
-                                if (err) {
-                                    deferred.reject({
-                                        status: constServerCode.DB_ERROR,
-                                        name: "DataError",
-                                        errorMessage: err
-                                    });
-                                }
-
-                                // if folder is exists,  get list and check if file name is exists
-                                ftpClient.list(function (err, fileList) {
-                                    if (err) {
-                                        deferred.reject({
-                                            status: constServerCode.DB_ERROR,
-                                            name: "DataError",
-                                            errorMessage: "Failed to get directory list: " + err
-                                        });
-                                    }
-
-                                    if (fileList && fileList.length > 0) {
-                                        let fileIndex = fileList.findIndex(f => f.name == fileName);
-                                        if (fileIndex > -1) {
-                                            deferred.reject({
-                                                status: constServerCode.DB_ERROR,
-                                                name: "DataError",
-                                                errorMessage: "File name exists"
-                                            });
-                                        }
-                                    }
-
-                                    ftpClient.put(fileStream, fileName, function (err) {
-                                        if (err) {
-                                            deferred.reject({
-                                                status: constServerCode.DB_ERROR,
-                                                name: "DataError",
-                                                errorMessage: "Failed to create file: " + err
-                                            });
-                                        }
-
-                                        deferred.resolve({result: "success", url: url});
-                                        ftpClient.end();
-                                    });
-                                });
-                            });
-                        }else{
-                            ftpClient.mkdir(platformId, false, function(err){
-                                if(err) {
-                                    deferred.reject({
-                                        status: constServerCode.DB_ERROR,
-                                        name: "DataError",
-                                        errorMessage: "Failed to create folder: " + err
-                                    });
-                                }
-
-                                ftpClient.cwd(platformId, function (err, currentDir) {
-                                    if(err){
-                                        deferred.reject({
-                                            status: constServerCode.DB_ERROR,
-                                            name: "DataError",
-                                            errorMessage: err
-                                        });
-                                    }
-
-                                    ftpClient.put(fileStream, fileName, function (err) {
-                                        if (err) {
-                                            deferred.reject({
-                                                status: constServerCode.DB_ERROR,
-                                                name: "DataError",
-                                                errorMessage: "Failed to create file: " + err
-                                            });
-                                        }
-
-                                        deferred.resolve({result: "success", url: url});
-                                        ftpClient.end();
-                                    });
-                                });
-                            });
-                        }
-                    }else{
-                        ftpClient.mkdir(platformId, false, function(err){
-                            if(err) {
                                 deferred.reject({
                                     status: constServerCode.DB_ERROR,
                                     name: "DataError",
-                                    errorMessage: "Failed to create folder: " + err
+                                    errorMessage: "Platform Id not match"
                                 });
                             }
-
-                            ftpClient.cwd(platformId, function (err, currentDir) {
-                                if(err){
-                                    deferred.reject({
-                                        status: constServerCode.DB_ERROR,
-                                        name: "DataError",
-                                        errorMessage: err
-                                    });
-                                }
-
-                                ftpClient.put(fileStream, fileName, function (err) {
-                                    if (err) {
-                                        deferred.reject({
-                                            status: constServerCode.DB_ERROR,
-                                            name: "DataError",
-                                            errorMessage: "Failed to create file: " + err
-                                        });
-                                    }
-
-                                    deferred.resolve({result: "success", url: url});
-                                    ftpClient.end();
-                                });
-                            });
-                        });
-                    };
-                });
+                        }
+                    )
+                }else{
+                    deferred.reject({
+                        status: constServerCode.DB_ERROR,
+                        name: "DataError",
+                        errorMessage: "Platform Id not match"
+                    });
+                }
             }
         });
-
-        ftpClient.connect(constSystemParam.FTP_CONNECTION_PROPERTIES);
 
         return deferred.promise;
 

@@ -885,6 +885,24 @@
     </div>
 </div>
 
+<h3>Create online topup with FUKUAIPAY(快付财务系统充值)</h3>
+<div class="test-container">
+    <div>
+        <label>Amount
+            <input name="amount">
+        </label>
+    </div>
+    <div>
+        <label>Bank Code
+            <input name="bankCode">
+        </label>
+    </div>
+    <button data-api-name="createFKPTopupProposal">Pay</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPaymentAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest','testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPaymentAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {

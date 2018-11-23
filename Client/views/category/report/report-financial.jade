@@ -42,7 +42,7 @@
                     th(ng-repeat="group in vm.topUpHeader  | orderBy: 'groupId'" style="min-width:210px;")
                         table
                             th.text-center(ng-repeat="method in group.topUpDetail | orderBy: 'depositId' track by $index" style="min-width:210px;border-right: 1px solid rgba(43, 102, 152, 0.5);height: 120px")
-                                span(ng-if='method.topUpTypeId != 2') {{ method.depositName }}
+                                span(ng-if='method.topUpTypeId != 2') {{ method.depositName | translate}}
                                 span(ng-if='method.topUpTypeId == 2') {{ method.depositName | translate}}({{ method.depositName }}): {{ method.topUpMethodId }}
                             th.text-center(style="color:red;min-width:210px;" ) {{ group.groupName }}（{{ 'Total Sum' | translate }}）
                     th(ng-repeat="group in vm.bonusHeader" style="min-width:210px;")
@@ -92,7 +92,8 @@
                         table(style='width:100%;')
                             tr(ng-repeat="method in topUp.topUpDetail | orderBy: 'depositId' track by $index")
                                 td(style="min-width: 230px; border-top:none; border-left:none; border-right:none;")
-                                    span {{ method.depositName }}
+                                    span(ng-if='method.topUpTypeId != 2') {{ method.depositName | translate}}
+                                    span(ng-if='method.topUpTypeId == 2') {{ method.depositName | translate}}({{ method.depositName }}): {{ method.topUpMethodId }}
                             tr
                                 td(style="min-width:230px; height:50px;color:red; border-bottom:none; border-left:none; border-right:none;")
                                     span {{ topUp.groupName }}（{{'Total Sum' | translate}}）

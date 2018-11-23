@@ -411,6 +411,24 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.requestBankTypeByUserName, [conn.playerId, data.clientType, userIp, data.supportMode], isValidData);
     };
 
+    /**
+     * fukuaipay 快付财务系统专用
+     * @type {string}
+     */
+    this.createFKPTopupProposal.expectsData = 'amount: Number';
+    this.createFKPTopupProposal.onRequest = function (wsFunc, conn, data) {
+        if (data) {
+            data.amount = Number(data.amount);
+            let userAgentConn = conn['upgradeReq']['headers']['user-agent'];
+            data.userAgent = uaParser(userAgentConn);
+        }
+
+        let lastLoginIp = dbUtility.getIpAddress(conn);
+        let isValidData = Boolean(data && data.amount && Number.isInteger(data.amount) && data.amount < 10000000);
+        let bankCode = data.bankCode || 'CASHIER';
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.addFKPTopupRequest, [data.userAgent, conn.playerId, data, data.topUpReturnCode, lastLoginIp, bankCode], isValidData);
+    };
+
 };
 var proto = PaymentServiceImplement.prototype = Object.create(PaymentService.prototype);
 proto.constructor = PaymentServiceImplement;
