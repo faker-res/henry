@@ -3727,10 +3727,10 @@ define(['js/app'], function (myApp) {
                         return record
                     }
                 );
-                vm.drawNewPlayerTable(vm.newPlayerListRecords);
+                vm.drawNewPlayerTable(vm.newPlayerListRecords, newSearch);
             });
         };
-        vm.drawNewPlayerTable = function(data){
+        vm.drawNewPlayerTable = function(data, newSearch){
             var tableData = data;
             var option = $.extend({}, vm.generalDataTableOptions, {
                 data: tableData,
@@ -4894,7 +4894,7 @@ define(['js/app'], function (myApp) {
                         }
                         return item
                     })
-                    vm.drawNewPlayerTable(vm.newPlayerListRecords);
+                    vm.drawNewPlayerTable(vm.newPlayerListRecords, false);
                 })
             });
         }
