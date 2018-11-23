@@ -492,7 +492,8 @@
             //define functions
             var functionNames = [
                 "sendWCGroupControlSessionToFPMS",
-                "sendWechatConversationToFPMS"
+                "sendWechatConversationToFPMS",
+                "bindPlayerWechatInfo"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
