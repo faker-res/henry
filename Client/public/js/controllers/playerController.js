@@ -3834,11 +3834,8 @@ define(['js/app'], function (myApp) {
                 destroy: true,
                 paging: false,
                 autoWidth: true,
-                "sScrollY": "80vh",
-                "bScrollCollapse": true,
-                initComplete: function (data, type, row) {
-                    $compile(angular.element(row).contents())($scope);
-                    $scope.$evalAsync();
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
                 },
                 fnRowCallback: vm.playerListTableRow
             });
@@ -3865,7 +3862,6 @@ define(['js/app'], function (myApp) {
             });
         }
         vm.playerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-            $compile(nRow)($scope);
             vm.operatePlayerListTableRow(nRow, aData, iDisplayIndex, iDisplayIndexFull);
         };
 
