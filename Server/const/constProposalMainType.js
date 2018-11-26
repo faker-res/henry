@@ -20,6 +20,7 @@ const constProposalMainType = {
     "PlayerAlipayTopUp": constMainType.TOP_UP,
     "PlayerTopUp": constMainType.TOP_UP,
     "PlayerQuickpayTopUp": constMainType.TOP_UP,
+    "PlayerFKPTopUp": constMainType.TOP_UP,
 
     //BONUS
     "PartnerBonus": constMainType.BONUS,
