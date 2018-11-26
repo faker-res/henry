@@ -222,6 +222,7 @@ define(['js/app'], function (myApp) {
         'updateRewardEvent',
         'updateProposalTypeProcessSteps',
         'updateProposalProcessStep',
+        'approveCsPendingAndChangeStatus',
         'updatePlayerLevel',
         'updatePartnerLevelConfig',
         'createUpdatePartnerCommissionConfigWithGameProviderGroup',
@@ -10527,7 +10528,7 @@ define(['js/app'], function (myApp) {
                     {group: "REWARD", text: "updateRewardEvent", action: "updateRewardEvent"},
 
                     {group: "PROPOSAL_PROCESS", text: "updateProposalTypeProcessSteps", action: "updateProposalTypeProcessSteps"},
-                    {group: "Proposal", text: "Manual Approval", action: "updateProposalProcessStep"},
+                    {group: "Proposal", text: "Manual Approval", action: ["updateProposalProcessStep", 'approveCsPendingAndChangeStatus']},
 
                     {group: "CONFIG", text: "EDIT_PLAYER_LEVEL", action: "updatePlayerLevel"},
                     {group: "CONFIG", text: "VALID_ACTIVE", action: "updatePartnerLevelConfig"},
