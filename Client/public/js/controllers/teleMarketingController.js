@@ -574,7 +574,7 @@ define(['js/app'], function (myApp) {
                             let tsPhoneObjId = row.tsPhone._id;
                             link.append($('<br>'));
                             link.append($('<a>', {
-                                'ng-click': 'vm.tsPhoneAddFeedback = {tsPhone: ' + JSON.stringify(tsPhoneObjId) + '}',
+                                'ng-click': 'vm.tsPhoneAddFeedback = {tsPhone: ' + JSON.stringify(row.tsPhone) + '}',
                                 'data-row': JSON.stringify(row),
                                 'data-toggle': 'modal',
                                 'data-target': '#modalTsPhoneFeedback',
@@ -818,6 +818,8 @@ define(['js/app'], function (myApp) {
         };
 
         vm.prepareCreateTsPlayer = function (tsDistributedPhoneData) {
+            vm.initTsPlayerCredibility();
+            vm.tsCreditRemark = "";
             vm.tsPhoneAddFeedback = {};
             vm.playerDOB = utilService.createDatePicker('#datepickerDOB', {
                 language: 'en',
@@ -852,7 +854,7 @@ define(['js/app'], function (myApp) {
                     vm.newPlayer.remark = tsPhoneData.remark;
                 }
                 if (tsPhoneData._id) {
-                    vm.tsPhoneAddFeedback.tsPhone = tsPhoneData._id;
+                    vm.tsPhoneAddFeedback.tsPhone = tsPhoneData;
                     vm.newPlayer.tsPhone = tsPhoneData._id;
                 }
                 if (tsPhoneData.dob) {
@@ -1100,13 +1102,15 @@ define(['js/app'], function (myApp) {
             resultName = resultName.length > 0 ? resultName[0].value : "";
             let sendData = {
                 playerId: playerObjId,
-                tsPhone: vm.tsPhoneAddFeedback.tsPhone,
+                tsPhone: vm.tsPhoneAddFeedback.tsPhone._id,
+                tsPhoneList: vm.tsPhoneAddFeedback.tsPhone.tsPhoneList,
                 platform: vm.selectedPlatform.id,
                 adminId: authService.adminId,
                 content: vm.tsPhoneAddFeedback.content,
                 result: vm.tsPhoneAddFeedback.result,
                 resultName: resultName,
-                topic: vm.tsPhoneAddFeedback.topic
+                topic: vm.tsPhoneAddFeedback.topic,
+                registered: true
             };
             console.log('sendData', sendData);
             socketService.$socket($scope.AppSocket, 'createTsPhonePlayerFeedback', sendData, function (data) {
@@ -1132,7 +1136,7 @@ define(['js/app'], function (myApp) {
                 vm.searchAdminPhoneList(true);
                 if (data && data.data && data.data._id) {
                     vm.addTsPhonePlayerFeedback(data.data._id);
-                    if (vm.tsCreditRemark) {
+                    if (vm.tsCreditRemark || vm.credibilityRemarkComment) {
                         vm.submitRemarkUpdate(data.data._id);
                     }
                 } else {
@@ -1268,7 +1272,8 @@ define(['js/app'], function (myApp) {
             });
             resultName = resultName.length > 0 ? resultName[0].value : "";
             let sendData = {
-                tsPhone: data.tsPhone,
+                tsPhone: data.tsPhone._id,
+                tsPhoneList: data.tsPhone.tsPhoneList,
                 platform: vm.selectedPlatform.id,
                 adminId: authService.adminId,
                 content: data.content,
