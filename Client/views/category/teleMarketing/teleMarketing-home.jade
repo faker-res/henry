@@ -22,6 +22,8 @@
                         include ./teleMarketing-phone-list
                     div(ng-switch-when="PHONE_MISSION")
                         include ./teleMarketing-task
+                    div(ng-switch-when="WORKLOAD REPORT")
+                        include ./teleMarketing-workload
                     div(ng-switch-when="REMINDER_PHONE_LIST")
                         #reminderPhoneContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
                             .padding-all-5
