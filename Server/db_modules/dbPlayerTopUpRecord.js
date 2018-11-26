@@ -4,6 +4,7 @@ module.exports = new dbPlayerTopUpRecordFunc();
 
 const pmsAPI = require("../externalAPI/pmsAPI.js");
 const pmsFakeAPI = require("../externalAPI/pmsFakeAPI.js");
+const externalRESTAPI = require("../externalAPI/externalRESTAPI");
 
 const Q = require('q');
 const dbconfig = require('./../modules/dbproperties');
@@ -3847,24 +3848,21 @@ var dbPlayerTopUpRecord = {
                 if (proposalData) {
                     proposal = proposalData;
                     let ip = player.lastLoginIp && player.lastLoginIp != 'undefined' ? player.lastLoginIp : "127.0.0.1";
-                    var requestData = {
+                    let requestData = {
                         charset: 'UTF-8',
                         merchantCode: 'M310018',
                         orderNo: proposal.proposalId,
                         amount: topupRequest.amount,
                         channel: 'BANK',
                         bankCode: bankCode,
-                        // MAX 7 CHAR, MIGHT NEED TO REVISE
-                        userId: player.playerId,
                         remark: 'test remark',
-                        notifyUrl: "",
-                        returnUrl: "",
-                        extraReturnParam: "",
-                        signType: 'RSA'
+                        notifyUrl: "http://devtest.wsweb.me:3000/fkpNotify",
+                        returnUrl: "www.yahoo.com",
+                        extraReturnParam: ""
                     };
 
                     // FUKUAIPAY API CALL
-
+                    return externalRESTAPI.payment_FKP_TopUp(requestData)
                 }
                 else {
                     return Promise.reject({
@@ -3874,118 +3872,120 @@ var dbPlayerTopUpRecord = {
                     });
                 }
             }
-            //err => Q.reject({name: "DBError", message: 'Error in creating online top up proposal', error: err})
-        ).then(
-            merchantResponseData => {
-                if (merchantResponseData) {
+        )
 
-                    merchantResult = merchantResponseData;
-                    merchantResponse = merchantResponseData;
-
-                    var queryObj = {};
-                    let start = new Date();
-                    start.setHours(0, 0, 0, 0);
-                    let end = new Date();
-                    end.setHours(23, 59, 59, 999);
-                    if (merchantResponseData.result && merchantResponseData.result.merchantNo) {
-                        queryObj['data.merchantNo'] = {'$in': [String(merchantResponseData.result.merchantNo), Number(merchantResponseData.result.merchantNo)]}
-                    }
-                    queryObj['data.platformId'] = ObjectId(player.platform._id);
-                    queryObj['mainType'] = 'TopUp';
-                    queryObj["createTime"] = {};
-                    queryObj["createTime"]["$gte"] = start;
-                    queryObj["createTime"]["$lt"] = end;
-                    queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
-                    // calculate this card/acc total usage at today
-                    return dbconfig.collection_proposal.aggregate(
-                        {$match: queryObj},
-                        {
-                            $group: {
-                                _id: null,
-                                totalAmount: {$sum: "$data.amount"},
-                            }
-                        })
-
-                    // console.log("merchantResponseData", merchantResponseData);
-
-                    //add request data to proposal and update proposal status to pending
-                }
-                else {
-                    return Q.reject({
-                        status: constServerCode.PLAYER_TOP_UP_FAIL,
-                        name: "APIError",
-                        message: "Cannot create online top up request",
-                        error: Error()
-                    });
-                }
-            },
-            err => {
-                updateProposalRemark(proposal, err.errorMessage).catch(errorUtils.reportError);
-                return Promise.reject(err);
-            }
-        ).then(
-            res => {
-                var updateData = {
-                    status: constProposalStatus.PENDING
-                };
-                let merchantName = merchantResponse.result ? merchantResponse.result.merchantName : "";
-                let getRateProm;
-
-                updateData.data = Object.assign({}, proposal.data);
-                updateData.data.requestId = merchantResponse.result ? merchantResponse.result.requestId : "";
-                updateData.data.merchantNo = merchantResponse.result ? merchantResponse.result.merchantNo : "";
-                updateData.data.merchantName = merchantResponse.result ? merchantResponse.result.merchantName : "";
-                if (res[0]) {
-                    updateData.data.cardQuota = res[0].totalAmount;
-                }
-                if (merchantResponse.result && merchantResponse.result.revisedAmount) {
-                    updateData.data.inputAmount = topupRequest.amount;
-                    updateData.data.amount = merchantResponse.result.revisedAmount;
-                }
-
-                if(updateData.data.merchantNo && player.platform._id && merchantName != ""){
-                    getRateProm = getMerchantRate(updateData.data.merchantNo , player.platform.platformId, merchantName);
-                }
-
-                return Promise.all([getRateProm]).then(
-                    rate => {
-                        if(rate && rate.length > 0 && typeof rate[0] != "undefined"){
-                            serviceCharge = rate[0];
-                            updateData.data.rate = rate[0];
-                            updateData.data.actualAmountReceived = Number((topupRequest.amount - (topupRequest.amount * Number(rate[0]))).toFixed(2));
-                        }
-
-                        return updateData;
-                    }
-                )
-            }
-        ).then(
-            updateData => {
-                let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
-
-                updateOnlineTopUpProposalDailyLimit(proposalQuery, merchantResponse.result.merchantNo, merchantUseType).catch(errorUtils.reportError);
-
-                return dbconfig.collection_proposal.findOneAndUpdate(
-                    {_id: proposal._id, createTime: proposal.createTime},
-                    updateData,
-                    {new: true}
-                );
-            }
-        ).then(
-            proposalData => {
-                return {
-                    proposalId: proposalData.proposalId,
-                    topupType: topupRequest.topupType,
-                    amount: topupRequest.amount,
-                    createTime: proposalData.createTime,
-                    status: proposalData.status,
-                    topupDetail: merchantResponse.result,
-                    // serviceCharge: serviceCharge
-                    //requestId: merchantResponse.result.requestId,
-                    //result: merchantResponse.result,
-                };
-            }
-        );
+        //     .then(
+        //     merchantResponseData => {
+        //         console.log('merchantResponseData', merchantResponseData);
+        //         if (merchantResponseData) {
+        //
+        //             merchantResult = merchantResponseData;
+        //             merchantResponse = merchantResponseData;
+        //
+        //             var queryObj = {};
+        //             let start = new Date();
+        //             start.setHours(0, 0, 0, 0);
+        //             let end = new Date();
+        //             end.setHours(23, 59, 59, 999);
+        //             if (merchantResponseData.result && merchantResponseData.result.merchantNo) {
+        //                 queryObj['data.merchantNo'] = {'$in': [String(merchantResponseData.result.merchantNo), Number(merchantResponseData.result.merchantNo)]}
+        //             }
+        //             queryObj['data.platformId'] = ObjectId(player.platform._id);
+        //             queryObj['mainType'] = 'TopUp';
+        //             queryObj["createTime"] = {};
+        //             queryObj["createTime"]["$gte"] = start;
+        //             queryObj["createTime"]["$lt"] = end;
+        //             queryObj["status"] = {$in: [constProposalStatus.SUCCESS, constProposalStatus.APPROVED]};
+        //             // calculate this card/acc total usage at today
+        //             return dbconfig.collection_proposal.aggregate(
+        //                 {$match: queryObj},
+        //                 {
+        //                     $group: {
+        //                         _id: null,
+        //                         totalAmount: {$sum: "$data.amount"},
+        //                     }
+        //                 })
+        //
+        //             // console.log("merchantResponseData", merchantResponseData);
+        //
+        //             //add request data to proposal and update proposal status to pending
+        //         }
+        //         else {
+        //             return Q.reject({
+        //                 status: constServerCode.PLAYER_TOP_UP_FAIL,
+        //                 name: "APIError",
+        //                 message: "Cannot create online top up request",
+        //                 error: Error()
+        //             });
+        //         }
+        //     },
+        //     err => {
+        //         updateProposalRemark(proposal, err.errorMessage).catch(errorUtils.reportError);
+        //         return Promise.reject(err);
+        //     }
+        // ).then(
+        //     res => {
+        //         var updateData = {
+        //             status: constProposalStatus.PENDING
+        //         };
+        //         let merchantName = merchantResponse.result ? merchantResponse.result.merchantName : "";
+        //         let getRateProm;
+        //
+        //         updateData.data = Object.assign({}, proposal.data);
+        //         updateData.data.requestId = merchantResponse.result ? merchantResponse.result.requestId : "";
+        //         updateData.data.merchantNo = merchantResponse.result ? merchantResponse.result.merchantNo : "";
+        //         updateData.data.merchantName = merchantResponse.result ? merchantResponse.result.merchantName : "";
+        //         if (res[0]) {
+        //             updateData.data.cardQuota = res[0].totalAmount;
+        //         }
+        //         if (merchantResponse.result && merchantResponse.result.revisedAmount) {
+        //             updateData.data.inputAmount = topupRequest.amount;
+        //             updateData.data.amount = merchantResponse.result.revisedAmount;
+        //         }
+        //
+        //         if(updateData.data.merchantNo && player.platform._id && merchantName != ""){
+        //             getRateProm = getMerchantRate(updateData.data.merchantNo , player.platform.platformId, merchantName);
+        //         }
+        //
+        //         return Promise.all([getRateProm]).then(
+        //             rate => {
+        //                 if(rate && rate.length > 0 && typeof rate[0] != "undefined"){
+        //                     serviceCharge = rate[0];
+        //                     updateData.data.rate = rate[0];
+        //                     updateData.data.actualAmountReceived = Number((topupRequest.amount - (topupRequest.amount * Number(rate[0]))).toFixed(2));
+        //                 }
+        //
+        //                 return updateData;
+        //             }
+        //         )
+        //     }
+        // ).then(
+        //     updateData => {
+        //         let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
+        //
+        //         updateOnlineTopUpProposalDailyLimit(proposalQuery, merchantResponse.result.merchantNo, merchantUseType).catch(errorUtils.reportError);
+        //
+        //         return dbconfig.collection_proposal.findOneAndUpdate(
+        //             {_id: proposal._id, createTime: proposal.createTime},
+        //             updateData,
+        //             {new: true}
+        //         );
+        //     }
+        // ).then(
+        //     proposalData => {
+        //         return {
+        //             proposalId: proposalData.proposalId,
+        //             topupType: topupRequest.topupType,
+        //             amount: topupRequest.amount,
+        //             createTime: proposalData.createTime,
+        //             status: proposalData.status,
+        //             topupDetail: merchantResponse.result,
+        //             // serviceCharge: serviceCharge
+        //             //requestId: merchantResponse.result.requestId,
+        //             //result: merchantResponse.result,
+        //         };
+        //     }
+        // );
         //     .catch(
         //     err => Q.reject({name: "DBError", message: 'Error performing online top up proposal', error: err})
         // );

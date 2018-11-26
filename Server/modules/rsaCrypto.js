@@ -20,9 +20,14 @@ crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'
 
 let oldKey, oldCert;
 
-// // Legacy key and cert - fallback plan
+// Legacy key and cert - fallback plan
 oldKey = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
 oldCert = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
+
+// 3rd party payment system key
+let fkpKey, fkpCert;
+fkpKey = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/fukuaipay/fkp.key.pem'));
+fkpCert = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/fukuaipay/fkp.pub'));
 
 let token = jwt.sign('Fr0m_FPM$!', constSystemParam.API_AUTH_SECRET_KEY);
 let host = "http://" + env.redisUrl;
@@ -160,5 +165,21 @@ module.exports = {
         }
 
         return decrypted;
+    },
+
+    // 3rd party payment system
+    fkpEncrypt: (msg) => {
+        let encrypted = msg;
+
+        try {
+            encrypted = fkpKey.privateEncrypt(msg, 'utf8', 'base64');
+        } catch (e) {
+            console.log('error', e);
+            encrypted = msg;
+        }
+
+        console.log('msg encrypted', msg, encrypted);
+
+        return encrypted;
     }
 };
