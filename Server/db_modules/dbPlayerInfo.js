@@ -890,7 +890,7 @@ let dbPlayerInfo = {
                         inputData.csOfficer = ObjectId(adminId);
                     }
 
-                    return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate);
+                    return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
                 }
             ).then(
                 data => {
@@ -1525,7 +1525,7 @@ let dbPlayerInfo = {
         })
     },
 
-    createPlayerInfo: function (playerdata, skipReferrals, skipPrefix, isAutoCreate, bFromBI, isDxMission) {
+    createPlayerInfo: function (playerdata, skipReferrals, skipPrefix, isAutoCreate, bFromBI, isDxMission, adminId) {
         let playerData = null;
         let platformData = null;
         let pPrefix = null;
@@ -1771,6 +1771,23 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerData = data;
+
+                    if (playerData.tsPhone) {
+                        dbconfig.collection_tsPhone.findOneAndUpdate({_id: playerData.tsPhone}, {registered: true}).lean().then(
+                            tsPhoneData => {
+                                if (tsPhoneData && tsPhoneData.tsPhoneList) {
+                                    if (adminId) {
+                                        dbconfig.collection_tsAssignee.findOneAndUpdate({
+                                            admin: adminId,
+                                            tsPhoneList: tsPhoneData.tsPhoneList
+                                        }, {$inc: {registrationCount: 1}}).lean().catch(errorUtils.reportError);
+                                    }
+                                    dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneData.tsPhoneList}, {$inc: {totalRegistration: 1}}).lean().catch(errorUtils.reportError);
+                                }
+                            }
+                        ).catch(errorUtils.reportError);
+                        dbconfig.collection_tsDistributedPhone.update({tsPhone: playerData.tsPhone}, {registered: true}, {multi: true}).catch(errorUtils.reportError);
+                    }
 
                     if (playerData.isRealPlayer) {
                         dbDemoPlayer.updatePlayerConverted(playerData.platform, playerData.phoneNumber).catch(errorUtils.reportError);

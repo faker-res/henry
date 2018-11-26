@@ -31,7 +31,17 @@ let tsPhoneSchema = new Schema({
     // assignee (assign to which admin)
     assignee: [{type: Schema.Types.ObjectId, ref: 'admin', index: true}],
     // registered
-    registered: {type: Boolean, default:false, index: true},
+    registered: {type: Boolean, default: false, index: true},
+    // been added feedback
+    isUsed: {type: Boolean, default:false, index: true},
+    // been added "successful" feedback
+    isSucceedBefore: {type: Boolean, default:false, index: true},
+    // been top up
+    isTopUp: {type: Boolean, default:false, index: true},
+    // been top up multiple times
+    isMultipleTopUp: {type: Boolean, default:false, index: true},
+    // is valid player
+    isValidPlayer: {type: Boolean, default:false, index: true},
 
 });
 
