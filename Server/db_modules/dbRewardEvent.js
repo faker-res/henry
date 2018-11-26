@@ -1044,7 +1044,8 @@ var dbRewardEvent = {
                     $match: {
                         "createTime": freeTrialQuery.createTime,
                         "data.eventId": eventData._id,
-                        "status": 'Approved'
+                        "status": constProposalStatus.APPROVED,
+                        "data.playerObjId": playerData._id
                     }
                 },
                 {
@@ -1055,6 +1056,7 @@ var dbRewardEvent = {
                         'data.eventId': 1,
                         'data.lastLoginIp': 1,
                         'data.phoneNumber': 1,
+                        'data.deviceId': 1,
                         _id: 0
                     }
                 }
@@ -1064,9 +1066,11 @@ var dbRewardEvent = {
                     let samePlayerObjIdResult;
                     let sameIPAddressResult;
                     let samePhoneNumResult;
+                    let sameMobileDeviceResult;
                     let samePlayerId = 0;
                     let sameIPAddress = 0;
                     let samePhoneNum = 0;
+                    let sameMobileDevice = 0;
 
                     // check playerId
                     if (countReward) {
@@ -1134,6 +1138,26 @@ var dbRewardEvent = {
                         resultArr.push(samePhoneNumResult);
                     }
 
+                    // check mobile device
+                    if (eventData.condition.checkIsMobileDeviceAppliedBefore) {
+                        for (let i = 0; i < countReward.length; i++) {
+                            // check if same mobile device has already received this reward
+                            if (playerData.deviceId === countReward[i].data.deviceId) {
+                                sameMobileDevice++;
+                            }
+                        }
+
+                        if (sameMobileDevice >= 1) {
+                            sameMobileDeviceResult = 0; //fail
+                        } else {
+                            sameMobileDeviceResult = 1;
+                        }
+                        resultArr.push(sameMobileDeviceResult);
+                    } else {
+                        sameMobileDeviceResult = 1;
+                        resultArr.push(sameMobileDeviceResult);
+                    }
+
                     return resultArr;
                 }
             );
@@ -1143,7 +1167,53 @@ var dbRewardEvent = {
                 returnData.condition.SMSCode.status = 1;
             }
 
+            // check if player has applied for other forbidden reward
+            let checkForbidRewardProm = Promise.resolve(true); // default promise as true if checking is not required
+            if (eventData.condition.forbidApplyReward && eventData.condition.forbidApplyReward.length > 0) {
+                let forbidRewardEventIds = eventData.condition.forbidApplyReward;
+
+                for (let x = 0; x  < forbidRewardEventIds.length; x++) {
+                    forbidRewardEventIds[x] = ObjectId(forbidRewardEventIds[x]);
+                }
+
+                // check other reward apply in period
+                checkForbidRewardProm = dbconfig.collection_proposal.aggregate(
+                    {
+                        $match: {
+                            "createTime": freeTrialQuery.createTime,
+                            "data.eventId": {$in: forbidRewardEventIds},
+                            "status": constProposalStatus.APPROVED,
+                            "data.playerObjId": playerData._id
+                        }
+                    },
+                    {
+                        $project: {
+                            createTime: 1,
+                            status: 1,
+                            'data.playerObjId': 1,
+                            'data.eventId': 1,
+                            _id: 0
+                        }
+                    }
+                ).read("secondaryPreferred").then(
+                    countReward => {
+                        if (countReward && countReward.length > 0) {
+                            return false;
+                        } else {
+                            return true;
+                        }
+                    }
+                ).catch(
+                    error => {
+                        //add debug log
+                        console.error("checkForbidRewardProm:", error);
+                        throw error;
+                    }
+                );
+            }
+
             promArr.push(countInRewardInterval);
+            promArr.push(checkForbidRewardProm);
         }
 
         return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
@@ -1654,6 +1724,8 @@ var dbRewardEvent = {
                             let matchPlayerId = rewardSpecificData[0][0];
                             let matchIPAddress = rewardSpecificData[0][1];
                             let matchPhoneNum = rewardSpecificData[0][2];
+                            let matchMobileDevice = rewardSpecificData[0][3];
+                            let matchForbidRewardEvent = rewardSpecificData[2];
 
                             if (!matchPlayerId) {
                                 returnData.status = 2;
@@ -1664,6 +1736,14 @@ var dbRewardEvent = {
                             }
 
                             if (!matchPhoneNum) {
+                                returnData.condition.telephone.status = 2;
+                            }
+
+                            if (!matchMobileDevice) {
+                                returnData.condition.telephone.status = 2;
+                            }
+
+                            if (!matchForbidRewardEvent) {
                                 returnData.condition.telephone.status = 2;
                             }
                         }
