@@ -4170,6 +4170,12 @@
   "Message Begin Time":"发话时间（开始）",
   "Message End Time":"发话时间（结束）",
   "Message Content (Keyword)":"发话内容（关键字）",
+  "* The status has been decomposed in the search menu. Any items that are not checked can still be displayed in the list.":"*状态已分解不在搜索选单中，无勾选任何项目仍可在列表显示。",
+  "Connected list":"关连名单",
+  "Amount of Phone list":"个人已派发电话量",
+  "Used Time":"个人已使用次数",
+  "Success Answers":"个人成功接听次数",
+  "Amount of Success Account Opening":"个人成功开户量",
 
   "modifyPlayerCredibilityRemark": "编辑信用评价",
   "updatePlayerCredibilityRemark": "信用评价",

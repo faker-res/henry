@@ -1,0 +1,31 @@
+#workloadReport
+    .col-md-12(ng-show="vm.curPlatformText")
+        .col-md-12.search-filters-container.well
+            .col-xs-12.col-sm-6.col-md-2
+                label.control-label {{'NAME_LIST_TITLE' | translate}}
+                select.spicker.form-control
+            .col-xs-12.col-sm-6.col-md-2
+                label.control-label {{"Start date"|translate}}
+                #workloadStartTimePicker
+            .col-xs-12.col-sm-6.col-md-2
+                label.control-label {{'End date' | translate}}
+                #workloadEndTimePicker
+            .col-xs-12.col-sm-6.col-md-2
+                label.control-label {{'DEPARTMENT' | translate}}
+                select.spicker.form-control
+            .col-xs-12.col-sm-6.col-md-2
+                label.control-label {{'ROLE' | translate}}
+                select.spicker.form-control
+            .col-xs-12.col-sm-6.col-md-2
+                label.control-label {{'CUSTOMER_SERVICE' | translate}}
+                select.spicker.form-control
+            .col-xs-12.col-sm-6
+                label(style="color:red; margin-top:.5em;") {{"* The status has been decomposed in the search menu. Any items that are not checked can still be displayed in the list." | translate}}
+            .col-xs-12.col-sm-6
+                label.control-label
+                button#searchWorkloadManagement.btn.btn-primary.common-button-sm(style="margin-top:.5em; float:right;" ng-click="vm.showWorkloadReport(true);") {{'SEARCH' | translate}}
+
+    .col-md-12
+        div
+            table#workloadReportTable.common-table.display(style="min-width:100% ;overflow: scroll")
+            #workloadReportTablePage
