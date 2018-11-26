@@ -1,4 +1,4 @@
-form(name='form_800Record').well
+form(name='form_800Record')
     .row
         .col-md-12
             .well.feedbackQueryDiv
@@ -57,9 +57,9 @@ form(name='form_800Record').well
     div(style='height:50px')
         table#800RecordTable(style="width: 100%; text-align: center; border: 1px solid;")
             thead(style='background-color:#337ab7;')
-                th(style="width: 38px;")
-                    input.form-control(type="checkbox", id="selectAll", name="selectAll", ng-click="vm.checkUncheckSelectAll(0)")
-                    label(for="selectAll") {{'SELECT_ALL' | translate}}
+                th(style="width: 50px;")
+                    input(style="margin-top: 0.8em;" type="checkbox", id="selectAll", name="selectAll", ng-click="vm.checkUncheckSelectAll(0)")
+                    label.radio-space(for="selectAll") {{'SELECT_ALL' | translate}}
                 th(style="width: 38px;") {{"STATUS" | translate}}
                 th(style="width: 78.18px;") {{"LIVE800_ACC" | translate}}
                 th(style="width: 40px;") {{"Type" | translate}}
@@ -127,10 +127,10 @@ form(name='form_800Record').well
                 div.col-md-9
                     div
                 div.col-md-1(style="display: inline-flex;")
-                    div(style="width: 40px;")
-                        input.form-control(type="checkbox", name="selectAll", ng-click="vm.checkUncheckSelectAll(1)")
-                    div(style="width: 40px;")
-                        label(for="selectAll") {{'SELECT_ALL' | translate}}
+                    div
+                        input(type="checkbox", name="selectAll", ng-click="vm.checkUncheckSelectAll(1)")
+                    div(style="width: 50px;")
+                        label.radio-space(for="selectAll") {{'SELECT_ALL' | translate}}
                 div.col-md-2
                     .btn.btn-primary(ng-disabled="vm.batchSaveInProgress", ng-click="vm.batchSave()") {{"BATCH RATE" | translate}}
 

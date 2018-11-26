@@ -2676,6 +2676,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getWechatGroupReport = function () {
+            vm.reportSearchTimeStart = new Date().getTime();
             $('#wechatGroupReportTable').show();
             let sendQuery = {
                 platform: vm.selectedPlatform._id,
@@ -2688,6 +2689,7 @@ define(['js/app'], function (myApp) {
             console.log('sendQuery', sendQuery);
 
             socketService.$socket($scope.AppSocket, 'getWechatGroupReport', sendQuery, function (data) {
+                findReportSearchTime();
                 console.log('_getWechatGroupReport', data);
                 $('#wechatGroupReportTable').hide();
                 $scope.safeApply();
