@@ -1897,15 +1897,18 @@ define(['js/app'], function (myApp) {
                 vm.subPolicytoggle = $.extend(true, {}, policyObj);
                 vm.subShowRoleFlag = $.extend(true, {}, showRolesObj);
                 let newViewListObj = {};
+                //loop the viewSequence to order the viewList follow the specific sequence
                 vm.viewSequence.forEach(
                     viewSequence => {
                         if(viewSequence){
                             let cate = viewSequence;
                             let cateData = rolesObj[viewSequence];
                             if (cateData) {
+                                // loop the permission group to get the sub permission 
                                 $.each(cateData, function (sectionName, sectionData) {
                                     if (sectionData) {
                                         let isAll = true;
+                                        //loop the sub permission and check if it is ticked
                                         $.each(sectionData, function (viewName, viewData) {
                                             if (vm.subShowRoleFlag[cate] && vm.subShowRoleFlag[cate][sectionName] && vm.subShowRoleFlag[cate][sectionName][viewName]) {
                                                 vm.subShowRoleFlag[cate][sectionName][viewName] = flag;
