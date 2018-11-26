@@ -49,7 +49,8 @@ define(['js/app'], function (myApp) {
             UNDETERMINED: "Undetermined",
             CSPENDING: "CsPending",
             NOVERIFY: "NoVerify",
-            APPROVED: "approved"
+            APPROVED: "approved",
+            MANUAL: "Manual"
         };
         vm.topUpTypeList = {
             TOPUPMANUAL: 1,
@@ -220,6 +221,7 @@ define(['js/app'], function (myApp) {
         'deleteRewardEventByIds',
         'updateRewardEvent',
         'updateProposalTypeProcessSteps',
+        'updateProposalProcessStep',
         'updatePlayerLevel',
         'updatePartnerLevelConfig',
         'createUpdatePartnerCommissionConfigWithGameProviderGroup',
@@ -1210,6 +1212,7 @@ define(['js/app'], function (myApp) {
             if (VM.showPageName == 'RewardReport' && vm.currentRewardCode == 'ALL') {
                 vm.rewardProposalQuery = vm.rewardProposalQuery || {};
                 vm.rewardProposalQuery.totalCount = 0;
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#rewardProposalPage", function () {
                     vm.commonInitTime(vm.rewardProposalQuery, '#rewardProposalQuery', true);
                 })
@@ -1217,6 +1220,7 @@ define(['js/app'], function (myApp) {
             if (vm.currentRewardCode) {
                 vm.generalRewardProposalQuery = vm.generalRewardProposalQuery || {};
                 vm.generalRewardProposalQuery.totalCount = 0;
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#generalRewardProposalTablePage", function () {
                     vm.commonInitTime(vm.generalRewardProposalQuery, '#generalRewardProposalQuery', true);
                     vm.generalRewardProposalQuery.pageObj = utilService.createPageForPagingTable("#generalRewardProposalTablePage", {}, $translate, function (curP, pageSize) {
@@ -1228,6 +1232,8 @@ define(['js/app'], function (myApp) {
             if (vm.currentRewardTaskName) {
                 vm.generalRewardTaskQuery = {};
                 vm.generalRewardTaskQuery.totalCount = 0;
+                vm.generalRewardTaskTableProp.totalCount = 0;
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#generalRewardTaskTablePage", function () {
                     vm.commonInitTime(vm.generalRewardTaskQuery, '#generalRewardTaskQuery', true);
                     vm.generalRewardTaskQuery.pageObj = utilService.createPageForPagingTable("#generalRewardTaskTablePage", {}, $translate, function (curP, pageSize) {
@@ -1703,6 +1709,7 @@ define(['js/app'], function (myApp) {
             vm.queryTopup.paymentChannel = 'all';
         }
         vm.searchTopupRecord = function (newSearch, isExport = false) {
+            vm.reportSearchTimeStart = new Date().getTime();
 
             console.log('vm.queryTopup', vm.queryTopup);
             vm.queryTopup.platformId = vm.curPlatformId;
@@ -1760,6 +1767,7 @@ define(['js/app'], function (myApp) {
                 vm.queryTopup.line = null;
             }
             socketService.$socket($scope.AppSocket, 'topupReport', sendObj, function (data) {
+                findReportSearchTime();
                 $('#topupTableSpin').hide();
                 console.log('topup', data);
                 vm.queryTopup.totalCount = data.data.size;
@@ -1978,6 +1986,7 @@ define(['js/app'], function (myApp) {
 
         //Start operation report
         vm.searchOperationRecord = function () {
+            vm.reportSearchTimeStart = new Date().getTime();
             var data = null;
 
             $('#operationTableSpin').show();
@@ -2014,6 +2023,7 @@ define(['js/app'], function (myApp) {
 
                     console.log("vm.curQueryOperation", vm.curQueryOperation);
                     socketService.$socket($scope.AppSocket, 'operationReport', vm.curQueryOperation, function (data) {
+                        findReportSearchTime();
                         $('#operationTableSpin').hide();
                         vm.operationReportLoadingStatus = settlementResult.failureReportMessage;
                         $('#operationTable').show();
@@ -2380,6 +2390,7 @@ define(['js/app'], function (myApp) {
 
         //////////////////// draw player table - start /////////////////
         vm.searchProviderPlayerRecord = function (newSearch, isExport = false) {
+            vm.reportSearchTimeStart = new Date().getTime();
             console.log("vm.playerExpenseQuery", vm.playerExpenseQuery);
 
             vm.newPlayerExpenseQuery = $.extend(true, {}, vm.playerExpenseQuery);
@@ -2419,6 +2430,7 @@ define(['js/app'], function (myApp) {
                     console.log('sendData', sendData);
 
                     socketService.$socket($scope.AppSocket, 'getPlayerProviderReport', sendData, function (data) {
+                        findReportSearchTime();
                         vm.operationReportLoadingStatus = settlementResult.failureReportMessage;
                         // $('#operationTableSpin').hide();
                         $('#playerExpenseTableSpin').hide();
@@ -2579,6 +2591,7 @@ define(['js/app'], function (myApp) {
 
         // Win Rate Report
         vm.getWinRateReportData = function () {
+            vm.reportSearchTimeStart = new Date().getTime();
             // hide table and show 'loading'
             $('#winRateTableSpin').show();
             $('#winRateTable').hide();
@@ -2595,6 +2608,7 @@ define(['js/app'], function (myApp) {
 
             console.log('vm.curWinRateQuery', vm.curWinRateQuery);
             socketService.$socket($scope.AppSocket, 'winRateReport', vm.curWinRateQuery, function (data) {
+                findReportSearchTime();
                 vm.winRateReportLoadingStatus = "";
                 $('#winRateTableSpin').hide();
                 $('#winRateTable').show();
@@ -2623,6 +2637,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getMismatchReport = function () {
+            vm.reportSearchTimeStart = new Date().getTime();
             $('#onlinePaymentMismatchTableSpin').show();
             let sendQuery = {
                 platform: vm.selectedPlatform._id,
@@ -2635,6 +2650,7 @@ define(['js/app'], function (myApp) {
             console.log('sendQuery', sendQuery);
 
             socketService.$socket($scope.AppSocket, 'getMismatchReport', sendQuery, function (data) {
+                findReportSearchTime();
                 console.log('_getMismatchReport', data);
                 $('#onlinePaymentMismatchTableSpin').hide();
                 vm.proposalMismatchDetail = data.data;
@@ -2678,6 +2694,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getLimitedOfferReport = function (newSearch) {
+            vm.reportSearchTimeStart = new Date().getTime();
             $('#limitedOfferTableSpin').show();
             vm.limitedOfferQuery.index = 0;
             vm.limitedOfferQuery.sortCol = vm.limitedOfferQuery.sortCol || {'applyTime$': -1};
@@ -2705,6 +2722,7 @@ define(['js/app'], function (myApp) {
             console.log('sendQuery', sendQuery);
 
             socketService.$socket($scope.AppSocket, 'getLimitedOfferReport', sendQuery, function (data) {
+                findReportSearchTime();
                 console.log('getLimitedOfferReport', data);
                 vm.limitedOfferDetail = [];
                 vm.limitedOfferSums = {
@@ -2924,6 +2942,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getPlayerAlipayAccReport = function (newSearch) {
+            vm.reportSearchTimeStart = new Date().getTime();
             $('#playerAlipayAccReportSpin').show();
             vm.playerAlipayAccReport.index = 0;
 
@@ -2942,6 +2961,7 @@ define(['js/app'], function (myApp) {
             console.log('sendQuery', sendQuery);
 
             socketService.$socket($scope.AppSocket, 'getPlayerAlipayAccReport', sendQuery, function (data) {
+                findReportSearchTime();
                 console.log('getPlayerAlipayAccReport', data);
 
                 if(data.hasOwnProperty('data')) {
@@ -3023,6 +3043,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.searchRealTimePartnerCommissionData = function () {
+            vm.reportSearchTimeStart = new Date().getTime();
             let loadingSpinner = $('#realTimeCommissionTableSpin');
             loadingSpinner.show();
             vm.realTimeCommissionLoadingStatus = "";
@@ -3044,6 +3065,7 @@ define(['js/app'], function (myApp) {
             }
 
             socketService.$socket($scope.AppSocket, 'getCurrentPartnerCommissionDetail', query, function (data) {
+                findReportSearchTime();
                 loadingSpinner.hide();
                 console.log('getCurrentPartnerCommissionDetail', data);
 
@@ -3126,6 +3148,7 @@ define(['js/app'], function (myApp) {
 
         ////////////////////FEEDBACK REPORT//////////////////////
         vm.searchFeedbackReport = function (newSearch, isExport = false) {
+            vm.reportSearchTimeStart = new Date().getTime();
             $('#feedbackReportTableSpin').show();
 
             let admins = [];
@@ -3189,6 +3212,7 @@ define(['js/app'], function (myApp) {
             console.log('sendquery', sendquery);
             socketService.$socket($scope.AppSocket, 'getFeedbackReport', sendquery, function (data) {
                 $scope.$evalAsync(() => {
+                    findReportSearchTime();
                     console.log('retData', data);
                     vm.feedbackDataSum = {
                         manualTopUpAmount: 0,
@@ -3576,6 +3600,7 @@ define(['js/app'], function (myApp) {
 
         /////// player domain report
         vm.searchPlayerDomainReport = function (newSearch, isExport = false) {
+            vm.reportSearchTimeStart = new Date().getTime();
             $('#playerDomainReportTableSpin').show();
 
             let admins = [];
@@ -3625,6 +3650,7 @@ define(['js/app'], function (myApp) {
             console.log('player domain query', sendquery);
 
             socketService.$socket($scope.AppSocket, 'getPlayerDomainReport', sendquery, function (data) {
+                findReportSearchTime();
                 console.log('retData', data);
                 vm.playerDomain.totalCount = data.data.size;
                 $('#playerDomainReportTableSpin').hide();
@@ -3806,6 +3832,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.searchFinancialReport = function () {
+            vm.reportSearchTimeStart = new Date().getTime();
             $('#financialReportSpin').show();
 
             let sendData = {
@@ -3819,6 +3846,7 @@ define(['js/app'], function (myApp) {
             if (vm.financialReport && vm.financialReport.displayMethod && vm.financialReport.displayMethod == 'daily') {
                 $('#sumFinancialReport').hide();
                 socketService.$socket($scope.AppSocket, 'getFinancialReportByDay', sendData, function (data) {
+                    findReportSearchTime();
                     console.log('getFinancialReportByDay', data);
                     $scope.$evalAsync(() => {
                         vm.dailyFinancialReportList = [];
@@ -3845,6 +3873,7 @@ define(['js/app'], function (myApp) {
             } else if (vm.financialReport && vm.financialReport.displayMethod && vm.financialReport.displayMethod == 'sum') {
                 $('#dailyFinancialReport').hide();
                 socketService.$socket($scope.AppSocket, 'getFinancialReportBySum', sendData, function (data) {
+                    findReportSearchTime();
                     console.log('getFinancialReportBySum', data);
                     $scope.$evalAsync(() => {
                         vm.sumFinancialReportList = data && data.data ? data.data : {};
@@ -3856,6 +3885,7 @@ define(['js/app'], function (myApp) {
         };
 
         vm.searchPlayerReport = function (newSearch, isExport = false) {
+            vm.reportSearchTimeStart = new Date().getTime();
             $('#loadingPlayerReportTableSpin').show();
 
             let admins = [];
@@ -3919,6 +3949,7 @@ define(['js/app'], function (myApp) {
             };
             console.log('sendquery', sendquery);
             socketService.$socket($scope.AppSocket, 'getPlayerReport', sendquery, function (data) {
+                findReportSearchTime();
                 console.log('retData', data);
                 vm.playerQuery.totalCount = data.data.size;
                 $('#loadingPlayerReportTableSpin').hide();
@@ -4234,6 +4265,7 @@ define(['js/app'], function (myApp) {
 
         ///////////////// START player deposit analysis report /////////////////////////////
         vm.searchPlayerDepositAnalysisReport = function (newSearch) {
+            vm.reportSearchTimeStart = new Date().getTime();
             $('#loadingPlayerDepositAnalysisReportTableSpin').show();
             let sendQuery = {
                 platformId: vm.curPlatformId,
@@ -4257,6 +4289,7 @@ define(['js/app'], function (myApp) {
             console.log('sendQuery', sendQuery);
             socketService.$socket($scope.AppSocket, 'getPlayerDepositAnalysisReport', sendQuery, function (data) {
                 $scope.$evalAsync(() => {
+                    findReportSearchTime();
                     console.log('retData', data);
                     vm.playerDepositAnalysis = data.data.outputData;
                     vm.playerDepositAnalysisDays = data.data.days;
@@ -4499,6 +4532,7 @@ define(['js/app'], function (myApp) {
 
         ///////////////// START player deposit tracking report /////////////////////////////
         vm.searchPlayerDepositTrackingReport = function (newSearch) {
+            vm.reportSearchTimeStart = new Date().getTime();
             $('#loadingPlayerDepositTrackingReportTableSpin').show();
             let sendQuery = {
                 platformId: vm.curPlatformId,
@@ -4514,6 +4548,7 @@ define(['js/app'], function (myApp) {
             console.log('sendQuery', sendQuery);
             socketService.$socket($scope.AppSocket, 'getPlayerDepositTrackingReport', sendQuery, function (data) {
                 $scope.$evalAsync(() => {
+                    findReportSearchTime();
                     console.log('retData', data);
                     vm.playerDepositTracking = data.data.data;
                     $('#loadingPlayerDepositTrackingReportTableSpin').hide();
@@ -4738,6 +4773,7 @@ define(['js/app'], function (myApp) {
 
         /////////////////telemarketing new account report/////////////////////////////
         vm.searchDXNewPlayerReport = function (newSearch, isExport = false) {
+            vm.reportSearchTimeStart = new Date().getTime();
             $('#dxNewPlayerReportTableSpin').show();
 
             let admins = [];
@@ -4782,6 +4818,7 @@ define(['js/app'], function (myApp) {
             };
             console.log('sendquery', sendquery);
             socketService.$socket($scope.AppSocket, 'getDXNewPlayerReport', sendquery, function (data) {
+                findReportSearchTime();
                 console.log('retData', data);
                 vm.dxNewPlayerQuery.totalCount = data.data.size;
                 $('#dxNewPlayerReportTableSpin').hide();
@@ -5226,6 +5263,7 @@ define(['js/app'], function (myApp) {
         // Start player partner report
 
         vm.searchPlayerPartnerRecord = function (newSearch, isExport = false) {
+            vm.reportSearchTimeStart = new Date().getTime();
 
             vm.newPartnerQuery = $.extend(true, {}, vm.partnerQuery);
             $('#playerPartnerTableSpin').show();
@@ -5258,6 +5296,7 @@ define(['js/app'], function (myApp) {
             }, true);
 
             socketService.$socket($scope.AppSocket, 'getPartnerPlayers', sendData, function (data) {
+                findReportSearchTime();
                 $('#playerPartnerTableSpin').hide();
                 console.log('getPartnerPlayers:res:data', data);
                 console.log('player data', data.data);
@@ -5346,6 +5385,7 @@ define(['js/app'], function (myApp) {
 
         //region financial points report
         vm.searchFinancialPointsRecord = function (newSearch, isExport = false) {
+            vm.reportSearchTimeStart = new Date().getTime();
             vm.curPlatformId = vm.selectedPlatform._id;
 
             let newproposalQuery = $.extend(true, {}, vm.financialQuery);
@@ -5365,6 +5405,7 @@ define(['js/app'], function (myApp) {
             };
 
             socketService.$socket($scope.AppSocket, 'getFinancialPointsReport', sendData, function (data) {
+                findReportSearchTime();
                 $('#financialPointsTable').show();
                 console.log('financial points data', data);
                 var datatoDraw = data.data.data.map(item => {
@@ -5535,6 +5576,7 @@ define(['js/app'], function (myApp) {
 
         //region consumption mode report
         vm.searchConsumptionModeRecord = function (newSearch) {
+            vm.reportSearchTimeStart = new Date().getTime();
             vm.curPlatformId = vm.selectedPlatform._id;
 
             let newConsumptionQuery = $.extend(true, {}, vm.consumptionModeQuery);
@@ -5556,6 +5598,7 @@ define(['js/app'], function (myApp) {
             };
 
             socketService.$socket($scope.AppSocket, 'getConsumptionModeReport', sendData, function (data) {
+                findReportSearchTime();
                 $('#consumptionModeTable').show();
                 console.log('consumption mode data', data);
                 let dataIndex = 1;
@@ -5656,6 +5699,7 @@ define(['js/app'], function (myApp) {
             }
         }
         vm.searchProposalRecord = function (newSearch, isExport = false) {
+            vm.reportSearchTimeStart = new Date().getTime();
             vm.curPlatformId = vm.selectedPlatform._id;
 
             let newproposalQuery = $.extend(true, {}, vm.proposalQuery);
@@ -5724,6 +5768,7 @@ define(['js/app'], function (myApp) {
             };
 
             socketService.$socket($scope.AppSocket, 'getProposalStaticsReport', sendData, function (data) {
+                findReportSearchTime();
                 // $('#operationTableSpin').hide();
                 $('#proposalTable').show();
                 console.log('proposal data', data);
@@ -5994,6 +6039,7 @@ define(['js/app'], function (myApp) {
         // end player consumption incentive report
 
         vm.searchPlayerAlmostLevelUp = function (newSearch) {
+            vm.reportSearchTimeStart = new Date().getTime();
             var query = {
                 platform: vm.curPlatformId,
                 percentage: vm.playerAlmostLevelUpQuery.percentage,
@@ -6006,6 +6052,7 @@ define(['js/app'], function (myApp) {
             $('#playerAlmostLevelUpTableSpin').show();
             $scope.$socketPromise('getPlayerAlmostLevelupReport', query)
                 .then(function (data) {
+                    findReportSearchTime();
                     console.log('data', data);
                     $('#playerAlmostLevelUpTableSpin').hide();
 
@@ -6153,7 +6200,7 @@ define(['js/app'], function (myApp) {
 
         // start player feedback Report
         vm.searchPlayerFeedbackQuery = function (newSearch) {
-
+            vm.reportSearchTimeStart = new Date().getTime();
             vm.playerFeedbackQuery = vm.playerFeedbackQuery || {};
             var sendData = {
                 query: {
@@ -6173,6 +6220,7 @@ define(['js/app'], function (myApp) {
             }
             $('#playerFeedbackTableSpin').show();
             socketService.$socket($scope.AppSocket, 'getPlayerFeedbackReport', sendData, function (data) {
+                findReportSearchTime();
                 $('#playerFeedbackTableSpin').hide();
                 console.log('playerfeedback', data.data);
                 vm.playerFeedbackQuery.totalCount = data.data.size;
@@ -6250,7 +6298,7 @@ define(['js/app'], function (myApp) {
 
         // start credit change Report
         vm.searchCreditChangeQuery = function (newSearch) {
-
+            vm.reportSearchTimeStart = new Date().getTime();
             vm.creditChangeQuery = vm.creditChangeQuery || {};
 
             var startTime = vm.creditChangeQuery.startTime.data('datetimepicker').getLocalDate();
@@ -6270,6 +6318,7 @@ define(['js/app'], function (myApp) {
             }
             $('#creditChangeTableSpin').show();
             socketService.$socket($scope.AppSocket, 'queryCreditChangeLog', sendData, function (data) {
+                findReportSearchTime();
                 // $('#operationTableSpin').hide();
                 $('#creditChangeTableSpin').hide();
                 console.log('credit change report', data);
@@ -6348,6 +6397,7 @@ define(['js/app'], function (myApp) {
 
         // start new account report
         vm.searchNewPlayerRecord = function () {
+            vm.reportSearchTimeStart = new Date().getTime();
             var sendData = {
                 platform: vm.curPlatformId,
                 startTime: vm.newPlayerQuery.startTime.data('datetimepicker').getLocalDate(),
@@ -6363,6 +6413,7 @@ define(['js/app'], function (myApp) {
                 return Promise.all([vm.getAllPromoteWay(), vm.getPartnerLevelConfig(), vm.getAllAdmin(), vm.getPlatformPartner(), vm.getPlatformCsOfficeUrl()]).then(
                     () => {
                         $scope.$evalAsync(() => {
+                            findReportSearchTime();
                             vm.newPlayerQuery.totalNewPlayerWithTopup = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes > 0).length;
                             vm.newPlayerQuery.totalNewPlayerWithMultiTopup = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes > 1).length;
                             vm.newPlayerQuery.newValidPlayer = vm.newPlayerQuery.newPlayers.filter(player => player.topUpTimes >= vm.partnerLevelConfig.validPlayerTopUpTimes && player.topUpSum >= vm.partnerLevelConfig.validPlayerTopUpAmount && player.consumptionSum >= vm.partnerLevelConfig.validPlayerConsumptionAmount && player.consumptionTimes >= vm.partnerLevelConfig.validPlayerConsumptionTimes && player.valueScore >= vm.partnerLevelConfig.validPlayerValue);
@@ -6781,6 +6832,7 @@ define(['js/app'], function (myApp) {
 
         // start of partner player bonus report
         vm.searchPartnerPlayerBonusData = function (newSearch, isExport = false) {
+            vm.reportSearchTimeStart = new Date().getTime();
             var startTime = vm.partnerPlayerBonusQuery.startTime.data('datetimepicker').getLocalDate();
             var endTime = vm.partnerPlayerBonusQuery.endTime.data('datetimepicker').getLocalDate();
 
@@ -6795,6 +6847,7 @@ define(['js/app'], function (myApp) {
             }
             $('#partnerPlayerBonusTableSpin').show();
             socketService.$socket($scope.AppSocket, 'getPartnerPlayerBonusReport', sendData, function (data) {
+                findReportSearchTime();
                 $('#partnerPlayerBonusTableSpin').hide();
                 console.log('partner player bonus report', data);
                 vm.partnerPlayerBonusQuery.totalCount = data.data.stats ? data.data.stats.totalCount : 0;
@@ -6879,6 +6932,7 @@ define(['js/app'], function (myApp) {
 
         // start partner commission report
         vm.searchPartnerCommissionData = function (newSearch, isExport = false) {
+            vm.reportSearchTimeStart = new Date().getTime();
             $('#partnerCommissionTableSpin').show();
 
             var startTime = vm.partnerCommissionQuery.startTime.data('datetimepicker').getLocalDate();
@@ -6905,6 +6959,7 @@ define(['js/app'], function (myApp) {
 
                     return $scope.$socketPromise('getPartnerCommissionReport', sendData, true).then(
                         function (data) {
+                            findReportSearchTime();
                             console.log("getPartnerCommissionReport", data);
                             vm.partnerCommissionQuery.totalCount = data.data.size ? data.data.size : 0;
                             vm.partnerCommissionQuery.message = data.data.message || '';
@@ -7011,6 +7066,7 @@ define(['js/app'], function (myApp) {
 
         // start partner commission report
         vm.searchPartnerSettlementHistory = function (newSearch, isExport = false) {
+            vm.reportSearchTimeStart = new Date().getTime();
             vm.partnerSettlementQuery.message = '';
             let loadingSpinner = $('#partnerSettlementTableSpin');
             let commissionType = vm.partnerSettlementQuery.commissionType;
@@ -7037,6 +7093,7 @@ define(['js/app'], function (myApp) {
             loadingSpinner.show();
             console.log('searchPartnerSettlementHistory sendData',sendData);
             $scope.$socketPromise('getPartnerSettlementHistory', sendData, true).then(data => {
+                findReportSearchTime();
                 console.log('searchPartnerSettlementHistory retData',data);
                 $scope.$evalAsync(() => {
                     vm.partnerSettlementQuery.totalCount = data.data.count || 0;
@@ -7160,6 +7217,7 @@ define(['js/app'], function (myApp) {
 
         // start of reward proposal report
         vm.getRewardProposalReport = function () {
+            vm.reportSearchTimeStart = new Date().getTime();
             vm.rewardProposalQuery = vm.rewardProposalQuery || {};
 
             var startTime = vm.rewardProposalQuery.startTime.data('datetimepicker').getLocalDate();
@@ -7178,6 +7236,7 @@ define(['js/app'], function (myApp) {
             console.log('sendData', sendData);
             $('#rewardProposalTableSpin').show();
             socketService.$socket($scope.AppSocket, 'getRewardProposalReport', sendData, function (data) {
+                findReportSearchTime();
                 $('#rewardProposalTableSpin').hide();
                 console.log('getRewardProposalReport', data.data);
                 $scope.$evalAsync(() => {
@@ -7236,6 +7295,7 @@ define(['js/app'], function (myApp) {
 
         // start of general reward proposal report
         vm.generalRewardProposalSearch = function (newSearch) {
+            vm.reportSearchTimeStart = new Date().getTime();
             vm.generalRewardProposalQuery = vm.generalRewardProposalQuery || {};
 
             var startTime = vm.generalRewardProposalQuery.startTime.data('datetimepicker').getLocalDate();
@@ -7266,6 +7326,7 @@ define(['js/app'], function (myApp) {
             if (vm.currentRewardCode != 'ALL'){
                 socketService.$socket($scope.AppSocket, 'getRewardProposalByType', sendData, function (data) {
                     $scope.$evalAsync(() => {
+                        findReportSearchTime();
                         $('#generalRewardProposalTableSpin').hide();
                         console.log('general reward report', data);
                         vm.generalRewardProposalQuery.totalCount = data.data.size;
@@ -7694,6 +7755,7 @@ define(['js/app'], function (myApp) {
         /////////////// start of general reward task report
 
         vm.searchGeneralRewardTask = function (newSearch) {
+            vm.reportSearchTimeStart = new Date().getTime();
             console.log("vm.generalRewardTaskQuery", vm.generalRewardTaskQuery);
             vm.generalRewardTaskQuery = vm.generalRewardTaskQuery || {};
 
@@ -7719,6 +7781,7 @@ define(['js/app'], function (myApp) {
             $('#generalRewardTaskSpin').show();
             $scope.$socketPromise('getPlatformRewardPageReport', query)
                 .then(function (data) {
+                    findReportSearchTime();
                     $('#generalRewardTaskSpin').hide();
                     if (data) {
                         console.log('data', data);
@@ -7774,6 +7837,7 @@ define(['js/app'], function (myApp) {
         ///// end of reward task report
 
         vm.searchActionLogData = function (newSearch) {
+            vm.reportSearchTimeStart = new Date().getTime();
             console.log("vm.actionLogQuery", vm.actionLogQuery);
 
             var query = {
@@ -7791,6 +7855,7 @@ define(['js/app'], function (myApp) {
             console.log('query', query);
             $('#actionLogTableSpin').show();
             socketService.$socket($scope.AppSocket, 'getActionLogPageReport', query, function (data) {
+                findReportSearchTime();
                 $('#actionLogTableSpin').hide();
                 console.log('ActionLog report', data);
                 vm.actionLogQuery.totalCount = data.data.size;
@@ -9261,6 +9326,7 @@ define(['js/app'], function (myApp) {
                     vm.queryTopup = {};
                     vm.queryTopup.totalCount = 0;
                     vm.resetTopupRecord();
+                    vm.reportSearchTime = 0;
 
                     endLoadMultipleSelect('.merchantNoList');
                     $('#topupTable').remove();
@@ -9286,6 +9352,7 @@ define(['js/app'], function (myApp) {
                     vm.proposalQuery.promoType = '';
                     vm.proposalQuery.totalCount = 0;
                     vm.proposalQuery.proposalTypeId = '';
+                    vm.reportSearchTime = 0;
 
                     endLoadMultipleSelect('.select');
 
@@ -9356,6 +9423,7 @@ define(['js/app'], function (myApp) {
                 case "FINANCIAL_POINTS_REPORT":
                     vm.financialQuery = {aaSorting: [[9, "desc"]], sortCol: {createTime: -1}};
                     vm.financialQuery.totalCount = 0;
+                    vm.reportSearchTime = 0;
 
                     endLoadMultipleSelect('.select');
 
@@ -9402,6 +9470,7 @@ define(['js/app'], function (myApp) {
                     vm.consumptionModeQuery.totalCount = 0;
                     vm.providerGameType = [];
                     vm.gameBetType = [];
+                    vm.reportSearchTime = 0;
 
                     let gameProviderProm = Promise.resolve();
                     if (!vm.allGameProviders) {
@@ -9449,6 +9518,7 @@ define(['js/app'], function (myApp) {
                     );
                     break;
                 case "DX_NEWACCOUNT_REPORT":
+                    vm.reportSearchTime = 0;
                     utilService.actionAfterLoaded('#dxNewPlayerReportTable', function () {
                         let yesterday = utilService.setNDaysAgo(new Date(), 1);
                         let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
@@ -9511,6 +9581,7 @@ define(['js/app'], function (myApp) {
                             bonusTimesOperator: ">=",
                             topUpAmountOperator: ">="
                         };
+                        vm.dxNewPlayerQuery.totalCount = 0;
                         vm.dxNewPlayerQuery.start = utilService.createDatePicker('#dxNewPlayerReportQuery .startTime');
                         vm.dxNewPlayerQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                         vm.dxNewPlayerQuery.end = utilService.createDatePicker('#dxNewPlayerReportQuery .endTime');
@@ -9524,6 +9595,7 @@ define(['js/app'], function (myApp) {
                     vm.playerDomain.registrationInterface = "";
                     vm.playerDomain.isNewSystem = "";
                     vm.playerDomain.playerType = "Real Player (all)";
+                    vm.reportSearchTime = 0;
 
                     utilService.actionAfterLoaded("#playerDomainReportTablePage", function () {
                         // Get Promote CS and way lists
@@ -9589,6 +9661,7 @@ define(['js/app'], function (myApp) {
                     vm.generalRewardTaskTableProp = $.extend({}, constRewardTaskTableProp[1]);
                     vm.currentRewardTaskName = "ALL";
                     vm.rewardReportAnalysis = {periodText: "day"};
+                    vm.reportSearchTime = 0;
 
                     vm.allRewardProposalType = [];
                     if (vm.allProposalType && vm.allProposalType.length) {
@@ -9643,6 +9716,8 @@ define(['js/app'], function (myApp) {
                     break;
                 case 'PLAYER_ALIPAY_ACCOUNT_REPORT':
                     vm.playerAlipayAccReport = {};
+                    vm.playerAlipayAccReport.totalCount = 0;
+                    vm.reportSearchTime = 0;
                     commonService.commonInitTime(utilService, vm, 'playerAlipayAccReport', 'startTime', '#playerAlipayAccountReportStartTime', utilService.getTodayStartTime());
                     commonService.commonInitTime(utilService, vm, 'playerAlipayAccReport', 'endTime', '#playerAlipayAccountReportEndTime', utilService.getTodayEndTime());
                     break;
@@ -9651,6 +9726,7 @@ define(['js/app'], function (myApp) {
                     vm.financialReport.displayMethod = 'sum';
                     vm.dailyFinancialReportList = [];
                     vm.sumFinancialReportList = {};
+                    vm.reportSearchTime = 0;
                     setTimeout(function () {
                         utilService.actionAfterLoaded(('#financialReport'), function () {
                             $('select#selectFinancialReportPlatform').multipleSelect({
@@ -9867,6 +9943,7 @@ define(['js/app'], function (myApp) {
             if (choice == "PROVIDER_REPORT") {
                 vm.queryOperation = {};
                 vm.queryOperation.providerId = 'all';
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#operationTable", function () {
                     vm.commonInitTime(vm.queryOperation, '#operationReportQuery')
                     // vm.queryOperation.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, vm.topupTablePageChange);
@@ -9883,6 +9960,7 @@ define(['js/app'], function (myApp) {
                 });
             }
             else if (choice == "PLAYER_REPORT") {
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded('#playerReportTablePage', function () {
                     // Get Promote CS and way lists
                     vm.allPromoteWay = {};
@@ -9937,6 +10015,7 @@ define(['js/app'], function (myApp) {
                     var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
                     var todayEndTime = utilService.getTodayEndTime();
                     vm.playerQuery = {};
+                    vm.playerQuery.totalCount = 0;
                     vm.playerQuery.sortCol = {validConsumptionAmount: -1};
                     vm.playerQuery.limit = 5000;
                     vm.playerQuery.consumptionTimesOperator = ">=";
@@ -9956,6 +10035,7 @@ define(['js/app'], function (myApp) {
                     $scope.safeApply();
                 })
             } else if (choice === "PLAYER_DEPOSIT_ANALYSIS_REPORT") {
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded('#playerDepositAnalysisReportTablePage', function () {
                     var yesterday = utilService.setNDaysAgo(new Date(), 1);
                     var yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
@@ -9975,6 +10055,7 @@ define(['js/app'], function (myApp) {
                     vm.setupRemarksMultiInputDepositAnalysis();
                 })
             } else if (choice === "PLAYER_DEPOSIT_TRACKING_REPORT") {
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded('#playerDepositTrackingReportTablePage', function () {
                     vm.playerDepositTracking = {};
                     vm.depositTrackingQuery = {};
@@ -9989,6 +10070,7 @@ define(['js/app'], function (myApp) {
                 })
             } else if (choice == "PLAYER_EXPENSE_REPORT") {
                 vm.playerExpenseQuery = {totalCount: 0};
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#playerExpenseTablePage", function () {
                     vm.commonInitTime(vm.playerExpenseQuery, '#playerExpenseReportQuery');
                     vm.playerExpenseQuery.providerId = "all";
@@ -9998,6 +10080,7 @@ define(['js/app'], function (myApp) {
                 })
             } else if (choice == "NEWACCOUNT_REPORT") {
                 vm.newPlayerQuery = {totalCount: 0};
+                vm.reportSearchTime = 0;
                 //utilService.actionAfterLoaded("#newPlayerDomainTable", function () {
                 utilService.actionAfterLoaded("#validPlayerPie", function () {
                     vm.commonInitTime(vm.newPlayerQuery, '#newPlayerReportQuery');
@@ -10007,11 +10090,13 @@ define(['js/app'], function (myApp) {
                 vm.winRateQuery = {};
                 vm.winRateSummaryData = {};
                 vm.winRateQuery.providerId = 'all';
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#winRateTable", function () {
                     vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery');
                 });
                 $scope.safeApply();
             } else if (choice == "FEEDBACK_REPORT") {
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded('#feedbackReportTable', function () {
                     $scope.$evalAsync(async () => {
                         let yesterday = utilService.setNDaysAgo(new Date(), 1);
@@ -10061,6 +10146,7 @@ define(['js/app'], function (myApp) {
                             bonusTimesOperator: ">=",
                             topUpAmountOperator: ">="
                         };
+                        vm.feedbackQuery.totalCount = 0;
                         vm.feedbackQuery.start = utilService.createDatePicker('#feedbackReportQuery .startTime');
                         vm.feedbackQuery.start.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
                         vm.feedbackQuery.end = utilService.createDatePicker('#feedbackReportQuery .endTime');
@@ -10077,12 +10163,14 @@ define(['js/app'], function (myApp) {
             } else if (choice == "ONLINE_PAYMENT_MISMATCH_REPORT") {
                 vm.onlinePaymentMismatchQuery = {type: 'online'};
                 vm.proposalMismatchDetail = {};
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#onlinePaymentMismatchTable", function () {
                     vm.commonInitTime(vm.onlinePaymentMismatchQuery, '#onlinePaymentMismatchQuery');
                 });
                 $scope.safeApply();
             } else if (choice == "WECHAT_GROUP_REPORT") {
                 vm.wechatGroupQuery = {};
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#wechatGroupReportTable", function () {
                     vm.commonInitTime(vm.wechatGroupQuery, '#wechatGroupQuery');
                     vm.wechatGroupQuery.pageObj = utilService.createPageForPagingTable("#wechatGroupReportTablePage", {}, $translate, function (curP, pageSize) {
@@ -10094,6 +10182,7 @@ define(['js/app'], function (myApp) {
                 vm.limitedOfferQuery = {};
                 vm.limitedOfferDetail = {};
                 vm.limitedOfferQuery.limit = 10;
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#limitedOfferTable", function () {
                     vm.commonInitTime(vm.limitedOfferQuery, '#limitedOfferQuery');
                     vm.limitedOfferQuery.pageObj = utilService.createPageForPagingTable("#limitedOfferTablePage", {}, $translate, function (curP, pageSize) {
@@ -10103,6 +10192,8 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             } else if (choice == "PLAYERPARTNER_REPORT") {
                 vm.partnerQuery = {};
+                vm.partnerQuery.totalCount = 0;
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#playerPartnerTable", function () {
                     vm.commonInitTime(vm.partnerQuery, '#playerPartnerReportQuery');
                     vm.partnerQuery.pageObj = utilService.createPageForPagingTable("#playerPartnerTablePage", {}, $translate, function (curP, pageSize) {
@@ -10159,6 +10250,7 @@ define(['js/app'], function (myApp) {
             } else if (choice == "PLAYER_FEEDBACK_REPORT") {
                 vm.playerFeedbackQuery.result = 'all';
                 vm.playerFeedbackQuery.totalCount = 0;
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#playerFeedbackTablePage", function () {
                     vm.commonInitTime(vm.playerFeedbackQuery, '#playerFeedbackReportQuery');
                     vm.playerFeedbackQuery.pageObj = utilService.createPageForPagingTable("#playerFeedbackTablePage", {}, $translate, vm.feedbackTablePageChange);
@@ -10166,6 +10258,7 @@ define(['js/app'], function (myApp) {
                 $scope.safeApply();
             } else if (choice == "CREDIT_CHANGE_REPORT") {
                 vm.creditChangeQuery = vm.creditChangeQuery || {};
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#creditChangeTablePage", function () {
                     vm.creditChangeQuery.totalCount = 0;
                     vm.commonInitTime(vm.creditChangeQuery, '#creditChangeReportQuery');
@@ -10185,6 +10278,7 @@ define(['js/app'], function (myApp) {
                 vm.playerAlmostLevelUpQuery = vm.playerAlmostLevelUpQuery || {};
                 vm.playerAlmostLevelUpQuery.percentage = 0.9;
                 vm.playerAlmostLevelUpQuery.totalCount = 0;
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#playerAlmostLevelUpTablePage", function () {
                     vm.playerAlmostLevelUpQuery.pageObj = utilService.createPageForPagingTable("#playerAlmostLevelUpTablePage", {}, $translate, vm.playerAlmostLevelUpTablePageUpdate);
                 })
@@ -10194,6 +10288,7 @@ define(['js/app'], function (myApp) {
                 vm.partnerPlayerBonusQuery.status = 'all';
                 vm.partnerPlayerBonusQuery.totalCount = 0;
                 vm.partnerPlayerBonusQuery.proposalTypeId = 'all';
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#partnerPlayerBonusTablePage", function () {
                     vm.commonInitTime(vm.partnerPlayerBonusQuery, '#partnerPlayerBonusQuery')
                     vm.partnerPlayerBonusQuery.pageObj = utilService.createPageForPagingTable("#partnerPlayerBonusTablePage", {}, $translate, function (curP, pageSize) {
@@ -10208,11 +10303,13 @@ define(['js/app'], function (myApp) {
                 vm.partnerCommVar = {};
                 vm.selectCommissionPeriod = '';
                 vm.selectedCommissionPeriod = 0;
+                vm.reportSearchTime = 0;
             } else if (choice == "PARTNERCOMMISSION_REPORT") {
                 vm.partnerCommissionQuery = {};
                 vm.partnerCommissionQuery.status = 'all';
                 vm.partnerCommissionQuery.totalCount = 0;
                 vm.partnerCommissionQuery.proposalTypeId = 'all';
+                vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded("#partnerCommissionTablePage", function () {
                     vm.commonInitTime(vm.partnerCommissionQuery, '#partnerCommissionQuery')
                     vm.partnerCommissionQuery.pageObj = utilService.createPageForPagingTable("#partnerCommissionTablePage", {}, $translate, function (curP, pageSize) {
@@ -10227,6 +10324,7 @@ define(['js/app'], function (myApp) {
                 vm.partnerSettlementQuery.totalCount = 0;
                 vm.partnerSettlementQuery.commissionType = '';
                 vm.partnerSettlementQuery.partnerName = '';
+                vm.reportSearchTime = 0;
                 let dateTimePickerStartPopup, dateTimePickerEndPopup;
 
                 let getStartTimePlatformPartnerSettlementStatus = function(callback) {
@@ -10309,7 +10407,9 @@ define(['js/app'], function (myApp) {
                 });
                 $scope.safeApply();
             } else if (choice == "ACTIONLOG_REPORT") {
+                vm.reportSearchTime = 0;
                 vm.actionLogQuery = vm.actionLogQuery || {};
+                vm.actionLogQuery.totalCount = 0;
                 vm.actionLogQuery.allActions = [
                     {group: "DEPARTMENT", text: "ADD_DEPARTMENT", action: "createDepartmentWithParent"},
                     {group: "DEPARTMENT", text: "MOVE_DEPARTMENT", action: "updateDepartmentParent"},
@@ -10427,7 +10527,7 @@ define(['js/app'], function (myApp) {
                     {group: "REWARD", text: "updateRewardEvent", action: "updateRewardEvent"},
 
                     {group: "PROPOSAL_PROCESS", text: "updateProposalTypeProcessSteps", action: "updateProposalTypeProcessSteps"},
-                    //{group: "Proposal", text: "updateProposalProcessStep", action: "updateProposalProcessStep"},
+                    {group: "Proposal", text: "Manual Approval", action: "updateProposalProcessStep"},
 
                     {group: "CONFIG", text: "EDIT_PLAYER_LEVEL", action: "updatePlayerLevel"},
                     {group: "CONFIG", text: "VALID_ACTIVE", action: "updatePartnerLevelConfig"},
@@ -10520,6 +10620,11 @@ define(['js/app'], function (myApp) {
             $timeout(function () {
                 $(className).selectpicker('refresh');
             }, 0);
+        }
+
+        function findReportSearchTime () {
+            vm.reportSearchTimeEnd = new Date().getTime();
+            vm.reportSearchTime = (vm.reportSearchTimeEnd - vm.reportSearchTimeStart) / 1000;
         }
 
         // $scope.$on('$viewContentLoaded', function () {

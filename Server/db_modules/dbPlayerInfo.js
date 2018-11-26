@@ -79,6 +79,7 @@ const constPlayerBillBoardMode = require('./../const/constPlayerBillBoardMode');
 
 // db_modules
 let dbPlayerConsumptionRecord = require('./../db_modules/dbPlayerConsumptionRecord');
+let dbPlayerRegistrationIntentRecord = require('./../db_modules/dbPlayerRegistrationIntentRecord');
 let dbPlayerConsumptionWeekSummary = require('../db_modules/dbPlayerConsumptionWeekSummary');
 let dbPlayerCreditTransfer = require('../db_modules/dbPlayerCreditTransfer');
 let dbPlayerFeedback = require('../db_modules/dbPlayerFeedback');
@@ -859,7 +860,7 @@ let dbPlayerInfo = {
                         inputData.csOfficer = ObjectId(adminId);
                     }
 
-                    return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate);
+                    return dbPlayerInfo.createPlayerInfo(inputData, null, null, isAutoCreate, false, false, adminId);
                 }
             ).then(
                 data => {
@@ -1294,7 +1295,7 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     dbPlayerInfo.createPlayerLoginRecord(data);
-
+                    dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentRecord(data, constProposalStatus.MANUAL, null);
                     // Create feedback
                     let feedback = {
                         playerId: data._id,
@@ -1602,7 +1603,7 @@ let dbPlayerInfo = {
         })
     },
 
-    createPlayerInfo: function (playerdata, skipReferrals, skipPrefix, isAutoCreate, bFromBI, isDxMission) {
+    createPlayerInfo: function (playerdata, skipReferrals, skipPrefix, isAutoCreate, bFromBI, isDxMission, adminId) {
         let playerData = null;
         let platformData = null;
         let pPrefix = null;
@@ -1848,6 +1849,23 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerData = data;
+
+                    if (playerData.tsPhone) {
+                        dbconfig.collection_tsPhone.findOneAndUpdate({_id: playerData.tsPhone}, {registered: true}).lean().then(
+                            tsPhoneData => {
+                                if (tsPhoneData && tsPhoneData.tsPhoneList) {
+                                    if (adminId) {
+                                        dbconfig.collection_tsAssignee.findOneAndUpdate({
+                                            admin: adminId,
+                                            tsPhoneList: tsPhoneData.tsPhoneList
+                                        }, {$inc: {registrationCount: 1}}).lean().catch(errorUtils.reportError);
+                                    }
+                                    dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneData.tsPhoneList}, {$inc: {totalRegistration: 1}}).lean().catch(errorUtils.reportError);
+                                }
+                            }
+                        ).catch(errorUtils.reportError);
+                        dbconfig.collection_tsDistributedPhone.update({tsPhone: playerData.tsPhone}, {registered: true}, {multi: true}).catch(errorUtils.reportError);
+                    }
 
                     if (playerData.isRealPlayer) {
                         dbDemoPlayer.updatePlayerConverted(playerData.platform, playerData.phoneNumber).catch(errorUtils.reportError);
@@ -15514,6 +15532,7 @@ let dbPlayerInfo = {
 
         let startDate = new Date(query.start);
         let endDate = new Date(query.end);
+        let todayDate = dbUtility.getTodaySGTime();
         let getPlayerProm = Promise.resolve("");
         let result = [];
         let isSinglePlayer = false;
@@ -15578,7 +15597,7 @@ let dbPlayerInfo = {
         return getPlayerProm.then(
             playerData => {
                 console.log('RT - getPlayerReport 1');
-                let relevantPlayerQuery = {platformId: platform, date: {$gte: startDate, $lt: endDate}};
+                let relevantPlayerQuery = {platformId: platform};
 
                 if (isSinglePlayer) {
                     relevantPlayerQuery.playerId = playerData._id;
@@ -15588,7 +15607,23 @@ let dbPlayerInfo = {
 
                 // relevant players are the players who played any game within given time period
                 let playerObjArr = [];
-                return dbconfig.collection_playerConsumptionDaySummary.aggregate([
+                let collection;
+
+                if (endDate.getTime() > todayDate.startTime.getTime()) {
+                    console.log('RT - getPlayerReport 1.1');
+                    collection = dbconfig.collection_playerConsumptionRecord;
+                    relevantPlayerQuery.createTime = {$gte: startDate, $lt: endDate};
+
+                    // Limit records search to provider
+                    if (query && query.providerId) {
+                        relevantPlayerQuery.providerId = ObjectId(query.providerId);
+                    }
+                } else {
+                    collection = dbconfig.collection_playerConsumptionDaySummary;
+                    relevantPlayerQuery.date = {$gte: startDate, $lt: endDate};
+                }
+
+                return collection.aggregate([
                     {$match: relevantPlayerQuery},
                     {$group: {_id: "$playerId"}}
                 ]).read("secondaryPreferred").then(

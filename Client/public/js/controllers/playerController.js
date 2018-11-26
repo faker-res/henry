@@ -3727,10 +3727,10 @@ define(['js/app'], function (myApp) {
                         return record
                     }
                 );
-                vm.drawNewPlayerTable(vm.newPlayerListRecords);
+                vm.drawNewPlayerTable(vm.newPlayerListRecords, newSearch);
             });
         };
-        vm.drawNewPlayerTable = function(data){
+        vm.drawNewPlayerTable = function(data, newSearch){
             var tableData = data;
             var option = $.extend({}, vm.generalDataTableOptions, {
                 data: tableData,
@@ -3834,11 +3834,8 @@ define(['js/app'], function (myApp) {
                 destroy: true,
                 paging: false,
                 autoWidth: true,
-                "sScrollY": "80vh",
-                "bScrollCollapse": true,
-                initComplete: function (data, type, row) {
-                    $compile(angular.element(row).contents())($scope);
-                    $scope.$evalAsync();
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
                 },
                 fnRowCallback: vm.playerListTableRow
             });
@@ -3865,7 +3862,6 @@ define(['js/app'], function (myApp) {
             });
         }
         vm.playerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-            $compile(nRow)($scope);
             vm.operatePlayerListTableRow(nRow, aData, iDisplayIndex, iDisplayIndexFull);
         };
 
@@ -4894,7 +4890,7 @@ define(['js/app'], function (myApp) {
                         }
                         return item
                     })
-                    vm.drawNewPlayerTable(vm.newPlayerListRecords);
+                    vm.drawNewPlayerTable(vm.newPlayerListRecords, false);
                 })
             });
         }

@@ -8610,6 +8610,7 @@ function dailyTopUpDetail (depositGroupRecord, platform, startTime, endTime) {
                 if (type && type.topUpTypeId) {
                     let proposalType = '';
                     let methods = type.topUpTypeId == 1 || type.topUpTypeId == 2 ? type.methods.map(method => method.topUpMethodId.toString()) : [];
+                    let methodsInNumber = type.topUpTypeId == 1 || type.topUpTypeId == 2 ? type.methods.map(method => method.topUpMethodId) : [];
 
                     if (type.topUpTypeId == 1) {
                         proposalType = constProposalType.PLAYER_MANUAL_TOP_UP;
@@ -8628,6 +8629,7 @@ function dailyTopUpDetail (depositGroupRecord, platform, startTime, endTime) {
                         proposalTypeData => {
 
                             if (proposalTypeData && proposalTypeData.length > 0) {
+                                let match = [];
                                 let query = {
                                     type: {$in: proposalTypeData.map(type => type._id)},
                                     createTime: {
@@ -8640,44 +8642,100 @@ function dailyTopUpDetail (depositGroupRecord, platform, startTime, endTime) {
                                 };
 
                                 let group = {};
+                                let project = {};
 
                                 if (type.topUpTypeId == 1) {
-                                    query['data.depositMethod'] = {"$in": methods};
+                                    query['$or'] = [{'data.depositMethod': {"$in": methods}}, {'data.depositMethod': {"$in": methodsInNumber}}];
+
+                                    // adding project just because is JSON, can predict the data type of depositMethod(number or string), it is a way to convert all to same data type
+                                    project = {
+                                        'data.depositMethod': {$substr:["$data.depositMethod",0,4]},
+                                        'data.amount': 1
+                                    };
+
                                     group = {
                                         _id: "$data.depositMethod",
                                         amount: {"$sum": "$data.amount"},
                                         topUpTypeId: {$first: type.topUpTypeId}
                                     };
+
+                                    match = [
+                                        {
+                                            $match: query
+                                        },
+                                        {
+                                            $project: project
+                                        },
+                                        {
+                                            $group: group
+                                        },
+                                        {
+                                            $project: {
+                                                id: 1,
+                                                amount: 1,
+                                                topUpTypeId: 1
+                                            }
+                                        }
+                                    ];
+
                                 } else if (type.topUpTypeId == 2) {
-                                    query['data.topupType'] = {"$in": methods};
+                                    query['$or'] = [{'data.topupType': {"$in": methods}}, {'data.topupType': {"$in": methodsInNumber}}];
+
+                                    // adding project just because is JSON, can predict the data type of topupType(number or string), it is a way to convert all to same data type
+                                    project = {
+                                        'data.topupType': {$substr:["$data.topupType",0,4]},
+                                        'data.amount': 1
+                                    };
+
                                     group = {
                                         _id: "$data.topupType",
                                         amount: {"$sum": "$data.amount"},
                                         topUpTypeId: {$first: type.topUpTypeId}
                                     };
+
+                                    match = [
+                                        {
+                                            $match: query
+                                        },
+                                        {
+                                            $project: project
+                                        },
+                                        {
+                                            $group: group
+                                        },
+                                        {
+                                            $project: {
+                                                id: 1,
+                                                amount: 1,
+                                                topUpTypeId: 1
+                                            }
+                                        }
+                                    ];
                                 } else if (type.topUpTypeId == 3 || type.topUpTypeId == 4) {
                                     group = {
                                         _id: "$type",
                                         amount: {"$sum": "$data.amount"},
                                         topUpTypeId: {$first: type.topUpTypeId}
                                     };
+
+                                    match = [
+                                        {
+                                            $match: query
+                                        },
+                                        {
+                                            $group: group
+                                        },
+                                        {
+                                            $project: {
+                                                id: 1,
+                                                amount: 1,
+                                                topUpTypeId: 1
+                                            }
+                                        }
+                                    ];
                                 }
 
-                                return dbconfig.collection_proposal.aggregate([
-                                    {
-                                        $match: query
-                                    },
-                                    {
-                                        $group: group
-                                    },
-                                    {
-                                        $project: {
-                                            id: 1,
-                                            amount: 1,
-                                            topUpTypeId: 1
-                                        }
-                                    }
-                                ]).read("secondaryPreferred");
+                                return dbconfig.collection_proposal.aggregate(match).read("secondaryPreferred");
 
                             }
                         }));
@@ -8698,6 +8756,7 @@ function sumTopUpDetail(depositGroupRecord, platform, startTime, endTime) {
                 if (type && type.topUpTypeId) {
                     let proposalType = '';
                     let methods = type.topUpTypeId == 1 || type.topUpTypeId == 2 ? type.methods.map(method => method.topUpMethodId.toString()) : [];
+                    let methodsInNumber = type.topUpTypeId == 1 || type.topUpTypeId == 2 ? type.methods.map(method => method.topUpMethodId) : [];
 
                     if (type.topUpTypeId == 1) {
                         proposalType = constProposalType.PLAYER_MANUAL_TOP_UP;
@@ -8714,8 +8773,8 @@ function sumTopUpDetail(depositGroupRecord, platform, startTime, endTime) {
                         platformId: {$in: platform}
                     }, {_id: 1}).lean().then(
                         proposalTypeData => {
-
                             if (proposalTypeData && proposalTypeData.length > 0) {
+                                let match = [];
                                 let query = {
                                     type: {$in: proposalTypeData.map(type => type._id)},
                                     createTime: {
@@ -8729,9 +8788,18 @@ function sumTopUpDetail(depositGroupRecord, platform, startTime, endTime) {
 
                                 let group = {};
                                 let group2 = {};
+                                let project = {};
 
                                 if (type.topUpTypeId == 1) {
-                                    query['data.depositMethod'] = {"$in": methods};
+                                    query['$or'] = [{'data.depositMethod': {"$in": methods}}, {'data.depositMethod': {"$in": methodsInNumber}}];
+
+                                    // adding project just because is JSON, can predict the data type of depositMethod(number or string), it is a way to convert all to same data type
+                                    project = {
+                                        'data.depositMethod': {$substr:["$data.depositMethod",0,4]},
+                                        'data.platformId' : 1,
+                                        'data.amount': 1
+                                    };
+
                                     group = {
                                         _id: {depositMethod: "$data.depositMethod", platformId: "$data.platformId"},
                                         amount: {"$sum": "$data.amount"}
@@ -8742,10 +8810,33 @@ function sumTopUpDetail(depositGroupRecord, platform, startTime, endTime) {
                                         topUpDetail: {$push: {platformId: "$_id.platformId", amount: "$amount"}},
                                         topUpTypeId: {$first: type.topUpTypeId}
                                     };
+
+                                    match = [
+                                        {
+                                            $match: query
+                                        },
+                                        {
+                                            $project: project
+                                        },
+                                        {
+                                            $group: group
+                                        },
+                                        {
+                                            $group: group2
+                                        }
+                                    ]
                                 } else if (type.topUpTypeId == 2) {
-                                    query['data.topupType'] = {"$in": methods};
+                                    query['$or'] = [{'data.topupType': {"$in": methods}}, {'data.topupType': {"$in": methodsInNumber}}];
+
+                                    // adding project just because is JSON, can predict the data type of topupType(number or string), it is a way to convert all to same data type
+                                    project = {
+                                        'data.topupType': {$substr:["$data.topupType",0,4]},
+                                        'data.platformId' : 1,
+                                        'data.amount': 1
+                                    };
+
                                     group = {
-                                        _id: {depositMethod: "$data.topupType", platformId: "$data.platformId"},
+                                        _id: {depositMethod: "$data.topupType" , platformId: "$data.platformId"},
                                         amount: {"$sum": "$data.amount"}
                                     };
                                     group2 = {
@@ -8753,6 +8844,21 @@ function sumTopUpDetail(depositGroupRecord, platform, startTime, endTime) {
                                         topUpDetail: {$push: {platformId: "$_id.platformId", amount: "$amount"}},
                                         topUpTypeId: {$first: type.topUpTypeId}
                                     };
+
+                                    match = [
+                                        {
+                                            $match: query
+                                        },
+                                        {
+                                            $project: project
+                                        },
+                                        {
+                                            $group: group
+                                        },
+                                        {
+                                            $group: group2
+                                        }
+                                    ]
                                 } else if (type.topUpTypeId == 3 || type.topUpTypeId == 4) {
                                     group = {
                                         _id: {platformId: "$data.platformId"},
@@ -8763,19 +8869,20 @@ function sumTopUpDetail(depositGroupRecord, platform, startTime, endTime) {
                                         topUpDetail: {$push: {platformId: "$_id.platformId", amount: "$amount"}},
                                         topUpTypeId: {$first: type.topUpTypeId}
                                     };
+                                    match = [
+                                        {
+                                            $match: query
+                                        },
+                                        {
+                                            $group: group
+                                        },
+                                        {
+                                            $group: group2
+                                        }
+                                    ]
                                 }
 
-                                return dbconfig.collection_proposal.aggregate([
-                                    {
-                                        $match: query
-                                    },
-                                    {
-                                        $group: group
-                                    },
-                                    {
-                                        $group: group2
-                                    }
-                                ]).read("secondaryPreferred");
+                                return dbconfig.collection_proposal.aggregate(match).read("secondaryPreferred");
 
                             }
                         }));
@@ -8796,7 +8903,7 @@ function rearrangeSumTopUpDetailByDepositGroup (depositGroupRecord, topUpDetailD
                 if (type && type.methods && type.methods.length > 0) {
                     type.methods.forEach(method => {
                         if (method) {
-                            let indexNo = topUpDetailData.findIndex(x => x && x.topUpTypeId && x._id && type.topUpTypeId &&
+                            let indexNo = topUpDetailData.findIndex(x => x && x.topUpTypeId && type.topUpTypeId &&
                                 (((x.topUpTypeId == 1 || x.topUpTypeId == 2) && (x.topUpTypeId == type.topUpTypeId) && (x._id == method.topUpMethodId)) ||
                                     ((x.topUpTypeId == 3 || x.topUpTypeId == 3) && (x.topUpTypeId == type.topUpTypeId) && (method.depositName == 'ALIPAY' || method.depositName == 'WechatPay'))));
 

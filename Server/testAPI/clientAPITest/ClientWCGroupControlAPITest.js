@@ -53,6 +53,15 @@
         });
     };
 
+    proto.bindPlayerWechatInfo = function (callback, requestData) {
+        this._service.bindPlayerWechatInfo.request(requestData);
+        this._service.bindPlayerWechatInfo.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
     if (isNode) {
         module.exports = ClientWCGroupControlAPITest;
     } else {

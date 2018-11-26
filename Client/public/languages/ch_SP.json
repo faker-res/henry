@@ -1435,6 +1435,7 @@
   "Total": "总共",
   "total": "总共",
   "records": "条记录",
+  "Search time": "本次搜索时间",
   "message(s)": "条短信",
   "No data available in table": "无数据",
   "updateAdmin": "更新用户",
@@ -4917,12 +4918,11 @@
   "TOTAL_SUCCESS_RATE": "成功接听率%",
   "TOTAL_REGISTERED": "成功开户量",
   "TOTAL_REGISTERED_RATE": "成功开户率%",
-  "TOTAL_TOPUP": "成功存款人数",
+  "TOTAL_TOPUP_PERSON": "成功存款人数",
   "TOTAL_TOPUP_RATE": "成功存款率%",
   "TOTAL_MULTIPLE_TOPUP": "成功存款2笔人数",
   "TOTAL_MULTIPLE_TOPUP_RATE": "成功存款2笔率%",
   "TOTAL_VALID": "有效开户量",
-  "TOTAL_VALID_RATE": "有效开户率%",
   "DATA_DETAILS": "资料详情",
   "TOTAL_VALID_RATE": "有效开户率%",
   "createDemoPlayer": "创建试玩玩家",
@@ -4946,5 +4946,6 @@
   "createUpdatePlayerRealNameProposal": "编辑玩家真实姓名",
   "createUpdatePartnerRealNameProposal": "编辑代理真实姓名",
   "createUpdatePlayerInfoLevelProposal": "编辑玩家等级",
-  "attachDetachRolesFromUsersById": "编辑玩家角色"
+  "attachDetachRolesFromUsersById": "编辑玩家角色",
+  "Manual Approval": "人工审核"
 }

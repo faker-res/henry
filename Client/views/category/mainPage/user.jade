@@ -55,7 +55,7 @@
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'EditAdminRole')" ng-disabled="vm.selectedUsersCount!=1",data-toggle="{{vm.selectedUsersCount===1 ? 'modal' : ''}}",  data-target='#modalEditAdminRole', ng-click="vm.iniEditAdminRole()")
             text {{'EditAdminRole' | translate}}
             img.img-edit
-        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'ResetPassword')" ng-disabled="vm.selectedUsersCount!=1",data-toggle="{{vm.selectedUsersCount===1 ? 'modal' : ''}}",  data-target='#modalResetAdminPassword', ng-click="")
+        button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'ResetPassword')" ng-disabled="vm.selectedUsersCount!=1",data-toggle="{{vm.selectedUsersCount===1 ? 'modal' : ''}}",  data-target='#modalResetAdminPassword', ng-click="vm.newAdminPassword=null")
             text {{'RESET_PASSWORD' | translate}}
             .fa.fa-pencil-square-o
         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Admin', 'User', 'UpdateUserDepartment')" ng-disabled="vm.selectedUsersCount!=1",data-toggle="{{vm.selectedUsersCount===1 ? 'modal' : ''}}",  data-target='#modalUpdatePlayerDepartment', ng-click="vm.showDepartmentUpdateTreeView();")
