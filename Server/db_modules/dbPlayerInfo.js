@@ -933,9 +933,6 @@ let dbPlayerInfo = {
                         }
                         return inputData;
                     }
-                    else {
-                        return inputData;
-                    }
                 }
             ).then(
                 () => {
@@ -953,7 +950,6 @@ let dbPlayerInfo = {
                         }
                         return inputData
                     });
-
                 }
             ).then(
                 () => {
@@ -962,37 +958,7 @@ let dbPlayerInfo = {
                     }
                     // track the IP
                     if (inputData.lastLoginIp) {
-                        let todayTime = dbUtility.getTodaySGTime();
-                        let startTime = dbUtility.getNDaysAgoFromSpecificStartTime(new Date (todayTime.endTime), 7);
-
-                        return dbconfig.collection_ipDomainLog.findOne({
-                            platform: platformObjId,
-                            createTime: {$gte: startTime, $lt: todayTime.endTime},
-                            ipAddress: inputData.lastLoginIp,
-                            partnerId: {$exists: true}
-                        }).sort({createTime: -1}).lean().then(
-                            ipDomainLog => {
-                                let retProm = Promise.resolve(null);
-                                if (ipDomainLog) {
-                                    if (ipDomainLog.partnerId) {
-                                        retProm = dbconfig.collection_partner.findOne({partnerId: ipDomainLog.partnerId}, {
-                                            _id: 1,
-                                            partnerId: 1,
-                                            partnerName: 1
-                                        }).lean().then(
-                                            data => {
-                                                if (data){
-                                                    inputData.partner = data._id;
-                                                    inputData.partnerName = data.partnerName;
-                                                    inputData.partnerId = data.partnerId;
-                                                    return inputData
-                                                }
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                        )
+                        return checkIPBindingToPartner(inputData, platformObjId);
                     }
                 }
             ).then(
@@ -1026,6 +992,38 @@ let dbPlayerInfo = {
             )
         }
 
+        function checkIPBindingToPartner(inputData, platformObjId) {
+            let todayTime = dbUtility.getTodaySGTime();
+            let startTime = dbUtility.getNDaysAgoFromSpecificStartTime(new Date (todayTime.endTime), 7);
+
+            return dbconfig.collection_ipDomainLog.findOne({
+                platform: platformObjId,
+                createTime: {$gte: startTime, $lt: todayTime.endTime},
+                ipAddress: inputData.lastLoginIp,
+                partnerId: {$exists: true}
+            }).sort({createTime: -1}).lean().then(
+                ipDomainLog => {
+                    if (ipDomainLog) {
+                        if (ipDomainLog.partnerId) {
+                            return dbconfig.collection_partner.findOne({partnerId: ipDomainLog.partnerId}, {
+                                _id: 1,
+                                partnerId: 1,
+                                partnerName: 1
+                            }).lean().then(
+                                data => {
+                                    if (data){
+                                        inputData.partner = data._id;
+                                        inputData.partnerName = data.partnerName;
+                                        inputData.partnerId = data.partnerId;
+                                        return inputData
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+            )
+        }
     },
 
     checkPlayerIsIDCIp: (platformObjId, playerObjId, ipAddress) => {
