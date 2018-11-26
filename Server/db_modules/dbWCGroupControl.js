@@ -210,5 +210,9 @@ var dbWCGroupControl = {
         return dbConfig.collection_wcDevice.find({platformObjId: platformId})
             .populate({path: 'lastUpdateAdmin', model: dbConfig.collection_admin, select: "adminName"}).sort({_id:1}).lean();
     },
+
+    getWCDeviceByPlatformId: (platformId) => {
+        return dbConfig.collection_wcDevice.find({platformObjId: platformId}).lean();
+    },
 };
 module.exports = dbWCGroupControl;
