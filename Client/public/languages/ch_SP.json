@@ -4948,5 +4948,6 @@
   "createUpdatePartnerRealNameProposal": "编辑代理真实姓名",
   "createUpdatePlayerInfoLevelProposal": "编辑玩家等级",
   "attachDetachRolesFromUsersById": "编辑玩家角色",
-  "Manual Approval": "人工审核"
+  "Manual Approval": "人工审核",
+  "approveCsPendingAndChangeStatus": "客服审核"
 }
