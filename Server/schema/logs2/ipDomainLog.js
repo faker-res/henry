@@ -11,7 +11,9 @@ let ipDomainLogSchema = new Schema({
     // IP Address
     ipAddress: {type: String, index: true},
     // Source before domain site
-    sourceUrl: {type: String, index: true}
+    sourceUrl: {type: String, index: true},
+    // partnerId
+    partnerId: {type: String, index : true}
 });
 
 module.exports = ipDomainLogSchema;

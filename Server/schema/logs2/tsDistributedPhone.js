@@ -36,6 +36,10 @@ let tsDistributedPhoneSchema = new Schema({
     remindTime: {type: Date, required: true, index: true},
     // is registered
     registered: {type: Boolean, default: false, index: true},
+    // been added feedback
+    isUsed: {type: Boolean, default:false, index: true},
+    // been added "successful" feedback
+    isSucceedBefore: {type: Boolean, default:false, index: true},
 
 });
 

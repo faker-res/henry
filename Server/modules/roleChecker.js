@@ -683,6 +683,9 @@ var roleChecker = {
             Payment:{
                 Read: ['getPaymentMonitorResult']
             },
+            WechatGroupControl:{
+                Read: []
+            },
             "Payment Monitor Total":{
                 Read: ['']
             }

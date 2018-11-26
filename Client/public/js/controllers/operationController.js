@@ -3183,7 +3183,8 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'approveCsPendingAndChangeStatus', {
                 proposalObjId: vm.selectedProposal._id,
                 createTime: vm.selectedProposal.createTime,
-                adminName: authService.adminName
+                adminName: authService.adminName,
+                platform: vm.selectedPlatform._id
             }, function (data) {
                 vm.loadProposalQueryData(true);
             }, function (error) {
