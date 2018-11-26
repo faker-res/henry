@@ -41,6 +41,12 @@ function socketActionWCGroupControl(socketIO, socket) {
             let isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbWCGroupControl.getWechatGroupControlSetting, [data.platformObjId], actionName, isValidData);
         },
+
+        getWCDeviceByPlatformId: function getWCDeviceByPlatformId(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbWCGroupControl.getWCDeviceByPlatformId, [data.platformObjId], actionName, isValidData);
+        }
     };
     socketActionWCGroupControl.actions = this.actions;
 }
