@@ -194,4 +194,111 @@ div(ng-show="vm.curPlatformText")
                 td
                     text {{vm.tsPhoneDetails.province}} {{vm.tsPhoneDetails.city}}
 
+#modalCreateTsPlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='max-height: 80vh;overflow-y: auto')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"CREATE_PLAYER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .row
+                                include tsPhone-player-create-form
+                .well(ng-show='vm.playerCreateResult.success')
+                    label.text-success {{'SUCCESS' | translate}}
+                .well(ng-show='vm.playerCreateResult && !vm.playerCreateResult.success')
+                    label.text-danger {{'FAIL' | translate}}
+                    label.form-control {{(vm.playerCreateResult.error.message || vm.playerCreateResult.error.errorMessage || vm.playerCreateResult.error || vm.playerCreateResult) | translate}}
+            .modal-footer
+                button.btn.btn-primary.common-button(ng-disabled='form_new_player.$invalid || vm.passwordLengthCheck(vm.newPlayer.password)', ng-click="vm.createNewPlayer();", ng-hide='vm.playerCreateResult && vm.playerCreateResult.success') {{"CREATE" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal', ng-hide='vm.playerCreateResult') {{"CANCEL" | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal', ng-show='vm.playerCreateResult') {{"CLOSE" | translate}}
+
+#duplicatePhoneNumberLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:95%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Duplicate Phone Number"|translate}}
+            .modal-body
+                div
+                    label {{"Total" | translate}} {{vm.duplicatePhoneNumber.totalCount}} {{"records" | translate}}
+                    table#duplicatePhoneNumberLogTable.common-table.display(style='min-width:100%')
+                    #duplicatePhoneNumberLogTablePage.height30
+
+#modalTsPlayerCredibilityRemarks.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'UPDATE_PLAYER_CREDIBILITY_REMARK' | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        button.btn.btn-primary.common-button(ng-click="vm.showSelectedCredibility()", data-dismiss='modal') {{"CONFIRM" | translate}}
+                        span {{vm.credibilityRemarkUpdateMessage | translate}}
+                        div.row
+                            div.col-md-4
+                                .well.row
+                                    label {{"REDUCE_SCORE" | translate}}
+                                    table.paddingTbl(style='min-width:100%')
+                                        thead
+                                            tr
+                                                th {{"remark" | translate}}
+                                                th {{"score" | translate}}
+                                                th {{"SELECT" | translate}}
+                                        tbody
+                                            tr(ng-repeat='(i, data) in vm.negativeRemarks')
+                                                td
+                                                    text {{data.name}}
+                                                td
+                                                    text {{data.score}}
+                                                td
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()")
+                                                    span(id="{{'c-'+data._id}}")
+                            div.col-md-4
+                                .well
+                                    label {{"ADD_SCORE" | translate}}
+                                    table.paddingTbl(style='min-width:100%')
+                                        thead
+                                            tr
+                                                th {{"remark" | translate}}
+                                                th {{"score" | translate}}
+                                                th {{"SELECT" | translate}}
+                                        tbody
+                                            tr(ng-repeat='(i, data) in vm.positiveRemarks')
+                                                td
+                                                    text {{data.name}}
+                                                td
+                                                    text {{data.score}}
+                                                td
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()")
+                                                    span(id="{{'c-'+data._id}}")
+                            div.col-md-4
+                                .well
+                                    label {{"REMINDER" | translate}}
+                                    table.paddingTbl(style='min-width:100%')
+                                        thead
+                                            tr
+                                                th {{"remark" | translate}}
+                                                th {{"score" | translate}}
+                                                th {{"SELECT" | translate}}
+                                        tbody
+                                            tr(ng-repeat='(i, data) in vm.neutralRemarks')
+                                                td
+                                                    text {{data.name}}
+                                                td
+                                                    text {{data.score}}
+                                                td
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()", ng-show="!data.isFixed")
+                                                    span(id="{{'c-'+data._id}}")
+                .panel.panel-primary
+                    .panel-body
+                        div.col-md-12
+                            label {{'REMARKS' | translate}}:
+                            div
+                                textarea.form-control(style="max-width: 100%; overflow: auto; margin-bottom: 12px;", rows="15", ng-model="vm.credibilityRemarkComment", placeholder="{{'Player Credibility' | translate}}{{'REMARKS' | translate}}")
+
 

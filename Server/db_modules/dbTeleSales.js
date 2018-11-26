@@ -31,7 +31,7 @@ let dbTeleSales = {
                 let phoneListQuery = {
                     platform: query.platform,
                     assignee: query.admin,
-
+                    registered: false
                 }
 
                 if (phoneListData && phoneListData.length && query.phoneListName && query.phoneListName.length) {
@@ -148,6 +148,37 @@ let dbTeleSales = {
 
     },
 
+    createTsPhonePlayerFeedback: function (inputData) {
+        return dbconfig.collection_tsPhoneFeedback.find({tsPhone: inputData.tsPhone}).lean().then(
+            tsFeedbackData => {
+                let playerFeedbackProm = [];
+                let curFeedBack = dbconfig.collection_playerFeedback(inputData).save();
+                playerFeedbackProm.push(curFeedBack);
+                if (tsFeedbackData && tsFeedbackData.length) {
+                    tsFeedbackData.forEach(tsFeedback => {
+                        tsFeedback.playerId = inputData.playerId;
+                        let saveObj = {
+                            playerId: inputData.playerId,
+                            platform: tsFeedback.platform,
+                            createTime: tsFeedback.createTime,
+                            adminId: tsFeedback.adminId,
+                            content: tsFeedback.content,
+                            result: tsFeedback.result,
+                            resultName: tsFeedback.resultName,
+                            topic: tsFeedback.topic
+                        }
+                        playerFeedbackProm.push(dbconfig.collection_playerFeedback(saveObj).save())
+                    })
+                }
+                return Promise.all(playerFeedbackProm);
+            }
+        ).then(
+            () => {
+                return addTsFeedbackCount(inputData);
+            }
+        );
+    },
+
     createTsPhoneFeedback: function (inputData) {
         return dbconfig.collection_tsPhoneFeedback(inputData).save().then(
             (feedbackData) => {
@@ -169,8 +200,7 @@ let dbTeleSales = {
                 if (!tsDistributedPhoneData) {
                     return Promise.reject({name: "DataError", message: "fail to update tsDistributedPhone data"});
                 }
-
-                return tsDistributedPhoneData;
+                return addTsFeedbackCount(inputData);
             }
         );
     },
@@ -266,6 +296,7 @@ let dbTeleSales = {
         let totalAssignee;
         let tsPhoneListObj;
         let tsAssigneeArr;
+        let totalDistributed = 0;
 
         return dbconfig.collection_tsPhoneList.findOne({_id: inputData.tsListObjId}).then(
             tsPhoneListData => {
@@ -317,7 +348,7 @@ let dbTeleSales = {
                 }
 
                 for (let i = 0; i < tsPhoneData.length; i++) {
-                    if (totalPhoneAdded >= tsPhoneData.dailyCallerMaximumTask) {
+                    if (totalPhoneAdded >= tsPhoneListObj.dailyCallerMaximumTask) {
                         break;
                     }
                     for (let j = 0; j < tsAssigneeArr.length; j++) {
@@ -355,6 +386,10 @@ let dbTeleSales = {
                                        }
                                     });
 
+                                    if (!tsPhoneUpdate.assignTimes) {
+                                        totalDistributed++;
+                                    }
+
                                     dbconfig.collection_tsDistributedPhone({
                                         platform: inputData.platform,
                                         tsPhoneList: inputData.tsListObjId,
@@ -379,6 +414,10 @@ let dbTeleSales = {
                 });
 
                 return Promise.all(promArr);
+            }
+        ).then(
+            () => {
+                return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObj._id}, {$inc: {totalDistributed: totalDistributed}}).lean();
             }
         );
 
@@ -487,6 +526,52 @@ let dbTeleSales = {
         });
     }
 };
+
+function addTsFeedbackCount (feedbackObj) {
+    let isSucceedBefore = false;
+    return dbconfig.collection_platform.findOne({_id: feedbackObj.platform}, {definitionOfAnsweredPhone: 1}).lean().then(
+        platformData => {
+            if (platformData && platformData.definitionOfAnsweredPhone
+                && platformData.definitionOfAnsweredPhone.length && platformData.definitionOfAnsweredPhone.indexOf(feedbackObj.result) > -1) {
+                isSucceedBefore = true;
+            }
+
+            return dbconfig.collection_tsPhone.findOneAndUpdate({_id: feedbackObj.tsPhone}, {
+                isUsed: true,
+                isSucceedBefore: isSucceedBefore
+            }).lean();
+        }
+    ).then(
+        tsPhoneData => {
+            if (!(tsPhoneData && tsPhoneData.tsPhoneList)) {
+                return Promise.reject({name: "DataError", message: "Cannot find tsPhone"});
+            }
+            let promArr = [];
+            let updatePhoneListObj = {
+                $inc: {}
+            }
+            let updateAssigneeObj = {
+                $inc: {}
+            };
+            if (!tsPhoneData.isUsed) {
+                updatePhoneListObj["$inc"].totalUsed = 1;
+                updateAssigneeObj["$inc"].phoneUsedCount = 1;
+            }
+            if (!tsPhoneData.isSucceedBefore && isSucceedBefore) {
+                updatePhoneListObj["$inc"].totalSuccess = 1;
+                updateAssigneeObj["$inc"].successfulCount = 1;
+            }
+            if (tsPhoneData.tsPhoneList && (updatePhoneListObj["$inc"].totalUsed  || updatePhoneListObj["$inc"].totalSuccess)) {
+                promArr.push(dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneData.tsPhoneList}, updatePhoneListObj).lean());
+                promArr.push(dbconfig.collection_tsAssignee.findOneAndUpdate({
+                    admin: feedbackObj.adminId,
+                    tsPhoneList: tsPhoneData.tsPhoneList
+                }, updateAssigneeObj).lean());
+            }
+            return Promise.all(promArr);
+        }
+    );
+}
 
 function addOptionalTimeLimitsToQuery(data, query, fieldName) {
     var createTimeQuery = {};
