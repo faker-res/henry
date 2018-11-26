@@ -834,39 +834,9 @@ let dbPlayerInfo = {
 
                             inputData.domain = filteredDomain;
 
-                            if (!inputData.partnerId) {
-                                let domainProm = dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
-                                    data => {
-                                        if (data) {
-                                            inputData.partner = data._id;
-                                            if (data.partnerId) {
-                                                inputData.partnerId = data.partnerId;
-                                            }
-                                            if (data.partnerName) {
-                                                inputData.partnerName = data.partnerName;
-                                            }
-                                            return inputData;
-                                        }
-                                        else {
-                                            return inputData;
-                                        }
-                                    }
-                                );
-                                proms.push(domainProm);
-                            }
-
-                            if (inputData && !adminName) {
-                                let promoteWayProm = dbconfig.collection_csOfficerUrl.findOne({
-                                    domain: inputData.domain,
-                                    platform: platformObjId
-                                }).lean().then(data => {
-                                    if (data) {
-                                        inputData.csOfficer = data.admin;
-                                        inputData.promoteWay = data.way
-                                    }
-                                });
-
-                                proms.push(promoteWayProm);
+                            // only check the domain binding if it is not initiated by a partner nor backstage
+                            if (!inputData.partnerId && !adminName) {
+                                proms.push(checkDomainBinding(inputData, platformObjId));
                             }
                         }
 
@@ -947,6 +917,114 @@ let dbPlayerInfo = {
         } else {
             return Q.reject({name: "DataError", message: "Platform does not exist"});
         }
+
+        function checkDomainBinding(inputData, platformObjId){
+            // check if the registered domain belongs to a partner: yes -> binding to the partner
+            return dbconfig.collection_partner.findOne({ownDomain: {$elemMatch: {$eq: inputData.domain}}}).then(
+                data => {
+                    if (data) {
+                        inputData.partner = data._id;
+                        if (data.partnerId) {
+                            inputData.partnerId = data.partnerId;
+                        }
+                        if (data.partnerName) {
+                            inputData.partnerName = data.partnerName;
+                        }
+                        return inputData;
+                    }
+                    else {
+                        return inputData;
+                    }
+                }
+            ).then(
+                () => {
+                    if (inputData && inputData.partner){
+                        return inputData
+                    }
+                    // check if the domain name belongs to a cs
+                    return dbconfig.collection_csOfficerUrl.findOne({
+                        domain: inputData.domain,
+                        platform: platformObjId
+                    }).lean().then(data => {
+                        if (data) {
+                            inputData.csOfficer = data.admin;
+                            inputData.promoteWay = data.way
+                        }
+                        return inputData
+                    });
+
+                }
+            ).then(
+                () => {
+                    if (inputData && (inputData.partner || inputData.csOfficer)) {
+                        return inputData
+                    }
+                    // track the IP
+                    if (inputData.lastLoginIp) {
+                        let todayTime = dbUtility.getTodaySGTime();
+                        let startTime = dbUtility.getNDaysAgoFromSpecificStartTime(new Date (todayTime.endTime), 7);
+
+                        return dbconfig.collection_ipDomainLog.findOne({
+                            platform: platformObjId,
+                            createTime: {$gte: startTime, $lt: todayTime.endTime},
+                            ipAddress: inputData.lastLoginIp,
+                            partnerId: {$exists: true}
+                        }).sort({createTime: -1}).lean().then(
+                            ipDomainLog => {
+                                let retProm = Promise.resolve(null);
+                                if (ipDomainLog) {
+                                    if (ipDomainLog.partnerId) {
+                                        retProm = dbconfig.collection_partner.findOne({partnerId: ipDomainLog.partnerId}, {
+                                            _id: 1,
+                                            partnerId: 1,
+                                            partnerName: 1
+                                        }).lean().then(
+                                            data => {
+                                                if (data){
+                                                    inputData.partner = data._id;
+                                                    inputData.partnerName = data.partnerName;
+                                                    inputData.partnerId = data.partnerId;
+                                                    return inputData
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
+            ).then(
+                () => {
+                    if (inputData && (inputData.partner || inputData.csOfficer)) {
+                        return inputData
+                    }
+
+                    return dbconfig.collection_ipDomainLog.findOne({
+                        platform: platformObjId,
+                        ipAddress: inputData.lastLoginIp,
+                        domain: {$exists: true}
+                    }).sort({createTime: -1}).lean().then(
+                        data => {
+                            return dbconfig.collection_csOfficerUrl.findOne({
+                                domain: data.domain,
+                                platform: platformObjId
+                            }, 'admin way').lean();
+                        }
+                    ).then(
+                        csUrl => {
+                            if (csUrl && csUrl.admin && csUrl.way) {
+                                inputData.csOfficer = csUrl.admin;
+                                inputData.promoteWay = csUrl.way;
+                                return inputData
+                            }
+                            return inputData
+                        }
+                    )
+                }
+            )
+        }
+
     },
 
     checkPlayerIsIDCIp: (platformObjId, playerObjId, ipAddress) => {
