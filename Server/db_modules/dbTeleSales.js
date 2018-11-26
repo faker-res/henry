@@ -296,6 +296,7 @@ let dbTeleSales = {
         let totalAssignee;
         let tsPhoneListObj;
         let tsAssigneeArr;
+        let totalDistributed = 0;
 
         return dbconfig.collection_tsPhoneList.findOne({_id: inputData.tsListObjId}).then(
             tsPhoneListData => {
@@ -347,7 +348,7 @@ let dbTeleSales = {
                 }
 
                 for (let i = 0; i < tsPhoneData.length; i++) {
-                    if (totalPhoneAdded >= tsPhoneData.dailyCallerMaximumTask) {
+                    if (totalPhoneAdded >= tsPhoneListObj.dailyCallerMaximumTask) {
                         break;
                     }
                     for (let j = 0; j < tsAssigneeArr.length; j++) {
@@ -385,6 +386,10 @@ let dbTeleSales = {
                                        }
                                     });
 
+                                    if (!tsPhoneUpdate.assignTimes) {
+                                        totalDistributed++;
+                                    }
+
                                     dbconfig.collection_tsDistributedPhone({
                                         platform: inputData.platform,
                                         tsPhoneList: inputData.tsListObjId,
@@ -409,6 +414,10 @@ let dbTeleSales = {
                 });
 
                 return Promise.all(promArr);
+            }
+        ).then(
+            () => {
+                return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObj._id}, {$inc: {totalDistributed: totalDistributed}}).lean();
             }
         );
 
