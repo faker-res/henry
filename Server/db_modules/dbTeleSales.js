@@ -174,17 +174,30 @@ let dbTeleSales = {
             }
         ).then(
             () => {
-                return addTsFeedbackCount(inputData);
+                return dbTeleSales.createTsPhoneFeedback(inputData);
+                // return addTsFeedbackCount(inputData);
             }
         );
     },
 
     createTsPhoneFeedback: function (inputData) {
+
+        let isSuccessFeedback = false;
         return dbconfig.collection_tsPhoneFeedback(inputData).save().then(
             (feedbackData) => {
                 if (!feedbackData) {
                     return Promise.reject({name: "DataError", message: "fail to save feedback data"});
                 }
+
+                return dbconfig.collection_platform.findOne({_id: inputData.platform}, {definitionOfAnsweredPhone: 1}).lean();
+            }
+        ).then(
+            platformData => {
+                if (platformData && platformData.definitionOfAnsweredPhone
+                    && platformData.definitionOfAnsweredPhone.length && platformData.definitionOfAnsweredPhone.indexOf(inputData.result) > -1) {
+                    isSuccessFeedback = true;
+                }
+
                 return dbconfig.collection_tsDistributedPhone.findOneAndUpdate({
                     tsPhone: inputData.tsPhone,
                     assignee: inputData.adminId,
@@ -192,6 +205,8 @@ let dbTeleSales = {
                 }, {
                     $inc: {feedbackTimes: 1},
                     lastFeedbackTime: new Date(),
+                    isUsed: true,
+                    isSucceedBefore: isSuccessFeedback,
                     resultName: inputData.resultName
                 }, {new: true}).lean();
             }
@@ -200,7 +215,7 @@ let dbTeleSales = {
                 if (!tsDistributedPhoneData) {
                     return Promise.reject({name: "DataError", message: "fail to update tsDistributedPhone data"});
                 }
-                return addTsFeedbackCount(inputData);
+                return addTsFeedbackCount(inputData, isSuccessFeedback);
             }
         );
     },
@@ -527,21 +542,12 @@ let dbTeleSales = {
     }
 };
 
-function addTsFeedbackCount (feedbackObj) {
-    let isSucceedBefore = false;
-    return dbconfig.collection_platform.findOne({_id: feedbackObj.platform}, {definitionOfAnsweredPhone: 1}).lean().then(
-        platformData => {
-            if (platformData && platformData.definitionOfAnsweredPhone
-                && platformData.definitionOfAnsweredPhone.length && platformData.definitionOfAnsweredPhone.indexOf(feedbackObj.result) > -1) {
-                isSucceedBefore = true;
-            }
-
-            return dbconfig.collection_tsPhone.findOneAndUpdate({_id: feedbackObj.tsPhone}, {
-                isUsed: true,
-                isSucceedBefore: isSucceedBefore
-            }).lean();
-        }
-    ).then(
+function addTsFeedbackCount (feedbackObj, isSucceedBefore = false) {
+    // let isSucceedBefore = false;
+    return dbconfig.collection_tsPhone.findOneAndUpdate({_id: feedbackObj.tsPhone}, {
+        isUsed: true,
+        isSucceedBefore: isSucceedBefore
+    }).lean().then(
         tsPhoneData => {
             if (!(tsPhoneData && tsPhoneData.tsPhoneList)) {
                 return Promise.reject({name: "DataError", message: "Cannot find tsPhone"});
