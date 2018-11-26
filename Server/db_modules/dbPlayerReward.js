@@ -7101,6 +7101,9 @@ let dbPlayerReward = {
                         if (eventData.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP || eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
                             proposalData.data.lastLoginIp = playerData.lastLoginIp;
                             proposalData.data.phoneNumber = playerData.phoneNumber;
+                            if (playerData.deviceId) {
+                                proposalData.data.deviceId = playerData.deviceId;
+                            }
                         }
 
                         // if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && deviceId){
