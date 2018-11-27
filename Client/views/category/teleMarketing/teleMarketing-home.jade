@@ -93,9 +93,9 @@
                                             select.spicker.form-control(ng-options='admin.adminName as admin.adminName for admin in vm.adminList' ng-model='vm.selectedAssignees' multiple data-actions-box='true')
                                         td
                                             input(id="new-execute-distribute-on" type="radio", name="new-execute-distribution", value="1" ng-model="vm.newAssigneesExecuteStatus")
-                                            label(for="new-execute-distribute-on" style="font-weight: normal;") {{"Open" | translate}}
+                                            label.radio-space(for="new-execute-distribute-on" style="font-weight: normal;") {{"Open" | translate}}
                                             input(id="new-execute-distribute-off" type="radio", name="new-execute-distribution", value="0" ng-model="vm.newAssigneesExecuteStatus")
-                                            label(for="new-execute-distribute-off" style="font-weight: normal;") {{"Closed" | translate}}
+                                            label.radio-space(for="new-execute-distribute-off" style="font-weight: normal;") {{"Closed" | translate}}
 
                             button.btn.btn-primary.common-button.pull-right(ng-show="vm.allowDistributionSettingsEdit" ng-click="vm.updateDistributionSettings()") {{"CONFIRM" | translate}}
                             button.btn.btn-warning.common-button.pull-right(ng-show="vm.allowDistributionSettingsEdit" ng-click="vm.cancelDistributionSettingsEdit()") {{"CANCEL" | translate}}
