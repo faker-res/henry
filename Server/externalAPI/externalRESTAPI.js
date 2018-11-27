@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const req = require('request');
 const rsaCrypto = require('../modules/rsaCrypto');
 const FormData = require('form-data');
@@ -41,8 +42,7 @@ function callFKPAPI(data) {
 function encryptFKPMsg (data) {
     let toEncrypt = processFKPData(data);
 
-
-    data.sign = rsaCrypto.fkpEncrypt(processFKPData(data));
+    data.sign = rsaCrypto.signFKP(toEncrypt);
     data.signType = "RSA";
 
     return data;
