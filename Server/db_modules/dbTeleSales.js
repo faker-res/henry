@@ -174,17 +174,30 @@ let dbTeleSales = {
             }
         ).then(
             () => {
-                return addTsFeedbackCount(inputData);
+                return dbTeleSales.createTsPhoneFeedback(inputData);
+                // return addTsFeedbackCount(inputData);
             }
         );
     },
 
     createTsPhoneFeedback: function (inputData) {
+
+        let isSuccessFeedback = false;
         return dbconfig.collection_tsPhoneFeedback(inputData).save().then(
             (feedbackData) => {
                 if (!feedbackData) {
                     return Promise.reject({name: "DataError", message: "fail to save feedback data"});
                 }
+
+                return dbconfig.collection_platform.findOne({_id: inputData.platform}, {definitionOfAnsweredPhone: 1}).lean();
+            }
+        ).then(
+            platformData => {
+                if (platformData && platformData.definitionOfAnsweredPhone
+                    && platformData.definitionOfAnsweredPhone.length && platformData.definitionOfAnsweredPhone.indexOf(inputData.result) > -1) {
+                    isSuccessFeedback = true;
+                }
+
                 return dbconfig.collection_tsDistributedPhone.findOneAndUpdate({
                     tsPhone: inputData.tsPhone,
                     assignee: inputData.adminId,
@@ -192,6 +205,8 @@ let dbTeleSales = {
                 }, {
                     $inc: {feedbackTimes: 1},
                     lastFeedbackTime: new Date(),
+                    isUsed: true,
+                    isSucceedBefore: isSuccessFeedback,
                     resultName: inputData.resultName
                 }, {new: true}).lean();
             }
@@ -200,7 +215,7 @@ let dbTeleSales = {
                 if (!tsDistributedPhoneData) {
                     return Promise.reject({name: "DataError", message: "fail to update tsDistributedPhone data"});
                 }
-                return addTsFeedbackCount(inputData);
+                return addTsFeedbackCount(inputData, isSuccessFeedback);
             }
         );
     },
@@ -367,7 +382,9 @@ let dbTeleSales = {
                 }
 
                 tsAssigneeArr.forEach(tsAssignee => {
+                    let assignedCount = 0;
                     if (tsAssignee.updateObj && tsAssignee.updateObj.tsPhone && tsAssignee.updateObj.tsPhone.length) {
+                        assignedCount =  tsAssignee.updateObj.tsPhone.length;
                         let distributeListSaveData = {
                             platform: inputData.platform,
                             tsPhoneList: inputData.tsListObjId,
@@ -407,6 +424,9 @@ let dbTeleSales = {
                                 });
 
                                 dbconfig.collection_tsPhone.update({_id:{$in: tsAssignee.updateObj.tsPhone.map(tsPhone => tsPhone.tsPhoneObjId)}}, {$addToSet: {assignee: tsAssignee.admin} , $inc: {assignTimes: 1}, distributedEndTime: phoneNumberEndTime.endTime}, {multi: true}).catch(errorUtils.reportError);
+                                if (assignedCount) {
+                                    dbconfig.collection_tsAssignee.findOneAndUpdate({_id: tsAssignee._id}, {$inc: {assignedCount: assignedCount}}).lean().catch(errorUtils.reportError);
+                                }
                             })
 
                         promArr.push(distributedPhoneListProm);
@@ -422,6 +442,32 @@ let dbTeleSales = {
         );
 
         return inputData;
+    },
+
+    updateTsPhoneDistributedPhone: function (query, updateData) {
+        return dbconfig.collection_tsDistributedPhone.findOneAndUpdate(query, updateData).lean();
+    },
+
+    getTsDistributedPhoneReminder: function (platform, assignee) {
+        return dbconfig.collection_tsDistributedPhone.aggregate([
+            {
+                $match: {
+                    platform: ObjectId(platform),
+                    assignee: ObjectId(assignee),
+                    remindTime: {$lte: new Date()}
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    count: {$sum:{ $cond: [{$or: [ {$lt: [ "$lastFeedbackTime", "$remindTime" ]}, {$eq: ["$lastFeedbackTime", null]} ]}, 1, 0]}}
+                }
+            }
+        ]).read("secondaryPreferred").then(
+            data => {
+                return data && data[0] && data[0].count || 0;
+            }
+        );
     },
 
     getTsPhoneImportRecord: function (query) {
@@ -527,21 +573,12 @@ let dbTeleSales = {
     }
 };
 
-function addTsFeedbackCount (feedbackObj) {
-    let isSucceedBefore = false;
-    return dbconfig.collection_platform.findOne({_id: feedbackObj.platform}, {definitionOfAnsweredPhone: 1}).lean().then(
-        platformData => {
-            if (platformData && platformData.definitionOfAnsweredPhone
-                && platformData.definitionOfAnsweredPhone.length && platformData.definitionOfAnsweredPhone.indexOf(feedbackObj.result) > -1) {
-                isSucceedBefore = true;
-            }
-
-            return dbconfig.collection_tsPhone.findOneAndUpdate({_id: feedbackObj.tsPhone}, {
-                isUsed: true,
-                isSucceedBefore: isSucceedBefore
-            }).lean();
-        }
-    ).then(
+function addTsFeedbackCount (feedbackObj, isSucceedBefore = false) {
+    // let isSucceedBefore = false;
+    return dbconfig.collection_tsPhone.findOneAndUpdate({_id: feedbackObj.tsPhone}, {
+        isUsed: true,
+        isSucceedBefore: isSucceedBefore
+    }).lean().then(
         tsPhoneData => {
             if (!(tsPhoneData && tsPhoneData.tsPhoneList)) {
                 return Promise.reject({name: "DataError", message: "Cannot find tsPhone"});
