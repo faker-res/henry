@@ -1407,7 +1407,6 @@ var dbRewardEvent = {
                         // rewardSpecificData[3] - the similiar reward proposal
                         // rewardSpecificData[4] - the phone, ip, imei checking
                         // rewardSpecificData[5] - check if today has applied or gotten the reward
-
                         let matchPlayerId = false;
                         let matchIPAddress = false;
                         let matchPhoneNum = false;
@@ -1485,7 +1484,6 @@ var dbRewardEvent = {
                                         if (applyAmount < minDepositAmount) {
                                             returnData.condition.deposit.list[retRewardData.selectedIndex].status = 0;
                                         }
-
                                     }
 
                                     if (eventData.condition && eventData.condition.checkSameIP) {
@@ -1504,8 +1502,6 @@ var dbRewardEvent = {
                                     if (eventData.condition && eventData.condition.quantityLimitInInterval && rewardSpecificData[2] >= eventData.condition.quantityLimitInInterval) {
                                         returnData.condition.list[retRewardData.selectedIndex].status = 3;
                                     }
-
-
                                 }
                                 else {
                                     returnData.condition.deposit.list[retRewardData.selectedIndex].status = 0;

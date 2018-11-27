@@ -7292,13 +7292,11 @@ let dbPlayerReward = {
         }
 
         if (rewardProposals && rewardProposals.length) {
-
             if (defineLoginMode == 1) {
                 let latestRewardProposal = rewardProposals[0];
                 let accumulativeCount = latestRewardProposal.data && latestRewardProposal.data.consecutiveNumber ? latestRewardProposal.data.consecutiveNumber : 0 ;
 
                 for (let i = 0; i < accumulativeCount - 1; i++) {
-
                     let rewardAmount = selectedRewardParam[i].rewardAmount || null;
                     let spendingTimes = selectedRewardParam[i].spendingTimes || null;
                     let maxRewardAmount = selectedRewardParam[i].maxRewardAmountInSingleReward || null;
@@ -7320,7 +7318,6 @@ let dbPlayerReward = {
                         if (loginDay) {
                             index = dbPlayerReward.applyRetentionRewardParamLevel(eventData, null, selectedRewardParam, null, loginDay).selectedIndex;
                         }
-
                         return insertOutputList(index, 2, null, loginDay);
                     }
                 )
@@ -7330,7 +7327,6 @@ let dbPlayerReward = {
         return outputList;
 
         function insertOutputList(index, status, step, loginDay) {
-
             if (index != null) {
                 outputList[index].status = status;
                 if (step) {
@@ -7340,7 +7336,6 @@ let dbPlayerReward = {
                     outputList[index].loginDay = loginDay;
                 }
             }
-
             return outputList;
         }
 
