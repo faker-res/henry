@@ -4177,6 +4177,9 @@
   "Used Time":"个人已使用次数",
   "Success Answers":"个人成功接听次数",
   "Amount of Success Account Opening":"个人成功开户量",
+  "The Number of Distributed within a Specific Time in this Whitelist.":"该白名单指定时间内，被派发的数量。",
+  "Do not repeat, count the number of times this call was added back.":"不去重复，计算此电话被添加回访的次数。（只看该白名单）。",
+  "Do not repeat, calculate the number of success add return visits. (Only see the white list), according to the system definition, what is meant by success return visits.":"不去重复，计算『成功』添加回访的次数。（只看该白名单），根据系统定义何谓『成功』回访。",
 
   "modifyPlayerCredibilityRemark": "编辑信用评价",
   "updatePlayerCredibilityRemark": "信用评价",
