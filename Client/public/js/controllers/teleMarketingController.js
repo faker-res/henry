@@ -424,8 +424,7 @@ define(['js/app'], function (myApp) {
                         });
                     })
 
-                    vm.getTsDistributedPhoneReminder();
-                    setInterval(vm.getTsDistributedPhoneReminder, 60000);
+                    vm.autoRefreshTsDistributedPhoneReminder();
                     break;
                 case 'WORKLOAD REPORT':
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#workloadStartTimePicker', utilService.getNdayagoStartTime(30));
@@ -1147,7 +1146,15 @@ define(['js/app'], function (myApp) {
             });
         }
 
-        vm.getTsDistributedPhoneReminder = function () {
+        vm.autoRefreshTsDistributedPhoneReminder = function () {
+            if (!(window.location.pathname == "/teleMarketing" && vm.selectedTab == "REMINDER_PHONE_LIST")) {
+                return;
+            }
+
+            vm.refreshPhoneReminder = setTimeout(() => {
+                vm.autoRefreshTsDistributedPhoneReminder();
+            }, 60000);
+
             let sendData = {
                 platform: vm.selectedPlatform.id,
                 assignee: authService.adminId
