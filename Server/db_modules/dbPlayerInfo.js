@@ -7759,6 +7759,14 @@ let dbPlayerInfo = {
                                 if (el && el.levelId && Object.keys(el.levelId).length) {
                                     el.levelId = el.levelId.value;
                                 }
+
+                                if (rewardEventItem.type && rewardEventItem.type.name && rewardEventItem.type.name == constRewardType.PLAYER_RETENTION_REWARD_GROUP
+                                    && rewardEventItem.condition && rewardEventItem.condition.definePlayerLoginMode && rewardEventItem.condition.definePlayerLoginMode == 2){
+                                    let intervalMode = rewardEventItem.condition && rewardEventItem.condition.interval ? rewardEventItem.condition.interval : null;
+                                    if (el.value && el.value.length && intervalMode){
+                                        getExactLoginDateBasedOnInterval(el.value, rewardEventItem)
+                                    }
+                                }
                             })
                         }
 
@@ -7776,13 +7784,30 @@ let dbPlayerInfo = {
                             rewardEventArray.push(rewardEventItem);
                         }
                     }
-                    return rewardEventArray;
+                    return rewardEventArray;              
                 }
             },
             function (error) {
                 return Q.reject({name: "DBError", message: "Error in getting rewardEvent", error: error});
             }
         );
+
+        function getExactLoginDateBasedOnInterval (value, eventData){
+            value.forEach(
+                (valueObj, i) => {
+                    if (valueObj) {
+                        let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, eventData);
+                        if (i == 0) {
+                            valueObj.loginDay = intervalTime.startTime;
+                        }
+                        else {
+                            valueObj.loginDay = dbUtility.getNdaylaterFromSpecificStartTime(i, intervalTime.startTime);
+                        }
+                    }
+                    return valueObj;
+                }
+            )
+        }
     },
 
     getLevelRewardForPlayer: function (query) {
