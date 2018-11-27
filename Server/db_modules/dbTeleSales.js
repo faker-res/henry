@@ -449,11 +449,25 @@ let dbTeleSales = {
     },
 
     getTsDistributedPhoneReminder: function (platform, assignee) {
-        return dbconfig.collection_tsDistributedPhone.find({
-            platform: platform,
-            assignee: assignee,
-            remindTime: {$lte: new Date()}
-        }).count();
+        return dbconfig.collection_tsDistributedPhone.aggregate([
+            {
+                $match: {
+                    platform: ObjectId(platform),
+                    assignee: ObjectId(assignee),
+                    remindTime: {$lte: new Date()}
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    count: {$sum:{ $cond: [{$or: [ {$lt: [ "$lastFeedbackTime", "$remindTime" ]}, {$eq: ["$lastFeedbackTime", null]} ]}, 1, 0]}}
+                }
+            }
+        ]).read("secondaryPreferred").then(
+            data => {
+                return data && data[0] && data[0].count || 0;
+            }
+        );
     },
 
     getTsPhoneImportRecord: function (query) {
