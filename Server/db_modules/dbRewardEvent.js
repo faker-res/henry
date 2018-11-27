@@ -1203,20 +1203,45 @@ var dbRewardEvent = {
             let checkForbidRewardProm = Promise.resolve(true); // default promise as true if checking is not required
             if (eventData.condition.forbidApplyReward && eventData.condition.forbidApplyReward.length > 0) {
                 let forbidRewardEventIds = eventData.condition.forbidApplyReward;
+                let promoCodeRewardExist = false;
 
                 for (let x = 0; x  < forbidRewardEventIds.length; x++) {
                     forbidRewardEventIds[x] = ObjectId(forbidRewardEventIds[x]);
+
+                    // check if promo code reward (优惠代码) included in forbid reward, ID was hardcoded
+                    if (forbidRewardEventIds[x].toString() === '59ca08a3ef187c1ccec863b9') {
+                        promoCodeRewardExist = true;
+                    }
+                }
+
+                let queryMatch = {
+                    "createTime": freeTrialQuery.createTime,
+                    "data.eventId": {$in: forbidRewardEventIds},
+                    "status": constProposalStatus.APPROVED,
+                    "data.playerObjId": playerData._id
+                };
+
+                if (promoCodeRewardExist) {
+                    queryMatch = {
+                        "createTime": freeTrialQuery.createTime,
+                        "status": constProposalStatus.APPROVED,
+                        "data.playerObjId": playerData._id,
+                        $or: [
+                            {
+                                "data.eventId": {$in: forbidRewardEventIds}
+                            },
+                            {
+                                "data.eventCode" : "YHDM",
+                                "data.eventName" : "优惠代码"
+                            },
+                        ]
+                    };
                 }
 
                 // check other reward apply in period
                 checkForbidRewardProm = dbconfig.collection_proposal.aggregate(
                     {
-                        $match: {
-                            "createTime": freeTrialQuery.createTime,
-                            "data.eventId": {$in: forbidRewardEventIds},
-                            "status": constProposalStatus.APPROVED,
-                            "data.playerObjId": playerData._id
-                        }
+                        $match: queryMatch
                     },
                     {
                         $project: {
@@ -1224,6 +1249,8 @@ var dbRewardEvent = {
                             status: 1,
                             'data.playerObjId': 1,
                             'data.eventId': 1,
+                            'data.eventCode': 1,
+                            'data.eventName': 1,
                             _id: 0
                         }
                     }
@@ -1799,7 +1826,7 @@ var dbRewardEvent = {
                             let matchIPAddress = rewardSpecificData[0][1];
                             let matchPhoneNum = rewardSpecificData[0][2];
                             let matchMobileDevice = rewardSpecificData[0][3];
-                            let matchForbidRewardEvent = rewardSpecificData[2];
+                            let matchForbidRewardEvent = rewardSpecificData[1];
 
                             if (!matchPlayerId) {
                                 returnData.status = 2;
