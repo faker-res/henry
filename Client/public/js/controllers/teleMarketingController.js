@@ -423,6 +423,9 @@ define(['js/app'], function (myApp) {
                             vm.commonPageChangeHandler(curP, pageSize, "queryAdminPhoneList", vm.searchAdminPhoneList)
                         });
                     })
+
+                    vm.getTsDistributedPhoneReminder();
+                    setInterval(vm.getTsDistributedPhoneReminder, 60000);
                     break;
                 case 'WORKLOAD REPORT':
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#workloadStartTimePicker', utilService.getNdayagoStartTime(30));
@@ -566,6 +569,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('Function'),
                         render: function (data, type, row) {
+                            let tsPhoneObjId = row.tsPhone._id;
                             let link = $('<a>', {
                                 'ng-click': 'vm.telorMessageToTsPhoneBtn(' + '"tel",' + JSON.stringify(row) + ');',
                                 'data-row': JSON.stringify(row),
@@ -574,7 +578,6 @@ define(['js/app'], function (myApp) {
                                 'data-placement': 'left',
                             }).text("1. " + $translate("CALL_OUT"));
 
-                            let tsPhoneObjId = row.tsPhone._id;
                             link.append($('<br>'));
                             link.append($('<a>', {
                                 'ng-click': 'vm.tsPhoneAddFeedback = {tsPhone: ' + JSON.stringify(row.tsPhone) + '}',
@@ -617,12 +620,12 @@ define(['js/app'], function (myApp) {
 
                             link.append($('<br>'));
                             link.append($('<a>', {
-                                // 'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
-                                // 'data-row': JSON.stringify(row),
-                                // 'data-toggle': 'modal',
-                                // 'data-target': '#modalAddPlayerFeedback',
-                                // 'title': $translate("ADD_FEEDBACK"),
-                                // 'data-placement': 'left',
+                                'ng-click': 'vm.initTsDistrubutedPhoneReminder(' + JSON.stringify(row) + ');',
+                                'data-row': JSON.stringify(row),
+                                'data-toggle': 'modal',
+                                'data-target': '#modalAdminPhoneListReminder',
+                                'title': $translate("ADD_FEEDBACK"),
+                                'data-placement': 'left',
                             }).text("6. " + $translate("Set reminder/ clear reminder")));
 
                             return link.prop('outerHTML');
@@ -1117,6 +1120,42 @@ define(['js/app'], function (myApp) {
             };
             console.log('sendData', sendData);
             socketService.$socket($scope.AppSocket, 'createTsPhonePlayerFeedback', sendData, function (data) {
+            });
+        }
+
+        vm.initTsDistrubutedPhoneReminder = function (tsPhoneObjId) {
+            vm.tsPhoneReminder = {tsPhone: tsPhoneObjId && tsPhoneObjId.tsPhone && tsPhoneObjId.tsPhone._id || ""};
+            utilService.actionAfterLoaded("#phoneListReminderTimePicker", function () {
+                let remindDate = tsPhoneObjId.remindTime || utilService.getNdaylaterStartTime(1)
+                commonService.commonInitTime(utilService, vm, 'tsPhoneReminder', 'startTime', '#phoneListReminderTimePicker', remindDate, true, {maxDate: null});
+            })
+        }
+
+        vm.updateTsPhoneDistributedPhone = function () {
+            let sendData = {
+                query: {
+                    tsPhone: vm.tsPhoneReminder.tsPhone,
+                    platform: vm.selectedPlatform.id,
+                    assignee: authService.adminId,
+                },
+                updateData: {
+                    remindTime: $('#phoneListReminderTimePicker').data('datetimepicker').getLocalDate()
+                }
+            };
+            socketService.$socket($scope.AppSocket, 'updateTsPhoneDistributedPhone', sendData, function (data) {
+                vm.searchAdminPhoneList(true);
+            });
+        }
+
+        vm.getTsDistributedPhoneReminder = function () {
+            let sendData = {
+                platform: vm.selectedPlatform.id,
+                assignee: authService.adminId
+            }
+            socketService.$socket($scope.AppSocket, 'getTsDistributedPhoneReminder', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.newReminderTsPhoneCount = data.data || 0;
+                });
             });
         }
 

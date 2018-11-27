@@ -439,6 +439,18 @@ let dbTeleSales = {
         return inputData;
     },
 
+    updateTsPhoneDistributedPhone: function (query, updateData) {
+        return dbconfig.collection_tsDistributedPhone.findOneAndUpdate(query, updateData).lean();
+    },
+
+    getTsDistributedPhoneReminder: function (platform, assignee) {
+        return dbconfig.collection_tsDistributedPhone.find({
+            platform: platform,
+            assignee: assignee,
+            remindTime: {$lte: new Date()}
+        }).count();
+    },
+
     getTsPhoneImportRecord: function (query) {
        return  dbconfig.collection_tsPhoneImportRecord.find(query).sort({importTime: 1}).lean();
     },

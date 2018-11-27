@@ -36,6 +36,7 @@
                                             li
                                                 a.common-tab(data-toggle="tab", href="#tsFeedbackReminder")
                                                     text.span {{"FEEDBACK_REMINDER_LIST" | translate}}
+                                                    .badge.pull-right(style='background-color:red; color:white', ng-show='vm.newReminderTsPhoneCount > 0') {{vm.newReminderTsPhoneCount}}
 
                                     .panel-body.common-right-panel-body
                                         div.tab-content
