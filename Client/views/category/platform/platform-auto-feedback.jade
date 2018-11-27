@@ -277,11 +277,11 @@
                 br
                 .pull-right
                     .inlineBlk
-                        button.btn.btn-warning(ng-if="checkViewPermission('Platform','AutoFeedback','create')" ng-click='vm.autoFeedbackCancel()') {{"CANCEL" | translate}}
+                        button.btn.btn-warning(ng-if="checkViewPermission('Platform','AutoFeedback','Create')" ng-click='vm.autoFeedbackCancel()') {{"CANCEL" | translate}}
                     .inlineBlk
-                        button.btn.btn-primary(ng-hide="vm.autoFeedbackEditStatus" ng-if="checkViewPermission('Platform','AutoFeedback','create')" ng-click='vm.autoFeedbackCreateMission()') {{"Create Mission" | translate}}
+                        button.btn.btn-primary(ng-hide="vm.autoFeedbackEditStatus" ng-if="checkViewPermission('Platform','AutoFeedback','Create')" ng-click='vm.autoFeedbackCreateMission()') {{"Create Mission" | translate}}
                     .inlineBlk
-                        button.btn.btn-primary(ng-show="vm.autoFeedbackEditStatus" ng-if="checkViewPermission('Platform','AutoFeedback','edit')" ng-click='vm.autoFeedbackUpdateMission()') {{"Update Mission" | translate}}
+                        button.btn.btn-primary(ng-show="vm.autoFeedbackEditStatus" ng-if="checkViewPermission('Platform','AutoFeedback','Update')" ng-click='vm.autoFeedbackUpdateMission()') {{"Update Mission" | translate}}
                     .inlineBlk
                         span(style="font-weight:bold" ng-show="vm.autoFeedbackUpdateMissionStatus=='success'||vm.autoFeedbackCreateMissionStatus=='success'") {{"SUCCESS"|translate}}
                         span(style="font-weight:bold" ng-show="vm.autoFeedbackUpdateMissionStatus=='fail'||vm.autoFeedbackCreateMissionStatus=='fail'") {{"FAIL"|translate}}
@@ -331,7 +331,7 @@
                         option(value='Ended') {{'Ended' | translate}}
                         option(value='Manually Cancelled') {{'Manually Cancelled' | translate}}
                 .inlineBlk
-                    button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','overview')" ng-click='vm.autoFeedbackSearchMission(true)') {{"SEARCH" | translate}}
+                    button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','Overview')" ng-click='vm.autoFeedbackSearchMission(true)') {{"SEARCH" | translate}}
                 span#autoFeedbackOverviewSpin.collapse
                     i.fa.fa-spinner.fa-spin
 
@@ -360,7 +360,7 @@
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                 .inlineBlk
-                    button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','overview')" ng-click='vm.autoFeedbackSearchMissionDetail()') {{"SEARCH" | translate}}
+                    button.btn.btn-primary(ng-if="checkViewPermission('Platform','AutoFeedback','Overview')" ng-click='vm.autoFeedbackSearchMissionDetail()') {{"SEARCH" | translate}}
                 span#autoFeedbackDetailSpin.collapse
                     i.fa.fa-spinner.fa-spin
 
