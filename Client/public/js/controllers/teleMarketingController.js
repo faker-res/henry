@@ -1147,7 +1147,7 @@ define(['js/app'], function (myApp) {
             if (!(window.location.pathname == "/teleMarketing" && vm.selectedTab == "REMINDER_PHONE_LIST")) {
                 return;
             }
-
+            clearTimeout(vm.refreshPhoneReminder);
             vm.refreshPhoneReminder = setTimeout(() => {
                 vm.autoRefreshTsDistributedPhoneReminder();
             }, 60000);
@@ -1329,6 +1329,7 @@ define(['js/app'], function (myApp) {
             };
             console.log('sendData', sendData);
             socketService.$socket($scope.AppSocket, 'createTsPhoneFeedback', sendData, function (data) {
+                vm.autoRefreshTsDistributedPhoneReminder();
                 vm.tsPhoneAddFeedback.content = "";
                 vm.tsPhoneAddFeedback.result = "";
             });
