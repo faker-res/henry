@@ -601,7 +601,7 @@ function socketActionProposal(socketIO, socket) {
         approveCsPendingAndChangeStatus: function approveCsPendingAndChangeStatus(data) {
             let actionName = arguments.callee.name;
             let isDataValid = Boolean(data && data.proposalObjId && data.createTime);
-            socketUtil.emitter(self.socket, dbProposal.approveCsPendingAndChangeStatus, [data.proposalObjId, data.createTime, data.adminName], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbProposal.approveCsPendingAndChangeStatus, [data.proposalObjId, data.createTime, data.adminName, data.platform], actionName, isDataValid);
         },
 
         getWithdrawalProposal: function getWithdrawalProposal(data) {

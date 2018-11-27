@@ -17,7 +17,11 @@ let tsPhoneFeedback = new Schema({
     //result ( Normal, Missed call, PlayerBusy)
     result: String,
     resultName: String,
-    topic: String
+    topic: String,
+    // tsPhoneList schema
+    tsPhoneList: {type: Schema.Types.ObjectId, ref: 'tsPhoneList', index: true},
+    // registered
+    registered: {type: Boolean, default: false, index: true},
 
 
 

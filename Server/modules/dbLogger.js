@@ -148,7 +148,8 @@ var dbLogger = {
                     return dbconfig.collection_players.findOne({playerId: adminActionRecordData.data[2].playerId}, {name: 1});
                 }else if(adminActionRecordData.action == 'createUpdatePartnerRealNameProposal' && adminActionRecordData.data[2] && adminActionRecordData.data[2].partnerId){
                     return dbconfig.collection_partner.findOne({partnerId: adminActionRecordData.data[2].partnerId}, {partnerName: 1});
-                }else if(adminActionRecordData.action == 'updateProposalProcessStep' && adminActionRecordData.data[0]){
+                }else if((adminActionRecordData.action == 'updateProposalProcessStep' || adminActionRecordData.action == 'approveCsPendingAndChangeStatus')
+                    && adminActionRecordData.data[0]){
                     return dbconfig.collection_proposal.findOne({_id: adminActionRecordData.data[0]}, {proposalId: 1})
                 }else if(adminActionRecordData.action == 'attachDetachRolesFromUsersById' && adminActionRecordData.data[0]){
                     let adminProm, attachedRoleProm, detachedRoleProm = Promise.resolve();
@@ -717,9 +718,12 @@ var dbLogger = {
                 }else if(logAction == 'createUpdatePlayerInfoLevelProposal' && data && data.name){
                     adminActionRecordData.error = '会员帐号： ' + data.name;
                     adminActionRecordData.platforms = adminActionRecordData.data[0] ? adminActionRecordData.data[0] : adminActionRecordData.platforms;
-                }else if(logAction = 'updateProposalProcessStep' && data && data.proposalId){
+                }else if(logAction == 'updateProposalProcessStep' && data && data.proposalId){
                     adminActionRecordData.error = '提案号： ' + data.proposalId;
                     adminActionRecordData.platforms = adminActionRecordData.data[5] ? adminActionRecordData.data[5] : adminActionRecordData.platforms;
+                }else if(logAction == 'approveCsPendingAndChangeStatus' && data && data.proposalId){
+                    adminActionRecordData.error = '提案号： ' + data.proposalId;
+                    adminActionRecordData.platforms = adminActionRecordData.data[3] ? adminActionRecordData.data[3] : adminActionRecordData.platforms;
                 }
 
 

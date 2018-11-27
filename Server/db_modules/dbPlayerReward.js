@@ -5901,12 +5901,15 @@ let dbPlayerReward = {
                         "createTime": freeTrialQuery.createTime,
                         "data.eventId": eventData._id,
                         "status": constProposalStatus.APPROVED,
+                        "data.playerObjId": playerData._id,
+                        /*
                         $or: [
                             {'data.playerObjId': playerData._id},
                             {'data.lastLoginIp': playerData.lastLoginIp},
                             {'data.phoneNumber': playerData.phoneNumber},
                             {'data.deviceId': playerData.deviceId},
                         ]
+                        */
                     }
                 },
                 {
@@ -7101,6 +7104,9 @@ let dbPlayerReward = {
                         if (eventData.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP || eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
                             proposalData.data.lastLoginIp = playerData.lastLoginIp;
                             proposalData.data.phoneNumber = playerData.phoneNumber;
+                            if (playerData.deviceId) {
+                                proposalData.data.deviceId = playerData.deviceId;
+                            }
                         }
 
                         // if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && deviceId){

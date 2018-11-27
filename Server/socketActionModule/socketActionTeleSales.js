@@ -58,13 +58,13 @@ function socketActionTeleSales(socketIO, socket) {
 
         createTsPhoneFeedback: function createTsPhoneFeedback(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.tsPhone && data.platform && data.adminId);
+            var isValidData = Boolean(data && data.tsPhone && data.tsPhoneList && data.platform && data.adminId);
             socketUtil.emitter(self.socket, dbTeleSales.createTsPhoneFeedback, [data], actionName, isValidData);
         },
 
         createTsPhonePlayerFeedback: function createTsPhonePlayerFeedback(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.playerId && data.tsPhone && data.platform && data.adminId);
+            var isValidData = Boolean(data && data.playerId && data.tsPhone && data.tsPhoneList && data.platform && data.adminId);
             socketUtil.emitter(self.socket, dbTeleSales.createTsPhonePlayerFeedback, [data], actionName, isValidData);
         },
 
@@ -90,6 +90,18 @@ function socketActionTeleSales(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platform && data.tsListObjId);
             socketUtil.emitter(self.socket, dbTeleSales.distributePhoneNumber, [data], actionName, isValidData);
+        },
+
+        updateTsPhoneDistributedPhone: function updateTsPhoneDistributedPhone(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbTeleSales.updateTsPhoneDistributedPhone, [data.query, data.updateData], actionName, isValidData);
+        },
+
+        getTsDistributedPhoneReminder: function getTsDistributedPhoneReminder(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform && data.assignee);
+            socketUtil.emitter(self.socket, dbTeleSales.getTsDistributedPhoneReminder, [data.platform, data.assignee], actionName, isValidData);
         },
 
         getTsPhoneImportRecord: function getTsPhoneImportRecord (data) {

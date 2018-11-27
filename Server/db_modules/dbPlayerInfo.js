@@ -5685,6 +5685,9 @@ let dbPlayerInfo = {
                     //         latitude: geo && geo.ll ? geo.ll[0] : null
                     //     }
                     // }
+                    if (playerData.deviceId) {
+                        updateData.deviceId = playerData.deviceId;
+                    }
                     if (playerData.lastLoginIp && playerData.lastLoginIp != "undefined") {
                         var ipData = dbUtility.getIpLocationByIPIPDotNet(playerData.lastLoginIp);
                         if (ipData) {
