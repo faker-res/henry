@@ -187,7 +187,7 @@ define(['js/app'], function (myApp) {
         'applyBonusRequest',
         'createPlayerRewardTask',
         'applyRewardEvent',
-        'unlockRewardTaskInRewardTaskGroup',
+        'createRewardTaskGroupUnlockedRecord',
         'updatePlayerRewardPointsRecord',
         'createUpdatePlayerRealNameProposal',
         'createUpdatePartnerRealNameProposal',
@@ -222,6 +222,7 @@ define(['js/app'], function (myApp) {
         'updateRewardEvent',
         'updateProposalTypeProcessSteps',
         'updateProposalProcessStep',
+        'approveCsPendingAndChangeStatus',
         'updatePlayerLevel',
         'updatePartnerLevelConfig',
         'createUpdatePartnerCommissionConfigWithGameProviderGroup',
@@ -7850,8 +7851,21 @@ define(['js/app'], function (myApp) {
                 player: vm.actionLogQuery.player,
                 index: vm.actionLogQuery.index,
                 limit: vm.actionLogQuery.limit || 10,
-                sortCol: vm.actionLogQuery.sortCol || {operationTime : -1},
-                platformObjIdList: vm.actionLogQuery.platform
+                sortCol: vm.actionLogQuery.sortCol || {operationTime : -1}
+            }
+
+            if(vm.actionLogQuery.platform){
+                query.platformObjIdList =  vm.actionLogQuery.platform;
+            } else{
+                let platformListId = [];
+
+                vm.platformList.forEach(platform => {
+                    if(platform && platform._id){
+                        platformListId.push(platform._id);
+                    }
+                });
+
+                query.platformObjIdList = platformListId;
             }
 
             console.log('query', query);
@@ -10488,10 +10502,9 @@ define(['js/app'], function (myApp) {
                     {group: "PLAYER", text: "applyBonusRequest", action: "applyBonusRequest"},
                     {group: "PLAYER", text: "Reward - createPlayerRewardTask", action: "createPlayerRewardTask"},
                     {group: "PLAYER", text: "Reward - applyRewardEvent", action: "applyRewardEvent"},
-                    {group: "PLAYER", text: "Reward - unlockRewardTaskInRewardTaskGroup", action: "unlockRewardTaskInRewardTaskGroup"},
+                    {group: "PLAYER", text: "Reward - unlockRewardTaskInRewardTaskGroup", action: "createRewardTaskGroupUnlockedRecord"},
                     {group: "PLAYER", text: "updatePlayerRewardPointsRecord", action: "updatePlayerRewardPointsRecord"},
                     {group: "PLAYER", text: "createUpdatePlayerRealNameProposal", action: "createUpdatePlayerRealNameProposal"},
-                    {group: "PLAYER", text: "createUpdatePartnerRealNameProposal", action: "createUpdatePartnerRealNameProposal"},
                     {group: "PLAYER", text: "createUpdatePlayerInfoLevelProposal", action: "createUpdatePlayerInfoLevelProposal"},
 
                     {group: "PARTNER", text: "createPartner", action: "createPartner"},
@@ -10507,6 +10520,7 @@ define(['js/app'], function (myApp) {
                     {group: "PARTNER", text: "RESET_PASSWORD", action: "resetPartnerPassword"},
                     {group: "PARTNER", text: "customizePartnerCommission", action: "customizePartnerCommission"},
                     {group: "PARTNER", text: "updatePartnerPermission", action: "updatePartnerPermission"},
+                    {group: "PARTNER", text: "createUpdatePartnerRealNameProposal", action: "createUpdatePartnerRealNameProposal"},
 
                     {group: "Feedback", text: "ADD_FEEDBACK_RESULT", action: ["createPlayerFeedbackResult", "createPartnerFeedbackResult"]},
                     {group: "Feedback", text: "ADD_FEEDBACK_TOPIC", action: ["createPlayerFeedbackTopic", "createPartnerFeedbackTopic"]},
@@ -10529,7 +10543,7 @@ define(['js/app'], function (myApp) {
                     {group: "REWARD", text: "updateRewardEvent", action: "updateRewardEvent"},
 
                     {group: "PROPOSAL_PROCESS", text: "updateProposalTypeProcessSteps", action: "updateProposalTypeProcessSteps"},
-                    {group: "Proposal", text: "Manual Approval", action: "updateProposalProcessStep"},
+                    {group: "Proposal", text: "Manual Approval", action: ["updateProposalProcessStep", 'approveCsPendingAndChangeStatus']},
 
                     {group: "CONFIG", text: "EDIT_PLAYER_LEVEL", action: "updatePlayerLevel"},
                     {group: "CONFIG", text: "VALID_ACTIVE", action: "updatePartnerLevelConfig"},

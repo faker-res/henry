@@ -853,7 +853,7 @@ var dbPlatform = {
                         },
                         {
                             $pull: {gameProviders: providerObjId},
-                            $unset: {'gameProviderInfo': '' + providerObjId}
+                            // $unset: {'gameProviderInfo': '' + providerObjId}
                         }
                     ).exec();
                 }
@@ -4999,7 +4999,7 @@ var dbPlatform = {
         );
     },
 
-    addIpDomainLog: function (platformId, domain, ipAddress, sourceUrl) {
+    addIpDomainLog: function (platformId, domain, ipAddress, sourceUrl, partnerId) {
         let platformObjId;
         let todayTime = dbUtility.getTodaySGTime();
 
@@ -5027,9 +5027,15 @@ var dbPlatform = {
         ).then(
             ipDomainLog => {
                 if (ipDomainLog) {
-                    dbconfig.collection_ipDomainLog.findByIdAndUpdate(ipDomainLog._id, {
+
+                    let updateQuery = {
                         createTime: new Date()
-                    })
+                    };
+                    if (partnerId){
+                        updateQuery.partnerId = partnerId;
+                    }
+
+                    dbconfig.collection_ipDomainLog.findByIdAndUpdate(ipDomainLog._id, updateQuery)
                 } else {
                     let newLog = {
                         platform: platformObjId,
@@ -5037,6 +5043,10 @@ var dbPlatform = {
                         ipAddress: ipAddress,
                         createTime: new Date()
                     };
+
+                    if (partnerId){
+                        newLog.partnerId = partnerId;
+                    }
 
                     if (sourceUrl) {
                         newLog.sourceUrl = sourceUrl;
