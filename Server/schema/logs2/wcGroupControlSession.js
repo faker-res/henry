@@ -5,6 +5,9 @@ let wcGroupControlSessionSchema = new Schema({
     // wcGroupControl deviceId
     deviceId: {type: String, required: true, index: true},
 
+    // wcGroupControl device nickname
+    deviceNickName: {type: String, required: true, index: true},
+
     // csOfficer - wechat account
     csOfficer: {type: Schema.ObjectId, ref: 'admin', index: true},
 
