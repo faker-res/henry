@@ -7237,7 +7237,110 @@ let dbPlayerReward = {
         );
     },
 
-    applyRetentionRewardParamLevel: function (eventData, applyAmount, selectedRewardParam, playerRetentionRewardRecord) {
+    getRetentionRewardList: function (returnData, rewardData, eventData, selectedRewardParam, rewardProposals) {
+        let outputList = [];
+        let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, eventData);
+        let defineLoginMode = eventData.condition.definePlayerLoginMode;
+
+        if (selectedRewardParam && selectedRewardParam.length) {
+            selectedRewardParam.forEach(
+                (param, i) => {
+                    let rewardObject = {
+                        status: 0,
+                        spendingTimes: param.spendingTimes
+                    };
+
+                    if (param.maxRewardAmountInSingleReward) {
+                        rewardObject.maxRewardAmount = param.maxRewardAmountInSingleReward;
+                    }
+
+                    if (param.rewardPercentage) {
+                        rewardObject.rewardPercentage = param.rewardPercentage;
+                    }
+
+                    if (param.rewardAmount) {
+                        rewardObject.rewardAmount = param.rewardAmount;
+                    }
+
+                    if (defineLoginMode == 1) {
+                        rewardObject.step = i + 1;
+                    }
+                    else if (defineLoginMode == 2) {
+                        if (i == 0) {
+                            rewardObject.loginDay = intervalTime.startTime;
+                        }
+                        else {
+                            rewardObject.loginDay = dbUtility.getNdaylaterFromSpecificStartTime(i, intervalTime.startTime);
+                        }
+
+                    }
+                    outputList.push(rewardObject);
+                }
+            )
+        }
+        else {
+            return Promise.reject({
+                name: "DataError",
+                errorMessage: "Reward param is not found"
+            })
+        }
+
+        if (rewardProposals && rewardProposals.length) {
+
+            if (defineLoginMode == 1) {
+                let latestRewardProposal = rewardProposals[0];
+                let accumulativeCount = latestRewardProposal.data && latestRewardProposal.data.consecutiveNumber ? latestRewardProposal.data.consecutiveNumber : 0 ;
+
+                for (let i = 0; i < accumulativeCount - 1; i++) {
+
+                    let rewardAmount = selectedRewardParam[i].rewardAmount || null;
+                    let spendingTimes = selectedRewardParam[i].spendingTimes || null;
+                    let maxRewardAmount = selectedRewardParam[i].maxRewardAmountInSingleReward || null;
+                    let rewardPercentage = selectedRewardParam[i].rewardPercentage || null;
+                    let step = i + 1;
+
+                    return insertOutputList(i, 2, step);
+                }
+            }
+            else if (defineLoginMode == 2) {
+                rewardProposals.forEach(
+                    (proposal, i) => {
+                        let index = null;
+                        let rewardAmount = selectedRewardParam[i].rewardAmount || null;
+                        let spendingTimes = selectedRewardParam[i].spendingTimes || null;
+                        let maxRewardAmount = selectedRewardParam[i].maxRewardAmountInSingleReward || null;
+                        let rewardPercentage = selectedRewardParam[i].rewardPercentage || null;
+                        let loginDay = proposal.data && proposal.data.applyTargetDate ? proposal.data.applyTargetDate : null;
+                        if (loginDay) {
+                            index = dbPlayerReward.applyRetentionRewardParamLevel(eventData, null, selectedRewardParam, null, loginDay).selectedIndex;
+                        }
+
+                        return insertOutputList(index, 2, null, loginDay);
+                    }
+                )
+            }
+        }
+
+        return outputList;
+
+        function insertOutputList(index, status, step, loginDay) {
+
+            if (index != null) {
+                outputList[index].status = status;
+                if (step) {
+                    outputList[index].step = step;
+                }
+                if (loginDay) {
+                    outputList[index].loginDay = loginDay;
+                }
+            }
+
+            return outputList;
+        }
+
+    },
+
+    applyRetentionRewardParamLevel: function (eventData, applyAmount, selectedRewardParam, playerRetentionRewardRecord, appliedDate) {
         let rewardAmount = null;
         let spendingAmount = null;
         let selectedIndex = null;
@@ -7249,17 +7352,17 @@ let dbPlayerReward = {
             }
             else if (eventData.condition.definePlayerLoginMode == 2) {
                 // 2 - exact date
-                let applyDate = new Date().getDate();
+                let applyDate = appliedDate? new Date(appliedDate).getDate() : new Date().getDate();
 
                 if (applyDate && eventData.condition.interval && eventData.condition.interval == 2) {
-                    applyDate = new Date().getDay();
+                    applyDate = appliedDate ? new Date(appliedDate).getDay() : new Date().getDay();
                     // weekly
                     selectedIndex = applyDate - 1;
                 }
                 else if (applyDate && eventData.condition.interval && eventData.condition.interval == 3) {
                     // bi-weekly
-                    if (applyDate >= 15) {
-                        selectedIndex = applyDate - 15; // reset the index back to zero ( a new bi-weekly interval)
+                    if (applyDate >= 16) {
+                        selectedIndex = applyDate - 16; // reset the index back to zero ( a new bi-weekly interval)
                     }
                     else {
                         selectedIndex = applyDate - 1;
@@ -7282,28 +7385,31 @@ let dbPlayerReward = {
                     message: "no available definePlayerLoginMode"
                 })
             }
-            
-            if (eventData.condition.isDynamicRewardAmount) {
-                if (selectedRewardParam[selectedIndex] && selectedRewardParam[selectedIndex].hasOwnProperty('rewardPercentage')) {
-                    rewardAmount = applyAmount * selectedRewardParam[selectedIndex].rewardPercentage;
 
-                    if (selectedRewardParam[selectedIndex] && selectedRewardParam[selectedIndex].maxRewardAmountInSingleReward && selectedRewardParam[selectedIndex].maxRewardAmountInSingleReward > 0) {
-                        rewardAmount = Math.min(rewardAmount, Number(selectedRewardParam[selectedIndex].maxRewardAmountInSingleReward));
+            if (applyAmount) {
+                if (eventData.condition.isDynamicRewardAmount) {
+                    if (selectedRewardParam[selectedIndex] && selectedRewardParam[selectedIndex].hasOwnProperty('rewardPercentage')) {
+                        rewardAmount = applyAmount * selectedRewardParam[selectedIndex].rewardPercentage;
+
+                        if (selectedRewardParam[selectedIndex] && selectedRewardParam[selectedIndex].maxRewardAmountInSingleReward && selectedRewardParam[selectedIndex].maxRewardAmountInSingleReward > 0) {
+                            rewardAmount = Math.min(rewardAmount, Number(selectedRewardParam[selectedIndex].maxRewardAmountInSingleReward));
+                        }
                     }
                 }
-            }
-            else {
-                if (selectedRewardParam[selectedIndex] && selectedRewardParam[selectedIndex].hasOwnProperty('rewardAmount')) {
-                    rewardAmount = selectedRewardParam[selectedIndex].rewardAmount;
+                else {
+                    if (selectedRewardParam[selectedIndex] && selectedRewardParam[selectedIndex].hasOwnProperty('rewardAmount')) {
+                        rewardAmount = selectedRewardParam[selectedIndex].rewardAmount;
+                    }
                 }
+                selectedRewardParam[selectedIndex].spendingTimes = selectedRewardParam[selectedIndex].spendingTimes || 1;
+                spendingAmount = rewardAmount * selectedRewardParam[selectedIndex].spendingTimes;
             }
-            selectedRewardParam[selectedIndex].spendingTimes = selectedRewardParam[selectedIndex].spendingTimes || 1;
-            spendingAmount = rewardAmount * selectedRewardParam[selectedIndex].spendingTimes;
 
             return {
                 rewardAmount: rewardAmount,
                 spendingAmount: spendingAmount,
-                selectedRewardParam: selectedRewardParam[selectedIndex]
+                selectedRewardParam: selectedRewardParam[selectedIndex],
+                selectedIndex: selectedIndex
             };
 
         }
