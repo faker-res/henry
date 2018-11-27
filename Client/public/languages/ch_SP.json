@@ -3776,6 +3776,7 @@
   "UpdatePasswordSuccess": "修改网站密码（成功）",
   "SmsVerificationCodeSuccess": "发送短信验证码（成功）",
   "PlayerTopUpReturnGroupSuccess": "存送金（组）（成功）",
+  "PlayerRetentionRewardGroupSuccess": "提升留存（组）（成功）",
   "PlayerLoseReturnRewardGroupSuccess": "输值反利（组）（成功）",
   "PlayerConsecutiveRewardGroupSuccess": "签到全勤（组）（成功）",
   "PlayerConsumptionRewardGroupSuccess": "投注额优惠（组）（成功）",
