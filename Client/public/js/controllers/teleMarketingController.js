@@ -423,10 +423,13 @@ define(['js/app'], function (myApp) {
                             vm.commonPageChangeHandler(curP, pageSize, "queryAdminPhoneList", vm.searchAdminPhoneList)
                         });
                     })
+
+                    vm.autoRefreshTsDistributedPhoneReminder();
                     break;
                 case 'WORKLOAD REPORT':
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#workloadStartTimePicker', utilService.getNdayagoStartTime(30));
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#workloadEndTimePicker', utilService.getTodayEndTime());
+                    vm.showWorkloadReport = false;
                     break;
                 case 'RECYCLE_BIN':
                     break;
@@ -566,6 +569,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('Function'),
                         render: function (data, type, row) {
+                            let tsPhoneObjId = row.tsPhone._id;
                             let link = $('<a>', {
                                 'ng-click': 'vm.telorMessageToTsPhoneBtn(' + '"tel",' + JSON.stringify(row) + ');',
                                 'data-row': JSON.stringify(row),
@@ -574,7 +578,6 @@ define(['js/app'], function (myApp) {
                                 'data-placement': 'left',
                             }).text("1. " + $translate("CALL_OUT"));
 
-                            let tsPhoneObjId = row.tsPhone._id;
                             link.append($('<br>'));
                             link.append($('<a>', {
                                 'ng-click': 'vm.tsPhoneAddFeedback = {tsPhone: ' + JSON.stringify(row.tsPhone) + '}',
@@ -617,12 +620,12 @@ define(['js/app'], function (myApp) {
 
                             link.append($('<br>'));
                             link.append($('<a>', {
-                                // 'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
-                                // 'data-row': JSON.stringify(row),
-                                // 'data-toggle': 'modal',
-                                // 'data-target': '#modalAddPlayerFeedback',
-                                // 'title': $translate("ADD_FEEDBACK"),
-                                // 'data-placement': 'left',
+                                'ng-click': 'vm.initTsDistrubutedPhoneReminder(' + JSON.stringify(row) + ');',
+                                'data-row': JSON.stringify(row),
+                                'data-toggle': 'modal',
+                                'data-target': '#modalAdminPhoneListReminder',
+                                'title': $translate("ADD_FEEDBACK"),
+                                'data-placement': 'left',
                             }).text("6. " + $translate("Set reminder/ clear reminder")));
 
                             return link.prop('outerHTML');
@@ -1120,6 +1123,50 @@ define(['js/app'], function (myApp) {
             });
         }
 
+        vm.initTsDistrubutedPhoneReminder = function (tsPhoneObjId) {
+            vm.tsPhoneReminder = {tsPhone: tsPhoneObjId && tsPhoneObjId.tsPhone && tsPhoneObjId.tsPhone._id || ""};
+            utilService.actionAfterLoaded("#phoneListReminderTimePicker", function () {
+                let remindDate = tsPhoneObjId.remindTime || utilService.getNdaylaterStartTime(1)
+                commonService.commonInitTime(utilService, vm, 'tsPhoneReminder', 'startTime', '#phoneListReminderTimePicker', remindDate, true, {maxDate: null});
+            })
+        }
+
+        vm.updateTsPhoneDistributedPhone = function () {
+            let sendData = {
+                query: {
+                    tsPhone: vm.tsPhoneReminder.tsPhone,
+                    platform: vm.selectedPlatform.id,
+                    assignee: authService.adminId,
+                },
+                updateData: {
+                    remindTime: $('#phoneListReminderTimePicker').data('datetimepicker').getLocalDate()
+                }
+            };
+            socketService.$socket($scope.AppSocket, 'updateTsPhoneDistributedPhone', sendData, function (data) {
+                vm.searchAdminPhoneList(true);
+            });
+        }
+
+        vm.autoRefreshTsDistributedPhoneReminder = function () {
+            if (!(window.location.pathname == "/teleMarketing" && vm.selectedTab == "REMINDER_PHONE_LIST")) {
+                return;
+            }
+            clearTimeout(vm.refreshPhoneReminder);
+            vm.refreshPhoneReminder = setTimeout(() => {
+                vm.autoRefreshTsDistributedPhoneReminder();
+            }, 60000);
+
+            let sendData = {
+                platform: vm.selectedPlatform.id,
+                assignee: authService.adminId
+            }
+            socketService.$socket($scope.AppSocket, 'getTsDistributedPhoneReminder', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.newReminderTsPhoneCount = data.data || 0;
+                });
+            });
+        }
+
         vm.createNewPlayer = function () {
             if (!vm.newPlayer.tsPhone) {
                 return;
@@ -1286,6 +1333,7 @@ define(['js/app'], function (myApp) {
             };
             console.log('sendData', sendData);
             socketService.$socket($scope.AppSocket, 'createTsPhoneFeedback', sendData, function (data) {
+                vm.autoRefreshTsDistributedPhoneReminder();
                 vm.tsPhoneAddFeedback.content = "";
                 vm.tsPhoneAddFeedback.result = "";
             });
@@ -6058,46 +6106,11 @@ define(['js/app'], function (myApp) {
         };
 
 
-        vm.showWorkloadReport = function () {
-            vm.responseMsg = false;
-            utilService.actionAfterLoaded(('#workloadSearch'), function () {
-                vm.workloadSearch.pageObj = utilService.createPageForPagingTable("#workloadReportTablePage", {}, $translate, function (curP, pageSize) {
-                    vm.commonPageChangeHandler(curP, pageSize, "workloadSearch", vm.filterWorkloadReport);
-                });
-                vm.filterWorkloadReport(true);
-            });
+        vm.tsShowWorkloadReport = function () {
+            vm.showWorkloadReport = true;
         }
 
-        vm.filterWorkloadReport = (newSearch) => {
-            let sendQuery = {
-                platform: vm.selectedPlatform.id,
-                startTime: $('#workloadStartTimePicker').data('datetimepicker').getLocalDate(),
-                endTime: $('#workloadEndTimePicker').data('datetimepicker').getLocalDate(),
-                index: newSearch ? 0 : (vm.workloadSearch.index || 0),
-                limit: vm.workloadSearch.limit || 10,
-                sortCol: vm.workloadSearch.sortCol,
-            }
-
-            if (vm.phoneListSearch) {
-                if (vm.workloadSearch.name && vm.workloadSearch.name.length) {
-                    sendQuery.name = vm.workloadSearch.name;
-                }
-
-                if (vm.workloadSearch.sendStatus && vm.workloadSearch.sendStatus.length) {
-                    sendQuery.status = vm.workloadSearch.sendStatus;
-                }
-            }
-
-            socketService.$socket($scope.AppSocket, 'getTsPhoneList', sendQuery, function (data) {
-                if(data && data.data && data.data.data){
-                    $scope.$evalAsync(() => {
-                        vm.tsPhoneList = data.data.data;
-                        let size = data.data.size || 0;
-                        vm.drawWorkloadReportTable(newSearch, vm.tsPhoneList, size);
-                    })
-                }
-            });
-        };
+        
 
         vm.showAssignmentStatusDetail = (tsPhoneListObjId) => {
             vm.currentPhoneListObjId = tsPhoneListObjId;
@@ -6534,114 +6547,7 @@ define(['js/app'], function (myApp) {
         }
 
 
-        vm.drawWorkloadReportTable = function (newSearch, tblData, size) {
-            console.log("workloadReportTable",tblData);
-            vm.phoneNumberInfo.remark = {};
-            var tableOptions = $.extend({}, vm.generalDataTableOptions, {
-                data: tblData,
-                aoColumnDefs: [
-                    // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
-                    {targets: '_all', defaultContent: ' ', bSortable: false}
-                ],
-                "scrollX": true,
-                "autoWidth": true,
-                "sScrollY": 550,
-                "scrollCollapse": true,
-                columns: [
-                    {
-                        title: $translate('Connected list'), data: "name",
-                        render: function (data, type, row, index) {
-                            var link = $('<a>', {
-                                'ng-click': 'vm.initAnalyticsFilterAndImportDXSystem(' + JSON.stringify(row) + ');',
-                                'data-toggle': 'modal',
-                                'data-target': '#modaltsAnalyticsPhoneList'
-                            }).text(data);
-                            return link.prop('outerHTML');
-                        }
-                    },
-                    {
-                        title: $translate('csOfficer'), data: "status",
-                        render: function (data, type, row, index) {
-                            let link = $('<a>', {
-                                'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'");',
-                            }).text($translate(vm.constTsPhoneListStatus[data]));
-                            return link.prop('outerHTML');
-                        }
-                    },
-                    {
-                        title: $translate('Amount of Phone list'),
-                        render: function(data, type, row, index){
-                            let link = $('<a>', {
-                                'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'");',
-                                'data-toggle': 'tooltip',
-                                'title': $translate("SEND_MESSAGE_TO_PLAYER")
-                            }).text($translate(vm.constTsPhoneListStatus[data]));
-                            return link.prop('outerHTML');
-                        }
-                    },
-                    {
-                        title: $translate('Used Time'),
-                        render: function(data, type, row, index){
-                            let link = $('<a>', {
-                                'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'");',
-                                'data-toggle': 'tooltip',
-                                'title': $translate("SEND_MESSAGE_TO_PLAYER")
-                            }).text($translate(vm.constTsPhoneListStatus[data]));
-                            return link.prop('outerHTML');
-                        }
-                    },
-                    {
-                        title: $translate('Success Answers'),
-                        render: function(data, type, row, index){
-                            let link = $('<a>', {
-                                'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'");',
-                                'data-toggle': 'tooltip',
-                                'title': $translate("SEND_MESSAGE_TO_PLAYER")
-                            }).text($translate(vm.constTsPhoneListStatus[data]));
-                            return link.prop('outerHTML');
-                        }
-                    },
-                    {
-                        title: $translate('Amount of Success Account Opening'),
-                        render: function(data, type, row, index){
-                            let totalUnused = (row.totalPhone - row.totalUsed) || 0;
-                            let divWithToolTip = $('<div>', {
-                                'title': "名单总数当中，尚未添加回访的电话量",
-                                'text': totalUnused
-                            });
 
-                            return divWithToolTip.prop('outerHTML');
-                        }
-                    },
-                    {
-                        title: $translate('DETAILS'),
-                        render: function(data, type, row, index){
-                            let divWithToolTip = $('<div>', {
-                                'title': "基础数据中，定义何谓成功接听（选择回访状态）的设定（同一电话 2 电销员都有接听，接听人＝1）",
-                                'text': row.totalSuccess || 0
-                            });
-
-                            return divWithToolTip.prop('outerHTML');
-                        }
-                    },
-                ],
-                "paging": false,
-                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                    $compile(nRow)($scope);
-                }
-            });
-            tableOptions.language.emptyTable=$translate("No data available in table");
-
-            utilService.createDatatableWithFooter('#workloadReportTable', tableOptions, {
-            });
-
-            vm.phoneListSearch.pageObj.init({maxCount: size}, newSearch);
-            $('#workloadReportTable').off('order.dt');
-            $('#workloadReportTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'phoneListSearch', vm.getTeleMarketingOverview);
-            });
-            $('#workloadReportTable').resize();
-        }
 
         vm.distributePhoneNumber = (tsListObjId) => {
             socketService.$socket($scope.AppSocket, 'distributePhoneNumber', {platform: vm.selectedPlatform.id, tsListObjId: tsListObjId}, function (data) {

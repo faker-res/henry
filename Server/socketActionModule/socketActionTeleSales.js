@@ -92,6 +92,18 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.distributePhoneNumber, [data], actionName, isValidData);
         },
 
+        updateTsPhoneDistributedPhone: function updateTsPhoneDistributedPhone(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbTeleSales.updateTsPhoneDistributedPhone, [data.query, data.updateData], actionName, isValidData);
+        },
+
+        getTsDistributedPhoneReminder: function getTsDistributedPhoneReminder(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platform && data.assignee);
+            socketUtil.emitter(self.socket, dbTeleSales.getTsDistributedPhoneReminder, [data.platform, data.assignee], actionName, isValidData);
+        },
+
         getTsPhoneImportRecord: function getTsPhoneImportRecord (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && ((data.platform && data.tsPhoneList) || data._id));

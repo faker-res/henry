@@ -193,6 +193,18 @@ div(ng-show="vm.curPlatformText")
                     text {{'PHONE_LOCATION' | translate}}
                 td
                     text {{vm.tsPhoneDetails.province}} {{vm.tsPhoneDetails.city}}
+                    
+#modalAdminPhoneListReminder.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:55%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Duplicate Phone Number"|translate}}
+            .modal-body
+                #phoneListReminderTimePicker
+            .modal-footer
+                button.btn.btn-primary.common-button(ng-click="vm.updateTsPhoneDistributedPhone()", data-dismiss='modal') {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalCreateTsPlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='max-height: 80vh;overflow-y: auto')

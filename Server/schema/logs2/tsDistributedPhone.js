@@ -13,7 +13,7 @@ let tsDistributedPhoneSchema = new Schema({
     // ts phone that it based on
     tsPhone: {type: Schema.ObjectId, ref: 'tsPhone', index: true},
     // assignee (whose phone is this)
-    assignee: {type: Schema.Types.ObjectId, ref: 'admin', index: true},
+    assignee: {type: Schema.Types.ObjectId, ref: 'adminInfo', index: true},
     // N th assign time
     assignTimes: {type: Number, default: 1},
     // feedback times
