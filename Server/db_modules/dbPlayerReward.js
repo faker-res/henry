@@ -7249,40 +7249,7 @@ let dbPlayerReward = {
         let defineLoginMode = eventData.condition.definePlayerLoginMode;
 
         if (selectedRewardParam && selectedRewardParam.length) {
-            selectedRewardParam.forEach(
-                (param, i) => {
-                    let rewardObject = {
-                        status: 0,
-                        spendingTimes: param.spendingTimes
-                    };
-
-                    if (param.maxRewardAmountInSingleReward) {
-                        rewardObject.maxRewardAmount = param.maxRewardAmountInSingleReward;
-                    }
-
-                    if (param.rewardPercentage) {
-                        rewardObject.rewardPercentage = param.rewardPercentage;
-                    }
-
-                    if (param.rewardAmount) {
-                        rewardObject.rewardAmount = param.rewardAmount;
-                    }
-
-                    if (defineLoginMode == 1) {
-                        rewardObject.step = i + 1;
-                    }
-                    else if (defineLoginMode == 2) {
-                        if (i == 0) {
-                            rewardObject.loginDay = intervalTime.startTime;
-                        }
-                        else {
-                            rewardObject.loginDay = dbUtility.getNdaylaterFromSpecificStartTime(i, intervalTime.startTime);
-                        }
-
-                    }
-                    outputList.push(rewardObject);
-                }
-            )
+            setDefaultParam(selectedRewardParam);
         }
         else {
             return Promise.reject({
@@ -7290,7 +7257,7 @@ let dbPlayerReward = {
                 errorMessage: "Reward param is not found"
             })
         }
-
+        
         if (rewardProposals && rewardProposals.length) {
             if (defineLoginMode == 1) {
                 let latestRewardProposal = rewardProposals[0];
@@ -7337,6 +7304,43 @@ let dbPlayerReward = {
                 }
             }
             return outputList;
+        }
+
+        function setDefaultParam(selectedRewardParam){
+            selectedRewardParam.forEach(
+                (param, i) => {
+                    let rewardObject = {
+                        status: 0,
+                        spendingTimes: param.spendingTimes
+                    };
+
+                    if (param.maxRewardAmountInSingleReward) {
+                        rewardObject.maxRewardAmount = param.maxRewardAmountInSingleReward;
+                    }
+
+                    if (param.rewardPercentage) {
+                        rewardObject.rewardPercentage = param.rewardPercentage;
+                    }
+
+                    if (param.rewardAmount) {
+                        rewardObject.rewardAmount = param.rewardAmount;
+                    }
+
+                    if (defineLoginMode == 1) {
+                        rewardObject.step = i + 1;
+                    }
+                    else if (defineLoginMode == 2) {
+                        if (i == 0) {
+                            rewardObject.loginDay = intervalTime.startTime;
+                        }
+                        else {
+                            rewardObject.loginDay = dbUtility.getNdaylaterFromSpecificStartTime(i, intervalTime.startTime);
+                        }
+
+                    }
+                    return outputList.push(rewardObject);
+                }
+            )
         }
 
     },
