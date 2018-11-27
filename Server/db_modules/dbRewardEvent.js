@@ -375,7 +375,7 @@ var dbRewardEvent = {
                                                 checkRewardData.status = 3;
                                             }
 
-                                            if (rewardEvent.type.name == constRewardType.PLAYER_RETENTION_REWARD_GROUP && checkRewardData.condition && checkRewardData.condition.deposit && checkRewardData.condition.deposit.status){
+                                            if (rewardEvent.type.name == constRewardType.PLAYER_RETENTION_REWARD_GROUP && checkRewardData.condition && checkRewardData.condition.deposit && checkRewardData.condition.deposit.hasOwnProperty('status')){
                                                 checkRewardData.status = checkRewardData.condition.deposit.status;
                                             }
 
@@ -1473,48 +1473,43 @@ var dbRewardEvent = {
                                     if (eventData.condition.bankCardType && selectedTopUp.bankCardType && eventData.condition.bankCardType.length > 0 && eventData.condition.bankCardType.indexOf(selectedTopUp.bankCardType) === -1) {
                                         checkCorrectTopUpType = false;
                                     }
-                                } else {
-                                    returnData.condition.deposit.list[retRewardData].status = 0;
-                                    checkCorrectTopUpType = false;
-                                }
 
-                                if (!checkCorrectTopUpType) {
-                                    returnData.condition.deposit.list[retRewardData.selectedIndex].status = 0;
-                                }
-
-                                if (eventData.condition && eventData.condition.minDepositAmount) {
-                                    let minDepositAmount = eventData.condition.minDepositAmount;
-                                    returnData.condition.deposit.allAmount = minDepositAmount;
-
-                                    if (applyAmount < minDepositAmount) {
+                                    if (!checkCorrectTopUpType) {
                                         returnData.condition.deposit.list[retRewardData.selectedIndex].status = 0;
                                     }
 
-                                }
+                                    if (eventData.condition && eventData.condition.minDepositAmount) {
+                                        let minDepositAmount = eventData.condition.minDepositAmount;
+                                        returnData.condition.deposit.allAmount = minDepositAmount;
 
-                                if (eventData.condition && eventData.condition.checkSameIP) {
-                                    returnData.condition.ip.status = matchIPAddress ? 2 : 1;
-                                }
+                                        if (applyAmount < minDepositAmount) {
+                                            returnData.condition.deposit.list[retRewardData.selectedIndex].status = 0;
+                                        }
 
-                                if (eventData.condition && eventData.condition.checkSamePhoneNumber) {
-                                    returnData.condition.telephone.status = matchPhoneNum ? 2 : 1;
-                                }
+                                    }
 
-                                if (eventData.condition && eventData.condition.checkSameDeviceId) {
-                                    returnData.condition.device.status = matchMobileDevice ? 2 : 1;
-                                }
+                                    if (eventData.condition && eventData.condition.checkSameIP) {
+                                        returnData.condition.ip.status = matchIPAddress ? 2 : 1;
+                                    }
 
-                                if (rewardSpecificData[2]) {
-                                    returnData.result.appliedCount = rewardSpecificData[2];
-                                }
+                                    if (eventData.condition && eventData.condition.checkSamePhoneNumber) {
+                                        returnData.condition.telephone.status = matchPhoneNum ? 2 : 1;
+                                    }
 
-                                // check if the application limit has reached
-                                if (eventData.condition && eventData.condition.quantityLimitInInterval && rewardSpecificData[2] >= eventData.condition.quantityLimitInInterval) {
-                                    returnData.condition.list[retRewardData.selectedIndex].status = 3;
-                                }
+                                    if (eventData.condition && eventData.condition.checkSameDeviceId) {
+                                        returnData.condition.device.status = matchMobileDevice ? 2 : 1;
+                                    }
 
-                                if (eventData.condition && eventData.condition.quantityLimitInInterval) {
-                                    returnData.result.quantityLimit = eventData.condition.quantityLimitInInterval;
+                                    // check if the application limit has reached
+                                    if (eventData.condition && eventData.condition.quantityLimitInInterval && rewardSpecificData[2] >= eventData.condition.quantityLimitInInterval) {
+                                        returnData.condition.list[retRewardData.selectedIndex].status = 3;
+                                    }
+
+
+                                }
+                                else {
+                                    returnData.condition.deposit.list[retRewardData.selectedIndex].status = 0;
+                                    checkCorrectTopUpType = false;
                                 }
 
                                 if (returnData.condition.deposit.list[retRewardData.selectedIndex].status == 1) {
@@ -1526,11 +1521,16 @@ var dbRewardEvent = {
                                         }
                                     }
                                 }
-                                returnData.condition.deposit.status = returnData.condition.deposit.list[retRewardData.selectedIndex].status;
                             }
                         }
-                        returnData.condition.deposit.status = returnData.condition.deposit.list[retRewardData.selectedIndex].status;
+                        // total number of applicants
+                        returnData.result.appliedCount = rewardSpecificData[2] || 0;
 
+                        if (eventData.condition && eventData.condition.quantityLimitInInterval) {
+                            returnData.result.quantityLimit = eventData.condition.quantityLimitInInterval;
+                        }
+
+                        returnData.condition.deposit.status = returnData.condition.deposit.list[retRewardData.selectedIndex].status;
                         break;
 
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
