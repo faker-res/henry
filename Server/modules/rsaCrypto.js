@@ -2,6 +2,7 @@
 let http = require('http');
 let env = require('./../config/sslEnv').config();
 let constants = require('constants');
+let crypto = require('crypto');
 let jwt = require('jsonwebtoken');
 let constSystemParam = require('./../const/constSystemParam');
 
@@ -181,5 +182,11 @@ module.exports = {
         console.log('msg encrypted', msg, encrypted);
 
         return encrypted;
+    },
+
+    signFKP: (msg) => {
+        let sign = crypto.createSign('sha1');
+        sign.update(msg);
+        return sign.sign(fs.readFileSync(__dirname + '/../ssl/fukuaipay/fkp.key.pem'), 'base64');
     }
 };
