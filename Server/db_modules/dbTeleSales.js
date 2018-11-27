@@ -382,7 +382,9 @@ let dbTeleSales = {
                 }
 
                 tsAssigneeArr.forEach(tsAssignee => {
+                    let assignedCount = 0;
                     if (tsAssignee.updateObj && tsAssignee.updateObj.tsPhone && tsAssignee.updateObj.tsPhone.length) {
+                        assignedCount =  tsAssignee.updateObj.tsPhone.length;
                         let distributeListSaveData = {
                             platform: inputData.platform,
                             tsPhoneList: inputData.tsListObjId,
@@ -422,6 +424,9 @@ let dbTeleSales = {
                                 });
 
                                 dbconfig.collection_tsPhone.update({_id:{$in: tsAssignee.updateObj.tsPhone.map(tsPhone => tsPhone.tsPhoneObjId)}}, {$addToSet: {assignee: tsAssignee.admin} , $inc: {assignTimes: 1}, distributedEndTime: phoneNumberEndTime.endTime}, {multi: true}).catch(errorUtils.reportError);
+                                if (assignedCount) {
+                                    dbconfig.collection_tsAssignee.findOneAndUpdate({_id: tsAssignee._id}, {$inc: {assignedCount: assignedCount}}).lean().catch(errorUtils.reportError);
+                                }
                             })
 
                         promArr.push(distributedPhoneListProm);
