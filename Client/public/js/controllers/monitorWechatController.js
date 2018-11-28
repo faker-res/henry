@@ -85,6 +85,7 @@ define(['js/app'], function (myApp) {
 
         vm.loadPage = function () {
             socketService.clearValue();
+            $('#wechatGroupControlMonitor').show();
             $('#autoRefreshWechatFlag')[0].checked = true;
             vm.lastWechatRefresh = utilService.$getTimeFromStdTimeFormat();
             vm.wechatGroupControlMonitorQuery = {};
@@ -126,13 +127,19 @@ define(['js/app'], function (myApp) {
 
                     let upText = $($multi).text().split(',').map(item => {
                         let textShow = '';
-                        vm.wechatGroupControlDepartmentList.forEach(department => {
-                            if (department && department._id && item && (department._id.toString() == item.trim().toString())) {
-                                textShow = department.departmentName;
-                            } else if (item.trim().includes('/') || item.trim().includes('全选')) {
-                                textShow = item;
-                            }
-                        });
+                        if (!item) {
+                            $scope.$evalAsync(() => {
+                                vm.wechatGroupControlAdminList = [];
+                            });
+                        } else {
+                            vm.wechatGroupControlDepartmentList.forEach(department => {
+                                if (department && department._id && item && (department._id.toString() == item.trim().toString())) {
+                                    textShow = department.departmentName;
+                                } else if (item.trim().includes('/') || item.trim().includes('全选')) {
+                                    textShow = item;
+                                }
+                            });
+                        }
                         return textShow;
                     }).join(',');
                     $($multi).find('span').text(upText);
