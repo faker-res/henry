@@ -7284,7 +7284,7 @@ let dbPlayerReward = {
                 errorMessage: "Reward param is not found"
             })
         }
-        
+
         if (rewardProposals && rewardProposals.length) {
             if (defineLoginMode == 1) {
                 let latestRewardProposal = rewardProposals[0];
@@ -7591,7 +7591,7 @@ let dbPlayerReward = {
                     return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
-                        message: "This player has applied for the reward in event period"
+                        message: "This player has applied for max reward times in event period"
                     });
                 }
 
@@ -7599,7 +7599,7 @@ let dbPlayerReward = {
                     return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
-                        message: "This IP address has applied for the reward in event period"
+                        message: "This IP address has applied for max reward times in event period"
                     });
                 }
 
@@ -7607,7 +7607,7 @@ let dbPlayerReward = {
                     return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
-                        message: "This phone number has applied for the reward in event period"
+                        message: "This phone number has applied for max reward times in event period"
                     });
                 }
 
@@ -7615,7 +7615,7 @@ let dbPlayerReward = {
                     return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
-                        message: "This mobile device has applied for the reward in event period"
+                        message: "This mobile device has applied for max reward times in event period"
                     });
                 }
 

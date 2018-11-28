@@ -17,24 +17,23 @@ div
             button.btn.btn-warning(ng-click='vm.resetWechatMonitorQuery()') {{'Reset' | translate}}
         div
             label &nbsp;
-            //button.btn.btn-success(ng-click='vm.getWechatMonitorRecord(true)') {{'SEARCH' | translate}}
-            button.btn.btn-success(ng-click='') {{'SEARCH' | translate}}
+            button.btn.btn-success(ng-click='vm.searchWechatMonitorRecord(true)') {{'SEARCH' | translate}}
             span#wechatGroupMonitorTableSpin.collapse
                 i.fa.fa-spinner.fa-spin
     .clearfix
         .proposalMessage
-            text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.lastTopUpRefresh}}
+            text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.lastWechatRefresh}}
             label.text-danger.newProposalAlert
-            a(ng-click='vm.getWechatMonitorRecord()')
-                .fa.fa-refresh
+            a(ng-click='vm.searchWechatMonitorRecord()')
+                .fa.fa-refrestimeLeftRefreshOperationh
             .pull-right
                 label.inlineBlk.pull-right {{'Auto Refresh' | translate}}
-                    input#autoRefreshProposalFlag.margin-left-5(type='checkbox', checked)
+                    input#autoRefreshWechatFlag.margin-left-5(type='checkbox', checked)
                 .inlineBlk.hidden
                     text {{"Time left until next refresh" | translate}} :&nbsp;
                     text#timeLeftRefreshOperation
                     text s
-        label {{"Total" | translate}} {{vm.wechatGroupControlQuery.totalCount}} {{"records" | translate}}
+        label {{"Total" | translate}} {{vm.wechatGroupControlMonitorQuery.totalCount}} {{"records" | translate}}
         table#wechatGroupMonitorTable.common-table.display(style="min-width:100%; overflow: scroll")
         #wechatGroupMonitorTablePage
 
