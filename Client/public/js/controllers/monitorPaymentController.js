@@ -145,17 +145,8 @@ define(['js/app'], function (myApp) {
             socketService.clearValue();
             if(window.location.pathname == "/monitor/payment"){
                 vm.preparePaymentMonitorPage();
-            }else if(window.location.pathname == "/monitor/wechatGroup") {
-                vm.deviceNicknameList = [];
-                vm.loginAdminList = [];
-                commonService.getWCDeviceByPlatformId($scope, vm.selectedPlatform._id).then(
-                    data => {
-                        vm.deviceNicknameList = data;
-                        $scope.$evalAsync();
-                    }
-                );
-                //vm.prepareWechatMonitorPage();
-            }else{
+            }
+            else{
                 vm.preparePaymentMonitorTotalPage();
             }
         };

@@ -35,11 +35,11 @@
                                 th {{'Connected list' | translate}}
                                 th {{'csOfficer' | translate}}
                                 th {{'Amount of Phone list' | translate}}
-                                    a(style="margin-left:.5em;" class="fa bg-pale fa-info-circle" href="#" data-toggle="tooltip" title="该白名单指定时间内，被派发的数量。")
+                                    a(style="margin-left:.5em;" class="fa bg-pale fa-info-circle" href="#" data-toggle="tooltip" title="{{'The Number of Distributed within a Specific Time in this Whitelist.' | translate}}")
                                 th {{'Used Time' | translate}}
-                                    a(style="margin-left:.5em;" class="fa bg-pale fa-info-circle" href="#" data-toggle="tooltip" title="不去重复，计算此电话被添加回访的次数。（只看该白名单）。")
+                                    a(style="margin-left:.5em;" class="fa bg-pale fa-info-circle" href="#" data-toggle="tooltip" title="{{'Do not repeat, count the number of times this call was added back.' | translate}}")
                                 th {{'Success Answers' | translate}}
-                                    a(style="margin-left:.5em;" class="fa bg-pale fa-info-circle" href="#" data-toggle="tooltip" title="不去重复，计算『成功』添加回访的次数。（只看该白名单），根据系统定义何谓『成功』回访。")
+                                    a(style="margin-left:.5em;" class="fa bg-pale fa-info-circle" href="#" data-toggle="tooltip" title="{{'Do not repeat, calculate the number of success add return visits. (Only see the white list), according to the system definition, what is meant by success return visits.' | translate}}")
                                 th {{'Amount of Success Account Opening' | translate}}
                                 th {{'DETAILS' | translate}}
 
@@ -76,11 +76,11 @@
                                                 th {{'Connected list' | translate}}
                                                 th {{'csOfficer' | translate}}
                                                 th {{'Amount of Phone list' | translate}}
-                                                    a(style="margin-left:.5em;" class="fa bg-pale fa-info-circle" href="#" data-toggle="tooltip" title="该白名单指定时间内，被派发的数量。")
+                                                    a(style="margin-left:.5em;" class="fa bg-pale fa-info-circle" href="#" data-toggle="tooltip" title="{{'The Number of Distributed within a Specific Time in this Whitelist.' | translate}}")
                                                 th {{'Used Time' | translate}}
-                                                    a(style="margin-left:.5em;" class="fa bg-pale fa-info-circle" href="#" data-toggle="tooltip" title="不去重复，计算此电话被添加回访的次数。（只看该白名单）。")
+                                                    a(style="margin-left:.5em;" class="fa bg-pale fa-info-circle" href="#" data-toggle="tooltip" title="{{'Do not repeat, count the number of times this call was added back.' | translate}}")
                                                 th {{'Success Answers' | translate}}
-                                                    a(style="margin-left:.5em;" class="fa bg-pale fa-info-circle" href="#" data-toggle="tooltip" title="不去重复，计算『成功』添加回访的次数。（只看该白名单），根据系统定义何谓『成功』回访。")
+                                                    a(style="margin-left:.5em;" class="fa bg-pale fa-info-circle" href="#" data-toggle="tooltip" title="{{'Do not repeat, calculate the number of success add return visits. (Only see the white list), according to the system definition, what is meant by success return visits.' | translate}}")
 
                                                 th {{'Amount of Success Account Opening' | translate}}
                                         tbody
@@ -92,7 +92,7 @@
                                                 td {{v.success}}
                                                 td {{v.registered}}
                                             tr(style="color:red;font-weight:bold;")
-                                                td(colspan=2) {{'Total Count' | translate}}
+                                                td(colspan='2') {{'Total Count' | translate}}
                                                 td {{vm.workloadResultDetailSums.distributed}}
                                                 td {{vm.workloadResultDetailSums.fulfilled}}
                                                 td {{vm.workloadResultDetailSums.success}}
