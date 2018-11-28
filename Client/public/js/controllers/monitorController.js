@@ -81,12 +81,12 @@ define(['js/app'], function (myApp) {
                 socketService.clearValue();
                 vm.seleDataType = {};
                 vm.seleDataType[choice] = 'bg-bright';
-            }else if(Object.keys(vm.seleDataType).length === 0 && window.location.pathname != "/monitor/paymentTotal"){
+            }else if(Object.keys(vm.seleDataType).length === 0 && window.location.pathname != "/monitor/paymentTotal" && window.location.pathname != "/monitor/wechatGroup"){
                 vm.seleDataType["PAYMENT_MONITOR"] = 'bg-bright';
             }else if(window.location.pathname == "/monitor/paymentTotal"){
                 vm.seleDataType["PAYMENT_MONITOR_TOTAL"] = 'bg-bright';
                 vm.showPlatformList = false;
-            }else if(Object.keys(vm.seleDataType).length === 2 && window.location.pathname != "/monitor/paymentTotal") {
+            }else if(window.location.pathname == "/monitor/wechatGroup") {
                 vm.seleDataType["WECHAT_GROUP_CONTROL_MONITOR"] = 'bg-bright';
                 vm.showPlatformList = false;
             }
