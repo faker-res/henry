@@ -13,6 +13,7 @@ let dbPlayerRewardPoints = require('../db_modules/dbPlayerRewardPoints');
 let dbApiLog = require('./../db_modules/dbApiLog');
 let dbRewardPointsLog = require('./../db_modules/dbRewardPointsLog');
 let dbDemoPlayer = require('./../db_modules/dbDemoPlayer');
+let dbPlayerPayment = require('../db_modules/dbPlayerPayment');
 var socketUtil = require('./../modules/socketutility');
 var utility = require('./../modules/encrypt');
 var constPlayerStatus = require('./../const/constPlayerStatus');
@@ -930,6 +931,14 @@ function socketActionPlayer(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId != null && data.proposalId != null);
             socketUtil.emitter(self.socket, dbPlayerTopUpRecord.cancelManualTopupRequest, [data.playerId, data.proposalId, getAdminName()], actionName, isValidData);
+        },
+
+        requestBankTypeByUserName: function requestBankTypeByUserName(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data.playerId && data.clientType);
+            socketUtil.emitter(self.socket, dbPlayerPayment.requestBankTypeByUserName, [data.playerId, data.clientType, null, data.supportMode], actionName, isValidData);
+            // WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.requestBankTypeByUserName, [conn.playerId, data.clientType, userIp, data.supportMode], isValidData);
+
         },
 
         // Assign TopUp

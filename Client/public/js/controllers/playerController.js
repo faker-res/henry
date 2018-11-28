@@ -14522,6 +14522,17 @@ define(['js/app'], function (myApp) {
                 })
 
             });
+
+            socketService.$socket($scope.AppSocket, 'requestBankTypeByUserName', {playerId: vm.selectedSinglePlayer.playerId, clientType:1}, function (data) {
+                $scope.$evalAsync(() => {
+                    console.log(data);
+                    // vm.existingAssignTopup = data.data ? data.data : false;
+                    let depositMethodList = data.data.map(item=>{
+                        return item.depositMethod
+                    })
+                    console.log(depositMethodList);
+                })
+            })
             // utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
             //     vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerManualTopUp .createTime');
             utilService.actionAfterLoaded('#modalPlayerTopUp', function () {
