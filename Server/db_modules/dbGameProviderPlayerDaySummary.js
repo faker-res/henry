@@ -8,7 +8,7 @@ const Q = require("q");
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 var cpmsAPI = require("./../externalAPI/cpmsAPI");
-
+var dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionRecord');
 var dbGameProviderPlayerDaySummary = {
 
     /**
@@ -316,16 +316,21 @@ var dbGameProviderPlayerDaySummary = {
         )
     },
     getProviderDifferDaySummaryForTimeFrame: function (startTime, endTime, platformObjId, platformId, providerObjId, proId,  index, count) {
-        let sendQuery = {
+        let fpmsQuery = {
+            startTime: startTime,
+            endTime: endTime
+        };
+        let cpmsQuery = {
             platformId: platformId,
             providerId: proId,
             startDate: dbUtil.getSGTimeToString(startTime),
             endDate: dbUtil.getSGTimeToString(endTime)
         };
         // modify the date to cpms datetime format -> "2018-11-07 02:00:00" and cpms are using gmt +8 timezone for date query
-        let fpmsSummary = dbGameProviderPlayerDaySummary.getProviderDaySummaryForTimeFrame(startTime, endTime, platformObjId, providerObjId, index, count);
+        // let fpmsSummary = dbGameProviderPlayerDaySummary.getConsumptionRecordByGameProvider(startTime, endTime, platformObjId, providerObjId, index, count);
+        let fpmsSummary = dbPlayerConsumptionRecord.getConsumptionRecordByGameProvider(fpmsQuery, platformId, providerObjId, null, null, null, true);
         let cpmsSummary = new Promise((resolve, reject)=>{
-            cpmsAPI.consumption_getConsumptionSummary(sendQuery).then(
+            cpmsAPI.consumption_getConsumptionSummary(cpmsQuery).then(
                 function (result) {
                     resolve(result);
                 },
