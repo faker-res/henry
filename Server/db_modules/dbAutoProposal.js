@@ -313,6 +313,7 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
             if (lastWithdrawDate && lastWithdrawDate[0]) {
                 dLastWithdraw = lastWithdrawDate[0];
+                allProposalQuery.createTime["$gt"] = lastWithdrawDate[0];
                 transferLogQuery.createTime["$gt"] = lastWithdrawDate[0];
                 creditLogQuery.operationTime["$gt"] = lastWithdrawDate[0];
                 consumptionQuery.createTime["$gt"] = lastWithdrawDate[0];
@@ -364,7 +365,6 @@ function checkRewardTaskGroup(proposal, platformObj) {
 
                 let transferLogs = data[1];
                 let creditChangeLogs = data[4];
-                
                 return findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, proposal.data.playerObjId).then(
                     transferAbnormalities => {
                         if (transferAbnormalities) {
@@ -1555,7 +1555,6 @@ function findTransferAbnormality(transferLogs, creditChangeLogs, platformObj, pl
                             let transDifference = consumedAmt;
                             let bonusAmt = res && res[0] ? res[0].bonusAmount : 0;
                             let profitDifference = bonusAmt - transDifference;
-                            
                             if ((profitDifference < 0 && profitDifference < -platformObj.autoApproveBonusProfitOffset)
                                 || profitDifference > 0 && profitDifference > platformObj.autoApproveBonusProfitOffset) {
                                 abnormalities.push({
