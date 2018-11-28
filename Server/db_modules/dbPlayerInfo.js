@@ -7796,7 +7796,7 @@ let dbPlayerInfo = {
             //  remove extra param level when intervalMode == 3 (half-monthly) and 4 (monthly)
             checkParamLevel(value, eventData, intervalMode);
 
-            // change to date time format if the loginMode == 2 ( the exact date)
+            // change to date time format if the loginMode == 2 (the exact date)
             if (loginMode == 2) {
                 changeToDateTimeFormat(value, eventData);
             }
@@ -7809,7 +7809,7 @@ let dbPlayerInfo = {
             let dayLimit = null;
 
             if (intervalMode && intervalMode == 3){
-                // half-monthly - firstHalfMOnth: 15 days; secondHalfMonth: the rest of the days
+                // half-monthly - firstHalfMonth: 15 days; secondHalfMonth: the rest of the days
                 let isFirstHalf = new Date() >= intervalTime.startTime ? false : true;
 
                 if (isFirstHalf){
