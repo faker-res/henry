@@ -853,8 +853,8 @@ var roleChecker = {
                 queryByQualityInspectionDate: [],
                 queryByProduct: []
             },
-            QualityInsectionRecord: {
-                Read: []
+            WechatConversationRecord: {
+                Read:[]
             }
         },
         TeleMarketing: {

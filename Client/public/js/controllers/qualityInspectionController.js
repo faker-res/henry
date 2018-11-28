@@ -87,6 +87,8 @@ define(['js/app'], function (myApp) {
             vm.appealingTotalRecordByCS = 0;
             //vm.unReadEvaluation = {};
 
+            vm.wechatDeviceList;
+            vm.inspectionWechat = {};
 
             ////////////////Mark::Platform functions//////////////////
             vm.updatePageTile = function () {
@@ -2943,6 +2945,106 @@ define(['js/app'], function (myApp) {
             }
 
             //****** CS Report Tab ******* ENDd //
+
+            //////////////////////////////////////////////////////////Start of Wechat Conversation Record Tab///////////////////////////////////////////////////////////////////
+            vm.initWechatConversationRecord = function(){
+                vm.getWechatDeviceNickNameList();
+
+                if(vm.selectedPlatform){
+                    utilService.actionAfterLoaded('#wechatMessageBegindDatetimePicker', function () {
+                        $('#wechatMessageBegindDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#wechatMessageBegindDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                        $('#wechatMessageEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#wechatMessageEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+                    });
+                }
+            };
+
+            vm.getWechatDeviceNickNameList = function(){
+                let sendData = {};
+
+                if(vm.inspectionWechat && vm.inspectionWechat.platform){
+                    sendData.platform = vm.inspectionWechat.platform;
+                }
+
+                socketService.$socket($scope.AppSocket, 'getWechatDeviceNickNameList', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        if(data.data){
+                            vm.wechatDeviceList = data.data.sort();
+                        }
+                    })
+                });
+
+            };
+
+            vm.searchWechatConversationDevice = function(){
+                var startTime = $('#wechatMessageBegindDatetimePicker').data('datetimepicker').getLocalDate();
+                var endTime = $('#wechatMessageEndDatetimePicker').data('datetimepicker').getLocalDate();
+                let csName = vm.inspectionWechat.csName ? vm.inspectionWechat.csName.split(',') : [];
+                csName = csName.map(c => c.trim());
+
+                let sendData = {
+                    platform: vm.inspectionWechat.platform || "",
+                    deviceNickName: vm.inspectionWechat.deviceName || "",
+                    csName: csName,
+                    startTime: startTime,
+                    endTime: endTime,
+                    content: vm.inspectionWechat.content
+                };
+                vm.deviceList = [];
+                vm.deviceListTotal = 0;
+
+                socketService.$socket($scope.AppSocket, 'getWechatConversationDeviceList', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        if(data.data.data){
+                            console.log("Wechat Conversation Device List", data.data.data);
+
+                            data.data.data.forEach(data => {
+                                if(data && data._id && data._id.platformName && data._id.deviceId && data._id.playerWechatRemark){
+                                    let indexByPlatform = vm.deviceList.findIndex(d => d.platformName == data._id.platformName);
+
+                                    if(indexByPlatform > -1){
+                                        if(vm.deviceList[indexByPlatform]){
+                                            let indexByDevice = vm.deviceList[indexByPlatform].deviceId.findIndex(d => d.deviceId == data._id.deviceId);
+
+                                            if(indexByDevice > -1){
+                                                if(vm.deviceList[indexByPlatform].deviceId[indexByDevice]){
+                                                    vm.deviceList[indexByPlatform].deviceId[indexByDevice].playerWechatRemark.push(data._id.playerWechatRemark);
+                                                }else{
+                                                    vm.deviceList[indexByPlatform].deviceId.push({deviceId: data._id.deviceId, playerWechatRemark: [data._id.playerWechatRemark]});
+                                                }
+                                            }else{
+                                                vm.deviceList[indexByPlatform].deviceId.push({deviceId: data._id.deviceId, playerWechatRemark: [data._id.playerWechatRemark]});
+                                            }
+                                        }else{
+                                            vm.deviceList.push({platformId: data._id.platformObjId, platformName: data._id.platformName, deviceId: [{deviceId: data._id.deviceId, playerWechatRemark: [data._id.playerWechatRemark]}]});
+                                        }
+
+                                    }else{
+                                        vm.deviceList.push({platformId: data._id.platformObjId, platformName: data._id.platformName,deviceId: [{deviceId: data._id.deviceId, playerWechatRemark: [data._id.playerWechatRemark]}]});
+                                    }
+                                }
+
+                                if(data && data.count){
+                                    vm.deviceListTotal += data.count;
+                                }
+                            })
+                        }
+                    })
+                });
+            };
+            //////////////////////////////////////////////////////////End of Wechat Conversation Record Tab///////////////////////////////////////////////////////////////////
 
 
         };
