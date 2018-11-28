@@ -2,6 +2,35 @@ var dbConfig = require('./../modules/dbproperties');
 var constWCSessionStatus = require('./../const/constWCGroupControlSessionStatus');
 
 var dbWCGroupControl = {
+    checkAndUpdateWCSessionStatus: () => {
+        let second = 1000;
+        let minute = 60 * second;
+        const maxSessionIdleTime = 3 * minute;
+        let now = new Date().getTime();
+        let updateProm = [];
+
+        return dbConfig.collection_wcGroupControlSession.find({status: constWCSessionStatus.ONLINE}).lean().then(sessions => {
+            if(sessions && sessions.length > 0) {
+                sessions.forEach(session => {
+                    if(session.lastActiveTime) {
+                        let lastActiveTime = new Date(session.lastActiveTime).getTime();
+                        let idlePeriod = now - lastActiveTime;
+                        if(idlePeriod > maxSessionIdleTime) {
+                            updateProm.push(
+                                dbConfig.collection_wcGroupControlSession.findOneAndUpdate({
+                                    _id: session._id
+                                },{
+                                    status: constWCSessionStatus.OFFLINE,
+                                    lastUpdateTime: new Date()
+                                })
+                            );
+                        }
+                    }
+                });
+                return Promise.all(updateProm);
+            }
+        })
+    },
     sendWCGroupControlSessionToFPMS: (deviceId, adminId, status, connectionAbnormalClickTimes) => {
         let deviceSettingRecord;
         let adminObjId;
@@ -42,7 +71,8 @@ var dbWCGroupControl = {
                                     connectionAbnormalClickTimes: connectionAbnormalClickTimes
                                 },
                                 csOfficer: adminObjId,
-                                status: status
+                                status: status,
+                                lastActiveTime: new Date()
                             },
                             {new: true}
                         ).lean();
@@ -70,7 +100,8 @@ var dbWCGroupControl = {
                         csOfficer: adminObjId,
                         status: status,
                         platformObjId: deviceSettingRecord.platformObjId,
-                        connectionAbnormalClickTimes: connectionAbnormalClickTimes
+                        connectionAbnormalClickTimes: connectionAbnormalClickTimes,
+                        lastActiveTime: new Date()
                     };
 
                     let wcGroupControlSession = new dbConfig.collection_wcGroupControlSession(newSession);
