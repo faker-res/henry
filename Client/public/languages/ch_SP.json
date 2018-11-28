@@ -3819,6 +3819,8 @@
   "MY EVALUATION": "我的评估",
   "CS REPORT": "客服报表",
   "INSPECTION REPORT": "质检报表",
+  "WECHAT CONVERSATION RECORD": "微信对话记录",
+  "WechatConversationRecord": "微信对话记录",
   "UNREAD EVALUATION": "未读评估",
   "READ EVALUATION": "已读评估",
   "APPEAL EVALUATION": "申诉评估",
@@ -4956,5 +4958,6 @@
   "createUpdatePlayerInfoLevelProposal": "编辑玩家等级",
   "attachDetachRolesFromUsersById": "编辑玩家角色",
   "Manual Approval": "人工审核",
-  "approveCsPendingAndChangeStatus": "客服审核"
+  "approveCsPendingAndChangeStatus": "客服审核",
+  "wechatReceivingPlayer": "收话玩家"
 }
