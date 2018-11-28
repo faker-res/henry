@@ -1,38 +1,39 @@
 div
-    #wechatGroupControlQuery.block-query.col-md-12.well
-        div(style='width:125px')
+    #wechatGroupControlMonitor.block-query.col-md-12.well
+        div(style='width:210px')
             label.control-label  {{'DEPARTMENT' | translate}}
-            select.form-control(ng-model='vm.wechatGroupControlQuery.department')
-        div(style='width:125px')
+            select.form-control#selectWechatGroupControlDepartment(multiple='multiple', ng-model='vm.wechatGroupControlMonitorQuery.department')
+                option(ng-repeat='(i,v) in vm.wechatGroupControlDepartmentList', value='{{v._id}}') {{v.departmentName}}
+        div(style='width:155px')
             label.control-label  {{'Device Name' | translate}}
-            select.form-control(ng-model='vm.wechatGroupControlQuery.deviceName')
-        div(style='width:125px')
+            select.form-control#selectWechatGroupControlDeviceNickName(multiple='multiple',ng-model='vm.wechatGroupControlMonitorQuery.deviceNickName')
+                option(ng-repeat='(i,v) in vm.deviceNicknameList', value='{{v}}') {{v}}
+        div(style='width:155px')
             label.control-label  {{'Login Account' | translate}}
-            select.form-control(ng-model='vm.wechatGroupControlQuery.loginAccount')
-
+            select.form-control#selectWechatGroupControlAdminId(multiple='multiple', ng-model='vm.wechatGroupControlMonitorQuery.csOfficer')
+                option(ng-repeat='(i,v) in vm.wechatGroupControlAdminList', value='{{v._id}}') {{v.adminName}}
         div
             label &nbsp;
             button.btn.btn-warning(ng-click='vm.resetWechatMonitorQuery()') {{'Reset' | translate}}
         div
             label &nbsp;
-            //button.btn.btn-success(ng-click='vm.getWechatMonitorRecord(true)') {{'SEARCH' | translate}}
-            button.btn.btn-success(ng-click='') {{'SEARCH' | translate}}
+            button.btn.btn-success(ng-click='vm.searchWechatMonitorRecord(true)') {{'SEARCH' | translate}}
             span#wechatGroupMonitorTableSpin.collapse
                 i.fa.fa-spinner.fa-spin
     .clearfix
         .proposalMessage
-            text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.lastTopUpRefresh}}
+            text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.lastWechatRefresh}}
             label.text-danger.newProposalAlert
-            a(ng-click='vm.getWechatMonitorRecord()')
-                .fa.fa-refresh
+            a(ng-click='vm.searchWechatMonitorRecord()')
+                .fa.fa-refrestimeLeftRefreshOperationh
             .pull-right
                 label.inlineBlk.pull-right {{'Auto Refresh' | translate}}
-                    input#autoRefreshProposalFlag.margin-left-5(type='checkbox', checked)
+                    input#autoRefreshWechatFlag.margin-left-5(type='checkbox', checked)
                 .inlineBlk.hidden
                     text {{"Time left until next refresh" | translate}} :&nbsp;
                     text#timeLeftRefreshOperation
                     text s
-        label {{"Total" | translate}} {{vm.wechatGroupControlQuery.totalCount}} {{"records" | translate}}
+        label {{"Total" | translate}} {{vm.wechatGroupControlMonitorQuery.totalCount}} {{"records" | translate}}
         table#wechatGroupMonitorTable.common-table.display(style="min-width:100%; overflow: scroll")
         #wechatGroupMonitorTablePage
 

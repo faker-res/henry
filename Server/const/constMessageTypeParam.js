@@ -126,6 +126,15 @@ const constMessageTypeParam = {
             {parameterName:'proposalData.data.eventName' , description:'rewardEventName'},
         ]
     },
+    PLAYER_RETENTION_GROUP_SUCCESS: {
+        name:"PlayerRetentionRewardGroupSuccess",
+        params:[
+            {parameterName:'proposalData.data.rewardAmount' , description:'rewardAmount'},
+            {parameterName:'proposalData.settleTime' , description:'executeTime'},
+            {parameterName:'proposalData.proposalId' , description:'proposalId'},
+            {parameterName:'proposalData.data.eventName' , description:'rewardEventName'},
+        ]
+    },
     PLAYER_CONSUMPTION_REWARD_GROUP_SUCCESS: {
         name:"PlayerConsumptionRewardGroupSuccess",
         params:[

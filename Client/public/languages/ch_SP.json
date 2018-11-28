@@ -3097,10 +3097,6 @@
   "Realname should be chinese character": "真实姓名必须为汉字",
   "There is consumption after top up": "玩家充值后已投注",
   "There is withdrawal after top up": "玩家充值后已提款",
-  "This IP address has applied for the reward in event period": "已有相同的IP申请u过了此优惠",
-  "This phone number has applied for the reward in event period": "已有相同的电话号码申请过了此优惠",
-  "This mobile device has applied for the reward in event period": "已有相同的移动设备申请过了此优惠",
-  "This player has applied for the reward in event period": "玩家已申请过了此优惠",
   "Player does not have valid merchant data": "玩家没有有效的商户信息",
   "Please login and try again": "请登陆账号后再试",
   "Invalid SMS Validation Code": "验证码已过期，请重新获取验证码",
@@ -3776,6 +3772,7 @@
   "UpdatePasswordSuccess": "修改网站密码（成功）",
   "SmsVerificationCodeSuccess": "发送短信验证码（成功）",
   "PlayerTopUpReturnGroupSuccess": "存送金（组）（成功）",
+  "PlayerRetentionRewardGroupSuccess": "提升留存（组）（成功）",
   "PlayerLoseReturnRewardGroupSuccess": "输值反利（组）（成功）",
   "PlayerConsecutiveRewardGroupSuccess": "签到全勤（组）（成功）",
   "PlayerConsumptionRewardGroupSuccess": "投注额优惠（组）（成功）",
@@ -4143,6 +4140,7 @@
   "PERFECTLY_COMPLETED": "完美结束（进回收桶)",
   "FORCE_COMPLETED": "强制结束（进回收桶)",
   "DECOMPOSED": "已分解",
+  "All Phone Lists":"全部名单",
 
   "PLAYER CAN RECEIVE MONEY FROM THE BANK":"玩家可用收款银行",
   "ONLINE BANK NAME":"网银-姓名",
@@ -4179,6 +4177,9 @@
   "Used Time":"个人已使用次数",
   "Success Answers":"个人成功接听次数",
   "Amount of Success Account Opening":"个人成功开户量",
+  "The Number of Distributed within a Specific Time in this Whitelist.":"该白名单指定时间内，被派发的数量。",
+  "Do not repeat, count the number of times this call was added back.":"不去重复，计算此电话被添加回访的次数。（只看该白名单）。",
+  "Do not repeat, calculate the number of success add return visits. (Only see the white list), according to the system definition, what is meant by success return visits.":"不去重复，计算『成功』添加回访的次数。（只看该白名单），根据系统定义何谓『成功』回访。",
 
   "modifyPlayerCredibilityRemark": "编辑信用评价",
   "updatePlayerCredibilityRemark": "信用评价",
@@ -4959,5 +4960,13 @@
   "attachDetachRolesFromUsersById": "编辑玩家角色",
   "Manual Approval": "人工审核",
   "approveCsPendingAndChangeStatus": "客服审核",
-  "wechatReceivingPlayer": "收话玩家"
+  "wechatReceivingPlayer": "收话玩家",
+  "hour(s)": "小时",
+  "minute(s)": "分钟",
+  "No first attempt login": "无-尚未首次登入",
+  "Green light is on(Online)": "绿灯开(在线)",
+  "Red light is on(Offline)": "红灯关(离线)",
+  "Time(s)": "次",
+  "7 Day(s) History": "7 日历史",
+  "* Offline status shows the last connection data": "* 离线状态则显示上次连线数据"
 }

@@ -1,0 +1,13 @@
+.text-center
+    p(ng-if="!vm.curPlatformText")
+        label.text-danger {{"NO_PLATFORM_MESSAGE" | translate}}
+//    p(ng-if="!(vm.queryAdminPhoneReminderList && vm.queryAdminPhoneReminderList.totalCount)")
+//        label.text-danger {{"NONE" | translate}}{{"FEEDBACK_REMINDER_LIST" | translate}}
+//div(ng-show="vm.curPlatformText && (vm.queryAdminPhoneReminderList && vm.queryAdminPhoneReminderList.totalCount)")
+label {{"Total" | translate}} {{vm.queryAdminPhoneReminderList.totalCount}} {{"records" | translate}}
+.pull-right
+    a.fa.fa-refresh.margin-top-5(ng-click='vm.searchAdminPhoneReminderList(true)')
+        text.margin-right-5.pull-left {{"Refresh" | translate}}
+table.common-table#adminPhoneReminderListTable.display(style="width:100%;overflow: scroll;max-height:700px")
+#adminPhoneReminderListTablePage
+

@@ -289,6 +289,12 @@ var dbRewardEvent = {
                     case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
                     case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
                     case constRewardType.PLAYER_RETENTION_REWARD_GROUP:
+                        if (rewardEvent.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && rewardEvent.condition && !rewardEvent.condition.hasOwnProperty('definePlayerLoginMode')){
+                            return Promise.reject({
+                                name: "DataError",
+                                message: "Login mode is not found"
+                            })
+                        }
                         let intervalTime;
                         if (rewardEvent.condition.interval) {
                             intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, rewardEvent);
@@ -369,7 +375,7 @@ var dbRewardEvent = {
                                                 checkRewardData.status = 3;
                                             }
 
-                                            if (rewardEvent.type.name == constRewardType.PLAYER_RETENTION_REWARD_GROUP && checkRewardData.condition && checkRewardData.condition.deposit && checkRewardData.condition.deposit.status){
+                                            if (rewardEvent.type.name == constRewardType.PLAYER_RETENTION_REWARD_GROUP && checkRewardData.condition && checkRewardData.condition.deposit && checkRewardData.condition.deposit.hasOwnProperty('status')){
                                                 checkRewardData.status = checkRewardData.condition.deposit.status;
                                             }
 
@@ -387,6 +393,10 @@ var dbRewardEvent = {
                                                 }
                                             }
 
+
+                                            if (checkRewardData.condition.device.status == 0) {
+                                                delete checkRewardData.condition.device;}
+
                                             if (checkRewardData.condition.telephone.status == 0) {
                                                 delete checkRewardData.condition.telephone;
                                             }
@@ -402,7 +412,7 @@ var dbRewardEvent = {
                                                     amount: topUpDataObj.amount
                                                 };
                                             }
-                                            if (checkRewardData.condition.deposit.status == 0) {
+                                            if (checkRewardData.condition.deposit.status == 0 && rewardEvent.type.name !== constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
                                                 delete checkRewardData.condition.deposit;
                                             }
                                             if (checkRewardData.condition.bet.status == 0) {
@@ -561,6 +571,7 @@ var dbRewardEvent = {
                 telephone: {status: 0},
                 ip: {status: 0},
                 SMSCode: {status: 0},
+                device: {status: 0}
             },
             result: {
                 rewardAmount: 0,
@@ -657,6 +668,7 @@ var dbRewardEvent = {
 
                 let consumptionProm = Promise.resolve(null);
                 let withdrawalProm = Promise.resolve(null);
+                let accumulativeCountProm = Promise.resolve(null);
 
                 if (eventData.condition && eventData.condition.allowOnlyLatestTopUp){
                     //will check is there consumption or withdrawal after the latestTopUp
@@ -686,19 +698,39 @@ var dbRewardEvent = {
                     platformObjId: playerData.platform._id
                 };
 
-                if (intervalTime){
-                    appliedCountQuery.lastApplyDate = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
-                }
-
                 let appliedCountProm = dbconfig.collection_playerRetentionRewardGroupRecord.find(appliedCountQuery).lean().count();
 
                 // check reward apply restriction on ip, phone and IMEI
                 let checkHasReceivedProm =  dbPropUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, playerData, eventData);
 
+                let rewardProposalQuery = {
+                    "data.platformObjId": playerData.platform._id,
+                    "data.playerObjId": playerData._id,
+                    "data.eventId": eventData._id,
+                    status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+
+                };
+
+                let todayHasAppliedProm = dbconfig.collection_proposal.findOne(Object.assign({}, rewardProposalQuery, {settleTime: {$gte: todayTime.startTime, $lt: todayTime.endTime}})).lean();
+
+                if (eventData.condition.definePlayerLoginMode == 1){
+                    accumulativeCountProm = dbconfig.collection_proposal.find(rewardProposalQuery).sort({'data.accumulativeCount': -1, createTime: -1}).lean();
+                }
+                else if (eventData.condition.definePlayerLoginMode == 2){
+                    accumulativeCountProm = dbconfig.collection_proposal.find(rewardProposalQuery).sort({createTime: -1}).lean();
+                }
+
+                if (intervalTime){
+                    appliedCountQuery.lastApplyDate = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+                    rewardProposalQuery.settleTime = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
+                }
+
                 promArr.push(withdrawalProm);
                 promArr.push(consumptionProm);
                 promArr.push(appliedCountProm);
+                promArr.push(accumulativeCountProm);
                 promArr.push(checkHasReceivedProm);
+                promArr.push(todayHasAppliedProm);
             }
         }
 
@@ -1171,20 +1203,45 @@ var dbRewardEvent = {
             let checkForbidRewardProm = Promise.resolve(true); // default promise as true if checking is not required
             if (eventData.condition.forbidApplyReward && eventData.condition.forbidApplyReward.length > 0) {
                 let forbidRewardEventIds = eventData.condition.forbidApplyReward;
+                let promoCodeRewardExist = false;
 
                 for (let x = 0; x  < forbidRewardEventIds.length; x++) {
                     forbidRewardEventIds[x] = ObjectId(forbidRewardEventIds[x]);
+
+                    // check if promo code reward (优惠代码) included in forbid reward, ID was hardcoded
+                    if (forbidRewardEventIds[x].toString() === '59ca08a3ef187c1ccec863b9') {
+                        promoCodeRewardExist = true;
+                    }
+                }
+
+                let queryMatch = {
+                    "createTime": freeTrialQuery.createTime,
+                    "data.eventId": {$in: forbidRewardEventIds},
+                    "status": constProposalStatus.APPROVED,
+                    "data.playerObjId": playerData._id
+                };
+
+                if (promoCodeRewardExist) {
+                    queryMatch = {
+                        "createTime": freeTrialQuery.createTime,
+                        "status": constProposalStatus.APPROVED,
+                        "data.playerObjId": playerData._id,
+                        $or: [
+                            {
+                                "data.eventId": {$in: forbidRewardEventIds}
+                            },
+                            {
+                                "data.eventCode" : "YHDM",
+                                "data.eventName" : "优惠代码"
+                            },
+                        ]
+                    };
                 }
 
                 // check other reward apply in period
                 checkForbidRewardProm = dbconfig.collection_proposal.aggregate(
                     {
-                        $match: {
-                            "createTime": freeTrialQuery.createTime,
-                            "data.eventId": {$in: forbidRewardEventIds},
-                            "status": constProposalStatus.APPROVED,
-                            "data.playerObjId": playerData._id
-                        }
+                        $match: queryMatch
                     },
                     {
                         $project: {
@@ -1192,6 +1249,8 @@ var dbRewardEvent = {
                             status: 1,
                             'data.playerObjId': 1,
                             'data.eventId': 1,
+                            'data.eventCode': 1,
+                            'data.eventName': 1,
                             _id: 0
                         }
                     }
@@ -1369,90 +1428,132 @@ var dbRewardEvent = {
 
                         break;
                     case constRewardType.PLAYER_RETENTION_REWARD_GROUP:
-
+                        // rewardSpecificData[0] - consumption after top up
+                        // rewardSpecificData[1] - withdrawal after top up
+                        // rewardSpecificData[2] - the number of player has applied
+                        // rewardSpecificData[3] - the similiar reward proposal
+                        // rewardSpecificData[4] - the phone, ip, imei checking
+                        // rewardSpecificData[5] - check if today has applied or gotten the reward
                         let matchPlayerId = false;
                         let matchIPAddress = false;
                         let matchPhoneNum = false;
                         let matchMobileDevice = false;
 
-                        if (!returnData.condition.deposit.status) {
-                            returnData.condition.deposit.status = 1;
+                        if (rewardSpecificData[4]) {
+                            matchPlayerId = rewardSpecificData[4].samePlayerHasReceived || false;
+                            matchIPAddress = eventData.condition && eventData.condition.checkSameIP ? (rewardSpecificData[4].sameIPAddressHasReceived || false) : false;
+                            matchPhoneNum = eventData.condition && eventData.condition.checkSamePhoneNumber ? (rewardSpecificData[4].samePhoneNumHasReceived || false) : false;
+                            matchMobileDevice = eventData.condition && eventData.condition.checkSameDeviceId ? (rewardSpecificData[4].sameDeviceIdHasReceived || false) : false;
                         }
 
-                        // check if there is consumption nor withdrawal after top up
-                        // rewardSpecificData[0] - consumption after top up
-                        // rewardSpecificData[1] - withdrawal after top up
-                        // rewardSpecificData[2] - the number of player has applied
-                        // rewardSpecificData[3] - the phone, ip, imei checking
-                        if (eventData.condition && eventData.condition.allowOnlyLatestTopUp && (rewardSpecificData[0] || rewardSpecificData[1])){
-                            returnData.condition.deposit.status = 2;
+                        if (!returnData.condition.deposit.hasOwnProperty('rewardDayList')){
+                            returnData.condition.deposit.list = [];
                         }
 
-                        if (rewardSpecificData[3]){
-                            matchPlayerId = rewardSpecificData[3].samePlayerHasReceived || false;
-                            matchIPAddress = eventData.condition && eventData.condition.checkSameIP ? (rewardSpecificData[3].sameIPAddressHasReceived || false) : false;
-                            matchPhoneNum = eventData.condition && eventData.condition.checkSamePhoneNumber ? (rewardSpecificData[3].samePhoneNumHasReceived || false) : false;
-                            matchMobileDevice = eventData.condition && eventData.condition.checkSameDeviceId ? (rewardSpecificData[3].sameDeviceIdHasReceived || false) : false;
-                        }
+                        let retRewardData = dbPlayerReward.applyRetentionRewardParamLevel(eventData, applyAmount, selectedRewardParam, playerData);
 
-                        if (matchPlayerId || matchIPAddress || matchPhoneNum || matchMobileDevice){
-                            returnData.condition.deposit.status = 2;
-                        }
+                        returnData.condition.deposit.list = dbPlayerReward.getRetentionRewardList(returnData, rewardData, eventData, selectedRewardParam, rewardSpecificData[3]);
 
-                        // check correct topup type
-                        let checkCorrectTopUpType = true;
-                        if ((rewardData && rewardData.selectedTopup)) {
-                            if (intervalTime && !isDateWithinPeriod(selectedTopUp.createTime, intervalTime)) {
-                                returnData.condition.deposit.status = 2;
+                        // check if today has applied/received reward
+                        if (retRewardData && retRewardData.hasOwnProperty('selectedIndex') && !rewardSpecificData[5]) {
+                            // check if first time apply
+                            if (matchPlayerId){
+                                returnData.condition.deposit.list[retRewardData.selectedIndex].status = 1;
                             }
+                            else {
+                                // check if there is consumption nor withdrawal after top up
+                                if (eventData.condition && eventData.condition.allowOnlyLatestTopUp && (rewardSpecificData[0] || rewardSpecificData[1])) {
+                                    returnData.condition.deposit.list[retRewardData.selectedIndex].status = 0; // not eligible for the reward
+                                }
 
-                            if (eventData.condition.topupType && eventData.condition.topupType.length > 0 && eventData.condition.topupType.indexOf(selectedTopUp.topUpType) === -1) {
-                                checkCorrectTopUpType = false;
-                            }
+                                if (rewardSpecificData[4]) {
+                                    matchPlayerId = rewardSpecificData[4].samePlayerHasReceived || false;
+                                    matchIPAddress = eventData.condition && eventData.condition.checkSameIP ? (rewardSpecificData[4].sameIPAddressHasReceived || false) : false;
+                                    matchPhoneNum = eventData.condition && eventData.condition.checkSamePhoneNumber ? (rewardSpecificData[4].samePhoneNumHasReceived || false) : false;
+                                    matchMobileDevice = eventData.condition && eventData.condition.checkSameDeviceId ? (rewardSpecificData[4].sameDeviceIdHasReceived || false) : false;
+                                }
 
-                            if (eventData.condition.onlineTopUpType && selectedTopUp.merchantTopUpType && eventData.condition.onlineTopUpType.length > 0 && eventData.condition.onlineTopUpType.indexOf(selectedTopUp.merchantTopUpType) === -1) {
-                                checkCorrectTopUpType = false;
-                            }
+                                if (matchPlayerId) {
+                                    returnData.condition.deposit.list[retRewardData.selectedIndex].status = 2; // has applied the reward
+                                }
 
-                            if (eventData.condition.bankCardType && selectedTopUp.bankCardType && eventData.condition.bankCardType.length > 0 && eventData.condition.bankCardType.indexOf(selectedTopUp.bankCardType) === -1) {
-                                checkCorrectTopUpType = false;
-                            }
-                        } else {
-                            returnData.condition.deposit.status = 2;
-                            checkCorrectTopUpType = false;
-                        }
+                                if (matchIPAddress || matchPhoneNum || matchMobileDevice) {
+                                    returnData.condition.deposit.list[retRewardData.selectedIndex].status = 0;
+                                }
 
-                        if (!checkCorrectTopUpType){
-                            returnData.condition.deposit.status = 2;
-                        }
+                                // check correct topup type
+                                let checkCorrectTopUpType = true;
+                                if ((rewardData && rewardData.selectedTopup)) {
+                                    if (intervalTime && !isDateWithinPeriod(selectedTopUp.createTime, intervalTime)) {
+                                        returnData.condition.deposit.list[retRewardData.selectedIndex].status = 0;
+                                    }
 
-                        if (eventData.condition && eventData.condition.minDepositAmount){
-                            let minDepositAmount = eventData.condition.minDepositAmount;
-                            returnData.condition.deposit.allAmount = minDepositAmount;
+                                    if (eventData.condition.topupType && eventData.condition.topupType.length > 0 && eventData.condition.topupType.indexOf(selectedTopUp.topUpType) === -1) {
+                                        checkCorrectTopUpType = false;
+                                    }
 
-                            if (applyAmount < minDepositAmount) {
-                                returnData.condition.deposit.status = 2;
-                            }
+                                    if (eventData.condition.onlineTopUpType && selectedTopUp.merchantTopUpType && eventData.condition.onlineTopUpType.length > 0 && eventData.condition.onlineTopUpType.indexOf(selectedTopUp.merchantTopUpType) === -1) {
+                                        checkCorrectTopUpType = false;
+                                    }
 
-                        }
+                                    if (eventData.condition.bankCardType && selectedTopUp.bankCardType && eventData.condition.bankCardType.length > 0 && eventData.condition.bankCardType.indexOf(selectedTopUp.bankCardType) === -1) {
+                                        checkCorrectTopUpType = false;
+                                    }
 
-                        // check if the application limit has reached
-                        if (eventData.condition && eventData.condition.quantityLimitInInterval && rewardSpecificData[2] >= eventData.condition.quantityLimitInInterval){
-                            returnData.condition.deposit.status = 3;
-                        }
+                                    if (!checkCorrectTopUpType) {
+                                        returnData.condition.deposit.list[retRewardData.selectedIndex].status = 0;
+                                    }
 
-                        if (returnData.condition.deposit.status == 1){
+                                    if (eventData.condition && eventData.condition.minDepositAmount) {
+                                        let minDepositAmount = eventData.condition.minDepositAmount;
+                                        returnData.condition.deposit.allAmount = minDepositAmount;
 
-                            // get the reward amount
-                            let retRewardData = dbPlayerReward.applyRetentionRewardParamLevel(eventData, applyAmount, selectedRewardParam);
+                                        if (applyAmount < minDepositAmount) {
+                                            returnData.condition.deposit.list[retRewardData.selectedIndex].status = 0;
+                                        }
+                                    }
 
-                            if (retRewardData && retRewardData.selectedRewardParam && retRewardData.rewardAmount != null && retRewardData.spendingAmount != null){
-                                returnData.result.rewardAmount = retRewardData.rewardAmount;
-                                if (retRewardData.selectedRewardParam && retRewardData.selectedRewardParam.spendingTimes){
-                                    returnData.result.betTimes = retRewardData.selectedRewardParam.spendingTimes;
+                                    if (eventData.condition && eventData.condition.checkSameIP) {
+                                        returnData.condition.ip.status = matchIPAddress ? 2 : 1;
+                                    }
+
+                                    if (eventData.condition && eventData.condition.checkSamePhoneNumber) {
+                                        returnData.condition.telephone.status = matchPhoneNum ? 2 : 1;
+                                    }
+
+                                    if (eventData.condition && eventData.condition.checkSameDeviceId) {
+                                        returnData.condition.device.status = matchMobileDevice ? 2 : 1;
+                                    }
+
+                                    // check if the application limit has reached
+                                    if (eventData.condition && eventData.condition.quantityLimitInInterval && rewardSpecificData[2] >= eventData.condition.quantityLimitInInterval) {
+                                        returnData.condition.list[retRewardData.selectedIndex].status = 3;
+                                    }
+                                }
+                                else {
+                                    returnData.condition.deposit.list[retRewardData.selectedIndex].status = 0;
+                                    checkCorrectTopUpType = false;
+                                }
+
+                                if (returnData.condition.deposit.list[retRewardData.selectedIndex].status == 1) {
+                                    // get the reward amount
+                                    if (retRewardData && retRewardData.selectedRewardParam && retRewardData.rewardAmount != null && retRewardData.spendingAmount != null) {
+                                        returnData.result.rewardAmount = retRewardData.rewardAmount;
+                                        if (retRewardData.selectedRewardParam && retRewardData.selectedRewardParam.spendingTimes) {
+                                            returnData.result.betTimes = retRewardData.selectedRewardParam.spendingTimes;
+                                        }
+                                    }
                                 }
                             }
                         }
+                        // total number of applicants
+                        returnData.result.appliedCount = rewardSpecificData[2] || 0;
+
+                        if (eventData.condition && eventData.condition.quantityLimitInInterval) {
+                            returnData.result.quantityLimit = eventData.condition.quantityLimitInInterval;
+                        }
+
+                        returnData.condition.deposit.status = returnData.condition.deposit.list[retRewardData.selectedIndex].status;
                         break;
 
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
@@ -1725,7 +1826,7 @@ var dbRewardEvent = {
                             let matchIPAddress = rewardSpecificData[0][1];
                             let matchPhoneNum = rewardSpecificData[0][2];
                             let matchMobileDevice = rewardSpecificData[0][3];
-                            let matchForbidRewardEvent = rewardSpecificData[2];
+                            let matchForbidRewardEvent = rewardSpecificData[1];
 
                             if (!matchPlayerId) {
                                 returnData.status = 2;
