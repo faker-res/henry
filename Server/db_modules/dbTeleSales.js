@@ -126,7 +126,7 @@ let dbTeleSales = {
                 }
 
                 let tsDistributePhoneCountProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).count();
-                let tsDistributePhoneProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).sort(sortObj).sort(sortObj).skip(index).limit(limit)
+                let tsDistributePhoneProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).sort(sortObj).skip(index).limit(limit)
                     .populate({path: 'tsPhoneList', model: dbconfig.collection_tsPhoneList, select: "name"})
                     .populate({path: 'tsPhone', model: dbconfig.collection_tsPhone}).lean();
 

@@ -12,14 +12,14 @@ const errorUtils = require("./../modules/errorUtils");
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
-let dbCallOutMission = {
+let dbTsCallOutMission = {
     createCallOutMission: (platformObjId, adminObjId, searchFilter, searchQuery, sortCol, selectedPlayers) => {
         let platform, admin, calleeList, callOutMission, availableCallOutMission;
         searchQuery = typeof searchQuery == "string" ? JSON.parse(searchQuery) : searchQuery;
 
         let platformProm = dbconfig.collection_platform.findOne({_id: platformObjId}).lean();
         let adminProm = dbconfig.collection_admin.findOne({_id: adminObjId}).lean();
-        let availableCallOutMissionProm = dbconfig.collection_callOutMission.find({admin: adminObjId, isUsing: true}).lean();
+        let availableCallOutMissionProm = dbconfig.collection_tsCallOutMission.find({admin: adminObjId, isUsing: true}).lean();
 
         return Promise.all([platformProm, adminProm, availableCallOutMissionProm]).then(
             data => {
@@ -35,7 +35,7 @@ let dbCallOutMission = {
 
                 if (availableCallOutMission && availableCallOutMission.length) {
                     availableCallOutMission.map(mission => {
-                        dbconfig.collection_callOutMission.update({missionName: mission.missionName}, {isUsing: false}).exec().catch(err => {
+                        dbconfig.collection_tsCallOutMission.update({missionName: mission.missionName}, {isUsing: false}).exec().catch(err => {
                             console.log('unuse mission fail', mission.missionName, err);
                             return errorUtils.reportError(err);
                         });
@@ -66,7 +66,7 @@ let dbCallOutMission = {
                 };
 
                 // todo :: might want to change to upsert if necessary
-                return dbconfig.collection_callOutMission(callOutMissionData).save();
+                return dbconfig.collection_tsCallOutMission(callOutMissionData).save();
             }
         ).then(
             callOutMissionData => {
@@ -81,12 +81,12 @@ let dbCallOutMission = {
                         mission: callOutMission._id,
                         missionName: callOutMission.missionName,
                         indexNo: i,
-                        player: callee.player,
-                        playerName: callee.playerName,
+                        tsPhone: callee.tsPhone,
+                        tsDistributedPhone: callee.tsDistributedPhone,
                         phoneNumber: callee.phoneNumber
                     };
 
-                    let prom = dbconfig.collection_callOutMissionCallee(calleeData).save().catch(errorUtils.reportError);
+                    let prom = dbconfig.collection_tsCallOutMissionCallee(calleeData).save().catch(errorUtils.reportError);
                     proms.push(prom);
                 }
 
@@ -107,7 +107,7 @@ let dbCallOutMission = {
             platformData => {
                 platform = platformData;
 
-                return dbconfig.collection_callOutMission.findOne({missionName: missionName}).lean();
+                return dbconfig.collection_tsCallOutMission.findOne({missionName: missionName}).lean();
             }
         ).then(
             missionData => {
@@ -128,7 +128,7 @@ let dbCallOutMission = {
             }
         ).then(
             () => {
-                return dbconfig.collection_callOutMission.findOneAndUpdate({_id: mission._id}, {status: operation}, {new: true}).lean();
+                return dbconfig.collection_tsCallOutMission.findOneAndUpdate({_id: mission._id}, {status: operation}, {new: true}).lean();
             }
         );
     },
@@ -141,7 +141,7 @@ let dbCallOutMission = {
             platformData => {
                 platform = platformData;
 
-                return dbconfig.collection_callOutMission.findOne({missionName: missionName}).lean();
+                return dbconfig.collection_tsCallOutMission.findOne({missionName: missionName}).lean();
             }
         ).then(
             missionData => {
@@ -164,7 +164,7 @@ let dbCallOutMission = {
             }
         ).then(
             () => {
-                return dbconfig.collection_callOutMission.findOneAndUpdate({_id: mission._id}, {status: constCallOutMissionStatus.CANCELLED}, {new: true}).lean();
+                return dbconfig.collection_tsCallOutMission.findOneAndUpdate({_id: mission._id}, {status: constCallOutMissionStatus.CANCELLED}, {new: true}).lean();
             }
         );
     },
@@ -187,7 +187,7 @@ let dbCallOutMission = {
                     return Promise.reject({name: "DataError", message: "No admin acc"});
                 }
 
-                return dbconfig.collection_callOutMission.findOne({
+                return dbconfig.collection_tsCallOutMission.findOne({
                     platform: platform._id,
                     admin: admin._id,
                     // status: {
@@ -229,7 +229,7 @@ let dbCallOutMission = {
                     return Promise.reject({name: "DataError", message: "No admin acc"});
                 }
 
-                return dbconfig.collection_callOutMission.findOneAndUpdate({
+                return dbconfig.collection_tsCallOutMission.findOneAndUpdate({
                     platform: platform._id,
                     admin: admin._id,
                     status: constCallOutMissionStatus.FINISHED,
@@ -260,7 +260,7 @@ let dbCallOutMission = {
                     return Promise.reject({name: "DataError", message: "No admin acc"});
                 }
 
-                return dbconfig.collection_callOutMission.update({
+                return dbconfig.collection_tsCallOutMission.update({
                     platform: platform._id,
                     admin: admin._id,
                     isUsing: true
@@ -270,7 +270,7 @@ let dbCallOutMission = {
     },
 };
 
-module.exports = dbCallOutMission;
+module.exports = dbTsCallOutMission;
 
 function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
     let apiOutput, ctiMissionStatus;
@@ -283,7 +283,7 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
 
             let updateMissionStatusProm = Promise.resolve(mission);
             if (ctiMissionStatus == constCallOutMissionStatus.FINISHED) {
-                updateMissionStatusProm = dbconfig.collection_callOutMission.findOneAndUpdate({_id: mission._id}, {status: constCallOutMissionStatus.FINISHED}, {new: true}).lean();
+                updateMissionStatusProm = dbconfig.collection_tsCallOutMission.findOneAndUpdate({_id: mission._id}, {status: constCallOutMissionStatus.FINISHED}, {new: true}).lean();
             }
 
             return updateMissionStatusProm;
@@ -311,7 +311,7 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
                         status = constCallOutMissionCalleeStatus.SUCCEEDED;
                     }
 
-                    let prom = dbconfig.collection_callOutMissionCallee.update({platform: platform._id, admin: admin._id, mission: mission._id, playerName: calleeDetail.custName}, {status: status, callingTime: calleeDetail.lastCallTime, callCount: calleeDetail.callCount}).catch(errorUtils.reportError);
+                    let prom = dbconfig.collection_tsCallOutMissionCallee.update({platform: platform._id, admin: admin._id, mission: mission._id, _id: calleeDetail.custName}, {status: status, callingTime: calleeDetail.lastCallTime, callCount: calleeDetail.callCount}).catch(errorUtils.reportError);
                     proms.push(prom);
                 }
             });
@@ -320,18 +320,19 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
         }
     ).then(
         () => {
-            return dbconfig.collection_callOutMissionCallee.find({platform: platform._id, admin: admin._id, mission: mission._id}).lean();
+            return dbconfig.collection_tsCallOutMissionCallee.find({platform: platform._id, admin: admin._id, mission: mission._id}).lean();
         }
     ).then(
         calleeList => {
             let proms = [];
             calleeList.map(callee => {
-                let prom = dbconfig.collection_players.findOne({_id: callee.player})
-                    .populate({path: "partner", model: dbconfig.collection_partner})
-                    .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
+                let prom = dbconfig.collection_tsDistributedPhone.findOne({_id: callee.tsDistributedPhone})
+                    .populate({path: "tsPhone", model: dbconfig.collection_tsPhone})
+                    .populate({path: "tsPhoneList", model: dbconfig.collection_tsPhoneList, select: "name"})
                     .lean().then(
-                        playerData => {
-                            callee.player = playerData;
+                        tsDistributedPhone => {
+                            callee.tsDistributedPhone = tsDistributedPhone;
+                            callee.tsPhone = tsDistributedPhone.tsPhone;
                             return callee;
                         }
                     );
@@ -344,36 +345,20 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
     ).then(
         calleeList => {
             let outputData = {};
-            // outputData.hasOnGoingMission = Boolean(ctiMissionStatus != constCallOutMissionStatus.FINISHED);
             outputData.hasOnGoingMission = true;
             outputData = Object.assign({}, outputData, mission);
             outputData.callee = calleeList;
 
-            if(outputData.callee && outputData.callee.length){
-                console.log(mission.missionName)
-                console.log('=CallOutMission= ----->callOutBack total callee: ' + outputData.callee.length);
-            }
             if (limit) {
                 let total = calleeList.length;
                 index = index || 0;
                 let calleeShown = calleeList.slice(index, Number(limit) + Number(index));
-                let playersData = calleeShown.map(callee => {
-                    return callee.player;
-                });
 
-                let feedbackPlayerDetail = {
-                    data: playersData,
+                outputData.feedbackPlayerDetail = {
+                    data: calleeShown,
                     index: index,
                     total: total
                 };
-                if(feedbackPlayerDetail.data && feedbackPlayerDetail.data.length){
-                    console.log('=CallOutMission= ------>feedbackPlayerDetail.playersData: ', feedbackPlayerDetail.data.length);
-                }
-
-                console.log('=CallOutMission= ------>feedbackPlayerDetail.playersData: ', feedbackPlayerDetail.total);
-
-                outputData.feedbackPlayerDetail = feedbackPlayerDetail;
-                return outputData;
             }
 
             return outputData;
@@ -381,80 +366,135 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
     );
 }
 
-function getCalleeList (query, sortCol, selectedPlayers) {
-    switch (query.playerType) {
-        case 'Test Player':
-            query.isRealPlayer = false;
-            break;
-        case 'Real Player (all)':
-            query.isRealPlayer = true;
-            break;
-        case 'Real Player (Individual)':
-            query.isRealPlayer = true;
-            query.partner = null;
-            break;
-        case 'Real Player (Under Partner)':
-            query.isRealPlayer = true;
-            query.partner = {$ne: null};
-    }
-    if (query.playerType) {
-        delete query.playerType;
+function getCalleeList (query, sortCol) {
+    let phoneListProm = Promise.resolve();
+    if (query.phoneListName && query.phoneListName.length) {
+        phoneListProm = dbconfig.collection_tsPhoneList.find({name: {$in: query.phoneListName}, assignees: query.admin, platform: query.platform}, {_id: 1}).lean();
     }
 
-    if (query.csOfficer && query.csOfficer.length) {
-        query.csOfficer.map(item => {
-            return ObjectId(item);
-        });
-        query.csOfficer = {
-            $in: query.csOfficer
-        }
-    }
-
-    if(selectedPlayers && selectedPlayers.length > 0){
-        query = {};
-        query.playerId = {$in: selectedPlayers}
-    }
-
-    let players;
-    return dbconfig.collection_players.find(query, {_id: 1}).sort(sortCol).lean().then(
-        playerData => {
-            if (!playerData || !playerData.length) {
-                return [];
+    return phoneListProm.then(
+        phoneListData => {
+            let phoneListQuery = {
+                platform: query.platform,
+                assignee: query.admin,
+                registered: false
             }
 
-            let proms = [];
-            playerData.map(playerIdObj => {
-                // to get phone number, findOne is necessary as find is encoded
-                let prom = dbconfig.collection_players.findOne({_id: playerIdObj._id}, {name: 1, phoneNumber: 1}).lean();
-                proms.push(prom);
-            });
+            if (phoneListData && phoneListData.length && query.phoneListName && query.phoneListName.length) {
+                phoneListQuery.tsPhoneList = {$in: phoneListData.map(phoneList => phoneList._id)}
+            }
 
-            return Promise.all(proms);
+            phoneListQuery["$and"] = [{startTime: {$lt: new Date()}}, {endTime: {$gte: new Date()}}];
+            if (query.resultName && query.resultName.length) {
+                phoneListQuery.resultName = {$in: query.resultName};
+            }
+
+            if (query.feedbackStart && query.feedbackEnd) {
+                phoneListQuery["$and"].push({
+                    $or: [{lastFeedbackTime: null}, {
+                        lastFeedbackTime: {
+                            $gte: query.feedbackStart,
+                            $lt: query.feedbackEnd
+                        }
+                    }]
+                });
+            }
+            if (query.distributeStart && query.distributeEnd) {
+                phoneListQuery["$and"].push({startTime: {$gte: query.distributeStart, $lt: query.distributeEnd}})
+            }
+
+
+            if (query.hasOwnProperty("reclaimDays") && query.reclaimDays != null) {
+                let countReclaimDate = dbutility.getNdaylaterFromSpecificStartTime(query.reclaimDays + 1, new Date());
+                let reclaimDate = dbutility.getTargetSGTime(countReclaimDate);
+                switch (query.reclaimDayOperator) {
+                    case '<=':
+                        phoneListQuery["$and"].push({endTime: {$lte: reclaimDate.startTime}});
+                        break;
+                    case '>=':
+                        phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime}});
+                        break;
+                    case '=':
+                        phoneListQuery["$and"].push({endTime: reclaimDate.startTime});
+                        break;
+                    case 'range':
+                        if (query.hasOwnProperty("reclaimDaysTwo") && query.reclaimDaysTwo != null) {
+                            let countReclaimDate2 = dbutility.getNdaylaterFromSpecificStartTime(query.reclaimDaysTwo + 1, new Date());
+                            let reclaimDate2 = dbutility.getTargetSGTime(countReclaimDate2);
+                            phoneListQuery["$and"].push({
+                                endTime: {
+                                    $gte: reclaimDate.startTime,
+                                    $lte: reclaimDate2.startTime
+                                }
+                            });
+                        }
+                        break;
+                }
+            }
+
+            if (query.hasOwnProperty("feedbackTimes") && query.feedbackTimes != null) {
+                let feedbackTimes = query.feedbackTimes;
+                switch (query.feedbackTimesOperator) {
+                    case '<=':
+                        phoneListQuery.feedbackTimes = {$lte: feedbackTimes};
+                        break;
+                    case '>=':
+                        phoneListQuery.feedbackTimes = {$gte: feedbackTimes};
+                        break;
+                    case '=':
+                        phoneListQuery.feedbackTimes = feedbackTimes;
+                        break;
+                    case 'range':
+                        if (query.hasOwnProperty("feedbackTimesTwo") && query.feedbackTimesTwo != null) {
+                            phoneListQuery.feedbackTimes = {
+                                $gte: feedbackTimes,
+                                $lte: query.feedbackTimesTwo
+                            };
+                        }
+                        break;
+                }
+            }
+
+            if (query.hasOwnProperty("assignTimes") && query.assignTimes != null) {
+                let assignTimes = query.assignTimes;
+                switch (query.assignTimesOperator) {
+                    case '<=':
+                        phoneListQuery.assignTimes = {$lte: assignTimes};
+                        break;
+                    case '>=':
+                        phoneListQuery.assignTimes = {$gte: assignTimes};
+                        break;
+                    case '=':
+                        phoneListQuery.assignTimes = assignTimes;
+                        break;
+                    case 'range':
+                        if (query.hasOwnProperty("assignTimesTwo") && query.assignTimesTwo != null) {
+                            phoneListQuery.assignTimes = {
+                                $gte: assignTimes,
+                                $lte: query.assignTimesTwo
+                            };
+                        }
+                        break;
+                }
+            }
+
+            if (query.isFilterDangerZone) {
+                phoneListQuery.isInDangerZone = false;
+            }
+
+            return dbconfig.collection_tsDistributedPhone.find(phoneListQuery).sort(sortCol)
+                .populate({path: 'tsPhone', model: dbconfig.collection_tsPhone}).lean();
         }
     ).then(
-        playerData => {
-            if (!playerData || !playerData.length) {
-                return [];
-            }
-            players = playerData;
+        tsDistributedPhones => {
+            return tsDistributedPhones.map(dPhone => {
+                let phoneNumber = dPhone && dPhone.tsPhone && dPhone.tsPhone.phoneNumber ? rsaCrypto.decrypt(dPhone.tsPhone.phoneNumber) : "";
+                let tsDistributedPhone = dPhone && dPhone._id;
+                let tsPhone = dPhone && dPhone.tsPhone && dPhone.tsPhone._id || undefined;
+                let name = String(dPhone && dPhone._id);
+                let id = String(dPhone && dPhone.tsPhone && dPhone.tsPhone._id || dPhone && dPhone._id);
 
-            console.log('=CallOutMission= getCalleeList ---->' + playerData.length);
-
-            return players.map(player => {
-                let phoneNumber = player.phoneNumber;
-                if (phoneNumber && phoneNumber.length > 20) {
-                    try {
-                        phoneNo = rsaCrypto.decrypt(phoneNumber);
-                    }
-                    catch (err) {
-                        console.error(err);
-                    }
-                }
-                return {
-                    id: player._id,
-                    name: player.name,
-                    phoneNumber
-                }
+                return {phoneNumber, tsDistributedPhone, tsPhone, name, id};
             });
         }
     );
