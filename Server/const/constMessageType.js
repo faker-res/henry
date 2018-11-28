@@ -29,7 +29,10 @@ const constMessageType = {
     PLAYER_LEVEL_UP_MIGRATION_SUCCESS: "PlayerLevelUpMigrationSuccess",
     PLAYER_LEVEL_DOWN_MIGRATION_SUCCESS: "PlayerLevelDownMigrationSuccess",
     PLAYER_LEVEL_UP_SUCCESS: "PlayerLevelUpSuccess",
-    PROMO_CODE_SEND: "PromoCodeSend"
+    PROMO_CODE_SEND: "PromoCodeSend",
+
+    // THIRD PARTY PAYMENT SYSTEM
+    FUKUAIPAY_TOPUP_SUCCESS: "FukuaipayTopupSuccess",
 
 /* OLD MESSAGE TYPE
     //For proposal
