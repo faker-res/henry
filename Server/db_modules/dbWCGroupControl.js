@@ -1,7 +1,38 @@
 var dbConfig = require('./../modules/dbproperties');
 var constWCSessionStatus = require('./../const/constWCGroupControlSessionStatus');
+var mongoose = require('mongoose');
+var ObjectId = mongoose.Types.ObjectId;
 
 var dbWCGroupControl = {
+    checkAndUpdateWCSessionStatus: () => {
+        let second = 1000;
+        let minute = 60 * second;
+        const maxSessionIdleTime = 3 * minute;
+        let now = new Date().getTime();
+        let updateProm = [];
+
+        return dbConfig.collection_wcGroupControlSession.find({status: constWCSessionStatus.ONLINE}).lean().then(sessions => {
+            if(sessions && sessions.length > 0) {
+                sessions.forEach(session => {
+                    if(session.lastActiveTime) {
+                        let lastActiveTime = new Date(session.lastActiveTime).getTime();
+                        let idlePeriod = now - lastActiveTime;
+                        if(idlePeriod > maxSessionIdleTime) {
+                            updateProm.push(
+                                dbConfig.collection_wcGroupControlSession.findOneAndUpdate({
+                                    _id: session._id
+                                },{
+                                    status: constWCSessionStatus.OFFLINE,
+                                    lastUpdateTime: new Date()
+                                })
+                            );
+                        }
+                    }
+                });
+                return Promise.all(updateProm);
+            }
+        })
+    },
     sendWCGroupControlSessionToFPMS: (deviceId, adminId, status, connectionAbnormalClickTimes) => {
         let deviceSettingRecord;
         let adminObjId;
@@ -42,7 +73,8 @@ var dbWCGroupControl = {
                                     connectionAbnormalClickTimes: connectionAbnormalClickTimes
                                 },
                                 csOfficer: adminObjId,
-                                status: status
+                                status: status,
+                                lastActiveTime: new Date()
                             },
                             {new: true}
                         ).lean();
@@ -70,7 +102,8 @@ var dbWCGroupControl = {
                         csOfficer: adminObjId,
                         status: status,
                         platformObjId: deviceSettingRecord.platformObjId,
-                        connectionAbnormalClickTimes: connectionAbnormalClickTimes
+                        connectionAbnormalClickTimes: connectionAbnormalClickTimes,
+                        lastActiveTime: new Date()
                     };
 
                     let wcGroupControlSession = new dbConfig.collection_wcGroupControlSession(newSession);
@@ -275,5 +308,120 @@ var dbWCGroupControl = {
     getWCGroupControlSessionDeviceNickName: (platformId) => {
         return dbConfig.collection_wcGroupControlSession.distinct('deviceNickName', {platformObjId: platformId}).lean();
     },
+
+    getWCGroupControlSessionMonitor: (deviceNickNames, adminIds, index, limit) => {
+        index = index || 0;
+        let match = {};
+        let csOfficerList = [];
+
+        if (deviceNickNames && deviceNickNames.length > 0) {
+            match['deviceNickName'] = {$in: deviceNickNames};
+        }
+
+        if (adminIds && adminIds.length > 0) {
+            adminIds.forEach(x => {
+                csOfficerList.push(ObjectId(x));
+            });
+
+            if (!deviceNickNames.length) {
+                match['csOfficer'] = {$in: csOfficerList};
+            } else {
+                match['$or'] = [{csOfficer: {$eq: null}},
+                    {csOfficer: {$in: csOfficerList}}
+                ]
+            }
+        }
+
+        let adminProm = dbConfig.collection_admin.find({_id: {$in: adminIds}}, {adminName: 1}).lean();
+        let platformProm = dbConfig.collection_platform.find({}, {name:1, platformId: 1}).lean();
+
+        let countWCGroupControlSessionMonitorProm = dbConfig.collection_wcGroupControlSession.aggregate([
+            {
+                $match: match
+            },
+            {
+                $group: {
+                    _id: {platformObjId:'$platformObjId', deviceId: '$deviceId', deviceNickName: '$deviceNickName'},
+                    csOfficer: {$last: '$csOfficer'},
+                    connectionAbnormalClickTimes: {$last: '$connectionAbnormalClickTimes'},
+                    status: {$last: '$status'},
+                    createTime: {$last: '$createTime'},
+                    lastUpdateTime: {$last: '$lastUpdateTime'}
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                        count: { $sum: 1 }
+                }
+            }
+        ]);
+
+        let wcGroupControlSessionMonitorProm = dbConfig.collection_wcGroupControlSession.aggregate([
+            {
+                $match: match
+            },
+            {
+                $group: {
+                    _id: {platformObjId:'$platformObjId', deviceId: '$deviceId', deviceNickName: '$deviceNickName'},
+                    csOfficer: {$last: '$csOfficer'},
+                    connectionAbnormalClickTimes: {$last: '$connectionAbnormalClickTimes'},
+                    status: {$last: '$status'},
+                    createTime: {$last: '$createTime'},
+                    lastUpdateTime: {$last: '$lastUpdateTime'}
+                }
+            },
+            {   $skip: index },
+            {   $limit: limit },
+            {
+                $project: {
+                    _id: 0,
+                    platformObjId: "$_id.platformObjId",
+                    deviceNickName: "$_id.deviceNickName",
+                    csOfficer: 1,
+                    status: 1,
+                    connectionAbnormalClickTimes: 1,
+                    createTime: 1,
+                    lastUpdateTime: 1
+
+                }
+            },
+        ]);
+
+        return Promise.all([countWCGroupControlSessionMonitorProm, wcGroupControlSessionMonitorProm, adminProm, platformProm]).then(
+            data => {
+                let size = 0;
+                let wcGroupSessionRecord = [];
+                let adminRecord = [];
+                let platformRecord = [];
+
+                if (data) {
+                    size = data[0] && data[0][0] && data[0][0].count ? data[0][0].count : 0;
+                    wcGroupSessionRecord =  data[1] ? data[1] : [];
+                    adminRecord = data[2] ? data[2] : [];
+                    platformRecord = data[3] ? data[3] : [];
+
+                    if (wcGroupSessionRecord && wcGroupSessionRecord.length > 0) {
+                        wcGroupSessionRecord.forEach(session => {
+                            let adminIndexNo = adminRecord.findIndex(x => x && x._id && session && session.csOfficer && (x._id.toString() == session.csOfficer.toString()));
+                            let platformIndexNo = platformRecord.findIndex(y => y && y._id && session && session.platformObjId && (y._id.toString() == session.platformObjId.toString()))
+
+                            if (adminIndexNo != -1) {
+                                session.adminName = adminRecord[adminIndexNo].adminName;
+                            }
+
+                            if (platformIndexNo != -1) {
+                                session.platformName = platformRecord[platformIndexNo].name;
+                                session.platformId = platformRecord[platformIndexNo].platformId;
+                            }
+                        });
+
+                    }
+                }
+
+                return {data: wcGroupSessionRecord, size: size};
+            });
+
+    }
 };
 module.exports = dbWCGroupControl;

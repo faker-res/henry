@@ -2,7 +2,7 @@ let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
 
 // demo player details
-let callOutMissionSchema = new Schema({
+let tsCallOutMissionSchema = new Schema({
     // platform
     platform:  {type: Schema.ObjectId, required: true, index: true},
     // adminObjId
@@ -21,4 +21,4 @@ let callOutMissionSchema = new Schema({
     isUsing: {type: Boolean, index: true, default: true}
 });
 
-module.exports = callOutMissionSchema;
+module.exports = tsCallOutMissionSchema;

@@ -52,6 +52,14 @@ function socketActionWCGroupControl(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbWCGroupControl.getWCGroupControlSessionDeviceNickName, [data.platformObjId], actionName, isValidData);
+        },
+
+        getWCGroupControlSessionMonitor: function getWCGroupControlSessionMonitor(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            let index = data.index || 0;
+            let limit = data.limit || 10;
+            socketUtil.emitter(self.socket, dbWCGroupControl.getWCGroupControlSessionMonitor, [data.deviceNickNames, data.adminIds, index, limit], actionName, isValidData);
         }
     };
     socketActionWCGroupControl.actions = this.actions;
