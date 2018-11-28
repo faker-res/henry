@@ -21367,18 +21367,14 @@ console.log('typeof ',typeof gameProviders);
                         break;
                     // bi-weekly
                     case 3:
-                        for (let i = 1; i <= 14; i++) {
+                        for (let i = 1; i <= 16; i++) {
                             value.push({loginDay: i})
                         }
                         break;
                     // monthly
                     case 4:
-                        let noOfDay = utilService.getNumberOfDayThisMonth();
-
-                        if (noOfDay) {
-                            for (let i = 1; i <= noOfDay; i++) {
-                                value.push({loginDay: i})
-                            }
+                        for (let i = 1; i <= 31; i++) {
+                            value.push({loginDay: i})
                         }
                         break;
                 }
