@@ -429,7 +429,9 @@ define(['js/app'], function (myApp) {
                 case 'WORKLOAD REPORT':
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#workloadStartTimePicker', utilService.getNdayagoStartTime(30));
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#workloadEndTimePicker', utilService.getTodayEndTime());
-                    vm.showWorkloadReport = false;
+                    utilService.actionAfterLoaded('#searchWorkloadReport', function () {
+                        $('.spicker').selectpicker('refresh');
+                    });
                     break;
                 case 'RECYCLE_BIN':
                     break;
@@ -464,13 +466,59 @@ define(['js/app'], function (myApp) {
             vm.getTsDistributedPhoneDetail($scope.tsDistributedPhoneObjId);
 
             // Zero dependencies variable
-            [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults] = await Promise.all([
+            [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults, vm.allTsPhoneList] = await Promise.all([
                 commonService.getTSPhoneListName($scope, {platform: vm.selectedPlatform.id}).catch(err => Promise.resolve([])),
                 commonService.getAllDepartmentInfo($scope, vm.selectedPlatform.id, vm.selectedPlatform.data.name).catch(err => Promise.resolve([[], [], []])),
                 commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([])),
+                commonService.getAllTSPhoneList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
             ]);
         };
+
+        vm.initPhoneReminderList = function () {
+            vm.queryAdminPhoneReminderList = {totalCount: 0, sortCol: {assignTimes: 1, endTime: 1}};
+            utilService.actionAfterLoaded("#adminPhoneReminderListTablePage", function () {
+                vm.queryAdminPhoneReminderList.pageObj = utilService.createPageForPagingTable("#adminPhoneReminderListTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "queryAdminPhoneReminderList", vm.searchAdminPhoneReminderList)
+                });
+
+                setTimeout(()=>{vm.searchAdminPhoneReminderList(true)},1000)
+            });
+        }
+
+        vm.searchAdminPhoneReminderList = function (newSearch) {
+
+            console.log('vm.queryAdminPhoneReminderList', vm.queryAdminPhoneReminderList);
+
+            var sendObj = {
+                platform: vm.selectedPlatform.id,
+                admin: authService.adminId,
+                index: newSearch ? 0 : (vm.queryAdminPhoneReminderList.index || 0),
+                limit: vm.queryAdminPhoneReminderList.limit || 10,
+                sortCol: vm.queryAdminPhoneReminderList.sortCol || {assignTimes: 1, endTime: 1}
+
+            }
+
+            socketService.$socket($scope.AppSocket, 'getAdminPhoneReminderList', sendObj, function (data) {
+                console.log('getAdminPhoneReminderList', data);
+                vm.queryAdminPhoneReminderList.totalCount = data.data.size;
+                vm.drawAdminPhoneList(
+                    data.data.data.map(item => {
+                        if (item.tsPhone && item.tsPhone.phoneNumber) {
+                            item.encodedPhoneNumber$ = utilService.encodePhoneNum(item.tsPhone.phoneNumber);
+                        }
+                        item.startTime$ = utilService.getFormatTime(item.startTime);
+                        let endDate = utilService.setNDaysAgo(new Date(item.endTime), 1); // endTime in DB store end time of day
+                        let daysDiff = Math.abs(endDate.getTime() - new Date().getTime());
+                        item.reclaimDaysLeft$ = Math.ceil(daysDiff / (1000 * 3600 * 24));
+
+                        return item;
+                    }), data.data.size, {}, newSearch, true);
+                $scope.$evalAsync();
+            }, function (err) {
+                console.log(err);
+            }, true);
+        }
 
         vm.searchAdminPhoneList = function (newSearch) {
 
@@ -497,8 +545,6 @@ define(['js/app'], function (myApp) {
                 assignTimes: vm.queryAdminPhoneList.assignTimes,
                 assignTimesTwo: vm.queryAdminPhoneList.assignTimesTwo,
                 isFilterDangerZone: vm.queryAdminPhoneList.isFilterDangerZone,
-
-
                 index: newSearch ? 0 : (vm.queryAdminPhoneList.index || 0),
                 limit: vm.queryAdminPhoneList.limit || 10,
                 sortCol: vm.queryAdminPhoneList.sortCol || {assignTimes: 1, endTime: 1}
@@ -514,10 +560,10 @@ define(['js/app'], function (myApp) {
                         if (item.tsPhone && item.tsPhone.phoneNumber) {
                             item.encodedPhoneNumber$ = utilService.encodePhoneNum(item.tsPhone.phoneNumber);
                         }
-                            item.startTime$ = utilService.getFormatTime(item.startTime);
-                            let endDate = utilService.setNDaysAgo(new Date(item.endTime), 1); // endTime in DB store end time of day
-                            let daysDiff = Math.abs(endDate.getTime() - new Date().getTime());
-                            item.reclaimDaysLeft$ = Math.ceil(daysDiff / (1000 * 3600 * 24));
+                        item.startTime$ = utilService.getFormatTime(item.startTime);
+                        let endDate = utilService.setNDaysAgo(new Date(item.endTime), 1); // endTime in DB store end time of day
+                        let daysDiff = Math.abs(endDate.getTime() - new Date().getTime());
+                        item.reclaimDaysLeft$ = Math.ceil(daysDiff / (1000 * 3600 * 24));
 
                         return item;
                     }), data.data.size, {}, newSearch
@@ -529,10 +575,19 @@ define(['js/app'], function (myApp) {
             }, true);
         }
 
-        vm.drawAdminPhoneList = function (data, size, summary, newSearch) {
+
+        vm.drawAdminPhoneList = function (data, size, summary, newSearch, isReminderTable) {
+            let objKey = "queryAdminPhoneList";
+            let tableId = "#adminPhoneListTable";
+            let searchFunc = "searchAdminPhoneList";
+            if (isReminderTable) {
+                objKey = "queryAdminPhoneReminderList";
+                tableId = "#adminPhoneReminderListTable";
+                searchFunc = "searchAdminPhoneReminderList";
+            }
             var tableOptions = {
                 data: data,
-                "order": vm.queryAdminPhoneList.aaSorting ,
+                "order": vm[objKey].aaSorting ,
                 aoColumnDefs: [
                     // {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
                     // {'sortCol': 'data.amount', bSortable: true, 'aTargets': [13]},
@@ -659,15 +714,14 @@ define(['js/app'], function (myApp) {
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.adminPhoneListTable = $('#adminPhoneListTable').DataTable(tableOptions);
 
-            utilService.createDatatableWithFooter('#adminPhoneListTable', tableOptions, {});
-            vm.queryAdminPhoneList.pageObj.init({maxCount: size}, newSearch);
+            utilService.createDatatableWithFooter(tableId, tableOptions, {});
+            vm[objKey].pageObj.init({maxCount: size}, newSearch);
 
-            $('#adminPhoneListTable').off('order.dt');
-            $('#adminPhoneListTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'queryAdminPhoneList', vm.searchAdminPhoneList);
+            $(tableId).off('order.dt');
+            $(tableId).on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, objKey, vm[searchFunc]);
             });
-            $('#adminPhoneListTable').resize();
-
+            $(tableId).resize();
         }
 
         vm.showSelectedCredibility = function () {
@@ -6105,12 +6159,67 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.filterWorkloadReport = () => {
+            vm.workloadResult = null;
+            vm.workloadSearch.phoneListNames = [];
+            vm.workloadSearch.phoneLists = vm.workloadSearch.phoneLists || [];
+            vm.workloadSearch.startTime = $('#workloadStartTimePicker').data('datetimepicker').getLocalDate();
+            vm.workloadSearch.endTime = $('#workloadEndTimePicker').data('datetimepicker').getLocalDate();
+            if(vm.workloadSearch.phoneLists.length > 0) {
+                vm.workloadSearch.phoneLists.forEach(needle => {
+                    vm.allTsPhoneList.forEach(haystack => {
+                        if (needle == haystack._id) {
+                            vm.workloadSearch.phoneListNames.push(haystack.name);
+                        }
+                    })
+                });
+            }
+            let sendQuery = {
+                platformObjId: vm.selectedPlatform.id,
+                phoneListObjIds: vm.workloadSearch.phoneLists || [],
+                adminObjIds: vm.workloadSearch.admins || [],
+                startTime: vm.workloadSearch.startTime,
+                endTime: vm.workloadSearch.endTime
+            };
 
-        vm.tsShowWorkloadReport = function () {
-            vm.showWorkloadReport = true;
-        }
-
-        
+            console.log("getTsWorkloadReport send", sendQuery);
+            socketService.$socket($scope.AppSocket, 'getTsWorkloadReport', sendQuery, function (data) {
+                console.log("getTsWorkloadReport ret", data);
+                $scope.$evalAsync(() => {
+                    vm.workloadResult = {};
+                    vm.workloadResultSummary = [];
+                    if(data.data) {
+                        vm.workloadResult = data.data;
+                        for(let assigneeObjId in vm.workloadResult) {
+                            let row = {
+                                distributed: 0,
+                                fulfilled: 0,
+                                success: 0,
+                                registered: 0
+                            };
+                            let assignee = vm.workloadResult[assigneeObjId];
+                            for(let phoneList in assignee) {
+                                row.adminObjId = assignee[phoneList].adminId;
+                                row.adminName = assignee[phoneList].adminName;
+                                row.distributed += assignee[phoneList].distributed;
+                                row.fulfilled += assignee[phoneList].fulfilled;
+                                row.success += assignee[phoneList].success;
+                                row.registered += assignee[phoneList].registered;
+                            }
+                            vm.workloadResultSummary.push(row);
+                        }
+                    }
+                })
+            });
+        };
+        vm.populateWorkloadResultDetail = (adminObjId) => {
+            vm.workloadResultDetail = vm.workloadResult[adminObjId];
+            vm.workloadResultSummary.forEach(summary => {
+                if(summary.adminObjId == adminObjId) {
+                    vm.workloadResultDetailSums = summary;
+                }
+            });
+        };
 
         vm.showAssignmentStatusDetail = (tsPhoneListObjId) => {
             vm.currentPhoneListObjId = tsPhoneListObjId;
@@ -6544,21 +6653,17 @@ define(['js/app'], function (myApp) {
                 vm.commonSortChangeHandler(a, 'phoneListSearch', vm.getTeleMarketingOverview);
             });
             $('#phoneListManagementTable').resize();
-        }
-
-
-
+        };
 
         vm.distributePhoneNumber = (tsListObjId) => {
             socketService.$socket($scope.AppSocket, 'distributePhoneNumber', {platform: vm.selectedPlatform.id, tsListObjId: tsListObjId}, function (data) {
                 console.log("distributePhoneNumber", data)
             })
-        }
-
+        };
 
         vm.tsAnalyticsPhoneListEdit = () => {
             vm.analyticsPhoneListEdit = false;
-        }
+        };
 
         vm.checkAnalyticsFilterAndImportSystem = () => {
             vm.checkFilterIsDisable = true;

@@ -732,6 +732,99 @@ var dbDepartment = {
                 }
             }
         )
+    },
+
+    getWCDepartmentDetailByPlatformObjId: (platformObjId, adminObjId) => {
+        let departments = [];
+        return dbconfig.collection_admin.findOne({_id: adminObjId}).lean().then(
+            adminData => {
+                if (adminData && adminData.departments && adminData.departments.length > 0) {
+                    return dbconfig.collection_department.find({$or: [{_id: {$in: adminData.departments}}, {parent: {$in: adminData.departments}}]}).lean().then(
+                        data => {
+                            let prom = Promise.resolve(true);
+                            let parentDepartmentIds = [];
+                            departments = data;
+
+                            let departmentsTree = [];
+                            function getSubDepartment(departmentIds) {
+                                let subDepartmentIds = [];
+                                return dbconfig.collection_department.find({_id: {$in:departmentIds}}).then(
+                                    departmentData => {
+                                        if (departmentData && departmentData.length > 0){
+                                            departmentData.forEach(subDep => {
+                                                departmentsTree.push(subDep);
+                                                if(subDep.children && subDep.children.length > 0){
+                                                    subDepartmentIds.push.apply(subDepartmentIds, subDep.children);
+                                                }
+                                            });
+
+                                            if(subDepartmentIds && subDepartmentIds.length > 0) {
+                                                return getSubDepartment(subDepartmentIds);
+                                            }
+
+                                            return departmentsTree;
+                                        }
+                                    }
+                                )
+                            }
+
+                            data.forEach(department => {
+                                if (department && department.children && department.children.length > 0) {
+                                    parentDepartmentIds.push.apply(parentDepartmentIds, department.children);
+                                }
+                            });
+
+
+                            if (parentDepartmentIds && parentDepartmentIds.length > 0) {
+                                prom = getSubDepartment(parentDepartmentIds);
+                            }
+
+                            return prom;
+                        }
+                    ).then(data => {
+                        if (data && data.length > 0) {
+                            data.forEach(subDepartment => {
+                                if (subDepartment && subDepartment._id) {
+                                    let indexNo = departments.findIndex(x => x && x._id &&  x._id.toString() == subDepartment._id.toString());
+                                    if(indexNo == -1){
+                                        departments.push(subDepartment);
+                                    }
+                                }
+                            });
+                        }
+
+                        return departments;
+                    });
+                }
+            }
+        )
+    },
+
+    getWCAdminDetailByDepartmentIds: (departmentObjIds) => {
+        departmentObjIds = departmentObjIds.map(x => ObjectId(x));
+        let userList = [];
+        return dbconfig.collection_department.find({_id: {$in: departmentObjIds}}).populate({
+            path: "users",
+            model: dbconfig.collection_admin
+        }).lean().then(departmentData => {
+            if (departmentData && departmentData.length > 0) {
+                departmentData.forEach(department => {
+                    if (department && department.users && department.users.length > 0) {
+                        department.users.forEach(user => {
+                            if (user && user._id) {
+                                let indexNo = userList.findIndex(x => x && x._id && x._id.toString() == user._id.toString());
+
+                                if (indexNo == -1) {
+                                    userList.push(user);
+                                }
+                            }
+                        })
+                    }
+                });
+            }
+
+            return userList;
+        });
     }
 
 };

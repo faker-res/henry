@@ -349,14 +349,14 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                 .state('monitor.wechatGroup', {
                     url: '/wechatGroup',
                     templateUrl: 'category/monitor/monitor-wechat-group',
-                    controller: 'monitorPaymentCtrl',
+                    controller: 'monitorWechatCtrl',
                     controllerAs: 'vm',
                     resolve: {
                         load: function ($q, $rootScope) {
                             var deferred = $q.defer();
 
                             var dependencies = [
-                                "/js/controllers/monitorPaymentController.js"
+                                "/js/controllers/monitorWechatController.js"
                             ];
 
                             require(dependencies, function () {

@@ -853,7 +853,7 @@ var dbPlatform = {
                         },
                         {
                             $pull: {gameProviders: providerObjId},
-                            $unset: {'gameProviderInfo': '' + providerObjId}
+                            // $unset: {'gameProviderInfo': '' + providerObjId}
                         }
                     ).exec();
                 }
