@@ -86,7 +86,7 @@ define(['js/app'], function (myApp) {
             }else if(window.location.pathname == "/monitor/paymentTotal"){
                 vm.seleDataType["PAYMENT_MONITOR_TOTAL"] = 'bg-bright';
                 vm.showPlatformList = false;
-            }else if(Object.keys(vm.seleDataType).length === 2 && window.location.pathname != "/monitor/paymentTotal") {
+            }else if(window.location.pathname == "/monitor/wechatGroup") {
                 vm.seleDataType["WECHAT_GROUP_CONTROL_MONITOR"] = 'bg-bright';
                 vm.showPlatformList = false;
             }
