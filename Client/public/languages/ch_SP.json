@@ -3097,10 +3097,6 @@
   "Realname should be chinese character": "真实姓名必须为汉字",
   "There is consumption after top up": "玩家充值后已投注",
   "There is withdrawal after top up": "玩家充值后已提款",
-  "This IP address has applied for the reward in event period": "已有相同的IP申请u过了此优惠",
-  "This phone number has applied for the reward in event period": "已有相同的电话号码申请过了此优惠",
-  "This mobile device has applied for the reward in event period": "已有相同的移动设备申请过了此优惠",
-  "This player has applied for the reward in event period": "玩家已申请过了此优惠",
   "Player does not have valid merchant data": "玩家没有有效的商户信息",
   "Please login and try again": "请登陆账号后再试",
   "Invalid SMS Validation Code": "验证码已过期，请重新获取验证码",
@@ -3820,6 +3816,8 @@
   "MY EVALUATION": "我的评估",
   "CS REPORT": "客服报表",
   "INSPECTION REPORT": "质检报表",
+  "WECHAT CONVERSATION RECORD": "微信对话记录",
+  "WechatConversationRecord": "微信对话记录",
   "UNREAD EVALUATION": "未读评估",
   "READ EVALUATION": "已读评估",
   "APPEAL EVALUATION": "申诉评估",
@@ -4142,6 +4140,7 @@
   "PERFECTLY_COMPLETED": "完美结束（进回收桶)",
   "FORCE_COMPLETED": "强制结束（进回收桶)",
   "DECOMPOSED": "已分解",
+  "All Phone Lists":"全部名单",
 
   "PLAYER CAN RECEIVE MONEY FROM THE BANK":"玩家可用收款银行",
   "ONLINE BANK NAME":"网银-姓名",
@@ -4960,5 +4959,14 @@
   "createUpdatePlayerInfoLevelProposal": "编辑玩家等级",
   "attachDetachRolesFromUsersById": "编辑玩家角色",
   "Manual Approval": "人工审核",
-  "approveCsPendingAndChangeStatus": "客服审核"
+  "approveCsPendingAndChangeStatus": "客服审核",
+  "wechatReceivingPlayer": "收话玩家",
+  "hour(s)": "小时",
+  "minute(s)": "分钟",
+  "No first attempt login": "无-尚未首次登入",
+  "Green light is on(Online)": "绿灯开(在线)",
+  "Red light is on(Offline)": "红灯关(离线)",
+  "Time(s)": "次",
+  "7 Day(s) History": "7 日历史",
+  "* Offline status shows the last connection data": "* 离线状态则显示上次连线数据"
 }

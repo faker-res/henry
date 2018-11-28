@@ -2549,6 +2549,106 @@ var dbQualityInspection = {
         }
     },
 
+    getWechatDeviceNickNameList: function(platformList){
+        let query = {};
+
+        if(platformList){
+            query.platformObjId = {$in: platformList};
+        }
+
+        return dbconfig.collection_wcConversationLog.distinct('deviceNickName', query).lean();
+    },
+
+    getWechatConversationDeviceList: function(platform, deviceNickName, csName, startTime, endTime, content){
+        if(!deviceNickName || deviceNickName.length <=0){
+            return Promise.reject({name: "DataError", message: "Device Nickname not found"});
+        }
+
+        let csOfficerProm = [];
+        let checkCSOfficer = false;
+        let query = {
+            deviceNickName: {$in: deviceNickName},
+            csReplyTime: {'$lte':new Date(endTime),
+                '$gte': new Date(startTime)}
+        };
+        let platformQuery = {};
+
+        if(platform && platform.length > 0){
+            query.platformObjId = {$in: platform.map(p => ObjectId(p))};
+            platformQuery._id = {$in: platform};
+        }
+
+        if(csName && csName.length > 0){
+            csOfficerProm = dbconfig.collection_admin.find({adminName: {$in: csName}}).lean();
+            checkCSOfficer = true;
+        }
+
+        if(content){
+            query.csReplyContent = new RegExp('.*' + content + '.*')
+        }
+
+        return Promise.all([csOfficerProm]).then(
+            csOfficer => {
+                if(csOfficer && csOfficer.length > 0 && csOfficer[0] && csOfficer[0].length > 0){
+                    let csOfficerIdList = [];
+
+                    csOfficer[0].forEach(cs => {
+                        if(cs && cs._id){
+                            csOfficerIdList.push(cs._id);
+                        }
+                    });
+
+                    query.csOfficer = {$in: csOfficerIdList};
+                }else if(checkCSOfficer){
+                    query.csOfficer = [];
+                }
+
+                return;
+            }
+        ).then(
+            () => {
+                let platformProm = dbconfig.collection_platform.find(platformQuery).lean();
+                let dataProm = dbconfig.collection_wcConversationLog.aggregate(
+                    {$match: query},
+                    {
+                        "$group": {
+                            "_id": {
+                                "platformObjId": "$platformObjId",
+                                "deviceId": "$deviceId",
+                                "playerWechatRemark": "$playerWechatRemark"
+                            },
+                            "count": {"$sum": 1},
+                        }
+                    }
+                ).read("secondaryPreferred");
+                let sizeProm = dbconfig.collection_wcConversationLog.find(query).count();
+
+                return Promise.all([platformProm, dataProm, sizeProm]);
+            }
+        ).then(
+            result => {
+                if(result && result.length > 2){
+                    let size = result[2] || 0;
+                    let platformDetails = result[0];
+                    let deviceList = result[1];
+
+                    deviceList.forEach(device => {
+                        if(device && device._id && device._id.platformObjId){
+                            let platformIndex = platformDetails.findIndex(p => p._id.toString() == device._id.platformObjId.toString());
+
+                            if(platformIndex > -1){
+                                device._id.platformName = platformDetails[platformIndex].name || "";
+                            }else{
+                                device._id.platformName = "";
+                            }
+                        }
+                    });
+
+                    return {data: deviceList, size: size};
+                }
+            }
+        )
+    }
 
 
 };

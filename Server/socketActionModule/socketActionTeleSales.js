@@ -48,7 +48,13 @@ function socketActionTeleSales(socketIO, socket) {
         let actionName = arguments.callee.name;
         let isValidData = Boolean(data && data.platform && data.admin);
         socketUtil.emitter(self.socket, dbTeleSales.getAdminPhoneList, [data, data.index, data.limit, data.sortCol], actionName, isValidData);
-    },
+        },
+
+        getAdminPhoneReminderList: function getAdminPhoneReminderList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform && data.admin);
+            socketUtil.emitter(self.socket, dbTeleSales.getAdminPhoneReminderList, [data, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
 
         getTSPhoneListName: function getTSPhoneListName(data) {
             let actionName = arguments.callee.name;
@@ -138,6 +144,12 @@ function socketActionTeleSales(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.adminNames && data.adminNames.length > 0);
             socketUtil.emitter(self.socket, dbTeleSales.getDistributionDetails, [data.platformObjId, data.tsPhoneListObjId, data.adminNames], actionName, isValidData);
+        },
+
+        getTsWorkloadReport: function getTsWorkloadReport(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.phoneListObjIds && data.startTime && data.endTime && data.adminObjIds);
+            socketUtil.emitter(self.socket, dbTeleSales.getTsWorkloadReport, [data.platformObjId, data.phoneListObjIds, data.startTime, data.endTime, data.adminObjIds], actionName, isValidData);
         }
 
     };
