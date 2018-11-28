@@ -7734,7 +7734,7 @@ define(['js/app'], function (myApp) {
                     ],
                     columns: [
                         {title: $translate('LOGIN_TIME'), data: "loginTime$"},
-                        {title: $translate('IP_ADDRESS'), data: "loginIp"}
+                        {title: $translate('IP_ADDRESS'), data: "loginIP"}
                     ],
                     "paging": false,
                 });
