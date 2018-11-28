@@ -18,7 +18,7 @@ let dbTeleSales = {
     },
 
     getAdminPhoneList: function (query, index, limit, sortObj) {
-        limit = limit ? limit : 20;
+        limit = limit ? limit : 10;
         index = index ? index : 0;
 
         let phoneListProm = Promise.resolve();
@@ -144,8 +144,54 @@ let dbTeleSales = {
                 return {data: tsDistributePhone, size: tsDistributePhoneCount};
             }
         )
+    },
 
+    getAdminPhoneReminderList: function (query, index, limit, sortObj) {
+        limit = limit ? limit : 10;
+        index = index ? index : 0;
 
+        return dbconfig.collection_tsDistributedPhone.aggregate([
+            {
+                $match: {
+                    platform: ObjectId(query.platform),
+                    assignee: ObjectId(query.admin),
+                    remindTime: {$lte: new Date()},
+                    startTime: {$lt: new Date()},
+                    endTime: {$gte: new Date()}
+                }
+            },
+            {
+                $group: {
+                    _id: "$_id"
+                }
+            }
+        ]).read("secondaryPreferred").then(
+            data => {
+                if (!(data && data.length)) {
+                    return [];
+                }
+                let tsDistributedPhoneObjId = data.map(tsDistributedPhone => tsDistributedPhone._id);
+                let phoneListQuery = {_id: {$in: tsDistributedPhoneObjId}};
+                let tsDistributePhoneCountProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).count();
+                let tsDistributePhoneProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).sort(sortObj).sort(sortObj).skip(index).limit(limit)
+                    .populate({path: 'tsPhoneList', model: dbconfig.collection_tsPhoneList, select: "name"})
+                    .populate({path: 'tsPhone', model: dbconfig.collection_tsPhone}).lean();
+
+                return Promise.all([tsDistributePhoneCountProm, tsDistributePhoneProm]);
+
+            }
+        ).then(
+            ([tsDistributePhoneCount, tsDistributePhone]) => {
+                if (tsDistributePhone && tsDistributePhone.length) {
+                    tsDistributePhone.forEach(distributePhone => {
+                        if (distributePhone.tsPhone.phoneNumber) {
+                            distributePhone.tsPhone.phoneNumber = rsaCrypto.decrypt(distributePhone.tsPhone.phoneNumber)
+                        }
+                    })
+                }
+                return {data: tsDistributePhone, size: tsDistributePhoneCount};
+            }
+        );
     },
 
     createTsPhonePlayerFeedback: function (inputData) {
@@ -454,7 +500,9 @@ let dbTeleSales = {
                 $match: {
                     platform: ObjectId(platform),
                     assignee: ObjectId(assignee),
-                    remindTime: {$lte: new Date()}
+                    remindTime: {$lte: new Date()},
+                    startTime: {$lt: new Date()},
+                    endTime: {$gte: new Date()}
                 }
             },
             {
