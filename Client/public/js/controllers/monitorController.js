@@ -77,11 +77,12 @@ define(['js/app'], function (myApp) {
 
 
         vm.loadPage = function (choice) {
+            $('#wechatGroupControlMonitor').hide();
             if(choice){
                 socketService.clearValue();
                 vm.seleDataType = {};
                 vm.seleDataType[choice] = 'bg-bright';
-            }else if(Object.keys(vm.seleDataType).length === 0 && window.location.pathname != "/monitor/paymentTotal"){
+            }else if(Object.keys(vm.seleDataType).length === 0 && window.location.pathname != "/monitor/paymentTotal" && window.location.pathname != "/monitor/wechatGroup"){
                 vm.seleDataType["PAYMENT_MONITOR"] = 'bg-bright';
             }else if(window.location.pathname == "/monitor/paymentTotal"){
                 vm.seleDataType["PAYMENT_MONITOR_TOTAL"] = 'bg-bright';

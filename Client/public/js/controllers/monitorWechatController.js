@@ -85,6 +85,7 @@ define(['js/app'], function (myApp) {
 
         vm.loadPage = function () {
             socketService.clearValue();
+            $('#wechatGroupControlMonitor').show();
             $('#autoRefreshWechatFlag')[0].checked = true;
             vm.lastWechatRefresh = utilService.$getTimeFromStdTimeFormat();
             vm.wechatGroupControlMonitorQuery = {};
