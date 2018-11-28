@@ -8,6 +8,9 @@ let wcConversationLogSchema = new Schema({
     // wcGroupControl deviceId
     deviceId: {type: String, required: true, index: true},
 
+    // wcGroupControl device nickname
+    deviceNickName: {type: String, required: true, index: true},
+
     // Platform
     platformObjId: {type: Schema.Types.ObjectId, ref: 'platform', required: true, index: true},
 

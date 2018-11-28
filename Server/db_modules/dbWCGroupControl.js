@@ -29,7 +29,7 @@ var dbWCGroupControl = {
 
                 deviceSettingRecord = deviceSetting;
 
-                return dbConfig.collection_wcGroupControlSession.findOne({deviceId: deviceSettingRecord.deviceId, platformObjId: deviceSettingRecord.platformObjId, lastUpdateTime: {$exists: false}}).lean();
+                return dbConfig.collection_wcGroupControlSession.findOne({deviceId: deviceSettingRecord.deviceId, deviceNickName: deviceSettingRecord.deviceNickName, platformObjId: deviceSettingRecord.platformObjId, lastUpdateTime: {$exists: false}}).lean();
             }
         ).then(
             wcGroupControlSessionData => {
@@ -66,6 +66,7 @@ var dbWCGroupControl = {
                     // create new session if detect lastUpdateTime being updated
                     let newSession = {
                         deviceId: deviceId,
+                        deviceNickName: deviceSettingRecord.deviceNickName,
                         csOfficer: adminObjId,
                         status: status,
                         platformObjId: deviceSettingRecord.platformObjId,
@@ -87,6 +88,7 @@ var dbWCGroupControl = {
                     let conversation = {
                         wcGroupControlSessionId: wcGroupControlSessionData._id,
                         deviceId: wcGroupControlSessionData.deviceId,
+                        deviceNickName: wcGroupControlSessionData.deviceNickName,
                         platformObjId: wcGroupControlSessionData.platformObjId,
                         csOfficer: wcGroupControlSessionData.csOfficer,
                         playerWechatRemark: playerWechatRemark.trim(),
@@ -211,8 +213,8 @@ var dbWCGroupControl = {
             .populate({path: 'lastUpdateAdmin', model: dbConfig.collection_admin, select: "adminName"}).sort({_id:1}).lean();
     },
 
-    getWCDeviceByPlatformId: (platformId) => {
-        return dbConfig.collection_wcDevice.find({platformObjId: platformId}).lean();
+    getWCGroupControlSessionDeviceNickName: (platformId) => {
+        return dbConfig.collection_wcGroupControlSession.distinct('deviceNickName', {platformObjId: platformId}).lean();
     },
 };
 module.exports = dbWCGroupControl;

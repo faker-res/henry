@@ -2226,12 +2226,13 @@ define(['js/app'], function (myApp) {
                 var sendQuery = {
                     platformId: vm.selectedPlatform.data.platformId,
                     providerId: providerId,
-                    startDate: startTime,
-                    endDate: endTime
+                    startTime: startTime,
+                    endTime: endTime
                 };
                 // modify the date to cpms datetime format -> "2018-11-07 02:00:00"
-                sendQuery.startDate = sendQuery.startDate.replace("/", "-");
-                sendQuery.endDate = sendQuery.endDate.replace("/", "-");
+                sendQuery.startTime = sendQuery.startTime.replace(/\//g, '-');
+                sendQuery.endTime = sendQuery.endTime.replace(/\//g, '-');
+
                 vm.providerDiffConsumption[providerId] = vm.resetProviderConsumptRecord(index, providerId);
                 vm.providerDiffConsumption[providerId].status = 3;
 

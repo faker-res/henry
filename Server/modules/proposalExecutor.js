@@ -4781,7 +4781,7 @@ function sendMessageToPlayer (proposalData,type,metaDataObj) {
     //type that need to add 'Success' status
     let needSendMessageRewardTypes = [constRewardType.PLAYER_PROMO_CODE_REWARD, constRewardType.PLAYER_CONSUMPTION_RETURN, constRewardType.PLAYER_LIMITED_OFFERS_REWARD,constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
         constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
-        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,constRewardType.PLAYER_LEVEL_UP
+        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,constRewardType.PLAYER_LEVEL_UP, constRewardType.PLAYER_RETENTION_REWARD_GROUP
     ];
 
     // type reference to constMessageType or constMessageTypeParam.name

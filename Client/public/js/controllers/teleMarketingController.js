@@ -30,6 +30,7 @@ define(['js/app'], function (myApp) {
         vm.createTaskResult = '';
         vm.editTaskResult = '';
         vm.phoneListSearch = {};
+        vm.workloadSearch = {};
         vm.checkFilterIsDisable = true;
 
         vm.updatePageTile = function () {
@@ -426,6 +427,9 @@ define(['js/app'], function (myApp) {
                     vm.autoRefreshTsDistributedPhoneReminder();
                     break;
                 case 'WORKLOAD REPORT':
+                    commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#workloadStartTimePicker', utilService.getNdayagoStartTime(30));
+                    commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#workloadEndTimePicker', utilService.getTodayEndTime());
+                    vm.showWorkloadReport = false;
                     break;
                 case 'RECYCLE_BIN':
                     break;
@@ -6152,6 +6156,13 @@ define(['js/app'], function (myApp) {
             });
         };
 
+
+        vm.tsShowWorkloadReport = function () {
+            vm.showWorkloadReport = true;
+        }
+
+        
+
         vm.showAssignmentStatusDetail = (tsPhoneListObjId) => {
             vm.currentPhoneListObjId = tsPhoneListObjId;
             vm.allowDistributionSettingsEdit = false;
@@ -6585,6 +6596,9 @@ define(['js/app'], function (myApp) {
             });
             $('#phoneListManagementTable').resize();
         }
+
+
+
 
         vm.distributePhoneNumber = (tsListObjId) => {
             socketService.$socket($scope.AppSocket, 'distributePhoneNumber', {platform: vm.selectedPlatform.id, tsListObjId: tsListObjId}, function (data) {

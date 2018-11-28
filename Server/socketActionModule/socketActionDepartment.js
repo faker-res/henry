@@ -230,7 +230,19 @@ function socketActionDepartment(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data && data.departmentObjId);
             socketUtil.emitter(self.socket, dbDepartment.getDepartmentById, [data.departmentObjId, data.departmentIds], actionName, isDataValid);
-        }
+        },
+
+        getWCDepartmentDetailByPlatformObjId: function getWCDepartmentDetailByPlatformObjId(data) {
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.platformObjId && data.adminId);
+            socketUtil.emitter(self.socket, dbDepartment.getWCDepartmentDetailByPlatformObjId, [data.platformObjId, data.adminId], actionName, isDataValid);
+        },
+
+        getWCAdminDetailByDepartmentIds: function getWCAdminDetailByDepartmentIds(data) {
+            let actionName = arguments.callee.name;
+            let isDataValid = Boolean(data && data.departmentObjIds);
+            socketUtil.emitter(self.socket, dbDepartment.getWCAdminDetailByDepartmentIds, [data.departmentObjIds], actionName, isDataValid);
+        },
     };
 
     socketActionDepartment.actions = this.actions;

@@ -140,15 +140,16 @@ var dbLogger = {
                     return dbconfig.collection_players.findOne({playerId: adminActionRecordData.data[1]}, {name: 1});
                 }else if(adminActionRecordData.action == 'applyWechatPayTopUpRequest' && adminActionRecordData.data[2]){
                     return dbconfig.collection_players.findOne({playerId: adminActionRecordData.data[2]}, {name: 1});
-                }else if(adminActionRecordData.action == 'unlockRewardTaskInRewardTaskGroup' && adminActionRecordData.data[6]){
-                    return dbconfig.collection_players.findOne({playerId: adminActionRecordData.data[6]}, {name: 1});
+                }else if(adminActionRecordData.action == 'createRewardTaskGroupUnlockedRecord' && adminActionRecordData.data[0] && adminActionRecordData.data[0].playerId){
+                    return dbconfig.collection_players.findOne({_id: adminActionRecordData.data[0].playerId}, {name: 1});
                 }else if(adminActionRecordData.action == 'updatePlayerRewardPointsRecord' && adminActionRecordData.data[0]){
                     return dbconfig.collection_players.findOne({_id: adminActionRecordData.data[0]}, {name: 1});
                 }else if((adminActionRecordData.action == 'createUpdatePlayerRealNameProposal' || adminActionRecordData.action == 'createUpdatePlayerInfoLevelProposal') && adminActionRecordData.data[2] && adminActionRecordData.data[2].playerId){
                     return dbconfig.collection_players.findOne({playerId: adminActionRecordData.data[2].playerId}, {name: 1});
                 }else if(adminActionRecordData.action == 'createUpdatePartnerRealNameProposal' && adminActionRecordData.data[2] && adminActionRecordData.data[2].partnerId){
                     return dbconfig.collection_partner.findOne({partnerId: adminActionRecordData.data[2].partnerId}, {partnerName: 1});
-                }else if(adminActionRecordData.action == 'updateProposalProcessStep' && adminActionRecordData.data[0]){
+                }else if((adminActionRecordData.action == 'updateProposalProcessStep' || adminActionRecordData.action == 'approveCsPendingAndChangeStatus')
+                    && adminActionRecordData.data[0]){
                     return dbconfig.collection_proposal.findOne({_id: adminActionRecordData.data[0]}, {proposalId: 1})
                 }else if(adminActionRecordData.action == 'attachDetachRolesFromUsersById' && adminActionRecordData.data[0]){
                     let adminProm, attachedRoleProm, detachedRoleProm = Promise.resolve();
@@ -688,38 +689,41 @@ var dbLogger = {
 
                     adminActionRecordData.error = '批量设置账号' + adminActionRecordData.data[2] + '，设置内容' + credibilityRemark;
                 }else if(logAction == 'applyManualTopUpRequest' && data && data.name){
-                    adminActionRecordData.error = '会员帐号： ' + data.name;
+                    adminActionRecordData.error = '会员帐号： ' + data.name + "; 提案号： " + resultData.proposalId || "";
                     adminActionRecordData.platforms = adminActionRecordData.data[9] ? adminActionRecordData.data[9] : adminActionRecordData.platforms;
                 }else if((logAction == 'applyAlipayTopUpRequest' || logAction == 'applyWechatPayTopUpRequest') && data && data.name){
-                    adminActionRecordData.error = '会员帐号： ' + data.name;
+                    adminActionRecordData.error = '会员帐号： ' + data.name + "; 提案号： " + resultData.proposalId || "";
                     adminActionRecordData.platforms = adminActionRecordData.data[17] && adminActionRecordData.data[17].platform ? adminActionRecordData.data[17].platform : adminActionRecordData.platforms;
                 }else if(logAction == 'applyBonusRequest' && data && data.name){
-                    adminActionRecordData.error = '会员帐号： ' + data.name;
+                    adminActionRecordData.error = '会员帐号： ' + data.name + "; 提案号： " + resultData.proposalId || "";
                     adminActionRecordData.platforms = adminActionRecordData.data[7] ? adminActionRecordData.data[7] : adminActionRecordData.platforms;
                 }else if(logAction == 'applyRewardEvent' && adminActionRecordData.data[2]){
                     adminActionRecordData.error = '优惠: ' + adminActionRecordData.data[2]+ ' 会员帐号： ' + data.name;
                     adminActionRecordData.platforms = adminActionRecordData.data[6] ? adminActionRecordData.data[6] : adminActionRecordData.platforms;
                 }else if(logAction == 'createPlayerRewardTask' && adminActionRecordData.data[0].playerName && adminActionRecordData.data[0].platformId){
-                    adminActionRecordData.error = ' 会员帐号： ' + adminActionRecordData.data[0].playerName
+                    adminActionRecordData.error = ' 会员帐号： ' + adminActionRecordData.data[0].playerName + "; 提案号： " + resultData.proposalId || "";
                     adminActionRecordData.platforms = adminActionRecordData.data[0].platformId ? adminActionRecordData.data[0].platformId : adminActionRecordData.platforms;
-                }else if(logAction == 'unlockRewardTaskInRewardTaskGroup' && data && data.name){
-                    adminActionRecordData.error = '会员帐号： ' + data.name;
-                    adminActionRecordData.platforms = adminActionRecordData.data[5] ? adminActionRecordData.data[5] : adminActionRecordData.platforms;
+                }else if(logAction == 'createRewardTaskGroupUnlockedRecord' && data && data.name){
+                    adminActionRecordData.error = '会员帐号： ' + data.name + "; 提案号： " + adminActionRecordData.data[0].proposalNumber || "";
+                    adminActionRecordData.platforms = adminActionRecordData.data[0] && adminActionRecordData.data[0].platformId ? adminActionRecordData.data[0].platformId : adminActionRecordData.platforms;
                 }else if(logAction == 'updatePlayerRewardPointsRecord' && data && data.name){
                     adminActionRecordData.error = '会员帐号： ' + data.name;
                     adminActionRecordData.platforms = adminActionRecordData.data[1] ? adminActionRecordData.data[1] : adminActionRecordData.platforms;
                 }else if(logAction == 'createUpdatePlayerRealNameProposal' && data && data.name){
-                    adminActionRecordData.error = '会员帐号： ' + data.name;
+                    adminActionRecordData.error = '会员帐号： ' + data.name + "; 提案号： " + resultData.proposalId || "";
                     adminActionRecordData.platforms = adminActionRecordData.data[0] ? adminActionRecordData.data[0] : adminActionRecordData.platforms;
                 }else if(logAction == 'createUpdatePartnerRealNameProposal' && data && data.partnerName){
-                    adminActionRecordData.error = '代理帐号： ' + data.partnerName;
+                    adminActionRecordData.error = '代理帐号： ' + data.partnerName + "; 提案号： " + resultData.proposalId || "";
                     adminActionRecordData.platforms = adminActionRecordData.data[0] ? adminActionRecordData.data[0] : adminActionRecordData.platforms;
                 }else if(logAction == 'createUpdatePlayerInfoLevelProposal' && data && data.name){
                     adminActionRecordData.error = '会员帐号： ' + data.name;
                     adminActionRecordData.platforms = adminActionRecordData.data[0] ? adminActionRecordData.data[0] : adminActionRecordData.platforms;
-                }else if(logAction = 'updateProposalProcessStep' && data && data.proposalId){
+                }else if(logAction == 'updateProposalProcessStep' && data && data.proposalId){
                     adminActionRecordData.error = '提案号： ' + data.proposalId;
                     adminActionRecordData.platforms = adminActionRecordData.data[5] ? adminActionRecordData.data[5] : adminActionRecordData.platforms;
+                }else if(logAction == 'approveCsPendingAndChangeStatus' && data && data.proposalId){
+                    adminActionRecordData.error = '提案号： ' + data.proposalId;
+                    adminActionRecordData.platforms = adminActionRecordData.data[3] ? adminActionRecordData.data[3] : adminActionRecordData.platforms;
                 }
 
 
