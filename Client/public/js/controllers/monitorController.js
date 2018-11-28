@@ -77,7 +77,6 @@ define(['js/app'], function (myApp) {
 
 
         vm.loadPage = function (choice) {
-            $('#wechatGroupControlMonitor').hide();
             if(choice){
                 socketService.clearValue();
                 vm.seleDataType = {};
