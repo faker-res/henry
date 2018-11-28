@@ -216,6 +216,13 @@ define(['js/app'], function (myApp) {
             return duration;
         };
 
+        vm.resetWechatGroupControlMonitor = function () {
+            setTimeout(function () {
+                vm.setupMultiSelect();
+            });
+            $scope.$evalAsync();
+        };
+
         vm.searchWechatMonitorRecord = function (isNewSearch) {
             if (isNewSearch) {
                 $('#autoRefreshWechatFlag').attr('checked', false);
@@ -334,6 +341,7 @@ define(['js/app'], function (myApp) {
                 destroy: true,
                 paging: false,
                 autoWidth: true,
+                fnRowCallback: vm.statusColor,
                 createdRow: function (row, data, dataIndex) {
                     $compile(angular.element(row).contents())($scope)
                 }
@@ -349,6 +357,14 @@ define(['js/app'], function (myApp) {
             $('#wechatGroupMonitorTable').resize();
         };
 
+        vm.statusColor = function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+            $compile(nRow)($scope);
+            if (aData.status == 1) {
+                $(nRow).find('td:eq(3)').css('background-color', 'green');
+            }else{
+                $(nRow).find('td:eq(3)').css('background-color', 'red');
+            }
+        }
         vm.generalDataTableOptions = {
             "paging": true,
             columnDefs: [{targets: '_all', defaultContent: ' '}],

@@ -14,7 +14,7 @@ div
                 option(ng-repeat='(i,v) in vm.wechatGroupControlAdminList', value='{{v._id}}') {{v.adminName}}
         div
             label &nbsp;
-            button.btn.btn-warning(ng-click='vm.resetWechatMonitorQuery()') {{'Reset' | translate}}
+            button.btn.btn-warning(ng-click='vm.resetWechatGroupControlMonitor()') {{'Reset' | translate}}
         div
             label &nbsp;
             button.btn.btn-success(ng-click='vm.searchWechatMonitorRecord(true)') {{'SEARCH' | translate}}
