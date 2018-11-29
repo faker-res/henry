@@ -425,6 +425,10 @@ let tsAssigneeSchema = require('./../schema/logs2/tsAssignee');
 let tsAssigneeModel = dbLogs2.model('tsAssignee', tsAssigneeSchema, 'tsAssignee');
 let tsPhoneFeedbackSchema = require('./../schema/logs2/tsPhoneFeedback');
 let tsPhoneFeedbackModel = dbLogs2.model('tsPhoneFeedback', tsPhoneFeedbackSchema, 'tsPhoneFeedback');
+let tsCallOutMissionSchema = require('./../schema/logs2/tsCallOutMission');
+let tsCallOutMissionModel = dbLogs2.model('tsCallOutMission', tsCallOutMissionSchema, 'tsCallOutMission');
+let tsCallOutMissionCalleeSchema = require('./../schema/logs2/tsCallOutMissionCallee');
+let tsCallOutMissionCalleeModel = dbLogs2.model('tsCallOutMissionCallee', tsCallOutMissionCalleeSchema, 'tsCallOutMissionCallee');
 let wcGroupControlSessionSchema = require('./../schema/logs2/wcGroupControlSession');
 let wcGroupControlSessionModel = dbLogs2.model('wcGroupControlSession', wcGroupControlSessionSchema, 'wcGroupControlSession');
 let wcConversationLogSchema = require('./../schema/logs2/wcConversationLog');
@@ -699,6 +703,8 @@ var dbProperties = {
     collection_tsDistributedPhone: tsDistributedPhoneModel,
     collection_tsAssignee: tsAssigneeModel,
     collection_tsPhoneFeedback: tsPhoneFeedbackModel,
+    collection_tsCallOutMission: tsCallOutMissionModel,
+    collection_tsCallOutMissionCallee: tsCallOutMissionCalleeModel,
     collection_frontendData: frontendDataModel,
     collection_wcGroupControlSession: wcGroupControlSessionModel,
     collection_wcConversationLog: wcConversationLogModel,

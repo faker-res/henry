@@ -144,6 +144,12 @@ function socketActionTeleSales(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.adminNames && data.adminNames.length > 0);
             socketUtil.emitter(self.socket, dbTeleSales.getDistributionDetails, [data.platformObjId, data.tsPhoneListObjId, data.adminNames], actionName, isValidData);
+        },
+
+        getTsWorkloadReport: function getTsWorkloadReport(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.platformObjId && data.phoneListObjIds && data.startTime && data.endTime && data.adminObjIds);
+            socketUtil.emitter(self.socket, dbTeleSales.getTsWorkloadReport, [data.platformObjId, data.phoneListObjIds, data.startTime, data.endTime, data.adminObjIds], actionName, isValidData);
         }
 
     };

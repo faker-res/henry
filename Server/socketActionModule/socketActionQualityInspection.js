@@ -152,6 +152,18 @@ function socketActionQualityInspection(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data && data.startTime && data.endTime);
             socketUtil.emitter(self.socket, dbQualityInspection.getWorkingCSName, [data], actionName, isDataValid);
+        },
+
+        getWechatDeviceNickNameList: function getWechatDeviceNickNameList(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data);
+            socketUtil.emitter(self.socket, dbQualityInspection.getWechatDeviceNickNameList, [data.platform], actionName, isDataValid);
+        },
+
+        getWechatConversationDeviceList: function getWechatConversationDeviceList(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data && data.deviceNickName && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbQualityInspection.getWechatConversationDeviceList, [data.platform, data.deviceNickName, data.csName, data.startTime, data.endTime, data.content], actionName, isDataValid);
         }
     };
 

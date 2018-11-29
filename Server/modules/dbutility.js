@@ -146,6 +146,22 @@ var dbUtility = {
         };
     },
 
+    getHalfMonthSGTIme: function (inputDate) {
+        let startTime = moment(inputDate).tz('Asia/Singapore').startOf('month').toDate();
+        let endTime = moment(startTime).add(15, 'days').toDate();
+        let todayDay = moment(inputDate).tz('Asia/Singapore').date();
+
+        if (todayDay >= 16) {
+            startTime = endTime;
+            endTime = moment(inputDate).tz('Asia/Singapore').endOf('month').toDate();
+        }
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getMonthSGTIme: function (inputDate) {
         var startTime = moment(inputDate).tz('Asia/Singapore').startOf('month').toDate();
         var endTime = moment(inputDate).tz('Asia/Singapore').endOf('month').toDate();
@@ -339,6 +355,22 @@ var dbUtility = {
         let todayDay = moment().tz('Asia/Singapore').date();
 
         if (todayDay >= 15) {
+            startTime = endTime;
+            endTime = moment().tz('Asia/Singapore').endOf('month').toDate();
+        }
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getCurrentHalfMonthSGTIme: function () {
+        let startTime = moment().tz('Asia/Singapore').startOf('month').toDate();
+        let endTime = moment(startTime).add(15, 'days').toDate();
+        let todayDay = moment().tz('Asia/Singapore').date();
+
+        if (todayDay >= 16) {
             startTime = endTime;
             endTime = moment().tz('Asia/Singapore').endOf('month').toDate();
         }

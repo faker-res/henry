@@ -429,7 +429,9 @@ define(['js/app'], function (myApp) {
                 case 'WORKLOAD REPORT':
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#workloadStartTimePicker', utilService.getNdayagoStartTime(30));
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#workloadEndTimePicker', utilService.getTodayEndTime());
-                    vm.showWorkloadReport = false;
+                    utilService.actionAfterLoaded('#searchWorkloadReport', function () {
+                        $('.spicker').selectpicker('refresh');
+                    });
                     break;
                 case 'RECYCLE_BIN':
                     break;
@@ -464,11 +466,12 @@ define(['js/app'], function (myApp) {
             vm.getTsDistributedPhoneDetail($scope.tsDistributedPhoneObjId);
 
             // Zero dependencies variable
-            [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults] = await Promise.all([
+            [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults, vm.allTsPhoneList] = await Promise.all([
                 commonService.getTSPhoneListName($scope, {platform: vm.selectedPlatform.id}).catch(err => Promise.resolve([])),
                 commonService.getAllDepartmentInfo($scope, vm.selectedPlatform.id, vm.selectedPlatform.data.name).catch(err => Promise.resolve([[], [], []])),
                 commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([])),
+                commonService.getAllTSPhoneList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
             ]);
         };
 
@@ -6156,12 +6159,67 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.filterWorkloadReport = () => {
+            vm.workloadResult = null;
+            vm.workloadSearch.phoneListNames = [];
+            vm.workloadSearch.phoneLists = vm.workloadSearch.phoneLists || [];
+            vm.workloadSearch.startTime = $('#workloadStartTimePicker').data('datetimepicker').getLocalDate();
+            vm.workloadSearch.endTime = $('#workloadEndTimePicker').data('datetimepicker').getLocalDate();
+            if(vm.workloadSearch.phoneLists.length > 0) {
+                vm.workloadSearch.phoneLists.forEach(needle => {
+                    vm.allTsPhoneList.forEach(haystack => {
+                        if (needle == haystack._id) {
+                            vm.workloadSearch.phoneListNames.push(haystack.name);
+                        }
+                    })
+                });
+            }
+            let sendQuery = {
+                platformObjId: vm.selectedPlatform.id,
+                phoneListObjIds: vm.workloadSearch.phoneLists || [],
+                adminObjIds: vm.workloadSearch.admins || [],
+                startTime: vm.workloadSearch.startTime,
+                endTime: vm.workloadSearch.endTime
+            };
 
-        vm.tsShowWorkloadReport = function () {
-            vm.showWorkloadReport = true;
-        }
-
-        
+            console.log("getTsWorkloadReport send", sendQuery);
+            socketService.$socket($scope.AppSocket, 'getTsWorkloadReport', sendQuery, function (data) {
+                console.log("getTsWorkloadReport ret", data);
+                $scope.$evalAsync(() => {
+                    vm.workloadResult = {};
+                    vm.workloadResultSummary = [];
+                    if(data.data) {
+                        vm.workloadResult = data.data;
+                        for(let assigneeObjId in vm.workloadResult) {
+                            let row = {
+                                distributed: 0,
+                                fulfilled: 0,
+                                success: 0,
+                                registered: 0
+                            };
+                            let assignee = vm.workloadResult[assigneeObjId];
+                            for(let phoneList in assignee) {
+                                row.adminObjId = assignee[phoneList].adminId;
+                                row.adminName = assignee[phoneList].adminName;
+                                row.distributed += assignee[phoneList].distributed;
+                                row.fulfilled += assignee[phoneList].fulfilled;
+                                row.success += assignee[phoneList].success;
+                                row.registered += assignee[phoneList].registered;
+                            }
+                            vm.workloadResultSummary.push(row);
+                        }
+                    }
+                })
+            });
+        };
+        vm.populateWorkloadResultDetail = (adminObjId) => {
+            vm.workloadResultDetail = vm.workloadResult[adminObjId];
+            vm.workloadResultSummary.forEach(summary => {
+                if(summary.adminObjId == adminObjId) {
+                    vm.workloadResultDetailSums = summary;
+                }
+            });
+        };
 
         vm.showAssignmentStatusDetail = (tsPhoneListObjId) => {
             vm.currentPhoneListObjId = tsPhoneListObjId;
@@ -6595,21 +6653,17 @@ define(['js/app'], function (myApp) {
                 vm.commonSortChangeHandler(a, 'phoneListSearch', vm.getTeleMarketingOverview);
             });
             $('#phoneListManagementTable').resize();
-        }
-
-
-
+        };
 
         vm.distributePhoneNumber = (tsListObjId) => {
             socketService.$socket($scope.AppSocket, 'distributePhoneNumber', {platform: vm.selectedPlatform.id, tsListObjId: tsListObjId}, function (data) {
                 console.log("distributePhoneNumber", data)
             })
-        }
-
+        };
 
         vm.tsAnalyticsPhoneListEdit = () => {
             vm.analyticsPhoneListEdit = false;
-        }
+        };
 
         vm.checkAnalyticsFilterAndImportSystem = () => {
             vm.checkFilterIsDisable = true;

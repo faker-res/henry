@@ -21367,18 +21367,14 @@ console.log('typeof ',typeof gameProviders);
                         break;
                     // bi-weekly
                     case 3:
-                        for (let i = 1; i <= 14; i++) {
+                        for (let i = 1; i <= 16; i++) {
                             value.push({loginDay: i})
                         }
                         break;
                     // monthly
                     case 4:
-                        let noOfDay = utilService.getNumberOfDayThisMonth();
-
-                        if (noOfDay) {
-                            for (let i = 1; i <= noOfDay; i++) {
-                                value.push({loginDay: i})
-                            }
+                        for (let i = 1; i <= 31; i++) {
+                            value.push({loginDay: i})
                         }
                         break;
                 }
@@ -28764,42 +28760,27 @@ console.log('typeof ',typeof gameProviders);
 
             // wechat group setting
             vm.addNewWechatGroupControl = function (collection, data) {
+                if (data && ((!data.deviceId && !data.deviceNickName) || (!data.deviceId || !data.deviceNickName))) {
+                    return socketService.showErrorMessage($translate('Please fill in Mobile Phone Number and Device Name'));
+                }
                 if (collection && data && data.deviceId && data.deviceNickName) {
-                    if (vm.isDeviceIdExist(data.deviceId)) {
-                        return socketService.showErrorMessage($translate('Duplicate Device Id'));
-                    } else if (vm.isDeviceNicknameExist(data.deviceNickName)) {
-                        return socketService.showErrorMessage($translate('Duplicate Device Nickname'));
-                    } else {
-                        data.isNew = true;
-                        collection.push(data);
+                    let sendData = {
+                        deviceId: data.deviceId,
+                        deviceNickName: data.deviceNickName
+                    };
+
+                    socketService.$socket($scope.AppSocket, 'isNewWechatDeviceDataExist', sendData, function (newData) {
+                        console.log('isNewWechatDeviceDataExist===', newData);
                         $scope.$evalAsync(() => {
-                            vm.newWechatGroupControlSetting = {};
-                        });
-                    }
-                }
-            };
-
-            vm.isDeviceIdExist = (deviceId) => {
-                let allDeviceId = [];
-
-                if (vm.wechatGroupControlSettingData && vm.wechatGroupControlSettingData.length > 0) {
-                    vm.wechatGroupControlSettingData.map(wechatGroupControl => {
-                        allDeviceId.push(wechatGroupControl.deviceId);
+                            if (newData && newData.data && !newData.data.isDeviceIdExist && !newData.data.isDeviceNicknameExist) {
+                                data.isNew = true;
+                                collection.push(data);
+                                $scope.$evalAsync(() => {
+                                    vm.newWechatGroupControlSetting = {};
+                                });
+                            }
+                        })
                     });
-
-                    return allDeviceId.includes(deviceId);
-                }
-            };
-
-            vm.isDeviceNicknameExist = (nickname) => {
-                let allDeviceNickname = [];
-
-                if (vm.wechatGroupControlSettingData && vm.wechatGroupControlSettingData.length > 0) {
-                    vm.wechatGroupControlSettingData.map(wechatGroupControl => {
-                        allDeviceNickname.push(wechatGroupControl.deviceNickName);
-                    });
-
-                    return allDeviceNickname.includes(nickname);
                 }
             };
 
@@ -28823,7 +28804,22 @@ console.log('typeof ',typeof gameProviders);
                 socketService.$socket($scope.AppSocket, 'updateWechatGroupControlSetting', sendData, function (data) {
                     console.log('updateWechatGroupControlSetting', data);
                     $scope.$evalAsync(() => {
-                        vm.getWechatGroupControlSetting();
+                        if (data && data.data.length > 0 && data.data[0]._id) {
+                            data.data.forEach(wcDevice => {
+                                if (vm.wechatGroupControlSettingData && vm.wechatGroupControlSettingData.length > 0) {
+                                    for (let x = 0; x < vm.wechatGroupControlSettingData.length; x++) {
+                                        if (vm.wechatGroupControlSettingData[x]._id.toString() === wcDevice._id.toString() && wcDevice.isDeviceIdExist) {
+                                            vm.wechatGroupControlSettingData[x].isDeviceIdExist = true;
+                                        }
+                                        if (vm.wechatGroupControlSettingData[x]._id.toString() === wcDevice._id.toString() && wcDevice.isDeviceNicknameExist) {
+                                            vm.wechatGroupControlSettingData[x].isDeviceNicknameExist = true;
+                                        }
+                                    }
+                                }
+                            });
+                        } else {
+                            vm.getWechatGroupControlSetting();
+                        }
                     })
                 });
             };

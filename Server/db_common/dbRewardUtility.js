@@ -2,7 +2,7 @@ const dbUtil = require('./../modules/dbutility');
 
 const dbRewardUtility = {
 
-    getRewardEventIntervalTime: (rewardData, eventData) => {
+    getRewardEventIntervalTime: (rewardData, eventData, isNewDefineHalfMonth) => {
         let todayTime = rewardData.applyTargetDate ? dbUtil.getTargetSGTime(rewardData.applyTargetDate) : dbUtil.getTodaySGTime();
         let intervalTime;
 
@@ -15,7 +15,12 @@ const dbRewardUtility = {
                     intervalTime = rewardData.applyTargetDate ? dbUtil.getWeekTime(rewardData.applyTargetDate) : dbUtil.getCurrentWeekSGTime();
                     break;
                 case "3":
-                    intervalTime = rewardData.applyTargetDate ? dbUtil.getBiWeekSGTIme(rewardData.applyTargetDate) : dbUtil.getCurrentBiWeekSGTIme();
+                    if (isNewDefineHalfMonth){
+                        intervalTime = rewardData.applyTargetDate ? dbUtil.getCurrentHalfMonthSGTIme(rewardData.applyTargetDate) : dbUtil.getCurrentHalfMonthSGTIme();
+                    }
+                    else{
+                        intervalTime = rewardData.applyTargetDate ? dbUtil.getBiWeekSGTIme(rewardData.applyTargetDate) : dbUtil.getCurrentBiWeekSGTIme();
+                    }
                     break;
                 case "4":
                     intervalTime = rewardData.applyTargetDate ? dbUtil.getMonthSGTIme(rewardData.applyTargetDate) : dbUtil.getCurrentMonthSGTIme();

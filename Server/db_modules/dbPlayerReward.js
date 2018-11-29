@@ -5375,6 +5375,9 @@ let dbPlayerReward = {
         // Get interval time
         if (eventData.condition.interval) {
             intervalTime = dbRewardUtil.getRewardEventIntervalTime(rewardData, eventData);
+            if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
+                intervalTime = dbRewardUtil.getRewardEventIntervalTime(rewardData, eventData, true);
+            }
         }
 
         let topupMatchQuery = {
@@ -6314,6 +6317,7 @@ let dbPlayerReward = {
                                 rewardAmount = retRewardData.rewardAmount;
                                 spendingAmount = retRewardData.spendingAmount;
                                 selectedRewardParam = retRewardData.selectedRewardParam
+                                consecutiveNumber = retRewardData.consecutiveNumber || null;
                             }
                             else{
                                 return Promise.reject({
@@ -7270,13 +7274,52 @@ let dbPlayerReward = {
         );
     },
 
-    getRetentionRewardList: function (returnData, rewardData, eventData, selectedRewardParam, rewardProposals) {
+    checkRewardParamLevel: function (value, eventData, intervalMode){
+        let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, eventData, true);
+        let paramLevel = value? value.length : null;
+        let dayLimit = null;
+
+        if (intervalMode && intervalMode == 3){
+            // half-monthly - firstHalfMonth: 15 days; secondHalfMonth: the rest of the days
+            let isFirstHalf = new Date() >= intervalTime.startTime ? false : true;
+
+            if (isFirstHalf){
+                dayLimit = 15;
+            }
+            else{
+                let period = dbUtility.getCurrentMonthSGTIme();
+                dayLimit = period.endTime.getDate() - intervalTime.startTime.getDate() + 1;
+            }
+        }
+        else if(intervalMode && intervalMode == 4){
+            // monthly
+            let period = dbUtility.getCurrentMonthSGTIme();
+            dayLimit = period.endTime.getDate();
+        }
+
+        if (dayLimit && paramLevel) {
+            while(paramLevel > dayLimit){
+                let index = paramLevel-1;
+                if (value.length-1 >= index) {
+                    value.splice(index, 1);
+                }
+                paramLevel = paramLevel -1;
+            }
+        }
+
+        return value;
+    },
+
+    getRetentionRewardList: function (returnData, rewardData, eventData, selectedRewardParam, rewardProposals, targetedParamResult) {
         let outputList = [];
-        let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, eventData);
-        let defineLoginMode = eventData.condition.definePlayerLoginMode;
+        let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, eventData, true);
+        let defineLoginMode = eventData.condition.definePlayerLoginMode || null;
+        let intervalMode = eventData.condition.interval || null;
 
         if (selectedRewardParam && selectedRewardParam.length) {
-            setDefaultParam(selectedRewardParam);
+            setDefaultParam(selectedRewardParam, eventData, intervalMode);
+            // check if the reward date is expired
+            setExpiredParam(outputList, targetedParamResult);
         }
         else {
             return Promise.reject({
@@ -7284,7 +7327,7 @@ let dbPlayerReward = {
                 errorMessage: "Reward param is not found"
             })
         }
-        
+
         if (rewardProposals && rewardProposals.length) {
             if (defineLoginMode == 1) {
                 let latestRewardProposal = rewardProposals[0];
@@ -7333,13 +7376,19 @@ let dbPlayerReward = {
             return outputList;
         }
 
-        function setDefaultParam(selectedRewardParam){
+        function setDefaultParam(selectedRewardParam, eventData, intervalMode){
+            // remove extra unused param level
+            selectedRewardParam = dbPlayerReward.checkRewardParamLevel(selectedRewardParam, eventData, intervalMode);
+
             selectedRewardParam.forEach(
                 (param, i) => {
                     let rewardObject = {
-                        status: 0,
-                        spendingTimes: param.spendingTimes
+                        status: 0
                     };
+
+                    if (param.spendingTimes){
+                        rewardObject.spendingTimes = param.spendingTimes;
+                    }
 
                     if (param.maxRewardAmountInSingleReward) {
                         rewardObject.maxRewardAmount = param.maxRewardAmountInSingleReward;
@@ -7370,17 +7419,33 @@ let dbPlayerReward = {
             )
         }
 
+        function setExpiredParam(outputList, targetedParamResult){
+            let selectedIndex = null;
+
+            if (targetedParamResult && targetedParamResult.hasOwnProperty('selectedIndex')){
+                selectedIndex = targetedParamResult.selectedIndex;
+            }
+
+            if (outputList && outputList.length && selectedIndex != null){
+                for (let i = 0; i < selectedIndex; i ++){
+                    outputList[i].status = 3 //expired
+                }
+            }
+        }
+
     },
 
     applyRetentionRewardParamLevel: function (eventData, applyAmount, selectedRewardParam, playerRetentionRewardRecord, appliedDate) {
         let rewardAmount = null;
         let spendingAmount = null;
         let selectedIndex = null;
+        let consecutiveNumber = null;
 
         if (eventData && eventData.condition && eventData.condition.definePlayerLoginMode) {
             // 1 - accumulative day (the first application always start with level 1 regardless of the interval)
             if (eventData.condition.definePlayerLoginMode == 1) {
                 selectedIndex = playerRetentionRewardRecord && playerRetentionRewardRecord.accumulativeDay ? playerRetentionRewardRecord.accumulativeDay : 0;
+                consecutiveNumber = selectedIndex + 1;
             }
             else if (eventData.condition.definePlayerLoginMode == 2) {
                 // 2 - exact date
@@ -7441,7 +7506,8 @@ let dbPlayerReward = {
                 rewardAmount: rewardAmount,
                 spendingAmount: spendingAmount,
                 selectedRewardParam: selectedRewardParam[selectedIndex],
-                selectedIndex: selectedIndex
+                selectedIndex: selectedIndex,
+                consecutiveNumber: consecutiveNumber
             };
 
         }
@@ -7454,6 +7520,7 @@ let dbPlayerReward = {
         let rewardAmount;
         let spendingAmount;
         let selectedRewardParam;
+        let consecutiveNumber;
 
         // get the reward
         let retRewardData = dbPlayerReward.applyRetentionRewardParamLevel(rewardEvent, applyAmount, rewardParam, playerRetentionRecord);
@@ -7461,8 +7528,8 @@ let dbPlayerReward = {
             rewardAmount = retRewardData.rewardAmount;
             spendingAmount = retRewardData.spendingAmount;
             selectedRewardParam = retRewardData.selectedRewardParam;
-
-            return dbProposal.createRewardProposal(rewardEvent, playerData, selectedRewardParam, playerRetentionRecord, applyAmount, rewardAmount, spendingAmount, playerRetentionRecord._id, userAgent)
+            consecutiveNumber = retRewardData.consecutiveNumber || null;
+            return dbProposal.createRewardProposal(rewardEvent, playerData, selectedRewardParam, playerRetentionRecord, consecutiveNumber, applyAmount, rewardAmount, spendingAmount, playerRetentionRecord._id, userAgent)
         }
     },
 
@@ -7495,7 +7562,7 @@ let dbPlayerReward = {
         let rewardData = {};
 
         if (rewardEvent.condition && rewardEvent.condition.interval) {
-            intervalTime = dbRewardUtil.getRewardEventIntervalTime(rewardData, rewardEvent);
+            intervalTime = dbRewardUtil.getRewardEventIntervalTime(rewardData, rewardEvent, true);
         }
         let todayTime = dbUtility.getTodaySGTime();
 
@@ -7591,7 +7658,7 @@ let dbPlayerReward = {
                     return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
-                        message: "This player has applied for the reward in event period"
+                        message: "This player has applied for max reward times in event period"
                     });
                 }
 
@@ -7599,7 +7666,7 @@ let dbPlayerReward = {
                     return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
-                        message: "This IP address has applied for the reward in event period"
+                        message: "This IP address has applied for max reward times in event period"
                     });
                 }
 
@@ -7607,7 +7674,7 @@ let dbPlayerReward = {
                     return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
-                        message: "This phone number has applied for the reward in event period"
+                        message: "This phone number has applied for max reward times in event period"
                     });
                 }
 
@@ -7615,7 +7682,7 @@ let dbPlayerReward = {
                     return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
-                        message: "This mobile device has applied for the reward in event period"
+                        message: "This mobile device has applied for max reward times in event period"
                     });
                 }
 

@@ -7759,6 +7759,14 @@ let dbPlayerInfo = {
                                 if (el && el.levelId && Object.keys(el.levelId).length) {
                                     el.levelId = el.levelId.value;
                                 }
+
+                                if (rewardEventItem.type && rewardEventItem.type.name && rewardEventItem.type.name == constRewardType.PLAYER_RETENTION_REWARD_GROUP){
+                                    let loginMode = rewardEventItem.condition && rewardEventItem.condition.definePlayerLoginMode ? rewardEventItem.condition.definePlayerLoginMode : null;
+                                    let intervalMode = rewardEventItem.condition && rewardEventItem.condition.interval ? rewardEventItem.condition.interval : null;
+                                    if (el.value && el.value.length && loginMode && intervalMode){
+                                        getExactLoginDateBasedOnInterval(el.value, rewardEventItem, loginMode, intervalMode)
+                                    }
+                                }
                             })
                         }
 
@@ -7776,13 +7784,40 @@ let dbPlayerInfo = {
                             rewardEventArray.push(rewardEventItem);
                         }
                     }
-                    return rewardEventArray;
+                    return rewardEventArray;              
                 }
             },
             function (error) {
                 return Q.reject({name: "DBError", message: "Error in getting rewardEvent", error: error});
             }
         );
+
+        function getExactLoginDateBasedOnInterval (value, eventData, loginMode, intervalMode) {
+            //  remove extra param level when intervalMode == 3 (half-monthly) and 4 (monthly)
+            value  = dbPlayerReward.checkRewardParamLevel(value, eventData, intervalMode);
+            // change to date time format if the loginMode == 2 (the exact date)
+            if (loginMode == 2) {
+                changeToDateTimeFormat(value, eventData);
+            }
+            return value;
+        }
+
+        function changeToDateTimeFormat (value, eventData) {
+            value.forEach(
+                (valueObj, i) => {
+                    if (valueObj) {
+                        let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, eventData, true);
+                        if (i == 0) {
+                            valueObj.loginDay = intervalTime.startTime;
+                        }
+                        else {
+                            valueObj.loginDay = dbUtility.getNdaylaterFromSpecificStartTime(i, intervalTime.startTime);
+                        }
+                    }
+                    return valueObj;
+                }
+            )
+        }
     },
 
     getLevelRewardForPlayer: function (query) {

@@ -126,7 +126,7 @@ let dbTeleSales = {
                 }
 
                 let tsDistributePhoneCountProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).count();
-                let tsDistributePhoneProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).sort(sortObj).sort(sortObj).skip(index).limit(limit)
+                let tsDistributePhoneProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).sort(sortObj).skip(index).limit(limit)
                     .populate({path: 'tsPhoneList', model: dbconfig.collection_tsPhoneList, select: "name"})
                     .populate({path: 'tsPhone', model: dbconfig.collection_tsPhone}).lean();
 
@@ -618,6 +618,102 @@ let dbTeleSales = {
             }
             return null;
         });
+    },
+
+    getTsWorkloadReport: (platformObjId, phoneListObjIds, startTime, endTime, adminObjIds) => {
+        let definitionOfAnsweredPhone = [];
+        //filter away empty values
+        adminObjIds = adminObjIds.filter(function (adminObjId) {
+            return adminObjId != null && adminObjId != '';
+        });
+        phoneListObjIds = phoneListObjIds.filter(function (phoneListObjId) {
+            return phoneListObjId != null && phoneListObjId != '';
+        });
+
+        return dbconfig.collection_platform.findOne({_id : platformObjId}).then(platform => {
+            if(platform && platform.definitionOfAnsweredPhone) {
+                definitionOfAnsweredPhone = platform.definitionOfAnsweredPhone;
+            }
+            let distributedPhoneQuery = {
+                platform: platformObjId,
+                startTime: {$gte: startTime, $lte: endTime}
+            };
+            let phoneFeedbackQuery = {
+                platform: platformObjId,
+                createTime: {$gte: startTime, $lte: endTime}
+            };
+            if(phoneListObjIds.length > 0) {
+                distributedPhoneQuery.tsPhoneList = {$in: phoneListObjIds};
+                phoneFeedbackQuery.tsPhoneList = {$in: phoneListObjIds};
+            }
+            if(adminObjIds.length > 0) {
+                distributedPhoneQuery.assignee = {$in: adminObjIds};
+                phoneFeedbackQuery.adminId = {$in: adminObjIds};
+            }
+
+            let distributedPhoneProm = dbconfig.collection_tsDistributedPhone.find(distributedPhoneQuery).populate({
+                path: "tsPhoneList", model: dbconfig.collection_tsPhoneList
+            }).populate({
+                path: "assignee", model: dbconfig.collection_admin
+            }).lean();
+            let phoneFeedbackProm = dbconfig.collection_tsPhoneFeedback.find(phoneFeedbackQuery).populate({
+                path: "tsPhoneList", model: dbconfig.collection_tsPhoneList
+            }).populate({
+                path: "adminId", model: dbconfig.collection_admin
+            }).lean();
+
+            return Promise.all([distributedPhoneProm, phoneFeedbackProm]).then(data => {
+                let distributedData = data[0];
+                let phoneFeedbackData = data[1];
+                let workloadData = {};
+
+                if(distributedData && distributedData.length > 0 && phoneFeedbackData && phoneFeedbackData.length > 0) {
+                    distributedData.forEach(item => {
+                        if(item.assignee._id && !workloadData[item.assignee._id]) {
+                            workloadData[item.assignee._id] = {};
+                        }
+                        if(item.tsPhoneList._id && !workloadData[item.assignee._id][item.tsPhoneList._id]) {
+                            workloadData[item.assignee._id][item.tsPhoneList._id] = {
+                                adminId: item.assignee._id,
+                                adminName: item.assignee.adminName,
+                                phoneListObjId: item.tsPhoneList._id,
+                                phoneListName: item.tsPhoneList.name,
+                                distributed:0,
+                                fulfilled:0,
+                                success:0,
+                                registered:0
+                            };
+                        }
+                        workloadData[item.assignee._id][item.tsPhoneList._id].distributed++;
+                    });
+                    phoneFeedbackData.forEach(item => {
+                        if(item.adminId._id && !workloadData[item.adminId._id]) {
+                            workloadData[item.adminId._id] = {};
+                        }
+                        if(item.tsPhoneList._id && !workloadData[item.adminId._id][item.tsPhoneList._id]) {
+                            workloadData[item.adminId._id][item.tsPhoneList._id] = {
+                                adminId: item.adminId._id,
+                                adminName: item.adminId.adminName,
+                                phoneListObjId: item.tsPhoneList._id,
+                                phoneListName: item.tsPhoneList.name,
+                                distributed:0,
+                                fulfilled:0,
+                                success:0,
+                                registered:0
+                            };
+                        }
+                        workloadData[item.adminId._id][item.tsPhoneList._id].fulfilled++;
+                        if(definitionOfAnsweredPhone.length > 0 && definitionOfAnsweredPhone.indexOf(item.result) > -1) {
+                            workloadData[item.adminId._id][item.tsPhoneList._id].success++;
+                        }
+                        if(item.registered) {
+                            workloadData[item.adminId._id][item.tsPhoneList._id].registered++;
+                        }
+                    });
+                }
+                return workloadData;
+            })
+        });
     }
 };
 
@@ -634,7 +730,7 @@ function addTsFeedbackCount (feedbackObj, isSucceedBefore = false) {
             let promArr = [];
             let updatePhoneListObj = {
                 $inc: {}
-            }
+            };
             let updateAssigneeObj = {
                 $inc: {}
             };
