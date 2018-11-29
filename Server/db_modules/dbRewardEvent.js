@@ -1335,7 +1335,6 @@ var dbRewardEvent = {
                             returnData.condition.deposit.status = 2;
                         }
                     }
-
                 }
 
                 // Count reward amount and spending amount
