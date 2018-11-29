@@ -460,6 +460,9 @@ var dbWCGroupControl = {
                 $match: match
             },
             {
+                $sort : { createTime : 1}
+            },
+            {
                 $group: {
                     _id: {platformObjId:'$platformObjId', deviceId: '$deviceId', deviceNickName: '$deviceNickName'},
                     csOfficer: {$last: '$csOfficer'},
