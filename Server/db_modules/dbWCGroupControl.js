@@ -155,6 +155,9 @@ var dbWCGroupControl = {
         ).then(
             playerWechatData => {
                 if (playerWechatData) {
+                    if (playerWechatData.playerWechatId == playerWechatId) {
+                        return Promise.reject({name: "DataError", message: "Wechat remark and wechat ID duplicate"});
+                    }
                     let wechatInfo = {
                         playerWechatId: playerWechatId,
                         playerWechatNickname: playerWechatNickname,
