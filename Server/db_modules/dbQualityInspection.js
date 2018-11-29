@@ -2679,7 +2679,6 @@ var dbQualityInspection = {
         let size;
         let conversationList;
         let query = {
-            deviceNickName: {$in: deviceNickName},
             csReplyTime: {'$lte':new Date(endTime),
                 '$gte': new Date(startTime)},
         };
@@ -2689,6 +2688,10 @@ var dbQualityInspection = {
             platform = Array.isArray(platform) ? platform : [platform];
             query.platformObjId = {$in: platform.map(p => ObjectId(p))};
             platformQuery._id = {$in: platform};
+        }
+
+        if(deviceNickName && deviceNickName.length > 0){
+            query.deviceNickName = {$in: deviceNickName};
         }
 
         if(csName && csName.length > 0){

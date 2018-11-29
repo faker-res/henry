@@ -3066,6 +3066,8 @@ define(['js/app'], function (myApp) {
                             });
                             $('#wechatConversationTableSpin').hide();
                             vm.oriDeviceList = vm.deviceList;
+
+                            vm.searchWechatConversation(vm.inspectionWechat.platform, vm.inspectionWechat.deviceName, vm.inspectionWechat.playerWechatRemark);
                         }
                     })
                 });
