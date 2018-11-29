@@ -227,7 +227,7 @@ var dbWCGroupControl = {
                                 if (wcDevice[x].deviceId === setting.deviceId) {
                                     setting.isDeviceIdExist = true;
                                 }
-                                if (wcDevice[x].deviceNickName === setting.deviceNickName) {
+                                if (wcDevice[x].deviceNickName.toLowerCase() === setting.deviceNickName.toLowerCase()) {
                                     setting.isDeviceNicknameExist = true;
                                 }
                             }
