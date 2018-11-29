@@ -510,7 +510,7 @@ define(['js/app'], function (myApp) {
             };
             tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
             utilService.createDatatableWithFooter('#wcGroupControlSessionHistoryTable', tableOptions, {}, true);
-            vm.wechatGroupControlMonitorQuery.pageObj.init({maxCount: size}, newSearch);
+            vm.wcGroupControlSessionHistory.pageObj.init({maxCount: size}, newSearch);
             $('#wcGroupControlSessionHistoryTable').off('order.dt');
             $('#wcGroupControlSessionHistoryTable').on('order.dt', function (event, a, b) {
                 vm.commonSortChangeHandler(a, 'wcGroupControlSessionHistory', vm.getWCGroupControlSessionHistory);
