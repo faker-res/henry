@@ -96,19 +96,22 @@ var dbWCGroupControl = {
 
                 } else {
                     // create new session if detect lastUpdateTime being updated
-                    let newSession = {
-                        deviceId: deviceId,
-                        deviceNickName: deviceSettingRecord.deviceNickName,
-                        csOfficer: adminObjId,
-                        status: status,
-                        platformObjId: deviceSettingRecord.platformObjId,
-                        connectionAbnormalClickTimes: connectionAbnormalClickTimes,
-                        lastActiveTime: new Date()
-                    };
+                    if (deviceSettingRecord) {
+                        let newSession = {
+                            deviceId: deviceId,
+                            deviceNickName: deviceSettingRecord.deviceNickName,
+                            csOfficer: adminObjId,
+                            status: status,
+                            platformObjId: deviceSettingRecord.platformObjId,
+                            connectionAbnormalClickTimes: connectionAbnormalClickTimes,
+                            lastActiveTime: new Date()
+                        };
 
-                    let wcGroupControlSession = new dbConfig.collection_wcGroupControlSession(newSession);
-                    return wcGroupControlSession.save();
-
+                        let wcGroupControlSession = new dbConfig.collection_wcGroupControlSession(newSession);
+                        return wcGroupControlSession.save();
+                    } else {
+                        return Promise.reject({name: "DataError", message: "Cannot find wechat group control's setting"});
+                    }
                 }
             }
         );
