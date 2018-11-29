@@ -4173,7 +4173,9 @@
   "Customer Service Account (Input, Comma Added)":"客服帐号（输入、逗号添加)",
   "Message Begin Time":"发话时间（开始）",
   "Message End Time":"发话时间（结束）",
+  "Message Time":"发话时间",
   "Message Content (Keyword)":"发话内容（关键字）",
+  "Message Content":"发话内容",
   "* The status has been decomposed in the search menu. Any items that are not checked can still be displayed in the list.":"*状态已分解不在搜索选单中，无勾选任何项目仍可在列表显示。",
   "Connected list":"关连名单",
   "Amount of Phone list":"个人已派发电话量",
@@ -4971,5 +4973,6 @@
   "Time(s)": "次",
   "7 Day(s) History": "7 日历史",
   "* Offline status shows the last connection data": "* 离线状态则显示上次连线数据",
-  "Still Online": "仍在线"
+  "Still Online": "仍在线",
+  "Fuzzy Search": "模糊搜索"
 }
