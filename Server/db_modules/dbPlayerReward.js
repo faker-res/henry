@@ -7140,10 +7140,6 @@ let dbPlayerReward = {
                             }
                         }
 
-                        // if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && deviceId){
-                        //     proposalData.data.deviceId = deviceId;
-                        // }
-
                         if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && eventData.condition
                             && eventData.condition.definePlayerLoginMode && typeof(eventData.condition.definePlayerLoginMode) != 'undefined'){
                             proposalData.data.definePlayerLoginMode = eventData.condition.definePlayerLoginMode;
@@ -7643,7 +7639,7 @@ let dbPlayerReward = {
         }
 
         let topupInPeriodProm = Promise.resolve([]);
-        if (rewardEvent.condition.topUpCountType && rewardEvent.condition) {
+        if (rewardEvent.condition && rewardEvent.condition.topUpCountType) {
             topupInPeriodProm = dbConfig.collection_playerTopUpRecord.find(topupMatchQuery).lean();
         }
 
@@ -7655,7 +7651,7 @@ let dbPlayerReward = {
 
                 let rewardPendingCount = checkList[0]
                 let eventInPeriodCount = checkList[1];
-                let topupInPeriodCount = isFrontEndApply ? checkList[2].length + 1 : checkList[2].length; /* if apply from font end, top up record + 1 to include current top up */
+                let topupInPeriodCount = isFrontEndApply ? checkList[2].length + 1 : checkList[2].length; /* if apply from font end together with top up, top up record + 1 to include current top up */
                 let listHasApplied = checkList[3];
 
                 // if there is a pending reward, then no other reward can be applied.
