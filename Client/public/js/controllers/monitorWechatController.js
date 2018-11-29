@@ -217,8 +217,21 @@ define(['js/app'], function (myApp) {
         };
 
         vm.resetWechatGroupControlMonitor = function () {
+
             setTimeout(function () {
                 vm.setupMultiSelect();
+
+                if (vm.wechatGroupControlMonitorQuery && vm.wechatGroupControlMonitorQuery.department) {
+                    Promise.all([vm.getWCAdminDetailByDepartmentIds(vm.wechatGroupControlMonitorQuery.department)]).then(
+                        data => {
+                            setTimeout(function () {
+                                vm.setupAdminMutliSelect();
+                            });
+                            $scope.$evalAsync();
+                        }
+                    )
+                }
+
             });
             $scope.$evalAsync();
         };
