@@ -96,19 +96,22 @@ var dbWCGroupControl = {
 
                 } else {
                     // create new session if detect lastUpdateTime being updated
-                    let newSession = {
-                        deviceId: deviceId,
-                        deviceNickName: deviceSettingRecord.deviceNickName,
-                        csOfficer: adminObjId,
-                        status: status,
-                        platformObjId: deviceSettingRecord.platformObjId,
-                        connectionAbnormalClickTimes: connectionAbnormalClickTimes,
-                        lastActiveTime: new Date()
-                    };
+                    if (deviceSettingRecord) {
+                        let newSession = {
+                            deviceId: deviceId,
+                            deviceNickName: deviceSettingRecord.deviceNickName,
+                            csOfficer: adminObjId,
+                            status: status,
+                            platformObjId: deviceSettingRecord.platformObjId,
+                            connectionAbnormalClickTimes: connectionAbnormalClickTimes,
+                            lastActiveTime: new Date()
+                        };
 
-                    let wcGroupControlSession = new dbConfig.collection_wcGroupControlSession(newSession);
-                    return wcGroupControlSession.save();
-
+                        let wcGroupControlSession = new dbConfig.collection_wcGroupControlSession(newSession);
+                        return wcGroupControlSession.save();
+                    } else {
+                        return Promise.reject({name: "DataError", message: "Cannot find wechat group control's setting"});
+                    }
                 }
             }
         );
@@ -219,7 +222,7 @@ var dbWCGroupControl = {
         }).then(
             wcDevice => {
                 let proms = [];
-                if (wcDevice && wcDevice.length > 0 && tempSetting && tempSetting.length > 0) {
+                if (wcDevice && tempSetting && tempSetting.length > 0) {
                     tempSetting.map(setting => {
                         for (let x = 0; x < wcDevice.length; x++) {
                             // don't compare with itself, only compare with other WeChat data
@@ -227,7 +230,7 @@ var dbWCGroupControl = {
                                 if (wcDevice[x].deviceId === setting.deviceId) {
                                     setting.isDeviceIdExist = true;
                                 }
-                                if (wcDevice[x].deviceNickName === setting.deviceNickName) {
+                                if (wcDevice[x].deviceNickName.toLowerCase() === setting.deviceNickName.toLowerCase()) {
                                     setting.isDeviceNicknameExist = true;
                                 }
                             }
@@ -390,6 +393,8 @@ var dbWCGroupControl = {
                             newWechatData.isDeviceNicknameExist = true;
                         }
                     }
+                } else {
+                    return newWechatData;
                 }
 
                 if (newWechatData.isDeviceIdExist && newWechatData.isDeviceNicknameExist) {
@@ -430,6 +435,8 @@ var dbWCGroupControl = {
                     {csOfficer: {$in: csOfficerList}}
                 ]
             }
+        } else {
+            match['csOfficer'] = {$eq: null};
         }
 
         let adminProm = dbConfig.collection_admin.find({_id: {$in: adminIds}}, {adminName: 1}).lean();
@@ -460,6 +467,9 @@ var dbWCGroupControl = {
         let wcGroupControlSessionMonitorProm = dbConfig.collection_wcGroupControlSession.aggregate([
             {
                 $match: match
+            },
+            {
+                $sort : { createTime : 1}
             },
             {
                 $group: {

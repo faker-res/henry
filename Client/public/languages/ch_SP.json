@@ -4159,6 +4159,8 @@
   "ADD/Who Last Edited":"添加/上次编辑人员",
   "Duplicate Device Id": "手机设备号不可重复",
   "Duplicate Device Nickname": "绑定设备腻称不可重复",
+  "Duplicate Device Id and Device Nickname": "手机设备号和绑定设备腻称不可重复",
+  "Please fix the duplicate and retry again": "请修复重复的问题，然后再试一次",
   "Device Name":"设备腻称",
   "Login Account":"登入帐号",
   "Last Login Account (Offline) / Current Login Account (Online)":"上次(离线)/目前(在线)登入帐号",
