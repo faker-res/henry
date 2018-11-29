@@ -170,7 +170,7 @@ var dbPlayerConsumptionRecord = {
             return {data: result[0], count: result[1], summary: result[2] ? result[2][0] : {}}
         })
     },
-    getConsumptionRecordByGameProvider: function (data, platformId, providerObjId, playerName, index, limit, sortCol) {
+    getConsumptionRecordByGameProvider: function (data, platformId, providerObjId, playerName, index, limit, sortCol, showSumOnly) {
         var startTime = data.startTime ? new Date(data.startTime) : new Date(0);
         var endTime = data.endTime ? new Date(data.endTime) : new Date();
         index = index || 0;
@@ -249,14 +249,17 @@ var dbPlayerConsumptionRecord = {
                             matchObj.$or = [{roundNo: data.roundNoOrPlayNo}, {playNo: data.roundNoOrPlayNo}];
                         }
                     }
-
-                    var a = dbconfig.collection_playerConsumptionRecord.find(matchObj)
-                        .populate({path: "playerId", model: dbconfig.collection_players})
-                        .populate({path: "gameId", model: dbconfig.collection_game})
-                        .populate({path: "platformId", model: dbconfig.collection_platform})
-                        .populate({path: "providerId", model: dbconfig.collection_gameProvider})
-                        .sort(sortCol).skip(index).limit(limit);
-
+                    if(showSumOnly){
+                        // if only want to show the sum of consumption result
+                        var a = [];
+                    }else{
+                        var a = dbconfig.collection_playerConsumptionRecord.find(matchObj)
+                            .populate({path: "playerId", model: dbconfig.collection_players})
+                            .populate({path: "gameId", model: dbconfig.collection_game})
+                            .populate({path: "platformId", model: dbconfig.collection_platform})
+                            .populate({path: "providerId", model: dbconfig.collection_gameProvider})
+                            .sort(sortCol).skip(index).limit(limit);
+                    }
                     var b = dbconfig.collection_playerConsumptionRecord.find(matchObj).count();
                     var c = dbconfig.collection_playerConsumptionRecord.aggregate({
                             $match: matchObj
@@ -270,7 +273,6 @@ var dbPlayerConsumptionRecord = {
                             }
                         });
                     return Q.all([a, b, c]);
-
                 }
                 else{
                     return [[], 0, []];
@@ -2116,7 +2118,7 @@ var dbPlayerConsumptionRecord = {
                                     $lt: endTime
                                 }
                             }
-                            
+
                             let playerConsumptionRecordData = dbconfig.collection_playerConsumptionRecord.findOne(query).sort({createTime: -1}).limit(1).lean().then(
                                 playerConsumption => {
                                     if(playerConsumption){

@@ -8,7 +8,7 @@ const Q = require("q");
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 var cpmsAPI = require("./../externalAPI/cpmsAPI");
-
+var dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionRecord');
 var dbGameProviderPlayerDaySummary = {
 
     /**
@@ -316,16 +316,21 @@ var dbGameProviderPlayerDaySummary = {
         )
     },
     getProviderDifferDaySummaryForTimeFrame: function (startTime, endTime, platformObjId, platformId, providerObjId, proId,  index, count) {
-        let sendQuery = {
+        let fpmsQuery = {
+            startTime: startTime,
+            endTime: endTime,
+            sort: {createTime: -1}
+        };
+        let cpmsQuery = {
             platformId: platformId,
             providerId: proId,
             startDate: dbUtil.getSGTimeToString(startTime),
             endDate: dbUtil.getSGTimeToString(endTime)
         };
         // modify the date to cpms datetime format -> "2018-11-07 02:00:00" and cpms are using gmt +8 timezone for date query
-        let fpmsSummary = dbGameProviderPlayerDaySummary.getProviderDaySummaryForTimeFrame(startTime, endTime, platformObjId, providerObjId, index, count);
+        let fpmsSummary = dbPlayerConsumptionRecord.getConsumptionRecordByGameProvider(fpmsQuery, platformObjId, providerObjId, null, null, null, fpmsQuery.sort, true);
         let cpmsSummary = new Promise((resolve, reject)=>{
-            cpmsAPI.consumption_getConsumptionSummary(sendQuery).then(
+            cpmsAPI.consumption_getConsumptionSummary(cpmsQuery).then(
                 function (result) {
                     resolve(result);
                 },
@@ -339,7 +344,11 @@ var dbGameProviderPlayerDaySummary = {
         return Promise.all([fpmsSummary, cpmsSummary])
         .then(data=>{
             console.log('--mark--observe--fpms&cpms',data);
-            let fpmsData = (data && data[0]) ? data[0] : {consumption:0, validAmount:0};
+            let fpmsData = {consumption:0, validAmount:0};
+            if(data && data[0] && data[0].summary){
+                fpmsData.validAmount = data[0].summary.validAmount;
+                fpmsData.consumption = data[0].count;
+            }
             let cpmsData = dbGameProviderPlayerDaySummary.sumCPMSBetsRecord(data[1]);
             let combineData = [];
             let result = {};
@@ -393,8 +402,8 @@ var dbGameProviderPlayerDaySummary = {
             data.summary.forEach(item=>{
                 if(item.summaryData){
                     item.summaryData.forEach(summary=>{
-                        result.consumption += summary.totalCount;
-                        result.validAmount += summary.totalValidAmount;
+                        result.consumption += Number(summary.totalCount);
+                        result.validAmount += Number(summary.totalValidAmount);
                     })
                 }
             })

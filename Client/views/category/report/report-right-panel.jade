@@ -2029,47 +2029,32 @@
         div(ng-if='vm.showPageName=="WECHAT_GROUP_REPORT"')
             #wechatGroupQuery.block-query.col-md-12.well
                 div(style='width:125px')
-                    label.control-label  {{'DEPARTMENT' | translate}}
-                    select.form-control(ng-model='vm.wechatGroupQuery.department')
+                    label.control-label  {{'PRODUCT' | translate}}
+                    select.form-control.spicker(ng-model='vm.wechatGroupQuery.product', ng-change='vm.getWechatSessionDeviceNickName(vm.wechatGroupQuery.product)', ng-options="a._id as a.name  for a in vm.adminPlatformName", style='max-width:200px', multiple, bsp, data-actions-box='true')
                 div(style='width:125px')
                     label.control-label  {{'Device Name' | translate}}
-                    select.form-control(ng-model='vm.wechatGroupQuery.deviceName')
+                    select.form-control.spicker(ng-model='vm.wechatGroupQuery.deviceNickName', ng-change='vm.getWechatSessionCsOfficer(vm.wechatGroupQuery.product, vm.wechatGroupQuery.deviceNickName)', ng-options="a  for a in vm.wechatSessionNickName", style='max-width:200px', multiple, bsp, data-actions-box='true')
                 div(style='width:125px')
                     label.control-label  {{'Login Account' | translate}}
-                    select.form-control(ng-model='vm.wechatGroupQuery.loginAccount')
+                    select.form-control.spicker(ng-model='vm.wechatGroupQuery.csOfficer', ng-options="a._id as a.adminName  for a in vm.wechatSessionCsOfficer", style='max-width:200px', multiple, bsp, data-actions-box='true')
                 div
-                    label {{"Start date"|translate}}
+                    label {{"Connection Start Time"|translate}}
                     .startTime
                 div
-                    label {{"End date"|translate}}
+                    label {{"Connection End Time"|translate}}
                     .endTime
                 div
                     label &nbsp;
-                    button.btn.btn-success(ng-click='') {{'SEARCH' | translate}}
-                    button.btn.btn-warning.margin-left-5(ng-click='') {{'Reset' | translate}}
-                    button.btn.btn-info.margin-left-5(ng-click='') {{'EXPORT_EXCEL' | translate}}
+                    button.btn.btn-success(ng-click='vm.searchWechatControlSession(true)') {{'SEARCH' | translate}}
+                    button.btn.btn-warning.margin-left-5(ng-click='vm.loadPage("WECHAT_GROUP_REPORT")') {{'Reset' | translate}}
+                    button.btn.btn-info.margin-left-5(ng-click='vm.searchWechatControlSession(true, true)') {{'EXPORT_EXCEL' | translate}}
                     span#wechatGroupReportTableSpin.collapse
                         i.fa.fa-spinner.fa-spin
             .clearfix
-                label {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
+                label {{"Total" | translate}} {{vm.wechatGroupQuery.totalCount}} {{"records" | translate}} / {{"Search time" | translate}}: {{vm.reportSearchTime}} {{"Seconds" | translate}}
                 table#wechatGroupReportTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
                 #wechatGroupReportTablePage
-                    thead
-                        tr
-                            th {{'PRODUCT' | translate}}
-                            th {{'Create Device Name' | translate}}
-                            th {{'Use Account' | translate}}
-                            th {{'Start Connection Time' | translate}}
-                            th {{'Offline Time' | translate}}
-                            th {{'This Connection is Abnormally Clicked' | translate}}
-                            th {{'Connection Time' | translate}}
-
-                    tbody
-                        tr(ng-repeat='(i,v) in vm.proposalMismatchDetail.mismatches')
-                            td {{v.proposalId}}
-                            td {{v.createTime}}
-                            td {{v.missing}}
-                            td {{v.amount}}
+                table#wechatGroupReportExcelTable.common-table.display(style="width:100%;overflow: scroll;max-height:700px")
 
 #modalProposal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

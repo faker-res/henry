@@ -95,7 +95,7 @@ define(['js/app'], function (myApp) {
                         vm.setupMultiSelect();
                     });
 
-                    vm.wechatGroupControlMonitorQuery.pageObj = utilService.createPageForPagingTable("#wechatGroupMonitorTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.wechatGroupControlMonitorQuery.pageObj = utilService.createPageForPagingTable("#wechatGroupMonitorTablePage", {pageSize: 1000}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "wechatGroupControlMonitorQuery", vm.searchWechatMonitorRecord)
                     });
                 }
@@ -192,33 +192,28 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.getSessionDuration = function (latestDate, createDate)
-        {
+        vm.getSessionDuration = function (latestDate, createDate) {
             let diff = (latestDate.getTime() - createDate.getTime()) / 60000;
 
-            return diff;
-        };
-
-        vm.convertSessionDurationToHourAndMinute = function (time) {
-            let hours = (time / 60);
-            let rhours = Math.floor(hours);
-            let minutes = (hours - rhours) * 60;
-            let rminutes = Math.round(minutes);
-            let duration = '';
-
-            if (rhours) {
-                duration += rhours + $translate('hour(s)');
-            }
-
-            if (rminutes) {
-                duration += rminutes + $translate('minute(s)');
-            }
-            return duration;
+            return Math.floor(diff);
         };
 
         vm.resetWechatGroupControlMonitor = function () {
+
             setTimeout(function () {
                 vm.setupMultiSelect();
+
+                if (vm.wechatGroupControlMonitorQuery && vm.wechatGroupControlMonitorQuery.department) {
+                    Promise.all([vm.getWCAdminDetailByDepartmentIds(vm.wechatGroupControlMonitorQuery.department)]).then(
+                        data => {
+                            setTimeout(function () {
+                                vm.setupAdminMutliSelect();
+                            });
+                            $scope.$evalAsync();
+                        }
+                    )
+                }
+
             });
             $scope.$evalAsync();
         };
@@ -235,7 +230,7 @@ define(['js/app'], function (myApp) {
                 adminIds: vm.wechatGroupControlMonitorQuery.csOfficer,
                 deviceNickNames: vm.wechatGroupControlMonitorQuery.deviceNickName,
                 index: vm.wechatGroupControlMonitorQuery.index,
-                limit: vm.wechatGroupControlMonitorQuery.limit || 10
+                limit: vm.wechatGroupControlMonitorQuery.limit || 1000
             };
 
             console.log('sendObj', sendObj);
@@ -258,7 +253,7 @@ define(['js/app'], function (myApp) {
                             }
                             duration = vm.getSessionDuration(lastDate, createDate);
                             item.duration = duration;
-                            item.duration$ = vm.convertSessionDurationToHourAndMinute(duration);
+                            item.duration$ = duration + $translate('minute(s)');
                             item.product = item.platformId + '.' + item.platformName;
                             item.adminName$ = item.adminName ? item.adminName : $translate('No first attempt login');
                             item.status$ = item.status == 1 ? $translate('Green light is on(Online)') : $translate('Red light is on(Offline)');
@@ -332,8 +327,23 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('Equipment History'),
                         render: function (data, type, row) {
-                            var text = $translate("7 Day(s) History");
-                            return "<a>" + text + "</a>";
+                            var link = $('<div>', {});
+
+                            link.append(
+                                $('<a>', {
+                                    'ng-click': 'vm.initWCGroupControlSessionHistory(' + JSON.stringify(row) + ')',
+                                    'data-row': JSON.stringify(row),
+                                    'data-target': '#modalWCGroupControlSessionHistory',
+                                    'style': 'z-index: auto',
+                                    'href': '#',
+                                    'data-toggle': 'modal',
+                                    'data-trigger': 'focus',
+                                    'data-placement': 'bottom',
+                                    'type': 'button',
+                                    'data-container': 'body'
+                                }).text($translate('7 Day(s) History')));
+
+                            return link.prop('outerHTML');
                         }
                     },
 
@@ -365,6 +375,146 @@ define(['js/app'], function (myApp) {
                 $(nRow).find('td:eq(3)').css('background-color', 'red');
             }
         }
+
+        vm.initWCGroupControlSessionHistory = function (data) {
+            utilService.actionAfterLoaded('#modalWCGroupControlSessionHistory.in #wcGroupControlSessionHistoryQuery .endTime', function () {
+                vm.wcGroupControlSessionHistory = {};
+                vm.wcGroupControlSessionHistory.totalCount = 0;
+                vm.wcGroupControlSessionHistory.limit = 1000;
+                vm.wcGroupControlSessionHistory.index = 0;
+                if (data && Object.keys(data).length > 0) {
+                    vm.wcGroupControlSessionHistory.platform = data.platformObjId;
+                    vm.wcGroupControlSessionHistory.platformName = data.platformName;
+                    vm.wcGroupControlSessionHistory.deviceNickName = data.deviceNickName;
+                    vm.wcGroupControlSessionHistory.deviceId = data.deviceId;
+                };
+
+                $('select#selectWCGroupControlSessionHistoryAdminId').multipleSelect({
+                    allSelected: $translate("All Selected"),
+                    selectAllText: $translate("Select All"),
+                    displayValues: true,
+                    countSelected: $translate('# of % selected'),
+                });
+                let $multi = ($('select#selectWCGroupControlSessionHistoryAdminId').next().find('.ms-choice'))[0];
+                $('select#selectWCGroupControlSessionHistoryAdminId').next().on('click', 'li input[type=checkbox]', function () {
+                    let upText = $($multi).text().split(',').map(item => {
+                        let textShow = '';
+                        vm.wechatGroupControlAdminList.forEach(admin => {
+                            if (admin && admin._id && item && (admin._id.toString() == item.trim().toString())) {
+                                textShow = admin.adminName;
+                            } else if (item.trim().includes('/') || item.trim().includes('全选')) {
+                                textShow = item;
+                            }
+                        });
+                        return textShow;
+                    }).join(',');
+                    $($multi).find('span').text(upText);
+                });
+                $("select#selectWCGroupControlSessionHistoryAdminId").multipleSelect("checkAll");
+
+                vm.wcGroupControlSessionHistory.startDate = utilService.createDatePicker('#wcGroupControlSessionHistoryQuery .startTime');
+                vm.wcGroupControlSessionHistory.endDate = utilService.createDatePicker('#wcGroupControlSessionHistoryQuery .endTime');
+                vm.wcGroupControlSessionHistory.startDate.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 7)));
+                vm.wcGroupControlSessionHistory.endDate.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+                utilService.actionAfterLoaded('#modalWCGroupControlSessionHistory.in #wcGroupControlSessionHistoryTablePage', function () {
+                    vm.wcGroupControlSessionHistory.pageObj = utilService.createPageForPagingTable("#wcGroupControlSessionHistoryTablePage", {pageSize: 1000}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "wcGroupControlSessionHistory", vm.getWCGroupControlSessionHistory)
+                    });
+                    vm.getWCGroupControlSessionHistory(true);
+                });
+            });
+        };
+
+        vm.getWCGroupControlSessionHistory = function (newSearch) {
+            let sendQuery = {
+                platformObjId: vm.wcGroupControlSessionHistory.platform,
+                deviceNickName: vm.wcGroupControlSessionHistory.deviceNickName,
+                deviceId: vm.wcGroupControlSessionHistory.deviceId,
+                adminIds: vm.wcGroupControlSessionHistory.csOfficer,
+                startDate: vm.wcGroupControlSessionHistory.startDate.data('datetimepicker').getLocalDate(),
+                endDate: vm.wcGroupControlSessionHistory.endDate.data('datetimepicker').getLocalDate(),
+                index: newSearch ? 0 : vm.wcGroupControlSessionHistory.index,
+                limit: newSearch ? 1000 : vm.wcGroupControlSessionHistory.limit,
+            }
+
+            console.log('sendSessionQuery', sendQuery);
+
+            socketService.$socket($scope.AppSocket, 'getWCGroupControlSessionHistory', sendQuery, function (data) {
+                console.log("getWCGroupControlSessionHistory", data);
+
+                $scope.$evalAsync(() => {
+                    vm.wcGroupControlSessionHistory.totalCount = data.data.size;
+
+                    vm.drawWCGroupControlSessionHistoryTable(
+                        data.data.data.map(item => {
+                            let lastDate = new Date();
+                            let createDate = new Date(item.createTime);
+                            let duration = 0;
+                            if (item && item.lastUpdateTime) {
+                                lastDate = new Date(item.lastUpdateTime);
+                            } else {
+                                lastDate = new Date();
+                            }
+                            duration = vm.getSessionDuration(lastDate, createDate);
+                            item.duration = duration;
+                            item.product = item.platformObjId ? item.platformObjId.platformId + '.' + item.platformObjId.name : '';
+                            item.adminName$ = item.csOfficer ? item.csOfficer.adminName : $translate('No first attempt login');
+                            item.connectionAbnormalClickTimes$ = item.connectionAbnormalClickTimes ? item.connectionAbnormalClickTimes : 0;
+                            item.createTime$ = vm.dateReformat(item.createTime);
+                            item.lastUpdateTime$ = !item.lastUpdateTime ? $translate('Still Online') : vm.dateReformat(item.lastUpdateTime);
+
+                            return item;
+                        }), data.data.size, {}, newSearch
+                    );
+                });
+            });
+        };
+
+        vm.drawWCGroupControlSessionHistoryTable = function (data, size, summary, newSearch) {
+            let tableOptions = {
+                data: data,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('PRODUCT'), data: "product"},
+                    {title: $translate('Create Device Name'), data: "deviceNickName"},
+                    {title: $translate('Use Account'), data: "adminName$"},
+                    {title: $translate('Start Connection Time'), data: "createTime$"},
+                    {title: $translate('Offline Time'), data: "lastUpdateTime$",
+                        render: function (data, type, row) {
+                            if (!row.lastUpdateTime) {
+                                return "<div style='padding:0;color:green;'>" + data + "</div>";
+                            } else {
+                                return "<div>" + data + "</div>";
+                            }
+                        }},
+                    {title: $translate('This Connection is Abnormally Clicked'), data: "connectionAbnormalClickTimes$"},
+                    {title: $translate('Connection Time'), data: "duration"}
+                ],
+                destroy: true,
+                paging: false,
+                autoWidth: true,
+                createdRow: function (row, data, dataIndex) {
+                    $compile(angular.element(row).contents())($scope)
+                }
+            };
+            tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
+            utilService.createDatatableWithFooter('#wcGroupControlSessionHistoryTable', tableOptions, {}, true);
+            vm.wechatGroupControlMonitorQuery.pageObj.init({maxCount: size}, newSearch);
+            $('#wcGroupControlSessionHistoryTable').off('order.dt');
+            $('#wcGroupControlSessionHistoryTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'wcGroupControlSessionHistory', vm.getWCGroupControlSessionHistory);
+            });
+            $('#wcGroupControlSessionHistoryTable').resize();
+            $scope.$evalAsync();
+        };
+
+        vm.dateReformat = function (data) {
+            if (!data) return '';
+            return utilService.getFormatTime(data);
+        };
+
         vm.generalDataTableOptions = {
             "paging": true,
             columnDefs: [{targets: '_all', defaultContent: ' '}],
