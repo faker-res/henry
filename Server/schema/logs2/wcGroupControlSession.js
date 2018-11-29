@@ -21,7 +21,7 @@ let wcGroupControlSessionSchema = new Schema({
     platformObjId: {type: Schema.Types.ObjectId, ref: 'platform', required: true, index: true},
 
     // Create time
-    createTime: {type: Date, default: Date.now(), index: true},
+    createTime: {type: Date, default: Date.now, index: true},
 
     // Last Active time, the last time this was updated as 'ONLINE'.
     lastActiveTime: {type: Date, index: true},
