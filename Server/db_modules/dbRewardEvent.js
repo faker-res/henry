@@ -1558,7 +1558,13 @@ var dbRewardEvent = {
                             returnData.result.quantityLimit = eventData.condition.quantityLimitInInterval;
                         }
 
-                        returnData.condition.deposit.status = returnData.condition.deposit.list[retRewardData.selectedIndex].status;
+                        if (todayHasApplied){
+                            // retRewardData.selectedIndex-1 as retRewardData.selectedIndex is the index of the next iteration
+                            returnData.condition.deposit.status = returnData.condition.deposit.list[retRewardData.selectedIndex-1].status;
+                        }
+                        else{
+                            returnData.condition.deposit.status = returnData.condition.deposit.list[retRewardData.selectedIndex].status;
+                        }
                         break;
 
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:

@@ -319,17 +319,15 @@ var proposal = {
                 if (rewardType.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
                     proposalData.data.lastLoginIp = playerData.lastLoginIp;
                     proposalData.data.phoneNumber = playerData.phoneNumber;
+                    if (playerData.deviceId){
+                        proposalData.data.deviceId = playerData.deviceId;
+                    }
                 }
 
                 if (rewardType.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && eventData.condition
                     && eventData.condition.definePlayerLoginMode && typeof(eventData.condition.definePlayerLoginMode) != 'undefined'){
                     proposalData.data.definePlayerLoginMode = eventData.condition.definePlayerLoginMode;
                 }
-
-
-                // if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && deviceId){
-                //     proposalData.data.deviceId = deviceId;
-                // }
 
                 return proposal.createProposalWithTypeId(eventData.executeProposal, proposalData)
             }
