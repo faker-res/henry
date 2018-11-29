@@ -7469,6 +7469,9 @@ let dbPlayerReward = {
                         selectedIndex = latestRewardProposal.data.consecutiveNumber;
                     }
                 }
+                else{
+                    selectedIndex = 0;
+                }
                 consecutiveNumber = selectedIndex + 1;
             }
             else if (eventData.condition.definePlayerLoginMode == 2) {
