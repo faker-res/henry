@@ -1559,7 +1559,7 @@ var dbRewardEvent = {
                         }
 
                         if (todayHasApplied){
-                            // retRewardData.selectedIndex-1 as retRewardData.selectedIndex is the index next iteration
+                            // retRewardData.selectedIndex-1 as retRewardData.selectedIndex is the index of the next iteration
                             returnData.condition.deposit.status = returnData.condition.deposit.list[retRewardData.selectedIndex-1].status;
                         }
                         else{
