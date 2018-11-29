@@ -163,7 +163,9 @@ function socketActionQualityInspection(socketIO, socket) {
         getWechatConversationDeviceList: function getWechatConversationDeviceList(data){
             var actionName = arguments.callee.name;
             var isDataValid = Boolean(data && data.deviceNickName && data.startTime && data.endTime);
-            socketUtil.emitter(self.socket, dbQualityInspection.getWechatConversationDeviceList, [data.platform, data.deviceNickName, data.csName, data.startTime, data.endTime, data.content], actionName, isDataValid);
+            let index = data.index || 0;
+            let limit = data.limit || 1000;
+            socketUtil.emitter(self.socket, dbQualityInspection.getWechatConversationDeviceList, [data.platform, data.deviceNickName, data.csName, data.startTime, data.endTime, data.content, index, limit], actionName, isDataValid);
         },
 
         getWechatConversation: function getWechatConversation(data){

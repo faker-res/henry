@@ -89,7 +89,13 @@ define(['js/app'], function (myApp) {
 
             vm.wechatDeviceList;
             vm.fuzzyWechatDeviceList;
-            vm.inspectionWechat = {};
+            vm.inspectionWechat = {
+                totalCount: 0,
+                currentPage: 1,
+                index: 0,
+                limit: 1000,
+                totalPage: 1
+            };
             vm.showDeviceTable = false;
 
             ////////////////Mark::Platform functions//////////////////
@@ -3022,7 +3028,9 @@ define(['js/app'], function (myApp) {
                     csName: csName,
                     startTime: startTime,
                     endTime: endTime,
-                    content: vm.inspectionWechat.content
+                    content: vm.inspectionWechat.content,
+                    index: vm.inspectionWechat.index || 0,
+                    limit: vm.inspectionWechat.limit || 1000
                 };
                 vm.deviceList = [];
                 vm.deviceListTotal = 0;
@@ -3033,9 +3041,9 @@ define(['js/app'], function (myApp) {
                         if(data && data.data){
                             vm.getWechatDeviceNickNameList(true);
                             console.log("Wechat Conversation Device List", data.data);
-                            vm.deviceListTotal = data.data.length;
+                            vm.deviceListTotal = data.data.size;
 
-                            data.data.forEach(data => {
+                            data.data.data.forEach(data => {
                                 if(data && data._id && data._id.platformName && data._id.deviceNickName && data._id.playerWechatRemark){
                                     let indexByPlatform = vm.deviceList.findIndex(d => d.platformName == data._id.platformName);
 
@@ -3062,10 +3070,50 @@ define(['js/app'], function (myApp) {
                                 }
                             });
 
+                            if(data && data.data && data.data.size){
+                                let itemTotal = data && data.data && data.data.size ? data.data.size : 0;
+                                let totalPage = itemTotal / vm.inspectionWechat.limit
+                                vm.inspectionWechat.totalPage = Math.ceil(totalPage);
+                                vm.inspectionWechat.totalCount = data.data.size;
+                            }else{
+                                vm.inspectionWechat.totalPage  = 1;
+                                vm.inspectionWechat.totalCount = 0;
+                            }
+                            vm.inspectionWechatPages = [];
+                            for(let i = 0; i < vm.inspectionWechat.totalPage; i++){
+                                vm.inspectionWechatPages.push(i);
+                            }
+
                             vm.oriDeviceList = vm.deviceList;
                         }
                     })
                 });
+            };
+
+            vm.nextInspectionWechatPage = function(){
+                vm.inspectionWechat.currentPage += 1;
+                vm.inspectionWechat.index = (vm.inspectionWechat.currentPage - 1) * vm.inspectionWechat.limit;
+                if (vm.inspectionWechat.currentPage > 0 && vm.inspectionWechat.currentPage <= vm.inspectionWechat.totalPage) {
+                    vm.searchWechatConversationDevice();
+                }
+            };
+
+            vm.gotoInspectionWechatPage = function(pg, $event){
+                $('body .pagination li').removeClass('active');
+                if($event){
+                    $($event.currentTarget).addClass('active');
+                }
+                let pgNo = null;
+                if(pg<=0){
+                    pgNo = 0
+                }else if(pg >= 1){
+                    pgNo = pg;
+                }
+                vm.inspectionWechat.index = ((pgNo - 1) * vm.inspectionWechat.limit);
+                vm.inspectionWechat.currentPage = pgNo;
+                if (vm.inspectionWechat.currentPage > 0 && vm.inspectionWechat.currentPage <= vm.inspectionWechat.totalPage) {
+                    vm.searchWechatConversationDevice();
+                }
             };
 
             vm.searchWechatConversation = function (platform, deviceNickName, playerWechatRemark) {
