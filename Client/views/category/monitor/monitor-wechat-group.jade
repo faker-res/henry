@@ -37,4 +37,32 @@ div
         table#wechatGroupMonitorTable.common-table.display(style="min-width:100%; overflow: scroll")
         #wechatGroupMonitorTablePage
 
-
+#modalWCGroupControlSessionHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"7 Day(s) History" | translate}}
+            .modal-body
+                #wcGroupControlSessionHistoryQuery.well
+                    .inlineBlk
+                        label {{"PRODUCT" | translate}} &nbsp;
+                        input.form-control(ng-model='vm.wcGroupControlSessionHistory.platformName' disabled)
+                    .inlineBlk
+                        label {{"Device Name" | translate}} &nbsp;
+                        input.form-control(ng-model='vm.wcGroupControlSessionHistory.deviceNickName' disabled)
+                    .inlineBlk
+                        div(style='width:155px')
+                            label {{"Login Account" | translate}}
+                            select.form-control#selectWCGroupControlSessionHistoryAdminId(multiple='multiple', ng-model='vm.wcGroupControlSessionHistory.csOfficer')
+                                option(ng-repeat='(i,v) in vm.wechatGroupControlAdminList', value='{{v._id}}') {{v.adminName}}
+                    .inlineBlk
+                        label {{"Start Connection Time" | translate}}
+                        .startTime
+                    .inlineBlk
+                        label {{"Offline Time" | translate}}
+                        .endTime
+                    button.btn.btn-primary.common-button(ng-click='vm.getWCGroupControlSessionHistory(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
+                label {{"Total" | translate}} {{vm.wcGroupControlSessionHistory.totalCount}} {{"records" | translate}}
+                table#wcGroupControlSessionHistoryTable.common-table.display(style='min-width:100%; overflow: scroll')
+                #wcGroupControlSessionHistoryTablePage.height30

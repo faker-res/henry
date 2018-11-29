@@ -319,6 +319,7 @@ var dbWCGroupControl = {
                     _id: 0,
                     platformObjId: "$_id.platformObjId",
                     deviceNickName: "$_id.deviceNickName",
+                    deviceId: "$_id.deviceId",
                     csOfficer: 1,
                     status: 1,
                     connectionAbnormalClickTimes: 1,
@@ -335,6 +336,7 @@ var dbWCGroupControl = {
                 let wcGroupSessionRecord = [];
                 let adminRecord = [];
                 let platformRecord = [];
+                let result = []
 
                 if (data) {
                     size = data[0] && data[0][0] && data[0][0].count ? data[0][0].count : 0;
@@ -342,27 +344,78 @@ var dbWCGroupControl = {
                     adminRecord = data[2] ? data[2] : [];
                     platformRecord = data[3] ? data[3] : [];
 
-                    if (wcGroupSessionRecord && wcGroupSessionRecord.length > 0) {
-                        wcGroupSessionRecord.forEach(session => {
-                            let adminIndexNo = adminRecord.findIndex(x => x && x._id && session && session.csOfficer && (x._id.toString() == session.csOfficer.toString()));
-                            let platformIndexNo = platformRecord.findIndex(y => y && y._id && session && session.platformObjId && (y._id.toString() == session.platformObjId.toString()))
+                    result = rearrangeWCGroupControlSessionPlatformAndAdminInfo(wcGroupSessionRecord, adminRecord, platformRecord);
 
-                            if (adminIndexNo != -1) {
-                                session.adminName = adminRecord[adminIndexNo].adminName;
-                            }
-
-                            if (platformIndexNo != -1) {
-                                session.platformName = platformRecord[platformIndexNo].name;
-                                session.platformId = platformRecord[platformIndexNo].platformId;
-                            }
-                        });
-
-                    }
                 }
 
-                return {data: wcGroupSessionRecord, size: size};
+                return {data: result, size: size};
             });
 
-    }
+    },
+
+    getWCGroupControlSessionHistory: (platformObjId, deviceNickName, deviceId, adminIds, startDate, endDate, index, limit) => {
+        platformObjId = ObjectId(platformObjId);
+        index = index || 0;
+        let csOfficerList = [];
+
+        if (adminIds && adminIds.length > 0) {
+            adminIds.forEach(x => {
+                csOfficerList.push(ObjectId(x));
+            });
+        }
+
+        let query = {
+            platformObjId: platformObjId,
+            deviceNickName: deviceNickName,
+            deviceId: deviceId,
+            createTime: {$gte: startDate, $lt: endDate},
+        };
+
+        if (csOfficerList && csOfficerList.length > 0) {
+            query['csOfficer'] = {$in: csOfficerList};
+        } else {
+            query['csOfficer'] = {$eq: null};
+        }
+
+        let countWCGroupControlSessionHistoryProm = dbConfig.collection_wcGroupControlSession.find(query).count();
+        let WCGroupControlSessionHistoryProm = dbConfig.collection_wcGroupControlSession.find(query)
+            .populate({path: "platformObjId", model: dbConfig.collection_platform, select: {name: 1, platformId: 1}})
+            .populate({path: "csOfficer", model: dbConfig.collection_admin, select: {adminName: 1}}).skip(index).limit(limit);
+
+        return Promise.all([countWCGroupControlSessionHistoryProm, WCGroupControlSessionHistoryProm]).then(
+            data => {
+                let size = 0;
+                let result = [];
+
+                if (data) {
+                    size = data[0] ? data[0] : 0;
+                    result = data[1] ? data[1] : [];
+                }
+
+                return {data: result, size: size};
+            }
+        );
+    },
 };
+
+function rearrangeWCGroupControlSessionPlatformAndAdminInfo(sessionRecords, adminRecords, platformRecords) {
+    if (sessionRecords && sessionRecords.length > 0) {
+        return sessionRecords.map(session => {
+            let adminIndexNo = adminRecords.findIndex(x => x && x._id && session && session.csOfficer && (x._id.toString() == session.csOfficer.toString()));
+            let platformIndexNo = platformRecords.findIndex(y => y && y._id && session && session.platformObjId && (y._id.toString() == session.platformObjId.toString()))
+
+            if (adminIndexNo != -1) {
+                session.adminName = adminRecords[adminIndexNo].adminName;
+            }
+
+            if (platformIndexNo != -1) {
+                session.platformName = platformRecords[platformIndexNo].name;
+                session.platformId = platformRecords[platformIndexNo].platformId;
+            }
+
+            return session;
+        });
+    }
+}
+
 module.exports = dbWCGroupControl;

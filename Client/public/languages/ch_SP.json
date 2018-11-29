@@ -4968,5 +4968,6 @@
   "Red light is on(Offline)": "红灯关(离线)",
   "Time(s)": "次",
   "7 Day(s) History": "7 日历史",
-  "* Offline status shows the last connection data": "* 离线状态则显示上次连线数据"
+  "* Offline status shows the last connection data": "* 离线状态则显示上次连线数据",
+  "Still Online": "仍在线"
 }
