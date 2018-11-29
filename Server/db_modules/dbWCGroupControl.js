@@ -186,6 +186,7 @@ var dbWCGroupControl = {
     updateWechatGroupControlSetting: (platformId, wcGroupControlSettingData, deleteWechatGroupControlSetting, adminInfo) => {
         let proms = [];
         let tempSetting = [];
+        let duplicateSetting = [];
 
         if (wcGroupControlSettingData && wcGroupControlSettingData.length > 0) {
             wcGroupControlSettingData.forEach(setting => {
@@ -206,44 +207,102 @@ var dbWCGroupControl = {
             })
         }
 
-        if (tempSetting && tempSetting.length > 0) {
-            tempSetting.forEach(setting => {
+        return dbConfig.collection_wcDevice.find({}).lean().then(
+            wcDevice => {
+                if (wcDevice && wcDevice.length > 0 && tempSetting && tempSetting.length > 0) {
+                    tempSetting.map(setting => {
+                        for (let x = 0; x < wcDevice.length; x++) {
+                            if (wcDevice[x].deviceId === setting.deviceId) {
+                                setting.isDeviceIdExist = true;
+                            }
+                            if (wcDevice[x].deviceNickName === setting.deviceNickName) {
+                                setting.isDeviceNicknameExist = true;
+                            }
+                        }
 
-                if (!setting._id) {
-                    let newWCGroupControlSetting = {
-                        platformObjId: platformId,
-                        deviceId: setting.deviceId,
-                        deviceNickName: setting.deviceNickName,
-                        lastUpdateTime: new Date(),
-                        lastUpdateAdmin: adminInfo.id
-                    };
-                    proms.push(new dbConfig.collection_wcDevice(newWCGroupControlSetting).save());
-                } else {
-                    let updateWCGroupControlSetting = {
-                        platformObjId: platformId,
-                        deviceId: setting.deviceId,
-                        deviceNickName: setting.deviceNickName,
-                        lastUpdateTime: new Date(),
-                        lastUpdateAdmin: adminInfo.id
-                    };
+                    });
 
-                    if (setting.isEdit) {
-                        proms.push(dbConfig.collection_wcDevice.update(
-                            {platformObjId: platformId, _id: setting._id},
-                            {$set: updateWCGroupControlSetting},
-                            {upsert: true}
-                        ).exec());
+                    tempSetting.forEach(setting => {
+                        if ((setting.isDeviceIdExist && setting.isDeviceNicknameExist) || (setting.isDeviceIdExist || setting.isDeviceNicknameExist)) {
+                            duplicateSetting.push(setting);
+                        }
+                    });
+
+                    if (duplicateSetting && duplicateSetting.length > 0) {
+                        return duplicateSetting;
+                    } else {
+                        tempSetting.forEach(setting => {
+                            if (!setting._id) {
+                                let newWCGroupControlSetting = {
+                                    platformObjId: platformId,
+                                    deviceId: setting.deviceId,
+                                    deviceNickName: setting.deviceNickName,
+                                    lastUpdateTime: new Date(),
+                                    lastUpdateAdmin: adminInfo.id
+                                };
+                                proms.push(new dbConfig.collection_wcDevice(newWCGroupControlSetting).save());
+                            } else {
+                                let updateWCGroupControlSetting = {
+                                    platformObjId: platformId,
+                                    deviceId: setting.deviceId,
+                                    deviceNickName: setting.deviceNickName,
+                                    lastUpdateTime: new Date(),
+                                    lastUpdateAdmin: adminInfo.id
+                                };
+
+                                if (setting.isEdit) {
+                                    proms.push(dbConfig.collection_wcDevice.update(
+                                        {platformObjId: platformId, _id: setting._id},
+                                        {$set: updateWCGroupControlSetting},
+                                        {upsert: true}
+                                    ).exec());
+                                }
+                            }
+                        });
                     }
+                    return Promise.all(proms);
                 }
-            });
-        }
-
-        return Promise.all(proms);
+            }
+        );
     },
 
     getWechatGroupControlSetting: (platformId) => {
         return dbConfig.collection_wcDevice.find({platformObjId: platformId})
             .populate({path: 'lastUpdateAdmin', model: dbConfig.collection_admin, select: "adminName"}).sort({_id:1}).lean();
+    },
+
+    isNewWechatDeviceDataExist: (deviceId, deviceNickName) => {
+        let newWechatData = {
+            deviceId: deviceId,
+            deviceNickName: deviceNickName,
+            isDeviceIdExist: false,
+            isDeviceNicknameExist: false
+        };
+
+        return dbConfig.collection_wcDevice.find({}).lean().then(
+            wcDevice => {
+                if (wcDevice && wcDevice.length > 0) {
+                    for (let x = 0; x < wcDevice.length; x++) {
+                        if (wcDevice[x].deviceId === deviceId) {
+                            newWechatData.isDeviceIdExist = true;
+                        }
+                        if (wcDevice[x].deviceNickName === deviceNickName) {
+                            newWechatData.isDeviceNicknameExist = true;
+                        }
+                    }
+                }
+
+                if (newWechatData.isDeviceIdExist && newWechatData.isDeviceNicknameExist) {
+                    return Promise.reject({name: "DataError", message: "Duplicate Device Id and Device Nickname"});
+                } else if (newWechatData.isDeviceIdExist) {
+                    return Promise.reject({name: "DataError", message: "Duplicate Device Id"});
+                } else if (newWechatData.isDeviceNicknameExist) {
+                    return Promise.reject({name: "DataError", message: "Duplicate Device Nickname"});
+                }
+
+                return newWechatData;
+            }
+        );
     },
 
     getWCGroupControlSessionDeviceNickName: (platformId) => {
