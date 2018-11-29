@@ -390,6 +390,8 @@ var dbWCGroupControl = {
                             newWechatData.isDeviceNicknameExist = true;
                         }
                     }
+                } else {
+                    return newWechatData;
                 }
 
                 if (newWechatData.isDeviceIdExist && newWechatData.isDeviceNicknameExist) {
