@@ -42,6 +42,25 @@ function socketActionWCGroupControl(socketIO, socket) {
             socketUtil.emitter(self.socket, dbWCGroupControl.getWechatGroupControlSetting, [data.platformObjId], actionName, isValidData);
         },
 
+
+        getWechatSessionDeviceNickName: function getWechatSessionDeviceNickName(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjIds && data.platformObjIds.length);
+            socketUtil.emitter(self.socket, dbWCGroupControl.getWechatSessionDeviceNickName, [data.platformObjIds], actionName, isValidData);
+        },
+
+        getWechatSessionCsOfficer: function getWechatSessionCsOfficer(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjIds && data.platformObjIds.length && data.deviceNickNames && data.deviceNickNames.length);
+            socketUtil.emitter(self.socket, dbWCGroupControl.getWechatSessionCsOfficer, [data.platformObjIds, data.deviceNickNames], actionName, isValidData);
+        },
+
+        getWechatControlSession: function getWechatControlSession(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.admin && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbWCGroupControl.getWechatControlSession, [data, data.index, data.limit, data.sortCol], actionName, isValidData);
+        },
+
         isNewWechatDeviceDataExist: function isNewWechatDeviceDataExist(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.deviceId && data.deviceNickName);
