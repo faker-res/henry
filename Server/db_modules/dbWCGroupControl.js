@@ -191,6 +191,8 @@ var dbWCGroupControl = {
         if (wcGroupControlSettingData && wcGroupControlSettingData.length > 0) {
             wcGroupControlSettingData.forEach(setting => {
                 if (setting && (setting.isEdit || setting.isNew)) {
+                    setting.isDeviceIdExist = false;
+                    setting.isDeviceNicknameExist = false;
                     tempSetting.push(setting);
                 }
             });
@@ -207,16 +209,20 @@ var dbWCGroupControl = {
             })
         }
 
+        // compare with all wechat device data, including other platform
         return dbConfig.collection_wcDevice.find({}).lean().then(
             wcDevice => {
                 if (wcDevice && wcDevice.length > 0 && tempSetting && tempSetting.length > 0) {
                     tempSetting.map(setting => {
                         for (let x = 0; x < wcDevice.length; x++) {
-                            if (wcDevice[x].deviceId === setting.deviceId) {
-                                setting.isDeviceIdExist = true;
-                            }
-                            if (wcDevice[x].deviceNickName === setting.deviceNickName) {
-                                setting.isDeviceNicknameExist = true;
+                            // don't compare with itself, only compare with other WeChat data
+                            if (wcDevice[x]._id.toString() !== setting._id.toString()) {
+                                if (wcDevice[x].deviceId === setting.deviceId) {
+                                    setting.isDeviceIdExist = true;
+                                }
+                                if (wcDevice[x].deviceNickName === setting.deviceNickName) {
+                                    setting.isDeviceNicknameExist = true;
+                                }
                             }
                         }
 
