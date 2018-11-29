@@ -4161,8 +4161,11 @@
   "Login Account":"登入帐号",
   "Last Login Account (Offline) / Current Login Account (Online)":"上次(离线)/目前(在线)登入帐号",
   "Current System Status":"目前系统状态",
-  "This Connection is Abnormally Clicked":"本次连线异常点击（次数)",
-  "Connection Time":"本次连线（分钟)",
+  "This Connection is Abnormally Clicked":"本次连线异常点击（次数）",
+  "Connection Time":"本次连线（分钟）",
+  "Connection Start Time":"开始连线时间（开始）",
+  "Connection End Time":"开始连线时间（结束）",
+  "STILL_ONLINE":"仍在线",
   "Equipment History":"设备历史",
   "Use Account":"使用帐号",
   "Start Connection Time":"开始连线时间",
@@ -4963,7 +4966,6 @@
   "Manual Approval": "人工审核",
   "approveCsPendingAndChangeStatus": "客服审核",
   "wechatReceivingPlayer": "收话玩家",
-  "hour(s)": "小时",
   "minute(s)": "分钟",
   "No first attempt login": "无-尚未首次登入",
   "Green light is on(Online)": "绿灯开(在线)",
@@ -4971,5 +4973,6 @@
   "Time(s)": "次",
   "7 Day(s) History": "7 日历史",
   "* Offline status shows the last connection data": "* 离线状态则显示上次连线数据",
+  "Still Online": "仍在线",
   "Fuzzy Search": "模糊搜索"
 }

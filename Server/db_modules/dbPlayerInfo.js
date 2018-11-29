@@ -7794,48 +7794,11 @@ let dbPlayerInfo = {
 
         function getExactLoginDateBasedOnInterval (value, eventData, loginMode, intervalMode) {
             //  remove extra param level when intervalMode == 3 (half-monthly) and 4 (monthly)
-            checkParamLevel(value, eventData, intervalMode);
-
+            value  = dbPlayerReward.checkRewardParamLevel(value, eventData, intervalMode);
             // change to date time format if the loginMode == 2 (the exact date)
             if (loginMode == 2) {
                 changeToDateTimeFormat(value, eventData);
             }
-            return value;
-        }
-
-        function checkParamLevel (value, eventData, intervalMode){
-            let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, eventData, true);
-            let paramLevel = value? value.length : null;
-            let dayLimit = null;
-
-            if (intervalMode && intervalMode == 3){
-                // half-monthly - firstHalfMonth: 15 days; secondHalfMonth: the rest of the days
-                let isFirstHalf = new Date() >= intervalTime.startTime ? false : true;
-
-                if (isFirstHalf){
-                    dayLimit = 15;
-                }
-                else{
-                    let period = dbUtility.getCurrentMonthSGTIme();
-                    dayLimit = period.endTime.getDate() - intervalTime.startTime.getDate() + 1;
-                }
-            }
-            else if(intervalMode && intervalMode == 4){
-                // monthly
-                let period = dbUtility.getCurrentMonthSGTIme();
-                dayLimit = period.endTime.getDate();
-            }
-
-            if (dayLimit && paramLevel) {
-                while(paramLevel > dayLimit){
-                    let index = paramLevel-1;
-                    if (value.length-1 >= index) {
-                        value.splice(index, 1);
-                    }
-                    paramLevel = paramLevel -1;
-                }
-            }
-
             return value;
         }
 
@@ -11902,7 +11865,8 @@ let dbPlayerInfo = {
                             {_id: data._id, createTime: data.createTime},
                             {
                                 status: status,
-                                "data.lastSettleTime": lastSettleTime
+                                "data.lastSettleTime": lastSettleTime,
+                                settleTime: lastSettleTime
                             }
                         ).then(
                             updateProposal => {
