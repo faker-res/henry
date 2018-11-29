@@ -3104,9 +3104,13 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getWechatConversation', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         if(data && data.data && data.data.data){
-                            console.log("Wechat Conversation", data.data.data)
-                            vm.wechatConversationList = data.data.data;
+                            console.log("Wechat Conversation", data.data.data);
 
+                            data.data.data.forEach(data => {
+                                data.csReplyTime = utilService.getFormatTime(data.csReplyTime);
+                            });
+
+                            vm.wechatConversationList = data.data.data;
                             vm.drawWechatMessageTable(newSearch, vm.wechatConversationList, data.data.size);
                         }
                     });
