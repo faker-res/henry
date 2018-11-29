@@ -7310,7 +7310,7 @@ let dbPlayerReward = {
         return value;
     },
 
-    getRetentionRewardList: function (returnData, rewardData, eventData, selectedRewardParam, rewardProposals, targetedParamResult) {
+    getRetentionRewardList: function (returnData, rewardData, eventData, selectedRewardParam, rewardProposals, targetedParamResult, todayHasApplied) {
         let outputList = [];
         let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, eventData, true);
         let defineLoginMode = eventData.condition.definePlayerLoginMode || null;
@@ -7319,7 +7319,7 @@ let dbPlayerReward = {
         if (selectedRewardParam && selectedRewardParam.length) {
             setDefaultParam(selectedRewardParam, eventData, intervalMode);
             // check if the reward date is expired
-            setExpiredParam(outputList, targetedParamResult);
+            setExpiredParam(outputList, targetedParamResult, defineLoginMode, intervalTime, todayHasApplied);
         }
         else {
             return Promise.reject({
@@ -7333,7 +7333,7 @@ let dbPlayerReward = {
                 let latestRewardProposal = rewardProposals[0];
                 let accumulativeCount = latestRewardProposal.data && latestRewardProposal.data.consecutiveNumber ? latestRewardProposal.data.consecutiveNumber : 0 ;
 
-                for (let i = 0; i < accumulativeCount - 1; i++) {
+                for (let i = 0; i < accumulativeCount; i++) {
                     let rewardAmount = selectedRewardParam[i].rewardAmount || null;
                     let spendingTimes = selectedRewardParam[i].spendingTimes || null;
                     let maxRewardAmount = selectedRewardParam[i].maxRewardAmountInSingleReward || null;
@@ -7419,23 +7419,38 @@ let dbPlayerReward = {
             )
         }
 
-        function setExpiredParam(outputList, targetedParamResult){
+        function setExpiredParam(outputList, targetedParamResult, loginMode, intervalTime, todayHasApplied){
             let selectedIndex = null;
-
-            if (targetedParamResult && targetedParamResult.hasOwnProperty('selectedIndex')){
+            if (targetedParamResult && targetedParamResult.hasOwnProperty('selectedIndex')) {
                 selectedIndex = targetedParamResult.selectedIndex;
             }
+            if (todayHasApplied) {
+                selectedIndex = selectedIndex - 1;
+            }
 
-            if (outputList && outputList.length && selectedIndex != null){
-                for (let i = 0; i < selectedIndex; i ++){
-                    outputList[i].status = 3 //expired
+            if (outputList && outputList.length && selectedIndex != null) {
+                if (loginMode && loginMode == 1){
+                    // accumulative day
+                    let dayDiff = dbUtility.getTodaySGTime().startTime.getDate() - intervalTime.startTime.getDate();
+                    let expiredLength = dayDiff - selectedIndex;
+                    if (expiredLength >= 0) {
+                        for (let i = 0; i < expiredLength; i++) {
+                            let expiredIndex = outputList.length - 1 - i;
+                            outputList[expiredIndex].status = 3 //expired
+                        }
+                    }
+                }
+                else if (loginMode && loginMode == 2) {
+                    for (let i = 0; i < selectedIndex; i++) {
+                        outputList[i].status = 3 //expired
+                    }
                 }
             }
         }
 
     },
 
-    applyRetentionRewardParamLevel: function (eventData, applyAmount, selectedRewardParam, playerRetentionRewardRecord, appliedDate) {
+    applyRetentionRewardParamLevel: function (eventData, applyAmount, selectedRewardParam, playerRetentionRewardRecord, appliedDate, rewardProposals) {
         let rewardAmount = null;
         let spendingAmount = null;
         let selectedIndex = null;
@@ -7444,7 +7459,19 @@ let dbPlayerReward = {
         if (eventData && eventData.condition && eventData.condition.definePlayerLoginMode) {
             // 1 - accumulative day (the first application always start with level 1 regardless of the interval)
             if (eventData.condition.definePlayerLoginMode == 1) {
-                selectedIndex = playerRetentionRewardRecord && playerRetentionRewardRecord.accumulativeDay ? playerRetentionRewardRecord.accumulativeDay : 0;
+                if (playerRetentionRewardRecord) {
+                    selectedIndex = playerRetentionRewardRecord.accumulativeDay ? playerRetentionRewardRecord.accumulativeDay : 0;
+                }
+                else if (rewardProposals && rewardProposals.length){
+                    let latestRewardProposal = rewardProposals[0];
+
+                    if (latestRewardProposal && latestRewardProposal.data && latestRewardProposal.data.hasOwnProperty('consecutiveNumber')){
+                        selectedIndex = latestRewardProposal.data.consecutiveNumber;
+                    }
+                }
+                else{
+                    selectedIndex = 0;
+                }
                 consecutiveNumber = selectedIndex + 1;
             }
             else if (eventData.condition.definePlayerLoginMode == 2) {
