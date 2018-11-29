@@ -426,6 +426,8 @@ var dbWCGroupControl = {
                     {csOfficer: {$in: csOfficerList}}
                 ]
             }
+        } else {
+            match['csOfficer'] = {$eq: null};
         }
 
         let adminProm = dbConfig.collection_admin.find({_id: {$in: adminIds}}, {adminName: 1}).lean();
