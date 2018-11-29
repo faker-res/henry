@@ -27,7 +27,7 @@ let wcConversationLogSchema = new Schema({
     csReplyContent: {type: String},
 
     // Create time
-    createTime: {type: Date, default: new Date(), index: true}
+    createTime: {type: Date, default: Date.now, index: true}
 });
 
 module.exports = wcConversationLogSchema;

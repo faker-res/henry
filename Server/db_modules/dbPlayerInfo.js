@@ -11865,7 +11865,8 @@ let dbPlayerInfo = {
                             {_id: data._id, createTime: data.createTime},
                             {
                                 status: status,
-                                "data.lastSettleTime": lastSettleTime
+                                "data.lastSettleTime": lastSettleTime,
+                                settleTime: lastSettleTime
                             }
                         ).then(
                             updateProposal => {
