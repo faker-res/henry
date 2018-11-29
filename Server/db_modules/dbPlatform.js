@@ -417,6 +417,31 @@ var dbPlatform = {
         return dbconfig.collection_platform.findOne(query).lean()
     },
 
+    getAdminPlatformName: function (admin) {
+        return dbconfig.collection_admin.findOne({_id: admin})
+            .populate({path: "departments", model: dbconfig.collection_department, select: 'platforms'}).lean().then(
+                adminData => {
+                    if (!adminData) {
+                        return Promise.reject({name: "DataError", message: "Cannot find admin"});
+                    }
+
+                    if (adminData.departments && adminData.departments.length) {
+                        let departments = adminData.departments;
+                        let platformObjIds = [];
+                        for (let i = 0; i < departments.length; i++) {
+                            if (departments[i].platforms) {
+                                platformObjIds = platformObjIds.concat(departments[i].platforms);
+                            }
+                        }
+                        return dbconfig.collection_platform.find({_id: {$in: platformObjIds}}, {name: 1}).lean();
+                    } else {
+                        return [];
+                    }
+                }
+            )
+    },
+
+
     getPlatformFeeEstimateSetting: function (platformObjId) {
     platformObjId = ObjectId(platformObjId);
     return dbconfig.collection_platformFeeEstimate.findOne({platform: platformObjId}).lean().then(

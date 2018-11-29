@@ -213,6 +213,88 @@ var dbWCGroupControl = {
             .populate({path: 'lastUpdateAdmin', model: dbConfig.collection_admin, select: "adminName"}).sort({_id:1}).lean();
     },
 
+    getWechatSessionDeviceNickName: (platformIds) => {
+        return dbConfig.collection_wcGroupControlSession.distinct('deviceNickName', {platformObjId: {$in: platformIds}}).lean();
+    },
+
+    getWechatSessionCsOfficer: (platformIds, deviceNickNames) => {
+        return dbConfig.collection_wcGroupControlSession.distinct('csOfficer', {
+            platformObjId: {$in: platformIds},
+            deviceNickName: {$in: deviceNickNames}
+        }).lean().then(
+            deviceNickNamesData => {
+                if (!(deviceNickNamesData && deviceNickNamesData.length)) {
+                    return Promise.reject({name: "DataError", message: "Cannot find admin"});
+                }
+                return dbConfig.collection_admin.find({_id: {$in: deviceNickNamesData}}, {adminName: 1}).lean();
+            }
+        );
+    },
+
+    getWechatControlSession: (queryData, index, limit, sortObj)=> {
+        limit = limit ? limit : 10;
+        index = index ? index : 0;
+        let platformProm;
+        let platformIds;
+       if (!(queryData.platformIds && queryData.platformIds.length)) {
+           platformProm = dbConfig.collection_admin.findOne({_id: queryData.admin})
+               .populate({path: "departments", model: dbConfig.collection_department, select: 'platforms'}).lean().then(
+                   adminData => {
+                       if (!adminData) {
+                           return Promise.reject({name: "DataError", message: "Cannot find admin"});
+                       }
+
+                       if (adminData.departments && adminData.departments.length) {
+                           let departments = adminData.departments;
+                           let platformObjIds = [];
+                           for (let i = 0; i < departments.length; i++) {
+                               if (departments[i].platforms) {
+                                   platformObjIds = platformObjIds.concat(departments[i].platforms);
+                               }
+                           }
+                           return dbConfig.collection_platform.distinct('_id', {_id: {$in: platformObjIds}}).lean();
+                       } else {
+                           return Promise.reject({name: "DataError", message: "Cannot find departments"});
+                       }
+                   })
+       } else {
+           platformProm = Promise.resolve(queryData.platformIds)
+       }
+
+       return platformProm.then(
+           (platformData) => {
+                if (!(platformData && platformData.length)) {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+               platformIds = platformData;
+                let sessionQuery = {
+                    platformObjId: {$in: platformIds},
+                    createTime: {$gte: new Date(queryData.startTime)},
+                    $or: [{lastUpdateTime: {$lt: new Date(queryData.endTime)}}, {lastUpdateTime: null}]
+                }
+
+               if (queryData.deviceNickNames && queryData.deviceNickNames.length) {
+                   sessionQuery.deviceNickName = {$in: queryData.deviceNickNames};
+               }
+               if (queryData.csOfficer && queryData.csOfficer.length) {
+                   sessionQuery.csOfficer = {$in: queryData.csOfficer};
+               }
+
+               let wcGroupSessionCountProm = dbConfig.collection_wcGroupControlSession.find(sessionQuery).count();
+               let wcGroupSessionProm = dbConfig.collection_wcGroupControlSession.find(sessionQuery).sort(sortObj).skip(index).limit(limit)
+                   .populate({path: 'csOfficer', select: 'adminName', model: dbConfig.collection_admin})
+                   .populate({path: "platformObjId", model: dbConfig.collection_platform}).lean();
+
+               return Promise.all([wcGroupSessionCountProm, wcGroupSessionProm]);
+
+           }
+       ).then(
+           ([wcGroupSessionCount, wcGroupSession]) => {
+               return {data: wcGroupSession, size: wcGroupSessionCount};
+           }
+       )
+    },
+
     getWCGroupControlSessionDeviceNickName: (platformId) => {
         return dbConfig.collection_wcGroupControlSession.distinct('deviceNickName', {platformObjId: platformId}).lean();
     },

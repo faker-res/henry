@@ -80,6 +80,12 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.getOnePlatformSetting, [data], actionName, isValidData);
         },
 
+        getAdminPlatformName: function getAdminPlatformName(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.admin);
+            socketUtil.emitter(self.socket, dbPlatform.getAdminPlatformName, [data.admin], actionName, isValidData);
+        },
+
         getPlatformFeeEstimateSetting: function getPlatformFeeEstimateSetting(data) {
         var actionName = arguments.callee.name;
         var isValidData = Boolean(data && data.platform);
