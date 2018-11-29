@@ -89,7 +89,9 @@ define(['js/app'], function (myApp) {
 
             vm.wechatDeviceList;
             vm.fuzzyWechatDeviceList;
+            vm.wechatReportDeviceList;
             vm.inspectionWechat = {};
+            vm.inspectionWechatReport = {};
             vm.showDeviceTable = false;
 
             ////////////////Mark::Platform functions//////////////////
@@ -3027,6 +3029,7 @@ define(['js/app'], function (myApp) {
                 vm.deviceList = [];
                 vm.deviceListTotal = 0;
                 vm.showDeviceTable = true;
+                $('#wechatConversationTableSpin').show();
 
                 socketService.$socket($scope.AppSocket, 'getWechatConversationDeviceList', sendData, function (data) {
                     $scope.$evalAsync(() => {
@@ -3061,7 +3064,7 @@ define(['js/app'], function (myApp) {
                                     }
                                 }
                             });
-
+                            $('#wechatConversationTableSpin').hide();
                             vm.oriDeviceList = vm.deviceList;
                         }
                     })
@@ -3073,7 +3076,6 @@ define(['js/app'], function (myApp) {
                 vm.inspectionWechat.conversationDeviceNickName = deviceNickName;
                 vm.inspectionWechat.conversationPlayerWechatRemark = playerWechatRemark;
 
-                vm.responseMsg = false;
                 utilService.actionAfterLoaded(('#wechatMessageBeginDatetimePicker'), function () {
                     vm.inspectionWechat.pageObj = utilService.createPageForPagingTable("#wechatMessageTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "inspectionWechat", vm.filterWechatConversation);
@@ -3258,6 +3260,132 @@ define(['js/app'], function (myApp) {
 
 
             //////////////////////////////////////////////////////////End of Wechat Conversation Record Tab///////////////////////////////////////////////////////////////////
+
+
+            //////////////////////////////////////////////////////////Start of Wechat Conversation Report Tab///////////////////////////////////////////////////////////////////
+            vm.initWechatConversationReport = function(){
+                vm.getWechatDeviceNickNameListForReport();
+
+                if(vm.selectedPlatform){
+                    utilService.actionAfterLoaded('#wechatMessageReportBeginDatetimePicker', function () {
+                        $('#wechatMessageReportBeginDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#wechatMessageReportBeginDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                        $('#wechatMessageReportEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#wechatMessageReportEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+                    });
+                }
+            };
+
+            vm.getWechatDeviceNickNameListForReport = function(){
+                let sendData = {};
+
+                if(vm.inspectionWechatReport && vm.inspectionWechatReport.platform){
+                    sendData.platform = vm.inspectionWechatReport.platform
+                }
+
+                socketService.$socket($scope.AppSocket, 'getWechatDeviceNickNameList', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        if(data.data){
+                            vm.wechatReportDeviceList = data.data.sort();
+                        }
+                    })
+                });
+
+            };
+
+            vm.searchWechatConversationReport = function () {
+                utilService.actionAfterLoaded(('#wechatMessageReportBeginDatetimePicker'), function () {
+                    vm.inspectionWechatReport.pageObj = utilService.createPageForPagingTable("#wechatMessageReportTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "inspectionWechatReport", vm.filterWechatConversationReport);
+                    });
+                    vm.filterWechatConversationReport(true);
+                });
+            };
+
+            vm.filterWechatConversationReport = function(newSearch){
+                var startTime = $('#wechatMessageReportBeginDatetimePicker').data('datetimepicker').getLocalDate();
+                var endTime = $('#wechatMessageReportEndDatetimePicker').data('datetimepicker').getLocalDate();
+                let csName = vm.inspectionWechatReport.csName ? vm.inspectionWechatReport.csName.split(',') : [];
+                csName = csName.map(c => c.trim());
+
+                let sendData = {
+                    platform: vm.inspectionWechatReport.platform || "",
+                    deviceNickName: vm.inspectionWechatReport.deviceName || "",
+                    csName: csName,
+                    startTime: startTime,
+                    endTime: endTime,
+                    index: newSearch ? 0 : (vm.inspectionWechatReport.index || 0),
+                    limit: vm.inspectionWechatReport.limit || 10,
+                };
+
+                socketService.$socket($scope.AppSocket, 'getWechatConversationReport', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        if(data && data.data && data.data.data){
+                            console.log("Wechat Conversation", data.data.data);
+                            data.data.data.forEach(
+                                data => {
+                                    if(data){
+                                        data.totalPlayerWechatId = data.totalPlayerWechatId || 0;
+                                    }
+                                }
+                            );
+
+                            vm.wechatConversationReportList = data.data.data.sort();
+                            vm.wechatConversationReportSize = data.data.size || 0;
+
+                            vm.drawWechatMessageReportTable(newSearch, vm.wechatConversationReportList, data.data.size);
+                        }
+                    });
+
+                });
+            };
+
+            vm.drawWechatMessageReportTable = function (newSearch, tblData, size) {
+                console.log("wechatMessageReportTable",tblData);
+                var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    "scrollX": true,
+                    "autoWidth": true,
+                    "sScrollY": 550,
+                    "scrollCollapse": true,
+                    columns: [
+                        {title: $translate('PRODUCT'), data: "platformName"},
+                        {title: $translate('CS Account'), data: "csOfficerName"},
+                        {title: $translate('Total Conversation(Message Sent)'), data: "totalConversation"},
+                        {title: $translate('Total Player In Conversation(By Wechat ID)'), data: "totalPlayerWechatId"},
+                    ],
+                    "paging": false,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    }
+                });
+                tableOptions.language.emptyTable=$translate("No data available in table");
+
+                utilService.createDatatableWithFooter('#wechatMessageReportTable', tableOptions, {
+                });
+
+                vm.inspectionWechatReport.pageObj.init({maxCount: size}, newSearch);
+                $('#wechatMessageReportTable').off('order.dt');
+                $('#wechatMessageReportTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'inspectionWechatReport', vm.filterWechatConversationReport);
+                });
+                $('#wechatMessageReportTable').resize();
+            };
+            //////////////////////////////////////////////////////////End of Wechat Conversation Report Tab///////////////////////////////////////////////////////////////////
 
 
         };
