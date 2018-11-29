@@ -1329,6 +1329,13 @@ var dbRewardEvent = {
                     else{
                         returnData.condition.deposit.status = 1;
                     }
+
+                    if (eventData.type.name == constRewardType.PLAYER_RETENTION_REWARD_GROUP && returnData.condition.deposit && returnData.condition.deposit.status == 1){
+                        if (checkTopupRecordIsDirtyForReward(eventData, rewardData)) {
+                            returnData.condition.deposit.status = 2;
+                        }
+                    }
+
                 }
 
                 // Count reward amount and spending amount
@@ -1441,6 +1448,7 @@ var dbRewardEvent = {
                         let matchIPAddress = false;
                         let matchPhoneNum = false;
                         let matchMobileDevice = false;
+                        let todayHasApplied = rewardSpecificData[5] ? true: false;
 
                         if (rewardSpecificData[4]) {
                             matchPlayerId = rewardSpecificData[4].samePlayerHasReceived || false;
@@ -1453,16 +1461,17 @@ var dbRewardEvent = {
                             returnData.condition.deposit.list = [];
                         }
 
-                        let retRewardData = dbPlayerReward.applyRetentionRewardParamLevel(eventData, applyAmount, selectedRewardParam, playerData);
+                        let retRewardData = dbPlayerReward.applyRetentionRewardParamLevel(eventData, applyAmount, selectedRewardParam, null, null, rewardSpecificData[3]);
 
-                        returnData.condition.deposit.list = dbPlayerReward.getRetentionRewardList(returnData, rewardData, eventData, selectedRewardParam, rewardSpecificData[3], retRewardData);
+                        returnData.condition.deposit.list = dbPlayerReward.getRetentionRewardList(returnData, rewardData, eventData, selectedRewardParam, rewardSpecificData[3], retRewardData, todayHasApplied);
 
                         // if today has applied/received reward -> skip the following checking
                         // if returnData.condition.deposit.status != 1 meaning it is already failed to fulfill the top up requirment, so no need to go thru the checking
-                        if (retRewardData && retRewardData.hasOwnProperty('selectedIndex') && !rewardSpecificData[5] && returnData.condition.deposit.status == 1) {
+                        if (retRewardData && retRewardData.hasOwnProperty('selectedIndex') && !todayHasApplied && returnData.condition.deposit.status == 1) {
                             // check if first time apply: if matchPlayerId == true -> has already applied
                             if (matchPlayerId){
-                                returnData.condition.deposit.list[retRewardData.selectedIndex].status = 2;
+                                // set the status to 1 (fulfilled but not yet apply/receive) as it will be given once the player login
+                                returnData.condition.deposit.list[retRewardData.selectedIndex].status = 1;
                             }
                             else {
                                 returnData.condition.deposit.list[retRewardData.selectedIndex].status = returnData.condition.deposit.status;
