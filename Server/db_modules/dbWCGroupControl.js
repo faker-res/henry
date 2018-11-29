@@ -212,14 +212,18 @@ var dbWCGroupControl = {
             })
         }
 
-        // compare with all wechat device data, including other platform
-        return dbConfig.collection_wcDevice.find({}).lean().then(
+        return Promise.all(proms).then(() => {
+            // execute delete operation first
+            // compare with all wechat device data, including other platform
+            return dbConfig.collection_wcDevice.find({}).lean()
+        }).then(
             wcDevice => {
+                let proms = [];
                 if (wcDevice && wcDevice.length > 0 && tempSetting && tempSetting.length > 0) {
                     tempSetting.map(setting => {
                         for (let x = 0; x < wcDevice.length; x++) {
                             // don't compare with itself, only compare with other WeChat data
-                            if (wcDevice[x]._id.toString() !== setting._id.toString()) {
+                            if (wcDevice[x]._id && setting._id && wcDevice[x]._id.toString() !== setting._id.toString()) {
                                 if (wcDevice[x].deviceId === setting.deviceId) {
                                     setting.isDeviceIdExist = true;
                                 }
@@ -269,8 +273,8 @@ var dbWCGroupControl = {
                             }
                         });
                     }
-                    return Promise.all(proms);
                 }
+                return Promise.all(proms);
             }
         );
     },
