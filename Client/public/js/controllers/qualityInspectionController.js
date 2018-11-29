@@ -3329,6 +3329,7 @@ define(['js/app'], function (myApp) {
                     limit: vm.inspectionWechatReport.limit || 10,
                 };
 
+                $('#wechatConversationReportTableSpin').show();
                 socketService.$socket($scope.AppSocket, 'getWechatConversationReport', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         if(data && data.data && data.data.data){
@@ -3343,7 +3344,7 @@ define(['js/app'], function (myApp) {
 
                             vm.wechatConversationReportList = data.data.data.sort();
                             vm.wechatConversationReportSize = data.data.size || 0;
-
+                            $('#wechatConversationReportTableSpin').hide();
                             vm.drawWechatMessageReportTable(newSearch, vm.wechatConversationReportList, data.data.size);
                         }
                     });
