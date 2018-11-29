@@ -402,8 +402,8 @@ var dbGameProviderPlayerDaySummary = {
             data.summary.forEach(item=>{
                 if(item.summaryData){
                     item.summaryData.forEach(summary=>{
-                        result.consumption += summary.totalCount;
-                        result.validAmount += summary.totalValidAmount;
+                        result.consumption += Number(summary.totalCount);
+                        result.validAmount += Number(summary.totalValidAmount);
                     })
                 }
             })
