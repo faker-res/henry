@@ -219,7 +219,7 @@ var dbWCGroupControl = {
         }).then(
             wcDevice => {
                 let proms = [];
-                if (wcDevice && wcDevice.length > 0 && tempSetting && tempSetting.length > 0) {
+                if (wcDevice && tempSetting && tempSetting.length > 0) {
                     tempSetting.map(setting => {
                         for (let x = 0; x < wcDevice.length; x++) {
                             // don't compare with itself, only compare with other WeChat data
