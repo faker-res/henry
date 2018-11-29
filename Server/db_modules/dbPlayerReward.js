@@ -7336,7 +7336,7 @@ let dbPlayerReward = {
                     let rewardPercentage = selectedRewardParam[i].rewardPercentage || null;
                     let step = i + 1;
 
-                    return insertOutputList(i, 2, step);
+                    insertOutputList(i, 2, step);
                 }
             }
             else if (defineLoginMode == 2) {
@@ -7351,7 +7351,7 @@ let dbPlayerReward = {
                         if (loginDay) {
                             index = dbPlayerReward.applyRetentionRewardParamLevel(eventData, null, selectedRewardParam, null, loginDay).selectedIndex;
                         }
-                        return insertOutputList(index, 2, null, loginDay);
+                        insertOutputList(index, 2, null, loginDay);
                     }
                 )
             }
