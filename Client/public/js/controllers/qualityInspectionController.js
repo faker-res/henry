@@ -3155,93 +3155,18 @@ define(['js/app'], function (myApp) {
                         if(vm.inspectionWechat.fuzzyPlatform){
                             vm.deviceList = vm.oriDeviceList.filter(d => d.platformId == vm.inspectionWechat.fuzzyPlatform);
                             useDeviceList = true;
-                        }else{
-                            vm.deviceList = vm.oriDeviceList;
                         }
 
                         //filter by deviceNickName
                         if(vm.inspectionWechat.fuzzyDeviceName){
                             let currentDeviceList = useDeviceList ? vm.deviceList : vm.oriDeviceList;
-                            let deviceArray = [];
-                            currentDeviceList.forEach(deviceList => {
-                                deviceList.deviceNickName.forEach(deviceNickName => {
-                                    let indexOfDeviceName = vm.inspectionWechat.fuzzyDeviceName.findIndex(f => f == deviceNickName.deviceNickName);
-                                    if(indexOfDeviceName > -1){
-                                        let indexByPlatform = deviceArray.findIndex(d => d.platformName == deviceList.platformName);
-
-                                        if(indexByPlatform > -1){
-                                            if(deviceArray[indexByPlatform]){
-                                                deviceArray[indexByPlatform].deviceNickName.push({deviceNickName: deviceNickName.deviceNickName, playerWechatRemark: deviceNickName.playerWechatRemark});
-                                            }else{
-                                                deviceArray.push({platformId: deviceList.platformId, platformName: deviceList.platformName,deviceNickName: [{deviceNickName: deviceNickName.deviceNickName, playerWechatRemark: deviceNickName.playerWechatRemark}]});
-                                            }
-                                        }else{
-                                            deviceArray.push({platformId: deviceList.platformId, platformName: deviceList.platformName,deviceNickName: [{deviceNickName: deviceNickName.deviceNickName, playerWechatRemark: deviceNickName.playerWechatRemark}]});
-                                        }
-                                    }
-                                })
-
-                                return deviceArray;
-                            });
-
-
-                            vm.deviceList = deviceArray;
-                            useDeviceList = true;
+                            useDeviceList = vm.filterConversationByDeviceNickName(currentDeviceList);
                         }
 
                         //filter by playerWechatRemark
                         if(vm.inspectionWechat.fuzzyPlayerWechatRemark){
                             let currentDeviceList = useDeviceList ? vm.deviceList : vm.oriDeviceList;
-                            let deviceArray = [];
-                            currentDeviceList.forEach(deviceList => {
-                                deviceList.deviceNickName.forEach(deviceNickName => {
-                                    let playerWechatRemark;
-                                    let indexOfPlayerWechatRemark = deviceNickName.playerWechatRemark.findIndex(p => p.playerWechatRemark == vm.inspectionWechat.fuzzyPlayerWechatRemark);
-                                    playerWechatRemark = indexOfPlayerWechatRemark > -1 ? [deviceNickName.playerWechatRemark[indexOfPlayerWechatRemark]] : [];
-
-                                    let indexOfDeviceName = vm.inspectionWechat.fuzzyDeviceName.findIndex(f => f == deviceNickName.deviceNickName);
-                                    if(indexOfDeviceName > -1){
-                                        let indexByPlatform = deviceArray.findIndex(d => d.platformName == deviceList.platformName);
-
-                                        if(indexByPlatform > -1){
-                                            if(deviceArray[indexByPlatform]){
-                                                let indexByDevice = deviceArray[indexByPlatform].deviceNickName.findIndex(d => d.deviceNickName == deviceNickName.deviceNickName);
-
-                                                if(indexByDevice > -1){
-                                                    if(deviceArray[indexByPlatform].deviceNickName[indexByDevice]){
-                                                        let indexOfPlayerWechatRemark = deviceArray[indexByPlatform].deviceNickName[indexByDevice].playerWechatRemark.find(p => p.playerWechatRemark == vm.inspectionWechat.fuzzyPlayerWechatRemark);
-                                                        if(indexOfPlayerWechatRemark == -1){
-                                                            deviceArray[indexByPlatform].deviceNickName[indexByDevice].playerWechatRemark.push(deviceNickName.playerWechatRemark);
-                                                        }
-                                                    }else{
-                                                        deviceArray[indexByPlatform].deviceNickName.push({deviceNickName: deviceNickName.deviceNickName, playerWechatRemark: playerWechatRemark});
-                                                    }
-                                                }else{
-                                                    if(playerWechatRemark && playerWechatRemark.length > 0){
-                                                        deviceArray[indexByPlatform].deviceNickName.push({deviceNickName: deviceNickName.deviceNickName, playerWechatRemark: playerWechatRemark});
-                                                    }
-                                                }
-                                            }else{
-                                                if(playerWechatRemark && playerWechatRemark.length > 0){
-                                                    deviceArray.push({platformId: deviceList.platformId, platformName: deviceList.platformName,deviceNickName: [{deviceNickName: deviceNickName.deviceNickName, playerWechatRemark: playerWechatRemark}]});
-                                                }
-
-                                            }
-                                        }else{
-                                            if(playerWechatRemark && playerWechatRemark.length > 0){
-                                                deviceArray.push({platformId: deviceList.platformId, platformName: deviceList.platformName,deviceNickName: [{deviceNickName: deviceNickName.deviceNickName, playerWechatRemark: playerWechatRemark}]});
-                                                return;
-                                            }
-
-                                        }
-                                    }
-                                });
-
-                                return deviceArray;
-                            });
-
-                            vm.deviceList = deviceArray;
-                            useDeviceList = true;
+                            useDeviceList = vm.filterConversationByPlayerWechatRemark(currentDeviceList);
                         }
 
                         vm.deviceList = useDeviceList ? vm.deviceList : vm.oriDeviceList;
@@ -3249,6 +3174,89 @@ define(['js/app'], function (myApp) {
                 });
 
             };
+
+            vm.filterConversationByDeviceNickName = function(currentDeviceList){
+
+                let deviceArray = [];
+                currentDeviceList.forEach(deviceList => {
+                    deviceList.deviceNickName.forEach(deviceNickName => {
+                        let indexOfDeviceName = vm.inspectionWechat.fuzzyDeviceName.findIndex(f => f == deviceNickName.deviceNickName);
+                        if(indexOfDeviceName > -1){
+                            let indexByPlatform = deviceArray.findIndex(d => d.platformName == deviceList.platformName);
+
+                            if(indexByPlatform > -1){
+                                if(deviceArray[indexByPlatform]){
+                                    deviceArray[indexByPlatform].deviceNickName.push({deviceNickName: deviceNickName.deviceNickName, playerWechatRemark: deviceNickName.playerWechatRemark});
+                                }else{
+                                    deviceArray.push({platformId: deviceList.platformId, platformName: deviceList.platformName,deviceNickName: [{deviceNickName: deviceNickName.deviceNickName, playerWechatRemark: deviceNickName.playerWechatRemark}]});
+                                }
+                            }else{
+                                deviceArray.push({platformId: deviceList.platformId, platformName: deviceList.platformName,deviceNickName: [{deviceNickName: deviceNickName.deviceNickName, playerWechatRemark: deviceNickName.playerWechatRemark}]});
+                            }
+                        }
+                    })
+
+                    return deviceArray;
+                });
+
+
+                vm.deviceList = deviceArray;
+
+                return true;
+            }
+
+            vm.filterConversationByPlayerWechatRemark = function(currentDeviceList){
+                let deviceArray = [];
+                currentDeviceList.forEach(deviceList => {
+                    deviceList.deviceNickName.forEach(deviceNickName => {
+                        let playerWechatRemark;
+                        let indexOfPlayerWechatRemark = deviceNickName.playerWechatRemark.findIndex(p => p.playerWechatRemark == vm.inspectionWechat.fuzzyPlayerWechatRemark);
+                        playerWechatRemark = indexOfPlayerWechatRemark > -1 ? [deviceNickName.playerWechatRemark[indexOfPlayerWechatRemark]] : [];
+
+                        let indexOfDeviceName = vm.inspectionWechat.fuzzyDeviceName.findIndex(f => f == deviceNickName.deviceNickName);
+                        if(indexOfDeviceName > -1){
+                            let indexByPlatform = deviceArray.findIndex(d => d.platformName == deviceList.platformName);
+
+                            if(indexByPlatform > -1){
+                                if(deviceArray[indexByPlatform]){
+                                    let indexByDevice = deviceArray[indexByPlatform].deviceNickName.findIndex(d => d.deviceNickName == deviceNickName.deviceNickName);
+
+                                    if(indexByDevice > -1){
+                                        if(deviceArray[indexByPlatform].deviceNickName[indexByDevice]){
+                                            let indexOfPlayerWechatRemark = deviceArray[indexByPlatform].deviceNickName[indexByDevice].playerWechatRemark.find(p => p.playerWechatRemark == vm.inspectionWechat.fuzzyPlayerWechatRemark);
+                                            if(indexOfPlayerWechatRemark == -1){
+                                                deviceArray[indexByPlatform].deviceNickName[indexByDevice].playerWechatRemark.push(deviceNickName.playerWechatRemark);
+                                            }
+                                        }else{
+                                            deviceArray[indexByPlatform].deviceNickName.push({deviceNickName: deviceNickName.deviceNickName, playerWechatRemark: playerWechatRemark});
+                                        }
+                                    }else{
+                                        if(playerWechatRemark && playerWechatRemark.length > 0){
+                                            deviceArray[indexByPlatform].deviceNickName.push({deviceNickName: deviceNickName.deviceNickName, playerWechatRemark: playerWechatRemark});
+                                        }
+                                    }
+                                }else{
+                                    if(playerWechatRemark && playerWechatRemark.length > 0){
+                                        deviceArray.push({platformId: deviceList.platformId, platformName: deviceList.platformName,deviceNickName: [{deviceNickName: deviceNickName.deviceNickName, playerWechatRemark: playerWechatRemark}]});
+                                    }
+                                }
+                            }else{
+                                if(playerWechatRemark && playerWechatRemark.length > 0){
+                                    deviceArray.push({platformId: deviceList.platformId, platformName: deviceList.platformName,deviceNickName: [{deviceNickName: deviceNickName.deviceNickName, playerWechatRemark: playerWechatRemark}]});
+                                    return;
+                                }
+                            }
+                        }
+                    });
+
+                    return deviceArray;
+                });
+
+                vm.deviceList = deviceArray;
+                return true;
+            }
+
+
             //////////////////////////////////////////////////////////End of Wechat Conversation Record Tab///////////////////////////////////////////////////////////////////
 
 
