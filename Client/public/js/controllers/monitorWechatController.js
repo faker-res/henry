@@ -195,24 +195,7 @@ define(['js/app'], function (myApp) {
         vm.getSessionDuration = function (latestDate, createDate) {
             let diff = (latestDate.getTime() - createDate.getTime()) / 60000;
 
-            return diff;
-        };
-
-        vm.convertSessionDurationToHourAndMinute = function (time) {
-            let hours = (time / 60);
-            let rhours = Math.floor(hours);
-            let minutes = (hours - rhours) * 60;
-            let rminutes = Math.round(minutes);
-            let duration = '';
-
-            if (rhours) {
-                duration += rhours + $translate('hour(s)');
-            }
-
-            if (rminutes) {
-                duration += rminutes + $translate('minute(s)');
-            }
-            return duration;
+            return Math.floor(diff);
         };
 
         vm.resetWechatGroupControlMonitor = function () {
@@ -270,7 +253,7 @@ define(['js/app'], function (myApp) {
                             }
                             duration = vm.getSessionDuration(lastDate, createDate);
                             item.duration = duration;
-                            item.duration$ = vm.convertSessionDurationToHourAndMinute(duration);
+                            item.duration$ = duration + $translate('minute(s)');
                             item.product = item.platformId + '.' + item.platformName;
                             item.adminName$ = item.adminName ? item.adminName : $translate('No first attempt login');
                             item.status$ = item.status == 1 ? $translate('Green light is on(Online)') : $translate('Red light is on(Offline)');
@@ -474,7 +457,6 @@ define(['js/app'], function (myApp) {
                             }
                             duration = vm.getSessionDuration(lastDate, createDate);
                             item.duration = duration;
-                            item.duration$ = vm.convertSessionDurationToHourAndMinute(duration);
                             item.product = item.platformObjId ? item.platformObjId.platformId + '.' + item.platformObjId.name : '';
                             item.adminName$ = item.csOfficer ? item.csOfficer.adminName : $translate('No first attempt login');
                             item.connectionAbnormalClickTimes$ = item.connectionAbnormalClickTimes ? item.connectionAbnormalClickTimes : 0;
@@ -508,7 +490,7 @@ define(['js/app'], function (myApp) {
                             }
                         }},
                     {title: $translate('This Connection is Abnormally Clicked'), data: "connectionAbnormalClickTimes$"},
-                    {title: $translate('Connection Time'), data: "duration$"}
+                    {title: $translate('Connection Time'), data: "duration"}
                 ],
                 destroy: true,
                 paging: false,
