@@ -239,7 +239,7 @@ var proposal = {
         );
     },
 
-    createRewardProposal: function (eventData, playerData, selectedRewardParam, rewardGroupRecord, applyAmount, rewardAmount, spendingAmount, retentionRecordObjId, userAgent, adminInfo){
+    createRewardProposal: function (eventData, playerData, selectedRewardParam, rewardGroupRecord, consecutiveNumber, applyAmount, rewardAmount, spendingAmount, retentionRecordObjId, userAgent, adminInfo){
         // get the rewardType
         return dbconfig.collection_rewardType.findOne({_id: eventData.type}).lean().then(
             rewardType => {
@@ -292,9 +292,9 @@ var proposal = {
                 //     proposalData.data.applyAmount = applyAmount;
                 // }
 
-                // if (consecutiveNumber) {
-                //     proposalData.data.consecutiveNumber = consecutiveNumber;
-                // }
+                if (consecutiveNumber) {
+                    proposalData.data.consecutiveNumber = consecutiveNumber;
+                }
 
                 if (rewardGroupRecord && rewardGroupRecord.topUpRecordObjId && rewardGroupRecord.topUpRecordObjId.proposalId &&
                     eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
