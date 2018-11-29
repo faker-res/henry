@@ -13,7 +13,7 @@
 
     div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'WechatConversationRecord', 'Read')")
         label {{'Message Begin Time' | translate}}
-        #wechatMessageBegindDatetimePicker.input-append.form-control
+        #wechatMessageBeginDatetimePicker.input-append.form-control
             input(style='width:calc(100% - 15px)', data-format='yyyy/MM/dd HH:mm:ss PP', type='text')
             span.add-on
                 i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
@@ -29,8 +29,6 @@
         label {{'Message Content (Keyword)' | translate}}
         input.form-control(type='text', ng-model='vm.inspectionWechat.content')
 
-
-
     div
         label &nbsp;
         button.button.common-button.btn.btn-primary(ng-click='vm.searchWechatConversationDevice()' ng-show="checkViewPermission('QualityInspection', 'WechatConversationRecord', 'Read')") {{'SEARCH' | translate}}
@@ -38,22 +36,54 @@
         span#QIReportTableSpin.collapse
             i.fa.fa-spinner.fa-spin
 .clearfix
-label {{"Total" | translate}} {{vm.deviceListTotal}} {{"records" | translate}}
-table#wechatMessageTable(style="width: 60%; text-align: center; border: 1px solid;")
-    thead
-        th.col-md-4 {{"PRODUCT" | translate}}
-        th(style="width: 433px;") {{"Device" | translate}}
-        th(style="width: 433px;") {{"wechatReceivingPlayer" | translate}}
-    tbody(ng-repeat="deviceList in vm.deviceList")
-        tr(style="border: 1px solid; width: 100%")
-            td.col-md-4 {{deviceList.platformName}}
-            td(colspan=2)
-                table
-                    tbody
-                        tr(ng-repeat="device in deviceList.deviceId" )
-                            td(style="width: 433px;border: 1px solid; border-top: 0px; vertical-align: top; line-height: 2.5") {{device.deviceId}}
-                            td(style="width: 433px;border: 1px solid; border-top: 0px; line-height: 2.5")
-                                table(style="margin: 0 auto;width: 100%;")
-                                    tbody
-                                        tr(ng-repeat="wechatRemark in device.playerWechatRemark" style='border: 1px solid; border-bottom: 0px;')
-                                            td {{wechatRemark}}
+
+.panel.panel-primary(ng-if="vm.showDeviceTable")
+    .panel-body
+        .well.block-query.col-md-12.well
+            div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'WechatConversationRecord', 'Read')")
+                label {{'PRODUCT' | translate}}
+                select.form-control(style='max-width:155px', ng-change='vm.getWechatDeviceNickNameList(true);',ng-model='vm.inspectionWechat.fuzzyPlatform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true', required)
+
+            div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'WechatConversationRecord', 'Read')")
+                label {{'Create Device Name' | translate}}
+                select.form-control(style='max-width:155px',ng-model='vm.inspectionWechat.fuzzyDeviceName', ng-options='device for device in vm.fuzzyWechatDeviceList', multiple, bsp, data-actions-box='true', required)
+
+            div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'WechatConversationRecord', 'Read')")
+                label {{'wechatReceivingPlayer' | translate}}
+                input.form-control(type='text', ng-model='vm.inspectionWechat.fuzzyPlayerWechatRemark')
+            div
+                label &nbsp;
+                button.button.common-button.btn.btn-primary(ng-click='vm.fuzzySearchDeviceList()' ng-show="checkViewPermission('QualityInspection', 'WechatConversationRecord', 'Read')") {{'Fuzzy Search' | translate}}
+
+        div(ng-if="vm.deviceList != 0")
+            label {{"Total" | translate}} {{vm.deviceListTotal || 0}} {{"records" | translate}}
+            table#wechatMessageDeviceTable(style="width: 60%; text-align: center; border: 1px solid;")
+                thead
+                    th.col-md-4 {{"PRODUCT" | translate}}
+                    th(style="width: 433px;") {{"Device" | translate}}
+                    th(style="width: 433px;") {{"wechatReceivingPlayer" | translate}}
+                tbody(ng-repeat="deviceList in vm.deviceList")
+                    tr(ng-if="vm.playerDetailsSummary.length == 0")
+                        td(colspan = 10) {{ 'No data available in table' | translate }}
+                    tr(style="border: 1px solid; width: 100%")
+                        td.col-md-4 {{deviceList.platformName}}
+                        td(colspan=2)
+                            table
+                                tbody
+                                    tr(ng-repeat="device in deviceList.deviceNickName" )
+                                        td(style="width: 433px;border: 1px solid; border-top: 0px; vertical-align: top; line-height: 2.5")
+                                            a(ng-click="vm.searchWechatConversation(deviceList.platformId, device.deviceNickName);") {{device.deviceNickName}}
+                                        td(style="width: 433px;border: 1px solid; border-top: 0px; line-height: 2.5")
+                                            table(style="margin: 0 auto;width: 100%;")
+                                                tbody
+                                                    tr(ng-repeat="wechatRemark in device.playerWechatRemark" style='border: 1px solid; border-bottom: 0px;')
+                                                        td
+                                                            a(ng-click="vm.searchWechatConversation(deviceList.platformId, device.deviceNickName, wechatRemark.playerWechatRemark);") {{wechatRemark.playerWechatRemark}} {{"("}} {{wechatRemark.playerWechatId}} {{")"}}
+        div(ng-if="!vm.deviceList || vm.deviceList == 0")
+            label {{ 'No data available in table' | translate }}
+br
+.panel.panel-primary
+    .panel-body
+        label {{"Total" | translate}} {{vm.wechatConversationList.length || 0}} {{"records" | translate}}
+        table#wechatMessageTable.common-table.display(style="min-width:100% ;overflow: scroll")
+        #wechatMessageTablePage
