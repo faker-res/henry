@@ -28770,7 +28770,7 @@ console.log('typeof ',typeof gameProviders);
                     };
 
                     socketService.$socket($scope.AppSocket, 'isNewWechatDeviceDataExist', sendData, function (newData) {
-                        console.log('isNewWechatDeviceDataExist===', newData);
+                        console.log('isNewWechatDeviceDataExist', newData);
                         $scope.$evalAsync(() => {
                             if (newData && newData.data && !newData.data.isDeviceIdExist && !newData.data.isDeviceNicknameExist) {
                                 data.isNew = true;
@@ -28804,19 +28804,32 @@ console.log('typeof ',typeof gameProviders);
                 socketService.$socket($scope.AppSocket, 'updateWechatGroupControlSetting', sendData, function (data) {
                     console.log('updateWechatGroupControlSetting', data);
                     $scope.$evalAsync(() => {
-                        if (data && data.data.length > 0 && data.data[0]._id) {
+                        let retryMessage = false;
+                        if (data && data.data.length > 0 && data.data[0]._id && data.data[0].isEdit) {
                             data.data.forEach(wcDevice => {
                                 if (vm.wechatGroupControlSettingData && vm.wechatGroupControlSettingData.length > 0) {
                                     for (let x = 0; x < vm.wechatGroupControlSettingData.length; x++) {
-                                        if (vm.wechatGroupControlSettingData[x]._id.toString() === wcDevice._id.toString() && wcDevice.isDeviceIdExist) {
-                                            vm.wechatGroupControlSettingData[x].isDeviceIdExist = true;
-                                        }
-                                        if (vm.wechatGroupControlSettingData[x]._id.toString() === wcDevice._id.toString() && wcDevice.isDeviceNicknameExist) {
-                                            vm.wechatGroupControlSettingData[x].isDeviceNicknameExist = true;
+                                        if (vm.wechatGroupControlSettingData[x]._id && wcDevice._id && vm.wechatGroupControlSettingData[x]._id.toString() === wcDevice._id.toString()) {
+                                            if (wcDevice.isDeviceIdExist) {
+                                                retryMessage = true;
+                                                vm.wechatGroupControlSettingData[x].isDeviceIdExist = true;
+                                            } else {
+                                                vm.wechatGroupControlSettingData[x].isDeviceIdExist = false;
+                                            }
+                                            if (wcDevice.isDeviceNicknameExist) {
+                                                retryMessage = true;
+                                                vm.wechatGroupControlSettingData[x].isDeviceNicknameExist = true;
+                                            } else {
+                                                vm.wechatGroupControlSettingData[x].isDeviceNicknameExist = false;
+                                            }
                                         }
                                     }
                                 }
                             });
+                        }
+
+                        if (retryMessage) {
+                            return socketService.showErrorMessage($translate('Please fix the duplicate and retry again'));
                         } else {
                             vm.getWechatGroupControlSetting();
                         }

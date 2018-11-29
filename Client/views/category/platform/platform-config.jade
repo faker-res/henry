@@ -2079,9 +2079,9 @@
                         tbody
                             tr(ng-repeat= 'wgc in vm.wechatGroupControlSettingData track by $index')
                                 td
-                                    input.form-control(type='text', ng-model='wgc.deviceId' ng-disabled='!vm.wechatGroupControlEdit' ng-change='vm.editWechatGroupControl(wgc)')
+                                    input.form-control(type='text', ng-model='wgc.deviceId' ng-disabled='!vm.wechatGroupControlEdit' ng-change='vm.editWechatGroupControl(wgc)' ng-class='wgc.isDeviceIdExist ? "colorRed" : ""')
                                 td
-                                    input.form-control(type='text', ng-model='wgc.deviceNickName' ng-disabled='!vm.wechatGroupControlEdit' ng-change='vm.editWechatGroupControl(wgc)')
+                                    input.form-control(type='text', ng-model='wgc.deviceNickName' ng-disabled='!vm.wechatGroupControlEdit' ng-change='vm.editWechatGroupControl(wgc)' ng-class='wgc.isDeviceNicknameExist ? "colorRed" : ""')
                                 td
                                     i.fa.fa-minus(ng-if='vm.wechatGroupControlEdit' ng-click='vm.deleteWechatGroupControlSetting(wgc, vm.wechatGroupControlSettingData, $index)') {{'Delete' | translate}}
                                 td

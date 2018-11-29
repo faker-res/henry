@@ -96,19 +96,22 @@ var dbWCGroupControl = {
 
                 } else {
                     // create new session if detect lastUpdateTime being updated
-                    let newSession = {
-                        deviceId: deviceId,
-                        deviceNickName: deviceSettingRecord.deviceNickName,
-                        csOfficer: adminObjId,
-                        status: status,
-                        platformObjId: deviceSettingRecord.platformObjId,
-                        connectionAbnormalClickTimes: connectionAbnormalClickTimes,
-                        lastActiveTime: new Date()
-                    };
+                    if (deviceSettingRecord) {
+                        let newSession = {
+                            deviceId: deviceId,
+                            deviceNickName: deviceSettingRecord.deviceNickName,
+                            csOfficer: adminObjId,
+                            status: status,
+                            platformObjId: deviceSettingRecord.platformObjId,
+                            connectionAbnormalClickTimes: connectionAbnormalClickTimes,
+                            lastActiveTime: new Date()
+                        };
 
-                    let wcGroupControlSession = new dbConfig.collection_wcGroupControlSession(newSession);
-                    return wcGroupControlSession.save();
-
+                        let wcGroupControlSession = new dbConfig.collection_wcGroupControlSession(newSession);
+                        return wcGroupControlSession.save();
+                    } else {
+                        return Promise.reject({name: "DataError", message: "Cannot find wechat group control's setting"});
+                    }
                 }
             }
         );
@@ -155,6 +158,9 @@ var dbWCGroupControl = {
         ).then(
             playerWechatData => {
                 if (playerWechatData) {
+                    if (playerWechatData.playerWechatId == playerWechatId) {
+                        return Promise.reject({name: "DataError", message: "Wechat remark and wechat ID duplicate"});
+                    }
                     let wechatInfo = {
                         playerWechatId: playerWechatId,
                         playerWechatNickname: playerWechatNickname,
@@ -191,6 +197,8 @@ var dbWCGroupControl = {
         if (wcGroupControlSettingData && wcGroupControlSettingData.length > 0) {
             wcGroupControlSettingData.forEach(setting => {
                 if (setting && (setting.isEdit || setting.isNew)) {
+                    setting.isDeviceIdExist = false;
+                    setting.isDeviceNicknameExist = false;
                     tempSetting.push(setting);
                 }
             });
@@ -207,16 +215,24 @@ var dbWCGroupControl = {
             })
         }
 
-        return dbConfig.collection_wcDevice.find({}).lean().then(
+        return Promise.all(proms).then(() => {
+            // execute delete operation first
+            // compare with all wechat device data, including other platform
+            return dbConfig.collection_wcDevice.find({}).lean()
+        }).then(
             wcDevice => {
-                if (wcDevice && wcDevice.length > 0 && tempSetting && tempSetting.length > 0) {
+                let proms = [];
+                if (wcDevice && tempSetting && tempSetting.length > 0) {
                     tempSetting.map(setting => {
                         for (let x = 0; x < wcDevice.length; x++) {
-                            if (wcDevice[x].deviceId === setting.deviceId) {
-                                setting.isDeviceIdExist = true;
-                            }
-                            if (wcDevice[x].deviceNickName === setting.deviceNickName) {
-                                setting.isDeviceNicknameExist = true;
+                            // don't compare with itself, only compare with other WeChat data
+                            if (wcDevice[x]._id && setting._id && wcDevice[x]._id.toString() !== setting._id.toString()) {
+                                if (wcDevice[x].deviceId === setting.deviceId) {
+                                    setting.isDeviceIdExist = true;
+                                }
+                                if (wcDevice[x].deviceNickName.toLowerCase() === setting.deviceNickName.toLowerCase()) {
+                                    setting.isDeviceNicknameExist = true;
+                                }
                             }
                         }
 
@@ -260,8 +276,8 @@ var dbWCGroupControl = {
                             }
                         });
                     }
-                    return Promise.all(proms);
                 }
+                return Promise.all(proms);
             }
         );
     },
@@ -377,6 +393,8 @@ var dbWCGroupControl = {
                             newWechatData.isDeviceNicknameExist = true;
                         }
                     }
+                } else {
+                    return newWechatData;
                 }
 
                 if (newWechatData.isDeviceIdExist && newWechatData.isDeviceNicknameExist) {
@@ -417,6 +435,8 @@ var dbWCGroupControl = {
                     {csOfficer: {$in: csOfficerList}}
                 ]
             }
+        } else {
+            match['csOfficer'] = {$eq: null};
         }
 
         let adminProm = dbConfig.collection_admin.find({_id: {$in: adminIds}}, {adminName: 1}).lean();
@@ -447,6 +467,9 @@ var dbWCGroupControl = {
         let wcGroupControlSessionMonitorProm = dbConfig.collection_wcGroupControlSession.aggregate([
             {
                 $match: match
+            },
+            {
+                $sort : { createTime : 1}
             },
             {
                 $group: {

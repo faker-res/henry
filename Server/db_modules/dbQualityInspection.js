@@ -2566,6 +2566,8 @@ var dbQualityInspection = {
 
         let csOfficerProm = [];
         let checkCSOfficer = false;
+        //let size;
+        let deviceList;
         let query = {
             deviceNickName: {$in: deviceNickName},
             csReplyTime: {'$lte':new Date(endTime),
@@ -2615,22 +2617,24 @@ var dbQualityInspection = {
                             "_id": {
                                 "platformObjId": "$platformObjId",
                                 "deviceId": "$deviceId",
+                                "deviceNickName": "$deviceNickName",
                                 "playerWechatRemark": "$playerWechatRemark"
                             },
                             "count": {"$sum": 1},
                         }
                     }
                 ).read("secondaryPreferred");
-                let sizeProm = dbconfig.collection_wcConversationLog.find(query).count();
+                // let sizeProm = dbconfig.collection_wcConversationLog.find(query).count();
 
-                return Promise.all([platformProm, dataProm, sizeProm]);
+                return Promise.all([platformProm, dataProm]);
             }
         ).then(
             result => {
-                if(result && result.length > 2){
-                    let size = result[2] || 0;
+                if(result && result.length > 1){
                     let platformDetails = result[0];
-                    let deviceList = result[1];
+                    deviceList = result[1];
+                    //size = result[2] || 0;
+                    let playerWechatRemarkList = [];
 
                     deviceList.forEach(device => {
                         if(device && device._id && device._id.platformObjId){
@@ -2642,10 +2646,129 @@ var dbQualityInspection = {
                                 device._id.platformName = "";
                             }
                         }
+
+                        if(device && device._id && device._id.playerWechatRemark){
+                            playerWechatRemarkList.push(device._id.playerWechatRemark);
+                        }
                     });
 
-                    return {data: deviceList, size: size};
+                    return dbconfig.collection_wcGroupControlPlayerWechat.find({playerWechatRemark: {$in: playerWechatRemarkList}});
                 }
+            }
+        ).then(
+            playerWechatList => {
+                if(playerWechatList && playerWechatList.length > 0){
+                    deviceList.forEach(device => {
+                        if(device && device._id && device._id.platformObjId && device._id.playerWechatRemark){
+                            let playerWechatIndex = playerWechatList.findIndex(p => p.playerWechatRemark == device._id.playerWechatRemark && p.deviceId == device._id.deviceId);
+
+                            if(playerWechatIndex > -1){
+                                device._id.playerWechatId = playerWechatList[playerWechatIndex].playerWechatId || "";
+                            }
+                        }
+                    })
+                }
+
+                return deviceList;
+            }
+        )
+    },
+
+    getWechatConversation: function(platform, deviceNickName, csName, startTime, endTime, content, playerWechatRemark, index, limit){
+        if(!deviceNickName || deviceNickName.length <=0){
+            return Promise.reject({name: "DataError", message: "Device Nickname not found"});
+        }
+
+        let csOfficerProm = [];
+        let checkCSOfficer = false;
+        let size;
+        let conversationList;
+        let query = {
+            deviceNickName: {$in: deviceNickName},
+            csReplyTime: {'$lte':new Date(endTime),
+                '$gte': new Date(startTime)},
+        };
+        let platformQuery = {};
+
+        if(platform && platform.length > 0){
+            platform = Array.isArray(platform) ? platform : [platform];
+            query.platformObjId = {$in: platform.map(p => ObjectId(p))};
+            platformQuery._id = {$in: platform};
+        }
+
+        if(csName && csName.length > 0){
+            csOfficerProm = dbconfig.collection_admin.find({adminName: {$in: csName}}).lean();
+            checkCSOfficer = true;
+        }
+
+        if(content){
+            query.csReplyContent = new RegExp('.*' + content + '.*')
+        }
+
+        if(playerWechatRemark){
+            query.playerWechatRemark = playerWechatRemark;
+        }
+
+        return Promise.all([csOfficerProm]).then(
+            csOfficer => {
+                if(csOfficer && csOfficer.length > 0 && csOfficer[0] && csOfficer[0].length > 0){
+                    let csOfficerIdList = [];
+
+                    csOfficer[0].forEach(cs => {
+                        if(cs && cs._id){
+                            csOfficerIdList.push(cs._id);
+                        }
+                    });
+
+                    query.csOfficer = {$in: csOfficerIdList};
+                }else if(checkCSOfficer){
+                    query.csOfficer = [];
+                }
+
+                return;
+            }
+        ).then(
+            () => {
+                let dataProm = dbconfig.collection_wcConversationLog.find(query)
+                    .populate({path: "platformObjId", model: dbconfig.collection_platform})
+                    .populate({path: "csOfficer", model: dbconfig.collection_admin}).skip(index).limit(limit)
+                    .sort({platformObjId: 1, deviceNickName: 1, csOfficer: 1, playerWechatRemark: 1, csReplyTime: -1})
+                    .lean();
+                let sizeProm = dbconfig.collection_wcConversationLog.find(query).count();
+
+                return Promise.all([dataProm, sizeProm]);
+            }
+        ).then(
+            result => {
+                if(result && result.length > 1){
+                    conversationList = result[0];
+                    size = result[1] || 0;
+                    let playerWechatRemarkList = [];
+
+                    conversationList.forEach(conversation => {
+                        if(conversation && conversation.playerWechatRemark){
+                            playerWechatRemarkList.push(conversation.playerWechatRemark);
+                        }
+                    });
+
+                    return dbconfig.collection_wcGroupControlPlayerWechat.find({playerWechatRemark: {$in: playerWechatRemarkList}});
+                }
+            }
+        ).then(
+            playerWechatList => {
+                if(playerWechatList && playerWechatList.length > 0){
+                    conversationList.forEach(conversation => {
+                        if(conversation && conversation.platformObjId._id && conversation.playerWechatRemark){
+                            let playerWechatIndex = playerWechatList.findIndex(p => p.playerWechatRemark == conversation.playerWechatRemark);
+
+                            if(playerWechatIndex > -1){
+                                conversation.playerWechatId = playerWechatList[playerWechatIndex].playerWechatId || "";
+                            }
+                        }
+                    })
+                }
+
+                return {data: conversationList, size: size};
             }
         )
     }

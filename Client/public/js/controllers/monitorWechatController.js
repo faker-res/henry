@@ -377,6 +377,15 @@ define(['js/app'], function (myApp) {
         }
 
         vm.initWCGroupControlSessionHistory = function (data) {
+            vm.wechatGroupControlHistoryAdminList = [];
+            if (data.platformObjId && data.deviceNickName) {
+                socketService.$socket($scope.AppSocket, 'getWechatSessionCsOfficer', {platformObjIds: [data.platformObjId], deviceNickNames: [data.deviceNickName]}, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.wechatGroupControlHistoryAdminList = data && data.data || [];
+                    })
+                })
+            }
+
             utilService.actionAfterLoaded('#modalWCGroupControlSessionHistory.in #wcGroupControlSessionHistoryQuery .endTime', function () {
                 vm.wcGroupControlSessionHistory = {};
                 vm.wcGroupControlSessionHistory.totalCount = 0;
@@ -399,8 +408,8 @@ define(['js/app'], function (myApp) {
                 $('select#selectWCGroupControlSessionHistoryAdminId').next().on('click', 'li input[type=checkbox]', function () {
                     let upText = $($multi).text().split(',').map(item => {
                         let textShow = '';
-                        vm.wechatGroupControlAdminList.forEach(admin => {
-                            if (admin && admin._id && item && (admin._id.toString() == item.trim().toString())) {
+                        vm.wechatGroupControlHistoryAdminList.forEach(admin => {
+                            if (admin && admin._id && item && ((admin._id.toString() == item.trim().toString() || admin.adminName.toString() == item.trim().toString()))) {
                                 textShow = admin.adminName;
                             } else if (item.trim().includes('/') || item.trim().includes('全选')) {
                                 textShow = item;
@@ -501,7 +510,7 @@ define(['js/app'], function (myApp) {
             };
             tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
             utilService.createDatatableWithFooter('#wcGroupControlSessionHistoryTable', tableOptions, {}, true);
-            vm.wechatGroupControlMonitorQuery.pageObj.init({maxCount: size}, newSearch);
+            vm.wcGroupControlSessionHistory.pageObj.init({maxCount: size}, newSearch);
             $('#wcGroupControlSessionHistoryTable').off('order.dt');
             $('#wcGroupControlSessionHistoryTable').on('order.dt', function (event, a, b) {
                 vm.commonSortChangeHandler(a, 'wcGroupControlSessionHistory', vm.getWCGroupControlSessionHistory);
