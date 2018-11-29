@@ -209,9 +209,13 @@ var dbWCGroupControl = {
             })
         }
 
-        // compare with all wechat device data, including other platform
-        return dbConfig.collection_wcDevice.find({}).lean().then(
+        return Promise.all(proms).then(() => {
+            // execute delete operation first
+            // compare with all wechat device data, including other platform
+            return dbConfig.collection_wcDevice.find({}).lean()
+        }).then(
             wcDevice => {
+                let proms = [];
                 if (wcDevice && wcDevice.length > 0 && tempSetting && tempSetting.length > 0) {
                     tempSetting.map(setting => {
                         for (let x = 0; x < wcDevice.length; x++) {
@@ -266,8 +270,8 @@ var dbWCGroupControl = {
                             }
                         });
                     }
-                    return Promise.all(proms);
                 }
+                return Promise.all(proms);
             }
         );
     },
