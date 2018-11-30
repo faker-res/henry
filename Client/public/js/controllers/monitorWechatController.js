@@ -45,7 +45,6 @@ define(['js/app'], function (myApp) {
             vm.deviceNicknameList = [];
             return $scope.$socketPromise('getWCGroupControlSessionDeviceNickName', {platformObjIds: departmentIds}).then(function (data) {
                 vm.deviceNicknameList = data.data;
-                console.log('vm.deviceNicknameList ', vm.deviceNicknameList);
                 $scope.$evalAsync();
             });
         };
@@ -92,7 +91,6 @@ define(['js/app'], function (myApp) {
             if (departmentIds && departmentIds.length > 0) {
                 return $scope.$socketPromise('getWCAdminDetailByDepartmentIds', {departmentObjIds: departmentIds}).then(function (data) {
                     vm.wechatGroupControlAdminList = data.data;
-                    console.log('vm.wechatGroupControlAdminList ', vm.wechatGroupControlAdminList);
                     $scope.$evalAsync();
                 });
             }
