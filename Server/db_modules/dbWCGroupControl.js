@@ -410,8 +410,9 @@ var dbWCGroupControl = {
         );
     },
 
-    getWCGroupControlSessionDeviceNickName: (platformId) => {
-        return dbConfig.collection_wcGroupControlSession.distinct('deviceNickName', {platformObjId: platformId}).lean();
+    getWCGroupControlSessionDeviceNickName: (platformIds) => {
+        let plaformObjIds = platformIds.map(x => ObjectId(x));
+        return dbConfig.collection_wcGroupControlSession.distinct('deviceNickName', {platformObjId: {$in: plaformObjIds}}).lean();
     },
 
     getWCGroupControlSessionMonitor: (deviceNickNames, adminIds, index, limit) => {
@@ -462,7 +463,7 @@ var dbWCGroupControl = {
                         count: { $sum: 1 }
                 }
             }
-        ]);
+        ]).read("secondaryPreferred");
 
         let wcGroupControlSessionMonitorProm = dbConfig.collection_wcGroupControlSession.aggregate([
             {
@@ -497,7 +498,7 @@ var dbWCGroupControl = {
 
                 }
             },
-        ]);
+        ]).read("secondaryPreferred");
 
         return Promise.all([countWCGroupControlSessionMonitorProm, wcGroupControlSessionMonitorProm, adminProm, platformProm]).then(
             data => {

@@ -275,6 +275,14 @@ table.dataTable tfoot td.sumInt {
     margin-top: -25px;
 }
 
+.lastchild-noborder:last-child{
+    border-bottom:none!important;
+}
+
+.lastchild-topborder:nth-last-child(2){
+    border-bottom:1px solid;
+}
+
 tbody td.tbodyNoWrap {
     word-wrap: normal;
     white-space: nowrap;

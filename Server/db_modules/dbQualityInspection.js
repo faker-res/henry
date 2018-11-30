@@ -2559,11 +2559,13 @@ var dbQualityInspection = {
         return dbconfig.collection_wcConversationLog.distinct('deviceNickName', query).lean();
     },
 
-    getWechatConversationDeviceList: function(platform, deviceNickName, csName, startTime, endTime, content){
+    getWechatConversationDeviceList: function(platform, deviceNickName, csName, startTime, endTime, content, index, limit){
+        index = index || 0;
         let csOfficerProm = [];
         let checkCSOfficer = false;
         //let size;
         let deviceList;
+        let totalCount = 0;
         let query = {
             csReplyTime: {'$lte':new Date(endTime),
                 '$gte': new Date(startTime)}
@@ -2621,17 +2623,46 @@ var dbQualityInspection = {
                             },
                             "count": {"$sum": 1},
                         }
+                    },
+                    {   $skip: index },
+                    {   $limit: limit },
+                    {
+                        $project: {
+                            _id: 1,
+                            count: 1
+                        }
+                    }
+                ).read("secondaryPreferred");
+                let sizeProm = dbconfig.collection_wcConversationLog.aggregate(
+                    {$match: query},
+                    {
+                        "$group": {
+                            "_id": {
+                                "platformObjId": "$platformObjId",
+                                "deviceId": "$deviceId",
+                                "deviceNickName": "$deviceNickName",
+                                "playerWechatRemark": "$playerWechatRemark"
+                            },
+                            "count": {"$sum": 1},
+                        }
+                    },
+                    {
+                        "$group": {
+                            "_id": null,
+                            "count": {"$sum": 1},
+                        }
                     }
                 ).read("secondaryPreferred");
                 // let sizeProm = dbconfig.collection_wcConversationLog.find(query).count();
 
-                return Promise.all([platformProm, dataProm]);
+                return Promise.all([platformProm, dataProm, sizeProm]);
             }
         ).then(
             result => {
                 if(result && result.length > 1){
                     let platformDetails = result[0];
                     deviceList = result[1];
+                    totalCount = result[2] && result[2][0] && result[2][0].count ? result[2][0].count : 0;
                     //size = result[2] || 0;
                     let playerWechatRemarkList = [];
 
@@ -2668,7 +2699,7 @@ var dbQualityInspection = {
                     })
                 }
 
-                return deviceList;
+                return {data: deviceList, size: totalCount};
             }
         )
     },

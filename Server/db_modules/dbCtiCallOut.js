@@ -1,3 +1,5 @@
+"use strict";
+
 const dbutility = require('./../modules/dbutility');
 const request = require('request');
 
@@ -264,3 +266,5 @@ let dbCtiCallOut = {
 
 
 };
+
+module.exports = dbCtiCallOut;
