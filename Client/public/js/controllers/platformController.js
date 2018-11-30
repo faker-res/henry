@@ -20770,6 +20770,12 @@ define(['js/app'], function (myApp) {
                 if (vm.showReward && vm.showReward.condition && vm.showReward.condition.imageUrl && typeof vm.showReward.condition.imageUrl == 'string') {
                     vm.showReward.condition.imageUrl = [""];
                 }
+
+                if (v && v.type && v.type.name && (v.type.name == "PlayerRetentionRewardGroup" || v.type.name == "PlayerBonusDoubledRewardGroup")) {
+                    // set to the new display style
+                    vm.isNewDisplay = true;
+                }
+
                 vm.initRewardValidTimeDOM(vm.showReward.validStartTime, vm.showReward.validEndTime);
                 console.log('vm.showReward', vm.showReward);
                 vm.showRewardTypeData = null;   // This will probably be overwritten by vm.platformRewardTypeChanged() below
@@ -20816,11 +20822,16 @@ define(['js/app'], function (myApp) {
                                 }
                             }
 
-                            if (v && v.name && v.name == "PlayerRetentionRewardGroup" && vm.allPlayerLvl && vm.allPlayerLvl.length) {
+                            if (v && v.name && (v.name == "PlayerRetentionRewardGroup" || v.name == "PlayerBonusDoubledRewardGroup") && vm.allPlayerLvl && vm.allPlayerLvl.length) {
                                if (!vm.selectedPlayerLvlTab){
                                     // set the default as the first level
                                     vm.selectedPlayerLvlTab = 0;
                                }
+                            }
+
+                            if (v && v.name && (v.name == "PlayerRetentionRewardGroup" || v.name == "PlayerBonusDoubledRewardGroup")) {
+                                 // set to the new display style
+                                vm.isNewDisplay = true;
                             }
 
                             vm.showRewardTypeData = v;
@@ -20892,11 +20903,15 @@ define(['js/app'], function (myApp) {
                                 }
 
                                 if (cond.detail1) {
-                                    vm.rewardMainCondition[cond.index].detail1 = cond.detail1;
+                                    vm.rewardMainCondition[cond.index].detail1 = $translate(cond.detail1);
                                 }
 
-                                if (cond.detail2) {
-                                    vm.rewardMainCondition[cond.index].detail2 = cond.detail2;
+                                if (cond.detail2 && vm.rewardMainCondition[cond.index].detail1) {
+                                    vm.rewardMainCondition[cond.index].detail1 = vm.rewardMainCondition[cond.index].detail1 + "; " + $translate(cond.detail2);
+                                }
+
+                                if (cond.detail3 && vm.rewardMainCondition[cond.index].detail1) {
+                                    vm.rewardMainCondition[cond.index].detail1 = vm.rewardMainCondition[cond.index].detail1 + "; " + $translate(cond.detail3);
                                 }
 
                                 // Get options
@@ -21320,6 +21335,20 @@ console.log('typeof ',typeof gameProviders);
                                     tempApplyType[3] = undefined;
                                 }
                             }
+                            //this reward group need only the 1th selection
+                            else if (vm.showRewardTypeData.name == 'PlayerBonusDoubledRewardGroup' && tempApplyType) {
+                                if (tempApplyType[2]) {
+                                    tempApplyType[2] = undefined;
+                                }
+
+                                if (tempApplyType[3]) {
+                                    tempApplyType[3] = undefined;
+                                }
+
+                                if (tempApplyType[4]) {
+                                    tempApplyType[4] = undefined;
+                                }
+                            }
                             /// the rest of the reward does not need the 4th selection
                             else{
                                 if (tempApplyType && tempApplyType[4]) {
@@ -21405,12 +21434,28 @@ console.log('typeof ',typeof gameProviders);
                     if (model.i == "forbidWithdrawAfterApply" && model.v.type == "checkbox") {
                         delete model.entry.forbidWithdrawIfBalanceAfterUnlock;
                     }
+
+                    if (model.i == "multiplier" && model.v.type == "number" && vm.isDynamicRewardAmt) {
+                        model.entry.rewardPercentage = model.entry.multiplier;
+                    }
                 }
 
                 // Check whether reward is dynamic amount
                 if (model && model.name == "isDynamicRewardAmount") {
                     vm.isDynamicRewardAmt = model.value;
                     isResetLayout = true;
+                }
+
+                if (model && model.name == "rewardBonusModal") {
+                    if (model.value) {
+                        if (model.value == 1) {
+                            vm.isDynamicRewardAmt = true;
+                        }
+                        else {
+                            vm.isDynamicRewardAmt = false;
+                        }
+                        isResetLayout = true;
+                    }
                 }
 
                 // Check whether reward is differ by player level
@@ -21612,6 +21657,11 @@ console.log('typeof ',typeof gameProviders);
                         }
                     }
 
+
+                    if (model && model.name == "rewardBonusModal" && vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerBonusDoubledRewardGroup') {
+                        vm.changeRewardParamLayout(model);
+                    }
+
                     if (model && model.name == "interval" && model.value && vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerRetentionRewardGroup') {
                         vm.intervalValueOfRetentionRewardGroup = model.value;
 
@@ -21676,8 +21726,11 @@ console.log('typeof ',typeof gameProviders);
                     $("#rewardMainTasks [data-cond-name='applyType']").prop("disabled", true);
                     $("#rewardMainTasks [data-cond-name='canApplyFromClient']").prop("disabled", disabled);
                 }
-                if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerRetentionRewardGroup') {
+                if (vm.showRewardTypeData && vm.showRewardTypeData.name && (vm.showRewardTypeData.name == 'PlayerRetentionRewardGroup' || vm.showRewardTypeData.name == 'PlayerBonusDoubledRewardGroup')) {
                     $("#rewardMainTasks [data-cond-name='applyType']").prop("disabled", true);
+                }
+                if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerBonusDoubledRewardGroup') {
+                    $("#rewardMainTasks [data-cond-name='defineRewardBonusCount']").prop("disabled", true);
                 }
             }
 
