@@ -204,7 +204,7 @@ define(['js/app'], function (myApp) {
                 vm.setupMultiSelect();
 
                 if (vm.wechatGroupControlMonitorQuery && vm.wechatGroupControlMonitorQuery.department) {
-                    Promise.all([vm.getWCAdminDetailByDepartmentIds(vm.wechatGroupControlMonitorQuery.department)]).then(
+                    vm.getWCAdminDetailByDepartmentIds(vm.wechatGroupControlMonitorQuery.department).then(
                         data => {
                             setTimeout(function () {
                                 vm.setupAdminMutliSelect();
@@ -213,7 +213,6 @@ define(['js/app'], function (myApp) {
                         }
                     )
                 }
-
             });
             $scope.$evalAsync();
         };
@@ -282,15 +281,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PRODUCT'), data: "product"},
                     {title: $translate('Create Device Name'), data: "deviceNickName"},
                     {title: $translate('Last Login Account (Offline) / Current Login Account (Online)'), data: "adminName$"},
-                    {title: $translate('Current System Status'), data: "status$",
-                        render: function (data, type, row) {
-                        var text = data;
-                        if (row.status == 1){
-                            return "<div style='padding:0;background-color:green; color:white'>" + text + "</div>";
-                        } else {
-                            return "<div style='padding:0;background-color:red; color:white'>" + text + "</div>";
-                        }
-                    }},
+                    {title: $translate('Current System Status'), data: "status$"},
                     {
                         title: $translate('This Connection is Abnormally Clicked'),
                         data: "connectionAbnormalClickTimes$",
@@ -370,9 +361,9 @@ define(['js/app'], function (myApp) {
         vm.statusColor = function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
             $compile(nRow)($scope);
             if (aData.status == 1) {
-                $(nRow).find('td:eq(3)').css('background-color', 'green');
+                $(nRow).find('td:eq(3)').css({'background-color': 'green', 'color':'white'});
             }else{
-                $(nRow).find('td:eq(3)').css('background-color', 'red');
+                $(nRow).find('td:eq(3)').css({'background-color': 'red', 'color':'white'});
             }
         }
 

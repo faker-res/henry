@@ -57,30 +57,31 @@
 
         div(ng-if="vm.deviceList != 0")
             label {{"Total" | translate}} {{vm.deviceListTotal || 0}} {{"records" | translate}}
-            table#wechatMessageDeviceTable(style="width: 60%; text-align: center; border: 1px solid;")
+            table#wechatMessageDeviceTable(style="width: 60%; text-align: center;")
                 thead
                     th.col-md-4 {{"PRODUCT" | translate}}
-                    th(style="width: 433px;") {{"Device" | translate}}
+                    th(style="width: 432px;") {{"Device" | translate}}
                     th(style="width: 433px;") {{"wechatReceivingPlayer" | translate}}
                 tbody(ng-repeat="deviceList in vm.deviceList")
-                    tr(ng-if="vm.playerDetailsSummary.length == 0")
+                    tr(ng-if="vm.playerDetailsSummary.length == 0" style="border: 1px solid;")
                         td(colspan = 10) {{ 'No data available in table' | translate }}
-                    tr(style="border: 1px solid; width: 100%")
-                        td.col-md-4 {{deviceList.platformName}}
+                    tr(style="width: 100%; border: 1px solid;")
+                        td(style="") {{deviceList.platformName}}
                         td(colspan=2)
                             table
                                 tbody
-                                    tr(ng-repeat="device in deviceList.deviceNickName" )
-                                        td(style="width: 433px;border: 1px solid; border-top: 0px; vertical-align: top; line-height: 2.5")
+                                    tr.lastchild-noborder(ng-repeat="device in deviceList.deviceNickName" style='border-right:1px solid; border-bottom:1px solid;' )
+                                        td(style="width: 433px; vertical-align: top; line-height: 2.5;border-left:1px solid; ")
                                             a(ng-click="vm.searchWechatConversation(deviceList.platformId, device.deviceNickName);") {{device.deviceNickName}}
-                                        td(style="width: 433px;border: 1px solid; border-top: 0px; line-height: 2.5")
+                                         td
+                                        td(style="width: 433px; line-height: 2.5; ")
                                             table(style="margin: 0 auto;width: 100%;")
                                                 tbody
-                                                    tr(ng-repeat="wechatRemark in device.playerWechatRemark" style='border: 1px solid; border-bottom: 0px;')
-                                                        td
+                                                    tr.lastchild-topborder(ng-repeat="wechatRemark in device.playerWechatRemark"  )
+                                                        td(style="border-left:1px solid;")
                                                             a(ng-click="vm.searchWechatConversation(deviceList.platformId, device.deviceNickName, wechatRemark.playerWechatRemark);") {{wechatRemark.playerWechatRemark}} {{"("}} {{wechatRemark.playerWechatId}} {{")"}}
                 tfoot
-                    tr(style="border:none")
+                    tr
                         th
                             div(style='display:inline-block;font-weight:normal')
                                 text.margin-right-5(style='display:inline-block') {{'EachPage' | translate}}
@@ -93,6 +94,7 @@
                                 text(style="display:inline-block") / {{ vm.inspectionWechat.totalPage }} {{'Page' | translate}}
                             div(style='display:inline-block')
                                 button.btn.btnPage.next_page.margin-left-5(style='border: 1px solid #878787;margin-top:2px' ng-click='vm.nextInspectionWechatPage()', ng-disabled='vm.inspectionWechat.currentPage == vm.inspectionWechat.totalPage') {{'NEXT_PAGE' | translate}}
+
 
         div(ng-if="!vm.deviceList || vm.deviceList == 0")
             label {{ 'No data available in table' | translate }}
