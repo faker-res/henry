@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const dbPaymentProposal = require('./../db_modules/externalAPI/dbPaymentProposal');
+const dbOtherPayment = require('./../db_modules/externalAPI/dbOtherPayment');
 
 router.post('/fkpNotify', function(req, res, next) {
     let isValidData =
@@ -10,7 +10,7 @@ router.post('/fkpNotify', function(req, res, next) {
 
     if (isValidData) {
         let msgBody = req.body;
-        dbPaymentProposal.updateFKPTopupProposal(msgBody.orderNo, msgBody.payOrderNo, msgBody.orderStatus).then(
+        dbOtherPayment.updateFKPTopupProposal(msgBody.orderNo, msgBody.payOrderNo, msgBody.orderStatus).then(
             () => {
                 res.send('SUCCESS');
             }
