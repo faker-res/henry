@@ -4938,7 +4938,7 @@ let dbPlayerInfo = {
         ).then(
             function (data) {
                 if (data && data[0] && data[1] && !data[2]) {
-                    let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(data[0], data[1]._id);
+                    let playerIsForbiddenForThisReward = dbRewardUtil.isRewardEventForbidden(data[0], data[1]._id);
                     if (playerIsForbiddenForThisReward) {
                         deferred.reject({name: "DataError", message: "Player is forbidden for this reward."});
                     }
@@ -5116,7 +5116,7 @@ let dbPlayerInfo = {
                     playerData = data[3];
                     for (var i = 0; i < rewardEvents.length; i++) {
                         // skip promotion from this event if it is forbidden
-                        if (dbPlayerReward.isRewardEventForbidden(data[3], rewardEvents[i]._id)) continue;
+                        if (dbRewardUtil.isRewardEventForbidden(data[3], rewardEvents[i]._id)) continue;
 
                         var temp = dbconfig.collection_playerLevel.findOne({_id: rewardEvents[i].param.playerLevel});
                         eventLevelProm.push(temp);
@@ -5916,7 +5916,7 @@ let dbPlayerInfo = {
                                 }
 
                                 // Check reward individual permission
-                                let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerData, record.rewardEventObjId._id);
+                                let playerIsForbiddenForThisReward = dbRewardUtil.isRewardEventForbidden(playerData, record.rewardEventObjId._id);
                                 if (playerIsForbiddenForThisReward) {
                                     isForbidden = true;
                                 }
@@ -13264,7 +13264,7 @@ let dbPlayerInfo = {
                 eventData = data[0];
                 taskData = data[1];
 
-                let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(player, eventData._id);
+                let playerIsForbiddenForThisReward = dbRewardUtil.isRewardEventForbidden(player, eventData._id);
                 if (playerIsForbiddenForThisReward) {
                     return Q.reject({
                         status: constServerCode.PLAYER_NO_PERMISSION,
@@ -13553,7 +13553,7 @@ let dbPlayerInfo = {
                         event = eventData;
                         let minTopUpRecordAmount = 0;
 
-                        if (dbPlayerReward.isRewardEventForbidden(player, event._id)) {
+                        if (dbRewardUtil.isRewardEventForbidden(player, event._id)) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_NO_PERMISSION,
                                 name: "DataError",
@@ -14066,23 +14066,18 @@ let dbPlayerInfo = {
                     return playerState.then(
                         playerState => {
                             if (playerState || data.isClearConcurrent) {
-                                //check if player's reward task is no credit now
-                                return dbRewardTask.checkPlayerRewardTaskStatus(playerData._id).then(
-                                    taskStatus => {
-                                        if (code == "MANUAL_PLAYER_LEVEL_UP_REWARD") {
-                                            return {
-                                                _id: "MANUAL_PLAYER_LEVEL_UP_REWARD",
-                                                type: {
-                                                    name: constRewardType.PLAYER_LEVEL_UP
-                                                }
-                                            }
+                                if (code === "MANUAL_PLAYER_LEVEL_UP_REWARD") {
+                                    return {
+                                        _id: "MANUAL_PLAYER_LEVEL_UP_REWARD",
+                                        type: {
+                                            name: constRewardType.PLAYER_LEVEL_UP
                                         }
-                                        return dbconfig.collection_rewardEvent.findOne({
-                                            platform: playerData.platform,
-                                            code: code
-                                        }).populate({path: "type", model: dbconfig.collection_rewardType}).lean();
                                     }
-                                );
+                                }
+                                return dbconfig.collection_rewardEvent.findOne({
+                                    platform: playerData.platform,
+                                    code: code
+                                }).populate({path: "type", model: dbconfig.collection_rewardType}).lean();
                             } else {
                                 return Promise.reject({
                                     name: "DBError",
@@ -14104,7 +14099,7 @@ let dbPlayerInfo = {
             rewardEvent => {
                 if (rewardEvent && rewardEvent.type) {
                     // Check reward individual permission
-                    let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerInfo, rewardEvent._id);
+                    let playerIsForbiddenForThisReward = dbRewardUtil.isRewardEventForbidden(playerInfo, rewardEvent._id);
                     if (playerIsForbiddenForThisReward) {
                         return Q.reject({name: "DataError", message: "Player is forbidden for this reward."});
                     }
@@ -14148,7 +14143,7 @@ let dbPlayerInfo = {
                     let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({playerId: playerInfo._id}).sort({createTime: -1}).limit(1);
                     let pendingCount = 0;
 
-                    pendingCount = dbRewardTask.getPendingRewardTaskCount({
+                    pendingCount = dbRewardUtil.getPendingRewardTaskCount({
                         mainType: 'Reward',
                         "data.playerObjId": playerInfo._id,
                         status: 'Pending'
@@ -14949,7 +14944,7 @@ let dbPlayerInfo = {
                         eData => {
                             eventData = eData;
 
-                            let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(player, eventData._id);
+                            let playerIsForbiddenForThisReward = dbRewardUtil.isRewardEventForbidden(player, eventData._id);
 
                             if (playerIsForbiddenForThisReward) {
                                 return Q.reject({

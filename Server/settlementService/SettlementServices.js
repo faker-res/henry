@@ -43,7 +43,6 @@
                 "getPlatformWeeklyConsumptionReturnInfoForPlayers",
                 "calculatePartnersCommission",
                 "calculatePartnersChildrenCommission",
-                "checkPlatformPlayersRewardTask",
                 "getPartnerPlayersCommissionInfo",
                 "savePlayerCredit",
                 "markDuplicatedConsumptionRecords",

@@ -35,38 +35,6 @@ const dbRewardUtil = require("../db_common/dbRewardUtility");
 const dbRewardTaskGroup = require('../db_modules/dbRewardTaskGroup');
 
 const dbRewardTask = {
-
-    /**
-     * Create a new reward
-     * @param {Object} rewardData - The data of the reward. Refer to reward schema.
-     * @param adminId
-     * @param adminName
-     */
-    manualCreateRewardTask: function (rewardData, adminId, adminName) {
-        return dbRewardTask.checkPlayerRewardTaskStatus(rewardData.playerId).then(
-            taskStatus => {
-                return dbRewardTask.getPlayerCurRewardTask(rewardData.playerId);
-            }
-        ).then(data => {
-            if (data && !data.platformId.canMultiReward && data.platformId.useLockedCredit) {
-                return Q.reject({
-                    status: constServerCode.PLAYER_HAS_REWARD_TASK,
-                    message: "The player has not unlocked the previous reward task. Not valid for new reward"
-                })
-            } else {
-                //return dbRewardTask.createRewardTask(rewardData);
-                //create reward task proposal for player
-                return dbProposal.createProposalWithTypeNameWithProcessInfo(rewardData.platformId, constProposalType.ADD_PLAYER_REWARD_TASK, {
-                    creator: {
-                        type: 'admin',
-                        name: adminName,
-                        id: adminId
-                    }, data: rewardData
-                });
-            }
-        })
-    },
-
     /**
      *
      * @param rewardData
@@ -1103,39 +1071,7 @@ const dbRewardTask = {
         });
         return Promise.all(prom)
     },
-    /**
-     * Get total count of specific user's pending proposal
-     */
 
-    getPendingRewardTaskCount: function (query, rewardTaskWithProposalList) {
-        var deferred = Q.defer();
-
-        dbconfig.collection_proposal
-            .find(query)
-            .populate({
-                path: "type",
-                model: dbconfig.collection_proposalType
-            })
-            .lean().then(
-            function (tasks) {
-                // if the proposal result is include in the rewardtasklist
-                var chosenTask = [];
-                tasks.forEach(function (task) {
-                    if (task.type) {
-                        var tname = task.type.name;
-                        if (rewardTaskWithProposalList.indexOf(tname) != -1) {
-                            chosenTask.push(task);
-                        }
-                    }
-                });
-                deferred.resolve(chosenTask.length);
-
-            }, function (error) {
-                deferred.reject({name: "DBError", message: "Error finding player reward task", error: error})
-            }
-        );
-        return deferred.promise;
-    },
     /**
      * TODO: (DEPRECATING) To change to getPlayerAllRewardTask after implement multiple player reward tasks
      * Get player's current reward task
@@ -2136,103 +2072,6 @@ const dbRewardTask = {
                 return {data: data[0], size: data[1], summary: summaryObj};
             }
         )
-    },
-
-    /**
-     * // TODO:: Might need to get oldest reward to update
-     * @param playerObjId
-     * @returns {*}
-     */
-    checkPlayerRewardTaskStatus: function (playerObjId) {
-        var playerObj = null;
-        var taskObj = null;
-        return dbconfig.collection_players.findOne({_id: playerObjId}).populate({
-            path: "platform",
-            model: dbconfig.collection_platform
-        }).lean().then(
-            playerData => {
-                if (playerData) {
-                    playerObj = playerData;
-                    var providerProm = dbconfig.collection_gameProvider.find({_id: {$in: playerData.platform.gameProviders}}).lean();
-                    if (playerObj.isTestPlayer) {
-                        providerProm = Promise.resolve([]);
-                    }
-                    var taskProm = dbconfig.collection_rewardTask.findOne({
-                        playerId: playerObjId,
-                        status: constRewardTaskStatus.STARTED,
-                        //inProvider: true
-                    }).lean();
-                    return Q.all([providerProm, taskProm]);
-                }
-            }
-        ).then(
-            data => {
-                if (data && data[0] && data[0].length > 0 && data[1]) {
-                    taskObj = data[1];
-                    var proms = data[0].map(
-                        provider => dbGameProvider.getPlayerCreditInProvider(playerObj.name,
-                            playerObj.platform.platformId, provider.providerId)
-                    );
-                    return Q.all(proms)
-                }
-            }
-        ).then(
-            creditData => {
-                if (creditData && taskObj) {
-                    var playerCredit = playerObj.lockedCredit + playerObj.validCredit;
-                    var totalCredit = 0;
-                    creditData.forEach(
-                        credit => {
-                            var gameCredit = (parseFloat(credit.gameCredit) || 0);
-                            totalCredit += gameCredit < 1 ? 0 : gameCredit;
-                        });
-                    if (totalCredit < 1 && playerCredit < 1 && taskObj.rewardType != constRewardType.FIRST_TOP_UP) {
-                        return dbconfig.collection_rewardTask.findOneAndUpdate(
-                            {_id: taskObj._id, platformId: taskObj.platformId},
-                            {
-                                status: constRewardTaskStatus.NO_CREDIT,
-                                isUnlock: true,
-                                unlockTime: new Date()
-                            }
-                        );
-                    }
-                }
-            }
-        );
-    },
-
-    checkPlatformPlayerRewardTask: function (platformObjId) {
-        var balancer = new SettlementBalancer();
-
-        return balancer.initConns().then(function () {
-            //if there is commission config, start settlement
-            var stream = dbconfig.collection_rewardTask.find(
-                {
-                    platformId: platformObjId,
-                    status: constRewardTaskStatus.STARTED,
-                    inProvider: true
-                }
-            ).cursor({batchSize: 100});
-
-            return Q(
-                balancer.processStream({
-                    stream: stream,
-                    batchSize: constSystemParam.BATCH_SIZE,
-                    makeRequest: function (playerIdObjs, request) {
-                        request("player", "checkPlatformPlayersRewardTask", {
-                            playerObjIds: playerIdObjs.map(playerIdObj => playerIdObj.playerId)
-                        });
-                    }
-                })
-            );
-        });
-    },
-
-    checkPlatformPlayersRewardTask: function (playerObjIds) {
-        var proms = playerObjIds.map(
-            playerObjId => dbRewardTask.checkPlayerRewardTaskStatus(playerObjId)
-        );
-        return Q.all(proms);
     },
 
     fixPlayerRewardAmount: function (playerId) {

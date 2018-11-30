@@ -219,7 +219,7 @@ var dbRewardEvent = {
                         message: "Can not find reward event"
                     });
                 }
-                let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerObj, rewardEvent._id);
+                let playerIsForbiddenForThisReward = dbRewardUtil.isRewardEventForbidden(playerObj, rewardEvent._id);
                 if (playerIsForbiddenForThisReward) {
                     return Q.reject({name: "DataError", message: "Player is forbidden for this reward."});
                 }
