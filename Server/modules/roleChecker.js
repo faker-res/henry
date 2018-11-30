@@ -854,7 +854,10 @@ var roleChecker = {
                 queryByProduct: []
             },
             WechatConversationRecord: {
-                Read:[]
+                Read:['getWechatDeviceNickNameList', 'getWechatDeviceNickNameList', 'getWechatConversationDeviceList', 'getWechatConversation']
+            },
+            WechatConversationReport: {
+                Read: ['getWechatDeviceNickNameList', 'getWechatConversationReport']
             }
         },
         TeleMarketing: {

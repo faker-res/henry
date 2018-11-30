@@ -18,7 +18,7 @@ let wcGroupControlPlayerWechatSchema = new Schema({
     playerWechatRemark: {type: String, index: true},
 
     // Create time
-    createTime: {type: Date, default: new Date(), index: true},
+    createTime: {type: Date, default: Date.now, index: true},
 
     // Last Update time
     lastUpdateTime: {type: Date, index: true}

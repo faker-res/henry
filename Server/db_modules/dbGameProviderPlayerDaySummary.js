@@ -402,8 +402,11 @@ var dbGameProviderPlayerDaySummary = {
             data.summary.forEach(item=>{
                 if(item.summaryData){
                     item.summaryData.forEach(summary=>{
-                        result.consumption += summary.totalCount;
-                        result.validAmount += summary.totalValidAmount;
+                        // processType 12 - User not exists  (when cpms received response from fpms about user not exist)
+                        if(summary.processType != 12){
+                            result.consumption += Number(summary.totalCount);
+                            result.validAmount += Number(summary.totalValidAmount);
+                        }
                     })
                 }
             })
