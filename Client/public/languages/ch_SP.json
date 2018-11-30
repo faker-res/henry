@@ -3459,6 +3459,8 @@
   "RESPONSE_TIMEOUT": "回应超时",
   "Whitelisting Phone Number": "（代理、玩家）电话号码注册白名单（一行一个）",
   "Blacklisting Phone Number": "（代理、玩家）电话号码注册、回播黑名单（一行一个）",
+  "Whitelisting SMS Phone Number": "（玩家、代理）发送短信『电话号码』白名单",
+  "Whitelisting SMS IP Address": "（玩家、代理）发送短信『IP 地址』白名单",
   "PlayerRandomRewardGroup": "随机抽奖（组）",
   "WORDS": "文字",
   "IMAGE": "图片",

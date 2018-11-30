@@ -1931,13 +1931,21 @@
                                 td {{'Blacklisting Phone Number' | translate}}
                                 td
                                     textarea(ng-model='vm.phoneFilterConfig.blackListingPhoneNumbers$', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Whitelisting SMS Phone Number' | translate}}
+                                td
+                                    textarea(ng-model='vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers$', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Whitelisting SMS IP Address' | translate}}
+                                td
+                                    textarea(ng-model='vm.blackWhiteListingConfig.whiteListingSmsIpAddress$', ng-disabled='!vm.configTableEdit')
 
                     br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'phoneFilterConfig')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("phoneFilterConfig")') {{"CANCEL" | translate}}
-                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("phoneFilterConfig")') {{"CONFIRM" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("phoneFilterConfig");vm.configSubmitUpdate("blackWhiteListingConfig")') {{"CONFIRM" | translate}}
 
                     br
                     br
