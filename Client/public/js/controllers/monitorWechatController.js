@@ -41,28 +41,42 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        vm.getWCGroupControlSessionDeviceNickName = function () {
+        vm.getWCGroupControlSessionDeviceNickName = function (departmentIds) {
             vm.deviceNicknameList = [];
-            return $scope.$socketPromise('getWCGroupControlSessionDeviceNickName', {platformObjId: vm.selectedPlatform._id}).then(function (data) {
+            return $scope.$socketPromise('getWCGroupControlSessionDeviceNickName', {platformObjIds: departmentIds}).then(function (data) {
                 vm.deviceNicknameList = data.data;
-                console.log('vm.deviceNicknameList ', vm.deviceNicknameList);
                 $scope.$evalAsync();
             });
         };
 
         vm.getWCGroupControlDepartmentList = function () {
             vm.wechatGroupControlDepartmentList = [];
-            return $scope.$socketPromise('getWCDepartmentDetailByPlatformObjId', {platformObjId: vm.selectedPlatform._id, adminId: authService.adminId}).then(function (data) {
+            return $scope.$socketPromise('getWCDepartmentDetailByAdminObjId', {adminId: authService.adminId}).then(function (data) {
                 $scope.$evalAsync(() => {
                     vm.wechatGroupControlDepartmentList = data.data;
-                    console.log('vm.wechatGroupControlDepartmentList ', vm.deviceNicknameList);
+                    console.log('vm.wechatGroupControlDepartmentList ', vm.wechatGroupControlDepartmentList);
 
                     if (vm.wechatGroupControlDepartmentList && vm.wechatGroupControlDepartmentList.length > 0) {
                         let departmentIds = vm.wechatGroupControlDepartmentList.map(x => x._id);
-                        Promise.all([vm.getWCAdminDetailByDepartmentIds(departmentIds)]).then(
+                        let platformObjIds = [];
+
+                        vm.wechatGroupControlDepartmentList.forEach(department => {
+                            if (department && department.platforms && department.platforms.length > 0) {
+                                department.platforms.forEach(platform => {
+                                    let indexNo = platformObjIds.findIndex(x => x && platform && x.toString() == platform.toString());
+
+                                    if (indexNo == -1) {
+                                        platformObjIds.push(platform);
+                                    }
+                                })
+                            }
+                        });
+
+                        Promise.all([vm.getWCGroupControlSessionDeviceNickName(platformObjIds), vm.getWCAdminDetailByDepartmentIds(departmentIds)]).then(
                             data => {
                                 setTimeout(function () {
                                     vm.setupAdminMutliSelect();
+                                    vm.setupNicknameMultiSelect();
                                 });
                                 $scope.$evalAsync();
                             }
@@ -77,7 +91,6 @@ define(['js/app'], function (myApp) {
             if (departmentIds && departmentIds.length > 0) {
                 return $scope.$socketPromise('getWCAdminDetailByDepartmentIds', {departmentObjIds: departmentIds}).then(function (data) {
                     vm.wechatGroupControlAdminList = data.data;
-                    console.log('vm.wechatGroupControlAdminList ', vm.wechatGroupControlAdminList);
                     $scope.$evalAsync();
                 });
             }
@@ -89,7 +102,7 @@ define(['js/app'], function (myApp) {
             $('#autoRefreshWechatFlag')[0].checked = true;
             vm.lastWechatRefresh = utilService.$getTimeFromStdTimeFormat();
             vm.wechatGroupControlMonitorQuery = {};
-            Promise.all([vm.getWCGroupControlSessionDeviceNickName(), vm.getWCGroupControlDepartmentList()]).then(
+            Promise.all([vm.getWCGroupControlDepartmentList()]).then(
                 data => {
                     setTimeout(function () {
                         vm.setupMultiSelect();
@@ -115,14 +128,7 @@ define(['js/app'], function (myApp) {
                 $('select#selectWechatGroupControlDepartment').next().on('click', 'li input[type=checkbox]', function () {
 
                     if (vm.wechatGroupControlMonitorQuery && vm.wechatGroupControlMonitorQuery.department) {
-                        Promise.all([vm.getWCAdminDetailByDepartmentIds(vm.wechatGroupControlMonitorQuery.department)]).then(
-                            data => {
-                                setTimeout(function () {
-                                    vm.setupAdminMutliSelect();
-                                });
-                                $scope.$evalAsync();
-                            }
-                        )
+                        vm.populateWCMonitorNicknamesAndAdmins();
                     }
 
                     let upText = $($multi).text().split(',').map(item => {
@@ -133,7 +139,7 @@ define(['js/app'], function (myApp) {
                             });
                         } else {
                             vm.wechatGroupControlDepartmentList.forEach(department => {
-                                if (department && department._id && item && (department._id.toString() == item.trim().toString())) {
+                                if (department && department._id && item && (department._id.toString() == item.trim().toString() || department.departmentName.toString() == item.trim().toString())) {
                                     textShow = department.departmentName;
                                 } else if (item.trim().includes('/') || item.trim().includes('全选')) {
                                     textShow = item;
@@ -145,23 +151,37 @@ define(['js/app'], function (myApp) {
                     $($multi).find('span').text(upText);
                 });
                 $("select#selectWechatGroupControlDepartment").multipleSelect("checkAll");
-
-                $('select#selectWechatGroupControlDeviceNickName').multipleSelect({
-                    allSelected: $translate("All Selected"),
-                    selectAllText: $translate("Select All"),
-                    displayValues: true,
-                    countSelected: $translate('# of % selected'),
-                });
-                let $multi2 = ($('select#selectWechatGroupControlDeviceNickName').next().find('.ms-choice'))[0];
-                $('select#selectWechatGroupControlDeviceNickName').next().on('click', 'li input[type=checkbox]', function () {
-                    let upText2 = $($multi2).text().split(',').map(item => {
-                        return item;
-                    }).join(',');
-                    $($multi2).find('span').text(upText2);
-                });
-                $("select#selectWechatGroupControlDeviceNickName").multipleSelect("checkAll");
                 $scope.$evalAsync();
             });
+        };
+
+        vm.populateWCMonitorNicknamesAndAdmins = function () {
+            let platformObjIds = [];
+            if (vm.wechatGroupControlDepartmentList && vm.wechatGroupControlDepartmentList.length > 0) {
+                vm.wechatGroupControlDepartmentList.forEach(department => {
+                    let departmentIndexNo = vm.wechatGroupControlMonitorQuery.department.findIndex(y => y && department && department._id && y.toString() == department._id.toString());
+                    if (departmentIndexNo != -1) {
+                        if (department && department.platforms && department.platforms.length > 0) {
+                            department.platforms.forEach(platform => {
+                                let indexNo = platformObjIds.findIndex(x => x && platform && x.toString() == platform.toString());
+                                if (indexNo == -1) {
+                                    platformObjIds.push(platform);
+                                }
+                            })
+                        }
+                    }
+                });
+            }
+
+            Promise.all([vm.getWCGroupControlSessionDeviceNickName(platformObjIds), vm.getWCAdminDetailByDepartmentIds(vm.wechatGroupControlMonitorQuery.department)]).then(
+                data => {
+                    setTimeout(function () {
+                        vm.setupAdminMutliSelect();
+                        vm.setupNicknameMultiSelect();
+                    });
+                    $scope.$evalAsync();
+                }
+            )
         };
 
         vm.setupAdminMutliSelect = function () {
@@ -177,7 +197,7 @@ define(['js/app'], function (myApp) {
                     let upText1 = $($multi1).text().split(',').map(item => {
                         let textShow = '';
                         vm.wechatGroupControlAdminList.forEach(admin => {
-                            if (admin && admin._id && item && (admin._id.toString() == item.trim().toString())) {
+                            if (admin && admin._id && item && (admin._id.toString() == item.trim().toString() || admin.adminName.toString() == item.trim().toString())) {
                                 textShow = admin.adminName;
                             } else if (item.trim().includes('/') || item.trim().includes('全选')) {
                                 textShow = item;
@@ -188,6 +208,26 @@ define(['js/app'], function (myApp) {
                     $($multi1).find('span').text(upText1);
                 });
                 $("select#selectWechatGroupControlAdminId").multipleSelect("checkAll");
+                $scope.$evalAsync();
+            });
+        };
+
+        vm.setupNicknameMultiSelect = function () {
+            utilService.actionAfterLoaded(('#selectWechatGroupControlDepartment'), function () {
+                $('select#selectWechatGroupControlDeviceNickName').multipleSelect({
+                    allSelected: $translate("All Selected"),
+                    selectAllText: $translate("Select All"),
+                    displayValues: true,
+                    countSelected: $translate('# of % selected'),
+                });
+                let $multi2 = ($('select#selectWechatGroupControlDeviceNickName').next().find('.ms-choice'))[0];
+                $('select#selectWechatGroupControlDeviceNickName').next().on('click', 'li input[type=checkbox]', function () {
+                    let upText2 = $($multi2).text().split(',').map(item => {
+                        return item;
+                    }).join(',');
+                    $($multi2).find('span').text(upText2);
+                });
+                $("select#selectWechatGroupControlDeviceNickName").multipleSelect("checkAll");
                 $scope.$evalAsync();
             });
         };
@@ -211,7 +251,8 @@ define(['js/app'], function (myApp) {
                             });
                             $scope.$evalAsync();
                         }
-                    )
+                    );
+                    vm.populateWCMonitorNicknamesAndAdmins();
                 }
             });
             $scope.$evalAsync();
@@ -241,7 +282,7 @@ define(['js/app'], function (myApp) {
                     vm.wechatGroupControlMonitorQuery.totalCount = data.data.size;
 
                     vm.drawWechatGroupRecordTable(
-                        data.data.data.map(item => {
+                        data.data.data ? data.data.data.map(item => {
                             let lastDate = new Date();
                             let createDate = new Date(item.createTime);
                             let duration = 0;
@@ -259,7 +300,7 @@ define(['js/app'], function (myApp) {
                             item.connectionAbnormalClickTimes$ = item.connectionAbnormalClickTimes ? item.connectionAbnormalClickTimes + $translate('Time(s)') : '0' + $translate('Time(s)');
 
                             return item;
-                        }), data.data.size, {}, isNewSearch
+                        }) : [], data.data.size, {}, isNewSearch
                     );
                 });
             }, function (err) {
