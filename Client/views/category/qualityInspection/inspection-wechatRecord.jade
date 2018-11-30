@@ -79,6 +79,21 @@
                                                     tr(ng-repeat="wechatRemark in device.playerWechatRemark" style='border: 1px solid; border-bottom: 0px;')
                                                         td
                                                             a(ng-click="vm.searchWechatConversation(deviceList.platformId, device.deviceNickName, wechatRemark.playerWechatRemark);") {{wechatRemark.playerWechatRemark}} {{"("}} {{wechatRemark.playerWechatId}} {{")"}}
+                tfoot
+                    tr(style="border:none")
+                        th
+                            div(style='display:inline-block;font-weight:normal')
+                                text.margin-right-5(style='display:inline-block') {{'EachPage' | translate}}
+                                input.form-control(style='max-width:80px;display:inline-block;',type='number',ng-init=1000,ng-model='vm.inspectionWechat.limit' ,ng-blur='vm.searchWechatConversationDevice()')
+                                text.margin-left-5(style="display:inline-block") {{'COUNT1' | translate}}
+                        th(colspan=4 style="text-align:right")
+                            div(style='display:inline-block;font-weight:normal')
+                                text.margin-right-5(style='display:inline-block') {{'Jump to' | translate}}
+                                input.form-control.margin-right-5(style='max-width:60px;display:inline-block', type='number',ng-model='vm.inspectionWechat.currentPage',ng-init=1 ,ng-blur="vm.gotoInspectionWechatPage((vm.inspectionWechat.currentPage),null)")
+                                text(style="display:inline-block") / {{ vm.inspectionWechat.totalPage }} {{'Page' | translate}}
+                            div(style='display:inline-block')
+                                button.btn.btnPage.next_page.margin-left-5(style='border: 1px solid #878787;margin-top:2px' ng-click='vm.nextInspectionWechatPage()', ng-disabled='vm.inspectionWechat.currentPage == vm.inspectionWechat.totalPage') {{'NEXT_PAGE' | translate}}
+
         div(ng-if="!vm.deviceList || vm.deviceList == 0")
             label {{ 'No data available in table' | translate }}
 br
