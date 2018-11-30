@@ -143,7 +143,7 @@
                                             text(ng-if='!vm.configTableEdit') {{level.name | translate}}
                                         td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}', align="center")
                                             text(style="width: 60px") {{level.value}}
-                                        td.static(colspan='{{vm.configTableEdit ? 8 : 6}}')
+                                        td.static(colspan='{{vm.configTableAdd? 7: vm.configTableEdit ? 8 : 6}}')
                                             text {{"Level Up Conditions" | translate}}
                                         td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
                                             input.form-control(ng-show='vm.configTableEdit', type='number', ng-model='level.reward.bonusCredit')
@@ -175,6 +175,7 @@
                                             a.fa.fa-plus-circle(ng-click='level.levelUpConfig.push({andConditions: true});vm.endLoadWeekDay();' title='{{"ADD_NEW_LEVEL_UP_CONDITION" | translate}}')
                                             br
                                             label(ng-if='level.levelUpConfig.length > 1') {{"OR" | translate}}
+                                        td(ng-if='vm.configTableAdd && j == 0', rowspan='{{level.levelUpConfig.length}}')
                                         td(ng-style="{borderLeft: vm.configTableEdit ? '0px' : ''}")
                                             input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.topupLimit', required)
                                             text(ng-if='!vm.configTableEdit') {{oneConfig.topupLimit | number : 2}}
@@ -200,10 +201,10 @@
                                             a.fa.fa-times-circle(ng-if='level.levelUpConfig.length > 1', ng-click='level.levelUpConfig.splice(j,1)', title='{{"REMOVE_THIS_LEVEL_UP_CONDITION" | translate}}')
 
                                     tr
-                                        td.static(colspan='{{vm.configTableEdit ? 8 : 6}}', ng-class='{hidden: i === 0}')
+                                        td.static(colspan='{{vm.configTableAdd? 7: vm.configTableEdit ? 8 : 6}}', ng-class='{hidden: i === 0}')
                                             text {{"Level Down Conditions" | translate}}
                                     tr(ng-repeat='(j,oneConfig) in level.levelDownConfig', ng-class='{hidden: i === 0}')
-                                        td(ng-if='vm.configTableEdit && j == 0', rowspan='{{level.levelDownConfig.length}}')
+                                        td(ng-if='(vm.configTableEdit || vm.configTableAdd) && j == 0', rowspan='{{level.levelDownConfig.length}}')
                                             //a.fa.fa-plus-circle(ng-click='level.levelDownConfig.push({})', title='{{"ADD_NEW_LEVEL_UP_CONDITION" | translate}}')
                                         td(ng-style="{borderLeft: vm.configTableEdit ? '0px' : ''}")
                                             //input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.topupMinimum', ng-change="vm.playerLvlDownChange(i,j,'topupMinimum')", required)
@@ -239,7 +240,7 @@
                                             text &nbsp;
                                 thead(ng-if='vm.configTableAdd')
                                     tr.stronger-top.stronger-bottom
-                                        td.static(colspan='12')
+                                        td.static(colspan='13')
                                             label {{"createPlayerLevel" | translate}}
                                     +playerLevelConfigHeader
                                 tbody(ng-if='vm.configTableAdd')
@@ -248,11 +249,7 @@
                                             input#newPlayerLevelFirstInput.form-control(type='text', ng-model='vm.newPlayerLvl.name', placeholder="{{'NAME' | translate}}", required)
                                         td(rowspan='{{vm.newPlayerLevelUpConfig.length + 3}}')
                                             input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.value', required, disabled)
-                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length + 1}}')
-                                            a.fa.fa-plus-circle(ng-click='vm.newPlayerLevelUpConfig.push({andConditions: true})', title='{{"ADD_NEW_LEVEL_UP_CONDITION" | translate}}')
-                                            br
-                                            label(ng-if='vm.newPlayerLevelUpConfig.length > 1') {{"OR" | translate}}
-                                        td.static(colspan='5')
+                                        td.static(colspan='7')
                                             text {{"Level Up Conditions" | translate}}
                                         td(rowspan='{{vm.newPlayerLevelUpConfig.length + 3}}')
                                             input.form-control(type='number', min=0, ng-model='vm.newPlayerLvl.reward.bonusCredit', required)
@@ -267,7 +264,14 @@
                                                 text {{"LOCAL_CREDIT" | translate}}
                                         td(rowspan='{{vm.newPlayerLevelUpConfig.length + 3}}')
                                             input.form-control(type='number', ng-model='vm.newPlayerLvl.reward.requiredUnlockTimes')
+                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length + 3}}')
+                                            input(type='checkbox', ng-model='vm.newPlayerLvl.canApplyConsumptionReturn')
+
                                     tr(ng-repeat='(j,levelConfig) in vm.newPlayerLevelUpConfig')
+                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length}}')
+                                            a.fa.fa-plus-circle(ng-click='vm.newPlayerLevelUpConfig.push({andConditions: true})', title='{{"ADD_NEW_LEVEL_UP_CONDITION" | translate}}')
+                                            br
+                                            label(ng-if='vm.newPlayerLevelUpConfig.length > 1') {{"OR" | translate}}
                                         td
                                             input.form-control(type='number', min='0', ng-model='levelConfig.topupLimit', required)
                                         td
@@ -289,8 +293,7 @@
                                             text {{level.reward}}
                                         //-td
                                     tr
-                                        td
-                                        td.static(colspan='5')
+                                        td.static(colspan='7')
                                             text {{"Level Down Conditions" | translate}}
                                     tr
                                         td

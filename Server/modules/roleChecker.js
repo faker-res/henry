@@ -855,6 +855,9 @@ var roleChecker = {
             },
             WechatConversationRecord: {
                 Read:['getWechatDeviceNickNameList', 'getWechatDeviceNickNameList', 'getWechatConversationDeviceList', 'getWechatConversation']
+            },
+            WechatConversationReport: {
+                Read: ['getWechatDeviceNickNameList', 'getWechatConversationReport']
             }
         },
         TeleMarketing: {

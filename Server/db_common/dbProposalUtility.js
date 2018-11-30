@@ -99,6 +99,8 @@ const dbProposalUtility = {
         );
     },
 
+    // region Proposal check
+
     // check reward apply restriction on ip, phone and IMEI
     checkRestrictionOnDeviceForApplyReward: (intervalTime, player, rewardEvent) => {
         return dbConfig.collection_proposal.aggregate(
@@ -185,6 +187,37 @@ const dbProposalUtility = {
             }
         );
     },
+
+    isLastTopUpProposalWithin30Mins: (proposalType, platformObjId, playerObj) => {
+        if(proposalType && platformObjId && playerObj){
+            return dbConfig.collection_proposalType.findOne({name: proposalType, platformId: platformObjId}).then(
+                proposalType => {
+                    if(proposalType && proposalType._id){
+                        return dbConfig.collection_proposal.find({type: proposalType._id, 'data.playerObjId': playerObj._id}).limit(1).sort({_id: -1});
+                    }
+                }
+            ).then(
+                proposalData => {
+                    let currentDate = new Date();
+                    if (proposalData && proposalData.length > 0 && proposalData[0].createTime) {
+                        let diff =(currentDate.getTime() - proposalData[0].createTime.getTime()) / 1000;
+                        diff /= 60;
+                        let diffInMin = Math.abs(Math.round(diff));
+
+                        if(diffInMin <= 30){
+                            return proposalData;
+                        }
+                    }
+
+                    return Promise.resolve(true);
+                }
+            )
+        } else {
+            return Promise.resolve(true);
+        }
+    }
+
+    // endregion
 };
 
 module.exports = dbProposalUtility;

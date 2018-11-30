@@ -1521,6 +1521,24 @@ var dbUtility = {
         // Shift back
         value = value.toString().split('e');
         return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
+    },
+
+    retrieveAgent: (agentInfo) => {
+        let registrationInterface = '';
+        let userAgent = agentInfo;
+        if (userAgent == '') {
+            registrationInterface = 1;
+        } else {
+            if (userAgent.browser.name.indexOf("WebKit") !== -1 || userAgent.browser.name.indexOf("WebView") !== -1) {
+                registrationInterface = 2;
+            }
+            else if (userAgent.os.name.indexOf("iOS") !== -1 || userAgent.os.name.indexOf("ndroid") !== -1 || userAgent.browser.name.indexOf("obile") !== -1) {
+                registrationInterface = 3;
+            } else {
+                registrationInterface = 1;
+            }
+        }
+        return registrationInterface;
     }
 };
 

@@ -9856,6 +9856,7 @@ define(['js/app'], function (myApp) {
                 case 'FINANCIAL_REPORT':
                     vm.financialReport = {};
                     vm.financialReport.displayMethod = 'sum';
+                    vm.isDisableSelectDisplayMethod = true;
                     vm.dailyFinancialReportList = [];
                     vm.sumFinancialReportList = {};
                     vm.reportSearchTime = 0;
@@ -9873,16 +9874,20 @@ define(['js/app'], function (myApp) {
                                 $scope.$evalAsync(() => {
                                     if ($($multi).text() == '') {
                                         vm.financialReport.displayMethod = '';
+                                        vm.isDisableSelectDisplayMethod = false;
                                     } else if ($($multi).text().includes('/') || $($multi).text().includes('全选')) {
                                         vm.financialReport.displayMethod = 'sum';
+                                        vm.isDisableSelectDisplayMethod = true;
                                     } else {
                                         let selectedPlatform = $($multi).text().split(',');
                                         let count = selectedPlatform.length;
 
                                         if (count === 1) {
                                             vm.financialReport.displayMethod = 'daily';
+                                            vm.isDisableSelectDisplayMethod = false;
                                         } else {
                                             vm.financialReport.displayMethod = 'sum';
+                                            vm.isDisableSelectDisplayMethod = true;
                                         }
                                     }
                                 });
