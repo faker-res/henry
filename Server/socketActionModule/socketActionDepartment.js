@@ -232,10 +232,10 @@ function socketActionDepartment(socketIO, socket) {
             socketUtil.emitter(self.socket, dbDepartment.getDepartmentById, [data.departmentObjId, data.departmentIds], actionName, isDataValid);
         },
 
-        getWCDepartmentDetailByPlatformObjId: function getWCDepartmentDetailByPlatformObjId(data) {
+        getWCDepartmentDetailByAdminObjId: function getWCDepartmentDetailByAdminObjId(data) {
             let actionName = arguments.callee.name;
-            let isDataValid = Boolean(data && data.platformObjId && data.adminId);
-            socketUtil.emitter(self.socket, dbDepartment.getWCDepartmentDetailByPlatformObjId, [data.platformObjId, data.adminId], actionName, isDataValid);
+            let isDataValid = Boolean(data && data.adminId);
+            socketUtil.emitter(self.socket, dbDepartment.getWCDepartmentDetailByAdminObjId, [data.adminId], actionName, isDataValid);
         },
 
         getWCAdminDetailByDepartmentIds: function getWCAdminDetailByDepartmentIds(data) {

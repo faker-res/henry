@@ -197,12 +197,6 @@ var SettlementServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getConsumptionDetailOfPlayers, args, isValidData);
     };
 
-    this.checkPlatformPlayersRewardTask.onRequest = function(wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.playerObjIds);
-        var args = [mapIdsToMongooseIds(data.playerObjIds)];
-        WebSocketUtil.performAction(conn, wsFunc, data, dbRewardTask.checkPlatformPlayersRewardTask, args, isValidData);
-    };
-
     this.getPartnerPlayersCommissionInfo.onRequest = function(wsFunc, conn, data) {
         var isValidData = Boolean(data && data.platformObjId && data.configData && data.playerObjIds && data.startTime && data.endTime);
         var args = [ObjectId(data.platformObjId), data.configData, mapIdsToMongooseIds(data.playerObjIds), new Date(data.startTime), new Date(data.endTime)];

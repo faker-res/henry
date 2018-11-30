@@ -661,6 +661,15 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         4: "Manual Subscribe Auto Apply"
     };
 
+    $scope.bonusDoubledRewardModal = {
+        1: "Principal x Multiplier/100",
+        2: "Fixed reward amount based on the multiplier"
+    };
+
+    $scope.bonusDoubledDefination = {
+        1: "Win-lose credit/Tranferred-in credit"
+    }
+
     $scope.intervalType = {
         1: "Greater and equal to (>=)",
         2: "Less than and equal to (<=)",

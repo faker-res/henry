@@ -12,6 +12,8 @@ const dbPlayerPayment = require('../../db_modules/dbPlayerPayment');
 const uaParser = require('ua-parser-js');
 const dbUtility = require('./../../modules/dbutility');
 
+const dbOtherPayment = require('./../../db_modules/externalAPI/dbOtherPayment');
+
 var PaymentServiceImplement = function () {
     PaymentService.call(this);
     var self = this;
@@ -426,7 +428,20 @@ var PaymentServiceImplement = function () {
         let lastLoginIp = dbUtility.getIpAddress(conn);
         let isValidData = Boolean(data && data.amount && Number.isInteger(data.amount) && data.amount < 10000000);
         let bankCode = data.bankCode || 'CASHIER';
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.addFKPTopupRequest, [data.userAgent, conn.playerId, data, data.topUpReturnCode, lastLoginIp, bankCode], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbOtherPayment.addFKPTopupRequest, [data.userAgent, conn.playerId, data, data.topUpReturnCode, lastLoginIp, bankCode], isValidData);
+    };
+
+    this.applyFKPWithdraw.expectsData = 'amount: Number';
+    this.applyFKPWithdraw.onRequest = function (wsFunc, conn, data) {
+        if (data) {
+            data.amount = Number(data.amount);
+            let userAgentConn = conn['upgradeReq']['headers']['user-agent'];
+            data.userAgent = uaParser(userAgentConn);
+        }
+
+        let lastLoginIp = dbUtility.getIpAddress(conn);
+        let isValidData = Boolean(data && data.amount && Number.isInteger(data.amount) && data.amount < 10000000);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbOtherPayment.applyFKPBonus, [data.userAgent, conn.playerId, data, lastLoginIp], isValidData);
     };
 
 };

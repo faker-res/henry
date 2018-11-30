@@ -347,6 +347,12 @@
         this._service.createFKPTopupProposal.once(callback);
     };
 
+    proto.applyFKPWithdraw = function (callback, requestData) {
+        let data = requestData || {};
+        this._service.applyFKPWithdraw.request(data);
+        this._service.applyFKPWithdraw.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPaymentAPITest;
     } else {

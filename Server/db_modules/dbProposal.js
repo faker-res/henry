@@ -319,17 +319,15 @@ var proposal = {
                 if (rewardType.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
                     proposalData.data.lastLoginIp = playerData.lastLoginIp;
                     proposalData.data.phoneNumber = playerData.phoneNumber;
+                    if (playerData.deviceId){
+                        proposalData.data.deviceId = playerData.deviceId;
+                    }
                 }
 
                 if (rewardType.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && eventData.condition
                     && eventData.condition.definePlayerLoginMode && typeof(eventData.condition.definePlayerLoginMode) != 'undefined'){
                     proposalData.data.definePlayerLoginMode = eventData.condition.definePlayerLoginMode;
                 }
-
-
-                // if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && deviceId){
-                //     proposalData.data.deviceId = deviceId;
-                // }
 
                 return proposal.createProposalWithTypeId(eventData.executeProposal, proposalData)
             }
@@ -8333,8 +8331,9 @@ function getPlatformFeeEstimate (platformId, startDate, endDate) {
                                                 if (provider.gameProvider && provider.gameProvider._id && tempConsumptionDetail.providerId
                                                     && provider.gameProvider._id.toString() == tempConsumptionDetail.providerId.toString()) {
                                                     let gameProviderName = provider.gameProvider.name;
+                                                    let feeRate = provider.feeRate ? provider.feeRate : 0;
                                                     tempConsumptionDetail.gameProviderName = gameProviderName;
-                                                    tempConsumptionDetail.platformFeeEstimate = (tempConsumptionDetail.bonusAmount * -1) * provider.feeRate;
+                                                    tempConsumptionDetail.platformFeeEstimate = (tempConsumptionDetail.bonusAmount * -1) * feeRate;
                                                     tempTotalPlatformFeeEstimate += tempConsumptionDetail.platformFeeEstimate;
                                                 }
                                             }
@@ -9182,8 +9181,9 @@ function dailyPlatformFeeEstimateDetail (platform, startTime, endTime, currentDa
                                     if (provider.gameProvider && provider.gameProvider._id && consumptionDetail._id
                                         && provider.gameProvider._id.toString() == consumptionDetail._id.toString()) {
                                         let gameProviderName = provider.gameProvider.name;
+                                        let feeRate = provider.feeRate ? provider.feeRate : 0
                                         consumptionDetail.gameProviderName = gameProviderName;
-                                        consumptionDetail.platformFeeEstimate = (consumptionDetail.bonusAmount * -1) * provider.feeRate;
+                                        consumptionDetail.platformFeeEstimate = (consumptionDetail.bonusAmount * -1) * feeRate;
                                     }
                                 }
                             }

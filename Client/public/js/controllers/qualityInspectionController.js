@@ -89,7 +89,15 @@ define(['js/app'], function (myApp) {
 
             vm.wechatDeviceList;
             vm.fuzzyWechatDeviceList;
-            vm.inspectionWechat = {};
+            vm.wechatReportDeviceList;
+            vm.inspectionWechat = {
+                totalCount: 0,
+                currentPage: 1,
+                index: 0,
+                limit: 1000,
+                totalPage: 1
+            };
+            vm.inspectionWechatReport = {};
             vm.showDeviceTable = false;
 
             ////////////////Mark::Platform functions//////////////////
@@ -3022,20 +3030,23 @@ define(['js/app'], function (myApp) {
                     csName: csName,
                     startTime: startTime,
                     endTime: endTime,
-                    content: vm.inspectionWechat.content
+                    content: vm.inspectionWechat.content,
+                    index: vm.inspectionWechat.index || 0,
+                    limit: vm.inspectionWechat.limit || 1000
                 };
                 vm.deviceList = [];
                 vm.deviceListTotal = 0;
                 vm.showDeviceTable = true;
+                $('#wechatConversationTableSpin').show();
 
                 socketService.$socket($scope.AppSocket, 'getWechatConversationDeviceList', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         if(data && data.data){
                             vm.getWechatDeviceNickNameList(true);
                             console.log("Wechat Conversation Device List", data.data);
-                            vm.deviceListTotal = data.data.length;
+                            vm.deviceListTotal = data.data.size;
 
-                            data.data.forEach(data => {
+                            data.data.data.forEach(data => {
                                 if(data && data._id && data._id.platformName && data._id.deviceNickName && data._id.playerWechatRemark){
                                     let indexByPlatform = vm.deviceList.findIndex(d => d.platformName == data._id.platformName);
 
@@ -3062,10 +3073,52 @@ define(['js/app'], function (myApp) {
                                 }
                             });
 
+                            if(data && data.data && data.data.size){
+                                let itemTotal = data && data.data && data.data.size ? data.data.size : 0;
+                                let totalPage = itemTotal / vm.inspectionWechat.limit
+                                vm.inspectionWechat.totalPage = Math.ceil(totalPage);
+                                vm.inspectionWechat.totalCount = data.data.size;
+                            }else{
+                                vm.inspectionWechat.totalPage  = 1;
+                                vm.inspectionWechat.totalCount = 0;
+                            }
+                            vm.inspectionWechatPages = [];
+                            for(let i = 0; i < vm.inspectionWechat.totalPage; i++){
+                                vm.inspectionWechatPages.push(i);
+                            }
+
+                            $('#wechatConversationTableSpin').hide();
                             vm.oriDeviceList = vm.deviceList;
+                            vm.searchWechatConversation(vm.inspectionWechat.platform, vm.inspectionWechat.deviceName, vm.inspectionWechat.playerWechatRemark);
                         }
                     })
                 });
+            };
+
+            vm.nextInspectionWechatPage = function(){
+                vm.inspectionWechat.currentPage += 1;
+                vm.inspectionWechat.index = (vm.inspectionWechat.currentPage - 1) * vm.inspectionWechat.limit;
+                if (vm.inspectionWechat.currentPage > 0 && vm.inspectionWechat.currentPage <= vm.inspectionWechat.totalPage) {
+                    vm.searchWechatConversationDevice();
+                }
+            };
+
+            vm.gotoInspectionWechatPage = function(pg, $event){
+                $('body .pagination li').removeClass('active');
+                if($event){
+                    $($event.currentTarget).addClass('active');
+                }
+                let pgNo = null;
+                if(pg<=0){
+                    pgNo = 0
+                }else if(pg >= 1){
+                    pgNo = pg;
+                }
+                vm.inspectionWechat.index = ((pgNo - 1) * vm.inspectionWechat.limit);
+                vm.inspectionWechat.currentPage = pgNo;
+                if (vm.inspectionWechat.currentPage > 0 && vm.inspectionWechat.currentPage <= vm.inspectionWechat.totalPage) {
+                    vm.searchWechatConversationDevice();
+                }
             };
 
             vm.searchWechatConversation = function (platform, deviceNickName, playerWechatRemark) {
@@ -3073,7 +3126,6 @@ define(['js/app'], function (myApp) {
                 vm.inspectionWechat.conversationDeviceNickName = deviceNickName;
                 vm.inspectionWechat.conversationPlayerWechatRemark = playerWechatRemark;
 
-                vm.responseMsg = false;
                 utilService.actionAfterLoaded(('#wechatMessageBeginDatetimePicker'), function () {
                     vm.inspectionWechat.pageObj = utilService.createPageForPagingTable("#wechatMessageTablePage", {}, $translate, function (curP, pageSize) {
                         vm.commonPageChangeHandler(curP, pageSize, "inspectionWechat", vm.filterWechatConversation);
@@ -3100,9 +3152,13 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'getWechatConversation', sendData, function (data) {
                     $scope.$evalAsync(() => {
                         if(data && data.data && data.data.data){
-                            console.log("Wechat Conversation", data.data.data)
-                            vm.wechatConversationList = data.data.data;
+                            console.log("Wechat Conversation", data.data.data);
 
+                            data.data.data.forEach(data => {
+                                data.csReplyTime = utilService.getFormatTime(data.csReplyTime);
+                            });
+
+                            vm.wechatConversationList = data.data.data;
                             vm.drawWechatMessageTable(newSearch, vm.wechatConversationList, data.data.size);
                         }
                     });
@@ -3152,9 +3208,18 @@ define(['js/app'], function (myApp) {
                     let useDeviceList = false;
                     if(vm.oriDeviceList && vm.oriDeviceList.length > 0){
                         //filter by platform
-                        if(vm.inspectionWechat.fuzzyPlatform){
-                            vm.deviceList = vm.oriDeviceList.filter(d => d.platformId == vm.inspectionWechat.fuzzyPlatform);
+                        if(vm.inspectionWechat.fuzzyPlatform && vm.inspectionWechat.fuzzyPlatform.length > 0){
+                            let deviceArrayByPlatform = [];
+                            vm.inspectionWechat.fuzzyPlatform.forEach(
+                                platform => {
+                                    let result = vm.oriDeviceList.filter(d => d.platformId == platform);
+                                    if(result && result.length > 0){
+                                        deviceArrayByPlatform.push(result[0]);
+                                    }
+                                }
+                            )
                             useDeviceList = true;
+                            vm.deviceList = deviceArrayByPlatform;
                         }
 
                         //filter by deviceNickName
@@ -3258,6 +3323,133 @@ define(['js/app'], function (myApp) {
 
 
             //////////////////////////////////////////////////////////End of Wechat Conversation Record Tab///////////////////////////////////////////////////////////////////
+
+
+            //////////////////////////////////////////////////////////Start of Wechat Conversation Report Tab///////////////////////////////////////////////////////////////////
+            vm.initWechatConversationReport = function(){
+                vm.getWechatDeviceNickNameListForReport();
+
+                if(vm.selectedPlatform){
+                    utilService.actionAfterLoaded('#wechatMessageReportBeginDatetimePicker', function () {
+                        $('#wechatMessageReportBeginDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#wechatMessageReportBeginDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthStartTime());
+
+                        $('#wechatMessageReportEndDatetimePicker').datetimepicker({
+                            language: 'en',
+                            format: 'dd/MM/yyyy hh:mm:ss',
+                            pick12HourFormat: true
+                        });
+
+                        $("#wechatMessageReportEndDatetimePicker").data('datetimepicker').setLocalDate(utilService.getThisMonthEndTime());
+                    });
+                }
+            };
+
+            vm.getWechatDeviceNickNameListForReport = function(){
+                let sendData = {};
+
+                if(vm.inspectionWechatReport && vm.inspectionWechatReport.platform){
+                    sendData.platform = vm.inspectionWechatReport.platform
+                }
+
+                socketService.$socket($scope.AppSocket, 'getWechatDeviceNickNameList', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        if(data.data){
+                            vm.wechatReportDeviceList = data.data.sort();
+                        }
+                    })
+                });
+
+            };
+
+            vm.searchWechatConversationReport = function () {
+                utilService.actionAfterLoaded(('#wechatMessageReportBeginDatetimePicker'), function () {
+                    vm.inspectionWechatReport.pageObj = utilService.createPageForPagingTable("#wechatMessageReportTablePage", {}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "inspectionWechatReport", vm.filterWechatConversationReport);
+                    });
+                    vm.filterWechatConversationReport(true);
+                });
+            };
+
+            vm.filterWechatConversationReport = function(newSearch){
+                var startTime = $('#wechatMessageReportBeginDatetimePicker').data('datetimepicker').getLocalDate();
+                var endTime = $('#wechatMessageReportEndDatetimePicker').data('datetimepicker').getLocalDate();
+                let csName = vm.inspectionWechatReport.csName ? vm.inspectionWechatReport.csName.split(',') : [];
+                csName = csName.map(c => c.trim());
+
+                let sendData = {
+                    platform: vm.inspectionWechatReport.platform || "",
+                    deviceNickName: vm.inspectionWechatReport.deviceName || "",
+                    csName: csName,
+                    startTime: startTime,
+                    endTime: endTime,
+                    index: newSearch ? 0 : (vm.inspectionWechatReport.index || 0),
+                    limit: vm.inspectionWechatReport.limit || 10,
+                };
+
+                $('#wechatConversationReportTableSpin').show();
+                socketService.$socket($scope.AppSocket, 'getWechatConversationReport', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        if(data && data.data && data.data.data){
+                            console.log("Wechat Conversation", data.data.data);
+                            data.data.data.forEach(
+                                data => {
+                                    if(data){
+                                        data.totalPlayerWechatId = data.totalPlayerWechatId || 0;
+                                    }
+                                }
+                            );
+
+                            vm.wechatConversationReportList = data.data.data.sort();
+                            vm.wechatConversationReportSize = data.data.size || 0;
+                            $('#wechatConversationReportTableSpin').hide();
+                            vm.drawWechatMessageReportTable(newSearch, vm.wechatConversationReportList, data.data.size);
+                        }
+                    });
+
+                });
+            };
+
+            vm.drawWechatMessageReportTable = function (newSearch, tblData, size) {
+                console.log("wechatMessageReportTable",tblData);
+                var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                    data: tblData,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    "scrollX": true,
+                    "autoWidth": true,
+                    "sScrollY": 550,
+                    "scrollCollapse": true,
+                    columns: [
+                        {title: $translate('PRODUCT'), data: "platformName"},
+                        {title: $translate('CS Account'), data: "csOfficerName"},
+                        {title: $translate('Total Conversation(Message Sent)'), data: "totalConversation"},
+                        {title: $translate('Total Player In Conversation(By Wechat ID)'), data: "totalPlayerWechatId"},
+                    ],
+                    "paging": false,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    }
+                });
+                tableOptions.language.emptyTable=$translate("No data available in table");
+
+                utilService.createDatatableWithFooter('#wechatMessageReportTable', tableOptions, {
+                });
+
+                vm.inspectionWechatReport.pageObj.init({maxCount: size}, newSearch);
+                $('#wechatMessageReportTable').off('order.dt');
+                $('#wechatMessageReportTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'inspectionWechatReport', vm.filterWechatConversationReport);
+                });
+                $('#wechatMessageReportTable').resize();
+            };
+            //////////////////////////////////////////////////////////End of Wechat Conversation Report Tab///////////////////////////////////////////////////////////////////
 
 
         };
