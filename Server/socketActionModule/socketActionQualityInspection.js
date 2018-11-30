@@ -162,7 +162,7 @@ function socketActionQualityInspection(socketIO, socket) {
 
         getWechatConversationDeviceList: function getWechatConversationDeviceList(data){
             var actionName = arguments.callee.name;
-            var isDataValid = Boolean(data && data.deviceNickName && data.startTime && data.endTime);
+            var isDataValid = Boolean(data && data.startTime && data.endTime);
             let index = data.index || 0;
             let limit = data.limit || 1000;
             socketUtil.emitter(self.socket, dbQualityInspection.getWechatConversationDeviceList, [data.platform, data.deviceNickName, data.csName, data.startTime, data.endTime, data.content, index, limit], actionName, isDataValid);
@@ -170,10 +170,18 @@ function socketActionQualityInspection(socketIO, socket) {
 
         getWechatConversation: function getWechatConversation(data){
             var actionName = arguments.callee.name;
-            var isDataValid = Boolean(data && data.deviceNickName && data.startTime && data.endTime);
+            var isDataValid = Boolean(data && data.startTime && data.endTime);
             var index = data.index || 0;
             var limit = data.limit || 10;
             socketUtil.emitter(self.socket, dbQualityInspection.getWechatConversation, [data.platform, data.deviceNickName, data.csName, data.startTime, data.endTime, data.content, data.playerWechatRemark, index, limit], actionName, isDataValid);
+        },
+
+        getWechatConversationReport: function getWechatConversationReport(data){
+            var actionName = arguments.callee.name;
+            var isDataValid = Boolean(data && data.startTime && data.endTime);
+            var index = data.index || 0;
+            var limit = data.limit || 10;
+            socketUtil.emitter(self.socket, dbQualityInspection.getWechatConversationReport, [data.platform, data.deviceNickName, data.csName, data.startTime, data.endTime, index, limit], actionName, isDataValid);
         }
     };
 

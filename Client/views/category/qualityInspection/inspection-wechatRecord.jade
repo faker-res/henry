@@ -5,7 +5,7 @@
 
     div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'WechatConversationRecord', 'Read')")
         label {{'Create Device Name' | translate}}
-        select.form-control(style='max-width:155px',ng-model='vm.inspectionWechat.deviceName', ng-options='device for device in vm.wechatDeviceList', multiple, bsp, data-actions-box='true', required)
+        select.form-control(style='max-width:155px',ng-model='vm.inspectionWechat.deviceName', ng-options='device for device in vm.wechatDeviceList', multiple, bsp, data-actions-box='true')
 
     div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'WechatConversationRecord', 'Read')")
         label {{'Customer Service Account (Input, Comma Added)' | translate}}
@@ -33,7 +33,7 @@
         label &nbsp;
         button.button.common-button.btn.btn-primary(ng-click='vm.searchWechatConversationDevice()' ng-show="checkViewPermission('QualityInspection', 'WechatConversationRecord', 'Read')") {{'SEARCH' | translate}}
 
-        span#QIReportTableSpin.collapse
+        span#wechatConversationTableSpin.collapse
             i.fa.fa-spinner.fa-spin
 .clearfix
 
