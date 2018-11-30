@@ -1,3 +1,5 @@
+"use strict";
+
 const dbconfig = require('./../modules/dbproperties');
 const dbutility = require('./../modules/dbutility');
 const dbCtiCallOut = require('./dbCtiCallOut');
