@@ -140,6 +140,18 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.removeTsAssignees, [data.platformObjId, data.tsPhoneListObjId, data.adminNames], actionName, isValidData);
         },
 
+        manualPauseTsPhoneListStatus: function manualPauseTsPhoneListStatus(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.tsPhoneList && data.status);
+            socketUtil.emitter(self.socket, dbTeleSales.manualPauseTsPhoneListStatus, [data.tsPhoneList, data.status], actionName, isValidData);
+        },
+
+        forceCompleteTsPhoneList: function forceCompleteTsPhoneList(data){
+        var actionName = arguments.callee.name;
+        var isValidData = Boolean(data && data.tsPhoneList);
+        socketUtil.emitter(self.socket, dbTeleSales.forceCompleteTsPhoneList, [data.tsPhoneList], actionName, isValidData);
+    },
+
         getDistributionDetails: function getDistributionDetails(data){
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.adminNames && data.adminNames.length > 0);
