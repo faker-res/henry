@@ -3208,9 +3208,18 @@ define(['js/app'], function (myApp) {
                     let useDeviceList = false;
                     if(vm.oriDeviceList && vm.oriDeviceList.length > 0){
                         //filter by platform
-                        if(vm.inspectionWechat.fuzzyPlatform){
-                            vm.deviceList = vm.oriDeviceList.filter(d => d.platformId == vm.inspectionWechat.fuzzyPlatform);
+                        if(vm.inspectionWechat.fuzzyPlatform && vm.inspectionWechat.fuzzyPlatform.length > 0){
+                            let deviceArrayByPlatform = [];
+                            vm.inspectionWechat.fuzzyPlatform.forEach(
+                                platform => {
+                                    let result = vm.oriDeviceList.filter(d => d.platformId == platform);
+                                    if(result && result.length > 0){
+                                        deviceArrayByPlatform.push(result[0]);
+                                    }
+                                }
+                            )
                             useDeviceList = true;
+                            vm.deviceList = deviceArrayByPlatform;
                         }
 
                         //filter by deviceNickName
