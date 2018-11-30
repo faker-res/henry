@@ -734,7 +734,7 @@ var dbDepartment = {
         )
     },
 
-    getWCDepartmentDetailByPlatformObjId: (platformObjId, adminObjId) => {
+    getWCDepartmentDetailByAdminObjId: (adminObjId) => {
         let departments = [];
         return dbconfig.collection_admin.findOne({_id: adminObjId}).lean().then(
             adminData => {
