@@ -446,7 +446,7 @@ function getCalleeList (query, sortCol, selectedPlayers) {
                 let phoneNumber = player.phoneNumber;
                 if (phoneNumber && phoneNumber.length > 20) {
                     try {
-                        phoneNo = rsaCrypto.decrypt(phoneNumber);
+                        phoneNumber = rsaCrypto.decrypt(phoneNumber);
                     }
                     catch (err) {
                         console.error(err);
