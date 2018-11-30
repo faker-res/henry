@@ -3818,6 +3818,8 @@
   "INSPECTION REPORT": "质检报表",
   "WECHAT CONVERSATION RECORD": "微信对话记录",
   "WechatConversationRecord": "微信对话记录",
+  "WECHAT CONVERSATION ANALYSIS REPORT": "微信对话统计报表",
+  "WechatConversationReport": "微信对话统计报表",
   "UNREAD EVALUATION": "未读评估",
   "READ EVALUATION": "已读评估",
   "APPEAL EVALUATION": "申诉评估",
@@ -4976,5 +4978,7 @@
   "7 Day(s) History": "7 日历史",
   "* Offline status shows the last connection data": "* 离线状态则显示上次连线数据",
   "Still Online": "仍在线",
-  "Fuzzy Search": "模糊搜索"
+  "Fuzzy Search": "模糊搜索",
+  "Total Conversation(Message Sent)": "对话条数(发出的句子)",
+  "Total Player In Conversation(By Wechat ID)": "对话的会员数量（根据微信号）"
 }
