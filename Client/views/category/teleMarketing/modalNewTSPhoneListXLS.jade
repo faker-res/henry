@@ -136,3 +136,14 @@
                 button.btn.btn-danger.common-button(data-dismiss='modal', ng-click='vm.closeModalTSNewListNameRepeat()')
                     i.fa.fa-ban
                     text {{"CANCEL" | translate}}
+
+#modalTSNewListNameRepeatStatus.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:25%; margin-top: 12.5em;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal' ng-click='vm.closeModalTSNewListNameRepeat()')
+                h4.modal-title {{"Warning!" | translate}}
+            .modal-body(style='text-align:center')
+                text {{"This name of List already exists in the product (Phone list expired/ completed), please change a different name" | translate}}
+            .modal-footer
+                button.btn.btn-success.common-button(data-dismiss='modal' ng-click="vm.renameTsPhoneList()") {{"CONFIRM" | translate}}

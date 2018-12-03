@@ -5,7 +5,7 @@ let ipDomainLogSchema = new Schema({
     // Platform
     platform: {type: Schema.Types.ObjectId, ref: 'platform', required: true, index: true},
     // Create time
-    createTime: {type: Date, default: new Date(), index: true},
+    createTime: {type: Date, default: Date.now, index: true},
     // Domain
     domain: {type: String, index: true},
     // IP Address

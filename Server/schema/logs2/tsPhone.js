@@ -23,7 +23,7 @@ let tsPhoneSchema = new Schema({
     // phone number's city
     city: {type: String, index: true},
     // create time
-    createTime: {type: Date, default: new Date()},
+    createTime: {type: Date, default: Date.now},
     // assign times 过手次数
     assignTimes: {type: Number, default: 0, index: true},
     // time that it expired - same with endTime in tsDistributedPhone.js

@@ -4135,6 +4135,7 @@
   "Filter Phone Number From White List And Recycle Bin": "除了过滤已开户的电话，导入时是否过滤『白名单』、『回收桶』内所有历史电话",
   "Zone Will Not Be Call": "不拨号的危险电话地区（省+市/复选/非必填）：拨号时，将根据批量呼叫失败填入『结果+主题』，回访内容固定填入『不拨号的危险电话地区』",
   "This name of List already exists in the product. Please select an option below": "该名单名称已经存在本产品当中，请选择一项操作",
+  "This name of List already exists in the product (Phone list expired/ completed), please change a different name": "该名单名称已经存在本产品当中（名单已结束），请更改名称",
   "Add into the same list": "添加在同一个名单之中",
   "Go back and modify the name of list": "返回修改名单名称",
   "Time/Operator/Description": "导入时间/操作员/描述",
