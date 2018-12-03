@@ -178,6 +178,7 @@ let dbPlatformAutoFeedback = {
                     item.player = item.playerObjId;
                     item.name = autoFeedbackName;
                     item.type = item.promoCodeTemplateObjId.type;
+                    delete item.playerObjId;
                 });
             }
             return promoCodes;
