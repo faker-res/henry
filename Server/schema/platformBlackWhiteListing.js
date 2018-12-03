@@ -8,6 +8,8 @@ let platformBlackWhiteListingSchema = new Schema({
     whiteListingSmsPhoneNumbers: [{type:String}],
     // white listing SMS IP address
     whiteListingSmsIpAddress: [{type:String}],
+    // black listing Callback IP address
+    blackListingCallRequestIpAddress: [{type:String}],
 });
 
 module.exports = platformBlackWhiteListingSchema;

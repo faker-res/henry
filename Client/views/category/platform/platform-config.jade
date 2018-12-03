@@ -1942,6 +1942,10 @@
                                 td {{'Whitelisting SMS IP Address' | translate}}
                                 td
                                     textarea(ng-model='vm.blackWhiteListingConfig.whiteListingSmsIpAddress$', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Blacklisting Call Request IP Address' | translate}}
+                                td
+                                    textarea(ng-model='vm.blackWhiteListingConfig.blackListingCallRequestIpAddress$', ng-disabled='!vm.configTableEdit')
 
                     br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'phoneFilterConfig')", ng-click='vm.configTableEdit=!vm.configTableEdit')
