@@ -42,6 +42,11 @@ const https = require('https');
 const localization = require("../modules/localization");
 const dbProposal = require('./../db_modules/dbProposal');
 
+const Client = require('ftp');
+const admZip = require('adm-zip');
+const jwt = require('jsonwebtoken');
+const jwtSecret = env.socketSecret;
+
 // constants
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalStatus = require('../const/constProposalStatus');
@@ -57,10 +62,7 @@ const request = require('request');
 const constSMSPurpose = require("../const/constSMSPurpose");
 const constPartnerCommissionLogStatus = require("../const/constPartnerCommissionLogStatus");
 
-const Client = require('ftp');
-const admZip = require('adm-zip');
-const jwt = require('jsonwebtoken');
-var jwtSecret = env.socketSecret;
+const dbRewardUtil = require('../db_common/dbRewardUtility');
 
 function randomObjectId() {
     var id = crypto.randomBytes(12).toString('hex');
@@ -1322,7 +1324,7 @@ var dbPlatform = {
         return dbconfig.collection_players.findOne({_id: playerId})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean().then(
                 playerData => {
-                    let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerData, eventObjId);
+                    let playerIsForbiddenForThisReward = dbRewardUtil.isRewardEventForbidden(playerData, eventObjId);
 
                     if (playerData && playerData.playerLevel && playerData.permission && !playerData.permission.banReward && !playerIsForbiddenForThisReward) {
                         var minAmount = minAmountPerLevel[playerData.playerLevel.value];
@@ -3679,6 +3681,18 @@ var dbPlatform = {
                 }
             }
         );
+    },
+
+    getBlackWhiteListingConfig: (platformObjId) => {
+        return dbconfig.collection_platformBlackWhiteListing.findOne({platform: platformObjId}).lean().exec();
+    },
+
+    saveBlackWhiteListingConfig: (platformObjId, updateData) => {
+        let query = {
+            platform: platformObjId
+        };
+
+        return dbconfig.collection_platformBlackWhiteListing.findOneAndUpdate(query, updateData, {upsert: true, new: true});
     },
 
     getPlatformPartnerSettLog: (platformObjId, modes) => {

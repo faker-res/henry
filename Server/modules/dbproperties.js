@@ -249,6 +249,9 @@ let idcIpModel = db_admin.model('idcIp', idcIpSchema, 'idcIp');
 let platformBlacklistIpConfigSchema = require('./../schema/platformBlacklistIpConfig');
 let platformBlacklistIpConfigModel = db_admin.model('platformBlacklistIpConfig', platformBlacklistIpConfigSchema, 'platformBlacklistIpConfig');
 
+let platformBlackWhiteListingSchema = require('./../schema/platformBlackWhiteListing');
+let platformBlackWhiteListingModel = db_admin.model('platformBlackWhiteListing', platformBlackWhiteListingSchema, 'platformBlackWhiteListing');
+
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
 var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema, 'playerFeedback');
@@ -429,6 +432,8 @@ let tsCallOutMissionSchema = require('./../schema/logs2/tsCallOutMission');
 let tsCallOutMissionModel = dbLogs2.model('tsCallOutMission', tsCallOutMissionSchema, 'tsCallOutMission');
 let tsCallOutMissionCalleeSchema = require('./../schema/logs2/tsCallOutMissionCallee');
 let tsCallOutMissionCalleeModel = dbLogs2.model('tsCallOutMissionCallee', tsCallOutMissionCalleeSchema, 'tsCallOutMissionCallee');
+let tsPhoneTradeSchema = require('./../schema/logs2/tsPhoneTrade');
+let tsPhoneTradeModel = dbLogs2.model('tsPhoneTrade', tsPhoneTradeSchema, 'tsPhoneTrade');
 let wcGroupControlSessionSchema = require('./../schema/logs2/wcGroupControlSession');
 let wcGroupControlSessionModel = dbLogs2.model('wcGroupControlSession', wcGroupControlSessionSchema, 'wcGroupControlSession');
 let wcConversationLogSchema = require('./../schema/logs2/wcConversationLog');
@@ -575,6 +580,7 @@ var dbProperties = {
     collection_autoFeedback: platformAutoFeedbackModel,
 
     collection_platformBlacklistIpConfig: platformBlacklistIpConfigModel,
+    collection_platformBlackWhiteListing: platformBlackWhiteListingModel,
 
     collection_gameType: gameTypeModel,
     collection_game: gameModel,
@@ -705,6 +711,7 @@ var dbProperties = {
     collection_tsPhoneFeedback: tsPhoneFeedbackModel,
     collection_tsCallOutMission: tsCallOutMissionModel,
     collection_tsCallOutMissionCallee: tsCallOutMissionCalleeModel,
+    collection_tsPhoneTrade: tsPhoneTradeModel,
     collection_frontendData: frontendDataModel,
     collection_wcGroupControlSession: wcGroupControlSessionModel,
     collection_wcConversationLog: wcConversationLogModel,

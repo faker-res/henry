@@ -219,7 +219,7 @@ var dbRewardEvent = {
                         message: "Can not find reward event"
                     });
                 }
-                let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerObj, rewardEvent._id);
+                let playerIsForbiddenForThisReward = dbRewardUtil.isRewardEventForbidden(playerObj, rewardEvent._id);
                 if (playerIsForbiddenForThisReward) {
                     return Q.reject({name: "DataError", message: "Player is forbidden for this reward."});
                 }
@@ -1558,7 +1558,13 @@ var dbRewardEvent = {
                             returnData.result.quantityLimit = eventData.condition.quantityLimitInInterval;
                         }
 
-                        returnData.condition.deposit.status = returnData.condition.deposit.list[retRewardData.selectedIndex].status;
+                        if (todayHasApplied){
+                            // retRewardData.selectedIndex-1 as retRewardData.selectedIndex is the index of the next iteration
+                            returnData.condition.deposit.status = returnData.condition.deposit.list[retRewardData.selectedIndex-1].status;
+                        }
+                        else{
+                            returnData.condition.deposit.status = returnData.condition.deposit.list[retRewardData.selectedIndex].status;
+                        }
                         break;
 
                     case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:

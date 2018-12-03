@@ -31,6 +31,7 @@ const constPlayerRegistrationInterface = require("../const/constPlayerRegistrati
 const dbOps = require("../db_common/dbOperations");
 const dbPlayerUtil = require('../db_common/dbPlayerUtility');
 const dbPropUtil = require("../db_common/dbProposalUtility");
+const dbRewardUtil = require('../db_common/dbRewardUtility');
 
 var dbPlayerConsumptionWeekSummary = {
 
@@ -203,7 +204,7 @@ var dbPlayerConsumptionWeekSummary = {
                                 return;
                             }
 
-                            if (dbPlayerReward.isRewardEventForbidden(playerData, eventData._id)) {
+                            if (dbRewardUtil.isRewardEventForbidden(playerData, eventData._id)) {
                                 return;
                             }
 
@@ -670,7 +671,7 @@ var dbPlayerConsumptionWeekSummary = {
                                     isValidEvent = false;
                                     invalidEventCount++;
                                 }
-                                if (dbPlayerReward.isRewardEventForbidden(playerData, eventsData._id)) {
+                                if (dbRewardUtil.isRewardEventForbidden(playerData, eventsData._id)) {
                                     continue;
                                 }
                                 if (isValidEvent) {

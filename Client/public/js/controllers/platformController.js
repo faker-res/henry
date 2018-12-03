@@ -20770,6 +20770,12 @@ define(['js/app'], function (myApp) {
                 if (vm.showReward && vm.showReward.condition && vm.showReward.condition.imageUrl && typeof vm.showReward.condition.imageUrl == 'string') {
                     vm.showReward.condition.imageUrl = [""];
                 }
+
+                if (v && v.type && v.type.name && (v.type.name == "PlayerRetentionRewardGroup" || v.type.name == "PlayerBonusDoubledRewardGroup")) {
+                    // set to the new display style
+                    vm.isNewDisplay = true;
+                }
+
                 vm.initRewardValidTimeDOM(vm.showReward.validStartTime, vm.showReward.validEndTime);
                 console.log('vm.showReward', vm.showReward);
                 vm.showRewardTypeData = null;   // This will probably be overwritten by vm.platformRewardTypeChanged() below
@@ -20816,11 +20822,16 @@ define(['js/app'], function (myApp) {
                                 }
                             }
 
-                            if (v && v.name && v.name == "PlayerRetentionRewardGroup" && vm.allPlayerLvl && vm.allPlayerLvl.length) {
+                            if (v && v.name && (v.name == "PlayerRetentionRewardGroup" || v.name == "PlayerBonusDoubledRewardGroup") && vm.allPlayerLvl && vm.allPlayerLvl.length) {
                                if (!vm.selectedPlayerLvlTab){
                                     // set the default as the first level
                                     vm.selectedPlayerLvlTab = 0;
                                }
+                            }
+
+                            if (v && v.name && (v.name == "PlayerRetentionRewardGroup" || v.name == "PlayerBonusDoubledRewardGroup")) {
+                                 // set to the new display style
+                                vm.isNewDisplay = true;
                             }
 
                             vm.showRewardTypeData = v;
@@ -20892,11 +20903,15 @@ define(['js/app'], function (myApp) {
                                 }
 
                                 if (cond.detail1) {
-                                    vm.rewardMainCondition[cond.index].detail1 = cond.detail1;
+                                    vm.rewardMainCondition[cond.index].detail1 = $translate(cond.detail1);
                                 }
 
-                                if (cond.detail2) {
-                                    vm.rewardMainCondition[cond.index].detail2 = cond.detail2;
+                                if (cond.detail2 && vm.rewardMainCondition[cond.index].detail1) {
+                                    vm.rewardMainCondition[cond.index].detail1 = vm.rewardMainCondition[cond.index].detail1 + "; " + $translate(cond.detail2);
+                                }
+
+                                if (cond.detail3 && vm.rewardMainCondition[cond.index].detail1) {
+                                    vm.rewardMainCondition[cond.index].detail1 = vm.rewardMainCondition[cond.index].detail1 + "; " + $translate(cond.detail3);
                                 }
 
                                 // Get options
@@ -21320,6 +21335,20 @@ console.log('typeof ',typeof gameProviders);
                                     tempApplyType[3] = undefined;
                                 }
                             }
+                            //this reward group need only the 1th selection
+                            else if (vm.showRewardTypeData.name == 'PlayerBonusDoubledRewardGroup' && tempApplyType) {
+                                if (tempApplyType[2]) {
+                                    tempApplyType[2] = undefined;
+                                }
+
+                                if (tempApplyType[3]) {
+                                    tempApplyType[3] = undefined;
+                                }
+
+                                if (tempApplyType[4]) {
+                                    tempApplyType[4] = undefined;
+                                }
+                            }
                             /// the rest of the reward does not need the 4th selection
                             else{
                                 if (tempApplyType && tempApplyType[4]) {
@@ -21405,12 +21434,28 @@ console.log('typeof ',typeof gameProviders);
                     if (model.i == "forbidWithdrawAfterApply" && model.v.type == "checkbox") {
                         delete model.entry.forbidWithdrawIfBalanceAfterUnlock;
                     }
+
+                    if (model.i == "multiplier" && model.v.type == "number" && vm.isDynamicRewardAmt) {
+                        model.entry.rewardPercentage = model.entry.multiplier;
+                    }
                 }
 
                 // Check whether reward is dynamic amount
                 if (model && model.name == "isDynamicRewardAmount") {
                     vm.isDynamicRewardAmt = model.value;
                     isResetLayout = true;
+                }
+
+                if (model && model.name == "rewardBonusModal") {
+                    if (model.value) {
+                        if (model.value == 1) {
+                            vm.isDynamicRewardAmt = true;
+                        }
+                        else {
+                            vm.isDynamicRewardAmt = false;
+                        }
+                        isResetLayout = true;
+                    }
                 }
 
                 // Check whether reward is differ by player level
@@ -21612,6 +21657,11 @@ console.log('typeof ',typeof gameProviders);
                         }
                     }
 
+
+                    if (model && model.name == "rewardBonusModal" && vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerBonusDoubledRewardGroup') {
+                        vm.changeRewardParamLayout(model);
+                    }
+
                     if (model && model.name == "interval" && model.value && vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerRetentionRewardGroup') {
                         vm.intervalValueOfRetentionRewardGroup = model.value;
 
@@ -21676,8 +21726,11 @@ console.log('typeof ',typeof gameProviders);
                     $("#rewardMainTasks [data-cond-name='applyType']").prop("disabled", true);
                     $("#rewardMainTasks [data-cond-name='canApplyFromClient']").prop("disabled", disabled);
                 }
-                if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerRetentionRewardGroup') {
+                if (vm.showRewardTypeData && vm.showRewardTypeData.name && (vm.showRewardTypeData.name == 'PlayerRetentionRewardGroup' || vm.showRewardTypeData.name == 'PlayerBonusDoubledRewardGroup')) {
                     $("#rewardMainTasks [data-cond-name='applyType']").prop("disabled", true);
+                }
+                if (vm.showRewardTypeData && vm.showRewardTypeData.name && vm.showRewardTypeData.name == 'PlayerBonusDoubledRewardGroup') {
+                    $("#rewardMainTasks [data-cond-name='defineRewardBonusCount']").prop("disabled", true);
                 }
             }
 
@@ -22606,6 +22659,7 @@ console.log('typeof ',typeof gameProviders);
                         break;
                     case 'phoneFilterConfig':
                         vm.getPhoneFilterConfig();
+                        vm.getBlackWhiteListingConfig();
                         vm.getBlacklistIpConfig();
                         break;
                     case 'financialSettlementConfig':
@@ -28091,12 +28145,64 @@ console.log('typeof ',typeof gameProviders);
 
             };
 
+            vm.getBlackWhiteListingConfig = function () {
+                vm.blackWhiteListingConfig = vm.blackWhiteListingConfig || {};
+                let sendData = {
+                    platform: vm.selectedPlatform.id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getBlackWhiteListingConfig', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('getBlackWhiteListingConfig', data);
+                        if (data && data.data) {
+                            vm.blackWhiteListingConfig = data.data;
+                            vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers$ = "";
+                            vm.blackWhiteListingConfig.whiteListingSmsIpAddress$ = "";
+                            vm.blackWhiteListingConfig.blackListingCallRequestIpAddress$ = "";
+
+                            if (vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers && vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers.length > 0) {
+                                let phones = vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers;
+                                for (let i = 0, len = phones.length; i < len; i++) {
+                                    let phone = phones[i];
+                                    vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers$ += phone;
+                                    i !== (len - 1) ? vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers$ += "\n" : "";
+                                }
+                            }
+
+                            if (vm.blackWhiteListingConfig.whiteListingSmsIpAddress && vm.blackWhiteListingConfig.whiteListingSmsIpAddress.length > 0) {
+                                let ipAddress = vm.blackWhiteListingConfig.whiteListingSmsIpAddress;
+                                for (let i = 0, len = ipAddress.length; i < len; i++) {
+                                    let ip = ipAddress[i];
+                                    vm.blackWhiteListingConfig.whiteListingSmsIpAddress$ += ip;
+                                    i !== (len - 1) ? vm.blackWhiteListingConfig.whiteListingSmsIpAddress$ += "\n" : "";
+                                }
+                            }
+
+                            if (vm.blackWhiteListingConfig.blackListingCallRequestIpAddress && vm.blackWhiteListingConfig.blackListingCallRequestIpAddress.length > 0) {
+                                let ipAddress = vm.blackWhiteListingConfig.blackListingCallRequestIpAddress;
+                                for (let i = 0, len = ipAddress.length; i < len; i++) {
+                                    let ip = ipAddress[i];
+                                    vm.blackWhiteListingConfig.blackListingCallRequestIpAddress$ += ip;
+                                    i !== (len - 1) ? vm.blackWhiteListingConfig.blackListingCallRequestIpAddress$ += "\n" : "";
+                                }
+                            }
+                        }
+                    });
+                }, function (data) {
+                    console.log("cannot get black white listing config", data);
+                    vm.blackWhiteListingConfig = {};
+                });
+            };
+
             vm.getBlacklistIpConfig = function () {
                 vm.blacklistIpConfig = vm.blacklistIpConfig || [];
 
                 socketService.$socket($scope.AppSocket, 'getBlacklistIpConfig', {}, function (data) {
+                    console.log('getBlacklistIpConfig', data);
                     $scope.$evalAsync(() => {
-                        vm.blacklistIpConfig = data.data;
+                        if (data && data.data) {
+                            vm.blacklistIpConfig = data.data;
+                        }
                     });
                 }, function (data) {
                     console.log("cannot get blacklist ip config", data);
@@ -28686,6 +28792,9 @@ console.log('typeof ',typeof gameProviders);
                     case 'phoneFilterConfig':
                         updatePhoneFilter(vm.phoneFilterConfig);
                         break;
+                    case 'blackWhiteListingConfig':
+                        updateBlackWhiteListingConfig(vm.blackWhiteListingConfig);
+                        break;
                     case 'blacklistIpConfig':
                         updateBlacklistIpConfig();
                         break;
@@ -28804,17 +28913,20 @@ console.log('typeof ',typeof gameProviders);
                 socketService.$socket($scope.AppSocket, 'updateWechatGroupControlSetting', sendData, function (data) {
                     console.log('updateWechatGroupControlSetting', data);
                     $scope.$evalAsync(() => {
+                        let retryMessage = false;
                         if (data && data.data.length > 0 && data.data[0]._id && data.data[0].isEdit) {
                             data.data.forEach(wcDevice => {
                                 if (vm.wechatGroupControlSettingData && vm.wechatGroupControlSettingData.length > 0) {
                                     for (let x = 0; x < vm.wechatGroupControlSettingData.length; x++) {
                                         if (vm.wechatGroupControlSettingData[x]._id && wcDevice._id && vm.wechatGroupControlSettingData[x]._id.toString() === wcDevice._id.toString()) {
                                             if (wcDevice.isDeviceIdExist) {
+                                                retryMessage = true;
                                                 vm.wechatGroupControlSettingData[x].isDeviceIdExist = true;
                                             } else {
                                                 vm.wechatGroupControlSettingData[x].isDeviceIdExist = false;
                                             }
                                             if (wcDevice.isDeviceNicknameExist) {
+                                                retryMessage = true;
                                                 vm.wechatGroupControlSettingData[x].isDeviceNicknameExist = true;
                                             } else {
                                                 vm.wechatGroupControlSettingData[x].isDeviceNicknameExist = false;
@@ -28823,6 +28935,10 @@ console.log('typeof ',typeof gameProviders);
                                     }
                                 }
                             });
+                        }
+
+                        if (retryMessage) {
+                            return socketService.showErrorMessage($translate('Please fix the duplicate and retry again'));
                         } else {
                             vm.getWechatGroupControlSetting();
                         }
@@ -29653,6 +29769,52 @@ console.log('typeof ',typeof gameProviders);
                 };
 
                 socketService.$socket($scope.AppSocket, 'saveBlacklistIpConfig', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updateBlackWhiteListingConfig(srcData) {
+                let whiteListingSmsPhoneNumbers = [];
+                let whiteListingSmsIpAddress = [];
+                let blackListingCallRequestIpAddress = [];
+
+                if (srcData.whiteListingSmsPhoneNumbers$) {
+                    let phones = srcData.whiteListingSmsPhoneNumbers$.split(/\r?\n/);
+                    for (let i = 0, len = phones.length; i < len; i++) {
+                        let phone = phones[i].trim();
+                        if (phone) whiteListingSmsPhoneNumbers.push(phone);
+                    }
+                }
+
+                if (srcData.whiteListingSmsIpAddress$) {
+                    let ipAddress = srcData.whiteListingSmsIpAddress$.split(/\r?\n/);
+                    for (let i = 0, len = ipAddress.length; i < len; i++) {
+                        let ip = ipAddress[i].trim();
+                        if (ip) whiteListingSmsIpAddress.push(ip);
+                    }
+                }
+
+                if (srcData.blackListingCallRequestIpAddress$) {
+                    let ipAddress = srcData.blackListingCallRequestIpAddress$.split(/\r?\n/);
+                    for (let i = 0, len = ipAddress.length; i < len; i++) {
+                        let ip = ipAddress[i].trim();
+                        if (ip) blackListingCallRequestIpAddress.push(ip);
+                    }
+                }
+
+                let sendData = {
+                    platform: vm.selectedPlatform.id,
+                    updateData: {
+                        whiteListingSmsPhoneNumbers: whiteListingSmsPhoneNumbers,
+                        whiteListingSmsIpAddress: whiteListingSmsIpAddress,
+                        blackListingCallRequestIpAddress: blackListingCallRequestIpAddress,
+                    }
+                };
+
+                socketService.$socket($scope.AppSocket, 'saveBlackWhiteListingConfig', sendData, function (data) {
+                    console.log('saveBlackWhiteListingConfig', data);
+                    vm.blackWhiteListingConfig = data.data;
+                    vm.getBlackWhiteListingConfig();
                     loadPlatformData({loadAll: false});
                 });
             }
