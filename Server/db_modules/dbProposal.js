@@ -8331,8 +8331,9 @@ function getPlatformFeeEstimate (platformId, startDate, endDate) {
                                                 if (provider.gameProvider && provider.gameProvider._id && tempConsumptionDetail.providerId
                                                     && provider.gameProvider._id.toString() == tempConsumptionDetail.providerId.toString()) {
                                                     let gameProviderName = provider.gameProvider.name;
+                                                    let feeRate = provider.feeRate ? provider.feeRate : 0;
                                                     tempConsumptionDetail.gameProviderName = gameProviderName;
-                                                    tempConsumptionDetail.platformFeeEstimate = (tempConsumptionDetail.bonusAmount * -1) * provider.feeRate;
+                                                    tempConsumptionDetail.platformFeeEstimate = (tempConsumptionDetail.bonusAmount * -1) * feeRate;
                                                     tempTotalPlatformFeeEstimate += tempConsumptionDetail.platformFeeEstimate;
                                                 }
                                             }
@@ -9180,8 +9181,9 @@ function dailyPlatformFeeEstimateDetail (platform, startTime, endTime, currentDa
                                     if (provider.gameProvider && provider.gameProvider._id && consumptionDetail._id
                                         && provider.gameProvider._id.toString() == consumptionDetail._id.toString()) {
                                         let gameProviderName = provider.gameProvider.name;
+                                        let feeRate = provider.feeRate ? provider.feeRate : 0
                                         consumptionDetail.gameProviderName = gameProviderName;
-                                        consumptionDetail.platformFeeEstimate = (consumptionDetail.bonusAmount * -1) * provider.feeRate;
+                                        consumptionDetail.platformFeeEstimate = (consumptionDetail.bonusAmount * -1) * feeRate;
                                     }
                                 }
                             }

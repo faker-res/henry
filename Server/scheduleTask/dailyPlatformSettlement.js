@@ -376,7 +376,7 @@ var dailyPlatformSettlement = {
             distributeTaskStartTime: {$lte: curTime},
             dailyDistributeTaskHour: curTime.getHours(),
             dailyDistributeTaskMinute: curTime.getMinutes(),
-            status: {$in: [constTsPhoneListStatus.PRE_DISTRIBUTION, constTsPhoneListStatus.DISTRIBUTING]}
+            status: {$in: [constTsPhoneListStatus.PRE_DISTRIBUTION, constTsPhoneListStatus.DISTRIBUTING, constTsPhoneListStatus.NOT_ENOUGH_CALLER]}
         }).lean().then(
            tsPhoneListData => {
                if (tsPhoneListData && tsPhoneListData.length) {
