@@ -3683,6 +3683,18 @@ var dbPlatform = {
         );
     },
 
+    getBlackWhiteListingConfig: (platformObjId) => {
+        return dbconfig.collection_platformBlackWhiteListing.findOne({platform: platformObjId}).lean().exec();
+    },
+
+    saveBlackWhiteListingConfig: (platformObjId, updateData) => {
+        let query = {
+            platform: platformObjId
+        };
+
+        return dbconfig.collection_platformBlackWhiteListing.findOneAndUpdate(query, updateData, {upsert: true, new: true});
+    },
+
     getPlatformPartnerSettLog: (platformObjId, modes) => {
         let promArr = [];
         let partnerSettDetail = {};
