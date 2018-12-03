@@ -6783,12 +6783,24 @@ define(['js/app'], function (myApp) {
            else{
                vm.tsNewList.checkBoxA = false;
                vm.tsNewList.checkBoxB = false;
-               $('#modalTSNewListNameRepeat').show();
-               $('#modalTSNewListNameRepeat').css("opacity", "1");
-               $('#modalTSNewListNameRepeat').css("z-index", "12000");
+                let invalidStatus = [vm.constTsPhoneListStatus.HALF_COMPLETE, vm.constTsPhoneListStatus.PERFECTLY_COMPLETED, vm.constTsPhoneListStatus.FORCE_COMPLETED, vm.constTsPhoneListStatus.DECOMPOSED]
+               socketService.$socket($scope.AppSocket, 'getOneTsNewList', {platform: vm.selectedPlatform.id, name: vm.tsNewList.name}, function (data) {
+                   $scope.$evalAsync(() => {
+                       if (data && data.data && invalidStatus.includes(data.data.status)) {
+                           $('#modalTSNewListNameRepeatStatus').modal();
+                       } else {
+                           $('#modalTSNewListNameRepeat').modal();
+                       }
+                   })
+               })
 
            }
         };
+
+        vm.renameTsPhoneList = () => {
+            $('#modalTSNewListNameRepeatStatus').hide();
+            $('#nameInput').focus();
+        }
 
         vm.returnToInput = () => {
             vm.disableAll = false;
