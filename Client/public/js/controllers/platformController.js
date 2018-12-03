@@ -28198,8 +28198,11 @@ console.log('typeof ',typeof gameProviders);
                 vm.blacklistIpConfig = vm.blacklistIpConfig || [];
 
                 socketService.$socket($scope.AppSocket, 'getBlacklistIpConfig', {}, function (data) {
+                    console.log('getBlacklistIpConfig', data);
                     $scope.$evalAsync(() => {
-                        vm.blacklistIpConfig = data.data;
+                        if (data && data.data) {
+                            vm.blacklistIpConfig = data.data;
+                        }
                     });
                 }, function (data) {
                     console.log("cannot get blacklist ip config", data);
