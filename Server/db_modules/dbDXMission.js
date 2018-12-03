@@ -16,6 +16,7 @@ const queryPhoneLocation = require('query-mobile-phone-area');
 const constSystemParam = require('../const/constSystemParam');
 const constServerCode = require('../const/constServerCode');
 const constProposalType = require('../const/constProposalType');
+const constTsPhoneListStatus = require('../const/constTsPhoneListStatus');
 const constProposalUserType = require('../const/constProposalUserType');
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalStatus = require('../const/constProposalStatus');
@@ -1363,6 +1364,7 @@ let dbDXMission = {
 
         let sendQuery = {
             platform: platform,
+            status: {$nin: [constTsPhoneListStatus.PERFECTLY_COMPLETED, constTsPhoneListStatus.FORCE_COMPLETED, constTsPhoneListStatus.DECOMPOSED,]},
             createTime: {
                 $gte: startTime,
                 $lt: endTime
