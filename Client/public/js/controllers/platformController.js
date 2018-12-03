@@ -28153,10 +28153,12 @@ console.log('typeof ',typeof gameProviders);
 
                 socketService.$socket($scope.AppSocket, 'getBlackWhiteListingConfig', sendData, function (data) {
                     $scope.$evalAsync(() => {
+                        console.log('getBlackWhiteListingConfig', data);
                         if (data && data.data) {
                             vm.blackWhiteListingConfig = data.data;
                             vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers$ = "";
                             vm.blackWhiteListingConfig.whiteListingSmsIpAddress$ = "";
+                            vm.blackWhiteListingConfig.blackListingCallRequestIpAddress$ = "";
 
                             if (vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers && vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers.length > 0) {
                                 let phones = vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers;
@@ -28175,6 +28177,15 @@ console.log('typeof ',typeof gameProviders);
                                     i !== (len - 1) ? vm.blackWhiteListingConfig.whiteListingSmsIpAddress$ += "\n" : "";
                                 }
                             }
+
+                            if (vm.blackWhiteListingConfig.blackListingCallRequestIpAddress && vm.blackWhiteListingConfig.blackListingCallRequestIpAddress.length > 0) {
+                                let ipAddress = vm.blackWhiteListingConfig.blackListingCallRequestIpAddress;
+                                for (let i = 0, len = ipAddress.length; i < len; i++) {
+                                    let ip = ipAddress[i];
+                                    vm.blackWhiteListingConfig.blackListingCallRequestIpAddress$ += ip;
+                                    i !== (len - 1) ? vm.blackWhiteListingConfig.blackListingCallRequestIpAddress$ += "\n" : "";
+                                }
+                            }
                         }
                     });
                 }, function (data) {
@@ -28187,8 +28198,11 @@ console.log('typeof ',typeof gameProviders);
                 vm.blacklistIpConfig = vm.blacklistIpConfig || [];
 
                 socketService.$socket($scope.AppSocket, 'getBlacklistIpConfig', {}, function (data) {
+                    console.log('getBlacklistIpConfig', data);
                     $scope.$evalAsync(() => {
-                        vm.blacklistIpConfig = data.data;
+                        if (data && data.data) {
+                            vm.blacklistIpConfig = data.data;
+                        }
                     });
                 }, function (data) {
                     console.log("cannot get blacklist ip config", data);
@@ -29762,6 +29776,7 @@ console.log('typeof ',typeof gameProviders);
             function updateBlackWhiteListingConfig(srcData) {
                 let whiteListingSmsPhoneNumbers = [];
                 let whiteListingSmsIpAddress = [];
+                let blackListingCallRequestIpAddress = [];
 
                 if (srcData.whiteListingSmsPhoneNumbers$) {
                     let phones = srcData.whiteListingSmsPhoneNumbers$.split(/\r?\n/);
@@ -29779,11 +29794,20 @@ console.log('typeof ',typeof gameProviders);
                     }
                 }
 
+                if (srcData.blackListingCallRequestIpAddress$) {
+                    let ipAddress = srcData.blackListingCallRequestIpAddress$.split(/\r?\n/);
+                    for (let i = 0, len = ipAddress.length; i < len; i++) {
+                        let ip = ipAddress[i].trim();
+                        if (ip) blackListingCallRequestIpAddress.push(ip);
+                    }
+                }
+
                 let sendData = {
                     platform: vm.selectedPlatform.id,
                     updateData: {
                         whiteListingSmsPhoneNumbers: whiteListingSmsPhoneNumbers,
                         whiteListingSmsIpAddress: whiteListingSmsIpAddress,
+                        blackListingCallRequestIpAddress: blackListingCallRequestIpAddress,
                     }
                 };
 
