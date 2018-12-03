@@ -4148,7 +4148,7 @@ var dbPlatform = {
                     let indexNo = blackWhiteListingConfig.blackListingCallRequestIpAddress.findIndex(p => p.toString() === playerData.lastLoginIp.toString());
 
                     if (indexNo > -1) {
-                        return Q.reject({
+                        return Promise.reject({
                             status: constServerCode.BLACKLIST_IP,
                             name: "DBError",
                             message: localization.localization.translate("Invalid phone number, unable to call")
