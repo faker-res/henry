@@ -11,7 +11,7 @@ let playerBStateSchema = new Schema({
     // Player Level
     playerLevelMigration: {type: Boolean, default: false},
     // last update player level time
-    lastApplyLevelUp: {type: Date, default: new Date()},
+    lastApplyLevelUp: {type: Date, default: Date.now},
     // Player convert reward point
     convertRewardPointsToCredit: {type: Boolean, default: false},
     // Generate promo code

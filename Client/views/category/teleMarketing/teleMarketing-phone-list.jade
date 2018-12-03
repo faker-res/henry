@@ -9,7 +9,7 @@
                 select.spicker.form-control#phoneListMangementName(ng-model='vm.phoneListSearch.name', bsp, multiple, data-actions-box='true', ng-options='v as v for (i,v) in vm.allTSList')
             .search-filter.col-xs-12.col-sm-6.col-md-3
                 label {{"SEND_STATUS"|translate}}
-                select.spicker.form-control#phoneListMangementStatus(ng-model='vm.phoneListSearch.sendStatus', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.constTsPhoneListStatus')
+                select.spicker.form-control#phoneListMangementStatus(ng-model='vm.phoneListSearch.sendStatus', bsp, multiple, data-actions-box='true', ng-options='i as v | translate for (i,v) in vm.constTsPhoneListStatusStr')
             .col-xs-12.col-sm-6.col-md-3(style='width: 250px !important')
                 label.control-label {{'FIRST_IMPORT_TIME(START)' | translate}}
                 #phoneListStartTimePicker
@@ -25,6 +25,12 @@
         div
             table#phoneListManagementTable.common-table.display(style="min-width:100% ;overflow: scroll")
             #phoneListManagementTablePage
+        br
+        br
+        .clearfix
+            button.common-button.btn.btn-success(ng-disabled='!vm.selectedTsPhoneList || vm.disableManualPauseTsPhoneList', ng-click="vm.manualPauseTsPhoneListStatus()") {{"Manual pause/ continue task" | translate}}
+            button.common-button.btn.btn-danger(ng-disabled='!vm.selectedTsPhoneList', ng-click="vm.forceCompleteTsPhoneList()") {{"FORCE_COMPLETED" | translate}}
+
 
 
 //ModaltsAnalyticsPhoneList
@@ -131,7 +137,7 @@
                 button.btn.btn-danger.common-button(data-dismiss='modal' ng-show="vm.analyticsPhoneListEdit")
                     i.fa.fa-ban
                     text {{"CANCEL" | translate}}
-                button.btn.btn-warning.common-button(ng-click = "vm.analyticsPhoneListEdit = true"  ng-show="!vm.analyticsPhoneListEdit")
+                button.btn.btn-warning.common-button(ng-click = "vm.analyticsPhoneListEdit = true;vm.cancelEditTsAnalyticsPhoneList()"  ng-show="!vm.analyticsPhoneListEdit")
                     i.fa.fa-ban
                     text {{"CANCEL" | translate}}
                 button.btn.btn-primary.common-button(ng-click="vm.tsAnalyticsPhoneListEdit()" ng-show="vm.analyticsPhoneListEdit")

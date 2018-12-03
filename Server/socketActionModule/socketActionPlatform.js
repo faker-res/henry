@@ -880,6 +880,18 @@ function socketActionPlatform(socketIO, socket) {
             let isValidData = Boolean(data && data.insertData && data.updateData && data.adminName);
             socketUtil.emitter(self.socket, dbPlatform.saveBlacklistIpConfig, [data.insertData, data.updateData, data.adminName], actionName, isValidData);
         },
+
+        getBlackWhiteListingConfig: function getBlackWhiteListingConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPlatform.getBlackWhiteListingConfig, [data.platform], actionName, isValidData);
+        },
+
+        saveBlackWhiteListingConfig: function saveBlackWhiteListingConfig(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform && data.updateData);
+            socketUtil.emitter(self.socket, dbPlatform.saveBlackWhiteListingConfig, [data.platform, data.updateData], actionName, isValidData);
+        },
     };
     socketActionPlatform.actions = this.actions;
 }

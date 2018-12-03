@@ -15,7 +15,7 @@ let tsPhoneImportRecordSchema = new Schema({
     // adminObjId
     admin: {type: Schema.Types.ObjectId, ref: 'adminInfo', index: true},
     // time when import happen
-    importTime: {type: Date, default: new Date(), index: true},
+    importTime: {type: Date, default: Date.now, index: true},
 });
 
 module.exports = tsPhoneImportRecordSchema;

@@ -37,7 +37,7 @@ define(['js/app'], function (myApp) {
             window.document.title = $translate("teleMarketing") + "->" + $translate(vm.teleMarketingPageName);
         };
 
-        vm.constTsPhoneListStatus = {
+        vm.constTsPhoneListStatusStr = {
             0: "PRE_DISTRIBUTION",
             1: "DISTRIBUTING",
             2: "NOT_ENOUGH_CALLER",
@@ -46,6 +46,17 @@ define(['js/app'], function (myApp) {
             5: "PERFECTLY_COMPLETED",
             6: "FORCE_COMPLETED",
             7: "DECOMPOSED"
+        };
+
+        vm.constTsPhoneListStatus = {
+            PRE_DISTRIBUTION: 0,
+            DISTRIBUTING: 1,
+            NOT_ENOUGH_CALLER: 2,
+            MANUAL_PAUSED: 3,
+            HALF_COMPLETE: 4,
+            PERFECTLY_COMPLETED: 5,
+            FORCE_COMPLETED: 6,
+            DECOMPOSED: 7
         };
 
         vm.allPlayersStatusString = {
@@ -5604,47 +5615,10 @@ define(['js/app'], function (myApp) {
             } else if (type == 'remove') {
 
                 // delete immediately the constructed promoCodeType before saving into dB
-                if (collection[data]._id == null) {
+                if (collection[data]) {
                     collection.splice(data, 1);
                 }
-                else {
 
-                    let sendData = {
-                        platformObjId: vm.selectedPlatform.id,
-                        promoCodeTypeObjId: collection[data]._id
-                    };
-
-                    // check the availability of the promocode type, can only remove if it is expired
-                    socketService.$socket($scope.AppSocket, 'checkPromoCodeTypeAvailability', sendData, function (result) {
-                        if (result) {
-                            if (!result.data.deleteFlag && !result.data.delete) {
-                                socketService.showErrorMessage($translate("The promoCode Type is still valid"));
-                            }
-                            else if (!result.data.deleteFlag && result.data.delete) {
-                                // delete the PromoCodeType from the dB (generated promoCodeType but not using)
-                                vm.removeSMSContent.push({
-                                    smsContent: collection.splice(data, 1),
-                                    isDelete: true
-                                });
-                                $scope.safeApply();
-                            }
-                            else if (result.data.deleteFlag && !result.data.delete) {
-                                // change the deleteFlag status in dB (as it had been used before)
-                                vm.removeSMSContent.push({
-                                    smsContent: collection.splice(data, 1),
-                                    updateIsDeletedFlag: true
-                                });
-                                $scope.safeApply();
-                            }
-                            else {
-                            }
-
-                        }
-                        else {
-                            return Q.reject("data was empty: " + result);
-                        }
-                    });
-                }
             }
         };
 
@@ -6018,6 +5992,10 @@ define(['js/app'], function (myApp) {
         }
 
 
+        vm.cancelEditTsAnalyticsPhoneList = function () {
+            vm.tsAnalyticsPhoneList = JSON.parse(JSON.stringify(vm.selectedTsAnalyticsPhoneList));
+        }
+
         vm.initAnalyticsFilterAndImportDXSystem = function (rowData) {
             vm.isShowNewListModal = true;
             vm.tsNewListEnableSubmit = true;
@@ -6071,6 +6049,7 @@ define(['js/app'], function (myApp) {
                             data.data.forEach(tsImportRecord => {
                                 if (tsImportRecord.description) {
                                     vm.tsAnalyticsPhoneList.time_operator_description.push(tsImportRecord);
+                                    vm.selectedTsAnalyticsPhoneList =JSON.parse(JSON.stringify(vm.tsAnalyticsPhoneList));
                                 }
                             });
                         });
@@ -6098,7 +6077,9 @@ define(['js/app'], function (myApp) {
                     }
                 };
 
-                socketService.$socket($scope.AppSocket, 'updateTsPhoneList', sendData, function () {})
+                socketService.$socket($scope.AppSocket, 'updateTsPhoneList', sendData, function () {
+                    vm.filterPhoneListManagement(true);
+                })
             }
 
 
@@ -6129,6 +6110,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.filterPhoneListManagement = (newSearch) => {
+            vm.selectedTsPhoneList = false;
             let sendQuery = {
                 platform: vm.selectedPlatform.id,
                 startTime: $('#phoneListStartTimePicker').data('datetimepicker').getLocalDate(),
@@ -6462,7 +6444,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row, index) {
                             let link = $('<a>', {
                                 'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'");',
-                            }).text($translate(vm.constTsPhoneListStatus[data]));
+                            }).text($translate(vm.constTsPhoneListStatusStr[data]));
                             return link.prop('outerHTML');
                         }
                     },
@@ -6524,10 +6506,11 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_SUCCESS_RATE'),
                         render: function(data, type, row, index){
-                            let percentage = isFinite(row.totalSuccess / row.totalDistributed) || 0;
+                            let percentage = row.totalSuccess / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
                             let divWithToolTip = $('<div>', {
                                 'title': "成功接听量/已使用量",
-                                'text': $noRoundTwoDecimalToFix(percentage)
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -6547,10 +6530,11 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_REGISTERED_RATE'),
                         render: function(data, type, row, index){
-                            let percentage = isFinite(row.totalRegistration / row.totalDistributed) || 0;
+                            let percentage = row.totalRegistration / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
                             let divWithToolTip = $('<div>', {
                                 'title': "成功开户量/已使用量",
-                                'text': $noRoundTwoDecimalToFix(percentage)
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -6570,10 +6554,11 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_TOPUP_RATE'),
                         render: function(data, type, row, index){
-                            let percentage =  isFinite(row.totalTopUp / row.totalDistributed) || 0;
+                            let percentage = row.totalTopUp / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
                             let divWithToolTip = $('<div>', {
                                 'title': "成功存款人数/已使用量",
-                                'text': $noRoundTwoDecimalToFix(percentage)
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -6593,10 +6578,11 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_MULTIPLE_TOPUP_RATE'),
                         render: function(data, type, row, index){
-                            let percentage = isFinite(row.totalMultipleTopUp / row.totalDistributed) || 0;
+                            let percentage = row.totalMultipleTopUp / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
                             let divWithToolTip = $('<div>', {
                                 'title': "成功存款2笔人数/已使用量",
-                                'text': $noRoundTwoDecimalToFix(percentage)
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -6616,10 +6602,11 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_VALID_RATE'),
                         render: function(data, type, row, index){
-                            let percentage = isFinite(row.totalValidPlayer / row.totalDistributed) || 0;
+                            let percentage = row.totalValidPlayer / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
                             let divWithToolTip = $('<div>', {
                                 'title': "有效开户量/已使用量",
-                                'text': $noRoundTwoDecimalToFix(percentage)
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -6640,6 +6627,26 @@ define(['js/app'], function (myApp) {
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     $compile(nRow)($scope);
+
+                    $(nRow).off('click');
+                    $(nRow).on('click', function () {
+                        vm.selectedTsPhoneList;
+                        $('#phoneListManagementTable tbody tr').removeClass('selected');
+                        $scope.$evalAsync(() => {
+                            if (vm.selectedTsPhoneList != aData) {
+                                vm.selectedTsPhoneList = aData;
+                                $(this).toggleClass('selected');
+                            } else {
+                                vm.selectedTsPhoneList = false;
+                            }
+                            if (!(vm.selectedTsPhoneList && (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING || vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.MANUAL_PAUSED))) {
+                                vm.disableManualPauseTsPhoneList = true;
+                            } else {
+                                vm.disableManualPauseTsPhoneList = false;
+                            }
+                        })
+                    });
+
                 }
             });
             tableOptions.language.emptyTable=$translate("No data available in table");
@@ -6653,6 +6660,34 @@ define(['js/app'], function (myApp) {
                 vm.commonSortChangeHandler(a, 'phoneListSearch', vm.getTeleMarketingOverview);
             });
             $('#phoneListManagementTable').resize();
+        };
+
+        vm.manualPauseTsPhoneListStatus = () => {
+            if (!(vm.selectedTsPhoneList && (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING || vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.MANUAL_PAUSED))) {
+                return;
+            }
+            let status;
+            if (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING) {
+                status = vm.constTsPhoneListStatus.MANUAL_PAUSED;
+            } else {
+                status = vm.constTsPhoneListStatus.DISTRIBUTING;
+            }
+            let sendData = {
+                tsPhoneList: vm.selectedTsPhoneList._id,
+                status: status
+            }
+            socketService.$socket($scope.AppSocket, 'manualPauseTsPhoneListStatus', sendData, function (data) {
+                vm.filterPhoneListManagement(true);
+            })
+        };
+
+        vm.forceCompleteTsPhoneList = () => {
+            if (!(vm.selectedTsPhoneList && vm.selectedTsPhoneList._id)){
+                return;
+            }
+            socketService.$socket($scope.AppSocket, 'forceCompleteTsPhoneList', {tsPhoneList: vm.selectedTsPhoneList._id}, function (data) {
+                vm.filterPhoneListManagement(true);
+            })
         };
 
         vm.distributePhoneNumber = (tsListObjId) => {
@@ -6718,12 +6753,24 @@ define(['js/app'], function (myApp) {
            else{
                vm.tsNewList.checkBoxA = false;
                vm.tsNewList.checkBoxB = false;
-               $('#modalTSNewListNameRepeat').show();
-               $('#modalTSNewListNameRepeat').css("opacity", "1");
-               $('#modalTSNewListNameRepeat').css("z-index", "12000");
+                let invalidStatus = [vm.constTsPhoneListStatus.HALF_COMPLETE, vm.constTsPhoneListStatus.PERFECTLY_COMPLETED, vm.constTsPhoneListStatus.FORCE_COMPLETED, vm.constTsPhoneListStatus.DECOMPOSED]
+               socketService.$socket($scope.AppSocket, 'getOneTsNewList', {platform: vm.selectedPlatform.id, name: vm.tsNewList.name}, function (data) {
+                   $scope.$evalAsync(() => {
+                       if (data && data.data && invalidStatus.includes(data.data.status)) {
+                           $('#modalTSNewListNameRepeatStatus').modal();
+                       } else {
+                           $('#modalTSNewListNameRepeat').modal();
+                       }
+                   })
+               })
 
            }
         };
+
+        vm.renameTsPhoneList = () => {
+            $('#modalTSNewListNameRepeatStatus').hide();
+            $('#nameInput').focus();
+        }
 
         vm.returnToInput = () => {
             vm.disableAll = false;

@@ -3683,6 +3683,18 @@ var dbPlatform = {
         );
     },
 
+    getBlackWhiteListingConfig: (platformObjId) => {
+        return dbconfig.collection_platformBlackWhiteListing.findOne({platform: platformObjId}).lean().exec();
+    },
+
+    saveBlackWhiteListingConfig: (platformObjId, updateData) => {
+        let query = {
+            platform: platformObjId
+        };
+
+        return dbconfig.collection_platformBlackWhiteListing.findOneAndUpdate(query, updateData, {upsert: true, new: true});
+    },
+
     getPlatformPartnerSettLog: (platformObjId, modes) => {
         let promArr = [];
         let partnerSettDetail = {};
@@ -4119,13 +4131,29 @@ var dbPlatform = {
                 if(playerId){
                     playerProm = dbconfig.collection_players.findOne({playerId: playerId}).lean();
                 }
-                return Promise.all([stringProm, playerProm]);
+                let blackWhiteListingProm = dbPlatform.getBlackWhiteListingConfig(platform._id);
+                return Promise.all([stringProm, playerProm, blackWhiteListingProm]);
             }
         ).then(
             data => {
                 platformString = data&&data[0] ? data[0] : "";
+                let playerData = data[1];
+                let blackWhiteListingConfig = data[2];
+
                 if( !phoneNumber || (phoneNumber && phoneNumber.indexOf("*") > 0) ){
                     phoneNumber = data&&data[1] ? data[1].phoneNumber : phoneNumber;
+                }
+
+                if (blackWhiteListingConfig && blackWhiteListingConfig.blackListingCallRequestIpAddress && playerData && playerData.lastLoginIp) {
+                    let indexNo = blackWhiteListingConfig.blackListingCallRequestIpAddress.findIndex(p => p.toString() === playerData.lastLoginIp.toString());
+
+                    if (indexNo > -1) {
+                        return Promise.reject({
+                            status: constServerCode.BLACKLIST_IP,
+                            name: "DBError",
+                            message: localization.localization.translate("Invalid phone number, unable to call")
+                        });
+                    }
                 }
 
                 url = platform.callRequestUrlConfig;
