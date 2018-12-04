@@ -6056,20 +6056,23 @@ define(['js/app'], function (myApp) {
                     }
                 })
 
-                let sendData = {
-                    query: {
-                        platform: vm.selectedPlatform.id,
-                        tsPhoneList: rowData._id,
-                        status: 1
+                vm.tsAnalyticsPhoneListMaxCaller = null; // reset max caller count
+                if (rowData.status != vm.constTsPhoneListStatus.PRE_DISTRIBUTION && rowData.status != vm.constTsPhoneListStatus.NOT_ENOUGH_CALLER) {
+                    let sendData = {
+                        query: {
+                            platform: vm.selectedPlatform.id,
+                            tsPhoneList: rowData._id,
+                            status: 1
+                        }
                     }
+                    socketService.$socket($scope.AppSocket, 'getTsAssigneesCount', sendData, function (data) {
+                        if (data && data.data) {
+                            $scope.$evalAsync(() => {
+                                vm.tsAnalyticsPhoneListMaxCaller = data.data;
+                            });
+                        }
+                    })
                 }
-                socketService.$socket($scope.AppSocket, 'getTsAssigneesCount', sendData, function (data) {
-                    if (data && data.data) {
-                        $scope.$evalAsync(() => {
-                            vm.tsAnalyticsPhoneListMaxCaller = data.data;
-                        });
-                    }
-                })
 
             });
 
