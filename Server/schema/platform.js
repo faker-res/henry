@@ -437,6 +437,8 @@ var platformSchema = new Schema({
     clientData: {type: String},
     //call Request URL config
     callRequestUrlConfig: {type: String},
+    // call Request limit per hour
+    callRequestLimitPerHour: {type: Number},
     callRequestLineConfig: [{
         lineId: {type: Number},
         lineName: {type: String},

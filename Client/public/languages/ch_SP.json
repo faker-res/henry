@@ -3480,6 +3480,7 @@
   "Whitelisting SMS Phone Number": "（玩家、代理）发送短信『电话号码』白名单（一行一个）",
   "Whitelisting SMS IP Address": "（玩家、代理）发送短信『IP地址』白名单（一行一个）",
   "Blacklisting Call Request IP Address": "（玩家、代理）前端请求回电『IP地址』黑名单（一行一个）",
+  "Any IP, the limit of the call request per hour X times, refresh every hour": "（玩家、代理）任意IP，每小时回电上限 X 次 ，每整点刷新",
   "PlayerRandomRewardGroup": "随机抽奖（组）",
   "WORDS": "文字",
   "IMAGE": "图片",
