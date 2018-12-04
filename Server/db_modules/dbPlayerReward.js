@@ -7773,6 +7773,165 @@ let dbPlayerReward = {
             }
         );
     },
+
+    getRewardRanking: function (platformId, promoCode, sortType, startTime, endTime, usePaging, requestPage, count) {
+        let platformRecord;
+        let rewardEventRecord;
+        let isPaging = usePaging || true;
+        let index = 0;
+        let currentPage = requestPage || 1;
+        let pageNo = null;
+        let limit = count || 10;
+        let totalCount = 0;
+        let totalPage = 1;
+        let sortCol = {};
+
+        if (typeof currentPage != 'number' || typeof limit != 'number') {
+            return Promise.reject({name: "DataError", message: "Incorrect parameter type"});
+        }
+
+        if (currentPage <= 0) {
+            pageNo = 0;
+        } else {
+            pageNo = currentPage;
+        }
+
+        index = ((pageNo - 1) * limit);
+        currentPage = pageNo;
+
+        return dbConfig.collection_platform.findOne({platformId: platformId}, {_id: 1, platformId: 1, name: 1}).lean().then(
+            platformData => {
+                if (platformData && platformData._id) {
+                    platformRecord = platformData;
+
+                    return dbConfig.collection_rewardEvent.findOne({platform: platformRecord._id, code: promoCode}).lean();
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+            }
+        ).then(
+            rewardEventData => {
+                if (rewardEventData && rewardEventData._id) {
+                    rewardEventRecord = rewardEventData;
+                    let intervalTime;
+
+                    if (rewardEventRecord) {
+                        intervalTime = getIntervalPeriodFromEvent(rewardEventRecord);
+
+                        if (!startTime && intervalTime) {
+                            startTime = intervalTime.startTime;
+                        }
+
+                        if (!endTime && intervalTime) {
+                            endTime = intervalTime.endTime;
+                        }
+                    }
+
+                    let matchQuery = {
+                        "data.platformId": platformRecord._id,
+                        "createTime": {
+                            "$gte": new Date(startTime),
+                            "$lte": new Date(endTime)
+                        },
+                        "data.eventId": rewardEventData._id,
+                        "mainType": "Reward",
+                        "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                    };
+
+                    if (sortType == 1) {
+                        sortCol = { 'highestAmount': -1 };
+                    } else if ( sortType == 2) {
+                        sortCol = { 'totalReceiveAmount': -1 };
+                    } else if ( sortType == 3) {
+                        sortCol = { 'receiveCount': -1 };
+                    } else if ( sortType == 4) {
+                        sortCol = { 'createTime': -1 };
+                    } else {
+                        return Promise.reject({name: "DataError", message: "Sort order supported digit 1 to 4 only"});
+                    }
+
+                    let query = [];
+                    if (isPaging) {
+                        console.log('isPaging zzz',isPaging);
+                        query = [
+                            {
+                                $match: matchQuery
+                            },
+                            {
+                                $group: {
+                                    "_id": "$data.playerObjId",
+                                    "playerName": {$first: "$data.playerName"},
+                                    "receiveCount": {$sum: 1},
+                                    "totalReceiveAmount": {$sum: "$data.rewardAmount"},
+                                    "highestAmount": {$max: "$data.rewardAmount"},
+                                    "createTime": {$max: "$createTime"}
+                                }
+                            },
+                            {
+                                $sort: sortCol
+                            },
+                            {
+                                $skip: index
+                            },
+                            {
+                                $limit: limit
+                            }
+                        ];
+                    } else {
+                        query = [
+                            {
+                                $match: matchQuery
+                            },
+                            {
+                                $group: {
+                                    "_id": "$data.playerObjId",
+                                    "playerName": {$first: "$data.playerName"},
+                                    "receiveCount": {$sum: 1},
+                                    "totalReceiveAmount": {$sum: "$data.rewardAmount"},
+                                    "highestAmount": {$max: "$data.rewardAmount"},
+                                    "createTime": {$max: "$createTime"}
+                                }
+                            },
+                            {
+                                $sort: sortCol
+                            }
+                        ];
+                    }
+
+                    let countProm = dbConfig.collection_proposal.aggregate([
+                        {
+                            $match: matchQuery
+                        },
+                        {
+                            $group: {
+                                "_id": "$data.playerObjId"
+                            }
+                        },
+                        {
+                            $group: {
+                                "_id": null,
+                                "size": {$sum: 1}
+                            }
+                        }
+                    ]).read("secondaryPreferred");
+
+                    let rewardProm = dbConfig.collection_proposal.aggregate(query).read("secondaryPreferred");
+
+                    return Promise.all([countProm,rewardProm]).then(
+                        data => {
+                            totalCount = data && data[0] && data[0][0] && data[0][0].size ? data[0][0].size : 0;
+                            totalPage = Math.ceil(totalCount / limit);
+
+                            return data[1];
+                        }
+                    );
+
+                } else {
+                    return Promise.reject({name: "DataError", message: "Cannot find reward event data"});
+                }
+            }
+        )
+    },
 };
 
 function checkTopupRecordIsDirtyForReward(eventData, rewardData) {

@@ -268,6 +268,12 @@
         this.rewardService.getRandBonusInfo.once(callback);
     };
 
+    proto.getRewardRanking = function (callback, requestData) {
+        let data = requestData || {};
+        this.rewardService.getRewardRanking.request(data);
+        this.rewardService.getRewardRanking.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientRewardAPITest;
     } else {
