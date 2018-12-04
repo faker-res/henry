@@ -108,7 +108,7 @@ const dbProposalUtility = {
                 $match: {
                     "createTime": {$gte: intervalTime.startTime, $lte: intervalTime.endTime},
                     "data.eventId": rewardEvent._id,
-                    "status": constProposalStatus.APPROVED,
+                    "status": {$in: [constProposalStatus.APPROVED, constProposalStatus.APPROVE, constProposalStatus.SUCCESS]},
                     $or: [
                         {'data.playerObjId': player._id},
                         {'data.lastLoginIp': player.lastLoginIp},
