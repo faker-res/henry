@@ -692,6 +692,16 @@ var dbUtility = {
         }
     },
 
+    getSGTimeCurrentHourInterval: function (date) {
+        let startTime = moment(date).tz('Asia/Singapore').startOf("hour").toDate();
+        let endTime = moment(date).tz('Asia/Singapore').endOf("hour").toDate();
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        }
+    },
+
     /*
      * if today is the first day of the week based on SG time
      */
