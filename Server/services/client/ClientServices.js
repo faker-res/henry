@@ -315,6 +315,7 @@
                 "getSignBonus",
                 "getSlotInfo",
                 "getRandBonusInfo",
+                "getRewardRanking",
             ];
             addServiceFunctions(sinonet, this, functionNames);
 

@@ -688,6 +688,9 @@ var roleChecker = {
             },
             "Payment Monitor Total":{
                 Read: ['']
+            },
+            ConsumptionRecord:{
+                Read: []
             }
         },
         Payment: {

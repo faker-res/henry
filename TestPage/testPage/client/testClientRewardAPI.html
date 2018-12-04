@@ -512,6 +512,55 @@
     </div>
 </div>
 
+<h3>GET REWARD RANKING (获取某优惠领取排行榜)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform ID
+            <input name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Code
+            <input name="code">
+        </label>
+    </div>
+    <div>
+        <label>Sort Type
+            <input name="sortType" type="number">
+        </label>
+    </div>
+    <div>
+        <label>Start Time
+            <input name="startTime" type="datetime-local">
+        </label>
+    </div>
+    <div>
+        <label>End Time
+            <input name="endTime" type="datetime-local">
+        </label>
+    </div>
+    <div>
+        <label>Use Paging
+            <input name="usePaging" type="checkbox" checked="checked">
+        </label>
+    </div>
+    <div>
+        <label>Request Page
+            <input name="requestPage" type="number">
+        </label>
+    </div>
+    <div>
+        <label>Count
+            <input name="count" type="number">
+        </label>
+    </div>
+    <p></p>
+    <button data-api-name="getRewardRanking">Get</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
     <script>
         require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientRewardAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest', 'testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientRewardAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {

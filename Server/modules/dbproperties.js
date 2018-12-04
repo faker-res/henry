@@ -459,6 +459,9 @@ let playerBonusDoubledRewardGroupRecordModel = dbLogs2.model('playerBonusDoubled
 let actionLogSchema = require('./../schema/logs2/actionLog');
 let actionLogModel = dbLogs2.model('actionLog', actionLogSchema, 'actionLog');
 
+let callBackToUserLogSchema = require('./../schema/logs2/callBackToUserLog');
+let callBackToUserLogModel = dbLogs2.model('callBackToUserLog', callBackToUserLogSchema, 'callBackToUserLog');
+
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
 
@@ -618,6 +621,7 @@ var dbProperties = {
     collection_partnerLargeWithdrawalLog: partnerLargeWithdrawalLogModel,
 
     collection_actionLog: actionLogModel,
+    collection_callBackToUserLog: callBackToUserLogModel,
 
     collection_csOfficer: csOfficerModel,
     collection_csOfficerUrl: csOfficerUrlModel,

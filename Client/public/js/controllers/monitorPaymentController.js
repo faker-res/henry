@@ -62,6 +62,7 @@ define(['js/app'], function (myApp) {
             vm.getPlayerLevelByPlatformId(vm.selectedPlatform._id);
             vm.getCredibilityRemarksByPlatformId(vm.selectedPlatform._id);
             vm.getRewardList();
+            vm.getPlatformGameData(vm.getProviderLatestTimeRecord);
             $cookies.put("platform", vm.selectedPlatform.name);
             console.log('vm.selectedPlatform', vm.selectedPlatform);
             vm.loadPage("PAYMENT_MONITOR"); // 5
@@ -151,6 +152,124 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.getProviderLatestTimeRecord = function () {
+            let longestDelayDate = new Date().toString();
+
+            let providerIdArr = [];
+            vm.lastConsumptionRefresh = utilService.$getTimeFromStdTimeFormat();
+
+            vm.platformProviderList.forEach(p => {
+                if (p && p.providerId) {
+                    providerIdArr.push(p.providerId);
+                }
+            })
+
+            let sendData = {
+                platformObjId: vm.selectedPlatform._id,
+                providerIdList: providerIdArr
+            }
+
+            socketService.$socket($scope.AppSocket, 'getProviderLatestTimeRecord', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    $('#consumptionRecordSpin').hide();
+                    console.log("getProviderLatestTimeRecord", data.data)
+                    if (data && data.data && data.data.length > 0) {
+                        data.data.map(d => {
+                            if (d) {
+                                if (d.createTime) {
+                                    d.createTime = vm.dateReformat(d.createTime);
+
+                                    if (d.createTime < longestDelayDate) {
+                                        longestDelayDate = d.createTime
+                                        vm.longestDelayStatus = d.delayStatusColor;
+                                    }
+                                }
+                            }
+                            return;
+                        })
+
+                        vm.providerLatestTimeRecord = data.data;
+                    }
+                })
+            });
+        };
+
+        vm.getPlatformGameData = function (callback) {
+            //init gametab start===============================
+            vm.SelectedProvider = null;
+            vm.showGameCate = "include";
+            vm.curGame = null;
+            //init gameTab end==================================
+            if (!vm.selectedPlatform) {
+                return
+            }
+            //console.log("getGames", gameIds);
+            socketService.$socket($scope.AppSocket, 'getPlatform', {_id: vm.selectedPlatform.id}, function (data) {
+                console.log('getPlatform', data.data);
+                //provider list init
+                vm.platformProviderList = data.data.gameProviders;
+                vm.platformProviderList.forEach(item => {
+                    if (item.batchCreditTransferOutStatus && item.batchCreditTransferOutStatus[vm.selectedPlatform.id]) {
+                        item.batchCreditTransferOut = item.batchCreditTransferOutStatus[vm.selectedPlatform.id];
+                    }
+                });
+                vm.providerListCheck = {};
+                $.each(vm.platformProviderList, function (i, v) {
+                    vm.providerListCheck[v._id] = true;
+                })
+                //payment list init
+                vm.platformPaymentChList = data.data.paymentChannels;
+                vm.paymentListCheck = {};
+                $.each(vm.platformPaymentChList, function (i, v) {
+                    vm.paymentListCheck[v._id] = true;
+                })
+
+                //provider delay status init
+                // vm.getProviderLatestTimeRecord();
+
+                if (callback && callback instanceof Function) {
+                    callback();
+                }
+            })
+        };
+
+
+        vm.refreshConsumptionRecord = function (isNewRefresh) {
+            if (isNewRefresh) {
+                vm.refreshTime = 600;
+            }
+            $('#consumptionRecordSpin').show();
+            vm.lastConsumptionRefresh = utilService.$getTimeFromStdTimeFormat();
+            vm.getProviderLatestTimeRecord();
+        }
+
+        vm.refreshTime = 600;
+        vm.countBySec = setInterval (function () {
+            const checkBox = $('#autoRefreshConsumptionFlag');
+            const isChecked = checkBox && checkBox.length > 0 && checkBox[0].checked;
+            const refreshMessage = $('#timeLeftRefreshOperation')[0];
+            if (isChecked){
+                $(refreshMessage).parent().removeClass('hidden');
+                if(vm.refreshTime < 0){
+                    vm.refreshTime = 600;
+                }
+                if(vm.refreshTime === 0){
+                    vm.refreshTime = 600;
+                    vm.refreshConsumptionRecord();
+                }
+                vm.refreshTime--;
+            } else{
+                vm.refreshTime = -1;
+                $(refreshMessage).parent().addClass('hidden');
+            }
+
+            if (window.location.pathname != '/monitor/consumptionRecord') {
+                clearInterval(vm.countBySec);
+            }
+            $scope.$evalAsync();
+        }, 1000);
+
+        
         vm.preparePaymentMonitorPage = function () {
             $('#autoRefreshProposalFlag')[0].checked = true;
             vm.lastTopUpRefresh = utilService.$getTimeFromStdTimeFormat();
@@ -208,34 +327,6 @@ define(['js/app'], function (myApp) {
                 // vm.paymentMonitorTotalQuery.pageObj = utilService.createPageForPagingTable("#paymentMonitorTotalTablePage", {}, $translate, function (curP, pageSize) {
                 //     vm.commonPageChangeHandler(curP, pageSize, "paymentMonitorTotalQuery", vm.getPaymentMonitorTotalRecord)
                 // });
-                $scope.safeApply();
-            })
-        };
-        vm.prepareWechatMonitorPage = function () {
-            $('#autoRefreshProposalFlag')[0].checked = true;
-            vm.lastTopUpRefresh = utilService.$getTimeFromStdTimeFormat();
-            vm.wechatGroupControlQuery = {};
-            vm.wechatGroupControlQuery.totalCount = 0;
-            vm.getAllPaymentAcc();
-
-            Promise.all([getMerchantList(), getMerchantTypeList()]).then(
-                data => {
-                    vm.merchants = data[0];
-                    vm.merchantTypes = data[1];
-                    vm.merchantsNBcard();
-                    vm.getMerchantTypeName();
-                    vm.merchantGroups = getMerchantGroups(vm.merchants, vm.merchantTypes);
-                    vm.merchantNumbers = getMerchantNumbers(vm.merchants);
-                    vm.getWechatMonitorRecord();
-                    vm.merchantGroupCloneList = vm.merchantGroups;
-                }
-            );
-            utilService.actionAfterLoaded("#wechatGroupMonitorTablePage", function () {
-                vm.commonInitTime(vm.wechatGroupControlQuery, '#wechatGroupControlQuery');
-                vm.wechatGroupControlQuery.merchantType = null;
-                vm.wechatGroupControlQuery.pageObj = utilService.createPageForPagingTable("#wechatGroupMonitorTablePage", {}, $translate, function (curP, pageSize) {
-                    vm.commonPageChangeHandler(curP, pageSize, "wechatGroupControlQuery", vm.getWechatMonitorRecord)
-                });
                 $scope.safeApply();
             })
         };

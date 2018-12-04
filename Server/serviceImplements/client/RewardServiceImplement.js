@@ -222,6 +222,12 @@ let RewardServiceImplement = function () {
 
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setBonusShowInfo, [conn.playerId, data.setShowInfo], isValidData);
     };
+
+    this.getRewardRanking.expectsData = 'platformId: String';
+    this.getRewardRanking.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && data.code && data.sortType);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getRewardRanking, [data.platformId, data.code, data.sortType, data.startTime, data.endTime, data.usePaging, data.requestPage, data.count], isValidData, false, false, true);
+    };
 };
 
 
