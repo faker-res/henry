@@ -234,51 +234,43 @@ define(['js/app'], function (myApp) {
         };
 
 
+        vm.refreshConsumptionRecord = function (isNewRefresh) {
+            if (isNewRefresh) {
+                vm.refreshTime = 600;
+            }
+            $('#consumptionRecordSpin').show();
+            vm.lastConsumptionRefresh = utilService.$getTimeFromStdTimeFormat();
+            vm.getProviderLatestTimeRecord();
+        }
 
-
-            vm.refreshConsumptionRecord = function (isNewRefresh) {
-                if (isNewRefresh) {
-                    const refreshMessage = $('#timeLeftRefreshOperation')[0];
+        vm.refreshTime = 600;
+        vm.countBySec = setInterval (function () {
+            const checkBox = $('#autoRefreshConsumptionFlag');
+            const isChecked = checkBox && checkBox.length > 0 && checkBox[0].checked;
+            const refreshMessage = $('#timeLeftRefreshOperation')[0];
+            if (isChecked){
+                $(refreshMessage).parent().removeClass('hidden');
+                if(vm.refreshTime < 0){
                     vm.refreshTime = 600;
-                    $(refreshMessage).text(vm.refreshTime);
                 }
-                $('#consumptionRecordSpin').show();
-                vm.lastConsumptionRefresh = utilService.$getTimeFromStdTimeFormat();
-                vm.getProviderLatestTimeRecord();
+                if(vm.refreshTime === 0){
+                    vm.refreshTime = 600;
+                    vm.refreshConsumptionRecord();
+                }
+                vm.refreshTime--;
+            } else{
+                vm.refreshTime = -1;
+                $(refreshMessage).parent().addClass('hidden');
             }
 
-            vm.refreshTime = 600;
-            vm.countBySec = setInterval (function () {
-                const checkBox = $('#autoRefreshConsumptionFlag');
-                const isChecked = checkBox && checkBox.length > 0 && checkBox[0].checked;
-                const refreshMessage = $('#timeLeftRefreshOperation')[0];
-                $(refreshMessage).parent().toggleClass('hidden', vm.refreshTime < 0);
+            if (window.location.pathname != '/monitor/consumptionRecord') {
+                clearInterval(vm.countBySec);
+            }
+            $scope.$evalAsync();
+        }, 1000);
 
-                if (isChecked){
-                    if(vm.refreshTime < 0){
-                        vm.refreshTime = 600;
-                    }
-                    if(vm.refreshTime === 0){
-                        vm.refreshTime = 600;
-                        vm.refreshConsumptionRecord();
-                    }
-                    vm.refreshTime--;
-                    $(refreshMessage).text(vm.refreshTime);
-                } else{
-                    vm.refreshTime = -1;
-                }
-
-                if (window.location.pathname != '/monitor/consumptionRecord') {
-                    clearInterval(vm.countBySec);
-                }
-                $scope.$evalAsync();
-            }, 1000);
-
-
-
-
-
-            vm.preparePaymentMonitorPage = function () {
+        
+        vm.preparePaymentMonitorPage = function () {
             $('#autoRefreshProposalFlag')[0].checked = true;
             vm.lastTopUpRefresh = utilService.$getTimeFromStdTimeFormat();
             vm.paymentMonitorQuery = {};

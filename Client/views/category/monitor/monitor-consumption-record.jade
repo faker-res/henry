@@ -15,7 +15,7 @@ div
                     input#autoRefreshConsumptionFlag.margin-left-5(type='checkbox', checked)
                 .inlineBlk.hidden
                     text {{"Time left until next refresh" | translate}} :&nbsp;
-                    text#timeLeftRefreshOperation
+                    text#timeLeftRefreshOperation {{vm.refreshTime}}
                     text s
     #consumptionRecordMonitor.block-query.col-md-12.well
         table.simple-table
