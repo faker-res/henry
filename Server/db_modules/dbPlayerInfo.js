@@ -7707,6 +7707,9 @@ let dbPlayerInfo = {
                             path: "param.rewardParam.levelId",
                             model: dbconfig.collection_playerLevel,
                             select: {value: 1}
+                        }).populate({
+                            path: "condition.providerGroup",
+                            model: dbconfig.collection_gameProviderGroup,
                         })
                 } else {
                     return Q.reject({
@@ -7726,7 +7729,18 @@ let dbPlayerInfo = {
                     for (var i = 0; i < rewardEvent.length; i++) {
                         var rewardEventItem = rewardEvent[i].toObject();
                         delete rewardEventItem.platform;
-                        rewardEventItem.platformId = platformId;
+                        
+                        let providerGroup = null;
+                        let providerGroupName = null;
+                        if (rewardEventItem.condition && rewardEventItem.condition.providerGroup && rewardEventItem.condition.providerGroup._id){
+                            providerGroup = rewardEventItem.condition.providerGroup._id;
+                            providerGroupName = rewardEventItem.condition.providerGroup.name || null;
+                            delete rewardEventItem.condition.providerGroup;
+                            rewardEventItem.condition.providerGroup = providerGroup;
+                            if (providerGroupName){
+                                rewardEventItem.condition.providerGroupName = providerGroupName;
+                            }
+                        }
 
                         let imageUrlArr = [];
                         if (rewardEventItem && rewardEventItem.param && rewardEventItem.param.imageUrl
