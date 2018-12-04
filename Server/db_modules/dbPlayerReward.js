@@ -5343,6 +5343,8 @@ let dbPlayerReward = {
         let updateConsumptionRecordIds = [];
         let showRewardPeriod = {};
         let intervalRewardSum = 0, intervalConsumptionSum = 0, intervalTopupSum = 0, intervalBonusSum = 0, playerCreditLogSum = 0;
+        let lastConsumptionRecord;
+        let lastConsumptionProm;
 
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
 
@@ -5871,6 +5873,8 @@ let dbPlayerReward = {
 
             let consumptions = dbConfig.collection_playerConsumptionRecord.find(consumptionQuery).lean();
             promArr.push(consumptions);
+
+            lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(consumptionQuery).sort({createTime: -1}).limit(1).lean();
         }
 
         if (eventData.type.name === constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP) {
@@ -6098,12 +6102,12 @@ let dbPlayerReward = {
             promArr.push(checkForbidRewardProm.then(data => {console.log('checkForbidRewardProm'); return data;}).catch(errorUtils.reportError));
         }
 
-        return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
+        return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr), lastConsumptionProm]).then(
             data => {
                 let topupInPeriodData = data[0];
                 let eventInPeriodData = data[1];
                 let rewardSpecificData = data[2];
-
+                lastConsumptionRecord = data[3] && data[3][0] ? data[3][0] : {};
                 let topupInPeriodCount = topupInPeriodData.length;
                 let eventInPeriodCount = eventInPeriodData.length;
                 let rewardAmountInPeriod = eventInPeriodData.reduce((a, b) => a + b.data.rewardAmount, 0);
@@ -7038,6 +7042,13 @@ let dbPlayerReward = {
                                             proposalData.data.usedTopUp = data[1];
                                         }
 
+                                        if (data[2]) {
+                                            proposalData.data.betTime = data[2].consumptionCreateTime;
+                                            proposalData.data.betAmount = data[2].validAmount;
+                                            proposalData.data.winAmount = data[2].bonusAmount;
+                                            proposalData.data.winTimes = data[2].winRatio;
+                                        }
+
                                         return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
                                     }
                                 );
@@ -7162,6 +7173,13 @@ let dbPlayerReward = {
                             if (selectedRewardParam && selectedRewardParam.rewardPercent) {
                                 proposalData.data.rewardPercent = selectedRewardParam.rewardPercent;
                             }
+                        }
+
+                        if (eventData.type.name == constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP && lastConsumptionRecord && Object.keys(lastConsumptionRecord).length > 0) {
+                            proposalData.data.betTime = lastConsumptionRecord.createTime;
+                            proposalData.data.betAmount = lastConsumptionRecord.validAmount;
+                            proposalData.data.winAmount = lastConsumptionRecord.bonusAmount;
+                            proposalData.data.winTimes = lastConsumptionRecord.winRatio;
                         }
 
                         return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
@@ -7735,6 +7753,8 @@ let dbPlayerReward = {
                             playerObjId: playerData._id,
                             consumptionSlipNo: consumptionRecord.orderNo,
                             bonusAmount: consumptionRecord.bonusAmount || 0,
+                            winRatio: consumptionRecord.winRatio || 0,
+                            validAmount: consumptionRecord.validAmount || 0,
                             consumptionAmount: consumptionRecord.amount || 0,
                             consumptionCreateTime: consumptionRecord.createTime,
                             consumptionRecordObjId: consumptionRecord._id,
