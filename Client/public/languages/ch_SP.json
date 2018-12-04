@@ -2853,6 +2853,8 @@
   "Payment Monitor Total": "支付监控(总)",
   "Payment Monitor": "支付监控",
   "PROPOSAL_AND_PAYMENT_MONITOR": "提案与支付监控",
+  "CONSUMPTION_RECORD_MONITOR":"投注收录监控",
+  "ConsumptionRecord":"投注收录监控",
   "merchantCount": "商户计数",
   "playerCount": "玩家计数",
   "merchantNo": "商户号",
@@ -4141,6 +4143,7 @@
   "Go back and modify the name of list": "返回修改名单名称",
   "Time/Operator/Description": "导入时间/操作员/描述",
   "FIELD":"栏位",
+  "LINE_STATUS":"线路状态",
 
   "Distribution": "参与派发",
   "Distribution Name List Settings": "名单派发设定",

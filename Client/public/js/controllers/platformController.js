@@ -20827,6 +20827,17 @@ define(['js/app'], function (myApp) {
                                     // set the default as the first level
                                     vm.selectedPlayerLvlTab = 0;
                                }
+
+                               if (vm.rewardCondition && vm.rewardCondition.definePlayerLoginMode){
+                                   if (vm.rewardCondition.definePlayerLoginMode == 2) {
+                                       v.params.param.tblOptDynamic.rewardParam.loginDay.des = "EXACT_LOGIN_DATE";
+                                       v.params.param.tblOptFixed.rewardParam.loginDay.des = "EXACT_LOGIN_DATE";
+                                   }
+                                   else if (vm.rewardCondition.definePlayerLoginMode == 1) {
+                                       v.params.param.tblOptDynamic.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
+                                       v.params.param.tblOptFixed.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
+                                   }
+                               }
                             }
 
                             if (v && v.name && (v.name == "PlayerRetentionRewardGroup" || v.name == "PlayerBonusDoubledRewardGroup")) {
@@ -21957,6 +21968,7 @@ console.log('typeof ',typeof gameProviders);
                 if (type == 'add') {
                     if (data && data.hasOwnProperty('lineId') && data.hasOwnProperty('lineName')) {
                         vm.callRequestConfig.callRequestLineConfig.push({
+                            status: Number(data.status),
                             lineId: data.lineId,
                             lineName: data.lineName,
                             minLevel: data.minLevel? data.minLevel: ""
