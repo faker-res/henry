@@ -71,7 +71,7 @@
                                             tr
                                                 td {{'Assign To N Caller For Each Unregistered Phone Number (Required)' | translate}}
                                                 td
-                                                    input.form-control(type='number', min=0, ng-model='vm.tsAnalyticsPhoneList.callerCycleCount' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsPhoneListEdit')
+                                                    input.form-control(type='number', min=0, max='{{vm.tsAnalyticsPhoneListMaxCaller}}', ng-model='vm.tsAnalyticsPhoneList.callerCycleCount' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsPhoneListEdit')
                                             tr
                                                 td {{'Daily Distribute Task Count Equally Divide For Each Caller (Required)' | translate}}
                                                 td
