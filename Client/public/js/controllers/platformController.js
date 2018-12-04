@@ -28438,6 +28438,7 @@ console.log('typeof ',typeof gameProviders);
             vm.getCallRequestConfig = () => {
                 vm.callRequestConfig = {};
                 vm.callRequestConfig.callRequestUrlConfig = vm.selectedPlatform.data.callRequestUrlConfig? vm.selectedPlatform.data.callRequestUrlConfig: "";
+                vm.callRequestConfig.callRequestLimitPerHour = vm.selectedPlatform.data.callRequestLimitPerHour? vm.selectedPlatform.data.callRequestLimitPerHour: "";
                 vm.callRequestConfig.callRequestLineConfig = vm.selectedPlatform.data.callRequestLineConfig && vm.selectedPlatform.data.callRequestLineConfig.length?
                     vm.selectedPlatform.data.callRequestLineConfig: [];
 
@@ -29664,6 +29665,7 @@ console.log('typeof ',typeof gameProviders);
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
                         callRequestUrlConfig: srcData.callRequestUrlConfig,
+                        callRequestLimitPerHour: srcData.callRequestLimitPerHour,
                         callRequestLineConfig: srcData.callRequestLineConfig
                     }
                 };

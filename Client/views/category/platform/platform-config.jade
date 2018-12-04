@@ -468,7 +468,11 @@
                                 td(style='width:50%') {{'CALL_REQUEST_URL_CONFIG' | translate}}
                                 td(style='width:50%')
                                     text(ng-if='!vm.configTableEdit') {{vm.callRequestConfig.callRequestUrlConfig}}
-                                    input(style= 'width: 80%' ng-if='vm.configTableEdit', type='text', ng-model='vm.callRequestConfig.callRequestUrlConfig')
+                                    input.form-control(ng-if='vm.configTableEdit', type='text', ng-model='vm.callRequestConfig.callRequestUrlConfig')
+                            tr
+                                td {{'Any IP, the limit of the call request per hour X times, refresh every hour' | translate}}
+                                td
+                                    input.form-control(type='number', min='0', ng-model='vm.callRequestConfig.callRequestLimitPerHour', ng-disabled='!vm.configTableEdit')
 
                     br
                     table.common-table.callConfigTable(style='width:auto;min-width:99.9%')
