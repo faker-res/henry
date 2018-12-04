@@ -255,10 +255,12 @@ var dbRewardEvent = {
                                     returnData.result = {
                                         rewardAmount: ximaData.totalAmount? ximaData.totalAmount: 0,
                                         betTimes: ximaData.event && ximaData.event.param && ximaData.event.param.consumptionTimesRequired? ximaData.event.param.consumptionTimesRequired: 0,
-                                        code: rewardEvent.code || null,
-                                        eventName: rewardEvent.name || null,
-                                        rewardType: rewardEvent.type && rewardEvent.type.name ? rewardEvent.type.name : null,
                                     };
+
+                                    returnData.code = rewardEvent.code || null;
+                                    returnData.eventName = rewardEvent.name || null;
+                                    returnData.rewardType = rewardEvent.type && rewardEvent.type.name ? rewardEvent.type.name : null;
+
                                     delete ximaData.totalAmount;
                                     delete ximaData.totalConsumptionAmount;
                                     delete ximaData.event;
