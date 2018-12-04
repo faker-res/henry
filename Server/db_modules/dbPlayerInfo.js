@@ -12787,7 +12787,25 @@ let dbPlayerInfo = {
                             resData.forEach(merchant => {
                                 merchant.type = Number(merchant.type);
                                 merchant.status = Number(merchant.status);
-                            })
+
+                                let minAmt = Number.POSITIVE_INFINITY;
+                                let maxAmt = Number.NEGATIVE_INFINITY;
+
+                                if (merchant.quotaScopes && merchant.quotaScopes.length) {
+                                    merchant.quotaScopes.forEach(el => {
+                                        if (Number(el.minDepositAmount) < minAmt) {
+                                            minAmt = Number(el.minDepositAmount);
+                                        }
+
+                                        if (Number(el.maxDepositAmount) > maxAmt) {
+                                            maxAmt = Number(el.maxDepositAmount);
+                                        }
+                                    })
+                                }
+
+                                merchant.minDepositAmount = minAmt;
+                                merchant.maxDepositAmount = maxAmt;
+                            });
 
                             console.log("yH checking --- paymentData.topupTypes", resData)
 
