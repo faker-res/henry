@@ -551,7 +551,7 @@ const dbRewardUtility = {
 
                 // Check reward apply limit in period
                 if (rewardEvent.condition && rewardEvent.condition.quantityLimitInInterval && rewardEvent.condition.quantityLimitInInterval <= eventInPeriodCount) {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
                         message: "Reward claimed exceed limit, fail to claim reward"
