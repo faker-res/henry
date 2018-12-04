@@ -6960,6 +6960,7 @@ define(['js/app'], function (myApp) {
                             commissionSettingIsEditAll: vm.getCommissionSettingIsEditAll,
                             commissionSettingCancelRow: vm.commissionSettingCancelRow,
                             selectedCommissionTab: vm.selectedCommissionTab,
+                            openCommissionRecord: vm.openCommissionRecord,
                             customizeCommissionRate: vm.customizeCommissionRate,
                             customizeCommissionRateAll: vm.customizeCommissionRateAll,
                             isDetectChangeCustomizeCommissionRate: vm.isDetectChangeCustomizeCommissionRate,
@@ -10812,10 +10813,8 @@ define(['js/app'], function (myApp) {
                         vm.partnerCommission.showConfig = {};
                         vm.partnerCommission.showConfig.commissionSetting = [];
                         vm.commissionSettingNewRow(vm.partnerCommission.showConfig.commissionSetting);
-
                     }
-
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 });
             }
 
@@ -10835,9 +10834,13 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            vm.openCommissionRecord = function(tab, partnerObjId){
+                partnerObjId = vm.isOneSelectedPartner()._id;
+                vm.selectedCommissionTab(tab, partnerObjId);
+            }
+
             vm.selectedCommissionTab = function (tab, partnerObjId) {
                 let isGetConfig = true;
-
                 vm.commissionSettingTab = tab ? tab : 'DAILY_BONUS_AMOUNT';
                 vm.partnerCommission.isEditing = false;
                 vm.partnerCommission.isCustomized = false;

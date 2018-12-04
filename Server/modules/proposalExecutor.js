@@ -3414,7 +3414,10 @@ var proposalExecutor = {
                     }
 
                     prom.then(
-                        data => deferred.resolve(data),
+                        data => {
+                            updatePartnerCommissionType(proposalData);
+                            deferred.resolve(data);
+                        },
                         error => deferred.reject(error)
                     )
                 }
@@ -5257,6 +5260,26 @@ function setProposalIdInData(proposal) {
 
     return proposal;
 }
+function updatePartnerCommissionType (proposalData) {
+    let platformId;
+    if(proposalData && proposalData.data && proposalData.data.platformObjId){
+        platformId = proposalData.data.platformObjId;
+    }
+    if(proposalData && proposalData.data && proposalData.data.newRate && proposalData.data.newRate.platform){
+        platformId = proposalData.data.newRate.platform;
+    }
+    if(platformId && proposalData.data.partnerObjId){
+        dbUtil.findOneAndUpdateForShard(
+            dbconfig.collection_partner,
+            {
+                _id: proposalData.data.partnerObjId,
+                platform: platformId
+            },
+            { commissionType: proposalData.data.commissionType },
+            constShardKeys.collection_partner
+        )
+    }
+}
 
 function updatePartnerCommissionConfig (proposalData) {
     let qObj = {
@@ -5282,7 +5305,6 @@ function updatePartnerCommRateConfig (proposalData) {
         platform: proposalData.data.newRate.platform,
         partner: proposalData.data.partnerObjId
     };
-
     if (proposalData.data.isDelete) {
         return dbconfig.collection_partnerCommissionRateConfig.findOneAndRemove(qObj);
     } else {
@@ -5290,7 +5312,6 @@ function updatePartnerCommRateConfig (proposalData) {
         delete proposalData.data.newRate._id;
         delete proposalData.data.newRate.__v;
         delete proposalData.data.newRate.isEditing;
-
         return dbconfig.collection_partnerCommissionRateConfig.findOneAndUpdate(qObj, proposalData.data.newRate, {new: true, upsert: true});
     }
 }
