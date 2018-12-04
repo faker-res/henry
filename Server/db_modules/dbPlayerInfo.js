@@ -5759,7 +5759,10 @@ let dbPlayerInfo = {
                                     ]).read("secondaryPreferred").exec().then(promoCodes => {
                                         console.log("autofeedback promoCodes record during login",promoCodes);
                                         promoCodes.forEach(promoCode => {
-                                            if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
+                                            console.log("condition 1",promoCode.autoFeedbackMissionScheduleNumber);
+                                            console.log("condition 2.1",new Date().getTime());
+                                            console.log("condition 2.2",dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime());
+                                            if(promoCode.autoFeedbackMissionScheduleNumber < 3 || new Date().getTime() < dbUtil.getNdaylaterFromSpecificStartTime(3, promoCode.createTime).getTime()) {
                                                 dbconfig.collection_promoCode.findOneAndUpdate({
                                                     autoFeedbackMissionObjId: promoCode._id,
                                                     autoFeedbackMissionScheduleNumber: promoCode.autoFeedbackMissionScheduleNumber,
