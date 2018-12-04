@@ -4143,6 +4143,7 @@
   "Go back and modify the name of list": "返回修改名单名称",
   "Time/Operator/Description": "导入时间/操作员/描述",
   "FIELD":"栏位",
+  "LINE_STATUS":"线路状态",
 
   "Distribution": "参与派发",
   "Distribution Name List Settings": "名单派发设定",

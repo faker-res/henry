@@ -21968,6 +21968,7 @@ console.log('typeof ',typeof gameProviders);
                 if (type == 'add') {
                     if (data && data.hasOwnProperty('lineId') && data.hasOwnProperty('lineName')) {
                         vm.callRequestConfig.callRequestLineConfig.push({
+                            status: Number(data.status),
                             lineId: data.lineId,
                             lineName: data.lineName,
                             minLevel: data.minLevel? data.minLevel: ""
