@@ -639,6 +639,10 @@ let dbTeleSales = {
         return dbconfig.collection_tsAssignee.find(query).then(assignees=>assignees);
     },
 
+    getTsAssigneesCount: function(query){
+        return dbconfig.collection_tsAssignee.find(query).count();
+    },
+
     updateTsAssignees: (platformObjId, tsPhoneListObjId, assignees) => {
         if(assignees && assignees.length > 0) {
             let updateOrAddProm = [];

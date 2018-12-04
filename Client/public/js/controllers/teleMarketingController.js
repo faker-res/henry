@@ -6055,6 +6055,22 @@ define(['js/app'], function (myApp) {
                         });
                     }
                 })
+
+                let sendData = {
+                    query: {
+                        platform: vm.selectedPlatform.id,
+                        tsPhoneList: rowData._id,
+                        status: 1
+                    }
+                }
+                socketService.$socket($scope.AppSocket, 'getTsAssigneesCount', sendData, function (data) {
+                    if (data && data.data) {
+                        $scope.$evalAsync(() => {
+                            vm.tsAnalyticsPhoneListMaxCaller = data.data;
+                        });
+                    }
+                })
+
             });
 
             vm.editTsNewList = function () {
