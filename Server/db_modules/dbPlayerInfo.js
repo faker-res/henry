@@ -11336,7 +11336,7 @@ let dbPlayerInfo = {
                                     }
                                     return unlockAllGroups.then(
                                         () => {
-                                            return findStartedRewardTaskGroup(playerData.platform, playerData._id);
+                                            return dbRewardUtil.findStartedRewardTaskGroup(playerData.platform, playerData._id);
                                         }
                                     );
                                 } else {
@@ -11363,7 +11363,7 @@ let dbPlayerInfo = {
                             console.log('unlock rtg due to consumption clear in other location B', RTG._id);
                             return dbRewardTaskGroup.unlockRewardTaskGroupByObjId(RTG).then(
                                 () => {
-                                    return findStartedRewardTaskGroup(player.platform, player._id);
+                                    return dbRewardUtil.findStartedRewardTaskGroup(player.platform, player._id);
                                 }
                             );
                         }
@@ -11551,7 +11551,7 @@ let dbPlayerInfo = {
                 proposal => {
                     if (proposal) {
                         if (proposal.data && proposal.data.amount && proposal.data.amount >= platform.autoApproveWhenSingleBonusApplyLessThan) {
-                            createLargeWithdrawalLog(proposal, platform._id).catch(err => {
+                            dbPlayerInfo.createLargeWithdrawalLog(proposal, platform._id).catch(err => {
                                 console.log("createLargeWithdrawalLog failed", err);
                                 return errorUtils.reportError(err);
                             });
@@ -21385,6 +21385,28 @@ let dbPlayerInfo = {
                 return {stats: statsObj, list: proposalList};
             }
         )
+    },
+
+    createLargeWithdrawalLog: (proposalData, platformObjId) => {
+        let largeWithdrawalLog;
+        return dbconfig.collection_largeWithdrawalLog({
+            platform: platformObjId,
+            proposalId: proposalData.proposalId,
+            withdrawalTime: proposalData.createTime
+        }).save().then(largeWithdrawalLogData => {
+            largeWithdrawalLog = largeWithdrawalLogData;
+            return dbconfig.collection_proposal.findOneAndUpdate({_id: proposalData._id, createTime: proposalData.createTime}, {"data.largeWithdrawalLog": largeWithdrawalLog._id}, {new: true}).lean();
+        }).then(
+            proposal => {
+                if (proposal) {
+                    return dbLargeWithdrawal.fillUpLargeWithdrawalLogDetail(largeWithdrawalLog._id).catch(err => {
+                        console.log("Error fill up large withdrawal log:", largeWithdrawalLog._id, err);
+                    });
+                } else {
+                    return Promise.reject({message: "Save to proposal failed"}); // the only time here is reach are when there is bug
+                }
+            }
+        );
     }
 };
 
@@ -21878,14 +21900,6 @@ function isRandomRewardConsumption(rewardEvent) {
         && rewardEvent.param.rewardParam[0].value[0] && rewardEvent.param.rewardParam[0].value[0].requiredConsumptionAmount
 }
 
-function findStartedRewardTaskGroup(platformObjId, playerObjId) {
-    return dbconfig.collection_rewardTaskGroup.findOne({
-        platformId: platformObjId,
-        playerId: playerObjId,
-        status: {$in: [constRewardTaskStatus.STARTED]}
-    }).lean();
-}
-
 function countRecordSumWholePeriod(recordPeriod, bTopUp, consumptionProvider, topUpSummary, consumptionSummary, checkLevelUp) {
     let queryRecord = bTopUp ? topUpSummary : consumptionSummary;
     let queryAmountField = bTopUp ? "amount" : "validAmount";
@@ -22146,28 +22160,6 @@ function manualPlayerLevelUpReward(playerObjId, adminInfo) {
 
             } else {
                 return Promise.reject({message: "该玩家已经领取『" + playerLevel.name + "』的升级优惠。"});
-            }
-        }
-    );
-}
-
-function createLargeWithdrawalLog (proposalData, platformObjId) {
-    let largeWithdrawalLog;
-    return dbconfig.collection_largeWithdrawalLog({
-        platform: platformObjId,
-        proposalId: proposalData.proposalId,
-        withdrawalTime: proposalData.createTime
-    }).save().then(largeWithdrawalLogData => {
-        largeWithdrawalLog = largeWithdrawalLogData;
-        return dbconfig.collection_proposal.findOneAndUpdate({_id: proposalData._id, createTime: proposalData.createTime}, {"data.largeWithdrawalLog": largeWithdrawalLog._id}, {new: true}).lean();
-    }).then(
-        proposal => {
-            if (proposal) {
-                return dbLargeWithdrawal.fillUpLargeWithdrawalLogDetail(largeWithdrawalLog._id).catch(err => {
-                    console.log("Error fill up large withdrawal log:", largeWithdrawalLog._id, err);
-                });
-            } else {
-                return Promise.reject({message: "Save to proposal failed"}); // the only time here is reach are when there is bug
             }
         }
     );
