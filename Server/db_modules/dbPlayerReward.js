@@ -7797,6 +7797,8 @@ let dbPlayerReward = {
     getRewardRanking: function (platformId, promoCode, sortType, startTime, endTime, usePaging, requestPage, count) {
         let platformRecord;
         let rewardEventRecord;
+        let rewardRecord;
+        let statsObj;
         let isPaging = usePaging || true;
         let index = 0;
         let currentPage = requestPage || 1;
@@ -7853,7 +7855,7 @@ let dbPlayerReward = {
                             "$gte": new Date(startTime),
                             "$lte": new Date(endTime)
                         },
-                        "data.eventId": rewardEventData._id,
+                        "data.eventId": rewardEventRecord._id,
                         "mainType": "Reward",
                         "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                     };
@@ -7872,7 +7874,6 @@ let dbPlayerReward = {
 
                     let query = [];
                     if (isPaging) {
-                        console.log('isPaging zzz',isPaging);
                         query = [
                             {
                                 $match: matchQuery
@@ -7948,6 +7949,75 @@ let dbPlayerReward = {
 
                 } else {
                     return Promise.reject({name: "DataError", message: "Cannot find reward event data"});
+                }
+            }
+        ).then(
+            rewardData => {
+                let proms = [];
+                rewardRecord = rewardData && rewardData.length > 0 ? rewardData : [];
+
+                if (rewardData && rewardData.length > 0) {
+                    rewardData.forEach(
+                        reward => {
+                            if (reward) {
+                                let query = {
+                                    "data.playerObjId": ObjectId(reward._id),
+                                    "data.platformId": platformRecord._id,
+                                    "createTime": {
+                                        "$gte": new Date(startTime),
+                                        "$lte": new Date(endTime)
+                                    },
+                                    "data.eventId": rewardEventRecord._id,
+                                    "mainType": "Reward",
+                                    "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                                };
+
+                                proms.push(dbConfig.collection_proposal.findOne(query).sort({createTime: -1}).lean().then(
+                                    lastProposalData => {
+                                        let result = {};
+                                        if (lastProposalData) {
+                                            result.playerObjId = lastProposalData.data.playerObjId;
+                                            result.rewardAmount = lastProposalData.data.rewardAmount;
+                                            result.depositAmount = lastProposalData.data.actualAmount;
+                                            result.rewardTime = lastProposalData.createTime;
+                                            result.betTime = lastProposalData.data.betTime;
+                                            result.betAmount = lastProposalData.data.betAmount;
+                                            result.winAmount = lastProposalData.data.winAmount;
+                                            result.winTimes = lastProposalData.data.winTimes;
+                                        }
+                                        return result;
+                                    }
+                                ));
+                            }
+                        }
+                    );
+                }
+                return Promise.all(proms);
+            }
+        ).then(
+            lastRewardData => {
+                statsObj = {};
+                statsObj.totalCount = totalCount;
+                statsObj.totalPage = totalPage;
+                statsObj.currentPage = currentPage;
+                statsObj.totalReceiveCount = 0;
+                statsObj.totalAmount = 0;
+                statsObj.totalPlayerCount = totalCount;
+
+                if (rewardRecord && rewardRecord.length > 0 && lastRewardData && lastRewardData.length > 0) {
+                    rewardRecord.forEach(reward => {
+                        let indexNo = lastRewardData.findIndex(x => x && x.playerObjId && reward && reward._id && (x.playerObjId.toString() == reward._id.toString()));
+
+                        if (indexNo != -1) {
+                            delete lastRewardData[indexNo].playerObjId;
+                            reward.data = lastRewardData[indexNo];
+                        }
+
+                        delete reward._id;
+                        delete reward.createTime;
+                    });
+
+                    return {stats: statsObj, rewardRanking: rewardRecord};
                 }
             }
         )
