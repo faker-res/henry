@@ -9855,8 +9855,7 @@ define(['js/app'], function (myApp) {
                     break;
                 case 'FINANCIAL_REPORT':
                     vm.financialReport = {};
-                    vm.financialReport.displayMethod = 'sum';
-                    vm.isDisableSelectDisplayMethod = true;
+                    vm.enableDisplayMethodByPlatformList();
                     vm.dailyFinancialReportList = [];
                     vm.sumFinancialReportList = {};
                     vm.reportSearchTime = 0;
@@ -9876,8 +9875,7 @@ define(['js/app'], function (myApp) {
                                         vm.financialReport.displayMethod = '';
                                         vm.isDisableSelectDisplayMethod = false;
                                     } else if ($($multi).text().includes('/') || $($multi).text().includes('全选')) {
-                                        vm.financialReport.displayMethod = 'sum';
-                                        vm.isDisableSelectDisplayMethod = true;
+                                        vm.enableDisplayMethodByPlatformList();
                                     } else {
                                         let selectedPlatform = $($multi).text().split(',');
                                         let count = selectedPlatform.length;
@@ -9918,6 +9916,16 @@ define(['js/app'], function (myApp) {
                         });
                     });
                     break;
+            }
+
+            vm.enableDisplayMethodByPlatformList = function () {
+                if (vm.platformList.length == 1) {
+                    vm.financialReport.displayMethod = 'daily';
+                    vm.isDisableSelectDisplayMethod = false;
+                } else {
+                    vm.financialReport.displayMethod = 'sum';
+                    vm.isDisableSelectDisplayMethod = true;
+                }
             }
 
             // start of financial report's deposit group setting
