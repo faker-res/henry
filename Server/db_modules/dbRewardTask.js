@@ -15,7 +15,6 @@ var constRewardTaskStatus = require('./../const/constRewardTaskStatus');
 var constPlayerCreditChangeType = require('./../const/constPlayerCreditChangeType');
 const constPlayerSMSSetting = require("./../const/constPlayerSMSSetting");
 var constServerCode = require('../const/constServerCode');
-var constMainType = require('../const/constProposalMainType');
 var dbLogger = require("./../modules/dbLogger");
 var constSystemParam = require('../const/constSystemParam');
 var constShardKeys = require("../const/constShardKeys");
@@ -23,7 +22,6 @@ var constProposalType = require("../const/constProposalType");
 var dbUtil = require("../modules/dbutility.js");
 var errorUtils = require("../modules/errorUtils.js");
 var cpmsAPI = require("../externalAPI/cpmsAPI");
-var SettlementBalancer = require('../settlementModule/settlementBalancer');
 var dbProposal = require('../db_modules/dbProposal');
 var dbPlayerInfo = require('../db_modules/dbPlayerInfo');
 var dbGameProvider = require('../db_modules/dbGameProvider');
@@ -35,6 +33,27 @@ const dbRewardUtil = require("../db_common/dbRewardUtility");
 const dbRewardTaskGroup = require('../db_modules/dbRewardTaskGroup');
 
 const dbRewardTask = {
+    /**
+     * Create a new reward
+     * @param {Object} rewardData - The data of the reward. Refer to reward schema.
+     * @param adminId
+     * @param adminName
+     */
+    manualCreateReward: (rewardData, adminId, adminName) => {
+        return dbProposal.createProposalWithTypeNameWithProcessInfo(
+            rewardData.platformId,
+            constProposalType.ADD_PLAYER_REWARD_TASK,
+            {
+                creator: {
+                    type: 'admin',
+                    name: adminName,
+                    id: adminId
+                },
+                data: rewardData
+            }
+        );
+    },
+
     /**
      *
      * @param rewardData
