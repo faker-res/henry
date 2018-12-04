@@ -48,7 +48,7 @@ let dbPlayerLevelInfo = {
      * @param {String}  - ObjectId of the playerLevel
      */
     deletePlayerLevel: function (playerLevelObjId) {
-        return dbconfig.collection_playerLevel.remove({_id: playerLevelObjId});
+        return dbconfig.collection_playerLevel.findOneAndRemove({_id: playerLevelObjId});
     },
 
     startPlatformPlayerLevelSettlement: (platformObjId, upOrDown) => {
