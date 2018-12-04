@@ -31,6 +31,12 @@ function socketActionRewardTask(socketIO, socket) {
             socketUtil.emitter(self.socket, dbRewardTask.getPlayerCurRewardTask, [data.playerId], actionName, isValidData);
         },
 
+        createPlayerRewardTask: function createPlayerRewardTask(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId && data.platformId && data.currentAmount);
+            socketUtil.emitter(self.socket, dbRewardTask.manualCreateReward, [data, getAdminId(), getAdminName()], actionName, isValidData);
+        },
+
         getConsumeRebateAmount: function getConsumeRebateAmount(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId);

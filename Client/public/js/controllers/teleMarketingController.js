@@ -5615,47 +5615,10 @@ define(['js/app'], function (myApp) {
             } else if (type == 'remove') {
 
                 // delete immediately the constructed promoCodeType before saving into dB
-                if (collection[data]._id == null) {
+                if (collection[data]) {
                     collection.splice(data, 1);
                 }
-                else {
 
-                    let sendData = {
-                        platformObjId: vm.selectedPlatform.id,
-                        promoCodeTypeObjId: collection[data]._id
-                    };
-
-                    // check the availability of the promocode type, can only remove if it is expired
-                    socketService.$socket($scope.AppSocket, 'checkPromoCodeTypeAvailability', sendData, function (result) {
-                        if (result) {
-                            if (!result.data.deleteFlag && !result.data.delete) {
-                                socketService.showErrorMessage($translate("The promoCode Type is still valid"));
-                            }
-                            else if (!result.data.deleteFlag && result.data.delete) {
-                                // delete the PromoCodeType from the dB (generated promoCodeType but not using)
-                                vm.removeSMSContent.push({
-                                    smsContent: collection.splice(data, 1),
-                                    isDelete: true
-                                });
-                                $scope.safeApply();
-                            }
-                            else if (result.data.deleteFlag && !result.data.delete) {
-                                // change the deleteFlag status in dB (as it had been used before)
-                                vm.removeSMSContent.push({
-                                    smsContent: collection.splice(data, 1),
-                                    updateIsDeletedFlag: true
-                                });
-                                $scope.safeApply();
-                            }
-                            else {
-                            }
-
-                        }
-                        else {
-                            return Q.reject("data was empty: " + result);
-                        }
-                    });
-                }
             }
         };
 
@@ -6029,6 +5992,10 @@ define(['js/app'], function (myApp) {
         }
 
 
+        vm.cancelEditTsAnalyticsPhoneList = function () {
+            vm.tsAnalyticsPhoneList = JSON.parse(JSON.stringify(vm.selectedTsAnalyticsPhoneList));
+        }
+
         vm.initAnalyticsFilterAndImportDXSystem = function (rowData) {
             vm.isShowNewListModal = true;
             vm.tsNewListEnableSubmit = true;
@@ -6082,11 +6049,31 @@ define(['js/app'], function (myApp) {
                             data.data.forEach(tsImportRecord => {
                                 if (tsImportRecord.description) {
                                     vm.tsAnalyticsPhoneList.time_operator_description.push(tsImportRecord);
+                                    vm.selectedTsAnalyticsPhoneList =JSON.parse(JSON.stringify(vm.tsAnalyticsPhoneList));
                                 }
                             });
                         });
                     }
                 })
+
+                vm.tsAnalyticsPhoneListMaxCaller = null; // reset max caller count
+                if (rowData.status != vm.constTsPhoneListStatus.PRE_DISTRIBUTION && rowData.status != vm.constTsPhoneListStatus.NOT_ENOUGH_CALLER) {
+                    let sendData = {
+                        query: {
+                            platform: vm.selectedPlatform.id,
+                            tsPhoneList: rowData._id,
+                            status: 1
+                        }
+                    }
+                    socketService.$socket($scope.AppSocket, 'getTsAssigneesCount', sendData, function (data) {
+                        if (data && data.data) {
+                            $scope.$evalAsync(() => {
+                                vm.tsAnalyticsPhoneListMaxCaller = data.data;
+                            });
+                        }
+                    })
+                }
+
             });
 
             vm.editTsNewList = function () {
@@ -6109,7 +6096,9 @@ define(['js/app'], function (myApp) {
                     }
                 };
 
-                socketService.$socket($scope.AppSocket, 'updateTsPhoneList', sendData, function () {})
+                socketService.$socket($scope.AppSocket, 'updateTsPhoneList', sendData, function () {
+                    vm.filterPhoneListManagement(true);
+                })
             }
 
 

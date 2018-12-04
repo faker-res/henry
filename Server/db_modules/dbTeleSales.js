@@ -559,7 +559,76 @@ let dbTeleSales = {
     },
 
     updateTsPhoneList: function (query, updateData) {
-        return dbconfig.collection_tsPhoneList.findOneAndUpdate(query, updateData).lean()
+        return dbconfig.collection_tsPhoneList.findOneAndUpdate(query, updateData).lean().then(
+            tsPhoneOldData => {
+                if (tsPhoneOldData) {
+                    let tsPhoneQuery = {
+                        tsPhoneList: tsPhoneOldData._id
+                    }
+                    if (tsPhoneOldData.dangerZoneList && tsPhoneOldData.dangerZoneList.length && updateData.dangerZoneList && !updateData.dangerZoneList.length) {
+                        // delete danger zone in tsPhone
+                        dbconfig.collection_tsDistributedPhone.update(
+                            tsPhoneQuery, {isInDangerZone: false}, {multi: true}).catch(errorUtils.reportError);
+                    } else if (!(tsPhoneOldData.dangerZoneList && tsPhoneOldData.dangerZoneList.length) && updateData.dangerZoneList && updateData.dangerZoneList.length) {
+                        // add danger zone in tsPhone
+                        tsPhoneQuery.$or = [];
+                        for (let i = 0; i < i < updateData.dangerZoneList.length; i++) {
+                            if (updateData.dangerZoneList[i].city && updateData.dangerZoneList[i].province) {
+                                tsPhoneQuery.$or.push({city: updateData.dangerZoneList[i].city, province: updateData.dangerZoneList[i].province})
+                            }
+                        }
+                        if (tsPhoneQuery.$or.length) {
+                            dbconfig.collection_tsDistributedPhone.update(
+                                tsPhoneQuery, {isInDangerZone: true}, {multi: true}).catch(errorUtils.reportError);
+                        }
+                    } else if (tsPhoneOldData.dangerZoneList && tsPhoneOldData.dangerZoneList.length && updateData.dangerZoneList && updateData.dangerZoneList.length) {
+                        let addedZone = [];
+                        let deletedZone = [];
+                        let compareCity;
+                        let compareProvince;
+                        function findDangerZone (item) {
+                            return item.city == compareCity && item.province == compareProvince;
+                        }
+                        updateData.dangerZoneList.forEach(inputZone => {
+                            compareCity = inputZone.city;
+                            compareProvince = inputZone.province;
+                            if (compareCity && compareProvince && !tsPhoneOldData.dangerZoneList.find(findDangerZone)){
+                                addedZone.push({city: compareCity, province: compareProvince});
+                            }
+                        });
+
+                        compareCity = "";
+                        compareProvince = "";
+
+                        tsPhoneOldData.dangerZoneList.forEach(oriZone => {
+                            compareCity = oriZone.city;
+                            compareProvince = oriZone.province;
+                            if (compareCity && compareProvince && !updateData.dangerZoneList.find(findDangerZone)){
+                                deletedZone.push({city: compareCity, province: compareProvince});
+                            }
+                        });
+
+                        if (addedZone.length) {
+                            dbconfig.collection_tsDistributedPhone.update(
+                                {
+                                    tsPhoneList: tsPhoneOldData._id,
+                                    $or: addedZone
+                                }, {isInDangerZone: true}, {multi: true}).catch(errorUtils.reportError);
+                        }
+                        if (deletedZone.length) {
+                            dbconfig.collection_tsDistributedPhone.update(
+                                {
+                                    tsPhoneList: tsPhoneOldData._id,
+                                    $or: deletedZone
+                                }, {isInDangerZone: false}, {multi: true}).catch(errorUtils.reportError);
+                        }
+
+                    }
+
+                }
+                return tsPhoneOldData;
+            }
+        )
     },
 
     getTsAssignees: function(tsPhoneListObjId){
@@ -568,6 +637,10 @@ let dbTeleSales = {
         };
 
         return dbconfig.collection_tsAssignee.find(query).then(assignees=>assignees);
+    },
+
+    getTsAssigneesCount: function(query){
+        return dbconfig.collection_tsAssignee.find(query).count();
     },
 
     updateTsAssignees: (platformObjId, tsPhoneListObjId, assignees) => {

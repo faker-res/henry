@@ -128,6 +128,12 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.getTsAssignees, [data.tsPhoneListObjId], actionName, isValidData);
         },
 
+        getTsAssigneesCount: function getTsAssigneesCount(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query);
+            socketUtil.emitter(self.socket, dbTeleSales.getTsAssigneesCount, [data.query], actionName, isValidData);
+        },
+
         updateTsAssignees: function updateTsAssignees(data){
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.assignees && data.assignees.length > 0);

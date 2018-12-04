@@ -71,7 +71,7 @@
                                             tr
                                                 td {{'Assign To N Caller For Each Unregistered Phone Number (Required)' | translate}}
                                                 td
-                                                    input.form-control(type='number', min=0, ng-model='vm.tsAnalyticsPhoneList.callerCycleCount' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsPhoneListEdit')
+                                                    input.form-control(type='number', min=0, max='{{vm.tsAnalyticsPhoneListMaxCaller}}', ng-model='vm.tsAnalyticsPhoneList.callerCycleCount' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsPhoneListEdit')
                                             tr
                                                 td {{'Daily Distribute Task Count Equally Divide For Each Caller (Required)' | translate}}
                                                 td
@@ -137,7 +137,7 @@
                 button.btn.btn-danger.common-button(data-dismiss='modal' ng-show="vm.analyticsPhoneListEdit")
                     i.fa.fa-ban
                     text {{"CANCEL" | translate}}
-                button.btn.btn-warning.common-button(ng-click = "vm.analyticsPhoneListEdit = true"  ng-show="!vm.analyticsPhoneListEdit")
+                button.btn.btn-warning.common-button(ng-click = "vm.analyticsPhoneListEdit = true;vm.cancelEditTsAnalyticsPhoneList()"  ng-show="!vm.analyticsPhoneListEdit")
                     i.fa.fa-ban
                     text {{"CANCEL" | translate}}
                 button.btn.btn-primary.common-button(ng-click="vm.tsAnalyticsPhoneListEdit()" ng-show="vm.analyticsPhoneListEdit")
