@@ -22201,7 +22201,6 @@ function checkBeforeApplyingdoubledBonus(checkList, rewardTypeWithProposalList, 
         }
     }
 
-
     let matchPlayerId = false;
     let matchIPAddress = false;
     let matchPhoneNum = false;
@@ -22266,7 +22265,6 @@ function checkBeforeApplyingdoubledBonus(checkList, rewardTypeWithProposalList, 
             });
         }
     }
-
     return true;
 }
 
@@ -22312,7 +22310,6 @@ function updateOrSaveBonusDoubledRewardGroupRecord(playerData, eventData, select
 
 function transferOutFromSelectedGameProvider(selectedProviderList, type, playerData, eventData, intervalTime){
     if (selectedProviderList && selectedProviderList.length){
-
         let playerCreditInGameProvider = [];
         let transferProviderId = [];
         let checkCreditProm = Promise.resolve();
@@ -22418,10 +22415,8 @@ function transferOutFromSelectedGameProvider(selectedProviderList, type, playerD
     }
 }
 
-
 function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, adminInfo, rewardData, isFrontEnd) {
     rewardData = rewardData || {};
-
     let type;  // type: 1- apply; 2- end this session to get reward bonus
     let selectedProviderList;
     let intervalTime;
@@ -22455,7 +22450,6 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
     
     if (type && type == 1){
         // check the requirement when applying the reward
-        
         //check valid time for reward event
         let curTime = new Date();
         if ((eventData.validStartTime && curTime.getTime() < eventData.validStartTime.getTime()) ||
