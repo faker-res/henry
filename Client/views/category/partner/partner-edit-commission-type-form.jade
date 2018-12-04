@@ -13,22 +13,22 @@ form(name="form_edit_partner_commission_type", novalidate)
                         text {{newPartner.partnerName}}
                     td
                         label.radio-inline {{'DAILY_BONUS_AMOUNT' | translate}}
-                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='1' ng-click="openCommissionRecord('DAILY_BONUS_AMOUNT', vm.isOneSelectedPartner()._id);")
+                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='1' ng-click="switchCommissionTab('DAILY_BONUS_AMOUNT', newPartner.commissionType);")
                     td
                         label.radio-inline {{'WEEKLY_BONUS_AMOUNT' | translate}}
-                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='2' ng-click="openCommissionRecord('WEEKLY_BONUS_AMOUNT', vm.isOneSelectedPartner()._id);")
+                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='2' ng-click="switchCommissionTab('WEEKLY_BONUS_AMOUNT', newPartner.commissionType);")
                     td
                         label.radio-inline {{'BIWEEKLY_BONUS_AMOUNT' | translate}}
-                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='3' ng-click="openCommissionRecord('BIWEEKLY_BONUS_AMOUNT', vm.isOneSelectedPartner()._id);")
+                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='3' ng-click="switchCommissionTab('BIWEEKLY_BONUS_AMOUNT', newPartner.commissionType);")
                     td
                         label.radio-inline {{'MONTHLY_BONUS_AMOUNT' | translate}}
-                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='4' ng-click="openCommissionRecord('MONTHLY_BONUS_AMOUNT', vm.isOneSelectedPartner()._id);")
+                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='4' ng-click="switchCommissionTab('MONTHLY_BONUS_AMOUNT', newPartner.commissionType);")
                     td
                         label.radio-inline {{'WEEKLY_CONSUMPTION' | translate}}
-                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='5' ng-click="openCommissionRecord('WEEKLY_CONSUMPTION', vm.isOneSelectedPartner()._id);")
+                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='5' ng-click="switchCommissionTab('WEEKLY_CONSUMPTION', newPartner.commissionType);")
                     td
                         label.radio-inline {{'CLOSED_COMMISSION' | translate}}
-                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='0' ng-click="openCommissionRecord('CLOSED', vm.isOneSelectedPartner()._id);")
+                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='0' ng-click="switchCommissionTab('CLOSED', newPartner.commissionType);")
         br
     div(ng-if="partnerCommission.isCustomized || commissionRateConfig.isCustomized")
         .col-md-12.panel.panel-body.panel-primary

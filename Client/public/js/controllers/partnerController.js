@@ -6960,7 +6960,7 @@ define(['js/app'], function (myApp) {
                             commissionSettingIsEditAll: vm.getCommissionSettingIsEditAll,
                             commissionSettingCancelRow: vm.commissionSettingCancelRow,
                             selectedCommissionTab: vm.selectedCommissionTab,
-                            openCommissionRecord: vm.openCommissionRecord,
+                            switchCommissionTab: vm.switchCommissionTab,
                             customizeCommissionRate: vm.customizeCommissionRate,
                             customizeCommissionRateAll: vm.customizeCommissionRateAll,
                             isDetectChangeCustomizeCommissionRate: vm.isDetectChangeCustomizeCommissionRate,
@@ -10834,8 +10834,14 @@ define(['js/app'], function (myApp) {
                 }
             }
 
-            vm.openCommissionRecord = function(tab, partnerObjId){
-                partnerObjId = vm.isOneSelectedPartner()._id;
+            vm.switchCommissionTab = function(tab, commissionType ){
+                let partnerObjId;
+                let partner = vm.isOneSelectedPartner();
+                let partnerCommissionType = (partner && partner.commissionType) ? partner.commissionType : null;
+                if(commissionType == partnerCommissionType){
+                    // only load the partner commission setting, if it match partner commissionType
+                    partnerObjId = partner._id;
+                }
                 vm.selectedCommissionTab(tab, partnerObjId);
             }
 
