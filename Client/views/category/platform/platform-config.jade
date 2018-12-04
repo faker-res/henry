@@ -498,6 +498,10 @@
 
                             tr(ng-if='vm.configTableEdit')
                                 td
+                                    select.form-control(ng-model='vm.tempCallRequestEntry.status', ng-disabled='!vm.configTableEdit')
+                                        option(ng-value="zeroOne.one") {{"Open" | translate}}
+                                        option(ng-value="zeroOne.zero") {{"Closed" | translate}}
+                                td
                                     input.form-control(type='number', ng-model='vm.tempCallRequestEntry.lineId', ng-disabled='!vm.configTableEdit')
                                 td
                                     input.form-control(type='text', ng-model='vm.tempCallRequestEntry.lineName', ng-disabled='!vm.configTableEdit')
