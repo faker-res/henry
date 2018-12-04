@@ -725,6 +725,34 @@ let dbTeleSales = {
             let assignees = data[1];
 
             if(assignees && assignees.length > 0 && phoneList) {
+
+                //count total valid player
+                dbconfig.collection_partnerLevelConfig.findOne({platform: platformObjId}).lean().then(
+                    partnerLevelConfigData => {
+                        if (!partnerLevelConfigData) {
+                            return Promise.reject({name: "DataError", message: "Cannot find active player"});
+                        }
+                        let promArr = [];
+                        assignees.forEach(assignee => {
+                        let updateProm = dbconfig.collection_players.find({
+                            tsPhoneList: phoneList._id,
+                            tsAssignee: assignee.admin,
+                            platform: platformObjId,
+                            topUpTimes: {$gte: partnerLevelConfigData.validPlayerTopUpTimes},
+                            topUpSum: {$gte: partnerLevelConfigData.validPlayerTopUpAmount},
+                            consumptionTimes: {$gte: partnerLevelConfigData.validPlayerConsumptionTimes},
+                            consumptionSum: {$gte: partnerLevelConfigData.validPlayerConsumptionAmount},
+                        }).count().then(
+                            playerCount => {
+                                return dbconfig.collection_tsAssignee.update({_id: assignee._id}, {effectivePlayerCount: playerCount});
+                            }
+                        );
+                        promArr.push(updateProm);
+                        });
+                        return Promise.all(promArr);
+                    }
+                ).catch(errorUtils.reportError);
+
                 let totalDistributed = phoneList.totalDistributed;
                 let totalUsed = phoneList.totalUsed;
                 let totalSuccess = phoneList.totalSuccess;

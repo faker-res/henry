@@ -1384,6 +1384,34 @@ let dbDXMission = {
         return Promise.all([phoneListResult, totalPhoneListResult]).then(
             result => {
                 if(result && result.length > 0){
+                    // count total valid player
+                    if (result[0] && result[0].length) {
+                        dbconfig.collection_partnerLevelConfig.findOne({platform: platform}).lean().then(
+                            partnerLevelConfigData => {
+                                if (!partnerLevelConfigData) {
+                                    return Promise.reject({name: "DataError", message: "Cannot find active player"});
+                                }
+                                let promArr = [];
+                                result[0].forEach(phoneList => {
+                                    let updateProm = dbconfig.collection_players.find({
+                                        tsPhoneList: phoneList._id,
+                                        platform: platform,
+                                        topUpTimes: {$gte: partnerLevelConfigData.validPlayerTopUpTimes},
+                                        topUpSum: {$gte: partnerLevelConfigData.validPlayerTopUpAmount},
+                                        consumptionTimes: {$gte: partnerLevelConfigData.validPlayerConsumptionTimes},
+                                        consumptionSum: {$gte: partnerLevelConfigData.validPlayerConsumptionAmount},
+                                    }).count().then(
+                                        playerCount => {
+                                            return dbconfig.collection_tsPhoneList.update({_id: phoneList._id}, {totalValidPlayer: playerCount});
+                                        }
+                                    );
+                                    promArr.push(updateProm);
+                                });
+                                return Promise.all(promArr);
+                            }
+                        ).catch(errorUtils.reportError);
+                    }
+
                     return {data: result[0], size: result[1]};
                 }
             }
