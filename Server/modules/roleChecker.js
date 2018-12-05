@@ -310,7 +310,6 @@ var roleChecker = {
                 PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement', 'getYesterdayConsumptionReturnSGTime'],
                 PlayerLevelSettlement: ['startPlatformPlayerLevelSettlement'],
                 PlayerConsecutiveConsumptionSettlement: ['startPlayerConsecutiveConsumptionSettlement'],
-                FrontendConfiguration: [],
                 BackstageSettings: [],
                 PlayerDisplayData: [],
                 PartnerDisplayData: [],
@@ -566,6 +565,9 @@ var roleChecker = {
             "batchPermit": {
                 Read: [],
                 Update: ['updateBatchPlayerCredibilityRemark', 'updateBatchPlayerPermission', 'updateBatchPlayerForbidRewardEvents', 'updateBatchPlayerForbidProviders', 'updateBatchPlayerForbidPaymentType', 'updateBatchPlayerForbidRewardPointsEvent'],
+            },
+            "FrontendConfiguration": {
+                Read: []
             }
         },
         Report: {
@@ -808,16 +810,16 @@ var roleChecker = {
                 Delete: ['deleteRolesById'],
                 Update: ['updateRole']
             },
-            Platform: {
+            PlatformSetting: {
                 Read: ['getPlatform', 'getAllPlatforms'],
-                Move: ['addPlatformsToDepartmentById', 'removePlatformsFromDepartmentById'],
-                Create: ['createPlatform'],
+                //Move: ['addPlatformsToDepartmentById', 'removePlatformsFromDepartmentById'],
+                //Create: ['createPlatform'],
                 Edit: ['updatePlatform'],
-                Delete: ['deletePlatformById']
+                //Delete: ['deletePlatformById']
             },
-            PlayerMail: {
-                Read: []
-            }
+            // PlayerMail: {
+            //     Read: []
+            // }
         },
         QualityInspection: {
             QualityInsectionSetting: {
