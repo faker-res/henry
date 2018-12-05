@@ -19,11 +19,11 @@ let tsDistributedPhoneListSchema = new Schema({
     // number of registration
     registrationCount: {type: Number, default: 0},
     // number of single top up
-    singleTopUpCount: {type: Number, default: 0},
+    // singleTopUpCount: {type: Number, default: 0},
     // number of player who top up multiple times that registered under this list
-    multipleTopUpCount: {type: Number, default: 0},
+    // multipleTopUpCount: {type: Number, default: 0},
     // effective player registered under this list
-    effectivePlayerCount: {type: Number, default: 0},
+    // effectivePlayerCount: {type: Number, default: 0},
 
 });
 //record is unique by name and platform

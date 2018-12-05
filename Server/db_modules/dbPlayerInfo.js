@@ -4138,6 +4138,25 @@ let dbPlayerInfo = {
         ).then(
             data => {
                 if (data) {
+                    if (data.tsPhoneList && data.tsAssignee && data.topUpTimes && data.topUpTimes <= 2) {
+                        let updateTsPhoneListObj = {};
+                        let updateTsAssigneeObj = {};
+                        if (data.topUpTimes == 1) {
+                            updateTsPhoneListObj.totalTopUp = 1;
+                            updateTsAssigneeObj.singleTopUpCount = 1;
+                        } else {
+                            updateTsPhoneListObj.totalMultipleTopUp = 1;
+                            updateTsAssigneeObj.multipleTopUpCount = 1;
+                        }
+                        dbconfig.collection_tsAssignee.findOneAndUpdate({
+                            platform: data.platform,
+                            admin: data.tsAssignee,
+                            tsPhoneList: data.tsPhoneList
+                        }, {$inc: updateTsAssigneeObj}).lean().catch(errorUtils.reportError);
+
+                    dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: data.tsPhoneList}, {$inc: updateTsPhoneListObj}).lean().catch(errorUtils.reportError);
+                    }
+                    // update tsPhoneList
                     // Async - Update financial points
                     dbPlatform.changePlatformFinancialPoints(data.platform, proposalData.data.amount).then(
                         platformData => {

@@ -224,7 +224,7 @@ var playerSchema = new Schema({
     consumptionSum: {type: Number, min: 0, default: 0},
     //consumption sum for each game type
     consumptionDetail: {type: JSON, default: {}},
-    //top up times
+    //consumption up times
     consumptionTimes: {type: Number, min: 0, default: 0},
     // Credit Wallet (For Provider Group Lock)
     creditWallet: [{
@@ -340,6 +340,10 @@ var playerSchema = new Schema({
     deviceId: {type: String},
     // tsPhoneObjId
     tsPhone: {type: Schema.ObjectId, ref: 'tsPhone', index: true} ,
+    // tsPhoneListObjId
+    tsPhoneList: {type: Schema.Types.ObjectId, ref: 'tsPhoneList', index: true},
+    //adminObjId
+    tsAssignee: {type: Schema.Types.ObjectId, ref: 'adminInfo', index: true},
     // QnA security question total wrong count - reset when success
     qnaWrongCount: {
         forgotPassword: {type: Number, default: 0},
