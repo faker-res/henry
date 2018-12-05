@@ -194,6 +194,8 @@ const dbProposalUtility = {
                 proposalType => {
                     if(proposalType && proposalType._id){
                         return dbConfig.collection_proposal.find({type: proposalType._id, 'data.playerObjId': playerObj._id}).limit(1).sort({_id: -1});
+                    }else{
+                        return Promise.resolve(true);
                     }
                 }
             ).then(
