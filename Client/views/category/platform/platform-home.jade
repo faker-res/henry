@@ -149,7 +149,7 @@
                             a.common-tab(data-toggle="tab", href="#ClientAutoQnA", ng-click="vm.loadTab('ClientQnA');vm.buildClientQnATypeList();")
                                 .fa.fa-file-text-o.margin-right-5
                                 text.span {{"ClientQnA" | translate}}
-                        li(ng-show="checkViewPermission('Platform', 'PlatformSetting', 'FrontendConfiguration')")
+                        li(ng-show="checkViewPermission('Platform', 'FrontendConfiguration', 'Read')")
                             a.common-tab(data-toggle="tab", href="#frontendConfiguration", ng-click="vm.loadTab('FrontendConfiguration');")
                                 .fa.fa-file-text-o.margin-right-5
                                 text.span {{"FrontendConfiguration" | translate}}

@@ -310,7 +310,6 @@ var roleChecker = {
                 PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement', 'getYesterdayConsumptionReturnSGTime'],
                 PlayerLevelSettlement: ['startPlatformPlayerLevelSettlement'],
                 PlayerConsecutiveConsumptionSettlement: ['startPlayerConsecutiveConsumptionSettlement'],
-                FrontendConfiguration: [],
                 BackstageSettings: [],
                 PlayerDisplayData: [],
                 PartnerDisplayData: [],
@@ -566,6 +565,9 @@ var roleChecker = {
             "batchPermit": {
                 Read: [],
                 Update: ['updateBatchPlayerCredibilityRemark', 'updateBatchPlayerPermission', 'updateBatchPlayerForbidRewardEvents', 'updateBatchPlayerForbidProviders', 'updateBatchPlayerForbidPaymentType', 'updateBatchPlayerForbidRewardPointsEvent'],
+            },
+            "FrontendConfiguration": {
+                Read: []
             }
         },
         Report: {
