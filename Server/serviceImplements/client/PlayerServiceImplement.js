@@ -1298,7 +1298,7 @@ let PlayerServiceImplement = function () {
 
     this.callBackToUser.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data.platformId && data.randomNumber && data.captcha);
-        let ipAddress = conn.upgradeReq.connection.remoteAddress || '';
+        let ipAddress = dbUtility.getIpAddress(conn);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlatform.callBackToUser, [data.platformId, data.phoneNumber, data.randomNumber, data.captcha, data.lineId, conn.playerId, ipAddress], isValidData, false, false, true);
     };
 
