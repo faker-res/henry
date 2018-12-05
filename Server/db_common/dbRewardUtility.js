@@ -685,6 +685,8 @@ const dbRewardUtility = {
                     }
                     return dbConfig.collection_proposal.findOne(query).sort({createTime: -1}).lean();
                 }
+
+                return false;
             }
         ).then(
             intentionProp => {

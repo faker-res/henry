@@ -24,6 +24,8 @@ let dbPromoCode = {
 
 
                 return dbconfig.collection_promoCode.find(promoCodeQuery).lean();
+            }else{
+                return Promise.reject({name: "DataError", errorMessage: "Invalid player data"});
             }
         }).then(promoCodeData => {
             if (!promoCodeData || !promoCodeData.length) {
@@ -77,6 +79,8 @@ let dbPromoCode = {
                 };
 
                 return dbconfig.collection_openPromoCodeTemplate.find(openPromoCodeQuery).lean();
+            }else{
+                return Promise.reject({name: "DataError", errorMessage: "Invalid player data"});
             }
         }).then(promoCodeData => {
             if (!promoCodeData || !promoCodeData.length) {
@@ -153,6 +157,12 @@ let dbPromoCode = {
                     else{
                         return Promise.reject({name: "DataError", errorMessage: "Proposal Type is not found"});
                     }
+                });
+            }else{
+                return Promise.reject({
+                    status: constServerCode.NO_PROMO_CODE_MATCH,
+                    name: "DataError",
+                    errorMessage: "Wrong promo code has entered"
                 });
             }
         }).then(proposalData => {
