@@ -1718,10 +1718,10 @@ div(name="system-settlement", ng-if="vm.selectedPlatformDetailTab == 'system-set
                 i.fa.fa-circle.margin-right-5(style='font-size:18px;vertical-align: middle;')
 
         div(style='display: block;margin-top: 20px;', ng-show='vm.selectedPlatform.data.settlementStatus=="DailyError"')
-            button.btn.common-button.btn-primary(ng-if='checkViewPermission("Platform","Platform", "DailySettlement")',ng-disabled="!vm.selectedPlatform && vm.platformSettlement.processing", ng-click='vm.dailySettlement(null, true)')
+            button.btn.common-button.btn-primary(ng-if='checkViewPermission("Platform","PlatformSetting", "DailySettlement")',ng-disabled="!vm.selectedPlatform && vm.platformSettlement.processing", ng-click='vm.dailySettlement(null, true)')
                 text {{"Retry Daily Settlement" | translate}}
         div(style='display: block;margin-top: 20px;', ng-show='vm.selectedPlatform.data.settlementStatus=="WeeklyError"')
-            button.btn.common-button.btn-primary(ng-if='checkViewPermission("Platform","Platform", "WeeklySettlement")',ng-disabled="!vm.selectedPlatform && vm.platformSettlement.processing", ng-click='vm.weeklySettlement(null, true)')
+            button.btn.common-button.btn-primary(ng-if='checkViewPermission("Platform","PlatformSetting", "WeeklySettlement")',ng-disabled="!vm.selectedPlatform && vm.platformSettlement.processing", ng-click='vm.weeklySettlement(null, true)')
                 text {{"Retry Weekly Settlement" | translate}}
         i.fa.fa-spinner.fa-spin(ng-if='vm.platformSettlement.processing')
 

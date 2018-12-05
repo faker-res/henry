@@ -240,11 +240,11 @@
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled="vm.csDepartmentError || vm.qiDepartmentError", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='edit'", ng-click="vm.updatePlatformAction();vm.setPlatformFooter(null)") {{"CONFIRM" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction|| vm.selectedPlatformDetailTab == 'frontend-module-setting' ", ng-click="vm.setPlatformFooter(null);vm.cancelUpdatePlatformConfig(); vm.editFrontEndDisplay = false") {{"CANCEL" | translate}}
 
-                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlayerConsecutiveConsumptionSettlement($event);vm.setPlatformFooter(null)")
+                //button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlayerConsecutiveConsumptionSettlement($event);vm.setPlatformFooter(null)")
                     text {{"Player Consecutive Consumption Settlement" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlayerLevelSettlement($event);vm.setPlatformFooter(null)")
                     text {{"Player Level Settlement" | translate}}
-                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlatformPlayerConsumptionIncentiveSettlement($event);vm.setPlatformFooter(null)")
+                //button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlatformPlayerConsumptionIncentiveSettlement($event);vm.setPlatformFooter(null)")
                     text {{"Player Consumption Incentive Settlement" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlatformPartnerCommissionSettlement($event);vm.setPlatformFooter(null)")
                     text {{"Partner Commission Settlement" | translate}}

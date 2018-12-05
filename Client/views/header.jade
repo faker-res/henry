@@ -2,7 +2,7 @@ nav.navbar.navbar-inverse.navbar-static-top(role='navigation', style='margin-bot
     .navbar-header.nav-header.visible-lg(style='min-width:150px;')
         div.inlineBlk(style="border-radius: 9px;border: 1px;color:white;margin-top:0; background-color:rgba(0,0,0,0.5); min-width: 150px; margin-bottom: 0px")
             img(async=on ng-if="companyLogo" ng-src="{{companyLogo}}" width="100px" height="100px" style="position:absolute;left:20px;top:10px;z-index:-1;")
-            div.inlineBlk(ng-if='checkViewPermission("Platform","Platform", "Read")', data-toggle="modal", data-target='#modalUpdatePlatform', style='width:130px;white-space:nowrap;overflow:hidden;margin-bottom:0px')
+            div.inlineBlk(ng-if='checkViewPermission("Platform","PlatformSetting", "Read")', data-toggle="modal", data-target='#modalUpdatePlatform', style='width:130px;white-space:nowrap;overflow:hidden;margin-bottom:0px')
                 .fa.fa-2x(style='margin:5px 10px;')
                     img( async=on src="images/icon/websiteBusiness_hover.png" width="30" )
                 #selectedPlatformNodeTitle.inlineBlk.text.shadow(style='font-size:20px; overflow: visible; text-overflow: clip; vertical-align: middle;' ng-click='vm.initPlatform(false);vm.showPlatformDetailTab(null);vm.setPlatformFooter(null);vm.getAllDepartmentData();vm.prepareSettlementHistory();vm.populatePlatformData();') {{curPlatformText}}
