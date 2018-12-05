@@ -1081,3 +1081,120 @@ var param107Cursor = db.rewardParam.find({"name": type107});
 var param107 = param107Cursor.next();
 
 db.rewardType.update({"name": type107}, {$set: {params: param107._id, des: type107, isGrouped: true}}, {upsert: true});
+
+// 盈利翻倍奖（组）
+var type108 = "PlayerBonusDoubledRewardGroup";
+db.rewardParam.update({
+    "name": type108
+}, {
+    $set: {
+        condition: {
+            generalCond: Object.assign({}, generalCond, {
+                applyType: {
+                    index: 2,
+                    type: "select",
+                    des: "Reward apply type",
+                    options: "rewardApplyType",
+                    disabled: true,
+                    value: "1",
+                    detail: "Reward settlement will be triggered when there is a transferring-out process, after applying this reward"
+                },
+            }),
+            // topUpCond: topUpCond,
+            periodCond: periodCond,
+            consumptionCond: consumptionCond,
+            // dynamicCond: dynamicCond,
+            customCond: {
+                checkSameIP: {
+                    index: 43,
+                    type: "checkbox",
+                    des: "Check if this IP address has received the reward"
+                },
+                checkSamePhoneNumber: {
+                    index: 44,
+                    type: "checkbox",
+                    des: "Check if this phone number has received the reward"
+                },
+                checkSameDeviceId: {
+                    index: 45,
+                    type: "checkbox",
+                    des: "Check if this portable device has received the reward",
+                    detail: "Check the IMEI value/unique code of each handset when applying through APP"
+                },
+                defineRewardBonusCount: {
+                    index: 46,
+                    type: "select",
+                    options: "bonusDoubledDefination",
+                    des: "Define bonus-doubled",
+                    detail: "For instance: 100$ is transferred in and bet, and 110 is gained; the calculation: +110/100 = 1.1, which is the multiplier",
+                    value: "1",
+                },
+                quantityLimitInInterval: {
+                    index: 47,
+                    type: "number",
+                    des: "The quantity limit of the reward application for the interval",
+                    detail1: "1. A complete tranferring-in-out process considered as one consumption",
+                    detail2: "2. If consecutive transferring-in process happened, the reward settlement will be triggered",
+                    detail3: "3. A new cycle is begin if a player applies this reward after losing out all his credit (without transferring-out)"
+                },
+                gameProvider: {
+                    index: 48,
+                    type: "multiSelect",
+                    des: "Game Providers in the bonus-doubled reward event",
+                    options: "gameProviders",
+                    detail: "(Multi-selection) Backstage will provide selections for the front-end application"
+                },
+                rewardBonusModal: {
+                    index: 49,
+                    type: "select",
+                    options: "bonusDoubledRewardModal",
+                    des: "The way of calculating the reward bonus",
+                    detail: "Take #1 as an instance: (assumed the multiplier is 1) the reward bonus = 100(the principal) x 1%"
+                },
+
+
+            }
+        },
+        param: {
+            // for rewardBonusModal #1
+            tblOptDynamic: {
+                isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
+                rewardParam: {
+                    multiplier: {type: "number", des: "Multiplier setting"},
+                    rewardPercentage: {type: "number", des: "Reward% (fill in accordingly with the multiplier)"},
+                    maxRewardAmountInSingleReward: {type: "number", des: "Max Reward Amount In Single Reward"},
+                    spendingTimes: {type: "number", des: "Spending times on reward"},
+                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+                    forbidWithdrawIfBalanceAfterUnlock: {
+                        type: "number",
+                        des: "Forbid withdraw if there is balance after unlock"
+                    },
+                    remark: {type: "text", des: "Remark"},
+                }
+            },
+            // for rewardBonusModal #2
+            tblOptFixed: {
+                isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
+                rewardParam: {
+                    multiplier: {type: "number", des: "Multiplier setting"},
+                    rewardAmount: {type: "number", des: "Fixed Reward Amount"},
+                    spendingTimes: {type: "number", des: "Spending times on reward"},
+                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+                    forbidWithdrawIfBalanceAfterUnlock: {
+                        type: "number",
+                        des: "Forbid withdraw if there is balance after unlock"
+                    },
+                    remark: {type: "text", des: "Remark"},
+                }
+            }
+        }
+    }
+}, {
+    upsert: true
+});
+
+
+var param108Cursor = db.rewardParam.find({"name": type108});
+var param108 = param108Cursor.next();
+
+db.rewardType.update({"name": type108}, {$set: {params: param108._id, des: type108, isGrouped: true}}, {upsert: true});

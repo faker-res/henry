@@ -142,6 +142,8 @@
         var sendReq = {
             code: requestData.code,
             appliedObjIdList: requestData.appliedObjIdList,
+            type: requestData.type,
+            gameProviderList: requestData.gameProviderList,
             data: {
                 requestId: requestData.requestId,
                 //topUpRecordId: requestData.topUpRecordId,
@@ -149,7 +151,9 @@
                 code: requestData.code,
                 amount: requestData.amount,
                 referralName: requestData.referralName,
-                smsCode: requestData.smsCode
+                smsCode: requestData.smsCode,
+                type: requestData.type,
+                gameProviderList: requestData.gameProviderList
             }
         }
         var data = sendReq ||
@@ -266,6 +270,12 @@
 
         this.rewardService.getRandBonusInfo.request(data);
         this.rewardService.getRandBonusInfo.once(callback);
+    };
+
+    proto.getRewardRanking = function (callback, requestData) {
+        let data = requestData || {};
+        this.rewardService.getRewardRanking.request(data);
+        this.rewardService.getRewardRanking.once(callback);
     };
 
     if (isNode) {

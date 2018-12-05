@@ -22,6 +22,8 @@
                         include ./teleMarketing-phone-list
                     div(ng-switch-when="PHONE_MISSION")
                         include ./teleMarketing-task
+                    div(ng-switch-when="WORKLOAD REPORT")
+                        include ./teleMarketing-workload
                     div(ng-switch-when="REMINDER_PHONE_LIST")
                         #reminderPhoneContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
                             .padding-all-5
@@ -32,8 +34,9 @@
                                                 a.common-tab(data-toggle="tab", href="#tsAdminNameList")
                                                     text.span {{"MY_NAME_LIST" | translate}}
                                             li
-                                                a.common-tab(data-toggle="tab", href="#tsFeedbackReminder")
+                                                a.common-tab(data-toggle="tab", href="#tsFeedbackReminder" ng-click='vm.initPhoneReminderList()')
                                                     text.span {{"FEEDBACK_REMINDER_LIST" | translate}}
+                                                    .badge.pull-right(style='background-color:red; color:white', ng-show='vm.newReminderTsPhoneCount > 0') {{vm.newReminderTsPhoneCount}}
 
                                     .panel-body.common-right-panel-body
                                         div.tab-content
@@ -55,6 +58,250 @@
                         //        a.common-tab(data-toggle="tab", href="#Filter", ng-click="vm.teleMarketingPageName='phoneNumFilter';vm.updatePageTile();")
                         //            .fa.fa-file-text.margin-right-5
                         //            text.span {{"phoneNumFilter" | translate}}
+
+#modalTsPhoneFeedback.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:55%')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_FEEDBACK" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                table(style='min-width:100%')
+                                    tbody
+                                        tr
+                                            td {{'FEEDBACK_RESULTS' | translate}}
+                                            td
+                                                select(ng-model='vm.tsPhoneAddFeedback.result', ng-options='v.key as v.value for (i,v) in vm.allPlayerFeedbackResults')
+                                                button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
+                                        tr
+                                            td {{'FEEDBACK_TOPIC' | translate}}
+                                            td
+                                                select(ng-model='vm.tsPhoneAddFeedback.topic', ng-options='v.key as v.value for (i,v) in vm.playerFeedbackTopic')
+                                                button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
+                                        tr
+                                            td
+                                                text {{"REMARK" | translate}}
+                                            td.textareaDetail
+                                                textarea.form-control(type="textarea", rows='4', ng-model='vm.tsPhoneAddFeedback.content')
+                                        tr
+                                            td(colspan=2)
+                                                .text-center
+                                                    button.btn.btn-danger.margin-right-5(ng-click='vm.tsPhoneAddFeedback.content="";vm.tsPhoneAddFeedback.result="";vm.tsPhoneAddFeedback.topic="";') {{'Reset' | translate}}
+                                                    button.btn.btn-success(data-dismiss='modal' ng-disabled="!vm.tsPhoneAddFeedback.result || !vm.tsPhoneAddFeedback.topic || !vm.tsPhoneAddFeedback.content", ng-click='vm.addTsPhoneFeedback(vm.tsPhoneAddFeedback)') {{'CONFIRM' | translate}}
+
+#modalTsPhoneFeedbackHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:65%')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Feedback History" | translate}} : {{vm.tsPhoneFeedbackDetail.length}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                table.simple-table
+                                    thead
+                                        tr
+                                            th {{'TIME' | translate}}
+                                            th {{'ADMIN' | translate}}
+                                            th {{'RESULT' | translate}}
+                                            th {{'FEEDBACK_TOPIC' | translate}}
+                                            th {{'REMARK' | translate}}
+                                    tbody
+                                        tr(ng-repeat='(i,v) in vm.tsPhoneFeedbackDetail', ng-show='vm.tsPhoneFeedbackDetail.length>0')
+                                            td
+                                                text {{vm.dateReformat(v.createTime)}}
+                                            td
+                                                text {{v.adminId.adminName || 'Unknown' | translate}}
+                                            td
+                                                text {{v.result$}}
+                                            td
+                                                text {{v.topic | translate}}
+                                            td
+                                                text {{v.content}}
+
+#modalAdminPhoneListDetails.hide(style="width: 600px")
+    table.simple-table(style='width:auto;min-width:99.9%')
+        thead
+            tr
+                th {{'TITLE' | translate}}
+                th {{'VALUE' | translate}}
+        tbody
+            tr
+                td
+                    text {{'PLAYER_NAME' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.playerName}}
+            tr
+                td
+                    text {{'REAL_NAME' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.realName}}
+            tr
+                td
+                    text {{'PHONE' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.phoneNumber}}
+            tr
+                td
+                    text {{'GENDER' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.gender}}
+            tr
+                td
+                    text {{'DOB' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.dob}}
+            tr
+                td
+                    text {{'WECHAT' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.wechat}}
+            tr
+                td
+                    text {{'QQ' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.qq}}
+            tr
+                td
+                    text {{'EMAIL' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.email}}
+            tr
+                td
+                    text {{'REMARKS' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.remark}}
+            tr
+                td
+                    text {{'PHONE_LOCATION' | translate}}
+                td
+                    text {{vm.tsPhoneDetails.province}} {{vm.tsPhoneDetails.city}}
+
+#modalAdminPhoneListReminder.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:55%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Duplicate Phone Number"|translate}}
+            .modal-body
+                #phoneListReminderTimePicker
+            .modal-footer
+                button.btn.btn-primary.common-button(ng-click="vm.updateTsPhoneDistributedPhone()", data-dismiss='modal') {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalCreateTsPlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='max-height: 80vh;overflow-y: auto')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"CREATE_PLAYER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .row
+                                include tsPhone-player-create-form
+                .well(ng-show='vm.playerCreateResult.success')
+                    label.text-success {{'SUCCESS' | translate}}
+                .well(ng-show='vm.playerCreateResult && !vm.playerCreateResult.success')
+                    label.text-danger {{'FAIL' | translate}}
+                    label.form-control {{(vm.playerCreateResult.error.message || vm.playerCreateResult.error.errorMessage || vm.playerCreateResult.error || vm.playerCreateResult) | translate}}
+            .modal-footer
+                button.btn.btn-primary.common-button(ng-disabled='form_new_player.$invalid || vm.passwordLengthCheck(vm.newPlayer.password)', ng-click="vm.createNewPlayer();", ng-hide='vm.playerCreateResult && vm.playerCreateResult.success') {{"CREATE" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal', ng-hide='vm.playerCreateResult') {{"CANCEL" | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal', ng-show='vm.playerCreateResult') {{"CLOSE" | translate}}
+
+#duplicatePhoneNumberLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:95%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Duplicate Phone Number"|translate}}
+            .modal-body
+                div
+                    label {{"Total" | translate}} {{vm.duplicatePhoneNumber.totalCount}} {{"records" | translate}}
+                    table#duplicatePhoneNumberLogTable.common-table.display(style='min-width:100%')
+                    #duplicatePhoneNumberLogTablePage.height30
+
+#modalTsPlayerCredibilityRemarks.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'UPDATE_PLAYER_CREDIBILITY_REMARK' | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        button.btn.btn-primary.common-button(ng-click="vm.showSelectedCredibility()", data-dismiss='modal') {{"CONFIRM" | translate}}
+                        span {{vm.credibilityRemarkUpdateMessage | translate}}
+                        div.row
+                            div.col-md-4
+                                .well.row
+                                    label {{"REDUCE_SCORE" | translate}}
+                                    table.paddingTbl(style='min-width:100%')
+                                        thead
+                                            tr
+                                                th {{"remark" | translate}}
+                                                th {{"score" | translate}}
+                                                th {{"SELECT" | translate}}
+                                        tbody
+                                            tr(ng-repeat='(i, data) in vm.negativeRemarks')
+                                                td
+                                                    text {{data.name}}
+                                                td
+                                                    text {{data.score}}
+                                                td
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()")
+                                                    span(id="{{'c-'+data._id}}")
+                            div.col-md-4
+                                .well
+                                    label {{"ADD_SCORE" | translate}}
+                                    table.paddingTbl(style='min-width:100%')
+                                        thead
+                                            tr
+                                                th {{"remark" | translate}}
+                                                th {{"score" | translate}}
+                                                th {{"SELECT" | translate}}
+                                        tbody
+                                            tr(ng-repeat='(i, data) in vm.positiveRemarks')
+                                                td
+                                                    text {{data.name}}
+                                                td
+                                                    text {{data.score}}
+                                                td
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()")
+                                                    span(id="{{'c-'+data._id}}")
+                            div.col-md-4
+                                .well
+                                    label {{"REMINDER" | translate}}
+                                    table.paddingTbl(style='min-width:100%')
+                                        thead
+                                            tr
+                                                th {{"remark" | translate}}
+                                                th {{"score" | translate}}
+                                                th {{"SELECT" | translate}}
+                                        tbody
+                                            tr(ng-repeat='(i, data) in vm.neutralRemarks')
+                                                td
+                                                    text {{data.name}}
+                                                td
+                                                    text {{data.score}}
+                                                td
+                                                    input.selectRemark(type="checkbox", ng-model="data.selected", ng-change="vm.checkAnyPlayerRemarkRemoved()", ng-show="!data.isFixed")
+                                                    span(id="{{'c-'+data._id}}")
+                .panel.panel-primary
+                    .panel-body
+                        div.col-md-12
+                            label {{'REMARKS' | translate}}:
+                            div
+                                textarea.form-control(style="max-width: 100%; overflow: auto; margin-bottom: 12px;", rows="15", ng-model="vm.credibilityRemarkComment", placeholder="{{'Player Credibility' | translate}}{{'REMARKS' | translate}}")
+
 
 #modalAssignmentStatusDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style="width: 90%;")
@@ -90,9 +337,9 @@
                                             select.spicker.form-control(ng-options='admin.adminName as admin.adminName for admin in vm.adminList' ng-model='vm.selectedAssignees' multiple data-actions-box='true')
                                         td
                                             input(id="new-execute-distribute-on" type="radio", name="new-execute-distribution", value="1" ng-model="vm.newAssigneesExecuteStatus")
-                                            label(for="new-execute-distribute-on" style="font-weight: normal;") {{"Open" | translate}}
+                                            label.radio-space(for="new-execute-distribute-on" style="font-weight: normal;") {{"Open" | translate}}
                                             input(id="new-execute-distribute-off" type="radio", name="new-execute-distribution", value="0" ng-model="vm.newAssigneesExecuteStatus")
-                                            label(for="new-execute-distribute-off" style="font-weight: normal;") {{"Closed" | translate}}
+                                            label.radio-space(for="new-execute-distribute-off" style="font-weight: normal;") {{"Closed" | translate}}
 
                             button.btn.btn-primary.common-button.pull-right(ng-show="vm.allowDistributionSettingsEdit" ng-click="vm.updateDistributionSettings()") {{"CONFIRM" | translate}}
                             button.btn.btn-warning.common-button.pull-right(ng-show="vm.allowDistributionSettingsEdit" ng-click="vm.cancelDistributionSettingsEdit()") {{"CANCEL" | translate}}

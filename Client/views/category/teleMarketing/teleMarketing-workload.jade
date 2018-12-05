@@ -1,0 +1,99 @@
+#workloadReport
+    .col-md-12(ng-show="vm.curPlatformText")
+        .col-md-12.search-filters-container.well
+            .col-xs-12.col-sm-6.col-md-2
+                label.control-label {{'NAME_LIST_TITLE' | translate}}
+                select.spicker.form-control(ng-model='vm.workloadSearch.phoneLists' bsp multiple data-actions-box='true')
+                    option(ng-repeat='(i,v) in vm.allTsPhoneList' ng-if="v.status != '7'" value='{{v._id}}') {{v.name}}
+            .col-xs-12.col-sm-6.col-md-2
+                label.control-label {{"Start date"|translate}}
+                #workloadStartTimePicker
+            .col-xs-12.col-sm-6.col-md-2
+                label.control-label {{'End date' | translate}}
+                #workloadEndTimePicker
+            .col-xs-12.col-sm-6.col-md-2
+                label.control-label {{'DEPARTMENT' | translate}}
+                select.spicker.form-control(ng-model='vm.workloadSearch.departments', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryRole(vm.workloadSearch)", ng-options='dp._id as dp.departmentName | translate for dp in vm.queryDepartments')
+            .col-xs-12.col-sm-6.col-md-2
+                label.control-label {{'ROLE' | translate}}
+                select.spicker.form-control(ng-model='vm.workloadSearch.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.workloadSearch)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
+            .col-xs-12.col-sm-6.col-md-2
+                label.control-label {{'CUSTOMER_SERVICE' | translate}}
+                select.spicker.form-control(ng-model='vm.workloadSearch.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName for dp in vm.queryAdmins')
+            .col-xs-12.col-sm-6
+                label(style="color:red; margin-top:.5em;") {{"* The status has been decomposed in the search menu. Any items that are not checked can still be displayed in the list." | translate}}
+            .col-xs-12.col-sm-6
+                label.control-label
+                button#searchWorkloadReport.btn.btn-primary.common-button-sm(style="margin-top:.5em; float:right;" ng-click="vm.filterWorkloadReport()") {{'SEARCH' | translate}}
+    .col-md-12
+        .panel.panel-primary(ng-show="vm.workloadResult")
+            .panel-body.row
+                .col-md-12
+                    table.simple-table.common-table(style='width:auto;min-width:99.9%;white-space:normal;')
+                        thead
+                            tr
+                                th {{'Connected list' | translate}}
+                                th {{'csOfficer' | translate}}
+                                th {{'Amount of Phone list' | translate}}
+                                    a(style="margin-left:.5em;" class="fa bg-pale fa-info-circle" href="#" data-toggle="tooltip" title="{{'The Number of Distributed within a Specific Time in this Whitelist.' | translate}}")
+                                th {{'Used Time' | translate}}
+                                    a(style="margin-left:.5em;" class="fa bg-pale fa-info-circle" href="#" data-toggle="tooltip" title="{{'Do not repeat, count the number of times this call was added back.' | translate}}")
+                                th {{'Success Answers' | translate}}
+                                    a(style="margin-left:.5em;" class="fa bg-pale fa-info-circle" href="#" data-toggle="tooltip" title="{{'Do not repeat, calculate the number of success add return visits. (Only see the white list), according to the system definition, what is meant by success return visits.' | translate}}")
+                                th {{'Amount of Success Account Opening' | translate}}
+                                th {{'DETAILS' | translate}}
+
+                        tbody
+                            tr(ng-repeat='(i, v) in vm.workloadResultSummary')
+                                td(ng-if='i==0' rowspan="{{vm.workloadResultSummary.length}}")
+                                    div(ng-repeat='phoneListName in vm.workloadSearch.phoneListNames')
+                                        span {{phoneListName}}
+                                    span(ng-if="vm.workloadSearch.phoneListNames.length == 0") ({{'All Phone Lists' | translate}})
+                                td {{v.adminName}}
+                                td {{v.distributed}}
+                                td {{v.fulfilled}}
+                                td {{v.success}}
+                                td {{v.registered}}
+                                td
+                                    a(href="#modalWorkloadList", data-toggle="modal", data-target='#modalWorkloadList', ng-click="vm.populateWorkloadResultDetail(v.adminObjId)") {{'DETAILS' | translate}}
+
+//ModalWorkloadList
+#modalWorkloadList.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'DETAILS' | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%;white-space:normal;')
+                                        thead
+                                            tr
+                                                th {{'Connected list' | translate}}
+                                                th {{'csOfficer' | translate}}
+                                                th {{'Amount of Phone list' | translate}}
+                                                    a(style="margin-left:.5em;" class="fa bg-pale fa-info-circle" href="#" data-toggle="tooltip" title="{{'The Number of Distributed within a Specific Time in this Whitelist.' | translate}}")
+                                                th {{'Used Time' | translate}}
+                                                    a(style="margin-left:.5em;" class="fa bg-pale fa-info-circle" href="#" data-toggle="tooltip" title="{{'Do not repeat, count the number of times this call was added back.' | translate}}")
+                                                th {{'Success Answers' | translate}}
+                                                    a(style="margin-left:.5em;" class="fa bg-pale fa-info-circle" href="#" data-toggle="tooltip" title="{{'Do not repeat, calculate the number of success add return visits. (Only see the white list), according to the system definition, what is meant by success return visits.' | translate}}")
+
+                                                th {{'Amount of Success Account Opening' | translate}}
+                                        tbody
+                                            tr(ng-repeat='(i, v) in vm.workloadResultDetail')
+                                                td {{v.phoneListName}}
+                                                td {{v.adminName}}
+                                                td {{v.distributed}}
+                                                td {{v.fulfilled}}
+                                                td {{v.success}}
+                                                td {{v.registered}}
+                                            tr(style="color:red;font-weight:bold;")
+                                                td(colspan='2') {{'Total Count' | translate}}
+                                                td {{vm.workloadResultDetailSums.distributed}}
+                                                td {{vm.workloadResultDetailSums.fulfilled}}
+                                                td {{vm.workloadResultDetailSums.success}}
+                                                td {{vm.workloadResultDetailSums.registered}}

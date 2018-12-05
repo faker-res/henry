@@ -143,7 +143,7 @@
                                             text(ng-if='!vm.configTableEdit') {{level.name | translate}}
                                         td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}', align="center")
                                             text(style="width: 60px") {{level.value}}
-                                        td.static(colspan='{{vm.configTableEdit ? 8 : 6}}')
+                                        td.static(colspan='{{vm.configTableAdd? 7: vm.configTableEdit ? 8 : 6}}')
                                             text {{"Level Up Conditions" | translate}}
                                         td(rowspan='{{level.levelUpConfig.length + level.levelDownConfig.length + 2}}')
                                             input.form-control(ng-show='vm.configTableEdit', type='number', ng-model='level.reward.bonusCredit')
@@ -175,6 +175,7 @@
                                             a.fa.fa-plus-circle(ng-click='level.levelUpConfig.push({andConditions: true});vm.endLoadWeekDay();' title='{{"ADD_NEW_LEVEL_UP_CONDITION" | translate}}')
                                             br
                                             label(ng-if='level.levelUpConfig.length > 1') {{"OR" | translate}}
+                                        td(ng-if='vm.configTableAdd && j == 0', rowspan='{{level.levelUpConfig.length}}')
                                         td(ng-style="{borderLeft: vm.configTableEdit ? '0px' : ''}")
                                             input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.topupLimit', required)
                                             text(ng-if='!vm.configTableEdit') {{oneConfig.topupLimit | number : 2}}
@@ -200,10 +201,10 @@
                                             a.fa.fa-times-circle(ng-if='level.levelUpConfig.length > 1', ng-click='level.levelUpConfig.splice(j,1)', title='{{"REMOVE_THIS_LEVEL_UP_CONDITION" | translate}}')
 
                                     tr
-                                        td.static(colspan='{{vm.configTableEdit ? 8 : 6}}', ng-class='{hidden: i === 0}')
+                                        td.static(colspan='{{vm.configTableAdd? 7: vm.configTableEdit ? 8 : 6}}', ng-class='{hidden: i === 0}')
                                             text {{"Level Down Conditions" | translate}}
                                     tr(ng-repeat='(j,oneConfig) in level.levelDownConfig', ng-class='{hidden: i === 0}')
-                                        td(ng-if='vm.configTableEdit && j == 0', rowspan='{{level.levelDownConfig.length}}')
+                                        td(ng-if='(vm.configTableEdit || vm.configTableAdd) && j == 0', rowspan='{{level.levelDownConfig.length}}')
                                             //a.fa.fa-plus-circle(ng-click='level.levelDownConfig.push({})', title='{{"ADD_NEW_LEVEL_UP_CONDITION" | translate}}')
                                         td(ng-style="{borderLeft: vm.configTableEdit ? '0px' : ''}")
                                             //input.form-control(ng-if='vm.configTableEdit', type='number', min='0', ng-model='oneConfig.topupMinimum', ng-change="vm.playerLvlDownChange(i,j,'topupMinimum')", required)
@@ -239,7 +240,7 @@
                                             text &nbsp;
                                 thead(ng-if='vm.configTableAdd')
                                     tr.stronger-top.stronger-bottom
-                                        td.static(colspan='12')
+                                        td.static(colspan='13')
                                             label {{"createPlayerLevel" | translate}}
                                     +playerLevelConfigHeader
                                 tbody(ng-if='vm.configTableAdd')
@@ -248,11 +249,7 @@
                                             input#newPlayerLevelFirstInput.form-control(type='text', ng-model='vm.newPlayerLvl.name', placeholder="{{'NAME' | translate}}", required)
                                         td(rowspan='{{vm.newPlayerLevelUpConfig.length + 3}}')
                                             input.form-control(type='number', min='0', ng-model='vm.newPlayerLvl.value', required, disabled)
-                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length + 1}}')
-                                            a.fa.fa-plus-circle(ng-click='vm.newPlayerLevelUpConfig.push({andConditions: true})', title='{{"ADD_NEW_LEVEL_UP_CONDITION" | translate}}')
-                                            br
-                                            label(ng-if='vm.newPlayerLevelUpConfig.length > 1') {{"OR" | translate}}
-                                        td.static(colspan='5')
+                                        td.static(colspan='7')
                                             text {{"Level Up Conditions" | translate}}
                                         td(rowspan='{{vm.newPlayerLevelUpConfig.length + 3}}')
                                             input.form-control(type='number', min=0, ng-model='vm.newPlayerLvl.reward.bonusCredit', required)
@@ -267,7 +264,14 @@
                                                 text {{"LOCAL_CREDIT" | translate}}
                                         td(rowspan='{{vm.newPlayerLevelUpConfig.length + 3}}')
                                             input.form-control(type='number', ng-model='vm.newPlayerLvl.reward.requiredUnlockTimes')
+                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length + 3}}')
+                                            input(type='checkbox', ng-model='vm.newPlayerLvl.canApplyConsumptionReturn')
+
                                     tr(ng-repeat='(j,levelConfig) in vm.newPlayerLevelUpConfig')
+                                        td(rowspan='{{vm.newPlayerLevelUpConfig.length}}')
+                                            a.fa.fa-plus-circle(ng-click='vm.newPlayerLevelUpConfig.push({andConditions: true})', title='{{"ADD_NEW_LEVEL_UP_CONDITION" | translate}}')
+                                            br
+                                            label(ng-if='vm.newPlayerLevelUpConfig.length > 1') {{"OR" | translate}}
                                         td
                                             input.form-control(type='number', min='0', ng-model='levelConfig.topupLimit', required)
                                         td
@@ -289,8 +293,7 @@
                                             text {{level.reward}}
                                         //-td
                                     tr
-                                        td
-                                        td.static(colspan='5')
+                                        td.static(colspan='7')
                                             text {{"Level Down Conditions" | translate}}
                                     tr
                                         td
@@ -465,7 +468,11 @@
                                 td(style='width:50%') {{'CALL_REQUEST_URL_CONFIG' | translate}}
                                 td(style='width:50%')
                                     text(ng-if='!vm.configTableEdit') {{vm.callRequestConfig.callRequestUrlConfig}}
-                                    input(style= 'width: 80%' ng-if='vm.configTableEdit', type='text', ng-model='vm.callRequestConfig.callRequestUrlConfig')
+                                    input.form-control(ng-if='vm.configTableEdit', type='text', ng-model='vm.callRequestConfig.callRequestUrlConfig')
+                            tr
+                                td {{'Any IP, the limit of the call request per hour X times, refresh every hour' | translate}}
+                                td
+                                    input.form-control(type='number', min='0', ng-model='vm.callRequestConfig.callRequestLimitPerHour', ng-disabled='!vm.configTableEdit')
 
                     br
                     table.common-table.callConfigTable(style='width:auto;min-width:99.9%')
@@ -494,6 +501,10 @@
                                     i.fa.fa-minus(ng-click='vm.updateCallRequestConfigInEdit("remove", $index, vm.callRequestConfig.callRequestLineConfig)')
 
                             tr(ng-if='vm.configTableEdit')
+                                td
+                                    select.form-control(ng-model='vm.tempCallRequestEntry.status', ng-disabled='!vm.configTableEdit')
+                                        option(ng-value="zeroOne.one") {{"Open" | translate}}
+                                        option(ng-value="zeroOne.zero") {{"Closed" | translate}}
                                 td
                                     input.form-control(type='number', ng-model='vm.tempCallRequestEntry.lineId', ng-disabled='!vm.configTableEdit')
                                 td
@@ -768,7 +779,7 @@
                         //    h4.blink {{'Loading' | translate}}...
 
                         .col-md-12
-                            .panel
+                            .panel(style="box-shadow: none;")
                                 .panel-body
                                     .padding-all-5
                                         .panel.panel-primary
@@ -890,7 +901,7 @@
 
 
                         .col-md-12
-                            .panel
+                            .panel(style="box-shadow: none;")
                                 .panel-body
                                     .padding-all-5
                                         .panel.panel-primary
@@ -936,7 +947,7 @@
                                                         button.btn.btn-primary.common-button(ng-if='vm.isCommissionRateEditing' ng-click='vm.createUpdateCommissionRateSetting()') {{'SUBMIT' | translate}}
 
                         .col-md-12
-                            .panel
+                            .panel(style="box-shadow: none;")
                                 .panel-body
                                     .padding-all-5
                                         .panel.panel-primary
@@ -1856,7 +1867,7 @@
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
-                                th {{'BATCH_FEEDBACK_SETTING' | translate}}
+                                th(style="width:850px;") {{'BATCH_FEEDBACK_SETTING' | translate}}
                                 th {{'VALUE' | translate}}
                         tbody
                             tr
@@ -1879,7 +1890,7 @@
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
                             tr
-                                th {{'BATCH_TELEMARKETING_SETTING(FOR WHITELIST)' | translate}}
+                                th(style="width:850px;") {{'BATCH_TELEMARKETING_SETTING(FOR WHITELIST)' | translate}}
                                 th {{'VALUE' | translate}}
                         tbody
                             tr
@@ -1931,13 +1942,25 @@
                                 td {{'Blacklisting Phone Number' | translate}}
                                 td
                                     textarea(ng-model='vm.phoneFilterConfig.blackListingPhoneNumbers$', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Whitelisting SMS Phone Number' | translate}}
+                                td
+                                    textarea(ng-model='vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers$', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Whitelisting SMS IP Address' | translate}}
+                                td
+                                    textarea(ng-model='vm.blackWhiteListingConfig.whiteListingSmsIpAddress$', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Blacklisting Call Request IP Address' | translate}}
+                                td
+                                    textarea(ng-model='vm.blackWhiteListingConfig.blackListingCallRequestIpAddress$', ng-disabled='!vm.configTableEdit')
 
                     br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'phoneFilterConfig')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("phoneFilterConfig")') {{"CANCEL" | translate}}
-                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("phoneFilterConfig")') {{"CONFIRM" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("phoneFilterConfig");vm.configSubmitUpdate("blackWhiteListingConfig")') {{"CONFIRM" | translate}}
 
                     br
                     br
@@ -2079,9 +2102,9 @@
                         tbody
                             tr(ng-repeat= 'wgc in vm.wechatGroupControlSettingData track by $index')
                                 td
-                                    input.form-control(type='text', ng-model='wgc.deviceId' ng-disabled='!vm.wechatGroupControlEdit' ng-change='vm.editWechatGroupControl(wgc)')
+                                    input.form-control(type='text', ng-model='wgc.deviceId' ng-disabled='!vm.wechatGroupControlEdit' ng-change='vm.editWechatGroupControl(wgc)' ng-class='wgc.isDeviceIdExist ? "colorRed" : ""')
                                 td
-                                    input.form-control(type='text', ng-model='wgc.deviceNickName' ng-disabled='!vm.wechatGroupControlEdit' ng-change='vm.editWechatGroupControl(wgc)')
+                                    input.form-control(type='text', ng-model='wgc.deviceNickName' ng-disabled='!vm.wechatGroupControlEdit' ng-change='vm.editWechatGroupControl(wgc)' ng-class='wgc.isDeviceNicknameExist ? "colorRed" : ""')
                                 td
                                     i.fa.fa-minus(ng-if='vm.wechatGroupControlEdit' ng-click='vm.deleteWechatGroupControlSetting(wgc, vm.wechatGroupControlSettingData, $index)') {{'Delete' | translate}}
                                 td

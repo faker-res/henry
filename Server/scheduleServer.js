@@ -9,6 +9,7 @@ let scheduleProposal = require('./schedule/scheduleProposal');
 let scheduleSavePlayersCredit = require('./schedule/scheduleSavePlayersCredit');
 let scheduleAutoProposal = require('./schedule/scheduleAutoProposal');
 let scheduleConvertRewardPoints = require('./schedule/scheduleConvertRewardPoints');
+let scheduleCheckAndUpdateWCSessionStatus = require('./schedule/scheduleCheckAndUpdateWCSessionStatus');
 //let scheduleLive800DailySummarized = require('./schedule/scheduleLive800DailySummarized');
 //var scheduleProposalExpiration = require('./schedule/scheduleProposalExpiration');
 

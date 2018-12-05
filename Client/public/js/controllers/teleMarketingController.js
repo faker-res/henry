@@ -30,13 +30,14 @@ define(['js/app'], function (myApp) {
         vm.createTaskResult = '';
         vm.editTaskResult = '';
         vm.phoneListSearch = {};
+        vm.workloadSearch = {};
         vm.checkFilterIsDisable = true;
 
         vm.updatePageTile = function () {
             window.document.title = $translate("teleMarketing") + "->" + $translate(vm.teleMarketingPageName);
         };
 
-        vm.constTsPhoneListStatus = {
+        vm.constTsPhoneListStatusStr = {
             0: "PRE_DISTRIBUTION",
             1: "DISTRIBUTING",
             2: "NOT_ENOUGH_CALLER",
@@ -45,6 +46,17 @@ define(['js/app'], function (myApp) {
             5: "PERFECTLY_COMPLETED",
             6: "FORCE_COMPLETED",
             7: "DECOMPOSED"
+        };
+
+        vm.constTsPhoneListStatus = {
+            PRE_DISTRIBUTION: 0,
+            DISTRIBUTING: 1,
+            NOT_ENOUGH_CALLER: 2,
+            MANUAL_PAUSED: 3,
+            HALF_COMPLETE: 4,
+            PERFECTLY_COMPLETED: 5,
+            FORCE_COMPLETED: 6,
+            DECOMPOSED: 7
         };
 
         vm.allPlayersStatusString = {
@@ -422,8 +434,15 @@ define(['js/app'], function (myApp) {
                             vm.commonPageChangeHandler(curP, pageSize, "queryAdminPhoneList", vm.searchAdminPhoneList)
                         });
                     })
+
+                    vm.autoRefreshTsDistributedPhoneReminder();
                     break;
                 case 'WORKLOAD REPORT':
+                    commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#workloadStartTimePicker', utilService.getNdayagoStartTime(30));
+                    commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#workloadEndTimePicker', utilService.getTodayEndTime());
+                    utilService.actionAfterLoaded('#searchWorkloadReport', function () {
+                        $('.spicker').selectpicker('refresh');
+                    });
                     break;
                 case 'RECYCLE_BIN':
                     break;
@@ -458,13 +477,59 @@ define(['js/app'], function (myApp) {
             vm.getTsDistributedPhoneDetail($scope.tsDistributedPhoneObjId);
 
             // Zero dependencies variable
-            [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults] = await Promise.all([
+            [vm.allTSList, [vm.queryDepartments, vm.queryRoles, vm.queryAdmins], vm.playerFeedbackTopic, vm.allPlayerFeedbackResults, vm.allTsPhoneList] = await Promise.all([
                 commonService.getTSPhoneListName($scope, {platform: vm.selectedPlatform.id}).catch(err => Promise.resolve([])),
                 commonService.getAllDepartmentInfo($scope, vm.selectedPlatform.id, vm.selectedPlatform.data.name).catch(err => Promise.resolve([[], [], []])),
                 commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
                 commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([])),
+                commonService.getAllTSPhoneList($scope, vm.selectedPlatform.id).catch(err => Promise.resolve([])),
             ]);
         };
+
+        vm.initPhoneReminderList = function () {
+            vm.queryAdminPhoneReminderList = {totalCount: 0, sortCol: {assignTimes: 1, endTime: 1}};
+            utilService.actionAfterLoaded("#adminPhoneReminderListTablePage", function () {
+                vm.queryAdminPhoneReminderList.pageObj = utilService.createPageForPagingTable("#adminPhoneReminderListTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "queryAdminPhoneReminderList", vm.searchAdminPhoneReminderList)
+                });
+
+                setTimeout(()=>{vm.searchAdminPhoneReminderList(true)},1000)
+            });
+        }
+
+        vm.searchAdminPhoneReminderList = function (newSearch) {
+
+            console.log('vm.queryAdminPhoneReminderList', vm.queryAdminPhoneReminderList);
+
+            var sendObj = {
+                platform: vm.selectedPlatform.id,
+                admin: authService.adminId,
+                index: newSearch ? 0 : (vm.queryAdminPhoneReminderList.index || 0),
+                limit: vm.queryAdminPhoneReminderList.limit || 10,
+                sortCol: vm.queryAdminPhoneReminderList.sortCol || {assignTimes: 1, endTime: 1}
+
+            }
+
+            socketService.$socket($scope.AppSocket, 'getAdminPhoneReminderList', sendObj, function (data) {
+                console.log('getAdminPhoneReminderList', data);
+                vm.queryAdminPhoneReminderList.totalCount = data.data.size;
+                vm.drawAdminPhoneList(
+                    data.data.data.map(item => {
+                        if (item.tsPhone && item.tsPhone.phoneNumber) {
+                            item.encodedPhoneNumber$ = utilService.encodePhoneNum(item.tsPhone.phoneNumber);
+                        }
+                        item.startTime$ = utilService.getFormatTime(item.startTime);
+                        let endDate = utilService.setNDaysAgo(new Date(item.endTime), 1); // endTime in DB store end time of day
+                        let daysDiff = Math.abs(endDate.getTime() - new Date().getTime());
+                        item.reclaimDaysLeft$ = Math.ceil(daysDiff / (1000 * 3600 * 24));
+
+                        return item;
+                    }), data.data.size, {}, newSearch, true);
+                $scope.$evalAsync();
+            }, function (err) {
+                console.log(err);
+            }, true);
+        }
 
         vm.searchAdminPhoneList = function (newSearch) {
 
@@ -491,8 +556,6 @@ define(['js/app'], function (myApp) {
                 assignTimes: vm.queryAdminPhoneList.assignTimes,
                 assignTimesTwo: vm.queryAdminPhoneList.assignTimesTwo,
                 isFilterDangerZone: vm.queryAdminPhoneList.isFilterDangerZone,
-
-
                 index: newSearch ? 0 : (vm.queryAdminPhoneList.index || 0),
                 limit: vm.queryAdminPhoneList.limit || 10,
                 sortCol: vm.queryAdminPhoneList.sortCol || {assignTimes: 1, endTime: 1}
@@ -508,10 +571,10 @@ define(['js/app'], function (myApp) {
                         if (item.tsPhone && item.tsPhone.phoneNumber) {
                             item.encodedPhoneNumber$ = utilService.encodePhoneNum(item.tsPhone.phoneNumber);
                         }
-                            item.startTime$ = utilService.getFormatTime(item.startTime);
-                            let endDate = utilService.setNDaysAgo(new Date(item.endTime), 1); // endTime in DB store end time of day
-                            let daysDiff = Math.abs(endDate.getTime() - new Date().getTime());
-                            item.reclaimDaysLeft$ = Math.ceil(daysDiff / (1000 * 3600 * 24));
+                        item.startTime$ = utilService.getFormatTime(item.startTime);
+                        let endDate = utilService.setNDaysAgo(new Date(item.endTime), 1); // endTime in DB store end time of day
+                        let daysDiff = Math.abs(endDate.getTime() - new Date().getTime());
+                        item.reclaimDaysLeft$ = Math.ceil(daysDiff / (1000 * 3600 * 24));
 
                         return item;
                     }), data.data.size, {}, newSearch
@@ -523,10 +586,19 @@ define(['js/app'], function (myApp) {
             }, true);
         }
 
-        vm.drawAdminPhoneList = function (data, size, summary, newSearch) {
+
+        vm.drawAdminPhoneList = function (data, size, summary, newSearch, isReminderTable) {
+            let objKey = "queryAdminPhoneList";
+            let tableId = "#adminPhoneListTable";
+            let searchFunc = "searchAdminPhoneList";
+            if (isReminderTable) {
+                objKey = "queryAdminPhoneReminderList";
+                tableId = "#adminPhoneReminderListTable";
+                searchFunc = "searchAdminPhoneReminderList";
+            }
             var tableOptions = {
                 data: data,
-                "order": vm.queryAdminPhoneList.aaSorting ,
+                "order": vm[objKey].aaSorting ,
                 aoColumnDefs: [
                     // {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
                     // {'sortCol': 'data.amount', bSortable: true, 'aTargets': [13]},
@@ -563,6 +635,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('Function'),
                         render: function (data, type, row) {
+                            let tsPhoneObjId = row.tsPhone._id;
                             let link = $('<a>', {
                                 'ng-click': 'vm.telorMessageToTsPhoneBtn(' + '"tel",' + JSON.stringify(row) + ');',
                                 'data-row': JSON.stringify(row),
@@ -571,10 +644,9 @@ define(['js/app'], function (myApp) {
                                 'data-placement': 'left',
                             }).text("1. " + $translate("CALL_OUT"));
 
-                            let tsPhoneObjId = row.tsPhone._id;
                             link.append($('<br>'));
                             link.append($('<a>', {
-                                'ng-click': 'vm.tsPhoneAddFeedback = {tsPhone: ' + JSON.stringify(tsPhoneObjId) + '}',
+                                'ng-click': 'vm.tsPhoneAddFeedback = {tsPhone: ' + JSON.stringify(row.tsPhone) + '}',
                                 'data-row': JSON.stringify(row),
                                 'data-toggle': 'modal',
                                 'data-target': '#modalTsPhoneFeedback',
@@ -614,12 +686,12 @@ define(['js/app'], function (myApp) {
 
                             link.append($('<br>'));
                             link.append($('<a>', {
-                                // 'ng-click': 'vm.initFeedbackModal(' + JSON.stringify(row) + ');',
-                                // 'data-row': JSON.stringify(row),
-                                // 'data-toggle': 'modal',
-                                // 'data-target': '#modalAddPlayerFeedback',
-                                // 'title': $translate("ADD_FEEDBACK"),
-                                // 'data-placement': 'left',
+                                'ng-click': 'vm.initTsDistrubutedPhoneReminder(' + JSON.stringify(row) + ');',
+                                'data-row': JSON.stringify(row),
+                                'data-toggle': 'modal',
+                                'data-target': '#modalAdminPhoneListReminder',
+                                'title': $translate("ADD_FEEDBACK"),
+                                'data-placement': 'left',
                             }).text("6. " + $translate("Set reminder/ clear reminder")));
 
                             return link.prop('outerHTML');
@@ -653,15 +725,14 @@ define(['js/app'], function (myApp) {
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.adminPhoneListTable = $('#adminPhoneListTable').DataTable(tableOptions);
 
-            utilService.createDatatableWithFooter('#adminPhoneListTable', tableOptions, {});
-            vm.queryAdminPhoneList.pageObj.init({maxCount: size}, newSearch);
+            utilService.createDatatableWithFooter(tableId, tableOptions, {});
+            vm[objKey].pageObj.init({maxCount: size}, newSearch);
 
-            $('#adminPhoneListTable').off('order.dt');
-            $('#adminPhoneListTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'queryAdminPhoneList', vm.searchAdminPhoneList);
+            $(tableId).off('order.dt');
+            $(tableId).on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, objKey, vm[searchFunc]);
             });
-            $('#adminPhoneListTable').resize();
-
+            $(tableId).resize();
         }
 
         vm.showSelectedCredibility = function () {
@@ -818,6 +889,8 @@ define(['js/app'], function (myApp) {
         };
 
         vm.prepareCreateTsPlayer = function (tsDistributedPhoneData) {
+            vm.initTsPlayerCredibility();
+            vm.tsCreditRemark = "";
             vm.tsPhoneAddFeedback = {};
             vm.playerDOB = utilService.createDatePicker('#datepickerDOB', {
                 language: 'en',
@@ -831,6 +904,7 @@ define(['js/app'], function (myApp) {
             vm.existRealName = false;
             vm.newPlayer = {};
             vm.newPlayer.gender = "true";
+            vm.newPlayer.tsAssignee = authService.adminId;
             if (tsDistributedPhoneData.tsPhone) {
                 let tsPhoneData = tsDistributedPhoneData.tsPhone;
                 if (tsPhoneData.realName) {
@@ -852,12 +926,15 @@ define(['js/app'], function (myApp) {
                     vm.newPlayer.remark = tsPhoneData.remark;
                 }
                 if (tsPhoneData._id) {
-                    vm.tsPhoneAddFeedback.tsPhone = tsPhoneData._id;
+                    vm.tsPhoneAddFeedback.tsPhone = tsPhoneData;
                     vm.newPlayer.tsPhone = tsPhoneData._id;
                 }
                 if (tsPhoneData.dob) {
                     vm.playerDOB.data('datetimepicker').setDate(utilService.getLocalTime(new Date(tsPhoneData.dob)));
                 }
+            }
+            if (tsDistributedPhoneData.tsPhoneList && tsDistributedPhoneData.tsPhoneList._id) {
+                vm.newPlayer.tsPhoneList = tsDistributedPhoneData.tsPhoneList._id;
             }
             vm.duplicateNameFound = false;
             vm.euPrefixNotExist = false;
@@ -1100,21 +1177,68 @@ define(['js/app'], function (myApp) {
             resultName = resultName.length > 0 ? resultName[0].value : "";
             let sendData = {
                 playerId: playerObjId,
-                tsPhone: vm.tsPhoneAddFeedback.tsPhone,
+                tsPhone: vm.tsPhoneAddFeedback.tsPhone._id,
+                tsPhoneList: vm.tsPhoneAddFeedback.tsPhone.tsPhoneList,
                 platform: vm.selectedPlatform.id,
                 adminId: authService.adminId,
                 content: vm.tsPhoneAddFeedback.content,
                 result: vm.tsPhoneAddFeedback.result,
                 resultName: resultName,
-                topic: vm.tsPhoneAddFeedback.topic
+                topic: vm.tsPhoneAddFeedback.topic,
+                registered: true
             };
             console.log('sendData', sendData);
             socketService.$socket($scope.AppSocket, 'createTsPhonePlayerFeedback', sendData, function (data) {
             });
         }
 
+        vm.initTsDistrubutedPhoneReminder = function (tsPhoneObjId) {
+            vm.tsPhoneReminder = {tsPhone: tsPhoneObjId && tsPhoneObjId.tsPhone && tsPhoneObjId.tsPhone._id || ""};
+            utilService.actionAfterLoaded("#phoneListReminderTimePicker", function () {
+                let remindDate = tsPhoneObjId.remindTime || utilService.getNdaylaterStartTime(1)
+                commonService.commonInitTime(utilService, vm, 'tsPhoneReminder', 'startTime', '#phoneListReminderTimePicker', remindDate, true, {maxDate: null});
+            })
+        }
+
+        vm.updateTsPhoneDistributedPhone = function () {
+            let sendData = {
+                query: {
+                    tsPhone: vm.tsPhoneReminder.tsPhone,
+                    platform: vm.selectedPlatform.id,
+                    assignee: authService.adminId,
+                },
+                updateData: {
+                    remindTime: $('#phoneListReminderTimePicker').data('datetimepicker').getLocalDate()
+                }
+            };
+            socketService.$socket($scope.AppSocket, 'updateTsPhoneDistributedPhone', sendData, function (data) {
+                vm.searchAdminPhoneList(true);
+            });
+        }
+
+        vm.autoRefreshTsDistributedPhoneReminder = function () {
+            if (!(window.location.pathname == "/teleMarketing" && vm.selectedTab == "REMINDER_PHONE_LIST")) {
+                return;
+            }
+            clearTimeout(vm.refreshPhoneReminder);
+            vm.refreshPhoneReminder = setTimeout(() => {
+                vm.autoRefreshTsDistributedPhoneReminder();
+            }, 60000);
+
+            let sendData = {
+                platform: vm.selectedPlatform.id,
+                assignee: authService.adminId
+            }
+            socketService.$socket($scope.AppSocket, 'getTsDistributedPhoneReminder', sendData, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.newReminderTsPhoneCount = data.data || 0;
+                });
+            });
+        }
+
         vm.createNewPlayer = function () {
-            if (!vm.newPlayer.tsPhone) {
+            // save tsPhone details when create new player
+            if (!(vm.newPlayer.tsPhone && vm.newPlayer.tsPhoneList && vm.newPlayer.tsAssignee)) {
                 return;
             }
             vm.newPlayer.platform = vm.selectedPlatform.id;
@@ -1132,7 +1256,7 @@ define(['js/app'], function (myApp) {
                 vm.searchAdminPhoneList(true);
                 if (data && data.data && data.data._id) {
                     vm.addTsPhonePlayerFeedback(data.data._id);
-                    if (vm.tsCreditRemark) {
+                    if (vm.tsCreditRemark || vm.credibilityRemarkComment) {
                         vm.submitRemarkUpdate(data.data._id);
                     }
                 } else {
@@ -1268,7 +1392,8 @@ define(['js/app'], function (myApp) {
             });
             resultName = resultName.length > 0 ? resultName[0].value : "";
             let sendData = {
-                tsPhone: data.tsPhone,
+                tsPhone: data.tsPhone._id,
+                tsPhoneList: data.tsPhone.tsPhoneList,
                 platform: vm.selectedPlatform.id,
                 adminId: authService.adminId,
                 content: data.content,
@@ -1278,6 +1403,7 @@ define(['js/app'], function (myApp) {
             };
             console.log('sendData', sendData);
             socketService.$socket($scope.AppSocket, 'createTsPhoneFeedback', sendData, function (data) {
+                vm.autoRefreshTsDistributedPhoneReminder();
                 vm.tsPhoneAddFeedback.content = "";
                 vm.tsPhoneAddFeedback.result = "";
             });
@@ -5494,47 +5620,10 @@ define(['js/app'], function (myApp) {
             } else if (type == 'remove') {
 
                 // delete immediately the constructed promoCodeType before saving into dB
-                if (collection[data]._id == null) {
+                if (collection[data]) {
                     collection.splice(data, 1);
                 }
-                else {
 
-                    let sendData = {
-                        platformObjId: vm.selectedPlatform.id,
-                        promoCodeTypeObjId: collection[data]._id
-                    };
-
-                    // check the availability of the promocode type, can only remove if it is expired
-                    socketService.$socket($scope.AppSocket, 'checkPromoCodeTypeAvailability', sendData, function (result) {
-                        if (result) {
-                            if (!result.data.deleteFlag && !result.data.delete) {
-                                socketService.showErrorMessage($translate("The promoCode Type is still valid"));
-                            }
-                            else if (!result.data.deleteFlag && result.data.delete) {
-                                // delete the PromoCodeType from the dB (generated promoCodeType but not using)
-                                vm.removeSMSContent.push({
-                                    smsContent: collection.splice(data, 1),
-                                    isDelete: true
-                                });
-                                $scope.safeApply();
-                            }
-                            else if (result.data.deleteFlag && !result.data.delete) {
-                                // change the deleteFlag status in dB (as it had been used before)
-                                vm.removeSMSContent.push({
-                                    smsContent: collection.splice(data, 1),
-                                    updateIsDeletedFlag: true
-                                });
-                                $scope.safeApply();
-                            }
-                            else {
-                            }
-
-                        }
-                        else {
-                            return Q.reject("data was empty: " + result);
-                        }
-                    });
-                }
             }
         };
 
@@ -5908,6 +5997,10 @@ define(['js/app'], function (myApp) {
         }
 
 
+        vm.cancelEditTsAnalyticsPhoneList = function () {
+            vm.tsAnalyticsPhoneList = JSON.parse(JSON.stringify(vm.selectedTsAnalyticsPhoneList));
+        }
+
         vm.initAnalyticsFilterAndImportDXSystem = function (rowData) {
             vm.isShowNewListModal = true;
             vm.tsNewListEnableSubmit = true;
@@ -5961,11 +6054,31 @@ define(['js/app'], function (myApp) {
                             data.data.forEach(tsImportRecord => {
                                 if (tsImportRecord.description) {
                                     vm.tsAnalyticsPhoneList.time_operator_description.push(tsImportRecord);
+                                    vm.selectedTsAnalyticsPhoneList =JSON.parse(JSON.stringify(vm.tsAnalyticsPhoneList));
                                 }
                             });
                         });
                     }
                 })
+
+                vm.tsAnalyticsPhoneListMaxCaller = null; // reset max caller count
+                if (rowData.status != vm.constTsPhoneListStatus.PRE_DISTRIBUTION && rowData.status != vm.constTsPhoneListStatus.NOT_ENOUGH_CALLER) {
+                    let sendData = {
+                        query: {
+                            platform: vm.selectedPlatform.id,
+                            tsPhoneList: rowData._id,
+                            status: 1
+                        }
+                    }
+                    socketService.$socket($scope.AppSocket, 'getTsAssigneesCount', sendData, function (data) {
+                        if (data && data.data) {
+                            $scope.$evalAsync(() => {
+                                vm.tsAnalyticsPhoneListMaxCaller = data.data;
+                            });
+                        }
+                    })
+                }
+
             });
 
             vm.editTsNewList = function () {
@@ -5988,7 +6101,9 @@ define(['js/app'], function (myApp) {
                     }
                 };
 
-                socketService.$socket($scope.AppSocket, 'updateTsPhoneList', sendData, function () {})
+                socketService.$socket($scope.AppSocket, 'updateTsPhoneList', sendData, function () {
+                    vm.filterPhoneListManagement(true);
+                })
             }
 
 
@@ -6019,6 +6134,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.filterPhoneListManagement = (newSearch) => {
+            vm.selectedTsPhoneList = false;
             let sendQuery = {
                 platform: vm.selectedPlatform.id,
                 startTime: $('#phoneListStartTimePicker').data('datetimepicker').getLocalDate(),
@@ -6045,6 +6161,68 @@ define(['js/app'], function (myApp) {
                         let size = data.data.size || 0;
                         vm.drawPhoneListManagementTable(newSearch, vm.tsPhoneList, size);
                     })
+                }
+            });
+        };
+
+        vm.filterWorkloadReport = () => {
+            vm.workloadResult = null;
+            vm.workloadSearch.phoneListNames = [];
+            vm.workloadSearch.phoneLists = vm.workloadSearch.phoneLists || [];
+            vm.workloadSearch.startTime = $('#workloadStartTimePicker').data('datetimepicker').getLocalDate();
+            vm.workloadSearch.endTime = $('#workloadEndTimePicker').data('datetimepicker').getLocalDate();
+            if(vm.workloadSearch.phoneLists.length > 0) {
+                vm.workloadSearch.phoneLists.forEach(needle => {
+                    vm.allTsPhoneList.forEach(haystack => {
+                        if (needle == haystack._id) {
+                            vm.workloadSearch.phoneListNames.push(haystack.name);
+                        }
+                    })
+                });
+            }
+            let sendQuery = {
+                platformObjId: vm.selectedPlatform.id,
+                phoneListObjIds: vm.workloadSearch.phoneLists || [],
+                adminObjIds: vm.workloadSearch.admins || [],
+                startTime: vm.workloadSearch.startTime,
+                endTime: vm.workloadSearch.endTime
+            };
+
+            console.log("getTsWorkloadReport send", sendQuery);
+            socketService.$socket($scope.AppSocket, 'getTsWorkloadReport', sendQuery, function (data) {
+                console.log("getTsWorkloadReport ret", data);
+                $scope.$evalAsync(() => {
+                    vm.workloadResult = {};
+                    vm.workloadResultSummary = [];
+                    if(data.data) {
+                        vm.workloadResult = data.data;
+                        for(let assigneeObjId in vm.workloadResult) {
+                            let row = {
+                                distributed: 0,
+                                fulfilled: 0,
+                                success: 0,
+                                registered: 0
+                            };
+                            let assignee = vm.workloadResult[assigneeObjId];
+                            for(let phoneList in assignee) {
+                                row.adminObjId = assignee[phoneList].adminId;
+                                row.adminName = assignee[phoneList].adminName;
+                                row.distributed += assignee[phoneList].distributed;
+                                row.fulfilled += assignee[phoneList].fulfilled;
+                                row.success += assignee[phoneList].success;
+                                row.registered += assignee[phoneList].registered;
+                            }
+                            vm.workloadResultSummary.push(row);
+                        }
+                    }
+                })
+            });
+        };
+        vm.populateWorkloadResultDetail = (adminObjId) => {
+            vm.workloadResultDetail = vm.workloadResult[adminObjId];
+            vm.workloadResultSummary.forEach(summary => {
+                if(summary.adminObjId == adminObjId) {
+                    vm.workloadResultDetailSums = summary;
                 }
             });
         };
@@ -6290,7 +6468,7 @@ define(['js/app'], function (myApp) {
                         render: function (data, type, row, index) {
                             let link = $('<a>', {
                                 'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'");',
-                            }).text($translate(vm.constTsPhoneListStatus[data]));
+                            }).text($translate(vm.constTsPhoneListStatusStr[data]));
                             return link.prop('outerHTML');
                         }
                     },
@@ -6352,10 +6530,11 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_SUCCESS_RATE'),
                         render: function(data, type, row, index){
-                            let percentage = isFinite(row.totalSuccess / row.totalDistributed) || 0;
+                            let percentage = row.totalSuccess / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
                             let divWithToolTip = $('<div>', {
                                 'title': "成功接听量/已使用量",
-                                'text': $noRoundTwoDecimalToFix(percentage)
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -6375,10 +6554,11 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_REGISTERED_RATE'),
                         render: function(data, type, row, index){
-                            let percentage = isFinite(row.totalRegistration / row.totalDistributed) || 0;
+                            let percentage = row.totalRegistration / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
                             let divWithToolTip = $('<div>', {
                                 'title': "成功开户量/已使用量",
-                                'text': $noRoundTwoDecimalToFix(percentage)
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -6398,10 +6578,11 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_TOPUP_RATE'),
                         render: function(data, type, row, index){
-                            let percentage =  isFinite(row.totalTopUp / row.totalDistributed) || 0;
+                            let percentage = row.totalTopUp / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
                             let divWithToolTip = $('<div>', {
                                 'title': "成功存款人数/已使用量",
-                                'text': $noRoundTwoDecimalToFix(percentage)
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -6421,10 +6602,11 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_MULTIPLE_TOPUP_RATE'),
                         render: function(data, type, row, index){
-                            let percentage = isFinite(row.totalMultipleTopUp / row.totalDistributed) || 0;
+                            let percentage = row.totalMultipleTopUp / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
                             let divWithToolTip = $('<div>', {
                                 'title': "成功存款2笔人数/已使用量",
-                                'text': $noRoundTwoDecimalToFix(percentage)
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -6444,10 +6626,11 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_VALID_RATE'),
                         render: function(data, type, row, index){
-                            let percentage = isFinite(row.totalValidPlayer / row.totalDistributed) || 0;
+                            let percentage = row.totalValidPlayer / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
                             let divWithToolTip = $('<div>', {
                                 'title': "有效开户量/已使用量",
-                                'text': $noRoundTwoDecimalToFix(percentage)
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -6468,6 +6651,26 @@ define(['js/app'], function (myApp) {
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
                     $compile(nRow)($scope);
+
+                    $(nRow).off('click');
+                    $(nRow).on('click', function () {
+                        vm.selectedTsPhoneList;
+                        $('#phoneListManagementTable tbody tr').removeClass('selected');
+                        $scope.$evalAsync(() => {
+                            if (vm.selectedTsPhoneList != aData) {
+                                vm.selectedTsPhoneList = aData;
+                                $(this).toggleClass('selected');
+                            } else {
+                                vm.selectedTsPhoneList = false;
+                            }
+                            if (!(vm.selectedTsPhoneList && (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING || vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.MANUAL_PAUSED))) {
+                                vm.disableManualPauseTsPhoneList = true;
+                            } else {
+                                vm.disableManualPauseTsPhoneList = false;
+                            }
+                        })
+                    });
+
                 }
             });
             tableOptions.language.emptyTable=$translate("No data available in table");
@@ -6481,18 +6684,45 @@ define(['js/app'], function (myApp) {
                 vm.commonSortChangeHandler(a, 'phoneListSearch', vm.getTeleMarketingOverview);
             });
             $('#phoneListManagementTable').resize();
-        }
+        };
+
+        vm.manualPauseTsPhoneListStatus = () => {
+            if (!(vm.selectedTsPhoneList && (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING || vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.MANUAL_PAUSED))) {
+                return;
+            }
+            let status;
+            if (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING) {
+                status = vm.constTsPhoneListStatus.MANUAL_PAUSED;
+            } else {
+                status = vm.constTsPhoneListStatus.DISTRIBUTING;
+            }
+            let sendData = {
+                tsPhoneList: vm.selectedTsPhoneList._id,
+                status: status
+            }
+            socketService.$socket($scope.AppSocket, 'manualPauseTsPhoneListStatus', sendData, function (data) {
+                vm.filterPhoneListManagement(true);
+            })
+        };
+
+        vm.forceCompleteTsPhoneList = () => {
+            if (!(vm.selectedTsPhoneList && vm.selectedTsPhoneList._id)){
+                return;
+            }
+            socketService.$socket($scope.AppSocket, 'forceCompleteTsPhoneList', {tsPhoneList: vm.selectedTsPhoneList._id}, function (data) {
+                vm.filterPhoneListManagement(true);
+            })
+        };
 
         vm.distributePhoneNumber = (tsListObjId) => {
             socketService.$socket($scope.AppSocket, 'distributePhoneNumber', {platform: vm.selectedPlatform.id, tsListObjId: tsListObjId}, function (data) {
                 console.log("distributePhoneNumber", data)
             })
-        }
-
+        };
 
         vm.tsAnalyticsPhoneListEdit = () => {
             vm.analyticsPhoneListEdit = false;
-        }
+        };
 
         vm.checkAnalyticsFilterAndImportSystem = () => {
             vm.checkFilterIsDisable = true;
@@ -6547,12 +6777,24 @@ define(['js/app'], function (myApp) {
            else{
                vm.tsNewList.checkBoxA = false;
                vm.tsNewList.checkBoxB = false;
-               $('#modalTSNewListNameRepeat').show();
-               $('#modalTSNewListNameRepeat').css("opacity", "1");
-               $('#modalTSNewListNameRepeat').css("z-index", "12000");
+                let invalidStatus = [vm.constTsPhoneListStatus.HALF_COMPLETE, vm.constTsPhoneListStatus.PERFECTLY_COMPLETED, vm.constTsPhoneListStatus.FORCE_COMPLETED, vm.constTsPhoneListStatus.DECOMPOSED]
+               socketService.$socket($scope.AppSocket, 'getOneTsNewList', {platform: vm.selectedPlatform.id, name: vm.tsNewList.name}, function (data) {
+                   $scope.$evalAsync(() => {
+                       if (data && data.data && invalidStatus.includes(data.data.status)) {
+                           $('#modalTSNewListNameRepeatStatus').modal();
+                       } else {
+                           $('#modalTSNewListNameRepeat').modal();
+                       }
+                   })
+               })
 
            }
         };
+
+        vm.renameTsPhoneList = () => {
+            $('#modalTSNewListNameRepeatStatus').hide();
+            $('#nameInput').focus();
+        }
 
         vm.returnToInput = () => {
             vm.disableAll = false;

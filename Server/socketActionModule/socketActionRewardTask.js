@@ -31,20 +31,10 @@ function socketActionRewardTask(socketIO, socket) {
             socketUtil.emitter(self.socket, dbRewardTask.getPlayerCurRewardTask, [data.playerId], actionName, isValidData);
         },
 
-        /**
-         * TODO: (DEPRECATING) To change to getPlayerAllRewardTask after implement multiple player reward tasks
-         * @param data
-         */
-        getPlayerCurRewardTaskDetailByPlayerId: function getPlayerCurRewardTaskDetailByPlayerId(data) {
-            var actionName = arguments.callee.name;
-            var isValidData = Boolean(data);
-            socketUtil.emitter(self.socket, dbRewardTask.getPlayerCurRewardTaskByPlayerId, [data], actionName, isValidData);
-        },
-
         createPlayerRewardTask: function createPlayerRewardTask(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.playerId && data.platformId && data.currentAmount);
-            socketUtil.emitter(self.socket, dbRewardTask.manualCreateRewardTask, [data, getAdminId(), getAdminName()], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbRewardTask.manualCreateReward, [data, getAdminId(), getAdminName()], actionName, isValidData);
         },
 
         getConsumeRebateAmount: function getConsumeRebateAmount(data) {

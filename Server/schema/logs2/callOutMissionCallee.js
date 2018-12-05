@@ -31,6 +31,4 @@ let callOutMissionCalleeSchema = new Schema({
     data: {},
 });
 
-// callOutMissionCalleeSchema.index({platform: 1, startTime: 1, endTime: 1, device: 1, pageName: 1, buttonName: 1});
-
 module.exports = callOutMissionCalleeSchema;

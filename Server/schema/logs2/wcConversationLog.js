@@ -8,6 +8,9 @@ let wcConversationLogSchema = new Schema({
     // wcGroupControl deviceId
     deviceId: {type: String, required: true, index: true},
 
+    // wcGroupControl device nickname
+    deviceNickName: {type: String, required: true, index: true},
+
     // Platform
     platformObjId: {type: Schema.Types.ObjectId, ref: 'platform', required: true, index: true},
 
@@ -21,10 +24,10 @@ let wcConversationLogSchema = new Schema({
     csReplyTime: {type: Date, index: true},
 
     // cs reply player content
-    csReplyContent: {type: String},
+    csReplyContent: {type: String, index: true},
 
     // Create time
-    createTime: {type: Date, default: new Date(), index: true}
+    createTime: {type: Date, default: Date.now, index: true}
 });
 
 module.exports = wcConversationLogSchema;

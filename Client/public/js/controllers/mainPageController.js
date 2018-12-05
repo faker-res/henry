@@ -19,6 +19,8 @@ define(['js/app'], function (myApp) {
             vm.roleNameToBeAttached = [];
             vm.roleNameToBeDetached = [];
 
+            vm.viewSequence = ['Player','Partner','Platform','Report','Operation','Analysis','Monitor','Payment','Provider','Dashboard','Admin','QualityInspection','TeleMarketing','ThemeControl'];
+
             //vm.dataTableCols = [
             //    {field: 'index', title: '#', show: true},
             //    {
@@ -1894,25 +1896,40 @@ define(['js/app'], function (myApp) {
 
                 vm.subPolicytoggle = $.extend(true, {}, policyObj);
                 vm.subShowRoleFlag = $.extend(true, {}, showRolesObj);
-
-                $.each(rolesObj , function (cate, cateData) {
-                    if (cateData) {
-                        $.each(cateData, function (sectionName, sectionData) {
-                            if (sectionData) {
-                                let isAll = true;
-                                $.each(sectionData, function (viewName, viewData) {
-                                    if (vm.subShowRoleFlag[cate] && vm.subShowRoleFlag[cate][sectionName] && vm.subShowRoleFlag[cate][sectionName][viewName]) {
-                                        vm.subShowRoleFlag[cate][sectionName][viewName] = flag;
-                                    }
-                                    if (!vm.subShowRoleFlag[cate] || !vm.subShowRoleFlag[cate][sectionName] || !vm.subShowRoleFlag[cate][sectionName][viewName] ) {
-                                        isAll = false;
+                let newViewListObj = {};
+                //loop the viewSequence to order the viewList follow the specific sequence
+                vm.viewSequence.forEach(
+                    viewSequence => {
+                        if(viewSequence){
+                            let cate = viewSequence;
+                            let cateData = rolesObj[viewSequence];
+                            if (cateData) {
+                                // loop the permission group to get the sub permission 
+                                $.each(cateData, function (sectionName, sectionData) {
+                                    if (sectionData) {
+                                        let isAll = true;
+                                        //loop the sub permission and check if it is ticked
+                                        $.each(sectionData, function (viewName, viewData) {
+                                            if (vm.subShowRoleFlag[cate] && vm.subShowRoleFlag[cate][sectionName] && vm.subShowRoleFlag[cate][sectionName][viewName]) {
+                                                vm.subShowRoleFlag[cate][sectionName][viewName] = flag;
+                                            }
+                                            if (!vm.subShowRoleFlag[cate] || !vm.subShowRoleFlag[cate][sectionName] || !vm.subShowRoleFlag[cate][sectionName][viewName] ) {
+                                                isAll = false;
+                                            }
+                                        });
+                                        vm.subPolicytoggle[cate][sectionName].all = isAll;
                                     }
                                 });
-                                vm.subPolicytoggle[cate][sectionName].all = isAll;
                             }
-                        });
+
+                            if(vm.viewList[viewSequence]){
+                                newViewListObj[viewSequence] = vm.viewList[viewSequence];
+                            }
+                        }
                     }
-                });
+                );
+
+                vm.viewList = newViewListObj;
             };
 
             vm.expandSubPolicySection = function (i) {

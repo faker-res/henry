@@ -349,6 +349,29 @@ define(['js/config', 'js/commonAPIs', 'js/services/authService', 'js/services/so
                 .state('monitor.wechatGroup', {
                     url: '/wechatGroup',
                     templateUrl: 'category/monitor/monitor-wechat-group',
+                    controller: 'monitorWechatCtrl',
+                    controllerAs: 'vm',
+                    resolve: {
+                        load: function ($q, $rootScope) {
+                            var deferred = $q.defer();
+
+                            var dependencies = [
+                                "/js/controllers/monitorWechatController.js"
+                            ];
+
+                            require(dependencies, function () {
+                                $rootScope.$apply(function () {
+                                    deferred.resolve();
+                                });
+                            });
+
+                            return deferred.promise;
+                        }
+                    }
+                })
+                .state('monitor.consumptionRecord', {
+                    url: '/consumptionRecord',
+                    templateUrl: 'category/monitor/monitor-consumption-record',
                     controller: 'monitorPaymentCtrl',
                     controllerAs: 'vm',
                     resolve: {

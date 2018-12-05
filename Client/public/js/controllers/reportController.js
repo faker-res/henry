@@ -187,7 +187,7 @@ define(['js/app'], function (myApp) {
         'applyBonusRequest',
         'createPlayerRewardTask',
         'applyRewardEvent',
-        'unlockRewardTaskInRewardTaskGroup',
+        'createRewardTaskGroupUnlockedRecord',
         'updatePlayerRewardPointsRecord',
         'createUpdatePlayerRealNameProposal',
         'createUpdatePartnerRealNameProposal',
@@ -222,6 +222,7 @@ define(['js/app'], function (myApp) {
         'updateRewardEvent',
         'updateProposalTypeProcessSteps',
         'updateProposalProcessStep',
+        'approveCsPendingAndChangeStatus',
         'updatePlayerLevel',
         'updatePartnerLevelConfig',
         'createUpdatePartnerCommissionConfigWithGameProviderGroup',
@@ -2674,26 +2675,100 @@ define(['js/app'], function (myApp) {
 
         };
 
-        vm.getWechatGroupReport = function () {
-            vm.reportSearchTimeStart = new Date().getTime();
-            $('#wechatGroupReportTable').show();
-            let sendQuery = {
-                platform: vm.selectedPlatform._id,
-                platformId: vm.selectedPlatform.platformId,
+        vm.searchWechatControlSession = function (newSearch, isExport = false) {
+            $('#wechatGroupReportTableSpin').show();
+
+            let sendObj = {
+                admin: authService.adminId,
+                deviceNickNames: vm.wechatGroupQuery.deviceNickName,
+                csOfficer: vm.wechatGroupQuery.csOfficer,
                 startTime: vm.wechatGroupQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.wechatGroupQuery.endTime.data('datetimepicker').getLocalDate(),
-                type: vm.wechatGroupQuery.type
-            };
+                platformIds: vm.wechatGroupQuery.product,
+                index: isExport? 0: (newSearch ? 0 : (vm.wechatGroupQuery.index || 0)),
+                limit: isExport? 5000: vm.wechatGroupQuery.limit || 10,
+                sortCol: vm.wechatGroupQuery.sortCol || {createTime: -1}
+            }
 
-            console.log('sendQuery', sendQuery);
+            vm.reportSearchTimeStart = new Date().getTime();
+            socketService.$socket($scope.AppSocket, 'getWechatControlSession', sendObj, function (data) {
+                $('#wechatGroupReportTableSpin').hide();
+                findReportSearchTime()
+                console.log('getWechatControlSession', data);
+                vm.wechatGroupQuery.totalCount = data.data.size;
+                vm.drawWechatControlSession(
+                    data.data.data.map(item => {
+                        let timeDiff;
+                        if (!item.lastUpdateTime) {
+                            timeDiff = Math.abs(new Date().getTime() - new Date(item.createTime).getTime());
+                        } else {
+                            timeDiff = Math.abs(new Date(item.lastUpdateTime).getTime() - new Date(item.createTime).getTime());
+                        }
+                        item.onlineDuration$ = Math.floor(timeDiff / (1000 * 60)) + $translate("Minutes");
+                        if (item.createTime) {
+                            item.createTime = vm.dateReformat(item.createTime);
+                        }
+                        if (item.lastUpdateTime) {
+                            item.lastUpdateTime = vm.dateReformat(item.lastUpdateTime);
+                        }
+                        return item;
+                    }), data.data.size, {}, newSearch, isExport);
+                $scope.$evalAsync();
+            }, function (err) {
+                $('#wechatGroupReportTableSpin').hide();
+                console.log(err);
+            }, true);
+        }
 
-            socketService.$socket($scope.AppSocket, 'getWechatGroupReport', sendQuery, function (data) {
-                findReportSearchTime();
-                console.log('_getWechatGroupReport', data);
-                $('#wechatGroupReportTable').hide();
-                $scope.safeApply();
-            });
-        };
+        vm.drawWechatControlSession = function (data, size, summary, newSearch, isExport) {
+            var tableOptions = {
+                data: data,
+                "order": vm.wechatGroupQuery.aaSorting ,
+                aoColumnDefs: [
+                    // {'sortCol': 'proposalId', bSortable: true, 'aTargets': [0]},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {title: $translate('PRODUCT'), data: "platformObjId.name"},
+                    {title: $translate('Create Device Name'), data: "deviceNickName"},
+                    {title: $translate('Use Account'), data: "csOfficer.adminName"},
+                    {title: $translate('Start Connection Time'), data: "createTime"},
+                    {
+                        title: $translate('Offline Time'), data: "lastUpdateTime",
+                        render: function (data, type, row) {
+                            if (data) {
+                                return '<span>' + data + '</span>';
+                            } else {
+                                return '<span style="color: green">' + $translate("STILL_ONLINE") + '</span>';
+                            }
+                        }
+                    },
+                    {title: $translate('This Connection is Abnormally Clicked'), data: "connectionAbnormalClickTimes"},
+                    {title: $translate('Connection Time'), data: "onlineDuration$"},
+                ],
+                "paging": false,
+                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    $compile(nRow)($scope);
+                },
+            }
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+            // vm.adminPhoneListTable = $('#adminPhoneListTable').DataTable(tableOptions);
+
+            if(isExport){
+                var proposalTbl = utilService.createDatatableWithFooter('#wechatGroupReportExcelTable', tableOptions, {});
+                $('#wechatGroupReportExcelTable_wrapper').hide();
+                vm.exportToExcel("wechatGroupReportExcelTable", "WECHAT_GROUP_REPORT");
+            }else {
+                utilService.createDatatableWithFooter('#wechatGroupReportTable', tableOptions, {});
+                vm.wechatGroupQuery.pageObj.init({maxCount: size}, newSearch);
+
+                $('#wechatGroupReportTable').off('order.dt');
+                $('#wechatGroupReportTable').on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'wechatGroupQuery', vm.searchWechatControlSession);
+                });
+                $('#wechatGroupReportTable').resize();
+            }
+        }
 
         vm.getLimitedOfferReport = function (newSearch) {
             vm.reportSearchTimeStart = new Date().getTime();
@@ -7850,8 +7925,21 @@ define(['js/app'], function (myApp) {
                 player: vm.actionLogQuery.player,
                 index: vm.actionLogQuery.index,
                 limit: vm.actionLogQuery.limit || 10,
-                sortCol: vm.actionLogQuery.sortCol || {operationTime : -1},
-                platformObjIdList: vm.actionLogQuery.platform
+                sortCol: vm.actionLogQuery.sortCol || {operationTime : -1}
+            }
+
+            if(vm.actionLogQuery.platform){
+                query.platformObjIdList =  vm.actionLogQuery.platform;
+            } else{
+                let platformListId = [];
+
+                vm.platformList.forEach(platform => {
+                    if(platform && platform._id){
+                        platformListId.push(platform._id);
+                    }
+                });
+
+                query.platformObjIdList = platformListId;
             }
 
             console.log('query', query);
@@ -8217,6 +8305,41 @@ define(['js/app'], function (myApp) {
 
         function getProviderWithObjId(providerObjId) {
             return vm.allProviders.find(p => p._id === providerObjId);
+        }
+
+        function getAdminPlatformName () {
+            socketService.$socket($scope.AppSocket, 'getAdminPlatformName', {admin: authService.adminId}, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.adminPlatformName = data && data.data || [];
+                    vm.wechatSessionNickName = []; // reset multiselect
+                    vm.wechatSessionCsOfficer =  []; // reset multiselect
+                    vm.refreshSPicker();
+                })
+            })
+        }
+
+        vm.getWechatSessionDeviceNickName = function (platformObjIds) {
+            if (platformObjIds && platformObjIds.length) {
+                socketService.$socket($scope.AppSocket, 'getWechatSessionDeviceNickName', {platformObjIds: platformObjIds}, function (data) {
+                    $scope.$evalAsync(() => {
+                            vm.wechatSessionNickName = data && data.data || [];
+                    })
+                })
+            } else {
+                vm.wechatSessionNickName = [];
+            }
+        }
+
+        vm.getWechatSessionCsOfficer = function (platformObjIds, deviceNickNames) {
+            if (platformObjIds && platformObjIds.length && deviceNickNames && deviceNickNames.length) {
+                socketService.$socket($scope.AppSocket, 'getWechatSessionCsOfficer', {platformObjIds: platformObjIds, deviceNickNames: deviceNickNames}, function (data) {
+                    $scope.$evalAsync(() => {
+                        vm.wechatSessionCsOfficer = data && data.data || [];
+                    })
+                })
+            } else {
+                vm.wechatSessionCsOfficer = [];
+            }
         }
 
         vm.getProposalTypeOptionValue = function (proposalType, performTranslate) {
@@ -9249,6 +9372,13 @@ define(['js/app'], function (myApp) {
             }
         }
 
+        vm.refreshSPicker = () => {
+            // without this timeout, 'selectpicker refresh' might done before the DOM able to refresh, which evalAsync doesn't help
+            $timeout(function () {
+                $('.spicker').selectpicker('refresh');
+            }, 0);
+        };
+
         function drawReportQuery (choice) {
             vm.merchantNoNameObj = {};
             vm.merchantGroupObj = [];
@@ -9725,7 +9855,7 @@ define(['js/app'], function (myApp) {
                     break;
                 case 'FINANCIAL_REPORT':
                     vm.financialReport = {};
-                    vm.financialReport.displayMethod = 'sum';
+                    vm.enableDisplayMethodByPlatformList();
                     vm.dailyFinancialReportList = [];
                     vm.sumFinancialReportList = {};
                     vm.reportSearchTime = 0;
@@ -9743,16 +9873,19 @@ define(['js/app'], function (myApp) {
                                 $scope.$evalAsync(() => {
                                     if ($($multi).text() == '') {
                                         vm.financialReport.displayMethod = '';
+                                        vm.isDisableSelectDisplayMethod = false;
                                     } else if ($($multi).text().includes('/') || $($multi).text().includes('全选')) {
-                                        vm.financialReport.displayMethod = 'sum';
+                                        vm.enableDisplayMethodByPlatformList();
                                     } else {
                                         let selectedPlatform = $($multi).text().split(',');
                                         let count = selectedPlatform.length;
 
                                         if (count === 1) {
                                             vm.financialReport.displayMethod = 'daily';
+                                            vm.isDisableSelectDisplayMethod = false;
                                         } else {
                                             vm.financialReport.displayMethod = 'sum';
+                                            vm.isDisableSelectDisplayMethod = true;
                                         }
                                     }
                                 });
@@ -9783,6 +9916,16 @@ define(['js/app'], function (myApp) {
                         });
                     });
                     break;
+            }
+
+            vm.enableDisplayMethodByPlatformList = function () {
+                if (vm.platformList.length == 1) {
+                    vm.financialReport.displayMethod = 'daily';
+                    vm.isDisableSelectDisplayMethod = false;
+                } else {
+                    vm.financialReport.displayMethod = 'sum';
+                    vm.isDisableSelectDisplayMethod = true;
+                }
             }
 
             // start of financial report's deposit group setting
@@ -10173,10 +10316,12 @@ define(['js/app'], function (myApp) {
             } else if (choice == "WECHAT_GROUP_REPORT") {
                 vm.wechatGroupQuery = {};
                 vm.reportSearchTime = 0;
-                utilService.actionAfterLoaded("#wechatGroupReportTable", function () {
+                getAdminPlatformName();
+
+                utilService.actionAfterLoaded("#wechatGroupReportTablePage", function () {
                     vm.commonInitTime(vm.wechatGroupQuery, '#wechatGroupQuery');
                     vm.wechatGroupQuery.pageObj = utilService.createPageForPagingTable("#wechatGroupReportTablePage", {}, $translate, function (curP, pageSize) {
-                        vm.commonPageChangeHandler(curP, pageSize, "wechatGroupQuery", vm.drawLimitedOfferReport)
+                        vm.commonPageChangeHandler(curP, pageSize, "wechatGroupQuery", vm.searchWechatControlSession)
                     });
                 });
                 $scope.safeApply();
@@ -10488,10 +10633,9 @@ define(['js/app'], function (myApp) {
                     {group: "PLAYER", text: "applyBonusRequest", action: "applyBonusRequest"},
                     {group: "PLAYER", text: "Reward - createPlayerRewardTask", action: "createPlayerRewardTask"},
                     {group: "PLAYER", text: "Reward - applyRewardEvent", action: "applyRewardEvent"},
-                    {group: "PLAYER", text: "Reward - unlockRewardTaskInRewardTaskGroup", action: "unlockRewardTaskInRewardTaskGroup"},
+                    {group: "PLAYER", text: "Reward - unlockRewardTaskInRewardTaskGroup", action: "createRewardTaskGroupUnlockedRecord"},
                     {group: "PLAYER", text: "updatePlayerRewardPointsRecord", action: "updatePlayerRewardPointsRecord"},
                     {group: "PLAYER", text: "createUpdatePlayerRealNameProposal", action: "createUpdatePlayerRealNameProposal"},
-                    {group: "PLAYER", text: "createUpdatePartnerRealNameProposal", action: "createUpdatePartnerRealNameProposal"},
                     {group: "PLAYER", text: "createUpdatePlayerInfoLevelProposal", action: "createUpdatePlayerInfoLevelProposal"},
 
                     {group: "PARTNER", text: "createPartner", action: "createPartner"},
@@ -10507,6 +10651,7 @@ define(['js/app'], function (myApp) {
                     {group: "PARTNER", text: "RESET_PASSWORD", action: "resetPartnerPassword"},
                     {group: "PARTNER", text: "customizePartnerCommission", action: "customizePartnerCommission"},
                     {group: "PARTNER", text: "updatePartnerPermission", action: "updatePartnerPermission"},
+                    {group: "PARTNER", text: "createUpdatePartnerRealNameProposal", action: "createUpdatePartnerRealNameProposal"},
 
                     {group: "Feedback", text: "ADD_FEEDBACK_RESULT", action: ["createPlayerFeedbackResult", "createPartnerFeedbackResult"]},
                     {group: "Feedback", text: "ADD_FEEDBACK_TOPIC", action: ["createPlayerFeedbackTopic", "createPartnerFeedbackTopic"]},
@@ -10529,7 +10674,7 @@ define(['js/app'], function (myApp) {
                     {group: "REWARD", text: "updateRewardEvent", action: "updateRewardEvent"},
 
                     {group: "PROPOSAL_PROCESS", text: "updateProposalTypeProcessSteps", action: "updateProposalTypeProcessSteps"},
-                    {group: "Proposal", text: "Manual Approval", action: "updateProposalProcessStep"},
+                    {group: "Proposal", text: "Manual Approval", action: ["updateProposalProcessStep", 'approveCsPendingAndChangeStatus']},
 
                     {group: "CONFIG", text: "EDIT_PLAYER_LEVEL", action: "updatePlayerLevel"},
                     {group: "CONFIG", text: "VALID_ACTIVE", action: "updatePartnerLevelConfig"},

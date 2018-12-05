@@ -146,6 +146,22 @@ var dbUtility = {
         };
     },
 
+    getHalfMonthSGTIme: function (inputDate) {
+        let startTime = moment(inputDate).tz('Asia/Singapore').startOf('month').toDate();
+        let endTime = moment(startTime).add(15, 'days').toDate();
+        let todayDay = moment(inputDate).tz('Asia/Singapore').date();
+
+        if (todayDay >= 16) {
+            startTime = endTime;
+            endTime = moment(inputDate).tz('Asia/Singapore').endOf('month').toDate();
+        }
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getMonthSGTIme: function (inputDate) {
         var startTime = moment(inputDate).tz('Asia/Singapore').startOf('month').toDate();
         var endTime = moment(inputDate).tz('Asia/Singapore').endOf('month').toDate();
@@ -339,6 +355,22 @@ var dbUtility = {
         let todayDay = moment().tz('Asia/Singapore').date();
 
         if (todayDay >= 15) {
+            startTime = endTime;
+            endTime = moment().tz('Asia/Singapore').endOf('month').toDate();
+        }
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getCurrentHalfMonthSGTIme: function () {
+        let startTime = moment().tz('Asia/Singapore').startOf('month').toDate();
+        let endTime = moment(startTime).add(15, 'days').toDate();
+        let todayDay = moment().tz('Asia/Singapore').date();
+
+        if (todayDay >= 16) {
             startTime = endTime;
             endTime = moment().tz('Asia/Singapore').endOf('month').toDate();
         }
@@ -653,6 +685,16 @@ var dbUtility = {
     getSGTimeOfPassHours: function (hours) {
         let endTime = moment().tz('Asia/Singapore').toDate();
         let startTime = moment(endTime).tz('Asia/Singapore').subtract(hours, "hours").toDate();
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        }
+    },
+
+    getSGTimeCurrentHourInterval: function (date) {
+        let startTime = moment(date).tz('Asia/Singapore').startOf("hour").toDate();
+        let endTime = moment(date).tz('Asia/Singapore').endOf("hour").toDate();
 
         return {
             startTime: startTime,
@@ -1489,6 +1531,24 @@ var dbUtility = {
         // Shift back
         value = value.toString().split('e');
         return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
+    },
+
+    retrieveAgent: (agentInfo) => {
+        let registrationInterface = '';
+        let userAgent = agentInfo;
+        if (userAgent == '') {
+            registrationInterface = 1;
+        } else {
+            if (userAgent.browser.name.indexOf("WebKit") !== -1 || userAgent.browser.name.indexOf("WebView") !== -1) {
+                registrationInterface = 2;
+            }
+            else if (userAgent.os.name.indexOf("iOS") !== -1 || userAgent.os.name.indexOf("ndroid") !== -1 || userAgent.browser.name.indexOf("obile") !== -1) {
+                registrationInterface = 3;
+            } else {
+                registrationInterface = 1;
+            }
+        }
+        return registrationInterface;
     }
 };
 

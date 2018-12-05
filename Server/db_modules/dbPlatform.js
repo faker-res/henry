@@ -42,6 +42,11 @@ const https = require('https');
 const localization = require("../modules/localization");
 const dbProposal = require('./../db_modules/dbProposal');
 
+const Client = require('ftp');
+const admZip = require('adm-zip');
+const jwt = require('jsonwebtoken');
+const jwtSecret = env.socketSecret;
+
 // constants
 const constProposalEntryType = require('../const/constProposalEntryType');
 const constProposalStatus = require('../const/constProposalStatus');
@@ -57,10 +62,7 @@ const request = require('request');
 const constSMSPurpose = require("../const/constSMSPurpose");
 const constPartnerCommissionLogStatus = require("../const/constPartnerCommissionLogStatus");
 
-const Client = require('ftp');
-const admZip = require('adm-zip');
-const jwt = require('jsonwebtoken');
-var jwtSecret = env.socketSecret;
+const dbRewardUtil = require('../db_common/dbRewardUtility');
 
 function randomObjectId() {
     var id = crypto.randomBytes(12).toString('hex');
@@ -416,6 +418,31 @@ var dbPlatform = {
     getOnePlatformSetting: function (query) {
         return dbconfig.collection_platform.findOne(query).lean()
     },
+
+    getAdminPlatformName: function (admin) {
+        return dbconfig.collection_admin.findOne({_id: admin})
+            .populate({path: "departments", model: dbconfig.collection_department, select: 'platforms'}).lean().then(
+                adminData => {
+                    if (!adminData) {
+                        return Promise.reject({name: "DataError", message: "Cannot find admin"});
+                    }
+
+                    if (adminData.departments && adminData.departments.length) {
+                        let departments = adminData.departments;
+                        let platformObjIds = [];
+                        for (let i = 0; i < departments.length; i++) {
+                            if (departments[i].platforms) {
+                                platformObjIds = platformObjIds.concat(departments[i].platforms);
+                            }
+                        }
+                        return dbconfig.collection_platform.find({_id: {$in: platformObjIds}}, {name: 1}).lean();
+                    } else {
+                        return [];
+                    }
+                }
+            )
+    },
+
 
     getPlatformFeeEstimateSetting: function (platformObjId) {
     platformObjId = ObjectId(platformObjId);
@@ -853,7 +880,7 @@ var dbPlatform = {
                         },
                         {
                             $pull: {gameProviders: providerObjId},
-                            $unset: {'gameProviderInfo': '' + providerObjId}
+                            // $unset: {'gameProviderInfo': '' + providerObjId}
                         }
                     ).exec();
                 }
@@ -1297,7 +1324,7 @@ var dbPlatform = {
         return dbconfig.collection_players.findOne({_id: playerId})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).lean().then(
                 playerData => {
-                    let playerIsForbiddenForThisReward = dbPlayerReward.isRewardEventForbidden(playerData, eventObjId);
+                    let playerIsForbiddenForThisReward = dbRewardUtil.isRewardEventForbidden(playerData, eventObjId);
 
                     if (playerData && playerData.playerLevel && playerData.permission && !playerData.permission.banReward && !playerIsForbiddenForThisReward) {
                         var minAmount = minAmountPerLevel[playerData.playerLevel.value];
@@ -3656,6 +3683,18 @@ var dbPlatform = {
         );
     },
 
+    getBlackWhiteListingConfig: (platformObjId) => {
+        return dbconfig.collection_platformBlackWhiteListing.findOne({platform: platformObjId}).lean().exec();
+    },
+
+    saveBlackWhiteListingConfig: (platformObjId, updateData) => {
+        let query = {
+            platform: platformObjId
+        };
+
+        return dbconfig.collection_platformBlackWhiteListing.findOneAndUpdate(query, updateData, {upsert: true, new: true});
+    },
+
     getPlatformPartnerSettLog: (platformObjId, modes) => {
         let promArr = [];
         let partnerSettDetail = {};
@@ -4055,6 +4094,12 @@ var dbPlatform = {
 
     callBackToUser: (platformId, phoneNumber, randomNumber, captcha, lineId, playerId) => {
         let platform, url, platformString;
+        let playerData;
+        let blackWhiteListingConfig;
+        let callBackToUserLogProm = Promise.resolve(true);
+        let timeNow = new Date();
+        let hourNow = dbUtility.getSGTimeCurrentHourInterval(timeNow);
+
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (!platformData) {
@@ -4089,16 +4134,74 @@ var dbPlatform = {
 
                 let stringProm = getPlatformStringForCallback(platformStringArray, playerId, lineId);
                 let playerProm = null;
-                if(playerId){
+                if (playerId) {
                     playerProm = dbconfig.collection_players.findOne({playerId: playerId}).lean();
                 }
-                return Promise.all([stringProm, playerProm]);
+                let blackWhiteListingProm = dbPlatform.getBlackWhiteListingConfig(platform._id);
+                return Promise.all([stringProm, playerProm, blackWhiteListingProm]);
             }
         ).then(
             data => {
-                platformString = data&&data[0] ? data[0] : "";
-                if( !phoneNumber || (phoneNumber && phoneNumber.indexOf("*") > 0) ){
-                    phoneNumber = data&&data[1] ? data[1].phoneNumber : phoneNumber;
+                if (data) {
+                    platformString = data[0] ? data[0] : "";
+                    playerData = data[1] ? data[1] : "";
+                    blackWhiteListingConfig = data[2] ? data[2] : "";
+
+                    if (!phoneNumber || (phoneNumber && phoneNumber.indexOf("*") > 0)) {
+                        phoneNumber = data && data[1] ? data[1].phoneNumber : phoneNumber;
+                    }
+
+                    if (blackWhiteListingConfig && blackWhiteListingConfig.blackListingCallRequestIpAddress && playerData && playerData.lastLoginIp) {
+                        let indexNo = blackWhiteListingConfig.blackListingCallRequestIpAddress.findIndex(p => p.toString() === playerData.lastLoginIp.toString());
+
+                        if (indexNo > -1) {
+                            return Promise.reject({
+                                status: constServerCode.BLACKLIST_IP,
+                                name: "DBError",
+                                message: localization.localization.translate("Invalid phone number, unable to call")
+                            });
+                        }
+                    }
+
+                    if (playerData) {
+                        callBackToUserLogProm = dbconfig.collection_callBackToUserLog.aggregate(
+                            {
+                                $match: {
+                                    createTime: {
+                                        $gte: hourNow.startTime,
+                                        $lte: hourNow.endTime
+                                    },
+                                    platform: platform._id,
+                                    player: playerData._id,
+                                    ipAddress: playerData.lastLoginIp
+                                }
+                            }, {
+                                $group: {
+                                    _id: "$ipAddress",
+                                    count: {$sum: 1}
+                                }
+                            }
+                        ).read("secondaryPreferred");
+                    } else {
+                        return Promise.reject({
+                            name: "DataError",
+                            message: localization.localization.translate("Cannot find player")
+                        })
+                    }
+
+                    return Promise.all([callBackToUserLogProm]);
+                }
+            }
+        ).then(
+            data => {
+                let callBackToUserLog = data && data[0] && data[0][0] ? data[0][0] : "";
+
+                if (callBackToUserLog && callBackToUserLog.count && platform  && platform.callRequestLimitPerHour && callBackToUserLog.count >= platform.callRequestLimitPerHour) {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_DATA,
+                        name: "DataError",
+                        message: localization.localization.translate("The current maximum number of callbacks has been reached. Please try later or contact customer service")
+                    });
                 }
 
                 url = platform.callRequestUrlConfig;
@@ -4119,7 +4222,15 @@ var dbPlatform = {
                         if (err) {
                             reject({code: constServerCode.EXTERNAL_API_FAILURE, message: err});
                         } else {
-                            console.log('callBackToUser API output:', body);
+                            let newLog = {
+                                platform: platform._id,
+                                player: playerData._id,
+                                ipAddress: playerData.lastLoginIp
+                            };
+
+                            // add new log
+                            dbconfig.collection_callBackToUserLog(newLog).save().catch(errorUtils.reportError);
+
                             let bodyJson = body.replace("jsonp1(", "").replace(")", "").replace(/'/g, '"');
                             try {
                                 bodyJson = JSON.parse(String(bodyJson));
@@ -4999,7 +5110,7 @@ var dbPlatform = {
         );
     },
 
-    addIpDomainLog: function (platformId, domain, ipAddress, sourceUrl) {
+    addIpDomainLog: function (platformId, domain, ipAddress, sourceUrl, partnerId) {
         let platformObjId;
         let todayTime = dbUtility.getTodaySGTime();
 
@@ -5027,9 +5138,15 @@ var dbPlatform = {
         ).then(
             ipDomainLog => {
                 if (ipDomainLog) {
-                    dbconfig.collection_ipDomainLog.findByIdAndUpdate(ipDomainLog._id, {
+
+                    let updateQuery = {
                         createTime: new Date()
-                    })
+                    };
+                    if (partnerId){
+                        updateQuery.partnerId = partnerId;
+                    }
+
+                    dbconfig.collection_ipDomainLog.findByIdAndUpdate(ipDomainLog._id, updateQuery)
                 } else {
                     let newLog = {
                         platform: platformObjId,
@@ -5037,6 +5154,10 @@ var dbPlatform = {
                         ipAddress: ipAddress,
                         createTime: new Date()
                     };
+
+                    if (partnerId){
+                        newLog.partnerId = partnerId;
+                    }
 
                     if (sourceUrl) {
                         newLog.sourceUrl = sourceUrl;

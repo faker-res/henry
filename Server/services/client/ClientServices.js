@@ -215,7 +215,8 @@
                 "isFirstTopUp",
                 "getPlayerAliPayStatus",
                 "requestBankTypeByUserName",
-                "createFKPTopupProposal"
+                "createFKPTopupProposal",
+                "applyFKPWithdraw"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
@@ -314,6 +315,7 @@
                 "getSignBonus",
                 "getSlotInfo",
                 "getRandBonusInfo",
+                "getRewardRanking",
             ];
             addServiceFunctions(sinonet, this, functionNames);
 

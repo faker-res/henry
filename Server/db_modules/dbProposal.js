@@ -239,7 +239,7 @@ var proposal = {
         );
     },
 
-    createRewardProposal: function (eventData, playerData, selectedRewardParam, rewardGroupRecord, applyAmount, rewardAmount, spendingAmount, retentionRecordObjId, userAgent, adminInfo){
+    createRewardProposal: function (eventData, playerData, selectedRewardParam, rewardGroupRecord, consecutiveNumber, applyAmount, rewardAmount, spendingAmount, retentionRecordObjId, userAgent, adminInfo){
         // get the rewardType
         return dbconfig.collection_rewardType.findOne({_id: eventData.type}).lean().then(
             rewardType => {
@@ -292,9 +292,9 @@ var proposal = {
                 //     proposalData.data.applyAmount = applyAmount;
                 // }
 
-                // if (consecutiveNumber) {
-                //     proposalData.data.consecutiveNumber = consecutiveNumber;
-                // }
+                if (consecutiveNumber) {
+                    proposalData.data.consecutiveNumber = consecutiveNumber;
+                }
 
                 if (rewardGroupRecord && rewardGroupRecord.topUpRecordObjId && rewardGroupRecord.topUpRecordObjId.proposalId &&
                     eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
@@ -319,17 +319,15 @@ var proposal = {
                 if (rewardType.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP) {
                     proposalData.data.lastLoginIp = playerData.lastLoginIp;
                     proposalData.data.phoneNumber = playerData.phoneNumber;
+                    if (playerData.deviceId){
+                        proposalData.data.deviceId = playerData.deviceId;
+                    }
                 }
 
                 if (rewardType.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && eventData.condition
                     && eventData.condition.definePlayerLoginMode && typeof(eventData.condition.definePlayerLoginMode) != 'undefined'){
                     proposalData.data.definePlayerLoginMode = eventData.condition.definePlayerLoginMode;
                 }
-
-
-                // if (eventData.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && deviceId){
-                //     proposalData.data.deviceId = deviceId;
-                // }
 
                 return proposal.createProposalWithTypeId(eventData.executeProposal, proposalData)
             }
@@ -407,21 +405,24 @@ var proposal = {
                         proposalData.status = constProposalStatus.PENDING;
                     }
 
-                    if (data[0].name == constProposalType.PLAYER_TOP_UP || data[0].name == constProposalType.PLAYER_MANUAL_TOP_UP ||
-                        data[0].name == constProposalType.PLAYER_ALIPAY_TOP_UP || data[0].name == constProposalType.PLAYER_WECHAT_TOP_UP
+                    // Set top up type proposal to pre-pending
+                    if (
+                        data[0].name == constProposalType.PLAYER_TOP_UP
+                        || data[0].name == constProposalType.PLAYER_MANUAL_TOP_UP
+                        || data[0].name == constProposalType.PLAYER_ALIPAY_TOP_UP
+                        || data[0].name == constProposalType.PLAYER_WECHAT_TOP_UP
                         || data[0].name == constProposalType.PLAYER_QUICKPAY_TOP_UP
                     ) {
                         bExecute = false;
                         proposalData.status = constProposalStatus.PREPENDING;
                     }
 
-                    //for consumption return request, skip proposal flow
-                    // if (proposalData.data && proposalData.data.bConsumptionReturnRequest) {
-                    //     bExecute = true;
-                    //     proposalData.noSteps = true;
-                    //     proposalData.process = null;
-                    //     proposalData.status = constProposalStatus.APPROVED;
-                    // }
+                    // For third party payment system, we just set the proposal to pending without any process
+                    if (data[0].name === constProposalType.PLAYER_FKP_TOP_UP) {
+                        bExecute = false;
+                        proposalData.status = constProposalStatus.PENDING;
+                    }
+
                     //check if player or partner has pending proposal for this type
                     let queryObj = {
                         type: proposalData.type,
@@ -8330,8 +8331,9 @@ function getPlatformFeeEstimate (platformId, startDate, endDate) {
                                                 if (provider.gameProvider && provider.gameProvider._id && tempConsumptionDetail.providerId
                                                     && provider.gameProvider._id.toString() == tempConsumptionDetail.providerId.toString()) {
                                                     let gameProviderName = provider.gameProvider.name;
+                                                    let feeRate = provider.feeRate ? provider.feeRate : 0;
                                                     tempConsumptionDetail.gameProviderName = gameProviderName;
-                                                    tempConsumptionDetail.platformFeeEstimate = (tempConsumptionDetail.bonusAmount * -1) * provider.feeRate;
+                                                    tempConsumptionDetail.platformFeeEstimate = (tempConsumptionDetail.bonusAmount * -1) * feeRate;
                                                     tempTotalPlatformFeeEstimate += tempConsumptionDetail.platformFeeEstimate;
                                                 }
                                             }
@@ -9179,8 +9181,9 @@ function dailyPlatformFeeEstimateDetail (platform, startTime, endTime, currentDa
                                     if (provider.gameProvider && provider.gameProvider._id && consumptionDetail._id
                                         && provider.gameProvider._id.toString() == consumptionDetail._id.toString()) {
                                         let gameProviderName = provider.gameProvider.name;
+                                        let feeRate = provider.feeRate ? provider.feeRate : 0
                                         consumptionDetail.gameProviderName = gameProviderName;
-                                        consumptionDetail.platformFeeEstimate = (consumptionDetail.bonusAmount * -1) * provider.feeRate;
+                                        consumptionDetail.platformFeeEstimate = (consumptionDetail.bonusAmount * -1) * feeRate;
                                     }
                                 }
                             }

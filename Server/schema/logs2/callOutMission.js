@@ -21,6 +21,4 @@ let callOutMissionSchema = new Schema({
     isUsing: {type: Boolean, index: true, default: true}
 });
 
-// callOutMissionSchema.index({platform: 1, startTime: 1, endTime: 1, device: 1, pageName: 1, buttonName: 1});
-
 module.exports = callOutMissionSchema;

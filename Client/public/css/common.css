@@ -638,9 +638,8 @@ ul.roleList {
 
 .common-right-panel-body {
     padding: 10px 15px;
-    /*min-height: 650px;*/
+    min-height: 650px;
     overflow-y: auto;
-    min-height: auto;
 }
 
 .common-right-sub-panel-body {

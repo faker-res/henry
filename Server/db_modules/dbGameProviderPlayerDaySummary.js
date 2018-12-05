@@ -8,7 +8,7 @@ const Q = require("q");
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 var cpmsAPI = require("./../externalAPI/cpmsAPI");
-
+var dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionRecord');
 var dbGameProviderPlayerDaySummary = {
 
     /**
@@ -316,16 +316,21 @@ var dbGameProviderPlayerDaySummary = {
         )
     },
     getProviderDifferDaySummaryForTimeFrame: function (startTime, endTime, platformObjId, platformId, providerObjId, proId,  index, count) {
-        let sendQuery = {
+        let fpmsQuery = {
+            startTime: startTime,
+            endTime: endTime,
+            sort: {createTime: -1}
+        };
+        let cpmsQuery = {
             platformId: platformId,
             providerId: proId,
             startDate: dbUtil.getSGTimeToString(startTime),
             endDate: dbUtil.getSGTimeToString(endTime)
         };
         // modify the date to cpms datetime format -> "2018-11-07 02:00:00" and cpms are using gmt +8 timezone for date query
-        let fpmsSummary = dbGameProviderPlayerDaySummary.getProviderDaySummaryForTimeFrame(startTime, endTime, platformObjId, providerObjId, index, count);
+        let fpmsSummary = dbPlayerConsumptionRecord.getConsumptionRecordByGameProvider(fpmsQuery, platformObjId, providerObjId, null, null, null, fpmsQuery.sort, true);
         let cpmsSummary = new Promise((resolve, reject)=>{
-            cpmsAPI.consumption_getConsumptionSummary(sendQuery).then(
+            cpmsAPI.consumption_getConsumptionSummary(cpmsQuery).then(
                 function (result) {
                     resolve(result);
                 },
@@ -339,7 +344,11 @@ var dbGameProviderPlayerDaySummary = {
         return Promise.all([fpmsSummary, cpmsSummary])
         .then(data=>{
             console.log('--mark--observe--fpms&cpms',data);
-            let fpmsData = (data && data[0]) ? data[0] : {consumption:0, validAmount:0};
+            let fpmsData = {consumption:0, validAmount:0};
+            if(data && data[0] && data[0].summary){
+                fpmsData.validAmount = data[0].summary.validAmount;
+                fpmsData.consumption = data[0].count;
+            }
             let cpmsData = dbGameProviderPlayerDaySummary.sumCPMSBetsRecord(data[1]);
             let combineData = [];
             let result = {};
@@ -354,8 +363,9 @@ var dbGameProviderPlayerDaySummary = {
                     fpmsData.validAmount = 0;
                 }
                 //1 - 数字相同不用补收录  2 - 需要补收录  3 - 重新收录中
-                let status = ((cpmsData.validAmount - fpmsData.validAmount == 0) && (cpmsData.consumption - fpmsData.consumption == 0)) ? 1 : 2;
+                let status = (cpmsData.validAmount - fpmsData.validAmount == 0) ? 1 : 2;
                 let validAmtSyncPercent = dbGameProviderPlayerDaySummary.getValidAmtSyncPercent(fpmsData.validAmount, cpmsData.validAmount);
+                let fpmsConsumption = fpmsData.consumption.toFixed(2);
                 result = {
                     providerId:proId,
                     fpmsConsumption:fpmsData.consumption,
@@ -363,7 +373,7 @@ var dbGameProviderPlayerDaySummary = {
                     cpmsConsumption:cpmsData.consumption,
                     cpmsValidAmount:cpmsData.validAmount,
                     validAmtSyncPercent: validAmtSyncPercent,
-                    consumptionDiff:cpmsData.consumption - fpmsData.consumption,
+                    consumptionDiff:cpmsData.consumption - fpmsConsumption,
                     status:status
                 }
             }
@@ -393,8 +403,11 @@ var dbGameProviderPlayerDaySummary = {
             data.summary.forEach(item=>{
                 if(item.summaryData){
                     item.summaryData.forEach(summary=>{
-                        result.consumption += summary.totalCount;
-                        result.validAmount += summary.totalValidAmount;
+                        // processType 12 - User not exists  (when cpms received response from fpms about user not exist)
+                        if(summary.processType != 12){
+                            result.consumption += Number(summary.totalCount);
+                            result.validAmount += Number(summary.totalValidAmount);
+                        }
                     })
                 }
             })

@@ -109,7 +109,7 @@ function socketActionGame(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.providerObjId);
 
-            var argArr = [data, ObjectId(data.platformId), data.providerObjId && data.providerObjId != 'all' ? ObjectId(data.providerObjId) : null, data.playerName, data.index, data.limit, data.sortCol];
+            var argArr = [data, ObjectId(data.platformId), data.providerObjId && data.providerObjId != 'all' ? ObjectId(data.providerObjId) : null, data.playerName, data.index, data.limit, data.sortCol, data.showSumOnly];
             socketUtil.emitter(self.socket, dbPlayerConsumptionRecord.getConsumptionRecordByGameProvider, argArr, actionName, isValidData);
         },
 

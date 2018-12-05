@@ -1,5 +1,6 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
+var dbConfig = require('./../modules/dbproperties');
 
 var playerLevelSchema = new Schema({
     //platform
@@ -53,5 +54,12 @@ var playerLevelSchema = new Schema({
 //record is unique by platform, name and platform, value
 playerLevelSchema.index({platform: 1, value: 1}, {unique: true});
 playerLevelSchema.index({platform: 1, name: 1}, {unique: true});
+
+playerLevelSchema.post('findOneAndRemove', function (result) {
+    dbConfig.collection_rewardPointsLvlConfig.update({platformObjId: result.platform}, {$pull: {params: {levelObjId: result._id}}}).catch(console.error);
+    return result;
+});
+
+
 
 module.exports = playerLevelSchema;

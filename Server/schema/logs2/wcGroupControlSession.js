@@ -5,6 +5,9 @@ let wcGroupControlSessionSchema = new Schema({
     // wcGroupControl deviceId
     deviceId: {type: String, required: true, index: true},
 
+    // wcGroupControl device nickname
+    deviceNickName: {type: String, required: true, index: true},
+
     // csOfficer - wechat account
     csOfficer: {type: Schema.ObjectId, ref: 'admin', index: true},
 
@@ -18,8 +21,10 @@ let wcGroupControlSessionSchema = new Schema({
     platformObjId: {type: Schema.Types.ObjectId, ref: 'platform', required: true, index: true},
 
     // Create time
-    createTime: {type: Date, default: new Date(), index: true},
+    createTime: {type: Date, default: Date.now, index: true},
 
+    // Last Active time, the last time this was updated as 'ONLINE'.
+    lastActiveTime: {type: Date, index: true},
     // Last Update time
     lastUpdateTime: {type: Date, index: true}
 });

@@ -616,7 +616,7 @@ var roleChecker = {
                 ACTIONLOG_REPORT: ['getActionLogPageReport'],
                 ONLINE_PAYMENT_MISMATCH_REPORT: ['getMismatchReport'],
                 LIMITED_OFFER_REPORT: ['getLimitedOfferReport'],
-                WECHAT_GROUP_REPORT:['getWechatGroupReport']
+                WECHAT_GROUP_REPORT:['getWechatControlSession']
             }
         },
         Operation: {
@@ -688,6 +688,9 @@ var roleChecker = {
             },
             "Payment Monitor Total":{
                 Read: ['']
+            },
+            ConsumptionRecord:{
+                Read: []
             }
         },
         Payment: {
@@ -853,8 +856,11 @@ var roleChecker = {
                 queryByQualityInspectionDate: [],
                 queryByProduct: []
             },
-            QualityInsectionRecord: {
-                Read: []
+            WechatConversationRecord: {
+                Read:['getWechatDeviceNickNameList', 'getWechatDeviceNickNameList', 'getWechatConversationDeviceList', 'getWechatConversation']
+            },
+            WechatConversationReport: {
+                Read: ['getWechatDeviceNickNameList', 'getWechatConversationReport']
             }
         },
         TeleMarketing: {

@@ -96,6 +96,7 @@ var proposalExecutor = {
             || executionType === 'executePlayerQuickpayTopUp'
             || executionType === 'executePlayerWechatTopUp'
             || executionType === 'executeManualPlayerTopUp'
+            || executionType === 'executePlayerFKPTopUp'
 
             // Group reward
             || executionType === 'executePlayerLoseReturnRewardGroup'
@@ -278,6 +279,7 @@ var proposalExecutor = {
             this.executions.executeUpdatePartnerRealName.des = "Update partner real name";
             this.executions.executePlayerConsumptionSlipRewardGroup.des = "Player Consumption Slip Reward";
             this.executions.executePlayerRetentionRewardGroup.des = "Player Retention Reward";
+            this.executions.executePlayerFKPTopUp.des = "Player Fukuaipay Top Up";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -355,6 +357,7 @@ var proposalExecutor = {
             this.rejections.rejectUpdatePartnerRealName.des = "Reject partner update real name proposal";
             this.rejections.rejectPlayerConsumptionSlipRewardGroup.des = "reject Player Consumption Slip Reward";
             this.rejections.rejectPlayerRetentionRewardGroup.des = "reject Player Retention Slip Reward";
+            this.rejections.rejectPlayerFKPTopUp.des = "reject Player Fukuaipay Top Up";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -1582,6 +1585,23 @@ var proposalExecutor = {
                             // DEBUG: Reward sometime not applied issue
                             dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.MANUAL).catch(errorUtils.reportError);
                             sendMessageToPlayer(proposalData,constMessageType.MANUAL_TOPUP_SUCCESS,{});
+                            return proposalData;
+                        },
+                        error => Promise.reject(error)
+                    )
+                }
+                else {
+                    return Promise.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
+                }
+            },
+
+            executePlayerFKPTopUp: function (proposalData) {
+                //valid data
+                if (proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.amount) {
+                    return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.FUKUAIPAY, proposalData).then(
+                        () => {
+                            dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.FUKUAIPAY).catch(errorUtils.reportError);
+                            sendMessageToPlayer(proposalData, constMessageType.FUKUAIPAY_TOPUP_SUCCESS, {});
                             return proposalData;
                         },
                         error => Promise.reject(error)
@@ -3394,7 +3414,10 @@ var proposalExecutor = {
                     }
 
                     prom.then(
-                        data => deferred.resolve(data),
+                        data => {
+                            updatePartnerCommissionType(proposalData);
+                            deferred.resolve(data);
+                        },
                         error => deferred.reject(error)
                     )
                 }
@@ -3819,6 +3842,10 @@ var proposalExecutor = {
                 pmsAPI.payment_requestCancellationPayOrder({proposalId: proposalData.proposalId}).then(
                     deferred.resolve, deferred.reject
                 );
+            },
+
+            rejectPlayerFKPTopUp: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
             },
 
             /**
@@ -4781,7 +4808,7 @@ function sendMessageToPlayer (proposalData,type,metaDataObj) {
     //type that need to add 'Success' status
     let needSendMessageRewardTypes = [constRewardType.PLAYER_PROMO_CODE_REWARD, constRewardType.PLAYER_CONSUMPTION_RETURN, constRewardType.PLAYER_LIMITED_OFFERS_REWARD,constRewardType.PLAYER_TOP_UP_RETURN_GROUP,
         constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP,constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP,
-        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,constRewardType.PLAYER_LEVEL_UP
+        constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP,constRewardType.PLAYER_FREE_TRIAL_REWARD_GROUP,constRewardType.PLAYER_LEVEL_UP, constRewardType.PLAYER_RETENTION_REWARD_GROUP
     ];
 
     // type reference to constMessageType or constMessageTypeParam.name
@@ -5233,6 +5260,26 @@ function setProposalIdInData(proposal) {
 
     return proposal;
 }
+function updatePartnerCommissionType (proposalData) {
+    let platformId;
+    if(proposalData && proposalData.data && proposalData.data.platformObjId){
+        platformId = proposalData.data.platformObjId;
+    }
+    if(proposalData && proposalData.data && proposalData.data.newRate && proposalData.data.newRate.platform){
+        platformId = proposalData.data.newRate.platform;
+    }
+    if(platformId && proposalData.data.partnerObjId){
+        dbUtil.findOneAndUpdateForShard(
+            dbconfig.collection_partner,
+            {
+                _id: proposalData.data.partnerObjId,
+                platform: platformId
+            },
+            { commissionType: proposalData.data.commissionType },
+            constShardKeys.collection_partner
+        )
+    }
+}
 
 function updatePartnerCommissionConfig (proposalData) {
     let qObj = {
@@ -5258,7 +5305,6 @@ function updatePartnerCommRateConfig (proposalData) {
         platform: proposalData.data.newRate.platform,
         partner: proposalData.data.partnerObjId
     };
-
     if (proposalData.data.isDelete) {
         return dbconfig.collection_partnerCommissionRateConfig.findOneAndRemove(qObj);
     } else {
@@ -5266,7 +5312,6 @@ function updatePartnerCommRateConfig (proposalData) {
         delete proposalData.data.newRate._id;
         delete proposalData.data.newRate.__v;
         delete proposalData.data.newRate.isEditing;
-
         return dbconfig.collection_partnerCommissionRateConfig.findOneAndUpdate(qObj, proposalData.data.newRate, {new: true, upsert: true});
     }
 }

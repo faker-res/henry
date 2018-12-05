@@ -82,9 +82,11 @@ const constProposalType = {
     FINANCIAL_POINTS_DEDUCT: "FinancialPointsDeduct",
     PLAYER_CONSUMPTION_SLIP_REWARD_GROUP: "PlayerConsumptionSlipRewardGroup",
     PLAYER_RETENTION_REWARD_GROUP: "PlayerRetentionRewardGroup",
+    PLAYER_BONUS_DOUBLED_REWARD_GROUP: "PlayerBonusDoubledRewardGroup",
 
     // Third party payment system
-    PLAYER_FKP_TOP_UP: "PlayerFKPTopUp"
+    PLAYER_FKP_TOP_UP: "PlayerFKPTopUp",
+    PLAYER_FKP_WITHDRAW: "PlayerFKPWithdraw"
 };
 
 module.exports = constProposalType;
