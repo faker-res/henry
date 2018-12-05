@@ -453,6 +453,9 @@ let playerConsumptionSlipRewardGroupRecordModel = dbLogs2.model('playerConsumpti
 let playerRetentionRewardGroupRecordSchema = require('./../schema/logs2/playerRetentionRewardGroupRecord');
 let playerRetentionRewardGroupRecordModel = dbLogs2.model('playerRetentionRewardGroupRecord', playerRetentionRewardGroupRecordSchema, 'playerRetentionRewardGroupRecord');
 
+let playerBonusDoubledRewardGroupRecordSchema = require('./../schema/logs2/playerBonusDoubledRewardGroupRecord');
+let playerBonusDoubledRewardGroupRecordModel = dbLogs2.model('playerBonusDoubledRewardGroupRecord', playerBonusDoubledRewardGroupRecordSchema, 'playerBonusDoubledRewardGroupRecord');
+
 let actionLogSchema = require('./../schema/logs2/actionLog');
 let actionLogModel = dbLogs2.model('actionLog', actionLogSchema, 'actionLog');
 
@@ -610,6 +613,7 @@ var dbProperties = {
     collection_dxPhone: dxPhoneModel,
     collection_playerConsumptionSlipRewardGroupRecord: playerConsumptionSlipRewardGroupRecordModel,
     collection_playerRetentionRewardGroupRecord: playerRetentionRewardGroupRecordModel,
+    collection_playerBonusDoubledRewardGroupRecord: playerBonusDoubledRewardGroupRecordModel,
 
     collection_largeWithdrawalSetting: largeWithdrawalSettingModel,
     collection_largeWithdrawalPartnerSetting: largeWithdrawalPartnerSettingModel,

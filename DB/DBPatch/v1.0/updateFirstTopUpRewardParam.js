@@ -1100,7 +1100,7 @@ db.rewardParam.update({
                     detail: "Reward settlement will be triggered when there is a transferring-out process, after applying this reward"
                 },
             }),
-            topUpCond: topUpCond,
+            // topUpCond: topUpCond,
             periodCond: periodCond,
             consumptionCond: consumptionCond,
             // dynamicCond: dynamicCond,
