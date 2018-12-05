@@ -570,17 +570,17 @@ define(['js/app'], function (myApp) {
 
             vm.showPlatformDetailTab = function (tabName) {
                 if (tabName === null) {
-                    if (authService.checkViewPermission('Platform', 'Platform','BackstageSettings')) {
+                    if (authService.checkViewPermission('Platform', 'PlatformSetting','BackstageSettings')) {
                         tabName = "backstage-settings";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','PlayerDisplayData')) {
+                    } else if (authService.checkViewPermission('Platform', 'PlatformSetting','PlayerDisplayData')) {
                         tabName = "player-display-data";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','PartnerDisplayData')) {
+                    } else if (authService.checkViewPermission('Platform', 'PlatformSetting','PartnerDisplayData')) {
                         tabName = "partner-display-data";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','SystemSettlement')) {
+                    } else if (authService.checkViewPermission('Platform', 'PlatformSetting','SystemSettlement')) {
                         tabName = "system-settlement";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','FrontendModuleSetting')) {
+                    } else if (authService.checkViewPermission('Platform', 'PlatformSetting','FrontendModuleSetting')) {
                         tabName = "frontend-module-setting";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','ThemeSelect')) {
+                    } else if (authService.checkViewPermission('Platform', 'PlatformSetting','ThemeSelect')) {
                         tabName = "theme-select";
                     }
                 }
@@ -1317,7 +1317,7 @@ define(['js/app'], function (myApp) {
             }
             //search platform by name
             vm.getAllDepartmentData = function (callback) {
-                if (!authService.checkViewPermission('Platform', 'Platform', 'Read')) {
+                if (!authService.checkViewPermission('Platform', 'PlatformSetting', 'Read')) {
                     return;
                 }
                 socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
