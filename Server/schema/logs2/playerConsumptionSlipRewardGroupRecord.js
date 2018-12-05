@@ -43,6 +43,10 @@ let playerConsumptionSlipRewardGroupRecordSchema = new Schema({
     }],
     // betting amount
     consumptionAmount: {type: Number},
+    // total amount for statistics
+    validAmount: {type: Number},
+    // win ratio (bonusAmount / validAmount)
+    winRatio: {type: Number},
     // // the consumption is made from the game provider
     gameProvider: {type: Schema.ObjectId, ref: 'gameProvider'},
     // the time when the consumption is created

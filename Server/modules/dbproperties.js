@@ -249,6 +249,9 @@ let idcIpModel = db_admin.model('idcIp', idcIpSchema, 'idcIp');
 let platformBlacklistIpConfigSchema = require('./../schema/platformBlacklistIpConfig');
 let platformBlacklistIpConfigModel = db_admin.model('platformBlacklistIpConfig', platformBlacklistIpConfigSchema, 'platformBlacklistIpConfig');
 
+let platformBlackWhiteListingSchema = require('./../schema/platformBlackWhiteListing');
+let platformBlackWhiteListingModel = db_admin.model('platformBlackWhiteListing', platformBlackWhiteListingSchema, 'platformBlackWhiteListing');
+
 //----------------------------------------player db properties-----------------------------------------------------------
 var playerModel = db_player.model('playerInfo', playerSchema, 'playerInfo');
 var playerFeedbackModel = db_player.model('playerFeedback', playerFeedbackSchema, 'playerFeedback');
@@ -450,8 +453,14 @@ let playerConsumptionSlipRewardGroupRecordModel = dbLogs2.model('playerConsumpti
 let playerRetentionRewardGroupRecordSchema = require('./../schema/logs2/playerRetentionRewardGroupRecord');
 let playerRetentionRewardGroupRecordModel = dbLogs2.model('playerRetentionRewardGroupRecord', playerRetentionRewardGroupRecordSchema, 'playerRetentionRewardGroupRecord');
 
+let playerBonusDoubledRewardGroupRecordSchema = require('./../schema/logs2/playerBonusDoubledRewardGroupRecord');
+let playerBonusDoubledRewardGroupRecordModel = dbLogs2.model('playerBonusDoubledRewardGroupRecord', playerBonusDoubledRewardGroupRecordSchema, 'playerBonusDoubledRewardGroupRecord');
+
 let actionLogSchema = require('./../schema/logs2/actionLog');
 let actionLogModel = dbLogs2.model('actionLog', actionLogSchema, 'actionLog');
+
+let callBackToUserLogSchema = require('./../schema/logs2/callBackToUserLog');
+let callBackToUserLogModel = dbLogs2.model('callBackToUserLog', callBackToUserLogSchema, 'callBackToUserLog');
 
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
@@ -577,6 +586,7 @@ var dbProperties = {
     collection_autoFeedback: platformAutoFeedbackModel,
 
     collection_platformBlacklistIpConfig: platformBlacklistIpConfigModel,
+    collection_platformBlackWhiteListing: platformBlackWhiteListingModel,
 
     collection_gameType: gameTypeModel,
     collection_game: gameModel,
@@ -603,6 +613,7 @@ var dbProperties = {
     collection_dxPhone: dxPhoneModel,
     collection_playerConsumptionSlipRewardGroupRecord: playerConsumptionSlipRewardGroupRecordModel,
     collection_playerRetentionRewardGroupRecord: playerRetentionRewardGroupRecordModel,
+    collection_playerBonusDoubledRewardGroupRecord: playerBonusDoubledRewardGroupRecordModel,
 
     collection_largeWithdrawalSetting: largeWithdrawalSettingModel,
     collection_largeWithdrawalPartnerSetting: largeWithdrawalPartnerSettingModel,
@@ -610,6 +621,7 @@ var dbProperties = {
     collection_partnerLargeWithdrawalLog: partnerLargeWithdrawalLogModel,
 
     collection_actionLog: actionLogModel,
+    collection_callBackToUserLog: callBackToUserLogModel,
 
     collection_csOfficer: csOfficerModel,
     collection_csOfficerUrl: csOfficerUrlModel,

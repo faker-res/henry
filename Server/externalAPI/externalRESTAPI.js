@@ -1,30 +1,29 @@
 const crypto = require('crypto');
 const req = require('request');
 const rsaCrypto = require('../modules/rsaCrypto');
-const FormData = require('form-data');
+
+const extConfig = require('../config/externalPayment/config');
+
+const FKPWithdrawUrl = extConfig.fukuaipay.withdrawAPIAddr;
 
 const externalRESTAPI = {
     // FUKUAIPAY Services
-    payment_FKP_TopUp: function (data) {
-        return callFKPAPI(data);
+    payment_FKP_Withdraw: function (data) {
+        return callFKPAPI(data, FKPWithdrawUrl);
     },
 };
 
 module.exports = externalRESTAPI;
 
-function callFKPAPI(data) {
-    // MIGHT NEED TO MOVE
-    let FKPUrl = 'https://api.fukuaipay.com/gateway/bank';
-
+function callFKPAPI(data, url) {
     if (!data) {
         return Promise.reject(new Error("Invalid data!"));
     }
 
     data = encryptFKPMsg(data);
-    // data = convertJsonToFormData(data);
 
     req.post(
-        {url: FKPUrl, form: data},
+        {url: url, form: data},
         (error, response, body) => {
             if (error) {
                 console.log('error', error);
@@ -62,12 +61,4 @@ function processFKPData (data) {
     toEncrypt = toEncrypt.slice(0, -1);
 
     return toEncrypt;
-}
-
-function convertJsonToFormData (data) {
-    let formData = new FormData();
-
-    Object.keys(data).forEach(key => formData.append(key, data[key]));
-
-    return formData;
 }

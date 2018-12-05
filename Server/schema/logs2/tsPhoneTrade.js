@@ -9,7 +9,7 @@ let tsPhoneTradeSchema = new Schema({
     // platform obj id that the phone originated from
     sourcePlatform: {type: Schema.ObjectId, ref: 'platform', index: true, required: true},
     // decompose time, the time that this tsPhoneTrade created, it is also createTime
-    decomposeTime: {type: Date, default: new Date(), index: true},
+    decomposeTime: {type: Date, default: Date.now, index: true},
     // the original tsPhone
     sourceTsPhone: {type: Schema.Types.ObjectId, ref: 'tsPhone'},
     // the phone list of original tsPhone

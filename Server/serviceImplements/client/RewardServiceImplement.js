@@ -83,9 +83,10 @@ let RewardServiceImplement = function () {
         var isValidData = Boolean(data && conn.playerId && data.code);
         data.data = data.data || {};
         data.data.requestId = data.requestId || "";
+        data.data.isFrontEnd = true;
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
         data.userAgent = userAgent;
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyRewardEvent, [data.userAgent, conn.playerId, data.code, data.data, null, null, null, data.appliedObjIdList], isValidData, true, false, false).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyRewardEvent, [data.userAgent, conn.playerId, data.code, data.data, null, null, null, data.appliedObjIdList, data.type, data.gameProviderList], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,
@@ -220,6 +221,12 @@ let RewardServiceImplement = function () {
         let isValidData = Boolean(data);
 
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.setBonusShowInfo, [conn.playerId, data.setShowInfo], isValidData);
+    };
+
+    this.getRewardRanking.expectsData = 'platformId: String';
+    this.getRewardRanking.onRequest = function (wsFunc, conn, data) {
+        let isValidData = Boolean(data && data.platformId && data.code && data.sortType);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerReward.getRewardRanking, [data.platformId, data.code, data.sortType, data.startTime, data.endTime, data.usePaging, data.requestPage, data.count], isValidData, false, false, true);
     };
 };
 

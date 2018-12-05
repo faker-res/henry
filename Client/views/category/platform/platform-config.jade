@@ -468,7 +468,11 @@
                                 td(style='width:50%') {{'CALL_REQUEST_URL_CONFIG' | translate}}
                                 td(style='width:50%')
                                     text(ng-if='!vm.configTableEdit') {{vm.callRequestConfig.callRequestUrlConfig}}
-                                    input(style= 'width: 80%' ng-if='vm.configTableEdit', type='text', ng-model='vm.callRequestConfig.callRequestUrlConfig')
+                                    input.form-control(ng-if='vm.configTableEdit', type='text', ng-model='vm.callRequestConfig.callRequestUrlConfig')
+                            tr
+                                td {{'Any IP, the limit of the call request per hour X times, refresh every hour' | translate}}
+                                td
+                                    input.form-control(type='number', min='0', ng-model='vm.callRequestConfig.callRequestLimitPerHour', ng-disabled='!vm.configTableEdit')
 
                     br
                     table.common-table.callConfigTable(style='width:auto;min-width:99.9%')
@@ -497,6 +501,10 @@
                                     i.fa.fa-minus(ng-click='vm.updateCallRequestConfigInEdit("remove", $index, vm.callRequestConfig.callRequestLineConfig)')
 
                             tr(ng-if='vm.configTableEdit')
+                                td
+                                    select.form-control(ng-model='vm.tempCallRequestEntry.status', ng-disabled='!vm.configTableEdit')
+                                        option(ng-value="zeroOne.one") {{"Open" | translate}}
+                                        option(ng-value="zeroOne.zero") {{"Closed" | translate}}
                                 td
                                     input.form-control(type='number', ng-model='vm.tempCallRequestEntry.lineId', ng-disabled='!vm.configTableEdit')
                                 td
@@ -1934,13 +1942,25 @@
                                 td {{'Blacklisting Phone Number' | translate}}
                                 td
                                     textarea(ng-model='vm.phoneFilterConfig.blackListingPhoneNumbers$', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Whitelisting SMS Phone Number' | translate}}
+                                td
+                                    textarea(ng-model='vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers$', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Whitelisting SMS IP Address' | translate}}
+                                td
+                                    textarea(ng-model='vm.blackWhiteListingConfig.whiteListingSmsIpAddress$', ng-disabled='!vm.configTableEdit')
+                            tr
+                                td {{'Blacklisting Call Request IP Address' | translate}}
+                                td
+                                    textarea(ng-model='vm.blackWhiteListingConfig.blackListingCallRequestIpAddress$', ng-disabled='!vm.configTableEdit')
 
                     br
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'phoneFilterConfig')", ng-click='vm.configTableEdit=!vm.configTableEdit')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("phoneFilterConfig")') {{"CANCEL" | translate}}
-                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("phoneFilterConfig")') {{"CONFIRM" | translate}}
+                    button.btn.btn-primary.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configSubmitUpdate("phoneFilterConfig");vm.configSubmitUpdate("blackWhiteListingConfig")') {{"CONFIRM" | translate}}
 
                     br
                     br

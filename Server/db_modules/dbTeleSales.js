@@ -3,6 +3,7 @@ let errorUtils = require('../modules/errorUtils');
 const rsaCrypto = require("../modules/rsaCrypto");
 const dbUtility = require('./../modules/dbutility');
 const constPromoCodeStatus = require('../const/constPromoCodeStatus');
+const constTsPhoneListStatus = require('../const/constTsPhoneListStatus');
 const constServerCode = require('../const/constServerCode');
 const constProposalType = require("./../const/constProposalType");
 const constProposalStatus = require("./../const/constProposalStatus");
@@ -355,12 +356,16 @@ let dbTeleSales = {
             return Promise.reject({name: "DataError", message: "Invalid data"});
         }
 
+        let distributeStatus;
         let totalAssignee;
         let tsPhoneListObj;
         let tsAssigneeArr;
         let totalDistributed = 0;
 
-        return dbconfig.collection_tsPhoneList.findOne({_id: inputData.tsListObjId}).then(
+        return dbconfig.collection_tsPhoneList.findOne({
+            _id: inputData.tsListObjId,
+            status: {$in: [constTsPhoneListStatus.PRE_DISTRIBUTION, constTsPhoneListStatus.DISTRIBUTING, constTsPhoneListStatus.NOT_ENOUGH_CALLER]}
+        }).lean().then(
             tsPhoneListData => {
                 if (!tsPhoneListData) {
                     return Promise.reject({name: "DataError", message: "Cannot find tsPhoneList"});
@@ -384,14 +389,16 @@ let dbTeleSales = {
                     tsPhoneList: tsPhoneListObj._id,
                     platform: inputData.platform,
                     registered: false,
-                    assignTimes: {$lt: tsPhoneListObj.callerCycleCount},
-                    $or: [{distributedEndTime: null}, {distributedEndTime: {$lt: new Date()}}]
+                    // assignTimes: {$lt: tsPhoneListObj.callerCycleCount},
+                    $and:[{$or: [{distributedEndTime: null}, {distributedEndTime: {$lt: new Date()}}]}, {$or: [{assignTimes: {$lt: tsPhoneListObj.callerCycleCount}}, {assignTimes: {$eq: 0}}]}]
+                    // $or: [{distributedEndTime: null}, {distributedEndTime: {$lt: new Date()}}]
                 }).sort({assignTimes: 1, createTime: 1}).lean();
             }
         ).then(
             tsPhoneData => {
                 if (!(tsPhoneData && tsPhoneData.length)) {
-                    return Promise.reject({name: "DataError", message: "Cannot find tsPhone"});
+                    return true; // bypass distribute phone, check and update phonelist only
+                    // return Promise.reject({name: "DataError", message: "Cannot find tsPhone"});
                 }
                 tsPhoneData = JSON.parse(JSON.stringify(tsPhoneData));
 
@@ -409,82 +416,110 @@ let dbTeleSales = {
                     return aTsPhone - bTsPhone;
                 }
 
-                for (let i = 0; i < tsPhoneData.length; i++) {
-                    if (totalPhoneAdded >= tsPhoneListObj.dailyCallerMaximumTask) {
-                        break;
-                    }
-                    for (let j = 0; j < tsAssigneeArr.length; j++) {
-                        if (!tsPhoneData[i].assignee || tsPhoneData[i].assignee.indexOf(String(tsAssigneeArr[j].admin)) == -1) {
-                            if (!tsAssigneeArr[j].updateObj) {
-                                tsAssigneeArr[j].updateObj = {
-                                    tsPhone: []
-                                };
-                            }
-                            totalPhoneAdded ++;
-                            tsAssigneeArr[j].updateObj.tsPhone.push({tsPhoneObjId: tsPhoneData[i]._id, assignTimes: tsPhoneData[i].assignTimes});
-                            tsAssigneeArr.sort(sortAssigneePhoneCount);
+                if (tsPhoneListObj.hasOwnProperty("callerCycleCount") && (totalAssignee >= tsPhoneListObj.callerCycleCount)) {
+                    for (let i = 0; i < tsPhoneData.length; i++) {
+                        if (totalPhoneAdded >= tsPhoneListObj.dailyCallerMaximumTask) {
                             break;
                         }
+                        for (let j = 0; j < tsAssigneeArr.length; j++) {
+                            if (!tsPhoneData[i].assignee || tsPhoneData[i].assignee.indexOf(String(tsAssigneeArr[j].admin)) == -1) {
+                                if (!tsAssigneeArr[j].updateObj) {
+                                    tsAssigneeArr[j].updateObj = {
+                                        tsPhone: []
+                                    };
+                                }
+                                totalPhoneAdded++;
+                                tsAssigneeArr[j].updateObj.tsPhone.push({
+                                    tsPhoneObjId: tsPhoneData[i]._id,
+                                    assignTimes: tsPhoneData[i].assignTimes
+                                });
+                                tsAssigneeArr.sort(sortAssigneePhoneCount);
+                                break;
+                            }
+                        }
                     }
-                }
 
-                tsAssigneeArr.forEach(tsAssignee => {
-                    let assignedCount = 0;
-                    if (tsAssignee.updateObj && tsAssignee.updateObj.tsPhone && tsAssignee.updateObj.tsPhone.length) {
-                        assignedCount =  tsAssignee.updateObj.tsPhone.length;
-                        let distributeListSaveData = {
-                            platform: inputData.platform,
-                            tsPhoneList: inputData.tsListObjId,
-                            assignee: tsAssignee.admin
-                        };
-                        let distributedPhoneListProm = dbconfig.collection_tsDistributedPhoneList.findOneAndUpdate(
-                            distributeListSaveData, distributeListSaveData, {upsert: true, new: true}).lean().then(
-                            distributedPhoneListData => {
-                                tsAssignee.updateObj.tsPhone.forEach(tsPhoneUpdate => {
-                                    let dangerZoneList = tsPhoneListObj.dangerZoneList || [];
-                                    let isInDangerZone = false;
+                    tsAssigneeArr.forEach(tsAssignee => {
+                        let assignedCount = 0;
+                        if (tsAssignee.updateObj && tsAssignee.updateObj.tsPhone && tsAssignee.updateObj.tsPhone.length) {
+                            assignedCount = tsAssignee.updateObj.tsPhone.length;
+                            distributeStatus = constTsPhoneListStatus.DISTRIBUTING;
+                            let distributeListSaveData = {
+                                platform: inputData.platform,
+                                tsPhoneList: inputData.tsListObjId,
+                                assignee: tsAssignee.admin
+                            };
+                            let distributedPhoneListProm = dbconfig.collection_tsDistributedPhoneList.findOneAndUpdate(
+                                distributeListSaveData, distributeListSaveData, {upsert: true, new: true}).lean().then(
+                                distributedPhoneListData => {
+                                    tsAssignee.updateObj.tsPhone.forEach(tsPhoneUpdate => {
+                                        let dangerZoneList = tsPhoneListObj.dangerZoneList || [];
+                                        let isInDangerZone = false;
 
-                                    dangerZoneList.map(dangerZone => {
-                                       if (dangerZone.province == tsPhoneUpdate.province && dangerZone.city == tsPhoneUpdate.city) {
-                                           isInDangerZone = true;
-                                       }
+                                        dangerZoneList.map(dangerZone => {
+                                            if (dangerZone.province == tsPhoneUpdate.province && dangerZone.city == tsPhoneUpdate.city) {
+                                                isInDangerZone = true;
+                                            }
+                                        });
+
+                                        if (!tsPhoneUpdate.assignTimes) {
+                                            totalDistributed++;
+                                        }
+
+                                        dbconfig.collection_tsDistributedPhone({
+                                            platform: inputData.platform,
+                                            tsPhoneList: inputData.tsListObjId,
+                                            tsDistributedPhoneList: distributedPhoneListData._id,
+                                            tsPhone: ObjectId(tsPhoneUpdate.tsPhoneObjId),
+                                            province: tsPhoneUpdate.province,
+                                            city: tsPhoneUpdate.city,
+                                            isInDangerZone: isInDangerZone,
+                                            assignTimes: (tsPhoneUpdate.assignTimes + 1) || 1,
+                                            assignee: tsAssignee.admin,
+                                            startTime: phoneNumberStartTime,
+                                            endTime: phoneNumberEndTime.endTime,
+                                            remindTime: phoneNumberEndTime.endTime
+                                        }).save().catch(errorUtils.reportError);
                                     });
 
-                                    if (!tsPhoneUpdate.assignTimes) {
-                                        totalDistributed++;
+                                    dbconfig.collection_tsPhone.update({_id: {$in: tsAssignee.updateObj.tsPhone.map(tsPhone => tsPhone.tsPhoneObjId)}}, {
+                                        $addToSet: {assignee: tsAssignee.admin},
+                                        $inc: {assignTimes: 1},
+                                        distributedEndTime: phoneNumberEndTime.endTime
+                                    }, {multi: true}).catch(errorUtils.reportError);
+                                    if (assignedCount) {
+                                        dbconfig.collection_tsAssignee.findOneAndUpdate({_id: tsAssignee._id}, {$inc: {assignedCount: assignedCount}}).lean().catch(errorUtils.reportError);
                                     }
+                                })
 
-                                    dbconfig.collection_tsDistributedPhone({
-                                        platform: inputData.platform,
-                                        tsPhoneList: inputData.tsListObjId,
-                                        tsDistributedPhoneList: distributedPhoneListData._id,
-                                        tsPhone: ObjectId(tsPhoneUpdate.tsPhoneObjId),
-                                        province: tsPhoneUpdate.province,
-                                        city: tsPhoneUpdate.city,
-                                        isInDangerZone: isInDangerZone,
-                                        assignTimes: (tsPhoneUpdate.assignTimes + 1) || 1,
-                                        assignee: tsAssignee.admin,
-                                        startTime: phoneNumberStartTime,
-                                        endTime: phoneNumberEndTime.endTime,
-                                        remindTime: phoneNumberEndTime.endTime
-                                    }).save().catch(errorUtils.reportError);
-                                });
-
-                                dbconfig.collection_tsPhone.update({_id:{$in: tsAssignee.updateObj.tsPhone.map(tsPhone => tsPhone.tsPhoneObjId)}}, {$addToSet: {assignee: tsAssignee.admin} , $inc: {assignTimes: 1}, distributedEndTime: phoneNumberEndTime.endTime}, {multi: true}).catch(errorUtils.reportError);
-                                if (assignedCount) {
-                                    dbconfig.collection_tsAssignee.findOneAndUpdate({_id: tsAssignee._id}, {$inc: {assignedCount: assignedCount}}).lean().catch(errorUtils.reportError);
-                                }
-                            })
-
-                        promArr.push(distributedPhoneListProm);
-                    }
-                });
+                            promArr.push(distributedPhoneListProm);
+                        }
+                    });
+                } else {
+                    distributeStatus = constTsPhoneListStatus.NOT_ENOUGH_CALLER;
+                }
 
                 return Promise.all(promArr);
             }
         ).then(
             () => {
-                return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObj._id}, {$inc: {totalDistributed: totalDistributed}}).lean();
+                if (distributeStatus) {
+                    return true;
+                } else {
+                    return dbconfig.collection_tsDistributedPhone.find({tsPhoneList: tsPhoneListObj._id, platform: inputData.platform, isUsed: false, endTime: {$lt: new Date()}}).count().then(
+                        tsDistributedPhoneCount => {
+                            if (tsDistributedPhoneCount <= 0) {
+                                distributeStatus = constTsPhoneListStatus.PERFECTLY_COMPLETED;
+                            } else {
+                                distributeStatus = constTsPhoneListStatus.HALF_COMPLETE;
+                            }
+                        }
+                    )
+                }
+            }
+        ).then(
+            () => {
+                return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObj._id}, {$inc: {totalDistributed: totalDistributed}, status: distributeStatus}).lean();
             }
         );
 
@@ -524,7 +559,76 @@ let dbTeleSales = {
     },
 
     updateTsPhoneList: function (query, updateData) {
-        return dbconfig.collection_tsPhoneList.findOneAndUpdate(query, updateData).lean()
+        return dbconfig.collection_tsPhoneList.findOneAndUpdate(query, updateData).lean().then(
+            tsPhoneOldData => {
+                if (tsPhoneOldData) {
+                    let tsPhoneQuery = {
+                        tsPhoneList: tsPhoneOldData._id
+                    }
+                    if (tsPhoneOldData.dangerZoneList && tsPhoneOldData.dangerZoneList.length && updateData.dangerZoneList && !updateData.dangerZoneList.length) {
+                        // delete danger zone in tsPhone
+                        dbconfig.collection_tsDistributedPhone.update(
+                            tsPhoneQuery, {isInDangerZone: false}, {multi: true}).catch(errorUtils.reportError);
+                    } else if (!(tsPhoneOldData.dangerZoneList && tsPhoneOldData.dangerZoneList.length) && updateData.dangerZoneList && updateData.dangerZoneList.length) {
+                        // add danger zone in tsPhone
+                        tsPhoneQuery.$or = [];
+                        for (let i = 0; i < i < updateData.dangerZoneList.length; i++) {
+                            if (updateData.dangerZoneList[i].city && updateData.dangerZoneList[i].province) {
+                                tsPhoneQuery.$or.push({city: updateData.dangerZoneList[i].city, province: updateData.dangerZoneList[i].province})
+                            }
+                        }
+                        if (tsPhoneQuery.$or.length) {
+                            dbconfig.collection_tsDistributedPhone.update(
+                                tsPhoneQuery, {isInDangerZone: true}, {multi: true}).catch(errorUtils.reportError);
+                        }
+                    } else if (tsPhoneOldData.dangerZoneList && tsPhoneOldData.dangerZoneList.length && updateData.dangerZoneList && updateData.dangerZoneList.length) {
+                        let addedZone = [];
+                        let deletedZone = [];
+                        let compareCity;
+                        let compareProvince;
+                        function findDangerZone (item) {
+                            return item.city == compareCity && item.province == compareProvince;
+                        }
+                        updateData.dangerZoneList.forEach(inputZone => {
+                            compareCity = inputZone.city;
+                            compareProvince = inputZone.province;
+                            if (compareCity && compareProvince && !tsPhoneOldData.dangerZoneList.find(findDangerZone)){
+                                addedZone.push({city: compareCity, province: compareProvince});
+                            }
+                        });
+
+                        compareCity = "";
+                        compareProvince = "";
+
+                        tsPhoneOldData.dangerZoneList.forEach(oriZone => {
+                            compareCity = oriZone.city;
+                            compareProvince = oriZone.province;
+                            if (compareCity && compareProvince && !updateData.dangerZoneList.find(findDangerZone)){
+                                deletedZone.push({city: compareCity, province: compareProvince});
+                            }
+                        });
+
+                        if (addedZone.length) {
+                            dbconfig.collection_tsDistributedPhone.update(
+                                {
+                                    tsPhoneList: tsPhoneOldData._id,
+                                    $or: addedZone
+                                }, {isInDangerZone: true}, {multi: true}).catch(errorUtils.reportError);
+                        }
+                        if (deletedZone.length) {
+                            dbconfig.collection_tsDistributedPhone.update(
+                                {
+                                    tsPhoneList: tsPhoneOldData._id,
+                                    $or: deletedZone
+                                }, {isInDangerZone: false}, {multi: true}).catch(errorUtils.reportError);
+                        }
+
+                    }
+
+                }
+                return tsPhoneOldData;
+            }
+        )
     },
 
     getTsAssignees: function(tsPhoneListObjId){
@@ -533,6 +637,10 @@ let dbTeleSales = {
         };
 
         return dbconfig.collection_tsAssignee.find(query).then(assignees=>assignees);
+    },
+
+    getTsAssigneesCount: function(query){
+        return dbconfig.collection_tsAssignee.find(query).count();
     },
 
     updateTsAssignees: (platformObjId, tsPhoneListObjId, assignees) => {
@@ -577,6 +685,30 @@ let dbTeleSales = {
         }
     },
 
+    manualPauseTsPhoneListStatus: (tsPhoneList, status) => {
+        return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneList}, {status: status}).lean();
+    },
+
+    forceCompleteTsPhoneList: (tsPhoneList) => {
+        return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneList}, {status: constTsPhoneListStatus.FORCE_COMPLETED}).lean().then(
+            tsPhoneListData => {
+                dbconfig.collection_tsPhone.update(
+                    {
+                        tsPhoneList: tsPhoneList,
+                        registered: false,
+                        distributedEndTime: {$gte: new Date()}
+                    }, {distributedEndTime: new Date()}, {multi: true}).catch(errorUtils.reportError);
+                dbconfig.collection_tsDistributedPhone.update(
+                    {
+                        tsPhoneList: tsPhoneList,
+                        registered: false,
+                        endTime: {$gte: new Date()}
+                    }, {endTime: new Date()}, {multi: true}).catch(errorUtils.reportError);
+                return tsPhoneListData;
+            }
+        )
+    },
+
     getDistributionDetails: (platformObjId, tsPhoneListObjId, adminNames) => {
         let distributionDetails = [];
         let phoneListProm = dbconfig.collection_tsPhoneList.findOne({_id: tsPhoneListObjId});
@@ -593,6 +725,34 @@ let dbTeleSales = {
             let assignees = data[1];
 
             if(assignees && assignees.length > 0 && phoneList) {
+
+                //count total valid player
+                dbconfig.collection_partnerLevelConfig.findOne({platform: platformObjId}).lean().then(
+                    partnerLevelConfigData => {
+                        if (!partnerLevelConfigData) {
+                            return Promise.reject({name: "DataError", message: "Cannot find active player"});
+                        }
+                        let promArr = [];
+                        assignees.forEach(assignee => {
+                        let updateProm = dbconfig.collection_players.find({
+                            tsPhoneList: phoneList._id,
+                            tsAssignee: assignee.admin,
+                            platform: platformObjId,
+                            topUpTimes: {$gte: partnerLevelConfigData.validPlayerTopUpTimes},
+                            topUpSum: {$gte: partnerLevelConfigData.validPlayerTopUpAmount},
+                            consumptionTimes: {$gte: partnerLevelConfigData.validPlayerConsumptionTimes},
+                            consumptionSum: {$gte: partnerLevelConfigData.validPlayerConsumptionAmount},
+                        }).count().then(
+                            playerCount => {
+                                return dbconfig.collection_tsAssignee.update({_id: assignee._id}, {effectivePlayerCount: playerCount});
+                            }
+                        );
+                        promArr.push(updateProm);
+                        });
+                        return Promise.all(promArr);
+                    }
+                ).catch(errorUtils.reportError);
+
                 let totalDistributed = phoneList.totalDistributed;
                 let totalUsed = phoneList.totalUsed;
                 let totalSuccess = phoneList.totalSuccess;

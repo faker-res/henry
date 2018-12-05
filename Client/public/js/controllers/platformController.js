@@ -20827,6 +20827,17 @@ define(['js/app'], function (myApp) {
                                     // set the default as the first level
                                     vm.selectedPlayerLvlTab = 0;
                                }
+
+                               if (vm.rewardCondition && vm.rewardCondition.definePlayerLoginMode){
+                                   if (vm.rewardCondition.definePlayerLoginMode == 2) {
+                                       v.params.param.tblOptDynamic.rewardParam.loginDay.des = "EXACT_LOGIN_DATE";
+                                       v.params.param.tblOptFixed.rewardParam.loginDay.des = "EXACT_LOGIN_DATE";
+                                   }
+                                   else if (vm.rewardCondition.definePlayerLoginMode == 1) {
+                                       v.params.param.tblOptDynamic.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
+                                       v.params.param.tblOptFixed.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
+                                   }
+                               }
                             }
 
                             if (v && v.name && (v.name == "PlayerRetentionRewardGroup" || v.name == "PlayerBonusDoubledRewardGroup")) {
@@ -21957,6 +21968,7 @@ console.log('typeof ',typeof gameProviders);
                 if (type == 'add') {
                     if (data && data.hasOwnProperty('lineId') && data.hasOwnProperty('lineName')) {
                         vm.callRequestConfig.callRequestLineConfig.push({
+                            status: Number(data.status),
                             lineId: data.lineId,
                             lineName: data.lineName,
                             minLevel: data.minLevel? data.minLevel: ""
@@ -22659,6 +22671,7 @@ console.log('typeof ',typeof gameProviders);
                         break;
                     case 'phoneFilterConfig':
                         vm.getPhoneFilterConfig();
+                        vm.getBlackWhiteListingConfig();
                         vm.getBlacklistIpConfig();
                         break;
                     case 'financialSettlementConfig':
@@ -28144,12 +28157,64 @@ console.log('typeof ',typeof gameProviders);
 
             };
 
+            vm.getBlackWhiteListingConfig = function () {
+                vm.blackWhiteListingConfig = vm.blackWhiteListingConfig || {};
+                let sendData = {
+                    platform: vm.selectedPlatform.id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getBlackWhiteListingConfig', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('getBlackWhiteListingConfig', data);
+                        if (data && data.data) {
+                            vm.blackWhiteListingConfig = data.data;
+                            vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers$ = "";
+                            vm.blackWhiteListingConfig.whiteListingSmsIpAddress$ = "";
+                            vm.blackWhiteListingConfig.blackListingCallRequestIpAddress$ = "";
+
+                            if (vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers && vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers.length > 0) {
+                                let phones = vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers;
+                                for (let i = 0, len = phones.length; i < len; i++) {
+                                    let phone = phones[i];
+                                    vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers$ += phone;
+                                    i !== (len - 1) ? vm.blackWhiteListingConfig.whiteListingSmsPhoneNumbers$ += "\n" : "";
+                                }
+                            }
+
+                            if (vm.blackWhiteListingConfig.whiteListingSmsIpAddress && vm.blackWhiteListingConfig.whiteListingSmsIpAddress.length > 0) {
+                                let ipAddress = vm.blackWhiteListingConfig.whiteListingSmsIpAddress;
+                                for (let i = 0, len = ipAddress.length; i < len; i++) {
+                                    let ip = ipAddress[i];
+                                    vm.blackWhiteListingConfig.whiteListingSmsIpAddress$ += ip;
+                                    i !== (len - 1) ? vm.blackWhiteListingConfig.whiteListingSmsIpAddress$ += "\n" : "";
+                                }
+                            }
+
+                            if (vm.blackWhiteListingConfig.blackListingCallRequestIpAddress && vm.blackWhiteListingConfig.blackListingCallRequestIpAddress.length > 0) {
+                                let ipAddress = vm.blackWhiteListingConfig.blackListingCallRequestIpAddress;
+                                for (let i = 0, len = ipAddress.length; i < len; i++) {
+                                    let ip = ipAddress[i];
+                                    vm.blackWhiteListingConfig.blackListingCallRequestIpAddress$ += ip;
+                                    i !== (len - 1) ? vm.blackWhiteListingConfig.blackListingCallRequestIpAddress$ += "\n" : "";
+                                }
+                            }
+                        }
+                    });
+                }, function (data) {
+                    console.log("cannot get black white listing config", data);
+                    vm.blackWhiteListingConfig = {};
+                });
+            };
+
             vm.getBlacklistIpConfig = function () {
                 vm.blacklistIpConfig = vm.blacklistIpConfig || [];
 
                 socketService.$socket($scope.AppSocket, 'getBlacklistIpConfig', {}, function (data) {
+                    console.log('getBlacklistIpConfig', data);
                     $scope.$evalAsync(() => {
-                        vm.blacklistIpConfig = data.data;
+                        if (data && data.data) {
+                            vm.blacklistIpConfig = data.data;
+                        }
                     });
                 }, function (data) {
                     console.log("cannot get blacklist ip config", data);
@@ -28385,6 +28450,7 @@ console.log('typeof ',typeof gameProviders);
             vm.getCallRequestConfig = () => {
                 vm.callRequestConfig = {};
                 vm.callRequestConfig.callRequestUrlConfig = vm.selectedPlatform.data.callRequestUrlConfig? vm.selectedPlatform.data.callRequestUrlConfig: "";
+                vm.callRequestConfig.callRequestLimitPerHour = vm.selectedPlatform.data.callRequestLimitPerHour? vm.selectedPlatform.data.callRequestLimitPerHour: "";
                 vm.callRequestConfig.callRequestLineConfig = vm.selectedPlatform.data.callRequestLineConfig && vm.selectedPlatform.data.callRequestLineConfig.length?
                     vm.selectedPlatform.data.callRequestLineConfig: [];
 
@@ -28738,6 +28804,9 @@ console.log('typeof ',typeof gameProviders);
                         break;
                     case 'phoneFilterConfig':
                         updatePhoneFilter(vm.phoneFilterConfig);
+                        break;
+                    case 'blackWhiteListingConfig':
+                        updateBlackWhiteListingConfig(vm.blackWhiteListingConfig);
                         break;
                     case 'blacklistIpConfig':
                         updateBlacklistIpConfig();
@@ -29608,6 +29677,7 @@ console.log('typeof ',typeof gameProviders);
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
                         callRequestUrlConfig: srcData.callRequestUrlConfig,
+                        callRequestLimitPerHour: srcData.callRequestLimitPerHour,
                         callRequestLineConfig: srcData.callRequestLineConfig
                     }
                 };
@@ -29713,6 +29783,52 @@ console.log('typeof ',typeof gameProviders);
                 };
 
                 socketService.$socket($scope.AppSocket, 'saveBlacklistIpConfig', sendData, function (data) {
+                    loadPlatformData({loadAll: false});
+                });
+            }
+
+            function updateBlackWhiteListingConfig(srcData) {
+                let whiteListingSmsPhoneNumbers = [];
+                let whiteListingSmsIpAddress = [];
+                let blackListingCallRequestIpAddress = [];
+
+                if (srcData.whiteListingSmsPhoneNumbers$) {
+                    let phones = srcData.whiteListingSmsPhoneNumbers$.split(/\r?\n/);
+                    for (let i = 0, len = phones.length; i < len; i++) {
+                        let phone = phones[i].trim();
+                        if (phone) whiteListingSmsPhoneNumbers.push(phone);
+                    }
+                }
+
+                if (srcData.whiteListingSmsIpAddress$) {
+                    let ipAddress = srcData.whiteListingSmsIpAddress$.split(/\r?\n/);
+                    for (let i = 0, len = ipAddress.length; i < len; i++) {
+                        let ip = ipAddress[i].trim();
+                        if (ip) whiteListingSmsIpAddress.push(ip);
+                    }
+                }
+
+                if (srcData.blackListingCallRequestIpAddress$) {
+                    let ipAddress = srcData.blackListingCallRequestIpAddress$.split(/\r?\n/);
+                    for (let i = 0, len = ipAddress.length; i < len; i++) {
+                        let ip = ipAddress[i].trim();
+                        if (ip) blackListingCallRequestIpAddress.push(ip);
+                    }
+                }
+
+                let sendData = {
+                    platform: vm.selectedPlatform.id,
+                    updateData: {
+                        whiteListingSmsPhoneNumbers: whiteListingSmsPhoneNumbers,
+                        whiteListingSmsIpAddress: whiteListingSmsIpAddress,
+                        blackListingCallRequestIpAddress: blackListingCallRequestIpAddress,
+                    }
+                };
+
+                socketService.$socket($scope.AppSocket, 'saveBlackWhiteListingConfig', sendData, function (data) {
+                    console.log('saveBlackWhiteListingConfig', data);
+                    vm.blackWhiteListingConfig = data.data;
+                    vm.getBlackWhiteListingConfig();
                     loadPlatformData({loadAll: false});
                 });
             }
