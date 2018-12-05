@@ -12836,11 +12836,11 @@ let dbPlayerInfo = {
                                         if (Number(el.maxDepositAmount) > maxAmt) {
                                             maxAmt = Number(el.maxDepositAmount);
                                         }
-                                    })
-                                }
+                                    });
 
-                                merchant.minDepositAmount = minAmt;
-                                merchant.maxDepositAmount = maxAmt;
+                                    merchant.minDepositAmount = minAmt;
+                                    merchant.maxDepositAmount = maxAmt;
+                                }
                             });
 
                             console.log("yH checking --- paymentData.topupTypes", resData)
