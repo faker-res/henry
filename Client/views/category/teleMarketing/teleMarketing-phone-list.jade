@@ -140,7 +140,7 @@
                 button.btn.btn-warning.common-button(ng-click = "vm.analyticsPhoneListEdit = true;vm.cancelEditTsAnalyticsPhoneList()"  ng-show="!vm.analyticsPhoneListEdit")
                     i.fa.fa-ban
                     text {{"CANCEL" | translate}}
-                button.btn.btn-primary.common-button(ng-click="vm.tsAnalyticsPhoneListEdit()" ng-show="vm.analyticsPhoneListEdit")
+                button.btn.btn-primary.common-button(ng-click="vm.tsAnalyticsPhoneListEdit()" ng-show="vm.analyticsPhoneListEdit" ng-disabled='vm.disableAnalyticsPhoneListEdit')
                     i.fa.fa-pencil-square-o
                     text {{'EDIT' | translate}}
 

@@ -6062,7 +6062,13 @@ define(['js/app'], function (myApp) {
                 })
 
                 vm.tsAnalyticsPhoneListMaxCaller = null; // reset max caller count
-                if (rowData.status != vm.constTsPhoneListStatus.PRE_DISTRIBUTION && rowData.status != vm.constTsPhoneListStatus.NOT_ENOUGH_CALLER) {
+                if (rowData.status == vm.constTsPhoneListStatus.HALF_COMPLETE) {
+                    vm.disableAnalyticsPhoneListEdit = true;
+                } else {
+                    vm.disableAnalyticsPhoneListEdit = false;
+                }
+
+                if (rowData.status == vm.constTsPhoneListStatus.DISTRIBUTING || rowData.status == vm.constTsPhoneListStatus.MANUAL_PAUSED) {
                     let sendData = {
                         query: {
                             platform: vm.selectedPlatform.id,
@@ -6227,7 +6233,13 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.showAssignmentStatusDetail = (tsPhoneListObjId) => {
+        vm.showAssignmentStatusDetail = (tsPhoneListObjId, status) => {
+            vm.disableUpdateTsAssignee = false
+            if (status == vm.constTsPhoneListStatus.HALF_COMPLETE) {
+                vm.disableAllowDistributionSettingsEdit = true;
+            } else {
+                vm.disableAllowDistributionSettingsEdit = false;
+            }
             vm.currentPhoneListObjId = tsPhoneListObjId;
             vm.allowDistributionSettingsEdit = false;
             vm.tsAssigneesDisplay = [];
@@ -6359,6 +6371,29 @@ define(['js/app'], function (myApp) {
             vm.updateTsAssigneesDisplay();
             vm.selectedAssignees = vm.tsAssigneesDisplay.map(assignee=>assignee.adminName);
         };
+
+        vm.checkUpdateTsAssignee = () => {
+            vm.disableUpdateTsAssignee = false;
+            let checkStatus = [vm.constTsPhoneListStatus.DISTRIBUTING, vm.constTsPhoneListStatus.MANUAL_PAUSED]
+            if (vm.selectedTsPhoneList && checkStatus.includes(vm.selectedTsPhoneList.status)) {
+                if (vm.tsAssigneesDisplay && vm.tsAssigneesDisplay.length < vm.selectedTsPhoneList.callerCycleCount) {
+                    vm.disableUpdateTsAssignee = true;
+                } else {
+                    let onCount = 0; // count assignee who turn on participant
+                    for (let i = 0; i < vm.tsAssigneesDisplay.length || 0; i++) {
+                        if (vm.tsAssigneesDisplay[i].status == 1) {
+                            onCount++;
+                        }
+                        if (onCount >= vm.selectedTsPhoneList.callerCycleCount) {
+                            break;
+                        }
+                    }
+                    if (onCount < vm.selectedTsPhoneList.callerCycleCount) {
+                        vm.disableUpdateTsAssignee = true;
+                    }
+                }
+            }
+        }
         vm.updateDistributionSettings = () => {
             //add and remove ts Assignee commands will be triggered synchronously
             let commonSendData = {
@@ -6467,7 +6502,7 @@ define(['js/app'], function (myApp) {
                         title: $translate('SEND_STATUS'), data: "status",
                         render: function (data, type, row, index) {
                             let link = $('<a>', {
-                                'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'");',
+                                'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'", '+ row.status +');',
                             }).text($translate(vm.constTsPhoneListStatusStr[data]));
                             return link.prop('outerHTML');
                         }
@@ -6654,21 +6689,22 @@ define(['js/app'], function (myApp) {
 
                     $(nRow).off('click');
                     $(nRow).on('click', function () {
-                        vm.selectedTsPhoneList;
-                        $('#phoneListManagementTable tbody tr').removeClass('selected');
-                        $scope.$evalAsync(() => {
-                            if (vm.selectedTsPhoneList != aData) {
-                                vm.selectedTsPhoneList = aData;
-                                $(this).toggleClass('selected');
-                            } else {
-                                vm.selectedTsPhoneList = false;
-                            }
-                            if (!(vm.selectedTsPhoneList && (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING || vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.MANUAL_PAUSED))) {
-                                vm.disableManualPauseTsPhoneList = true;
-                            } else {
-                                vm.disableManualPauseTsPhoneList = false;
-                            }
-                        })
+                        vm.phoneListManagementTableRowClicked(aData, nRow);
+                        // vm.selectedTsPhoneList;
+                        // $('#phoneListManagementTable tbody tr').removeClass('selected');
+                        // $scope.$evalAsync(() => {
+                        //     if (vm.selectedTsPhoneList != aData) {
+                        //         vm.selectedTsPhoneList = aData;
+                        //         $(this).toggleClass('selected');
+                        //     } else {
+                        //         vm.selectedTsPhoneList = false;
+                        //     }
+                        //     if (!(vm.selectedTsPhoneList && (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING || vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.MANUAL_PAUSED))) {
+                        //         vm.disableManualPauseTsPhoneList = true;
+                        //     } else {
+                        //         vm.disableManualPauseTsPhoneList = false;
+                        //     }
+                        // })
                     });
 
                 }
@@ -6685,6 +6721,23 @@ define(['js/app'], function (myApp) {
             });
             $('#phoneListManagementTable').resize();
         };
+
+        vm.phoneListManagementTableRowClicked = (data, nRow) => {
+            $('#phoneListManagementTable tbody tr').removeClass('selected');
+            $scope.$evalAsync(() => {
+                if (vm.selectedTsPhoneList != data) {
+                    vm.selectedTsPhoneList = data;
+                    $(nRow).toggleClass('selected');
+                } else {
+                    vm.selectedTsPhoneList = false;
+                }
+                if (!(vm.selectedTsPhoneList && (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING || vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.MANUAL_PAUSED))) {
+                    vm.disableManualPauseTsPhoneList = true;
+                } else {
+                    vm.disableManualPauseTsPhoneList = false;
+                }
+            })
+        }
 
         vm.manualPauseTsPhoneListStatus = () => {
             if (!(vm.selectedTsPhoneList && (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING || vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.MANUAL_PAUSED))) {

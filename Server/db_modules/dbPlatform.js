@@ -4092,7 +4092,7 @@ var dbPlatform = {
         }
     },
 
-    callBackToUser: (platformId, phoneNumber, randomNumber, captcha, lineId, playerId) => {
+    callBackToUser: (platformId, phoneNumber, randomNumber, captcha, lineId, playerId, ipAddress) => {
         let platform, url, platformString;
         let playerData;
         let blackWhiteListingConfig;
