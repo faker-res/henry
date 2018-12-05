@@ -1149,6 +1149,7 @@ let dbPlayerReward = {
         let requireBoth = false;
         let isSharedWithXIMA = false;
         let forbidWithdrawIfBalanceAfterUnlock = 0;
+        let lastConsumption;
 
         function insertOutputList(status, step, bonus, requestedTimes, targetDate, forbidWithdrawAfterApply, remark, isSharedWithXIMA, meetRequirement, requiredConsumptionMet, requiredTopUpMet, usedTopUpRecord, forbidWithdrawIfBalanceAfterUnlock, spendingAmount) {
             let listItem = {
@@ -1339,13 +1340,22 @@ let dbPlayerReward = {
                 topUpIntervalProm = Promise.resolve([]);
             }
 
-            return Promise.all([Promise.all(checkRequirementMeetProms), consumptionIntervalProm, topUpIntervalProm]);
+            let consumptionQuery = {
+                platformId: ObjectId(player.platform),
+                playerId: player._id,
+                createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}
+            };
+
+            let lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(consumptionQuery).sort({createTime: -1}).limit(1).lean();
+
+            return Promise.all([Promise.all(checkRequirementMeetProms), consumptionIntervalProm, topUpIntervalProm, lastConsumptionProm]);
         }).then(checkAllResults => {
-            if (checkAllResults && checkAllResults.length == 3) {
+            if (checkAllResults && checkAllResults.length > 0) {
 
                 let checkResults = checkAllResults[0];
                 let consumptionResults = checkAllResults[1];
                 let topUpResults = checkAllResults[2];
+                lastConsumption = checkAllResults[3] && checkAllResults[3][0] ? checkAllResults[3][0] : {};
 
                 console.log("yH checking-- checkResults", checkResults)
 
@@ -1604,7 +1614,8 @@ let dbPlayerReward = {
                     deposit: event.param.requiredTopUpAmount,
                     effectiveBet: event.param.requiredConsumptionAmount,
                     checkResult: checkAllResults[0],
-                    list: outputList[0]
+                    list: outputList[0],
+                    lastConsumptionDetail: lastConsumption
                 }
             }
 
@@ -1613,7 +1624,8 @@ let dbPlayerReward = {
                 endTime: event.validEndTime,
                 deposit: event.param.requiredTopUpAmount,
                 effectiveBet: event.param.requiredConsumptionAmount,
-                list: outputList
+                list: outputList,
+                lastConsumptionDetail: lastConsumption
             }
         });
 
@@ -5583,6 +5595,8 @@ let dbPlayerReward = {
             promArr.push(periodTopupProm);
             let periodPropsProm = dbConfig.collection_proposal.find(eventQuery).lean();
             promArr.push(periodPropsProm);
+
+            lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(consumptionMatchQuery).sort({createTime: -1}).limit(1).lean();
         }
 
 
@@ -5850,6 +5864,8 @@ let dbPlayerReward = {
                     }
                     // promArr.push(totalConsumptionAmount);
                     // if (allRewardProm) promArr.push(allRewardProm);
+                    lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(consumptionQuery).sort({createTime: -1}).limit(1).lean();
+
                     break;
                 default:
                 // reject error
@@ -5889,6 +5905,8 @@ let dbPlayerReward = {
             if (intervalTime) {
                 freeTrialQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
             }
+
+            lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(freeTrialQuery).sort({createTime: -1}).limit(1).lean();
 
             // check reward apply limit in period
             let countInRewardInterval = dbConfig.collection_proposal.aggregate(
@@ -6452,6 +6470,8 @@ let dbPlayerReward = {
 
                         console.log("yH checking--- rewardInfoList", rewardInfoList)
 
+                        lastConsumptionRecord = playerRewardDetail && playerRewardDetail.lastConsumptionDetail ? playerRewardDetail.lastConsumptionDetail : {};
+
                         for (let i = 0; i < rewardInfoList.length; i++) {
                             let listItem = rewardInfoList[i];
 
@@ -6981,6 +7001,14 @@ let dbPlayerReward = {
                                 proposalData.data.applyTargetDate = applyDetail.targetDate.startTime;
                             }
 
+                            if (lastConsumptionRecord && Object.keys(lastConsumptionRecord).length > 0) {
+                                proposalData.data.betTime = lastConsumptionRecord.createTime;
+                                proposalData.data.betType = lastConsumptionRecord.betType;
+                                proposalData.data.betAmount = lastConsumptionRecord.validAmount;
+                                proposalData.data.winAmount = lastConsumptionRecord.bonusAmount;
+                                proposalData.data.winTimes = lastConsumptionRecord.winRatio;
+                            }
+
                             let addUsedEventToConsumptionProm = Promise.resolve([]);
                             if (applyDetail.requiredConsumptionMet) {
                                 // special handling for PLAYER_CONSECUTIVE_REWARD_GROUP with settlement -> set all the consumption to be dirty to prevent redundant reward proposal
@@ -7041,14 +7069,13 @@ let dbPlayerReward = {
                                         if (data[1] && data[1].length > 0) {
                                             proposalData.data.usedTopUp = data[1];
                                         }
-
-                                        if (data[2]) {
+                                        if (data[2] && Object.keys(data[2]).length > 0) {
                                             proposalData.data.betTime = data[2].consumptionCreateTime;
+                                            proposalData.data.betType = data[2].betType;
                                             proposalData.data.betAmount = data[2].validAmount;
                                             proposalData.data.winAmount = data[2].bonusAmount;
                                             proposalData.data.winTimes = data[2].winRatio;
                                         }
-
                                         return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
                                     }
                                 );
@@ -7175,9 +7202,10 @@ let dbPlayerReward = {
                             }
                         }
 
-                        if (eventData.type.name == constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP && lastConsumptionRecord && Object.keys(lastConsumptionRecord).length > 0) {
+                        if (lastConsumptionRecord && Object.keys(lastConsumptionRecord).length > 0) {
                             proposalData.data.betTime = lastConsumptionRecord.createTime;
                             proposalData.data.betAmount = lastConsumptionRecord.validAmount;
+                            proposalData.data.betType = lastConsumptionRecord.betType;
                             proposalData.data.winAmount = lastConsumptionRecord.bonusAmount;
                             proposalData.data.winTimes = lastConsumptionRecord.winRatio;
                         }
@@ -7755,6 +7783,7 @@ let dbPlayerReward = {
                             bonusAmount: consumptionRecord.bonusAmount || 0,
                             winRatio: consumptionRecord.winRatio || 0,
                             validAmount: consumptionRecord.validAmount || 0,
+                            betType: consumptionRecord.betType,
                             consumptionAmount: consumptionRecord.amount || 0,
                             consumptionCreateTime: consumptionRecord.createTime,
                             consumptionRecordObjId: consumptionRecord._id,
@@ -7998,6 +8027,7 @@ let dbPlayerReward = {
                                             result.depositAmount = lastProposalData.data.actualAmount;
                                             result.rewardTime = lastProposalData.createTime;
                                             result.betTime = lastProposalData.data.betTime;
+                                            result.betType = lastProposalData.data.betType;
                                             result.betAmount = lastProposalData.data.betAmount;
                                             result.winAmount = lastProposalData.data.winAmount;
                                             result.winTimes = lastProposalData.data.winTimes;
