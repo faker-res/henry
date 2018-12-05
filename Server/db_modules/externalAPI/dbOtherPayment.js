@@ -510,6 +510,7 @@ const dbOtherPayment = {
                             let creditChargeWithoutDecimal = 0;
                             let amountAfterUpdate = player.validCredit - amount;
                             let playerLevelVal = player.playerLevel.value;
+
                             if (player.platform.bonusSetting) {
                                 let bonusSetting = {};
 
@@ -611,7 +612,7 @@ const dbOtherPayment = {
                                         };
                                         newProposal.inputDevice = dbUtil.getInputDevice(userAgent, false, adminInfo);
 
-                                        return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_BONUS, newProposal);
+                                        return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_FKP_WITHDRAW, newProposal);
                                     }
                                 }
                             );
@@ -660,7 +661,7 @@ const dbOtherPayment = {
                     return resetCredit(player._id, player.platform._id, amount, error);
                 }
                 else {
-                    return Q.reject(error);
+                    return Promise.reject(error);
                 }
             }
         );

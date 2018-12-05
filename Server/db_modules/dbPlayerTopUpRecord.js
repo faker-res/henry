@@ -722,6 +722,29 @@ var dbPlayerTopUpRecord = {
         );
     },
 
+    checkTopupRecordIsDirtyForReward: function(eventData, rewardData) {
+        let isUsed = false;
+
+        if (rewardData && rewardData.selectedTopup && rewardData.selectedTopup.usedEvent && rewardData.selectedTopup.usedEvent.length > 0) {
+            if (eventData.condition.ignoreTopUpDirtyCheckForReward && eventData.condition.ignoreTopUpDirtyCheckForReward.length > 0) {
+                rewardData.selectedTopup.usedEvent.map(eventId => {
+                    let isOneMatch = false;
+                    eventData.condition.ignoreTopUpDirtyCheckForReward.map(eventIgnoreId => {
+                        if (String(eventId) == String(eventIgnoreId)) {
+                            isOneMatch = true;
+                        }
+                    });
+                    // If one of the reward matched in ignore list, dirty check for this reward is ignored
+                    isUsed = isOneMatch ? isUsed : true;
+                })
+            } else {
+                isUsed = true;
+            }
+        }
+
+        return isUsed;
+    },
+
     /**
      * add online topup process
      * @param playerID
@@ -2329,7 +2352,7 @@ var dbPlayerTopUpRecord = {
                 message: "Cannot apply 2 reward in 1 top up"
             });
         }
-
+        console.log("LH Check Alipay Topup 2---------------", playerId);
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
@@ -2346,6 +2369,7 @@ var dbPlayerTopUpRecord = {
                         }
                     }
                     if (player && player._id) {
+                        console.log("LH Check Alipay Topup 3---------------", player.playerId);
                         if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
                             isFPMS = true;
                         }
@@ -2367,6 +2391,7 @@ var dbPlayerTopUpRecord = {
                 eventData => {
                     rewardEvent = eventData;
                     if (player && player.platform && player.alipayGroup && player.alipayGroup.alipays && player.alipayGroup.alipays.length > 0) {
+                        console.log("LH Check Alipay Topup 4---------------");
                         let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, amount, limitedOfferObjId);
                         let proms = [limitedOfferProm];
 
@@ -2391,6 +2416,7 @@ var dbPlayerTopUpRecord = {
             )
             .then(
                 res => {
+                    console.log("LH Check Alipay Topup 5---------------");
                     let minTopUpAmount = player.platform.minTopUpAmount || 0;
                     let limitedOfferTopUp = res[0];
                     let bonusCodeValidity = res[1];
@@ -2501,10 +2527,12 @@ var dbPlayerTopUpRecord = {
                         }
                     }
                     newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr, false, adminInfo);
+                    console.log("LH Check Alipay Topup 6---------------");
                     return dbPropUtil.isLastTopUpProposalWithin30Mins(constProposalType.PLAYER_ALIPAY_TOP_UP, player.platform._id, player);
                 }
             ).then(
                 lastTopUpProposal => {
+                    console.log("LH Check Alipay Topup 7---------------");
                     if(lastTopUpProposal && lastTopUpProposal.length > 0 && lastTopUpProposal[0].data){
                         if(lastTopUpProposal[0].data.lockedAdminId){
                             newProposal.data.lockedAdminId = lastTopUpProposal[0].data.lockedAdminId;
@@ -2522,11 +2550,12 @@ var dbPlayerTopUpRecord = {
                             newProposal.data.followUpCompletedTime = lastTopUpProposal[0].data.followUpCompletedTime;
                         }
                     }
-
+                    console.log("LH Check Alipay Topup 8---------------");
                     return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_ALIPAY_TOP_UP, newProposal);
                 })
             .then(
                 proposalData => {
+                    console.log("LH Check Alipay Topup 9---------------");
                     if (proposalData) {
                         proposal = proposalData;
                         let cTime = createTime ? new Date(createTime) : new Date();
@@ -2569,6 +2598,7 @@ var dbPlayerTopUpRecord = {
                 }
             ).then(
                 pmsResult => {
+                    console.log("LH Check Alipay Topup 10---------------", pmsResult);
                     pmsData = pmsResult;
                     var queryObj = {};
                     let start = new Date();
@@ -2609,6 +2639,7 @@ var dbPlayerTopUpRecord = {
             ).then(
                 res => {
                     //console.log("request response", requestData);
+                    console.log("LH Check Alipay Topup 11---------------", pmsData);
                     if (pmsData && pmsData.result) {
                         request = pmsData;
                         //add request data to proposal and update proposal status to pending
@@ -2659,6 +2690,7 @@ var dbPlayerTopUpRecord = {
                 }
             ).then(
                 data => {
+                    console.log("LH Check Alipay Topup 12---------------");
                     if (isFPMS) {
                         if (data.noSteps) {
                             dbconfig.collection_proposalType.findOne({

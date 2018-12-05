@@ -37,7 +37,7 @@ const constRewardType = {
     PLAYER_PERIOD_POINT_CONVERSION: "PlayerPeriodPointConversion",
     PLAYER_CONSUMPTION_SLIP_REWARD_GROUP: "PlayerConsumptionSlipRewardGroup",
     PLAYER_RETENTION_REWARD_GROUP: "PlayerRetentionRewardGroup",
-
+    PLAYER_BONUS_DOUBLED_REWARD_GROUP: "PlayerBonusDoubledRewardGroup",
 };
 
 module.exports = constRewardType;

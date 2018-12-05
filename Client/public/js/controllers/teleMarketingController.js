@@ -904,6 +904,7 @@ define(['js/app'], function (myApp) {
             vm.existRealName = false;
             vm.newPlayer = {};
             vm.newPlayer.gender = "true";
+            vm.newPlayer.tsAssignee = authService.adminId;
             if (tsDistributedPhoneData.tsPhone) {
                 let tsPhoneData = tsDistributedPhoneData.tsPhone;
                 if (tsPhoneData.realName) {
@@ -931,6 +932,9 @@ define(['js/app'], function (myApp) {
                 if (tsPhoneData.dob) {
                     vm.playerDOB.data('datetimepicker').setDate(utilService.getLocalTime(new Date(tsPhoneData.dob)));
                 }
+            }
+            if (tsDistributedPhoneData.tsPhoneList && tsDistributedPhoneData.tsPhoneList._id) {
+                vm.newPlayer.tsPhoneList = tsDistributedPhoneData.tsPhoneList._id;
             }
             vm.duplicateNameFound = false;
             vm.euPrefixNotExist = false;
@@ -1233,7 +1237,8 @@ define(['js/app'], function (myApp) {
         }
 
         vm.createNewPlayer = function () {
-            if (!vm.newPlayer.tsPhone) {
+            // save tsPhone details when create new player
+            if (!(vm.newPlayer.tsPhone && vm.newPlayer.tsPhoneList && vm.newPlayer.tsAssignee)) {
                 return;
             }
             vm.newPlayer.platform = vm.selectedPlatform.id;

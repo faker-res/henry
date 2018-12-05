@@ -173,7 +173,7 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data && data.startTime && data.endTime);
             var index = data.index || 0;
             var limit = data.limit || 10;
-            socketUtil.emitter(self.socket, dbQualityInspection.getWechatConversation, [data.platform, data.deviceNickName, data.csName, data.startTime, data.endTime, data.content, data.playerWechatRemark, index, limit], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbQualityInspection.getWechatConversation, [data.platform, data.deviceNickName, data.csName, data.startTime, data.endTime, data.content, data.playerWechatRemark, index, limit, data.sortCol], actionName, isDataValid);
         },
 
         getWechatConversationReport: function getWechatConversationReport(data){

@@ -13,22 +13,22 @@ form(name="form_edit_partner_commission_type", novalidate)
                         text {{newPartner.partnerName}}
                     td
                         label.radio-inline {{'DAILY_BONUS_AMOUNT' | translate}}
-                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='1' ng-click="selectedCommissionTab('DAILY_BONUS_AMOUNT');")
+                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='1' ng-click="switchCommissionTab('DAILY_BONUS_AMOUNT', newPartner.commissionType);")
                     td
                         label.radio-inline {{'WEEKLY_BONUS_AMOUNT' | translate}}
-                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='2' ng-click="selectedCommissionTab('WEEKLY_BONUS_AMOUNT');")
+                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='2' ng-click="switchCommissionTab('WEEKLY_BONUS_AMOUNT', newPartner.commissionType);")
                     td
                         label.radio-inline {{'BIWEEKLY_BONUS_AMOUNT' | translate}}
-                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='3' ng-click="selectedCommissionTab('BIWEEKLY_BONUS_AMOUNT');")
+                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='3' ng-click="switchCommissionTab('BIWEEKLY_BONUS_AMOUNT', newPartner.commissionType);")
                     td
                         label.radio-inline {{'MONTHLY_BONUS_AMOUNT' | translate}}
-                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='4' ng-click="selectedCommissionTab('MONTHLY_BONUS_AMOUNT');")
+                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='4' ng-click="switchCommissionTab('MONTHLY_BONUS_AMOUNT', newPartner.commissionType);")
                     td
                         label.radio-inline {{'WEEKLY_CONSUMPTION' | translate}}
-                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='5' ng-click="selectedCommissionTab('WEEKLY_CONSUMPTION');")
+                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='5' ng-click="switchCommissionTab('WEEKLY_CONSUMPTION', newPartner.commissionType);")
                     td
                         label.radio-inline {{'CLOSED_COMMISSION' | translate}}
-                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='0' ng-click="selectedCommissionTab('CLOSED');")
+                            input.pull-left.relative(type='radio', ng-model='newPartner.commissionType', value='0' ng-click="switchCommissionTab('CLOSED', newPartner.commissionType);")
         br
     div(ng-if="partnerCommission.isCustomized || commissionRateConfig.isCustomized")
         .col-md-12.panel.panel-body.panel-primary
