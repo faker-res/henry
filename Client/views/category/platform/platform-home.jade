@@ -137,7 +137,7 @@
                             a.common-tab(data-toggle="tab", href="#batchPermit", ng-click="vm.loadTab('batchPermit');")
                                 .fa.fa-cogs.margin-right-5
                                 text.span {{"Batch Setting" | translate}}
-                        li(ng-show="checkViewPermission('Platform', 'Platform','Read')")
+                        li(ng-show="checkViewPermission('Platform', 'PlatformSetting','Read')")
                             a.common-tab(data-toggle="tab", href="#platformSetting", ng-click="vm.loadTab('platformSetting');")
                                 .fa.fa-cogs.margin-right-5
                                 text.span {{"platformSetting" | translate}}
@@ -149,7 +149,7 @@
                             a.common-tab(data-toggle="tab", href="#ClientAutoQnA", ng-click="vm.loadTab('ClientQnA');vm.buildClientQnATypeList();")
                                 .fa.fa-file-text-o.margin-right-5
                                 text.span {{"ClientQnA" | translate}}
-                        li(ng-show="checkViewPermission('Platform', 'Platform', 'FrontendConfiguration')")
+                        li(ng-show="checkViewPermission('Platform', 'PlatformSetting', 'FrontendConfiguration')")
                             a.common-tab(data-toggle="tab", href="#frontendConfiguration", ng-click="vm.loadTab('FrontendConfiguration');")
                                 .fa.fa-file-text-o.margin-right-5
                                 text.span {{"FrontendConfiguration" | translate}}

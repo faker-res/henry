@@ -2,7 +2,7 @@ form(name="form_new_platform" ,novalidate)
 
     .well(ng-show="vm.selectedPlatformDetailTab != 'system-settlement'")
         .row
-            div(name="backstage-settings", ng-if="vm.selectedPlatformDetailTab == 'backstage-settings'", ng-show="checkViewPermission('Platform', 'Platform','BackstageSettings')")
+            div(name="backstage-settings", ng-if="vm.selectedPlatformDetailTab == 'backstage-settings'", ng-show="checkViewPermission('Platform', 'PlatformSetting','BackstageSettings')")
                 div.form-group.col-md-6
                     label.control-label *{{"PLATFORM_NAME" | translate}}
                     input.form-control(type="text", placeholder="{{'PLATFORM_NAME' | translate}}", ng-model="vm.showPlatform.name", ng-disabled="vm.isNotAllowEdit", required)
@@ -52,7 +52,7 @@ form(name="form_new_platform" ,novalidate)
                     input.form-control(type="text", ng-model="vm.showPlatform.frontendConfigurationDomainName", ng-disabled="vm.isNotAllowEdit")
 
 
-        div(name="player-display-data", ng-if="vm.selectedPlatformDetailTab == 'player-display-data'", ng-show="checkViewPermission('Platform', 'Platform','PlayerDisplayData')")
+        div(name="player-display-data", ng-if="vm.selectedPlatformDetailTab == 'player-display-data'", ng-show="checkViewPermission('Platform', 'PlatformSetting','PlayerDisplayData')")
                 ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='height: 46px;')
                     .pull-left.padding-all-5
                     li.active(id = 'customerServiceTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
@@ -739,7 +739,7 @@ form(name="form_new_platform" ,novalidate)
                                                 button.common-button.btn.btn-info(ng-click="vm.setNewImageButtonName();" style="width: auto; background-color: #5bc0de") {{'ADD NEW BUTTON' | translate}}
                                                 button.common-button.btn.btn-info(ng-click="vm.resetPlayerAddTable();" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
 
-            div(name="partner-display-data", ng-if="vm.selectedPlatformDetailTab == 'partner-display-data'", ng-show="checkViewPermission('Platform', 'Platform','PartnerDisplayData')")
+            div(name="partner-display-data", ng-if="vm.selectedPlatformDetailTab == 'partner-display-data'", ng-show="checkViewPermission('Platform', 'PlatformSetting','PartnerDisplayData')")
                 ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='height: 46px;')
                     .pull-left.padding-all-5
                     li.active(id = 'partnerServiceTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
@@ -1426,7 +1426,7 @@ form(name="form_new_platform" ,novalidate)
 
 
 
-        div(name="frontend-module-setting", ng-if="vm.selectedPlatformDetailTab == 'frontend-module-setting'", ng-show="checkViewPermission('Platform', 'Platform','FrontendModuleSetting')")
+        div(name="frontend-module-setting", ng-if="vm.selectedPlatformDetailTab == 'frontend-module-setting'", ng-show="checkViewPermission('Platform', 'PlatformSetting','FrontendModuleSetting')")
             ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu(style='height: 46px;')
                 .pull-left.padding-all-5
                 li.active(id = 'presetModuleTab',ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount!= 1", data-toggle="modal",)
@@ -1637,7 +1637,7 @@ form(name="form_new_platform" ,novalidate)
                         button.common-button.btn.btn-info(ng-if="vm.addNewSpecialModule", ng-click="vm.addNewSpecialModule=false; vm.getFrontEndSpecialModuleSetting(); vm.setPlatformFooter(null);" style="width: auto; background-color: #5bc0de") {{'CANCEL' | translate}}
                         button.common-button.btn.btn-info(ng-if="vm.addNewSpecialModule", ng-click="vm.addNewSpecialModuleSetting();vm.addNewSpecialModule=false; vm.setPlatformFooter(null);" style="width: auto; background-color: #5bc0de") {{'SAVE' | translate}}
 
-        div(name="theme-select", ng-if="vm.selectedPlatformDetailTab == 'theme-select'", ng-show="checkViewPermission('Platform', 'Platform','ThemeSelect')")
+        div(name="theme-select", ng-if="vm.selectedPlatformDetailTab == 'theme-select'", ng-show="checkViewPermission('Platform', 'PlatformSetting','ThemeSelect')")
             #playerThemeSelectPanel.panel-body(style="background-color: white;")
                 strong(style="margin-bottom: 10px;") {{"PLAYER_THEME" | translate}}:
                 br
@@ -1679,7 +1679,7 @@ form(name="form_new_platform" ,novalidate)
                                     input.transform150(ng-disabled="vm.platformAction != 'edit' || !vm.platformAction", type="checkbox", data-themeIdObjId="{{item._id}}", data-themeId="{{item.themeId}}", data-_id="{{v._id}}")
                             
 
-div(name="system-settlement", ng-if="vm.selectedPlatformDetailTab == 'system-settlement'", ng-show="checkViewPermission('Platform', 'Platform','SystemSettlement')")
+div(name="system-settlement", ng-if="vm.selectedPlatformDetailTab == 'system-settlement'", ng-show="checkViewPermission('Platform', 'PlatformSetting','SystemSettlement')")
     .col-md-12.block-query.well
         h4(style="margin-top:0;font-weight:bold;text-decoration:underline;") {{"SETTLEMENT_HISTORY" | translate}}
         div

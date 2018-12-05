@@ -293,7 +293,7 @@ var roleChecker = {
             },
         },
         Platform: {
-            "Platform": {
+            "PlatformSetting": {
                 Read: ['getAllPlatforms', 'getPlatform', 'getDepartmentsByPlatformId', 'getPlatformAnnouncementsByPlatformId', 'getPlatformAnnouncementById', 'getAllGameTypes', 'getPlayerLvlPeriodConst', 'getAllGameStatus', 'getAllMessageTypes', 'syncPlatform',
                     'getPlatformBankCardGroup', 'getPlatformMerchantGroup', 'getPlatformAlipayGroup','getConsumptionRecordByGameProvider','getProfitDisplayDetailByPlatform', 'getPlayerConsumptionDetailByPlatform'],
                 Create: ['createPlatform', 'getDepartmentTreeById'],
