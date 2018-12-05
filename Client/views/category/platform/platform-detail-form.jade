@@ -1680,7 +1680,7 @@ form(name="form_new_platform" ,novalidate)
                             
 
 div(name="system-settlement", ng-if="vm.selectedPlatformDetailTab == 'system-settlement'", ng-show="checkViewPermission('Platform', 'PlatformSetting','SystemSettlement')")
-    .col-md-12.block-query.well
+    //.col-md-12.block-query.well
         h4(style="margin-top:0;font-weight:bold;text-decoration:underline;") {{"SETTLEMENT_HISTORY" | translate}}
         div
             label.margin-right-5 {{'Settlement Interval' | translate}}
