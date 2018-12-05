@@ -808,12 +808,12 @@ var roleChecker = {
                 Delete: ['deleteRolesById'],
                 Update: ['updateRole']
             },
-            Platform: {
+            PlatformSetting: {
                 Read: ['getPlatform', 'getAllPlatforms'],
-                Move: ['addPlatformsToDepartmentById', 'removePlatformsFromDepartmentById'],
-                Create: ['createPlatform'],
+                //Move: ['addPlatformsToDepartmentById', 'removePlatformsFromDepartmentById'],
+                //Create: ['createPlatform'],
                 Edit: ['updatePlatform'],
-                Delete: ['deletePlatformById']
+                //Delete: ['deletePlatformById']
             },
             PlayerMail: {
                 Read: []
