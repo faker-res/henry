@@ -7807,6 +7807,8 @@ let dbPlayerReward = {
         let totalCount = 0;
         let totalPage = 1;
         let sortCol = {};
+        let totalReceiveCount = 0;
+        let totalAmount = 0;
 
         if (typeof currentPage != 'number' || typeof limit != 'number') {
             return Promise.reject({name: "DataError", message: "Incorrect parameter type"});
@@ -7881,7 +7883,7 @@ let dbPlayerReward = {
                             {
                                 $group: {
                                     "_id": "$data.playerObjId",
-                                    "playerName": {$first: "$data.playerName"},
+                                    "username": {$first: "$data.playerName"},
                                     "receiveCount": {$sum: 1},
                                     "totalReceiveAmount": {$sum: "$data.rewardAmount"},
                                     "highestAmount": {$max: "$data.rewardAmount"},
@@ -7906,7 +7908,7 @@ let dbPlayerReward = {
                             {
                                 $group: {
                                     "_id": "$data.playerObjId",
-                                    "playerName": {$first: "$data.playerName"},
+                                    "username": {$first: "$data.playerName"},
                                     "receiveCount": {$sum: 1},
                                     "totalReceiveAmount": {$sum: "$data.rewardAmount"},
                                     "highestAmount": {$max: "$data.rewardAmount"},
@@ -7938,10 +7940,25 @@ let dbPlayerReward = {
 
                     let rewardProm = dbConfig.collection_proposal.aggregate(query).read("secondaryPreferred");
 
-                    return Promise.all([countProm,rewardProm]).then(
+                    let sumRewardProm = dbConfig.collection_proposal.aggregate([
+                        {
+                            $match: matchQuery
+                        },
+                        {
+                            $group: {
+                                "_id": null,
+                                "totalAmount": {$sum: "$data.rewardAmount"},
+                                "totalReceiveCount": {$sum: 1},
+                            }
+                        }
+                    ]).read("secondaryPreferred");
+
+                    return Promise.all([countProm,rewardProm, sumRewardProm]).then(
                         data => {
                             totalCount = data && data[0] && data[0][0] && data[0][0].size ? data[0][0].size : 0;
                             totalPage = Math.ceil(totalCount / limit);
+                            totalReceiveCount = data && data[2] && data[2][0] && data[2][0].totalReceiveCount ? data[2][0].totalReceiveCount : 0;
+                            totalAmount = data && data[2] && data[2][0] && data[2][0].totalAmount ? data[2][0].totalAmount : 0;
 
                             return data[1];
                         }
@@ -8000,8 +8017,8 @@ let dbPlayerReward = {
                 statsObj.totalCount = totalCount;
                 statsObj.totalPage = totalPage;
                 statsObj.currentPage = currentPage;
-                statsObj.totalReceiveCount = 0;
-                statsObj.totalAmount = 0;
+                statsObj.totalReceiveCount = totalReceiveCount;
+                statsObj.totalAmount = totalAmount;
                 statsObj.totalPlayerCount = totalCount;
 
                 if (rewardRecord && rewardRecord.length > 0 && lastRewardData && lastRewardData.length > 0) {
@@ -8016,9 +8033,9 @@ let dbPlayerReward = {
                         delete reward._id;
                         delete reward.createTime;
                     });
-
-                    return {stats: statsObj, rewardRanking: rewardRecord};
                 }
+
+                return {stats: statsObj, rewardRanking: rewardRecord};
             }
         )
     },
