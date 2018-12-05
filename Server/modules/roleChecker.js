@@ -302,20 +302,42 @@ var roleChecker = {
                 ReplicateSetting: ['replicatePlatformSetting'],
                 DailySettlement: ['startPlatformDailySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformDailySettlement'],
                 WeeklySettlement: ['startPlatformWeeklySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformWeeklySettlement'],
-                RewardSettlement: ['startPlatformRewardEventSettlement', 'startPlatformRTGEventSettlement'],
-                SettlementHistory: ['getSettlementHistory'],
-                PartnerCommissionSettlement: ['startPlatformPartnerCommissionSettlement'],
+                //RewardSettlement: ['startPlatformRewardEventSettlement', 'startPlatformRTGEventSettlement'],
+                //SettlementHistory: ['getSettlementHistory'],
+                //PartnerCommissionSettlement: ['startPlatformPartnerCommissionSettlement'],
                 transferPlayerCreditFromProvider: ['transferAllPlayersCreditFromProvider'],
-                PlayerConsumptionIncentiveSettlement: ['startPlatformPlayerConsumptionIncentiveSettlement'],
-                PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement', 'getYesterdayConsumptionReturnSGTime'],
-                PlayerLevelSettlement: ['startPlatformPlayerLevelSettlement'],
-                PlayerConsecutiveConsumptionSettlement: ['startPlayerConsecutiveConsumptionSettlement'],
+                //PlayerConsumptionIncentiveSettlement: ['startPlatformPlayerConsumptionIncentiveSettlement'],
+                //PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement', 'getYesterdayConsumptionReturnSGTime'],
+                //PlayerLevelSettlement: ['startPlatformPlayerLevelSettlement'],
+                //PlayerConsecutiveConsumptionSettlement: ['startPlayerConsecutiveConsumptionSettlement'],
                 BackstageSettings: [],
-                PlayerDisplayData: [],
-                PartnerDisplayData: [],
+                //PlayerDisplayData: [],
+                //PartnerDisplayData: [],
                 SystemSettlement: [],
-                FrontendModuleSetting: [],
-                ThemeSelect: [],
+                //FrontendModuleSetting: [],
+                //ThemeSelect: [],
+            },
+            "PlayerDisplayData": {
+                Read: [],
+                Edit: []
+            },
+            "PartnerDisplayData": {
+                Read: [],
+                Edit: []
+            },
+            "SystemSettlement": {
+                PlayerLevelSettlement: ['startPlatformPlayerLevelSettlement'],
+                PartnerCommissionSettlement: ['startPlatformPartnerCommissionSettlement'],
+                PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement', 'getYesterdayConsumptionReturnSGTime'],
+                SystemRewardGroupSettlement: []
+            },
+            "FrontendModule": {
+                Read: [],
+                Edit: []
+            },
+            "ThemeSelect": {
+                Read: [],
+                Edit: []
             },
             // "Player": {
             //     Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList', "getDepartmentTreeById",

@@ -572,15 +572,15 @@ define(['js/app'], function (myApp) {
                 if (tabName === null) {
                     if (authService.checkViewPermission('Platform', 'PlatformSetting','BackstageSettings')) {
                         tabName = "backstage-settings";
-                    } else if (authService.checkViewPermission('Platform', 'PlatformSetting','PlayerDisplayData')) {
+                    } else if (authService.checkViewPermission('Platform', 'PlayerDisplayData','Read')) {
                         tabName = "player-display-data";
-                    } else if (authService.checkViewPermission('Platform', 'PlatformSetting','PartnerDisplayData')) {
+                    } else if (authService.checkViewPermission('Platform', 'PartnerDisplayData','Read')) {
                         tabName = "partner-display-data";
                     } else if (authService.checkViewPermission('Platform', 'PlatformSetting','SystemSettlement')) {
                         tabName = "system-settlement";
-                    } else if (authService.checkViewPermission('Platform', 'PlatformSetting','FrontendModuleSetting')) {
+                    } else if (authService.checkViewPermission('Platform', 'FrontendModule','Read')) {
                         tabName = "frontend-module-setting";
-                    } else if (authService.checkViewPermission('Platform', 'PlatformSetting','ThemeSelect')) {
+                    } else if (authService.checkViewPermission('Platform', 'ThemeSelect','Read')) {
                         tabName = "theme-select";
                     }
                 }
