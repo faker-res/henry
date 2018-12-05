@@ -5886,7 +5886,6 @@ let dbPlayerInfo = {
             model: dbconfig.collection_platform
         }).then(
             playerInfo => {
-                console.log("checking playerData", playerInfo)
                 if (!playerInfo){
                     return Promise.reject({
                         name: "DataError",
