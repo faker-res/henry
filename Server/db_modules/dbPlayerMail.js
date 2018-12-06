@@ -322,7 +322,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationSMS: function (platformObjId, platformId, data, verifyCode, purpose, inputDevice, playerName, ipAddress) {
+    sendVerificationSMS: function (platformObjId, platformId, data, verifyCode, purpose, inputDevice, playerName, ipAddress, isPartner) {
         var sendObj = {
             tel: data.tel,
             channel: data.channel,
@@ -334,11 +334,11 @@ const dbPlayerMail = {
             retData => {
                 console.log(retData);
                 console.log('[smsAPI] Sent verification code to: ', data.tel);
-                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'success', '', ipAddress);
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'success', '', ipAddress, isPartner);
                 return retData;
             },
             retErr => {
-                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'failure', retErr, ipAddress);
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'failure', retErr, ipAddress, isPartner);
                 errorUtils.reportError(retErr);
                 return dbPlayerMail.failSMSErrorOutHandler(data.tel);
             }
@@ -773,7 +773,7 @@ const dbPlayerMail = {
                         return errorUtils.reportError(err);
                     });
 
-                    return dbPlayerMail.sendVerificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName, inputData.ipAddress);
+                    return dbPlayerMail.sendVerificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName, inputData.ipAddress, isPartner);
                 }
             }
         ).then(
