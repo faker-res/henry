@@ -814,7 +814,20 @@ var dbPlayerTopUpRecord = {
                             }
                         )
                     };
-                    let proms = [limitedOfferProm, merchantGroupProm()];
+
+                    let merchantTypeProm = Promise.resolve(false);
+                    if (bPMSGroup === true || bPMSGroup === "true") {
+                        let pmsQuery = {
+                            platformId: player.platform.platformId,
+                            queryId: serverInstance.getQueryId(),
+                            username: player.name,
+                            ip: lastLoginIp,
+                            clientType: clientType
+                        };
+                        merchantTypeProm = pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
+                    }
+
+                    let proms = [limitedOfferProm, merchantGroupProm(), merchantTypeProm];
                     if (topupRequest.bonusCode) {
                         let bonusCodeCheckProm;
                         let isOpenPromoCode = topupRequest.bonusCode.toString().trim().length == 3 ? true : false;
@@ -842,7 +855,8 @@ var dbPlayerTopUpRecord = {
                 let minTopUpAmount = player.platform.minTopUpAmount || 0;
                 let limitedOfferTopUp = res[0];
                 merchantGroupList = res[1];
-                let bonusCodeValidity = res[2];
+                let merchantType = res[2];
+                let bonusCodeValidity = res[3];
 
                 // check bonus code validity if exist
                 if (topupRequest.bonusCode && !bonusCodeValidity) {
@@ -854,14 +868,14 @@ var dbPlayerTopUpRecord = {
                 }
 
                 if (topupRequest.amount < minTopUpAmount) {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.PLAYER_TOP_UP_FAIL,
                         name: "DataError",
                         errorMessage: "Top up amount is not enough"
                     });
                 }
                 if (!player.permission || !player.permission.topupOnline) {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.PLAYER_NO_PERMISSION,
                         name: "DataError",
                         errorMessage: "Player does not have online topup permission"
@@ -869,11 +883,27 @@ var dbPlayerTopUpRecord = {
                 }
                 //check player foridb topup type list
                 if (player.forbidTopUpType && player.forbidTopUpType.indexOf(topupRequest.topupType) >= 0) {
-                    return Q.reject({name: "DataError", message: "Top up type is forbidden for this player"});
+                    return Promise.reject({name: "DataError", message: "Top up type is forbidden for this player"});
                 }
                 //check player merchant group
                 if (!player.merchantGroup || !player.merchantGroup.merchants) {
-                    return Q.reject({name: "DataError", message: "Player does not have valid merchant data"});
+                    return Promise.reject({name: "DataError", message: "Player does not have valid merchant data"});
+                }
+
+                // Check segregated merchant min max amount
+                if (bPMSGroup && merchantType && merchantType.topupTypes.some(el => el.type == topupRequest.topupType)) {
+                    let quotaScopes = merchantType.topupTypes.find(el => el.type == topupRequest.topupType).quotaScopes;
+                    let isPassed = false;
+
+                    quotaScopes.forEach(scope => {
+                        if (topupRequest.amount >= scope.minDepositAmount && topupRequest.amount <= scope.maxDepositAmount) {
+                            isPassed = true;
+                        }
+                    });
+
+                    if (!isPassed) {
+                        return Promise.reject({name: "DataError", message: "Invalid top up amount"})
+                    }
                 }
 
                 if (userAgent) {
