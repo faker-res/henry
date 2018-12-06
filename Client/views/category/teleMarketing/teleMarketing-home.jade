@@ -3,7 +3,7 @@
         .col-md-12
             button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'phoneNumFilter', 'Read')" ng-class='{active: vm.selectedTab === "NEW_PHONE_LIST"}', ng-click='vm.loadTab("NEW_PHONE_LIST")' title='过滤，导入白名单到系统当中')
                 span {{"NEW_PHONE_LIST" | translate}}
-            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'PHONE_LIST_ANALYSE_AND_MANAGEMENT', 'Read')" ng-class='{active: vm.selectedTab === "PHONE_LISTS"}', ng-click='vm.loadTab("PHONE_LIST_ANALYSE_AND_MANAGEMENT")', title='分析名单数据并分配名单给指定的销售人员')
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'PHONE_LIST_ANALYSE_AND_MANAGEMENT', 'Read')" ng-class='{active: vm.selectedTab === "PHONE_LISTS"}', ng-click='vm.loadTab("PHONE_LIST_ANALYSE_AND_MANAGEMENT"); vm.showPhoneListManagement();', title='分析名单数据并分配名单给指定的销售人员')
                 span {{"PHONE_LIST_ANALYSE_AND_MANAGEMENT" | translate}}
             button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'MY_PHONE_LIST_OR_REMINDER_PHONE_LIST', 'Read')" ng-class='{active: vm.selectedTab === "REMINDER_PHONE_LIST"}', ng-click='vm.loadTab("REMINDER_PHONE_LIST")', title='销售员所分配到的会员名单、资料')
                 span {{"MY_PHONE_LIST_OR_REMINDER_PHONE_LIST" | translate}}
