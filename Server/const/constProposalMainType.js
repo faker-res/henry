@@ -61,6 +61,7 @@ const constProposalMainType = {
     "PlayerConsecutiveRewardGroup": constMainType.REWARD,
     "PlayerConsumptionSlipRewardGroup": constMainType.REWARD,
     "PlayerRetentionRewardGroup": constMainType.REWARD,
+    "PlayerBonusDoubledRewardGroup": constMainType.REWARD,
 
     //UPDATE_PLAYER
     "UpdatePlayerInfo" : constMainType.UPDATE_PLAYER,

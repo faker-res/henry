@@ -21447,7 +21447,7 @@ console.log('typeof ',typeof gameProviders);
                     }
 
                     if (model.i == "multiplier" && model.v.type == "number" && vm.isDynamicRewardAmt) {
-                        model.entry.rewardPercentage = model.entry.multiplier;
+                        model.entry.rewardPercentage = model.entry.multiplier/100;
                     }
                 }
 
