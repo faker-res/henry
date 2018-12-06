@@ -92,6 +92,9 @@ define(['js/app'], function (myApp) {
             }else if(window.location.pathname == "/monitor/consumptionRecord") {
                 vm.seleDataType["CONSUMPTION_RECORD_MONITOR"] = 'bg-bright';
                 vm.showPlatformList = false;
+            }else if(window.location.pathname == "/monitor/attemptCreate") {
+                vm.seleDataType["ATTEMPT_CREATE_MONITOR"] = 'bg-bright';
+                vm.showPlatformList = false;
             }
         };
 
