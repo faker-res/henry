@@ -6476,7 +6476,7 @@ let dbPlayerReward = {
                             let listItem = rewardInfoList[i];
 
                             if (listItem.status == 1) {
-                                let rewardAmount = listItem.bonus;
+                                let rewardAmount = parseFloat(listItem.bonus);
                                 let spendingAmount = listItem.spendingAmount ? listItem.spendingAmount : listItem.requestedTimes * rewardAmount;
                                 let consecutiveNumber = listItem.step;
                                 let targetDate = listItem.targetDate;
