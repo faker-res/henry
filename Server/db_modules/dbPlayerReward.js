@@ -7987,53 +7987,6 @@ let dbPlayerReward = {
                         return Promise.reject({name: "DataError", message: "Sort order supported digit 1 to 4 only"});
                     }
 
-                    let query = [];
-                    if (isPaging) {
-                        query = [
-                            {
-                                $match: matchQuery
-                            },
-                            {
-                                $group: {
-                                    "_id": "$data.playerObjId",
-                                    "username": {$first: "$data.playerName"},
-                                    "receiveCount": {$sum: 1},
-                                    "totalReceiveAmount": {$sum: "$data.rewardAmount"},
-                                    "highestAmount": {$max: "$data.rewardAmount"},
-                                    "createTime": {$max: "$createTime"}
-                                }
-                            },
-                            {
-                                $sort: sortCol
-                            },
-                            {
-                                $skip: index
-                            },
-                            {
-                                $limit: limit
-                            }
-                        ];
-                    } else {
-                        query = [
-                            {
-                                $match: matchQuery
-                            },
-                            {
-                                $group: {
-                                    "_id": "$data.playerObjId",
-                                    "username": {$first: "$data.playerName"},
-                                    "receiveCount": {$sum: 1},
-                                    "totalReceiveAmount": {$sum: "$data.rewardAmount"},
-                                    "highestAmount": {$max: "$data.rewardAmount"},
-                                    "createTime": {$max: "$createTime"}
-                                }
-                            },
-                            {
-                                $sort: sortCol
-                            }
-                        ];
-                    }
-
                     let countProm = dbConfig.collection_proposal.aggregate([
                         {
                             $match: matchQuery
@@ -8051,7 +8004,24 @@ let dbPlayerReward = {
                         }
                     ]).read("secondaryPreferred");
 
-                    let rewardProm = dbConfig.collection_proposal.aggregate(query).read("secondaryPreferred");
+                    let rewardProm = dbConfig.collection_proposal.aggregate([
+                        {
+                            $match: matchQuery
+                        },
+                        {
+                            $group: {
+                                "_id": "$data.playerObjId",
+                                "username": {$first: "$data.playerName"},
+                                "receiveCount": {$sum: 1},
+                                "totalReceiveAmount": {$sum: "$data.rewardAmount"},
+                                "highestAmount": {$max: "$data.rewardAmount"},
+                                "createTime": {$max: "$createTime"}
+                            }
+                        },
+                        {
+                            $sort: sortCol
+                        }
+                    ]).read("secondaryPreferred");
 
                     let sumRewardProm = dbConfig.collection_proposal.aggregate([
                         {
@@ -8073,7 +8043,9 @@ let dbPlayerReward = {
                             totalReceiveCount = data && data[2] && data[2][0] && data[2][0].totalReceiveCount ? data[2][0].totalReceiveCount : 0;
                             totalAmount = data && data[2] && data[2][0] && data[2][0].totalAmount ? data[2][0].totalAmount : 0;
 
-                            return data[1];
+                            let result = data[1] && data[1].length > 0 ? (isPaging === true || isPaging === "true") ? data[1].slice(index, index + limit) : data[1] : [];
+
+                            return result;
                         }
                     );
 
@@ -8129,7 +8101,7 @@ let dbPlayerReward = {
             lastRewardData => {
                 statsObj = {};
                 statsObj.totalCount = totalCount;
-                statsObj.totalPage = totalPage;
+                statsObj.totalPage = (isPaging === true || isPaging === "true") ? totalPage : 1;
                 statsObj.currentPage = currentPage;
                 statsObj.totalReceiveCount = totalReceiveCount;
                 statsObj.totalAmount = totalAmount;
