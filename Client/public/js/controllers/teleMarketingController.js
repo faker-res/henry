@@ -32,6 +32,9 @@ define(['js/app'], function (myApp) {
         vm.phoneListSearch = {};
         vm.workloadSearch = {};
         vm.checkFilterIsDisable = true;
+        vm.ctiData = {};
+        vm.isCallOutMissionMode = true;
+        vm.callOutMissionStatusText = "";
 
         vm.updatePageTile = function () {
             window.document.title = $translate("teleMarketing") + "->" + $translate(vm.teleMarketingPageName);
@@ -548,13 +551,24 @@ define(['js/app'], function (myApp) {
             }, true);
         }
 
-        vm.searchAdminPhoneList = function (newSearch) {
-
-            console.log('vm.queryAdminPhoneList', vm.queryAdminPhoneList);
+        vm.createCallOutMission = function () {
             $('#adminPhoneListTableSpin').show();
+            let sendQuery = {};
 
+            sendQuery.platformObjId = vm.selectedPlatform.id;
+            sendQuery.adminObjId = authService.adminId;
+            sendQuery.searchQuery = JSON.stringify(vm.generateAdminPhoneQuery());
+            sendQuery.searchFilter = sendQuery.searchQuery;
+            sendQuery.sortCol = sendQuery.searchQuery.sortCol || {endTime: -1};
 
-            var sendObj = {
+            $scope.$socketPromise("createTsCallOutMission", sendQuery).then(data => {
+                console.log(data);
+                vm.getCtiData();
+            });
+        };
+
+        vm.generateAdminPhoneQuery = (newSearch) => {
+            return {
                 platform: vm.selectedPlatform.id,
                 admin: authService.adminId,
                 phoneListName: vm.queryAdminPhoneList.phoneListName,
@@ -576,8 +590,18 @@ define(['js/app'], function (myApp) {
                 index: newSearch ? 0 : (vm.queryAdminPhoneList.index || 0),
                 limit: vm.queryAdminPhoneList.limit || 10,
                 sortCol: vm.queryAdminPhoneList.sortCol || {assignTimes: 1, endTime: 1}
+            };
+        };
 
+        vm.searchAdminPhoneList = function (newSearch) {
+            console.log('vm.queryAdminPhoneList', vm.queryAdminPhoneList);
+            $('#adminPhoneListTableSpin').show();
+
+            if (vm.isCallOutMissionMode) {
+                return vm.getCtiData(newSearch);
             }
+
+            let sendObj = vm.generateAdminPhoneQuery(newSearch);
 
             socketService.$socket($scope.AppSocket, 'getAdminPhoneList', sendObj, function (data) {
                 $('#adminPhoneListTableSpin').hide();
@@ -717,6 +741,13 @@ define(['js/app'], function (myApp) {
                 ],
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    if(vm.ctiData && vm.ctiData.hasOnGoingMission) {
+                        if(aData.callOutMissionStatus == $scope.constCallOutMissionCalleeStatus.SUCCEEDED) {
+                            $(nRow).addClass('callOutSucceeded');
+                        } else if(aData.callOutMissionStatus == $scope.constCallOutMissionCalleeStatus.FAILED) {
+                            $(nRow).addClass('callOutFailed');
+                        }
+                    }
                     $compile(nRow)($scope);
                 },
                 fnDrawCallback: function (oSettings) {
@@ -1423,6 +1454,9 @@ define(['js/app'], function (myApp) {
                 vm.autoRefreshTsDistributedPhoneReminder();
                 vm.tsPhoneAddFeedback.content = "";
                 vm.tsPhoneAddFeedback.result = "";
+                if ($scope.tsDistributedPhoneObjId) {
+                    vm.getTsDistributedPhoneDetail($scope.tsDistributedPhoneObjId)
+                }
             });
         };
 
@@ -1454,7 +1488,7 @@ define(['js/app'], function (myApp) {
                 console.log('getTsDistributedPhoneDetail', data);
                 if (data && data.data) {
                     vm.targetedTsDistributedPhoneDetail = data.data;
-                    vm.tsPhoneAddFeedback = vm.targetedTsDistributedPhoneDetail.tsPhone;
+                    vm.tsPhoneAddFeedback = {tsPhone: vm.targetedTsDistributedPhoneDetail.tsPhone};
                     $scope.$evalAsync();
                 }
             }).done();
@@ -7178,8 +7212,217 @@ define(['js/app'], function (myApp) {
             $('#nameInput').focus();
         };
 
+        vm.getCtiData = (newSearch) => {
+            clearTimeout(vm.ctiLoop);
+            if (vm.selectedTab != "REMINDER_PHONE_LIST") {
+                return;
+            }
+
+            $('#adminPhoneListTableSpin').show();
+            vm.isCallOutMissionMode = true;
+
+            let sendData = {
+                platformObjId: vm.selectedPlatform.id,
+                limit: vm.queryAdminPhoneList.limit || 10,
+                index: vm.queryAdminPhoneList.index || 0
+            };
+            console.log('sendData', sendData);
+
+            return $scope.$socketPromise("getTsUpdatedAdminMissionStatusFromCti", sendData).then(
+                ctiDataOutput => {
+                    console.log('ctiData', ctiDataOutput);
+                    if (!(ctiDataOutput && ctiDataOutput.data && ctiDataOutput.data.hasOnGoingMission)) {
+                        vm.ctiData = ctiDataOutput && ctiDataOutput.data || {};
+                        return backToNormalSearch(newSearch);
+                    }
+                    vm.ctiData = ctiDataOutput.data;
+
+                    vm.callOutMissionStatusText = '';
+                    let completedAmount = 0;
+                    vm.bulkCalleeToAddFeedback = [];
+
+                    vm.ctiData.callee.forEach(callee => {
+                        if (callee.player) {
+                            callee.player.callOutMissionStatus = callee.status;
+                        }
+
+                        let playerFeedbackDetail = vm.ctiData.feedbackPlayerDetail;
+                        let playerTableData = playerFeedbackDetail.data || [];
+
+                        for (let i = 0; i < playerTableData.length; i++) {
+                            if (callee._id && callee._id == playerTableData[i]._id) {
+                                playerTableData[i].callOutMissionStatus = callee.status;
+                                break;
+                            }
+                        }
+
+                        if (vm.lastSelectedCallPlayer && callee.player && vm.lastSelectedCallPlayer._id == callee.player._id) {
+                            vm.lastSelectedCallPlayer = callee.player;
+                        }
+
+                        if (callee.status != 0) {
+                            completedAmount++;
+                        }
+
+                        if (callee.status == 2) {
+                            vm.bulkCalleeToAddFeedback.push(callee._id)
+                        }
+                    });
+
+                    if (vm.ctiData.status == $scope.constCallOutMissionStatus.ON_GOING) {
+                        vm.callOutMissionStatusText = $translate("On Going");
+                    } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.PAUSED) {
+                        vm.callOutMissionStatusText = $translate("Paused");
+                    } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.FINISHED) {
+                        vm.callOutMissionStatusText = $translate("Finished");
+                    } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.CANCELLED) {
+                        vm.callOutMissionStatusText = $translate("Gave Up");
+                    }
+
+                    vm.callOutMissionProgressText = completedAmount + '/' + vm.ctiData.callee.length;
+
+                    vm.showFinishCalloutMissionButton = Boolean(vm.ctiData.status == $scope.constCallOutMissionStatus.FINISHED || vm.ctiData.status == $scope.constCallOutMissionStatus.CANCELLED);
+
+                    let phonesData = vm.ctiData.feedbackPlayerDetail;
+                    let tableData;
+                    if (phonesData && phonesData.data && phonesData.data.map) {
+                        vm.queryAdminPhoneList.totalCount = phonesData.size = phonesData.total;
+                        tableData = phonesData.data.map(item => {
+                            let tsDPhone = item.tsDistributedPhone;
+
+                            if (tsDPhone.tsPhone && tsDPhone.tsPhone.phoneNumber) {
+                                tsDPhone.tsPhone.phoneNumber = item.phoneNumber;
+                                tsDPhone.callOutMissionStatus = item.callOutMissionStatus;
+                                tsDPhone.encodedPhoneNumber$ = utilService.encodePhoneNum(tsDPhone.tsPhone.phoneNumber);
+                            }
+                            tsDPhone.startTime$ = utilService.getFormatTime(tsDPhone.startTime);
+                            let endDate = utilService.setNDaysAgo(new Date(tsDPhone.endTime), 1); // endTime in DB store end time of day
+                            let daysDiff = Math.abs(endDate.getTime() - new Date().getTime());
+                            tsDPhone.reclaimDaysLeft$ = Math.ceil(daysDiff / (1000 * 3600 * 24));
+
+                            return tsDPhone;
+                        });
+                    }
+
+                    if (!vm.calleeCallOutStatus) {
+                        vm.calleeCallOutStatus = {};
+                        vm.ctiData.callee.map(callee => {
+                            vm.calleeCallOutStatus[callee._id] = callee.status;
+                        });
+                    }
+                    else {
+                        vm.ctiData.callee.map(callee => {
+                            if (vm.calleeCallOutStatus[callee._id] != 1 && callee.status == 1) {
+                                let tsDPhoneId = callee.tsDistributedPhone && callee.tsDistributedPhone._id;
+                                let url = window.location.origin + "/teleMarketing/tsPhone/" + tsDPhoneId;
+                                utilService.openInNewTab(url);
+                            }
+                            vm.calleeCallOutStatus[callee._id] = callee.status;
+                        });
+                    }
+
+                    vm.drawAdminPhoneList(tableData, phonesData.size, {}, newSearch);
+                    $('#adminPhoneListTableSpin').hide();
+                    $scope.$evalAsync();
+
+                    vm.ctiLoop = setTimeout(vm.getCtiData, 15000);
+
+                },
+                err => {
+                    console.error(err);
+                    backToNormalSearch(newSearch);
+                }
+            );
+        };
+
+        vm.stopCallOutMission = () => {
+            $('#adminPhoneListTableSpin').show();
+            socketService.$socket($scope.AppSocket, 'stopTsCallOutMission', {
+                platformObjId: vm.selectedPlatform.id,
+                missionName: vm.ctiData.missionName
+            }, function (data) {
+                console.log("stopCallOutMission ret" , data);
+                $scope.$evalAsync(function(){
+                    vm.searchAdminPhoneList(true);
+                });
+            });
+        }
+
+        function backToNormalSearch(newSearch) {
+            vm.isCallOutMissionMode = false;
+            vm.searchAdminPhoneList(newSearch);
+        }
+
+        vm.toggleCallOutMissionStatus = function() {
+            socketService.$socket($scope.AppSocket, 'toggleTsCallOutMissionStatus', {
+                platformObjId: vm.selectedPlatform.id,
+                missionName: vm.ctiData.missionName
+            }, function (data) {
+                console.log("toggleCallOutMissionStatus ret" , data);
+                if(data && data.data && data.data.hasOwnProperty('status')) {
+                    vm.ctiData.status = data.data.status;
+                    $scope.$evalAsync(function () {
+                        if (vm.ctiData.status == $scope.constCallOutMissionStatus.ON_GOING) {
+                            vm.callOutMissionStatusText = $translate("On Going");
+                        } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.PAUSED) {
+                            vm.callOutMissionStatusText = $translate("Paused");
+                        }
+                    });
+                }
+            });
+        };
+
+        vm.endCallOutMission = function() {
+            socketService.$socket($scope.AppSocket, 'endTsCallOutMission', {
+                platformObjId: vm.selectedPlatform.id,
+                missionName: vm.ctiData.missionName
+            }, function (data) {
+                console.log("endCallOutMission ret" , data);
+                $scope.$evalAsync(function(){
+                    vm.ctiData = {};
+                    vm.feedbackPlayersPara.total = 0;
+                    vm.callOutMissionStatus = "";
+                    vm.getCtiData(true);
+                    vm.playerCredibilityComment = [];
+                    vm.curPlayerFeedbackDetail = {};
+                });
+            });
+        };
+
+        vm.initBulkSMSToFailCallee = () => {
+            vm.bulkPlayersToSendSMS = [];
+            vm.smsPlayer = {};
+            vm.ctiData.callee.map(callee => {
+                if (callee.status == 2) {
+                    vm.bulkPlayersToSendSMS.push(callee.tsPhone._id)
+                }
+            });
+            $('#modalBulkSendSMSToFailCallPlayer').modal().show();
+        };
+
+        vm.bulkSMSToFailCallee = () => {
+            let smsObj = {
+                playerIds: vm.bulkPlayersToSendSMS,
+                platformId: vm.selectedPlatform.data.platformId,
+                channel: vm.smsPlayer.channel,
+                message: vm.smsPlayer.message
+            };
+
+            console.log('bulk sms send', smsObj);
+            socketService.$socket($scope.AppSocket, 'bulkSendSMSToPlayer', smsObj, function (data) {
+                console.log('sms sent', data);
+                $scope.$evalAsync(() => {
+                    vm.smsPlayer = {};
+                });
+            });
+        };
 
     };
+
+
+
+
+
 
     let injectParams = [
         '$sce',
