@@ -1,4 +1,4 @@
-div(ng-if='vm.showPlatformPage && checkViewPermission("Admin", "PlatformSetting", "Read")')
+div(ng-if='vm.showPlatformPage && checkViewPermission("Admin", "platform", "Read")')
     div(ng-if='!vm.SelectedDepartmentNode || vm.SelectedDepartmentNode.id=="root"')
         | please select a department
     div(ng-if='vm.SelectedDepartmentNode && vm.SelectedDepartmentNode.id!="root"')
@@ -14,7 +14,7 @@ div(ng-if='vm.showPlatformPage && checkViewPermission("Admin", "PlatformSetting"
                     label {{"Click to remove platform"|translate}}
         .panel(style='height:400px;display:table-cell;vertical-align: middle;padding: 10px')
             .btn-group-vertical
-                .btn.btn-info(ng-if='!vm.editPlatform && checkViewPermission("Admin", "PlatformSetting", "Edit")',ng-click='vm.editPlatform=true') {{"EDIT" | translate}}
+                .btn.btn-info(ng-if='!vm.editPlatform && checkViewPermission("Admin", "platform", "Edit")',ng-click='vm.editPlatform=true') {{"EDIT" | translate}}
                 .btn.fa.fa-exchange.fa-2x(ng-if='vm.editPlatform', disabled)
                 .btn.btn-success(ng-if='vm.editPlatform',ng-click='vm.editPlatform=false') {{"DONE" | translate}}
         .panel.panel-danger(ng-if='vm.editPlatform')

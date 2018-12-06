@@ -570,13 +570,13 @@ define(['js/app'], function (myApp) {
 
             vm.showPlatformDetailTab = function (tabName) {
                 if (tabName === null) {
-                    if (authService.checkViewPermission('Platform', 'PlatformSetting','BackstageSettings')) {
+                    if (authService.checkViewPermission('Platform', 'BackstageSettings','Read')) {
                         tabName = "backstage-settings";
                     } else if (authService.checkViewPermission('Platform', 'PlayerDisplayData','Read')) {
                         tabName = "player-display-data";
                     } else if (authService.checkViewPermission('Platform', 'PartnerDisplayData','Read')) {
                         tabName = "partner-display-data";
-                    } else if (authService.checkViewPermission('Platform', 'PlatformSetting','SystemSettlement')) {
+                    } else if (authService.checkViewPermission('Platform', 'SystemSettlement','Read')) {
                         tabName = "system-settlement";
                     } else if (authService.checkViewPermission('Platform', 'FrontendModule','Read')) {
                         tabName = "frontend-module-setting";

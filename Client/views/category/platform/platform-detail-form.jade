@@ -2,7 +2,7 @@ form(name="form_new_platform" ,novalidate)
 
     .well(ng-show="vm.selectedPlatformDetailTab != 'system-settlement'")
         .row
-            div(name="backstage-settings", ng-if="vm.selectedPlatformDetailTab == 'backstage-settings'", ng-show="checkViewPermission('Platform', 'PlatformSetting','BackstageSettings')")
+            div(name="backstage-settings", ng-if="vm.selectedPlatformDetailTab == 'backstage-settings'", ng-show="checkViewPermission('Platform', 'BackstageSettings','Read')")
                 div.form-group.col-md-6
                     label.control-label *{{"PLATFORM_NAME" | translate}}
                     input.form-control(type="text", placeholder="{{'PLATFORM_NAME' | translate}}", ng-model="vm.showPlatform.name", ng-disabled="vm.isNotAllowEdit", required)
@@ -1679,7 +1679,7 @@ form(name="form_new_platform" ,novalidate)
                                     input.transform150(ng-disabled="vm.platformAction != 'edit' || !vm.platformAction", type="checkbox", data-themeIdObjId="{{item._id}}", data-themeId="{{item.themeId}}", data-_id="{{v._id}}")
                             
 
-div(name="system-settlement", ng-if="vm.selectedPlatformDetailTab == 'system-settlement'", ng-show="checkViewPermission('Platform', 'PlatformSetting','SystemSettlement')")
+div(name="system-settlement", ng-if="vm.selectedPlatformDetailTab == 'system-settlement'", ng-show="checkViewPermission('Platform', 'SystemSettlement','Read')")
     //.col-md-12.block-query.well
         h4(style="margin-top:0;font-weight:bold;text-decoration:underline;") {{"SETTLEMENT_HISTORY" | translate}}
         div
