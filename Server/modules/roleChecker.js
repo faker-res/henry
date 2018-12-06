@@ -715,6 +715,9 @@ var roleChecker = {
             },
             ConsumptionRecord:{
                 Read: []
+            },
+            AttemptCreate:{
+                Read: []
             }
         },
         Payment: {
