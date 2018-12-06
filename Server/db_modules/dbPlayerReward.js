@@ -4864,13 +4864,19 @@ let dbPlayerReward = {
                         if (String(f._id) == String(limitedOfferObjId)) {
                             eventObj = e;
                             limitedOfferObj = f;
-                            console.log("yH checking----limitedOfferObj", limitedOfferObj)
                         }
                     });
                 });
 
                 if (dbRewardUtil.isRewardEventForbidden(playerObj, eventObj._id)) {
                     return Q.reject({name: "DataError", message: "Player does not have permission for this limited offer. Please contact cs for more detail."});
+                }
+
+                if (!dbRewardUtil.isRewardValidNow(eventData)) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "This reward event is not valid anymore"
+                    });
                 }
 
                 return dbConfig.collection_playerLevel.find({
