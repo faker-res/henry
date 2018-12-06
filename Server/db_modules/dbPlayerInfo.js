@@ -22437,9 +22437,6 @@ function getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewa
                 userType: constProposalUserType.PLAYERS
             };
 
-            console.log("checking 99999 playerBonusDoubledRecord.applyTimes", playerBonusDoubledRecord.applyTimes)
-            console.log("checking 99998 playerBonusDoubledRecord.applyTimes", playerBonusDoubledRecord)
-
             // proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
             proposalData.data.rewardStartTime = eventData.condition.validStartTime;
             proposalData.data.rewardEndTime = eventData.condition.validEndTime;
@@ -22490,7 +22487,7 @@ function getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewa
                     return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, {isApplying: false}).lean();
                 }
             );
-        }s
+        }
     )
 }
 
@@ -22761,7 +22758,6 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
 
     return Promise.all([pendingCount, topupInPeriodProm, checkHasReceivedProm, timesHasApplied, getPlayerApplyingRecordProm, lastConsumptionProm]).then(
         checkList => {
-
             if (type && type == 1) {
                 // check the requirement
                 return checkBeforeApplyingBonusDoubled(checkList, rewardTypeWithProposalList, eventData);

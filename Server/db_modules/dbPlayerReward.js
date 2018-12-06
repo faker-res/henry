@@ -5353,7 +5353,6 @@ let dbPlayerReward = {
                         createTime: {$gte: recordData.transferInTime, $lt: recordData.transferOutTime}
                     };
 
-                    // return dbConfig.collection_playerConsumptionRecord.find(matchQuery).lean()
                     return dbConfig.collection_playerConsumptionRecord.aggregate([
                         {$match: matchQuery},
                         {$group: {_id: "$providerId",  bonusAmount: {$sum: "$bonusAmount"},}}
