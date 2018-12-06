@@ -323,16 +323,16 @@
                                 tbody
                                     tr(ng-repeat='(i,v) in vm.tsAssigneesDisplay')
                                         td
-                                            i.fa.fa-minus(ng-show="vm.allowDistributionSettingsEdit" ng-click="vm.removeAssignee(v.adminName)")
+                                            i.fa.fa-minus(ng-show="vm.allowDistributionSettingsEdit" ng-click="vm.removeAssignee(v.adminName); vm.checkUpdateTsAssignee()")
                                         td {{v.adminName}}
                                         td
-                                            input(id="{{i+'-execute-distribute-on'}}" type="radio" name="{{i+'-execute-distribution'}}" value="1" ng-change="vm.updateAssigneeStatus(v)" ng-model="vm.tsAssigneesDisplay[i].status" ng-disabled="!vm.allowDistributionSettingsEdit" )
+                                            input(id="{{i+'-execute-distribute-on'}}" type="radio" name="{{i+'-execute-distribution'}}" value="1" ng-click='vm.checkUpdateTsAssignee()' ng-change="vm.updateAssigneeStatus(v)" ng-model="vm.tsAssigneesDisplay[i].status" ng-disabled="!vm.allowDistributionSettingsEdit" )
                                             label(for="{{i+'-execute-distribute-on'}}" style="font-weight: normal;") {{"Open" | translate}}
-                                            input(id="{{i+'-execute-distribute-off'}}" type="radio" name="{{i+'-execute-distribution'}}" value="0" ng-change="vm.updateAssigneeStatus(v)" ng-model="vm.tsAssigneesDisplay[i].status" ng-disabled="!vm.allowDistributionSettingsEdit" )
+                                            input(id="{{i+'-execute-distribute-off'}}" type="radio" name="{{i+'-execute-distribution'}}" value="0" ng-click='vm.checkUpdateTsAssignee()' ng-change="vm.updateAssigneeStatus(v)" ng-model="vm.tsAssigneesDisplay[i].status" ng-disabled="!vm.allowDistributionSettingsEdit" )
                                             label(for="{{i+'-execute-distribute-off'}}" style="font-weight: normal;") {{"Closed" | translate}}
                                     tr(ng-show="vm.allowDistributionSettingsEdit")
                                         td
-                                            i.fa.fa-plus(ng-click="vm.addAssignee();")
+                                            i.fa.fa-plus(ng-click="vm.addAssignee();vm.checkUpdateTsAssignee()")
                                         td
                                             select.spicker.form-control(ng-options='admin.adminName as admin.adminName for admin in vm.adminList' ng-model='vm.selectedAssignees' multiple data-actions-box='true')
                                         td
@@ -341,9 +341,9 @@
                                             input(id="new-execute-distribute-off" type="radio", name="new-execute-distribution", value="0" ng-model="vm.newAssigneesExecuteStatus")
                                             label.radio-space(for="new-execute-distribute-off" style="font-weight: normal;") {{"Closed" | translate}}
 
-                            button.btn.btn-primary.common-button.pull-right(ng-show="vm.allowDistributionSettingsEdit" ng-click="vm.updateDistributionSettings()") {{"CONFIRM" | translate}}
+                            button.btn.btn-primary.common-button.pull-right(ng-show="vm.allowDistributionSettingsEdit" ng-disabled='vm.disableUpdateTsAssignee' ng-click="vm.updateDistributionSettings()") {{"CONFIRM" | translate}}
                             button.btn.btn-warning.common-button.pull-right(ng-show="vm.allowDistributionSettingsEdit" ng-click="vm.cancelDistributionSettingsEdit()") {{"CANCEL" | translate}}
-                            button.btn.btn-warning.common-button.pull-right(ng-show="!vm.allowDistributionSettingsEdit" ng-click="vm.enableDistributionSettingsEdit()") {{"Edit" | translate}}
+                            button.btn.btn-warning.common-button.pull-right(ng-show="!vm.allowDistributionSettingsEdit" ng-disabled='vm.disableAllowDistributionSettingsEdit' ng-click="vm.enableDistributionSettingsEdit()") {{"Edit" | translate}}
 
                         .well
                             span(style="font-weight:bold;font-size:20px;line-height:2em;") {{"B."}}{{"Distribution Name List Details" | translate}}

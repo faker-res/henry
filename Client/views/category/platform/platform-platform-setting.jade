@@ -4,15 +4,15 @@
             ul.nav.nav-tabs.common-nav-tabs
                 li(ng-class="vm.selectedPlatformDetailTab == 'backstage-settings' ? 'active' : null", ng-show="checkViewPermission('Platform', 'PlatformSetting','BackstageSettings')")
                     a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('backstage-settings')") {{"BACKSTAGE_SETTINGS" | translate}}
-                li(ng-class="vm.selectedPlatformDetailTab == 'player-display-data' ? 'active' : null", ng-show="checkViewPermission('Platform', 'PlatformSetting','PlayerDisplayData')")
+                li(ng-class="vm.selectedPlatformDetailTab == 'player-display-data' ? 'active' : null", ng-show="checkViewPermission('Platform', 'PlayerDisplayData','Read')")
                     a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('player-display-data')") {{"PLAYER_DISPLAY_DATA" | translate}}
-                li(ng-class="vm.selectedPlatformDetailTab == 'partner-display-data' ? 'active' : null", ng-show="checkViewPermission('Platform', 'PlatformSetting','PartnerDisplayData')")
+                li(ng-class="vm.selectedPlatformDetailTab == 'partner-display-data' ? 'active' : null", ng-show="checkViewPermission('Platform', 'PartnerDisplayData','Read')")
                     a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('partner-display-data')") {{"PARTNER_DISPLAY_DATA" | translate}}
                 li(ng-class="vm.selectedPlatformDetailTab == 'system-settlement' ? 'active' : null", ng-show="checkViewPermission('Platform', 'PlatformSetting','SystemSettlement')")
                     a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('system-settlement')", ng-show="vm.platformAction!='create'&&vm.platformAction!='edit'") {{"SYSTEM_SETTLEMENT" | translate}}
-                li(ng-class="vm.selectedPlatformDetailTab == 'frontend-module-setting' ? 'active' : null", ng-show="checkViewPermission('Platform', 'PlatformSetting','FrontendModuleSetting')")
+                li(ng-class="vm.selectedPlatformDetailTab == 'frontend-module-setting' ? 'active' : null", ng-show="checkViewPermission('Platform', 'FrontendModule','Read')")
                     a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('frontend-module-setting')") {{"FRONTEND_MODULE_SETTING" | translate}}
-                li(ng-class="vm.selectedPlatformDetailTab == 'theme-select' ? 'active' : null", ng-show="checkViewPermission('Platform', 'PlatformSetting','ThemeSelect')")
+                li(ng-class="vm.selectedPlatformDetailTab == 'theme-select' ? 'active' : null", ng-show="checkViewPermission('Platform', 'ThemeSelect','Read')")
                     a.common-tab(data-toggle="tab", ng-click="vm.showPlatformDetailTab('theme-select')") {{"THEME_SELECT" | translate}}
             .panel.panel-primary(style="border-radius:0 !important;")
                 .panel-body
@@ -35,17 +35,17 @@
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled="vm.csDepartmentError || vm.qiDepartmentError", ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction=='edit'", ng-click="vm.updatePlatformAction();vm.setPlatformFooter(null)") {{"CONFIRM" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab!='system-settlement'&&vm.platformAction|| vm.selectedPlatformDetailTab == 'frontend-module-setting' ", ng-click="vm.setPlatformFooter(null);vm.cancelUpdatePlatformConfig(); vm.editFrontEndDisplay = false") {{"CANCEL" | translate}}
 
-                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlayerConsecutiveConsumptionSettlement($event);vm.setPlatformFooter(null)")
+                //button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlayerConsecutiveConsumptionSettlement($event);vm.setPlatformFooter(null)")
                     text {{"Player Consecutive Consumption Settlement" | translate}}
-                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlayerLevelSettlement($event);vm.setPlatformFooter(null)")
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement' && checkViewPermission('Platform','SystemSettlement','PlayerLevelSettlement')", ng-click="vm.startPlayerLevelSettlement($event);vm.setPlatformFooter(null)")
                     text {{"Player Level Settlement" | translate}}
-                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlatformPlayerConsumptionIncentiveSettlement($event);vm.setPlatformFooter(null)")
+                //button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlatformPlayerConsumptionIncentiveSettlement($event);vm.setPlatformFooter(null)")
                     text {{"Player Consumption Incentive Settlement" | translate}}
-                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlatformPartnerCommissionSettlement($event);vm.setPlatformFooter(null)")
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement' && checkViewPermission('Platform','SystemSettlement','PartnerCommissionSettlement')", ng-click="vm.startPlatformPartnerCommissionSettlement($event);vm.setPlatformFooter(null)")
                     text {{"Partner Commission Settlement" | translate}}
-                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement'", ng-click="vm.startPlatformPlayerConsumptionReturnSettlement($event);vm.setPlatformFooter(null)")
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement' && checkViewPermission('Platform','SystemSettlement','PlayerConsumptionReturnSettlement')", ng-click="vm.startPlatformPlayerConsumptionReturnSettlement($event);vm.setPlatformFooter(null)")
                     text {{"Player Consumption Return Settlement" | translate}}
                 div(ng-if="vm.selectedPlatformDetailTab == 'system-settlement'" ng-repeat="event in vm.settlementRewardGroupEvent")
-                    button.btn.btn-primary.common-button(data-dismiss='modal' ng-click="vm.startPlatformRTGEventSettlement(event);vm.setPlatformFooter(null)")
+                    button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="checkViewPermission('Platform', 'SystemSettlement', 'SystemRewardGroupSettlement')", ng-click="vm.startPlatformRTGEventSettlement(event);vm.setPlatformFooter(null)")
                         text {{ "Settle" | translate }} {{ event.name | translate }}
                 label.colorRed(ng-show="vm.playerDisplayDataTab == 'advertisementPanel' || vm.partnerDisplayDataTab == 'partnerAdvertisementPanel'") {{vm.errMessage | translate}}
