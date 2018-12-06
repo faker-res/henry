@@ -43,6 +43,10 @@ var smsLogSchema = new Schema ({
     tsDistributedPhone: {type: Schema.ObjectId, ref: 'tsDistributedPhone', index: true},
     // IP Address
     ipAddress: {type: String, index: true},
+    // is used by player
+    isPlayer: {type: Boolean, default: true},
+    // is used by partner
+    isPartner: {type: Boolean, default: false},
 });
 
 smsLogSchema.index({"data.dxMission": 1});
