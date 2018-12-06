@@ -537,73 +537,12 @@ const dbPlayerMail = {
         ).then(
             () => {
                 // fixed limit 1, 5, 10
-                let checkPhoneByMinuteProm = smsLogCheckLimit(minuteNow, 'tel',"$tel", 1);
-                let checkPhoneByHourProm = smsLogCheckLimit(hourNow, 'tel', "$tel", 5);
-                let checkPhoneByDayProm = smsLogCheckLimit(dayNow, 'tel', "$tel", 10);
-                let checkIpByMinuteProm = smsLogCheckLimit(minuteNow, 'ipAddress', "$ipAddress", 1);
-                let checkIpByHourProm = smsLogCheckLimit(hourNow, 'ipAddress', "$ipAddress", 5);
-                let checkIpByDayProm = smsLogCheckLimit(dayNow, 'ipAddress', "$ipAddress", 10);
-
-                function smsLogCheckLimit (inputTime, queryData, countData, limit) {
-                    let matchQuery = {};
-
-                    if (queryData === 'tel') {
-                        // to find player sms log based on tel number
-                        matchQuery = {
-                            createTime: {
-                                $gte: inputTime.startTime,
-                                $lte: inputTime.endTime
-                            },
-                            tel: telNum ? telNum : "",
-                            isPlayer: true,
-                            isPartner: false,
-                        };
-
-                        // to find partner sms log based on tel number
-                        if (isPartner) {
-                            matchQuery.isPlayer = false;
-                            matchQuery.isPartner = true;
-                        }
-                    }
-
-                    if (queryData === 'ipAddress') {
-                        // to find player sms log based on ipAddress
-                        matchQuery = {
-                            createTime: {
-                                $gte: inputTime.startTime,
-                                $lte: inputTime.endTime
-                            },
-                            ipAddress: inputData.ipAddress ? inputData.ipAddress : "",
-                            isPlayer: true,
-                            isPartner: false,
-                        };
-
-                        // to find partner sms log based on ipAddress
-                        if (isPartner) {
-                            matchQuery.isPlayer = false;
-                            matchQuery.isPartner = true;
-                        }
-                    }
-
-                    return dbconfig.collection_smsLog.aggregate(
-                        {
-                            $match: matchQuery
-                        }, {
-                            $group: {
-                                _id: countData,
-                                count: {$sum: 1}
-                            }
-                        }, {
-                            $project: {
-                                _id: 1,
-                                count: 1,
-                                countLtLimit: {
-                                    $lt: [ "$count", limit]
-                                }
-                            }
-                        }
-                    ).read("secondaryPreferred");
-                }
+                let checkPhoneByMinuteProm = smsLogCheckLimit(minuteNow, 'tel',"$tel", 1, telNum, inputData.ipAddress, isPartner);
+                let checkPhoneByHourProm = smsLogCheckLimit(hourNow, 'tel', "$tel", 5, telNum, inputData.ipAddress, isPartner);
+                let checkPhoneByDayProm = smsLogCheckLimit(dayNow, 'tel', "$tel", 10, telNum, inputData.ipAddress, isPartner);
+                let checkIpByMinuteProm = smsLogCheckLimit(minuteNow, 'ipAddress', "$ipAddress", 1, telNum, inputData.ipAddress, isPartner);
+                let checkIpByHourProm = smsLogCheckLimit(hourNow, 'ipAddress', "$ipAddress", 5, telNum, inputData.ipAddress, isPartner);
+                let checkIpByDayProm = smsLogCheckLimit(dayNow, 'ipAddress', "$ipAddress", 10, telNum, inputData.ipAddress, isPartner);
 
                 return Promise.all([
                     checkPhoneByMinuteProm,
@@ -1334,6 +1273,67 @@ const dbPlayerMail = {
         return dbconfig.collection_keywordFilter.find({platform: platform}).lean();
     },
 };
+
+function smsLogCheckLimit (inputTime, queryData, countData, limit, telNum, ipAddress, isPartner) {
+    let matchQuery = {};
+
+    if (queryData === 'tel') {
+        // to find player sms log based on tel number
+        matchQuery = {
+            createTime: {
+                $gte: inputTime.startTime,
+                $lte: inputTime.endTime
+            },
+            tel: telNum ? telNum : "",
+            isPlayer: true,
+            isPartner: false,
+        };
+
+        // to find partner sms log based on tel number
+        if (isPartner) {
+            matchQuery.isPlayer = false;
+            matchQuery.isPartner = true;
+        }
+    }
+
+    if (queryData === 'ipAddress') {
+        // to find player sms log based on ipAddress
+        matchQuery = {
+            createTime: {
+                $gte: inputTime.startTime,
+                $lte: inputTime.endTime
+            },
+            ipAddress: ipAddress ? ipAddress : "",
+            isPlayer: true,
+            isPartner: false,
+        };
+
+        // to find partner sms log based on ipAddress
+        if (isPartner) {
+            matchQuery.isPlayer = false;
+            matchQuery.isPartner = true;
+        }
+    }
+
+    return dbconfig.collection_smsLog.aggregate(
+        {
+            $match: matchQuery
+        }, {
+            $group: {
+                _id: countData,
+                count: {$sum: 1}
+            }
+        }, {
+            $project: {
+                _id: 1,
+                count: 1,
+                countLtLimit: {
+                    $lt: [ "$count", limit]
+                }
+            }
+        }
+    ).read("secondaryPreferred");
+}
 
 const notifyPlayerOfNewMessage = (data) => {
     var wsMessageClient = serverInstance.getWebSocketMessageClient();
