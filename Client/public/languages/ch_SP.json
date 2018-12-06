@@ -4734,6 +4734,9 @@
   "Current Game Status": "目前游戏状态",
   "Actions":"状态操作",
   "FPMS System": "客服系统",
+
+  "Bulk SMS to Failed Callee": "群发短信给拨电失败名单",
+
   "Cannot modify , please contact game provider": "不可操作，请询问供应商",
   "Partner Architecture": "代理架构",
   "Parent Partner Name": "上级代理帐号",
