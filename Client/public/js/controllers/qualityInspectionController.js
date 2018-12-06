@@ -3147,6 +3147,7 @@ define(['js/app'], function (myApp) {
                     content: vm.inspectionWechat.content,
                     index: newSearch ? 0 : (vm.inspectionWechat.index || 0),
                     limit: vm.inspectionWechat.limit || 10,
+                    sortCol: vm.inspectionWechat.sortCol || null,
                 };
 
                 socketService.$socket($scope.AppSocket, 'getWechatConversation', sendData, function (data) {
@@ -3171,6 +3172,11 @@ define(['js/app'], function (myApp) {
                 var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                     data: tblData,
                     aoColumnDefs: [
+                        {'sortCol': 'platformObjId', bSortable: true, 'aTargets': [0]},
+                        {'sortCol': 'deviceNickName', bSortable: true, 'aTargets': [1]},
+                        {'sortCol': 'csOfficer', bSortable: true, 'aTargets': [2]},
+                        {'sortCol': 'playerWechatRemark', bSortable: true, 'aTargets': [3]},
+                        {'sortCol': 'csReplyTime', bSortable: true, 'aTargets': [4]},
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     "scrollX": true,

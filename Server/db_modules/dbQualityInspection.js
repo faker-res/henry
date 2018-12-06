@@ -2704,7 +2704,7 @@ var dbQualityInspection = {
         )
     },
 
-    getWechatConversation: function(platform, deviceNickName, csName, startTime, endTime, content, playerWechatRemark, index, limit){
+    getWechatConversation: function(platform, deviceNickName, csName, startTime, endTime, content, playerWechatRemark, index, limit, sortCol){
         let csOfficerProm = [];
         let checkCSOfficer = false;
         let size;
@@ -2758,10 +2758,30 @@ var dbQualityInspection = {
             }
         ).then(
             () => {
+                if(!sortCol){
+                    sortCol = {platformObjId: 1, deviceNickName: 1, csOfficer: 1, playerWechatRemark: 1, csReplyTime: -1}
+                }else if(sortCol){
+                    if(typeof sortCol.platformObjId != "undefined"){
+                        sortCol.deviceNickName = sortCol.platformObjId;
+                        sortCol.csOfficer = sortCol.platformObjId;
+                        sortCol.playerWechatRemark = sortCol.platformObjId;
+                        sortCol.csReplyTime = -1;
+                    }else if(typeof sortCol.deviceNickName != "undefined"){
+                        sortCol.csOfficer = sortCol.deviceNickName;
+                        sortCol.playerWechatRemark = sortCol.deviceNickName;
+                        sortCol.csReplyTime = -1;
+                    }else if(typeof sortCol.csOfficer != "undefined"){
+                        sortCol.playerWechatRemark = sortCol.csOfficer;
+                        sortCol.csReplyTime = -1;
+                    }else if(typeof sortCol.playerWechatRemark != "undefined"){
+                        sortCol.csReplyTime = -1;
+                    }
+                }
+
                 let dataProm = dbconfig.collection_wcConversationLog.find(query)
                     .populate({path: "platformObjId", model: dbconfig.collection_platform})
                     .populate({path: "csOfficer", model: dbconfig.collection_admin}).skip(index).limit(limit)
-                    .sort({platformObjId: 1, deviceNickName: 1, csOfficer: 1, playerWechatRemark: 1, csReplyTime: -1})
+                    .sort(sortCol)
                     .lean();
                 let sizeProm = dbconfig.collection_wcConversationLog.find(query).count();
 

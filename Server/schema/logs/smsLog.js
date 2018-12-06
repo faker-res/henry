@@ -41,6 +41,8 @@ var smsLogSchema = new Schema ({
     data: {type: JSON, default: {}},
     // ts distributed phone (for ts only)
     tsDistributedPhone: {type: Schema.ObjectId, ref: 'tsDistributedPhone', index: true},
+    // IP Address
+    ipAddress: {type: String, index: true},
 });
 
 smsLogSchema.index({"data.dxMission": 1});

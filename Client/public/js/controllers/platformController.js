@@ -570,17 +570,17 @@ define(['js/app'], function (myApp) {
 
             vm.showPlatformDetailTab = function (tabName) {
                 if (tabName === null) {
-                    if (authService.checkViewPermission('Platform', 'Platform','BackstageSettings')) {
+                    if (authService.checkViewPermission('Platform', 'BackstageSettings','Read')) {
                         tabName = "backstage-settings";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','PlayerDisplayData')) {
+                    } else if (authService.checkViewPermission('Platform', 'PlayerDisplayData','Read')) {
                         tabName = "player-display-data";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','PartnerDisplayData')) {
+                    } else if (authService.checkViewPermission('Platform', 'PartnerDisplayData','Read')) {
                         tabName = "partner-display-data";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','SystemSettlement')) {
+                    } else if (authService.checkViewPermission('Platform', 'SystemSettlement','Read')) {
                         tabName = "system-settlement";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','FrontendModuleSetting')) {
+                    } else if (authService.checkViewPermission('Platform', 'FrontendModule','Read')) {
                         tabName = "frontend-module-setting";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','ThemeSelect')) {
+                    } else if (authService.checkViewPermission('Platform', 'ThemeSelect','Read')) {
                         tabName = "theme-select";
                     }
                 }
@@ -1317,7 +1317,7 @@ define(['js/app'], function (myApp) {
             }
             //search platform by name
             vm.getAllDepartmentData = function (callback) {
-                if (!authService.checkViewPermission('Platform', 'Platform', 'Read')) {
+                if (!authService.checkViewPermission('Platform', 'PlatformSetting', 'Read')) {
                     return;
                 }
                 socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
@@ -36123,6 +36123,18 @@ console.log('typeof ',typeof gameProviders);
                     vm.frontendConfigurationUrl = $sce.trustAsResourceUrl(url);
                 }
             };
+
+
+            vm.changeFrameHeight = function() {
+                var ifm = document.getElementById("configIframe");
+                ifm.height = document.documentElement.clientHeight;
+
+            }
+
+            window.onresize=function(){
+                vm.changeFrameHeight();
+
+            }
         };
 
         let injectParams = [

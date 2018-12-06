@@ -62,6 +62,15 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.getTSPhoneListName, [data], actionName, isValidData);
         },
 
+        getRecycleBinTsPhoneList: function getRecycleBinTsPhoneList(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform && data.startTime && data.endTime);
+            let index = data.index || 0;
+            let limit = data.limit || 10;
+            let sortCol = data.sortCol || {"createTime": -1};
+            socketUtil.emitter(self.socket, dbTeleSales.getRecycleBinTsPhoneList, [data.platform, data.startTime, data.endTime, data.status, data.name, index, limit, sortCol], actionName, isValidData);
+        },
+
         createTsPhoneFeedback: function createTsPhoneFeedback(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.tsPhone && data.tsPhoneList && data.platform && data.adminId);

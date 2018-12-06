@@ -416,6 +416,7 @@ define(['js/app'], function (myApp) {
                     vm.getPlatformTsListName();
                     break;
                 case 'PHONE_LIST_ANALYSE_AND_MANAGEMENT':
+                    vm.isPhoneListEditable = true;
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#phoneListStartTimePicker', utilService.getNdayagoStartTime(30));
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#phoneListEndTimePicker', utilService.getTodayEndTime());
                     break;
@@ -448,6 +449,22 @@ define(['js/app'], function (myApp) {
                     });
                     break;
                 case 'RECYCLE_BIN':
+                    let phoneListStatus = [vm.constTsPhoneListStatus.PERFECTLY_COMPLETED, vm.constTsPhoneListStatus.FORCE_COMPLETED, vm.constTsPhoneListStatus.DECOMPOSED]
+                    commonService.getTSPhoneListName($scope, {platform: vm.selectedPlatform.id, status: {$in: phoneListStatus}}).then(
+                        data => {
+                            vm.recycleBinPhoneListName = data;
+                            $scope.$evalAsync();
+                        }
+                    )
+                    vm.recycleBinPhoneListSearch = {};
+                    vm.isPhoneListEditable = false;
+                    utilService.actionAfterLoaded("#recycleBinPhoneListTablePage", function () {
+                        commonService.commonInitTime(utilService, vm, 'recycleBinPhoneListSearch', 'startTime', '#recycleBinPhoneListStartTimePicker', utilService.getNdayagoStartTime(30));
+                        commonService.commonInitTime(utilService, vm, 'recycleBinPhoneListSearch', 'endTime', '#recycleBinPhoneListEndTimePicker', utilService.getTodayEndTime());
+                        vm.recycleBinPhoneListSearch.pageObj = utilService.createPageForPagingTable("#recycleBinPhoneListTablePage", {}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "recycleBinPhoneListSearch", vm.filterRecycleBinPhoneList);
+                        });
+                    });
                     break;
                 case 'PHONE_MISSION':
                     vm.initTeleMarketingOverview();
@@ -6096,7 +6113,13 @@ define(['js/app'], function (myApp) {
                 })
 
                 vm.tsAnalyticsPhoneListMaxCaller = null; // reset max caller count
-                if (rowData.status != vm.constTsPhoneListStatus.PRE_DISTRIBUTION && rowData.status != vm.constTsPhoneListStatus.NOT_ENOUGH_CALLER) {
+                if (rowData.status == vm.constTsPhoneListStatus.HALF_COMPLETE) {
+                    vm.disableAnalyticsPhoneListEdit = true;
+                } else {
+                    vm.disableAnalyticsPhoneListEdit = false;
+                }
+
+                if (rowData.status == vm.constTsPhoneListStatus.DISTRIBUTING || rowData.status == vm.constTsPhoneListStatus.MANUAL_PAUSED) {
                     let sendData = {
                         query: {
                             platform: vm.selectedPlatform.id,
@@ -6157,8 +6180,42 @@ define(['js/app'], function (myApp) {
             vm.tsCity = "";
         }
 
+        vm.filterRecycleBinPhoneList = (newSearch) => {
+            vm.selectedTsPhoneList = false;
+            let sendQuery = {
+                platform: vm.selectedPlatform.id,
+                startTime: vm.recycleBinPhoneListSearch.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.recycleBinPhoneListSearch.endTime.data('datetimepicker').getLocalDate(),
+                index: newSearch ? 0 : (vm.recycleBinPhoneListSearch.index || 0),
+                limit: vm.recycleBinPhoneListSearch.limit || 10,
+                sortCol: vm.recycleBinPhoneListSearch.sortCol,
+            }
+
+            if (vm.recycleBinPhoneListSearch) {
+                if (vm.recycleBinPhoneListSearch.name && vm.recycleBinPhoneListSearch.name.length) {
+                    sendQuery.name = vm.recycleBinPhoneListSearch.name;
+                }
+
+                if (vm.recycleBinPhoneListSearch.sendStatus && vm.recycleBinPhoneListSearch.sendStatus.length) {
+                    sendQuery.status = vm.recycleBinPhoneListSearch.sendStatus;
+                }
+            }
+
+            socketService.$socket($scope.AppSocket, 'getRecycleBinTsPhoneList', sendQuery, function (data) {
+                if(data && data.data && data.data.data){
+                    $scope.$evalAsync(() => {
+                        let tsPhoneList = data.data.data.map(item => {
+                            item.recycleTime = item.recycleTime ? vm.dateReformat(item.recycleTime) : "";
+                            return item;
+                        })
+                        let size = data.data.size || 0;
+                        vm.drawRecycleBinPhoneListTable(newSearch, tsPhoneList, size);
+                    })
+                }
+            });
+        };
+
         vm.showPhoneListManagement = function () {
-            vm.responseMsg = false;
             utilService.actionAfterLoaded(('#phoneListSearch'), function () {
                 vm.phoneListSearch.pageObj = utilService.createPageForPagingTable("#phoneListManagementTablePage", {}, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "phoneListSearch", vm.filterPhoneListManagement);
@@ -6261,7 +6318,13 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.showAssignmentStatusDetail = (tsPhoneListObjId) => {
+        vm.showAssignmentStatusDetail = (tsPhoneListObjId, status) => {
+            vm.disableUpdateTsAssignee = false
+            if (status == vm.constTsPhoneListStatus.HALF_COMPLETE || status == vm.constTsPhoneListStatus.PERFECTLY_COMPLETED || status == vm.constTsPhoneListStatus.DECOMPOSED) {
+                vm.disableAllowDistributionSettingsEdit = true;
+            } else {
+                vm.disableAllowDistributionSettingsEdit = false;
+            }
             vm.currentPhoneListObjId = tsPhoneListObjId;
             vm.allowDistributionSettingsEdit = false;
             vm.tsAssigneesDisplay = [];
@@ -6393,6 +6456,29 @@ define(['js/app'], function (myApp) {
             vm.updateTsAssigneesDisplay();
             vm.selectedAssignees = vm.tsAssigneesDisplay.map(assignee=>assignee.adminName);
         };
+
+        vm.checkUpdateTsAssignee = () => {
+            vm.disableUpdateTsAssignee = false;
+            let checkStatus = [vm.constTsPhoneListStatus.DISTRIBUTING, vm.constTsPhoneListStatus.MANUAL_PAUSED]
+            if (vm.selectedTsPhoneList && checkStatus.includes(vm.selectedTsPhoneList.status)) {
+                if (vm.tsAssigneesDisplay && vm.tsAssigneesDisplay.length < vm.selectedTsPhoneList.callerCycleCount) {
+                    vm.disableUpdateTsAssignee = true;
+                } else {
+                    let onCount = 0; // count assignee who turn on participant
+                    for (let i = 0; i < vm.tsAssigneesDisplay.length || 0; i++) {
+                        if (vm.tsAssigneesDisplay[i].status == 1) {
+                            onCount++;
+                        }
+                        if (onCount >= vm.selectedTsPhoneList.callerCycleCount) {
+                            break;
+                        }
+                    }
+                    if (onCount < vm.selectedTsPhoneList.callerCycleCount) {
+                        vm.disableUpdateTsAssignee = true;
+                    }
+                }
+            }
+        }
         vm.updateDistributionSettings = () => {
             //add and remove ts Assignee commands will be triggered synchronously
             let commonSendData = {
@@ -6472,9 +6558,8 @@ define(['js/app'], function (myApp) {
             })
         };
 
-        vm.drawPhoneListManagementTable = function (newSearch, tblData, size) {
-            console.log("phoneListManagementTable",tblData);
-            vm.phoneNumberInfo.remark = {};
+        vm.drawRecycleBinPhoneListTable = function (newSearch, tblData, size) {
+            console.log("recycleBinPhoneListTable",tblData);
             var tableOptions = $.extend({}, vm.generalDataTableOptions, {
                 data: tblData,
                 aoColumnDefs: [
@@ -6486,6 +6571,7 @@ define(['js/app'], function (myApp) {
                 "sScrollY": 550,
                 "scrollCollapse": true,
                 columns: [
+                    {title: $translate('RECYCLE_TIME'), data: "recycleTime"},
                     {
                         title: $translate('NAME_LIST_TITLE'), data: "name",
                         render: function (data, type, row, index) {
@@ -6501,7 +6587,7 @@ define(['js/app'], function (myApp) {
                         title: $translate('SEND_STATUS'), data: "status",
                         render: function (data, type, row, index) {
                             let link = $('<a>', {
-                                'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'");',
+                                'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'", '+ row.status +');',
                             }).text($translate(vm.constTsPhoneListStatusStr[data]));
                             return link.prop('outerHTML');
                         }
@@ -6688,21 +6774,257 @@ define(['js/app'], function (myApp) {
 
                     $(nRow).off('click');
                     $(nRow).on('click', function () {
-                        vm.selectedTsPhoneList;
-                        $('#phoneListManagementTable tbody tr').removeClass('selected');
-                        $scope.$evalAsync(() => {
-                            if (vm.selectedTsPhoneList != aData) {
-                                vm.selectedTsPhoneList = aData;
-                                $(this).toggleClass('selected');
-                            } else {
-                                vm.selectedTsPhoneList = false;
-                            }
-                            if (!(vm.selectedTsPhoneList && (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING || vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.MANUAL_PAUSED))) {
-                                vm.disableManualPauseTsPhoneList = true;
-                            } else {
-                                vm.disableManualPauseTsPhoneList = false;
-                            }
-                        })
+                        vm.phoneListManagementTableRowClicked(aData, nRow);
+                    });
+
+                }
+            });
+            // tableOptions.language.emptyTable=$translate("No data available in table");
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+            utilService.createDatatableWithFooter('#recycleBinPhoneListTable', tableOptions, {
+            });
+
+            vm.recycleBinPhoneListSearch.pageObj.init({maxCount: size}, newSearch);
+            $('#recycleBinPhoneListTable').off('order.dt');
+            $('#recycleBinPhoneListTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'recycleBinPhoneListSearch', vm.filterRecycleBinPhoneList);
+            });
+            $('#recycleBinPhoneListTable').resize();
+        };
+
+        vm.drawPhoneListManagementTable = function (newSearch, tblData, size) {
+            console.log("phoneListManagementTable",tblData);
+            vm.phoneNumberInfo.remark = {};
+            var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                data: tblData,
+                aoColumnDefs: [
+                    // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                "scrollX": true,
+                "autoWidth": true,
+                "sScrollY": 550,
+                "scrollCollapse": true,
+                columns: [
+                    {
+                        title: $translate('NAME_LIST_TITLE'), data: "name",
+                        render: function (data, type, row, index) {
+                            var link = $('<a>', {
+                                'ng-click': 'vm.initAnalyticsFilterAndImportDXSystem(' + JSON.stringify(row) + ');',
+                                'data-toggle': 'modal',
+                                'data-target': '#modaltsAnalyticsPhoneList'
+                            }).text(data);
+                            return link.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('SEND_STATUS'), data: "status",
+                        render: function (data, type, row, index) {
+                            let link = $('<a>', {
+                                'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'", '+ row.status +');',
+                            }).text($translate(vm.constTsPhoneListStatusStr[data]));
+                            return link.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_NAME_LIST'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'text': row.totalPhone || 0
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_DISTRIBUTED'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "曾经指派给电销员的总电话数量。（同一电话循环2人，派发＝1）",
+                                'text': row.totalDistributed || 0
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_USED'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "所有曾经添加『回访结果』的电话。（同一电话循环2人，使用＝1）",
+                                'text': row.totalUsed || 0
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_UNUSED'),
+                        render: function(data, type, row, index){
+                            let totalUnused = (row.totalPhone - row.totalUsed) || 0;
+                            let divWithToolTip = $('<div>', {
+                                'title': "名单总数当中，尚未添加回访的电话量",
+                                'text': totalUnused
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_SUCCESS'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "基础数据中，定义何谓成功接听（选择回访状态）的设定（同一电话 2 电销员都有接听，接听人＝1）",
+                                'text': row.totalSuccess || 0
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_SUCCESS_RATE'),
+                        render: function(data, type, row, index){
+                            let percentage = row.totalSuccess / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
+                            let divWithToolTip = $('<div>', {
+                                'title': "成功接听量/已使用量",
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_REGISTERED'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "已使用量当中，电话在系统有开户（不管帐号禁用与否）",
+                                'text': row.totalRegistration || 0
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_REGISTERED_RATE'),
+                        render: function(data, type, row, index){
+                            let percentage = row.totalRegistration / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
+                            let divWithToolTip = $('<div>', {
+                                'title': "成功开户量/已使用量",
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_TOPUP_PERSON'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "已使用量当中，有成功存款的人数",
+                                'text': row.totalTopUp || 0
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_TOPUP_RATE'),
+                        render: function(data, type, row, index){
+                            let percentage = row.totalTopUp / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
+                            let divWithToolTip = $('<div>', {
+                                'title': "成功存款人数/已使用量",
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_MULTIPLE_TOPUP'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "已使用量当中，存款 2 笔以上的人数",
+                                'text': row.totalMultipleTopUp || 0
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_MULTIPLE_TOPUP_RATE'),
+                        render: function(data, type, row, index){
+                            let percentage = row.totalMultipleTopUp / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
+                            let divWithToolTip = $('<div>', {
+                                'title': "成功存款2笔人数/已使用量",
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_VALID'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "已使用量当中，系统定义的有效开户人数",
+                                'text': row.totalValidPlayer || 0
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_VALID_RATE'),
+                        render: function(data, type, row, index){
+                            let percentage = row.totalValidPlayer / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
+                            let divWithToolTip = $('<div>', {
+                                'title': "有效开户量/已使用量",
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('PLAYER_RETENTION'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "根据『分析』功能给出报表。（首次导入后30日分析）",
+                                'text': "详情"
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                ],
+                "paging": false,
+                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    $compile(nRow)($scope);
+
+                    $(nRow).off('click');
+                    $(nRow).on('click', function () {
+                        vm.phoneListManagementTableRowClicked(aData, nRow);
+                        // vm.selectedTsPhoneList;
+                        // $('#phoneListManagementTable tbody tr').removeClass('selected');
+                        // $scope.$evalAsync(() => {
+                        //     if (vm.selectedTsPhoneList != aData) {
+                        //         vm.selectedTsPhoneList = aData;
+                        //         $(this).toggleClass('selected');
+                        //     } else {
+                        //         vm.selectedTsPhoneList = false;
+                        //     }
+                        //     if (!(vm.selectedTsPhoneList && (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING || vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.MANUAL_PAUSED))) {
+                        //         vm.disableManualPauseTsPhoneList = true;
+                        //     } else {
+                        //         vm.disableManualPauseTsPhoneList = false;
+                        //     }
+                        // })
                     });
 
                 }
@@ -6715,10 +7037,27 @@ define(['js/app'], function (myApp) {
             vm.phoneListSearch.pageObj.init({maxCount: size}, newSearch);
             $('#phoneListManagementTable').off('order.dt');
             $('#phoneListManagementTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'phoneListSearch', vm.getTeleMarketingOverview);
+                vm.commonSortChangeHandler(a, 'phoneListSearch', vm.filterPhoneListManagement);
             });
             $('#phoneListManagementTable').resize();
         };
+
+        vm.phoneListManagementTableRowClicked = (data, nRow) => {
+            $('#phoneListManagementTable tbody tr').removeClass('selected');
+            $scope.$evalAsync(() => {
+                if (vm.selectedTsPhoneList != data) {
+                    vm.selectedTsPhoneList = data;
+                    $(nRow).toggleClass('selected');
+                } else {
+                    vm.selectedTsPhoneList = false;
+                }
+                if (!(vm.selectedTsPhoneList && (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING || vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.MANUAL_PAUSED))) {
+                    vm.disableManualPauseTsPhoneList = true;
+                } else {
+                    vm.disableManualPauseTsPhoneList = false;
+                }
+            })
+        }
 
         vm.manualPauseTsPhoneListStatus = () => {
             if (!(vm.selectedTsPhoneList && (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING || vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.MANUAL_PAUSED))) {
