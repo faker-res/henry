@@ -378,7 +378,8 @@ var PartnerServiceImplement = function () {
         conn.captchaCode = null;
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent'], true);
-        let inputData;
+        let inputData = {};
+        inputData.ipAddress = dbUtility.getIpAddress(conn);
 
         if (data.oldPhoneNumber) {
             inputData = {oldPhoneNumber: data.oldPhoneNumber};

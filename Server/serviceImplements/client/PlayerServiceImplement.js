@@ -1023,6 +1023,7 @@ let PlayerServiceImplement = function () {
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
         data.lastLoginIp = dbUtility.getIpAddress(conn);
+        data.ipAddress = data.lastLoginIp;
 
         // Spam check temporary log
         console.log('getSMSCode IP: ', data.lastLoginIp);
@@ -1043,7 +1044,7 @@ let PlayerServiceImplement = function () {
 
         data.remarks = data.partnerName ? localization.translate("PARTNER", conn.lang, conn.platformId) + ": " + data.partnerName : "";
 
-        if(data.phoneNumber && data.phoneNumber.toString().length === 11) {
+        if (data.phoneNumber && data.phoneNumber.toString().length === 11) {
             WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToNumber, [conn.phoneNumber, conn.smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, data.name, data], isValidData, false, false, true);
         } else {
             conn.captchaCode = null;
@@ -1063,11 +1064,13 @@ let PlayerServiceImplement = function () {
         conn.captchaCode = null;
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
         let requestIp = dbUtility.getIpAddress(conn);
+        let inputData = {};
+        inputData.ipAddress = dbUtility.getIpAddress(conn);
 
         // Spam check temporary log
         console.log('sendSMSCodeToPlayer IP: ', requestIp);
 
-        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId, captchaValidation, data.purpose, inputDevice], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerMail.sendVerificationCodeToPlayer, [conn.playerId, smsCode, data.platformId, captchaValidation, data.purpose, inputDevice, inputData], isValidData);
     };
 
     this.verifyPhoneNumberBySMSCode.expectsData = 'smsCode: String';

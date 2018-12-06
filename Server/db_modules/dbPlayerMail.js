@@ -773,7 +773,7 @@ const dbPlayerMail = {
                         return errorUtils.reportError(err);
                     });
 
-                    return dbPlayerMail.sendVerificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName, inputData.lastLoginIp);
+                    return dbPlayerMail.sendVerificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName, inputData.ipAddress);
                 }
             }
         ).then(
@@ -930,7 +930,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationCodeToPlayer: function (playerId, smsCode, platformId, captchaValidation, purpose, inputDevice) {
+    sendVerificationCodeToPlayer: function (playerId, smsCode, platformId, captchaValidation, purpose, inputDevice, inputData) {
         let blackListingPhoneNumber = [];
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platform => {
@@ -964,7 +964,7 @@ const dbPlayerMail = {
                     }
                 }
 
-                return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId, captchaValidation, purpose, inputDevice, player.name);
+                return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId, captchaValidation, purpose, inputDevice, player.name, inputData);
             },
             error => {
                 return Q.reject({name: "DBError", message: "Error in getting player data", error: error});
