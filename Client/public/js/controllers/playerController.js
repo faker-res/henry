@@ -11703,6 +11703,15 @@ define(['js/app'], function (myApp) {
             } else {
                 vm.playerManualTopUp.remark = "";
             }
+
+            vm.listBankByDepositMethod = vm.depositMethodType[depositMethod];
+            vm.listBankByDepositMethod.forEach(bank => {
+                let bankStatus = $translate(bank.status == 'DISABLED' ? 'DISABLE' : bank.status);
+                console.log(bank)
+                bank.displayText = bank.name
+                    + ' ('+bank.bankTypeId+') - ' +bank.maxDepositAmount+' - ' + bankStatus;
+                return bank;
+            });
         };
         vm.applyPlayerManualTopUp = function () {
             var sendData = {
@@ -11757,8 +11766,10 @@ define(['js/app'], function (myApp) {
                 bonusCode: vm.playerAssignTopUp.bonusCode,
                 realName: vm.playerAssignTopUp.realName,
                 topUpReturnCode: vm.playerAssignTopUp.topUpReturnCode,
-                orderNo: vm.playerAssignTopUp.orderNo
+                orderNo: vm.playerAssignTopUp.orderNo,
+                platform: vm.selectedPlatform.id
             };
+
             vm.playerAssignTopUp.submitted = true;
                 socketService.$socket($scope.AppSocket, 'applyAssignTopUpRequest', sendData,
                 function (data) {
@@ -14527,10 +14538,12 @@ define(['js/app'], function (myApp) {
                 $scope.$evalAsync(() => {
                     console.log(data);
                     // vm.existingAssignTopup = data.data ? data.data : false;
-                    let depositMethodList = data.data.map(item=>{
+                    let depositMethodList = data.data.data.map(item=>{
                         return item.depositMethod
                     })
-                    console.log(depositMethodList);
+                    vm.depositMethodType = vm.getDepositMethod(data.data.data);
+                    console.log(vm.depositMethodType);
+
                 })
             })
             // utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
@@ -14542,6 +14555,13 @@ define(['js/app'], function (myApp) {
             vm.refreshSPicker();
         };
 
+        vm.getDepositMethod = function(data) {
+            let result = {};
+            data.forEach(item=>{
+                result[item.depositMethod] = item.data;
+            })
+            return result;
+        }
         vm.initPlayerManualTopUp = function () {
             vm.getZoneList();
             vm.provinceList = [];
@@ -15729,6 +15749,14 @@ define(['js/app'], function (myApp) {
                 vm.playerManualTopUp.bankTypeId = bankcard.bankTypeId;
                 vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 4);
             };
+        }
+        vm.getBankCardMaxAmount = function (bankAcc) {
+            vm.playerAssignTopUp.maxDepositAmount = vm.pickBankAcc.maxDepositAmount;
+        }
+        vm.playerAssignPlayerId = function (counterDepositType){
+            if(counterDepositType==2){
+                vm.playerAssignTopUp.playerId = vm.selectedSinglePlayer.playerId
+            }
         }
         /////////////////////////////////////// bank card end  /////////////////////////////////////////////////
 

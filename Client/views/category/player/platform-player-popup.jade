@@ -1206,10 +1206,16 @@
                                     option(ng-repeat="(i,v) in vm.depositMethodList", value='{{v}}') {{i | translate}}
                             .form-group
                                 label.control-label {{'SINGLELIMIT' | translate}}
-                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.bonusCode')
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.maxDepositAmount')
                             .form-group
                                 label.control-label {{'PLAYER CAN RECEIVE MONEY FROM THE BANK' | translate}}
-                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.bonusCode')
+                                //input.form-control(type='text', ng-model='vm.playerAssignTopUp.bonusCode')
+                                select.form-control.spicker(ng-options='a.displayText for a in vm.listBankByDepositMethod', ng-model='vm.pickBankAcc', ng-change='vm.getBankCardMaxAmount(vm.pickBankAcc)', bsp, data-live-search="true")
+                                    option(value='')
+                            //.form-group
+                                label.control-label(style='width:100%') {{'Bankcard' | translate}}
+                                select.form-control.spicker(ng-options='a.displayText for a in vm.bankCards', ng-model='vm.chosenBankAcc', ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)', bsp, data-live-search="true")
+                                    option(value='')
                             .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "1"')
                                 label.control-label {{'ONLINE BANK NAME' | translate}}
                                 input.form-control(type='text', ng-model='vm.playerAssignTopUp.bonusCode', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "1"')
@@ -1223,17 +1229,21 @@
                                     option(ng-repeat='(i,v) in vm.cityList', value='{{v.id}}') {{v.name}}
                             .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "3"')
                                 label.control-label {{'BANK COUNTER DEPOSIT METHOD' | translate}}
-                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.bonusCode', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "3"')
-                            .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "3"')
+                                select.form-control(ng-model='vm.playerAssignTopUp.counterDepositType',ng-change='vm.playerAssignPlayerId(vm.playerAssignTopUp.counterDepositType)')
+                                    option(value='')
+                                    option(value='1') 银行卡
+                                    option(value='2') 现金
+                                //input.form-control(type='text', ng-model='vm.playerAssignTopUp.bonusCode', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "3"')
+                            .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "3"', ng-if='vm.playerAssignTopUp.counterDepositType==1')
                                 label.control-label {{'BANK COUNTER BANK CARD HOLDER' | translate}}
                                 input.form-control(type='text', ng-model='vm.playerAssignTopUp.topUpReturnCode', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "3"')
-                            .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "3"')
+                            .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "3"', ng-if='vm.playerAssignTopUp.counterDepositType==2')
                                 label.control-label {{'BANK COUNTER TRANSFER NUMBER' | translate}}
                                 span(style="color:red;") {{'PLEASE INFORM BANK STAFF THIS SERIAL NUMBER, AND LET THEM FILL UP REMARK' | translate}}
-                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.remark', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "3"')
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.playerId', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "3"')
                             .form-group
                                 label.control-label {{'TopupAmount' | translate}}
-                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.bonusCode')
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.amount')
                             .form-group
                                 label.control-label {{'promoCode' | translate}}
                                 input.form-control(type='text', ng-model='vm.playerAssignTopUp.bonusCode')
