@@ -52,6 +52,7 @@ var simplifiedChinese = {
     "Currently no available wechatpay": "目前无可用微信支付",
     "Old phone number doesn't match": "旧的电话号码匹配失败，请重新输入。",
     "Guest ID cannot update password": "游客不可更改密码",
+    "Invalid top up amount": "充值额度无效",
 
     "No data is selected": "您好，当前未中奖，请继续投注多多加油！",
     "Reset password failed": "找回密码失败",

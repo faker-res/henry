@@ -3100,6 +3100,7 @@
   "Invalid reward amount": "优惠数值无效",
   "Error in creating partner": "创建渠道失败",
   "Top up amount is not enough": "充值额度不够",
+  "Invalid top up amount": "充值额度无效",
   "Player has too much valid credit": "玩家额度过多",
   "SMS URL": "短信链接",
   "Player has applied for this reward": "玩家已申请过该优惠",
