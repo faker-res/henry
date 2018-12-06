@@ -154,7 +154,7 @@
                                 .fa.fa-file-text-o.margin-right-5
                                 text.span {{"FrontendConfiguration" | translate}}
 
-                .panel-body.common-right-panel-body(style="position: relative;")
+                .panel-body(style="position: relative;")
                     div.tab-content
                         #Game.tab-pane.fade
                             include ./platform-game
@@ -207,7 +207,7 @@
                         #externalUserInfo.tab-pane.fade
                             include ./platform-externalUserInfo
                         #frontendConfiguration.tab-pane.fade.frontendConfigurationNoPadding
-                            iframe(ng-src="{{vm.frontendConfigurationUrl}}", width="100%", height="680px", frameborder="0")
+                            iframe(ng-src="{{vm.frontendConfigurationUrl}}", width="100%", frameborder="0", id="configIframe", ng-onload="vm.changeFrameHeight()")
 
                             //ui-view
                         //#bankCardGroup.tab-pane.fade

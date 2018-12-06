@@ -36123,6 +36123,18 @@ console.log('typeof ',typeof gameProviders);
                     vm.frontendConfigurationUrl = $sce.trustAsResourceUrl(url);
                 }
             };
+
+
+            vm.changeFrameHeight = function() {
+                var ifm = document.getElementById("configIframe");
+                ifm.height = document.documentElement.clientHeight;
+
+            }
+
+            window.onresize=function(){
+                vm.changeFrameHeight();
+
+            }
         };
 
         let injectParams = [
