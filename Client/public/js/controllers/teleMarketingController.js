@@ -6130,7 +6130,6 @@ define(['js/app'], function (myApp) {
         }
 
         vm.showPhoneListManagement = function () {
-            vm.responseMsg = false;
             utilService.actionAfterLoaded(('#phoneListSearch'), function () {
                 vm.phoneListSearch.pageObj = utilService.createPageForPagingTable("#phoneListManagementTablePage", {}, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "phoneListSearch", vm.filterPhoneListManagement);

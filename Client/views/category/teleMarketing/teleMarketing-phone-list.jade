@@ -18,9 +18,7 @@
                 #phoneListEndTimePicker
             .search-filter.col-md-3(style="padding-top: 25px;")
                 label.control-label
-                //button#resetPlayerQuery.btn.btn-primary.common-button-sm {{'Reset' | translate}}
-                //button#searchPhoneListManagement.btn.btn-primary.common-button-sm(ng-click="vm.filterPhoneListManagement();") {{'SEARCH' | translate}}
-                button#searchPhoneListManagement.btn.btn-primary.common-button-sm(ng-click="vm.showPhoneListManagement(true);") {{'SEARCH' | translate}}
+                button#searchPhoneListManagement.btn.btn-primary.common-button-sm(ng-click="vm.filterPhoneListManagement(true);") {{'SEARCH' | translate}}
     .col-md-12(ng-show="vm.curPlatformText")
         div
             table#phoneListManagementTable.common-table.display(style="min-width:100% ;overflow: scroll")
