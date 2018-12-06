@@ -25,6 +25,7 @@ const constProposalMainType = {
     //BONUS
     "PartnerBonus": constMainType.BONUS,
     "PlayerBonus": constMainType.BONUS,
+    "PlayerFKPWithdraw": constMainType.BONUS,
 
     //REWARD
     "AddPlayerRewardTask": constMainType.REWARD,

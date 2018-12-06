@@ -56,7 +56,8 @@ let tsPhoneListSchema = new Schema({
     totalMultipleTopUp: {type: Number, default: 0},
     // number of valid players
     totalValidPlayer: {type: Number, default: 0},
-
+    // recycle time
+    recycleTime: {type: Date},
     // assignees
     assignees: [{type: Schema.Types.ObjectId, ref: 'admin', index: true}],
 });

@@ -5886,7 +5886,6 @@ let dbPlayerInfo = {
             model: dbconfig.collection_platform
         }).then(
             playerInfo => {
-                console.log("checking playerData", playerInfo)
                 if (!playerInfo){
                     return Promise.reject({
                         name: "DataError",
@@ -12837,14 +12836,12 @@ let dbPlayerInfo = {
                                         if (Number(el.maxDepositAmount) > maxAmt) {
                                             maxAmt = Number(el.maxDepositAmount);
                                         }
-                                    })
+                                    });
+
+                                    merchant.minDepositAmount = minAmt;
+                                    merchant.maxDepositAmount = maxAmt;
                                 }
-
-                                merchant.minDepositAmount = minAmt;
-                                merchant.maxDepositAmount = maxAmt;
                             });
-
-                            console.log("yH checking --- paymentData.topupTypes", resData)
 
                             if (playerData.forbidTopUpType && playerData.forbidTopUpType.length){
                                 playerData.forbidTopUpType.forEach(

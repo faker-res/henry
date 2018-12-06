@@ -814,7 +814,20 @@ var dbPlayerTopUpRecord = {
                             }
                         )
                     };
-                    let proms = [limitedOfferProm, merchantGroupProm()];
+
+                    let merchantTypeProm = Promise.resolve(false);
+                    if (bPMSGroup === true || bPMSGroup === "true") {
+                        let pmsQuery = {
+                            platformId: player.platform.platformId,
+                            queryId: serverInstance.getQueryId(),
+                            username: player.name,
+                            ip: lastLoginIp,
+                            clientType: clientType
+                        };
+                        merchantTypeProm = pmsAPI.foundation_requestOnLinepayByUsername(pmsQuery);
+                    }
+
+                    let proms = [limitedOfferProm, merchantGroupProm(), merchantTypeProm];
                     if (topupRequest.bonusCode) {
                         let bonusCodeCheckProm;
                         let isOpenPromoCode = topupRequest.bonusCode.toString().trim().length == 3 ? true : false;
@@ -842,7 +855,8 @@ var dbPlayerTopUpRecord = {
                 let minTopUpAmount = player.platform.minTopUpAmount || 0;
                 let limitedOfferTopUp = res[0];
                 merchantGroupList = res[1];
-                let bonusCodeValidity = res[2];
+                let merchantType = res[2];
+                let bonusCodeValidity = res[3];
 
                 // check bonus code validity if exist
                 if (topupRequest.bonusCode && !bonusCodeValidity) {
@@ -854,14 +868,14 @@ var dbPlayerTopUpRecord = {
                 }
 
                 if (topupRequest.amount < minTopUpAmount) {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.PLAYER_TOP_UP_FAIL,
                         name: "DataError",
                         errorMessage: "Top up amount is not enough"
                     });
                 }
                 if (!player.permission || !player.permission.topupOnline) {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.PLAYER_NO_PERMISSION,
                         name: "DataError",
                         errorMessage: "Player does not have online topup permission"
@@ -869,11 +883,43 @@ var dbPlayerTopUpRecord = {
                 }
                 //check player foridb topup type list
                 if (player.forbidTopUpType && player.forbidTopUpType.indexOf(topupRequest.topupType) >= 0) {
-                    return Q.reject({name: "DataError", message: "Top up type is forbidden for this player"});
+                    return Promise.reject({name: "DataError", message: "Top up type is forbidden for this player"});
                 }
                 //check player merchant group
                 if (!player.merchantGroup || !player.merchantGroup.merchants) {
-                    return Q.reject({name: "DataError", message: "Player does not have valid merchant data"});
+                    return Promise.reject({name: "DataError", message: "Player does not have valid merchant data"});
+                }
+
+                // Check segregated merchant min max amount
+                if (bPMSGroup && merchantType && merchantType.topupTypes.some(el => el.type == topupRequest.topupType)) {
+                    let quotaScopes = merchantType.topupTypes.find(el => el.type == topupRequest.topupType).quotaScopes;
+                    let isPassed = false;
+                    let amtArr = [];
+
+                    if (quotaScopes) {
+                        quotaScopes.forEach(scope => {
+                            if (topupRequest.amount >= scope.minDepositAmount && topupRequest.amount <= scope.maxDepositAmount) {
+                                isPassed = true;
+                            }
+
+                            amtArr.push(scope.minDepositAmount);
+                            amtArr.push(scope.maxDepositAmount);
+                        });
+
+                        if (!isPassed) {
+                            let errorMsg = "暂时不支持您输入的金额，请填入";
+
+                            for (let i = 0; i <= amtArr.length && Number.isFinite(amtArr[i]); i++) {
+                                errorMsg += String(amtArr[i]);
+                                errorMsg += "~";
+                                i++;
+                                errorMsg += String(amtArr[i]);
+                                errorMsg += "元; ";
+                            }
+
+                            return Promise.reject({name: "DataError", message: errorMsg})
+                        }
+                    }
                 }
 
                 if (userAgent) {
@@ -2352,7 +2398,6 @@ var dbPlayerTopUpRecord = {
                 message: "Cannot apply 2 reward in 1 top up"
             });
         }
-
         return dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel})
@@ -2389,26 +2434,38 @@ var dbPlayerTopUpRecord = {
             ).then(
                 eventData => {
                     rewardEvent = eventData;
-                    if (player && player.platform && player.alipayGroup && player.alipayGroup.alipays && player.alipayGroup.alipays.length > 0) {
-                        let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, amount, limitedOfferObjId);
-                        let proms = [limitedOfferProm];
-
-                        if (bonusCode) {
-                            let bonusCodeCheckProm;
-                            let isOpenPromoCode = bonusCode.toString().trim().length == 3 ? true : false;
-                            if (isOpenPromoCode){
-                                bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, bonusCode, amount, lastLoginIp);
-                            }
-                            else {
-                                bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, bonusCode, amount);
-                            }
-                            proms.push(bonusCodeCheckProm)
-                        }
-
-                        return Promise.all(proms);
+                    if(player){
+                        return dbPlayerUtil.setPlayerState(player._id, "AlipayTopUp")
+                    }else{
+                        return Promise.reject({name: "DataError", errorMessage: "Invalid player data"});
                     }
-                    else {
-                        return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
+                }
+            ).then(
+                playerState => {
+                    if(playerState){
+                        if (player && player.platform && player.alipayGroup && player.alipayGroup.alipays && player.alipayGroup.alipays.length > 0) {
+                            let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, amount, limitedOfferObjId);
+                            let proms = [limitedOfferProm];
+
+                            if (bonusCode) {
+                                let bonusCodeCheckProm;
+                                let isOpenPromoCode = bonusCode.toString().trim().length == 3 ? true : false;
+                                if (isOpenPromoCode){
+                                    bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, bonusCode, amount, lastLoginIp);
+                                }
+                                else {
+                                    bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, bonusCode, amount);
+                                }
+                                proms.push(bonusCodeCheckProm)
+                            }
+
+                            return Promise.all(proms);
+                        }
+                        else {
+                            return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
+                        }
+                    }else{
+                        return Q.reject({name: "DataError", errorMessage: "Concurrent issue detected"});
                     }
                 }
             )
@@ -2545,7 +2602,6 @@ var dbPlayerTopUpRecord = {
                             newProposal.data.followUpCompletedTime = lastTopUpProposal[0].data.followUpCompletedTime;
                         }
                     }
-
                     return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_ALIPAY_TOP_UP, newProposal);
                 })
             .then(

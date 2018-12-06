@@ -19,8 +19,8 @@ var localConfig = {
     paymentAPIServerUrl : "ws://localhost:9480",
     messageServerUrl: "ws://localhost:9580",
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
-    paymentAPIUrl: "ws://203.177.198.117:8330/acc",
-    smsAPIUrl: "ws://203.192.151.12:8560/sms",
+    paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
+    smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login",
     disableCPAPI: false,
     disablePaymentAPI: false,
@@ -44,8 +44,8 @@ var devConfig = {
     paymentAPIServerUrl : "ws://ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:9480",
     messageServerUrl: "ws://ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:9580",
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
-    paymentAPIUrl: "ws://203.192.151.11:8330/acc",
-    smsAPIUrl: "ws://203.192.151.12:8560/sms",
+    paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
+    smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login"
 };
 
@@ -66,8 +66,8 @@ var settleConfig = {
     providerAPIServerUrl : "ws://ec2-54-169-253-167.ap-southeast-1.compute.amazonaws.com:9380",
     paymentAPIServerUrl: "ws://ec2-54-169-253-167.ap-southeast-1.compute.amazonaws.com:9480",
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
-    paymentAPIUrl: "ws://203.192.151.11:8330/acc",
-    smsAPIUrl: "ws://203.192.151.12:8560/sms",
+    paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
+    smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login"
 };
 
@@ -89,8 +89,8 @@ var qaConfig = {
     paymentAPIServerUrl: "ws://ec2-54-255-210-7.ap-southeast-1.compute.amazonaws.com:9480",
     messageServerUrl: "ws://ec2-54-255-210-7.ap-southeast-1.compute.amazonaws.com:9580",
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
-    paymentAPIUrl: "ws://203.192.151.11:8330/acc",
-    smsAPIUrl: "ws://203.192.151.12:8560/sms",
+    paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
+    smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login"
 };
 
@@ -111,8 +111,8 @@ var testAPIConfig = {
     paymentAPIServerUrl: "ws://ec2-54-255-174-69.ap-southeast-1.compute.amazonaws.com:9480",
     messageServerUrl: "ws://ec2-54-169-81-239.ap-southeast-1.compute.amazonaws.com:9580",
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
-    paymentAPIUrl: "ws://203.192.151.11:8330/acc",
-    smsAPIUrl: "ws://203.192.151.12:8560/sms",
+    paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
+    smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login"
 };
 
@@ -135,14 +135,14 @@ var prodConfig = {
 */
 
 //for release production
-var prodConfig = {
-    mode: "production",
+var prodOldConfig = {
+    mode: "productionold",
     socketServerUrl : '10.167.11.109',
     db: {
         adminDBUrl: 'adminsinonet:passwordsinonet@10.167.11.108:27017/admindb/',
         playerDBUrl: 'playersinonet:passwordsinonet@10.167.11.108:27017/playerdb/',
         logsDBUrl: 'logsinonet:passwordsinonet@10.167.11.108:27017/logsdb',
-        logs2DBUrl: 'logsinonet:passwordsinonet@10.167.11.108:27017/logs2db'
+        logs2DBUrl: 'logs2dbsinonet:passwordsinonet@10.167.11.108:27020/logs2db'
     },
     socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
     redisUrl : 'localhost',
@@ -154,8 +154,34 @@ var prodConfig = {
     //todo::update the urls below
     cpAPIUrl : "ws://10.167.11.229:9020/websocketapi",
     paymentAPIUrl: "ws://10.167.11.135:8566/acc",
-    smsAPIUrl: "ws://203.192.151.12:8560/sms"
+    //smsAPIUrl: "ws://203.192.151.12:8560/sms"
+    smsAPIUrl: "ws://smsapiserver99.pms8.me/sms"
 };
+
+var prodConfig = {
+    mode: "production",
+    socketServerUrl : '10.167.11.109',
+    db: {
+       adminDBUrl: 'adminsinonet:passwordsinonet@10.167.11.108:27018/admindb/',
+       playerDBUrl: 'playersinonet:passwordsinonet@10.167.11.108:27019/playerdb',
+       logsDBUrl: 'logsinonet:passwordsinonet@10.167.11.108:27017/logsdb',
+	logs2DBUrl: 'logs2dbsinonet:passwordsinonet@10.167.11.108:27020/logs2db'
+    },
+
+    socketSecret : 'aO5GIR8Sk5a70XCAfecsDIHZ3D5hVSIvHkudBLCE',
+    redisUrl : 'localhost',
+    redisPort : '6379',
+    clientAPIServerUrl : "ws://10.167.11.108:9280",
+    providerAPIServerUrl : "ws://10.167.11.108:9380",
+    paymentAPIServerUrl: "ws://10.167.11.108:9480",
+    messageServerUrl: "ws://10.167.11.108:9580",
+   
+    cpAPIUrl : "ws://10.167.11.229:9020/websocketapi",
+    paymentAPIUrl: "ws://10.168.11.128:8330/acc",
+    //smsAPIUrl: "ws://203.192.151.12:8560/sms"
+    smsAPIUrl: "ws://smsapiserver99.pms8.me/sms"
+};
+
 
 var botConfig = {
     mode: "bottesting",
@@ -173,8 +199,8 @@ var botConfig = {
     providerAPIServerUrl : "ws://54.169.235.54:9380",
     paymentAPIServerUrl: "ws://54.169.235.54:9480",
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
-    paymentAPIUrl: "ws://203.192.151.11:8330/acc",
-    smsAPIUrl: "ws://203.192.151.12:8560/sms"
+    paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
+    smsAPIUrl: "ws://smsapiserver99.pms8.me/sms"
 };
 
 //env parameters

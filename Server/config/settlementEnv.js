@@ -26,7 +26,7 @@ var apiConfig = {
 var prodConfig = {
     mode: "production",
     wss: [
-        "ws://10.167.11.107:8001"
+        "ws://10.167.11.108:8001"
     ],
     numOfProcess: 1
 };
