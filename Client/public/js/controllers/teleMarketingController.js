@@ -446,7 +446,7 @@ define(['js/app'], function (myApp) {
                     });
                     break;
                 case 'RECYCLE_BIN':
-                    let phoneListStatus = [vm.constTsPhoneListStatus.PERFECTLY_COMPLETED, vm.constTsPhoneListStatus.FORCE_COMPLETED, vm.constTsPhoneListStatus.DECOMPOSED]
+                    let phoneListStatus = [vm.constTsPhoneListStatus.PERFECTLY_COMPLETED, vm.constTsPhoneListStatus.FORCE_COMPLETED]
                     commonService.getTSPhoneListName($scope, {platform: vm.selectedPlatform.id, status: {$in: phoneListStatus}}).then(
                         data => {
                             vm.recycleBinPhoneListName = data;
