@@ -274,12 +274,21 @@ var dbPlayerConsumptionWeekSummary = {
                                 thisPeriodPropProm = dbPropUtil.getProposalDataOfType(platformId, constProposalType.PLAYER_CONSUMPTION_RETURN, thisPeriodProposal);
                             }
 
-                            return Promise.all([Promise.resolve(playerData), recProm, summaryProm, pastProm, thisPeriodPropProm]);
+                            let lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.find({
+                                platformId: platformId,
+                                createTime: {
+                                    $gte: startTime,
+                                    $lt: endTime
+                                },
+                                playerId: playerData._id
+                            }).sort({createTime: -1}).limit(1).lean();
+
+                            return Promise.all([Promise.resolve(playerData), recProm, summaryProm, pastProm, thisPeriodPropProm, lastConsumptionProm]);
                         }
                     ).then(
                         promArrRes => {
                             if (promArrRes) {
-                                let [playerData, recSumm, consumptionSumm, pastProps, thisPeriodProps] = promArrRes;
+                                let [playerData, recSumm, consumptionSumm, pastProps, thisPeriodProps, lastConsumption] = promArrRes;
 
                                 let returnAmount = 0;
                                 let returnDetail = {};
@@ -396,6 +405,7 @@ var dbPlayerConsumptionWeekSummary = {
                                             playerId: playerData.playerId,
                                             eventName: eventData.name,
                                             eventCode: eventData.code,
+                                            eventId: eventData._id,
                                             rewardAmount: returnAmount < 0.01 ? 0 : returnAmount,
                                             returnDetail: returnDetail,
                                             nonXIMADetail: nonXIMADetail,
@@ -411,6 +421,16 @@ var dbPlayerConsumptionWeekSummary = {
 
                                     if (eventData.param.consumptionTimesRequired && eventData.param.consumptionTimesRequired > 0) {
                                         proposalData.data.spendingAmount = proposalData.data.rewardAmount * eventData.param.consumptionTimesRequired;
+                                    }
+
+                                    if (lastConsumption && lastConsumption.length > 0) {
+                                        let lastConsumptionDetail = lastConsumption[0] ? lastConsumption[0] : {};
+
+                                        proposalData.data.betTime = lastConsumptionDetail.createTime;
+                                        proposalData.data.betAmount = lastConsumptionDetail.validAmount;
+                                        proposalData.data.betType = lastConsumptionDetail.betType;
+                                        proposalData.data.winAmount = lastConsumptionDetail.bonusAmount;
+                                        proposalData.data.winTimes = lastConsumptionDetail.winRatio;
                                     }
 
                                     if (adminId && adminName) {

@@ -43,6 +43,8 @@ let playerConsumptionSlipRewardGroupRecordSchema = new Schema({
     }],
     // betting amount
     consumptionAmount: {type: Number},
+    // bet type
+    betType: {type: String},
     // total amount for statistics
     validAmount: {type: Number},
     // win ratio (bonusAmount / validAmount)
