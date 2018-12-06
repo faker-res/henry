@@ -19,7 +19,7 @@ var localConfig = {
     paymentAPIServerUrl : "ws://localhost:9480",
     messageServerUrl: "ws://localhost:9580",
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
-    paymentAPIUrl: "ws://203.177.198.117:8330/acc",
+    paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
     smsAPIUrl: "ws://203.192.151.12:8560/sms",
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login",
     disableCPAPI: false,
@@ -44,7 +44,7 @@ var devConfig = {
     paymentAPIServerUrl : "ws://ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:9480",
     messageServerUrl: "ws://ec2-54-179-151-35.ap-southeast-1.compute.amazonaws.com:9580",
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
-    paymentAPIUrl: "ws://203.192.151.11:8330/acc",
+    paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
     smsAPIUrl: "ws://203.192.151.12:8560/sms",
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login"
 };
@@ -66,7 +66,7 @@ var settleConfig = {
     providerAPIServerUrl : "ws://ec2-54-169-253-167.ap-southeast-1.compute.amazonaws.com:9380",
     paymentAPIServerUrl: "ws://ec2-54-169-253-167.ap-southeast-1.compute.amazonaws.com:9480",
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
-    paymentAPIUrl: "ws://203.192.151.11:8330/acc",
+    paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
     smsAPIUrl: "ws://203.192.151.12:8560/sms",
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login"
 };
@@ -89,7 +89,7 @@ var qaConfig = {
     paymentAPIServerUrl: "ws://ec2-54-255-210-7.ap-southeast-1.compute.amazonaws.com:9480",
     messageServerUrl: "ws://ec2-54-255-210-7.ap-southeast-1.compute.amazonaws.com:9580",
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
-    paymentAPIUrl: "ws://203.192.151.11:8330/acc",
+    paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
     smsAPIUrl: "ws://203.192.151.12:8560/sms",
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login"
 };
@@ -111,7 +111,7 @@ var testAPIConfig = {
     paymentAPIServerUrl: "ws://ec2-54-255-174-69.ap-southeast-1.compute.amazonaws.com:9480",
     messageServerUrl: "ws://ec2-54-169-81-239.ap-southeast-1.compute.amazonaws.com:9580",
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
-    paymentAPIUrl: "ws://203.192.151.11:8330/acc",
+    paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
     smsAPIUrl: "ws://203.192.151.12:8560/sms",
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login"
 };
@@ -173,7 +173,7 @@ var botConfig = {
     providerAPIServerUrl : "ws://54.169.235.54:9380",
     paymentAPIServerUrl: "ws://54.169.235.54:9480",
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
-    paymentAPIUrl: "ws://203.192.151.11:8330/acc",
+    paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
     smsAPIUrl: "ws://203.192.151.12:8560/sms"
 };
 

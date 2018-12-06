@@ -69,6 +69,7 @@ var simplifiedChinese = {
     "Please enter bank card name?": "银行卡姓名",
     "Please enter bank card registration city?": "开户城市",
     "Please enter bank name?": "银行名称",
+    "Invalid top up amount": "充值额度无效",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",

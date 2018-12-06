@@ -12843,8 +12843,6 @@ let dbPlayerInfo = {
                                 }
                             });
 
-                            console.log("yH checking --- paymentData.topupTypes", resData)
-
                             if (playerData.forbidTopUpType && playerData.forbidTopUpType.length){
                                 playerData.forbidTopUpType.forEach(
                                     topupType => {
