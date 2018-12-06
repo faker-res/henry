@@ -4179,6 +4179,11 @@
   "FORCE_COMPLETED": "强制结束（进回收桶）",
   "DECOMPOSED": "已分解",
   "All Phone Lists":"全部名单",
+  "RECYCLE_BIN_OVERVIEW":"回收桶总览",
+  "Decomposed list / trash classification and reuse" :"分解名单/垃圾分类再利用",
+  "RECYCLE_TIME" :"回收时间",
+  "RECYCLE_TIME_START" :"回收时间（开始）",
+  "RECYCLE_TIME_END" :"回收时间（结束）",
 
   "PLAYER CAN RECEIVE MONEY FROM THE BANK":"玩家可用收款银行",
   "ONLINE BANK NAME":"网银-姓名",

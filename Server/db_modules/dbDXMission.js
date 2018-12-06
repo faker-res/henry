@@ -1362,7 +1362,7 @@ let dbDXMission = {
 
         let sendQuery = {
             platform: platform,
-            status: {$nin: [constTsPhoneListStatus.PERFECTLY_COMPLETED, constTsPhoneListStatus.FORCE_COMPLETED, constTsPhoneListStatus.DECOMPOSED,]},
+            status: {$nin: [constTsPhoneListStatus.PERFECTLY_COMPLETED, constTsPhoneListStatus.FORCE_COMPLETED, constTsPhoneListStatus.DECOMPOSED]},
             createTime: {
                 $gte: startTime,
                 $lt: endTime
