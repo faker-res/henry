@@ -14314,33 +14314,34 @@ let dbPlayerInfo = {
                                     // check if there is selected game providers from front-end
                                     if (isFrontEnd){
                                         let objIdList = [];
-                                        if (!gameProviderList){
-                                            return Promise.reject({
-                                                status: constServerCode.INVALID_DATA,
-                                                name: "DataError",
-                                                message: "No gameProvider is selected"
-                                            })
-                                        }
-                                        else {
-                                            if (typeof gameProviderList == 'string') {
-                                                let splitArr = gameProviderList.split(",");
-
-                                                splitArr.forEach(
-                                                    objId => {
-                                                        if (objId) {
-                                                            objIdList.push(ObjectId(objId.trim()));
-                                                        }
-                                                    }
-                                                )
-                                                rewardData.gameProviderList = objIdList;
-                                            }
-                                            else {
-                                                rewardData.gameProviderList = gameProviderList
-                                            }
-                                        }
-
                                         if (type){
-                                           rewardData.type = type;
+                                            rewardData.type = type;
+                                            if (type == 1){
+                                                if (!gameProviderList){
+                                                    return Promise.reject({
+                                                        status: constServerCode.INVALID_DATA,
+                                                        name: "DataError",
+                                                        message: "No gameProvider is selected"
+                                                    })
+                                                }
+                                                else {
+                                                    if (typeof gameProviderList == 'string') {
+                                                        let splitArr = gameProviderList.split(",");
+
+                                                        splitArr.forEach(
+                                                            objId => {
+                                                                if (objId) {
+                                                                    objIdList.push(ObjectId(objId.trim()));
+                                                                }
+                                                            }
+                                                        )
+                                                        rewardData.gameProviderList = objIdList;
+                                                    }
+                                                    else {
+                                                        rewardData.gameProviderList = gameProviderList
+                                                    }
+                                                }
+                                            }
                                         }
                                         else{
                                             return Promise.reject({
@@ -22171,8 +22172,8 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
     )
 }
 
-function checkBeforeApplyingdoubledBonus(checkList, rewardTypeWithProposalList, eventData){
-    if (checkList && checkList.length != 4){
+function checkBeforeApplyingBonusDoubled(checkList, rewardTypeWithProposalList, eventData){
+    if (!checkList || !checkList.length){
         return Promise.reject({
             name: "DataError",
             message: "checkList is not found"
@@ -22324,10 +22325,178 @@ function updateOrSaveBonusDoubledRewardGroupRecord(playerData, eventData, select
     )
 }
 
-function transferOutFromSelectedGameProvider(selectedProviderList, type, playerData, eventData, intervalTime){
+function getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewardParam, playerBonusDoubledRecord, lastConsumptionRecord, winLoseAmount){
+    let gameProviderObjId;
+    let gameProviderId;
+    let rewardAmount = 0;
+    let spendingAmount = 0;
+    let transferOutRecord;
+
+    if (playerBonusDoubledRecord && playerBonusDoubledRecord.gameProviderObjId && playerBonusDoubledRecord.gameProviderId && playerBonusDoubledRecord.hasOwnProperty('transferInAmount') ){
+        gameProviderObjId = playerBonusDoubledRecord.gameProviderObjId;
+        gameProviderId = playerBonusDoubledRecord.gameProviderId;
+    }
+    else{
+        return Promise.reject({
+            name: "DataError",
+            message: "playerBonusDoubledRecord is not found"
+        })
+    }
+
+    if (!selectedRewardParam){
+        return Promise.reject({
+            name: "DataError",
+            message: "selectedRewardParam is not found"
+        })
+    }
+    
+    return dbGameProvider.getPlayerCreditInProvider(playerData.name, playerData.platform.platformId, gameProviderId).then(
+        providerCredit => {
+            if (providerCredit){
+                if (parseFloat(providerCredit.gameCredit) >= 1) {
+                    let providerId = providerCredit.providerId;
+                    let platform = playerData.platform._id;
+                    let playerId = playerData.playerId;
+                    let amount = providerCredit.gameCredit;
+                    return dbPlayerInfo.transferPlayerCreditFromProvider(playerId, platform, providerId, amount);
+                }
+                else{
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                        name: "NumError",
+                        errorMessage: "Player does not have enough credit."
+                    })
+                }
+            }
+        }
+    ).then(
+        transferOutRecord => {
+            if (transferOutRecord){
+                // get the the record detail
+                return dbconfig.collection_creditChangeLog.findOne({
+                        platformId: playerData.platform._id,
+                        playerId: playerData._id,
+                        'data.providerId': gameProviderId.toString(),
+                        operationType: constPlayerCreditChangeType.TRANSFER_OUT
+                    }).sort({operationTime: -1}).lean();
+            }
+        }
+    ).then(
+        lastTransferOutRecord => {
+            if (!lastTransferOutRecord){
+                return Promise.reject({
+                    name: "DataError",
+                    errorMessage: "The last transferring-in record is not found"
+                })
+            }
+
+            transferOutRecord = lastTransferOutRecord;
+
+            // generate proposal
+            if (selectedRewardParam.hasOwnProperty('rewardPercentage')){
+                rewardAmount = playerBonusDoubledRecord.transferInAmount * selectedRewardParam.rewardPercentage;
+                spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
+            }
+            else {
+                rewardAmount = selectedRewardParam.rewardAmount;
+                spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
+            }
+
+            // create reward proposal
+            let proposalData = {
+                type: eventData.executeProposal,
+                creator: {
+                        type: 'player',
+                        name: playerData.name,
+                        id: playerData._id
+                    },
+                data: {
+                    playerObjId: playerData._id,
+                    playerId: playerData.playerId,
+                    playerName: playerData.name,
+                    realName: playerData.realName,
+                    platformObjId: playerData.platform._id,
+                    rewardAmount: rewardAmount,
+                    spendingAmount: spendingAmount,
+                    eventId: eventData._id,
+                    eventName: eventData.name,
+                    eventCode: eventData.code,
+                    eventDescription: eventData.description,
+                    isIgnoreAudit: eventData.condition && (typeof(eventData.condition.isIgnoreAudit) === "boolean" && eventData.condition.isIgnoreAudit === true) || (Number.isInteger(eventData.condition.isIgnoreAudit) && eventData.condition.isIgnoreAudit >= rewardAmount),
+                    forbidWithdrawAfterApply: Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true),
+                    remark: selectedRewardParam.remark,
+                    useConsumption: Boolean(!eventData.condition.isSharedWithXIMA),
+                    providerGroup: eventData.condition.providerGroup,
+                    // Use this flag for auto apply reward
+                    isGroupReward: true,
+                    // If player credit is more than this number after unlock reward group, will ban bonus
+                    forbidWithdrawIfBalanceAfterUnlock: selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0,
+                    isDynamicRewardAmount: false,
+                },
+                entryType: constProposalEntryType.CLIENT,
+                userType: constProposalUserType.PLAYERS
+            };
+
+            // proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
+            proposalData.data.rewardStartTime = eventData.condition.validStartTime;
+            proposalData.data.rewardEndTime = eventData.condition.validEndTime;
+            proposalData.data.interval = eventData.condition.interval;
+            proposalData.data.timesHasApplied = playerBonusDoubledRecord.applyTimes;
+            proposalData.data.quantityLimitInInterval = eventData.condition.quantityLimitInInterval;
+            proposalData.data.gameProviderInEvent = playerBonusDoubledRecord.gameProviderObjId;
+            proposalData.data.transferInAmount = playerBonusDoubledRecord.transferInAmount;
+            proposalData.data.transferInId = playerBonusDoubledRecord.transferInId || 'TEST TRANFER IN ID';
+            proposalData.data.transferOutAmount = transferOutRecord.amount;
+            proposalData.data.transferOutId = transferOutRecord.transferId;
+            proposalData.data.winLose = winLoseAmount;
+            proposalData.data.countWinLostStartTime = playerBonusDoubledRecord.transferInTime;
+            proposalData.data.countWinLostEndTime = playerBonusDoubledRecord.transferOutTime;
+            proposalData.data.lastLoginIp = playerData.lastLoginIp;
+            proposalData.data.phoneNumber = playerData.phoneNumber;
+
+            if (playerData.deviceId) {
+                proposalData.data.deviceId = playerData.deviceId;
+            }
+
+            if (lastConsumptionRecord && Object.keys(lastConsumptionRecord).length > 0) {
+                proposalData.data.betTime = lastConsumptionRecord.createTime || null;
+                proposalData.data.betAmount = lastConsumptionRecord.validAmount || null;
+                proposalData.data.winAmount = lastConsumptionRecord.bonusAmount || null;
+                proposalData.data.winTimes = lastConsumptionRecord.winRatio || null;
+            }
+
+            if (selectedRewardParam && selectedRewardParam.maxRewardAmountInSingleReward) {
+                proposalData.data.maxReward = selectedRewardParam.maxRewardAmountInSingleReward;
+            }
+
+            if (selectedRewardParam && selectedRewardParam.rewardPercentage) {
+                proposalData.data.rewardPercent = selectedRewardParam.rewardPercentage*100;
+            }
+            
+            return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
+                proposalData => {
+                   
+                    // update the playerBonusDoubledRewardGroupRecord
+                    let query = {
+                        platformObjId: playerData.platform._id,
+                        playerObjId: playerData._id,
+                        rewardEventObjId: eventData._id,
+                        lastApplyDate: {$gte: intervalTime.startTime, $lte: intervalTime.endTime}
+                    };
+
+                    return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, {isApplying: false}).lean();
+                }
+            );
+        }
+    )
+}
+
+function transferOutFromSelectedGameProvider(selectedProviderList, playerData, eventData, intervalTime){
     if (selectedProviderList && selectedProviderList.length){
         let playerCreditInGameProvider = [];
         let transferProviderId = [];
+        let providerIdList = [];
+        let notEnoughToTransferProviderId = [];
         let checkCreditProm = Promise.resolve();
         let isAllDone = true;
         let query = {
@@ -22337,11 +22506,33 @@ function transferOutFromSelectedGameProvider(selectedProviderList, type, playerD
         return dbGameProvider.getGameProviders(query).then(
             gameProviderList => {
                 if (gameProviderList && gameProviderList.length){
-                    // get the credit form ech of the providers belong to the player
+                    // get the providerId
                     gameProviderList.forEach(
                         gameProvider => {
-                            if (gameProvider && gameProvider.providerId && playerData.name && playerData.platform && playerData.platform.platformId){
-                                checkCreditProm = checkCreditProm.then( () => {
+                            if (gameProvider && gameProvider.providerId){
+                                providerIdList.push(gameProvider.providerId)
+                            }
+                        }
+                    )
+                   return dbGameProvider.checkTransferInSequence(playerData.platform._id, playerData._id, providerIdList);
+                }
+                else{
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "gameProvider is not found"
+                    })
+                }
+            }
+        ).then(
+            transferInList => {
+                console.log("checking 101 lastTransferInList", transferInList)
+                if (transferInList && transferInList.length) {
+                    transferInList.sort((a, b) => new Date(a.operationTime).getTime() - new Date(b.operationTime).getTime());
+                    // to get the credit of the provider
+                    transferInList.forEach(
+                        gameProvider => {
+                            if (gameProvider && gameProvider.providerId && playerData.name && playerData.platform && playerData.platform.platformId) {
+                                checkCreditProm = checkCreditProm.then(() => {
                                     return dbGameProvider.getPlayerCreditInProvider(playerData.name, playerData.platform.platformId, gameProvider.providerId)
                                 }).then(
                                     retResult => {
@@ -22353,12 +22544,6 @@ function transferOutFromSelectedGameProvider(selectedProviderList, type, playerD
                     )
                     return checkCreditProm;
                 }
-                else{
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "gameProvider is not found"
-                    })
-                }
             }
         ).then(
             () => {
@@ -22366,26 +22551,34 @@ function transferOutFromSelectedGameProvider(selectedProviderList, type, playerD
                     //check the provider if its credit >= 1, transferred out
                     for (let provider in playerCreditInGameProvider) {
                         if (parseFloat(playerCreditInGameProvider[provider].gameCredit) >= 1) {
-                            transferProviderId.push(playerCreditInGameProvider[provider].providerId);
+                            transferProviderId.push({providerId: playerCreditInGameProvider[provider].providerId, gameCredit: playerCreditInGameProvider[provider].gameCredit});
+                        }
+                        else{
+                            notEnoughToTransferProviderId.push(playerCreditInGameProvider[provider].providerId);
                         }
                     }
-                    return dbGameProvider.checkTransferInSequence(playerData.platform._id, playerData._id, transferProviderId);
+
+                    if (notEnoughToTransferProviderId && notEnoughToTransferProviderId.length){
+                        return Promise.reject({
+                            status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                            name: "NumError",
+                            errorMessage: "Player does not have enough credit."
+                        })
+                    }
+                   return transferProviderId;
                 }
             }
+
         ).then(
-            checkTransferList => {
-                if (checkTransferList && checkTransferList.length) {
+            () => {
+                if (transferProviderId && transferProviderId.length) {
                     let p = Promise.resolve();
 
-                    for (let i = 0; i < checkTransferList.length; i++) {
-                        let providerId = checkTransferList[i].providerId;
+                    for (let i = 0; i < transferProviderId.length; i++) {
+                        let providerId = transferProviderId[i].providerId;
                         let platform = playerData.platform._id;
                         let playerId = playerData.playerId;
-                        let amount = null;
-                        let index = playerCreditInGameProvider.findIndex(i => i.providerId == providerId);
-                        if (index > -1) {
-                            amount = playerCreditInGameProvider[index].gameCredit;
-                        }
+                        let amount = transferProviderId[i].gameCredit;
 
                         p = p.then(function () {
                             if (amount) {
@@ -22410,16 +22603,10 @@ function transferOutFromSelectedGameProvider(selectedProviderList, type, playerD
                     // transfer-out is not successful -> show error
                     return Promise.reject({
                         name: "DataError",
-                        message: "The credit balance is not enough for this reward"
+                        message: "The transferring-out process is failed"
                     })
                 }
-
-                if (type && type == 1){
-                    return updateOrSaveBonusDoubledRewardGroupRecord(playerData, eventData, selectedProviderList, intervalTime);
-                }
-                else if (type && type ==2){
-                    // generate rewardProposal then update BonusDoubledRewardGroupRecord
-                }
+                return updateOrSaveBonusDoubledRewardGroupRecord(playerData, eventData, selectedProviderList, intervalTime);
             }
         )
     }
@@ -22435,16 +22622,27 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
     rewardData = rewardData || {};
     let type;  // type: 1- apply; 2- end this session to get reward bonus
     let selectedProviderList;
+    let selectedRewardParam;
+    let winLoseAmount;
+    let playerBonusDoubledRecord;
+    let lastConsumptionRecord;
     let intervalTime;
     let topupInPeriodProm = Promise.resolve([]);
     let checkHasReceivedProm = Promise.resolve();
     let timesHasApplied = Promise.resolve();
     let pendingCount = Promise.resolve();
+    let getPlayerApplyingRecordProm = Promise.resolve();
+    let lastConsumptionProm = Promise.resolve();
     let rewardTypeWithProposalList = [
         constRewardType.PLAYER_RETENTION_REWARD_GROUP,
     ];
     let todayTime = rewardData.applyTargetDate ? dbUtility.getTargetSGTime(rewardData.applyTargetDate).startTime : dbUtility.getTodaySGTime();
     rewardData.applyTargetDate = rewardData.applyTargetDate || todayTime.startTime;
+
+    // Get interval time
+    if (eventData.condition.interval) {
+        intervalTime = dbRewardUtil.getRewardEventIntervalTime(rewardData, eventData, true);
+    }
 
     if(isFrontEnd){
         selectedProviderList = rewardData.gameProviderList;
@@ -22484,11 +22682,6 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
                 name: "DataError",
                 message: "This interface is not allowed for reward"
             });
-        }
-
-        // Get interval time
-        if (eventData.condition.interval) {
-            intervalTime = dbRewardUtil.getRewardEventIntervalTime(rewardData, eventData, true);
         }
 
         // The following behavior can generate reward task
@@ -22548,26 +22741,47 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
         }
     }
     else if (type && type == 2){
-        // get the win-lose amount
+        // get the reward param
+        getPlayerApplyingRecordProm = dbPlayerReward.checkRewardParamForBonusDoubledRewardGroup(eventData, playerData, intervalTime);
+
+        // get the last consumption detail
+        let consumptionQuery = {
+            platformId: playerData.platform._id,
+            playerId: playerData._id,
+            createTime: {$gte: todayTime.startTime, $lte: todayTime.endTime}
+        }
+        if (intervalTime) {
+            consumptionQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+        }
+        lastConsumptionProm = dbconfig.collection_playerConsumptionRecord.findOne(consumptionQuery).sort({createTime: -1}).lean();
     }
 
-    return Promise.all([pendingCount, topupInPeriodProm, checkHasReceivedProm, timesHasApplied]).then(
+    return Promise.all([pendingCount, topupInPeriodProm, checkHasReceivedProm, timesHasApplied, getPlayerApplyingRecordProm, lastConsumptionProm]).then(
         checkList => {
-
             if (type && type == 1) {
                 // check the requirement
-                return checkBeforeApplyingdoubledBonus(checkList, rewardTypeWithProposalList, eventData);
+                return checkBeforeApplyingBonusDoubled(checkList, rewardTypeWithProposalList, eventData);
             }
             else if (type && type == 2) {
-                // stop this session and getting the reward bonus
+                if (checkList[4] && checkList[4].selectedRewardParam && checkList[4].record && checkList[4].hasOwnProperty('winLoseAmount')){
+                    selectedRewardParam = checkList[4].selectedRewardParam;
+                    playerBonusDoubledRecord = checkList[4].record;
+                    winLoseAmount = checkList[4].winLoseAmount;
+                    lastConsumptionRecord = checkList[5] || null;
+                }
                 return true;
             }
         }
     ).then(
         hasPassChecking => {
             if (hasPassChecking) {
-                // transfer out all the credit from all the  selected game providers for applying the reward in the later process
-                return transferOutFromSelectedGameProvider(selectedProviderList, type, playerData, eventData, intervalTime);
+                if (type && type == 1) {
+                    // transfer out all the credit from all the  selected game providers for applying the reward in the later process
+                    return transferOutFromSelectedGameProvider(selectedProviderList, playerData, eventData, intervalTime);
+                }
+                else if (type == 2){
+                    return getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewardParam, playerBonusDoubledRecord, lastConsumptionRecord, winLoseAmount)
+                }
             }
         }
     )

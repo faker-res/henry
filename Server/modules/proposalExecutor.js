@@ -100,7 +100,8 @@ var proposalExecutor = {
 
             // Group reward
             || executionType === 'executePlayerLoseReturnRewardGroup'
-            || executionType === 'executePlayerRetentionRewardGroup';
+            || executionType === 'executePlayerRetentionRewardGroup'
+            || executionType === 'executePlayerBonusDoubledRewardGroup'
 
         if (isNewFunc) {
             return proposalExecutor.approveOrRejectProposal2(executionType, rejectionType, bApprove, proposalData, rejectIfMissing);
@@ -279,6 +280,7 @@ var proposalExecutor = {
             this.executions.executeUpdatePartnerRealName.des = "Update partner real name";
             this.executions.executePlayerConsumptionSlipRewardGroup.des = "Player Consumption Slip Reward";
             this.executions.executePlayerRetentionRewardGroup.des = "Player Retention Reward";
+            this.executions.executePlayerBonusDoubledRewardGroup.des = "Player Bonus Doubled Reward";
             this.executions.executePlayerFKPTopUp.des = "Player Fukuaipay Top Up";
 
             this.rejections.rejectProposal.des = "Reject proposal";
@@ -356,7 +358,8 @@ var proposalExecutor = {
             this.rejections.rejectUpdatePlayerRealName.des = "Reject player update real name proposal";
             this.rejections.rejectUpdatePartnerRealName.des = "Reject partner update real name proposal";
             this.rejections.rejectPlayerConsumptionSlipRewardGroup.des = "reject Player Consumption Slip Reward";
-            this.rejections.rejectPlayerRetentionRewardGroup.des = "reject Player Retention Slip Reward";
+            this.rejections.rejectPlayerRetentionRewardGroup.des = "reject Player Retention Reward";
+            this.rejections.rejectPlayerBonusDoubledRewardGroup.des = "reject Player Bonus Doubled Reward";
             this.rejections.rejectPlayerFKPTopUp.des = "reject Player Fukuaipay Top Up";
         },
 
@@ -3139,6 +3142,56 @@ var proposalExecutor = {
                 }
             },
 
+            executePlayerBonusDoubledRewardGroup: function (proposalData) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && (proposalData.data.rewardAmount || (proposalData.data.applyAmount && proposalData.data.isDynamicRewardAmount))) {
+                    let rtgData;
+                    let amount = proposalData.data.actualAmount ? proposalData.data.actualAmount : (proposalData.data.applyAmount || 0);
+                    let taskData = {
+                        playerId: proposalData.data.playerObjId,
+                        type: constRewardType.PLAYER_BONUS_DOUBLED_REWARD_GROUP,
+                        rewardType: constRewardType.PLAYER_BONUS_DOUBLED_REWARD_GROUP,
+                        platformId: proposalData.data.platformId,
+                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        currentAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + amount : proposalData.data.rewardAmount,
+                        initAmount: proposalData.data.isDynamicRewardAmount ? proposalData.data.rewardAmount + amount : proposalData.data.rewardAmount,
+                        useConsumption: Boolean(proposalData.data.useConsumption),
+                        eventId: proposalData.data.eventId,
+                        applyAmount: proposalData.data.applyAmount || 0,
+                        providerGroup: proposalData.data.providerGroup
+                    };
+
+                    return createRTGForProposal(proposalData, taskData, constRewardType.PLAYER_BONUS_DOUBLED_REWARD_GROUP, proposalData).then(
+                        data => {
+                            rtgData = data;
+                            let updateData = {$set: {}};
+
+                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
+                                updateData.$set["permission.applyBonus"] = false;
+                            }
+
+                            return dbconfig.collection_players.findOneAndUpdate(
+                                {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
+                                updateData
+                            )
+                        }
+                    ).then(
+                        playerData => {
+                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
+                                let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
+                                let newPermissionObj = {applyBonus: false};
+                                let remark = "优惠提案：" + proposalData.proposalId + "(领取优惠后禁用提款)";
+                                dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj);
+                            }
+
+                            return rtgData;
+                        }
+                    )
+                }
+                else {
+                    return Promise.reject({name: "DataError", message: "Incorrect player bonus doubled group proposal data"});
+                }
+            },
+
             executePlayerLoseReturnRewardGroup: function (proposalData) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
                     let rtgData;
@@ -4266,6 +4319,10 @@ var proposalExecutor = {
             },
 
             rejectPlayerRetentionRewardGroup: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerBonusDoubledRewardGroup: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
 

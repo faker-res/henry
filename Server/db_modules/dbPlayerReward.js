@@ -5323,6 +5323,84 @@ let dbPlayerReward = {
         }).exec();
     },
 
+    checkRewardParamForBonusDoubledRewardGroup: (eventData, playerData, intervalTime) => {
+        let selectedRewardParam;
+        let bonusAmount = 0;
+        let playerBonusDoubledRewardGroupRecord;
+        let todayTime = dbUtility.getTodaySGTime();
+
+        // Set reward param for player level to use
+        if (eventData.condition.isPlayerLevelDiff) {
+            selectedRewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
+        } else {
+            selectedRewardParam = eventData.param.rewardParam[0].value;
+        }
+
+        let recordQuery = {
+            platformObjId: playerData.platform._id,
+            rewardEventObjId: eventData._id,
+            playerObjId: playerData._id,
+            isApplying: true,
+            lastApplyDate: {$gte: todayTime.startTime, $lte: todayTime.endTime}
+        };
+
+        if (intervalTime) {
+            recordQuery.lastApplyDate = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+        }
+
+        return dbConfig.collection_playerBonusDoubledRewardGroupRecord.findOne(recordQuery).lean().then(
+            recordData => {
+                if (recordData && recordData.transferInAmount && recordData.transferInTime && recordData.transferOutTime && recordData.gameProviderObjId){
+                    playerBonusDoubledRewardGroupRecord = recordData;
+                    // get the win-lose amount
+                    let matchQuery = {
+                        providerId:recordData.gameProviderObjId,
+                        playerId: playerData._id,
+                        createTime: {$gte: recordData.transferInTime, $lt: recordData.transferOutTime}
+                    };
+
+                    return dbConfig.collection_playerConsumptionRecord.aggregate([
+                        {$match: matchQuery},
+                        {$group: {_id: "$providerId",  bonusAmount: {$sum: "$bonusAmount"},}}
+                    ]).read("secondaryPreferred");
+                }
+                else{
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Player record is not found in playerBonusDoubledRewardGroupRecord "
+                    })
+                }
+            }
+        ).then(
+            consumptionRecord => {
+                if (consumptionRecord && consumptionRecord.length && playerBonusDoubledRewardGroupRecord && selectedRewardParam){
+                    bonusAmount = Math.abs(consumptionRecord[0].bonusAmount);
+                    let transferInAmount = playerBonusDoubledRewardGroupRecord.transferInAmount;
+                    let rate = bonusAmount/transferInAmount;
+                    let rewardAmount;
+                    let spendingAmount;
+
+                    if (eventData.param.isMultiStepReward) { 
+                        selectedRewardParam = selectedRewardParam.filter(e => rate >= e.multiplier).sort((a, b) => b.multiplier - a.multiplier);
+                        selectedRewardParam = selectedRewardParam[0] || null;    
+                    } else {
+                        selectedRewardParam = selectedRewardParam[0];
+                    }
+
+                    if (!selectedRewardParam || rate < selectedRewardParam.multiplier) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                            name: "DataError",
+                            message: "not eligible to obtain the reward bonus"
+                        });
+                    }
+
+                    return {selectedRewardParam: selectedRewardParam, record: playerBonusDoubledRewardGroupRecord, winLoseAmount: bonusAmount};
+                }
+            }
+        )
+    },
+
     /**
      *
      * @param userAgent

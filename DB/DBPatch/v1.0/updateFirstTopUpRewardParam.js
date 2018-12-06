@@ -1161,7 +1161,7 @@ db.rewardParam.update({
                 isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
                 rewardParam: {
                     multiplier: {type: "number", des: "Multiplier setting"},
-                    rewardPercentage: {type: "number", des: "Reward% (fill in accordingly with the multiplier)"},
+                    rewardPercentage: {type: "percentage", des: "Reward% (fill in accordingly with the multiplier)"},
                     maxRewardAmountInSingleReward: {type: "number", des: "Max Reward Amount In Single Reward"},
                     spendingTimes: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
