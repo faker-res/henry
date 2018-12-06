@@ -56,6 +56,24 @@ const dbRewardUtility = {
         return intervalTime;
     },
 
+    isRewardValidNow: (eventData) => {
+        let isValid = true;
+
+        if (eventData) {
+            let dateNow = Date.now();
+
+            if (eventData.validStartTime && eventData.validStartTime.getTime() > dateNow.getTime()) {
+                isValid = false;
+            }
+
+            if (eventData.validEndTime && eventData.validEndTime.getTime() < dateNow.getTime()) {
+                isValid = false;
+            }
+        }
+
+        return isValid;
+    },
+
     /**
      *
      * @param period - refer constRewardPeriod
