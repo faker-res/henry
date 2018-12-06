@@ -894,15 +894,29 @@ var dbPlayerTopUpRecord = {
                 if (bPMSGroup && merchantType && merchantType.topupTypes.some(el => el.type == topupRequest.topupType)) {
                     let quotaScopes = merchantType.topupTypes.find(el => el.type == topupRequest.topupType).quotaScopes;
                     let isPassed = false;
+                    let amtArr = [];
 
                     quotaScopes.forEach(scope => {
                         if (topupRequest.amount >= scope.minDepositAmount && topupRequest.amount <= scope.maxDepositAmount) {
                             isPassed = true;
                         }
+
+                        amtArr.push(scope.minDepositAmount);
+                        amtArr.push(scope.maxDepositAmount);
                     });
 
                     if (!isPassed) {
-                        return Promise.reject({name: "DataError", message: "Invalid top up amount"})
+                        let errorMsg = "暂时不支持您输入的金额，请填入";
+
+                        for (let i = 0; i <= amtArr.length && Number.isFinite(amtArr[i]); i++) {
+                            errorMsg += String(amtArr[i]);
+                            errorMsg += "~";
+                            i++;
+                            errorMsg += String(amtArr[i]);
+                            errorMsg += "元; ";
+                        }
+
+                        return Promise.reject({name: "DataError", message: errorMsg})
                     }
                 }
 
