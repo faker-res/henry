@@ -110,7 +110,7 @@ var testAPIConfig = {
     providerAPIServerUrl : "ws://ec2-54-255-174-69.ap-southeast-1.compute.amazonaws.com:9380",
     paymentAPIServerUrl: "ws://ec2-54-255-174-69.ap-southeast-1.compute.amazonaws.com:9480",
     messageServerUrl: "ws://ec2-54-169-81-239.ap-southeast-1.compute.amazonaws.com:9580",
-    cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi"
+    cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
     paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
     smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login"
