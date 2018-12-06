@@ -311,6 +311,67 @@ let dbTeleSales = {
         return dbconfig.collection_tsPhoneList.distinct("name", query);
     },
 
+    getRecycleBinTsPhoneList: function (platform, startTime, endTime, status, name, index, limit, sortCol) {
+        if(!platform){
+            return;
+        }
+
+        let sendQuery = {
+            platform: platform,
+            status: {$in: [constTsPhoneListStatus.PERFECTLY_COMPLETED, constTsPhoneListStatus.FORCE_COMPLETED, constTsPhoneListStatus.DECOMPOSED]},
+            recycleTime: {
+                $gte: startTime,
+                $lt: endTime
+            },
+        };
+
+        if (status) {
+            sendQuery.status = {$in: status};
+        }
+
+        if (name) {
+            sendQuery.name = {$in: name};
+        }
+
+        let phoneListResult = dbconfig.collection_tsPhoneList.find(sendQuery).skip(index).limit(limit).sort(sortCol).lean();
+        let totalPhoneListResult = dbconfig.collection_tsPhoneList.find(sendQuery).count();
+        return Promise.all([phoneListResult, totalPhoneListResult]).then(
+            result => {
+                if(result && result.length > 0){
+                    // count total valid player
+                    if (result[0] && result[0].length) {
+                        dbconfig.collection_partnerLevelConfig.findOne({platform: platform}).lean().then(
+                            partnerLevelConfigData => {
+                                if (!partnerLevelConfigData) {
+                                    return Promise.reject({name: "DataError", message: "Cannot find active player"});
+                                }
+                                let promArr = [];
+                                result[0].forEach(phoneList => {
+                                    let updateProm = dbconfig.collection_players.find({
+                                        tsPhoneList: phoneList._id,
+                                        platform: platform,
+                                        topUpTimes: {$gte: partnerLevelConfigData.validPlayerTopUpTimes},
+                                        topUpSum: {$gte: partnerLevelConfigData.validPlayerTopUpAmount},
+                                        consumptionTimes: {$gte: partnerLevelConfigData.validPlayerConsumptionTimes},
+                                        consumptionSum: {$gte: partnerLevelConfigData.validPlayerConsumptionAmount},
+                                    }).count().then(
+                                        playerCount => {
+                                            return dbconfig.collection_tsPhoneList.update({_id: phoneList._id}, {totalValidPlayer: playerCount});
+                                        }
+                                    );
+                                    promArr.push(updateProm);
+                                });
+                                return Promise.all(promArr);
+                            }
+                        ).catch(errorUtils.reportError);
+                    }
+
+                    return {data: result[0], size: result[1]};
+                }
+            }
+        )
+    },
+
     getTsDistributedPhoneDetail: (distributedPhoneObjId) => {
         let tsDistributedPhone;
         return dbconfig.collection_tsDistributedPhone.findOne({_id: distributedPhoneObjId}).lean().then(
@@ -506,20 +567,40 @@ let dbTeleSales = {
                 if (distributeStatus) {
                     return true;
                 } else {
-                    return dbconfig.collection_tsDistributedPhone.find({tsPhoneList: tsPhoneListObj._id, platform: inputData.platform, isUsed: false, endTime: {$lt: new Date()}}).count().then(
-                        tsDistributedPhoneCount => {
-                            if (tsDistributedPhoneCount <= 0) {
-                                distributeStatus = constTsPhoneListStatus.PERFECTLY_COMPLETED;
-                            } else {
-                                distributeStatus = constTsPhoneListStatus.HALF_COMPLETE;
+
+                    return dbconfig.collection_tsPhone.find({
+                        tsPhoneList: tsPhoneListObj._id,
+                        platform: inputData.platform,
+                        registered: false,
+                        $or: [{assignTimes: {$lt: tsPhoneListObj.callerCycleCount}}, {assignTimes: {$gte: tsPhoneListObj.callerCycleCount}, $or: [{distributedEndTime: {$gte: new Date()}},{distributedEndTime: null}]}]
+                    }).count().then(
+                        unfinishedTsPhone => {
+                            if (!unfinishedTsPhone) {
+                                return dbconfig.collection_tsPhone.find({tsPhoneList: tsPhoneListObj._id, platform: inputData.platform, isUsed: false}).count().then(
+                                    notUsedCount => {
+                                        if (notUsedCount) {
+                                            distributeStatus = constTsPhoneListStatus.HALF_COMPLETE;
+                                        } else {
+                                            distributeStatus = constTsPhoneListStatus.PERFECTLY_COMPLETED;
+                                        }
+                                    }
+                                )
                             }
                         }
                     )
+
                 }
             }
         ).then(
             () => {
-                return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObj._id}, {$inc: {totalDistributed: totalDistributed}, status: distributeStatus}).lean();
+                let updateObj = {
+                    $inc: {totalDistributed: totalDistributed},
+                    status: distributeStatus
+                }
+                if (distributeStatus == constTsPhoneListStatus.PERFECTLY_COMPLETED || distributeStatus == constTsPhoneListStatus.PERFECTLY_COMPLETED) {
+                    updateObj.recycleTime = new Date();
+                }
+                return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObj._id}, updateObj).lean();
             }
         );
 
@@ -690,7 +771,7 @@ let dbTeleSales = {
     },
 
     forceCompleteTsPhoneList: (tsPhoneList) => {
-        return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneList}, {status: constTsPhoneListStatus.FORCE_COMPLETED}).lean().then(
+        return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneList, status: {$ne: constTsPhoneListStatus.FORCE_COMPLETED}}, {status: constTsPhoneListStatus.FORCE_COMPLETED, recycleTime: new Date()}).lean().then(
             tsPhoneListData => {
                 dbconfig.collection_tsPhone.update(
                     {
