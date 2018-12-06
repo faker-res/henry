@@ -1455,6 +1455,7 @@
   "updatePlatform": "更新平台",
   "createGameProvider": "创建提供商",
   "deletePlatformById": "删除平台",
+  "DeletePlatform": "删除平台",
   "deleteRewardEventByIds": "删除优惠",
   "updateRewardEvent": "更新优惠",
   "createRewardEvent": "创建优惠",
@@ -1797,6 +1798,7 @@
   "resetPeriod": "清零周期",
   "Player Double Top Up Reward": "玩家多次充值优惠",
   "createPlatform": "创建平台",
+  "CreatePlatform": "创建平台",
   "createGameAndAddToProvider": "创建提供商游戏",
   "addGameType": "添加游戏类型",
   "NoVerify": "免验",
@@ -5015,5 +5017,6 @@
   "Still Online": "仍在线",
   "Fuzzy Search": "模糊搜索",
   "Total Conversation(Message Sent)": "对话条数(发出的句子)",
-  "Total Player In Conversation(By Wechat ID)": "对话的会员数量（根据微信号）"
+  "Total Player In Conversation(By Wechat ID)": "对话的会员数量（根据微信号）",
+  "EditForAllTab": "编辑（所有TAB共用）"
 }

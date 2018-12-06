@@ -296,48 +296,48 @@ var roleChecker = {
             "PlatformSetting": {
                 Read: ['getAllPlatforms', 'getPlatform', 'getDepartmentsByPlatformId', 'getPlatformAnnouncementsByPlatformId', 'getPlatformAnnouncementById', 'getAllGameTypes', 'getPlayerLvlPeriodConst', 'getAllGameStatus', 'getAllMessageTypes', 'syncPlatform',
                     'getPlatformBankCardGroup', 'getPlatformMerchantGroup', 'getPlatformAlipayGroup','getConsumptionRecordByGameProvider','getProfitDisplayDetailByPlatform', 'getPlayerConsumptionDetailByPlatform'],
-                Create: ['createPlatform', 'getDepartmentTreeById'],
-                Delete: ['deletePlatformById'],
-                Edit: ['updatePlatform'],
-                ReplicateSetting: ['replicatePlatformSetting'],
-                DailySettlement: ['startPlatformDailySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformDailySettlement'],
-                WeeklySettlement: ['startPlatformWeeklySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformWeeklySettlement'],
+                CreatePlatform: ['createPlatform', 'getDepartmentTreeById'],
+                DeletePlatform: ['deletePlatformById'],
+                EditForAllTab: ['updatePlatform'],
+                ReplicateSetting: ['replicatePlatformSetting']
+                //DailySettlement: ['startPlatformDailySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformDailySettlement'],
+               // WeeklySettlement: ['startPlatformWeeklySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformWeeklySettlement'],
                 //RewardSettlement: ['startPlatformRewardEventSettlement', 'startPlatformRTGEventSettlement'],
                 //SettlementHistory: ['getSettlementHistory'],
                 //PartnerCommissionSettlement: ['startPlatformPartnerCommissionSettlement'],
-                transferPlayerCreditFromProvider: ['transferAllPlayersCreditFromProvider'],
+                //transferPlayerCreditFromProvider: ['transferAllPlayersCreditFromProvider'],
                 //PlayerConsumptionIncentiveSettlement: ['startPlatformPlayerConsumptionIncentiveSettlement'],
                 //PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement', 'getYesterdayConsumptionReturnSGTime'],
                 //PlayerLevelSettlement: ['startPlatformPlayerLevelSettlement'],
                 //PlayerConsecutiveConsumptionSettlement: ['startPlayerConsecutiveConsumptionSettlement'],
-                BackstageSettings: [],
+                //BackstageSettings: [],
                 //PlayerDisplayData: [],
                 //PartnerDisplayData: [],
-                SystemSettlement: [],
+                //SystemSettlement: [],
                 //FrontendModuleSetting: [],
                 //ThemeSelect: [],
             },
             "PlayerDisplayData": {
-                Read: [],
-                Edit: []
+                Read: []
             },
             "PartnerDisplayData": {
-                Read: [],
-                Edit: []
+                Read: []
             },
             "SystemSettlement": {
+                Read: [],
                 PlayerLevelSettlement: ['startPlatformPlayerLevelSettlement'],
                 PartnerCommissionSettlement: ['startPlatformPartnerCommissionSettlement'],
                 PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement', 'getYesterdayConsumptionReturnSGTime'],
                 SystemRewardGroupSettlement: []
             },
             "FrontendModule": {
-                Read: [],
-                Edit: []
+                Read: []
             },
             "ThemeSelect": {
-                Read: [],
-                Edit: []
+                Read: []
+            },
+            "BackstageSettings": {
+                Read: []
             },
             // "Player": {
             //     Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList', "getDepartmentTreeById",
@@ -835,7 +835,7 @@ var roleChecker = {
                 Delete: ['deleteRolesById'],
                 Update: ['updateRole']
             },
-            PlatformSetting: {
+            platform: {
                 Read: ['getPlatform', 'getAllPlatforms'],
                 //Move: ['addPlatformsToDepartmentById', 'removePlatformsFromDepartmentById'],
                 //Create: ['createPlatform'],
