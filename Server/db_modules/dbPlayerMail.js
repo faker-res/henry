@@ -413,6 +413,10 @@ const dbPlayerMail = {
         }
         let isSpam = false;
         let blacklistIPDetected = false;
+        let timeNow = new Date();
+        let minuteNow = dbUtility.getSGTimeCurrentMinuteInterval(timeNow);
+        let hourNow = dbUtility.getSGTimeCurrentHourInterval(timeNow);
+        let dayNow = dbUtility.getSGTimeCurrentDayInterval(timeNow);
 
         return getPlatform.then(
             platformData => {
@@ -528,6 +532,146 @@ const dbPlayerMail = {
                             }
                         }
                     );
+                }
+            }
+        ).then(
+            () => {
+                // fixed limit 1, 5, 10
+                let checkPhoneByMinuteProm = smsLogCheckLimit(minuteNow, 'tel',"$tel", 1);
+                let checkPhoneByHourProm = smsLogCheckLimit(hourNow, 'tel', "$tel", 5);
+                let checkPhoneByDayProm = smsLogCheckLimit(dayNow, 'tel', "$tel", 10);
+                let checkIpByMinuteProm = smsLogCheckLimit(minuteNow, 'ipAddress', "$ipAddress", 1);
+                let checkIpByHourProm = smsLogCheckLimit(hourNow, 'ipAddress', "$ipAddress", 5);
+                let checkIpByDayProm = smsLogCheckLimit(dayNow, 'ipAddress', "$ipAddress", 10);
+
+                function smsLogCheckLimit (inputTime, queryData, countData, limit) {
+                    let matchQuery = {};
+
+                    if (queryData === 'tel') {
+                        // to find player sms log based on tel number
+                        matchQuery = {
+                            createTime: {
+                                $gte: inputTime.startTime,
+                                $lte: inputTime.endTime
+                            },
+                            tel: telNum ? telNum : "",
+                            isPlayer: true,
+                            isPartner: false,
+                        };
+
+                        // to find partner sms log based on tel number
+                        if (isPartner) {
+                            matchQuery.isPlayer = false;
+                            matchQuery.isPartner = true;
+                        }
+                    }
+
+                    if (queryData === 'ipAddress') {
+                        // to find player sms log based on ipAddress
+                        matchQuery = {
+                            createTime: {
+                                $gte: inputTime.startTime,
+                                $lte: inputTime.endTime
+                            },
+                            ipAddress: inputData.ipAddress ? inputData.ipAddress : "",
+                            isPlayer: true,
+                            isPartner: false,
+                        };
+
+                        // to find partner sms log based on ipAddress
+                        if (isPartner) {
+                            matchQuery.isPlayer = false;
+                            matchQuery.isPartner = true;
+                        }
+                    }
+
+                    return dbconfig.collection_smsLog.aggregate(
+                        {
+                            $match: matchQuery
+                        }, {
+                            $group: {
+                                _id: countData,
+                                count: {$sum: 1}
+                            }
+                        }, {
+                            $project: {
+                                _id: 1,
+                                count: 1,
+                                countLtLimit: {
+                                    $lt: [ "$count", limit]
+                                }
+                            }
+                        }
+                    ).read("secondaryPreferred");
+                }
+
+                return Promise.all([
+                    checkPhoneByMinuteProm,
+                    checkPhoneByHourProm,
+                    checkPhoneByDayProm,
+                    checkIpByMinuteProm,
+                    checkIpByHourProm,
+                    checkIpByDayProm,
+                ]);
+            }
+        ).then(
+            (smsLog) => {
+                if (smsLog) {
+                    let checkPhoneByMinute = smsLog[0] && smsLog[0][0] ? smsLog[0][0] : [];
+                    let checkPhoneByHour = smsLog[1] && smsLog[1][0] ? smsLog[1][0] : [];
+                    let checkPhoneByDay = smsLog[2] && smsLog[2][0] ? smsLog[2][0] : [];
+                    let checkIpByMinute = smsLog[3] && smsLog[3][0] ? smsLog[3][0] : [];
+                    let checkIpByHour = smsLog[4] && smsLog[4][0] ? smsLog[4][0] : [];
+                    let checkIpByDay = smsLog[5] && smsLog[5][0] ? smsLog[5][0] : [];
+
+                    if (checkPhoneByMinute && checkPhoneByMinute._id) {
+                        if (!checkPhoneByMinute.countLtLimit) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
+                            })
+                        }
+                    }
+                    if (checkPhoneByHour && checkPhoneByHour._id) {
+                        if (!checkPhoneByHour.countLtLimit) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
+                            })
+                        }
+                    }
+                    if (checkPhoneByDay && checkPhoneByDay._id) {
+                        if (!checkPhoneByDay.countLtLimit) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
+                            })
+                        }
+                    }
+                    if (checkIpByMinute && checkIpByMinute._id) {
+                        if (!checkIpByMinute.countLtLimit) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
+                            })
+                        }
+                    }
+                    if (checkIpByHour && checkIpByHour._id) {
+                        if (!checkIpByHour.countLtLimit) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
+                            })
+                        }
+                    }
+                    if (checkIpByDay && checkIpByDay._id) {
+                        if (!checkIpByDay.countLtLimit) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
+                            })
+                        }
+                    }
                 }
             }
         ).then(
