@@ -44,6 +44,7 @@ var simplifiedChinese = {
     "Cannot find this downline": "查无此下线",
     "Invalid phone number, unable to call": "此电话号码无效，无法拨打",
     "The current maximum number of callbacks has been reached. Please try later or contact customer service": "已达到当前回电次数上限，请稍后尝试或联系客服",
+    "Send failed, sending SMS frequency is too high, please try again later": "发送失败，发送短信频率过高，请稍后再次尝试",
     "Insuficient financial points": "财务点数不足",
     "Currently no available bank card": "目前无可用银行卡",
     "Currently no available alipay": "目前无可用支付宝",

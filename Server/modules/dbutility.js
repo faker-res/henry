@@ -692,9 +692,29 @@ var dbUtility = {
         }
     },
 
+    getSGTimeCurrentMinuteInterval: function (date) {
+        let startTime = moment(date).tz('Asia/Singapore').startOf("minute").toDate();
+        let endTime = moment(date).tz('Asia/Singapore').endOf("minute").toDate();
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        }
+    },
+
     getSGTimeCurrentHourInterval: function (date) {
         let startTime = moment(date).tz('Asia/Singapore').startOf("hour").toDate();
         let endTime = moment(date).tz('Asia/Singapore').endOf("hour").toDate();
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        }
+    },
+
+    getSGTimeCurrentDayInterval: function (date) {
+        let startTime = moment(date).tz('Asia/Singapore').startOf("day").toDate();
+        let endTime = moment(date).tz('Asia/Singapore').endOf("day").toDate();
 
         return {
             startTime: startTime,
