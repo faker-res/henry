@@ -5327,6 +5327,7 @@ let dbPlayerReward = {
         let selectedRewardParam;
         let bonusAmount = 0;
         let playerBonusDoubledRewardGroupRecord;
+        let consumptionRecordList;
         let todayTime = dbUtility.getTodaySGTime();
 
         // Set reward param for player level to use
@@ -5361,7 +5362,11 @@ let dbPlayerReward = {
 
                     return dbConfig.collection_playerConsumptionRecord.aggregate([
                         {$match: matchQuery},
-                        {$group: {_id: "$providerId",  bonusAmount: {$sum: "$bonusAmount"},}}
+                        {$group: {
+                            _id: "$providerId",
+                            bonusAmount: {$sum: "$bonusAmount"},
+                            consumptionRecordList: {$addToSet: "$_id"},
+                        }}
                     ]).read("secondaryPreferred");
                 }
                 else{
@@ -5375,6 +5380,7 @@ let dbPlayerReward = {
             consumptionRecord => {
                 if (consumptionRecord && consumptionRecord.length && playerBonusDoubledRewardGroupRecord && selectedRewardParam){
                     bonusAmount = Math.abs(consumptionRecord[0].bonusAmount);
+                    consumptionRecordList = consumptionRecord[0].consumptionRecordList;
                     let transferInAmount = playerBonusDoubledRewardGroupRecord.transferInAmount;
                     let rate = bonusAmount/transferInAmount;
                     let rewardAmount;
@@ -5394,9 +5400,8 @@ let dbPlayerReward = {
                             message: "not eligible to obtain the reward bonus"
                         });
                     }
-
-                    return {selectedRewardParam: selectedRewardParam, record: playerBonusDoubledRewardGroupRecord, winLoseAmount: bonusAmount};
                 }
+                return {selectedRewardParam: selectedRewardParam, record: playerBonusDoubledRewardGroupRecord, consumptionRecordList: consumptionRecordList, winLoseAmount: bonusAmount};
             }
         )
     },

@@ -19653,6 +19653,8 @@ define(['js/app'], function (myApp) {
                 result = $translate(val);
             } else if (fieldName === 'definePlayerLoginMode') {
                 result = $translate($scope.playerLoginMode[val]);
+            } else if (fieldName === 'rewardInterval') {
+                result = $translate($scope.rewardInterval[val]);
             }
             return $sce.trustAsHtml(result);
         };
