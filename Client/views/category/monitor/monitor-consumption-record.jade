@@ -1,0 +1,33 @@
+div
+    div
+        label &nbsp;
+        button.btn.btn-success(ng-click='vm.refreshConsumptionRecord(true)') {{'Refresh' | translate}}
+        span#consumptionRecordSpin.collapse
+            i.fa.fa-spinner.fa-spin
+    div.clearfix
+        .proposalMessage
+            text {{'LAST_REFRESH_TIME' | translate}}  : {{vm.lastConsumptionRefresh}}
+            label.text-danger.newProposalAlert
+            a(ng-click='vm.searchConsumptionRecord()')
+                .fa.fa-refrestimeLeftRefreshOperationh
+            .pull-right
+                label.inlineBlk.pull-right {{'Auto Refresh' | translate}}
+                    input#autoRefreshConsumptionFlag.margin-left-5(type='checkbox', checked)
+                .inlineBlk.hidden
+                    text {{"Time left until next refresh" | translate}} :&nbsp;
+                    text#timeLeftRefreshOperation {{vm.refreshTime}}
+                    text s
+    #consumptionRecordMonitor.block-query.col-md-12.well
+        table.simple-table
+            thead
+                tr
+                    th(width="10%") {{'Delay Status' | translate}}
+                    th(width="30%") {{'Game Type' | translate}}
+                    th(width="40%") {{'Latest Recorded Time' | translate}}
+            tbody
+                tr(ng-repeat='timeRecord in vm.providerLatestTimeRecord')
+                    td(style='text-align: center')
+                        div(style="color: {{timeRecord.delayStatusColor}}")
+                            i.fa.fa-lg.fa-circle
+                    td(style='text-align: center') {{timeRecord.gameProviderName}}
+                    td(style='text-align: center') {{timeRecord.createTime}}

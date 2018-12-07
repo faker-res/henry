@@ -20,6 +20,12 @@
                             a.list-group-item(class="{{vm.seleDataType.PAYMENT_MONITOR_TOTAL}}", ng-if="checkViewPermission('Monitor', 'Payment', 'Read')",href="/monitor/paymentTotal", ng-click="vm.showPlatformList = false;vm.loadPage('PAYMENT_MONITOR_TOTAL');")
                                 text {{'PAYMENT_MONITOR_TOTAL' | translate}}
 
+                            a.list-group-item(class="{{vm.seleDataType.CONSUMPTION_RECORD_MONITOR}}", ng-if="checkViewPermission('Monitor', 'ConsumptionRecord', 'Read')",href="/monitor/consumptionRecord", ng-click="vm.showPlatformList = false; vm.loadPage('CONSUMPTION_RECORD_MONITOR');")
+                                text {{'CONSUMPTION_RECORD_MONITOR' | translate}}
+
+                            a.list-group-item(class="{{vm.seleDataType.ATTEMPT_CREATE_MONITOR}}", ng-if="checkViewPermission('Monitor', 'AttemptCreate', 'Read')",href="/monitor/attemptCreate", ng-click="vm.showPlatformList = false; vm.loadPage('ATTEMPT_CREATE_MONITOR');")
+                                text {{'ATTEMPT_CREATE_MONITOR' | translate}}
+
             .panel.panel-default
                 .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#monitorCategory", href='#wechatMonitor')
                     h4.panel-title

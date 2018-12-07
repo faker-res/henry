@@ -878,8 +878,23 @@ db.rewardParam.update({
                     type: "datetimePeriod",
                     des: "Period show reward",
                     value: [{startDate: "", startTime: "", endDate: "", endTime: ""}]
+                },
+                checkSameIP: {
+                    index: 27,
+                    type: "checkbox",
+                    des: "Check if this IP address has received the reward"
+                },
+                checkSamePhoneNumber: {
+                    index: 28,
+                    type: "checkbox",
+                    des: "Check if this phone number has received the reward"
+                },
+                checkSameDeviceId: {
+                    index: 29,
+                    type: "checkbox",
+                    des: "Check if this portable device has received the reward",
+                    detail: "Check the IMEI value/unique code of each handset when applying through APP"
                 }
-
             }
         },
         param: {
@@ -1100,7 +1115,7 @@ db.rewardParam.update({
                     detail: "Reward settlement will be triggered when there is a transferring-out process, after applying this reward"
                 },
             }),
-            topUpCond: topUpCond,
+            // topUpCond: topUpCond,
             periodCond: periodCond,
             consumptionCond: consumptionCond,
             // dynamicCond: dynamicCond,
@@ -1161,7 +1176,7 @@ db.rewardParam.update({
                 isMultiStepReward: {type: "checkbox", des: "Is multi step reward"},
                 rewardParam: {
                     multiplier: {type: "number", des: "Multiplier setting"},
-                    rewardPercentage: {type: "number", des: "Reward% (fill in accordingly with the multiplier)"},
+                    rewardPercentage: {type: "percentage", des: "Reward% (fill in accordingly with the multiplier)"},
                     maxRewardAmountInSingleReward: {type: "number", des: "Max Reward Amount In Single Reward"},
                     spendingTimes: {type: "number", des: "Spending times on reward"},
                     forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},

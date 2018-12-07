@@ -64,6 +64,15 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.getTSPhoneListName, [data], actionName, isValidData);
         },
 
+        getRecycleBinTsPhoneList: function getRecycleBinTsPhoneList(data){
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform && data.startTime && data.endTime);
+            let index = data.index || 0;
+            let limit = data.limit || 10;
+            let sortCol = data.sortCol || {"createTime": -1};
+            socketUtil.emitter(self.socket, dbTeleSales.getRecycleBinTsPhoneList, [data.platform, data.startTime, data.endTime, data.status, data.name, index, limit, sortCol], actionName, isValidData);
+        },
+
         createTsPhoneFeedback: function createTsPhoneFeedback(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.tsPhone && data.tsPhoneList && data.platform && data.adminId);
@@ -130,6 +139,12 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.getTsAssignees, [data.tsPhoneListObjId], actionName, isValidData);
         },
 
+        getTsAssigneesCount: function getTsAssigneesCount(data){
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query);
+            socketUtil.emitter(self.socket, dbTeleSales.getTsAssigneesCount, [data.query], actionName, isValidData);
+        },
+
         updateTsAssignees: function updateTsAssignees(data){
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.assignees && data.assignees.length > 0);
@@ -164,6 +179,17 @@ function socketActionTeleSales(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformObjId && data.phoneListObjIds && data.startTime && data.endTime && data.adminObjIds);
             socketUtil.emitter(self.socket, dbTeleSales.getTsWorkloadReport, [data.platformObjId, data.phoneListObjIds, data.startTime, data.endTime, data.adminObjIds], actionName, isValidData);
+        },
+
+        bulkSendSmsToFailCallee: function bulkSendSmsToFailCallee(data) {
+            let actionName = arguments.callee.name;
+            let adminObjId = getAdminId();
+            let adminName = getAdminName();
+            let isValidData = Boolean(data && data.tsPhoneDetails && data.channel != null && data.platformId != null  && data.message && adminObjId && adminName);
+            if (data) {
+                data.delay = data.delay || 0;
+            }
+            socketUtil.emitter(self.socket, dbTeleSales.bulkSendSmsToFailCallee, [adminObjId, adminName, data, data.tsPhoneDetails], actionName, isValidData);
         },
 
         getTsPlayerRetentionAnalysis: function getTsPlayerRetentionAnalysis(data) {

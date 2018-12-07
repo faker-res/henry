@@ -785,7 +785,7 @@ define(['js/app'], function (myApp) {
             }
             //search platform by name
             vm.getAllDepartmentData = function (callback) {
-                if (!authService.checkViewPermission('Platform', 'Platform', 'Read')) {
+                if (!authService.checkViewPermission('Platform', 'PlatformSetting', 'Read')) {
                     return;
                 }
                 socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
@@ -6960,6 +6960,7 @@ define(['js/app'], function (myApp) {
                             commissionSettingIsEditAll: vm.getCommissionSettingIsEditAll,
                             commissionSettingCancelRow: vm.commissionSettingCancelRow,
                             selectedCommissionTab: vm.selectedCommissionTab,
+                            switchCommissionTab: vm.switchCommissionTab,
                             customizeCommissionRate: vm.customizeCommissionRate,
                             customizeCommissionRateAll: vm.customizeCommissionRateAll,
                             isDetectChangeCustomizeCommissionRate: vm.isDetectChangeCustomizeCommissionRate,
@@ -10812,10 +10813,8 @@ define(['js/app'], function (myApp) {
                         vm.partnerCommission.showConfig = {};
                         vm.partnerCommission.showConfig.commissionSetting = [];
                         vm.commissionSettingNewRow(vm.partnerCommission.showConfig.commissionSetting);
-
                     }
-
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 });
             }
 
@@ -10835,9 +10834,19 @@ define(['js/app'], function (myApp) {
                 }
             }
 
+            vm.switchCommissionTab = function(tab, commissionType ){
+                let partnerObjId;
+                let partner = vm.isOneSelectedPartner();
+                let partnerCommissionType = (partner && partner.commissionType) ? partner.commissionType : null;
+                if(commissionType == partnerCommissionType){
+                    // only load the partner commission setting, if it match partner commissionType
+                    partnerObjId = partner._id;
+                }
+                vm.selectedCommissionTab(tab, partnerObjId);
+            }
+
             vm.selectedCommissionTab = function (tab, partnerObjId) {
                 let isGetConfig = true;
-
                 vm.commissionSettingTab = tab ? tab : 'DAILY_BONUS_AMOUNT';
                 vm.partnerCommission.isEditing = false;
                 vm.partnerCommission.isCustomized = false;

@@ -453,8 +453,14 @@ let playerConsumptionSlipRewardGroupRecordModel = dbLogs2.model('playerConsumpti
 let playerRetentionRewardGroupRecordSchema = require('./../schema/logs2/playerRetentionRewardGroupRecord');
 let playerRetentionRewardGroupRecordModel = dbLogs2.model('playerRetentionRewardGroupRecord', playerRetentionRewardGroupRecordSchema, 'playerRetentionRewardGroupRecord');
 
+let playerBonusDoubledRewardGroupRecordSchema = require('./../schema/logs2/playerBonusDoubledRewardGroupRecord');
+let playerBonusDoubledRewardGroupRecordModel = dbLogs2.model('playerBonusDoubledRewardGroupRecord', playerBonusDoubledRewardGroupRecordSchema, 'playerBonusDoubledRewardGroupRecord');
+
 let actionLogSchema = require('./../schema/logs2/actionLog');
 let actionLogModel = dbLogs2.model('actionLog', actionLogSchema, 'actionLog');
+
+let callBackToUserLogSchema = require('./../schema/logs2/callBackToUserLog');
+let callBackToUserLogModel = dbLogs2.model('callBackToUserLog', callBackToUserLogSchema, 'callBackToUserLog');
 
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
@@ -607,6 +613,7 @@ var dbProperties = {
     collection_dxPhone: dxPhoneModel,
     collection_playerConsumptionSlipRewardGroupRecord: playerConsumptionSlipRewardGroupRecordModel,
     collection_playerRetentionRewardGroupRecord: playerRetentionRewardGroupRecordModel,
+    collection_playerBonusDoubledRewardGroupRecord: playerBonusDoubledRewardGroupRecordModel,
 
     collection_largeWithdrawalSetting: largeWithdrawalSettingModel,
     collection_largeWithdrawalPartnerSetting: largeWithdrawalPartnerSettingModel,
@@ -614,6 +621,7 @@ var dbProperties = {
     collection_partnerLargeWithdrawalLog: partnerLargeWithdrawalLogModel,
 
     collection_actionLog: actionLogModel,
+    collection_callBackToUserLog: callBackToUserLogModel,
 
     collection_csOfficer: csOfficerModel,
     collection_csOfficerUrl: csOfficerUrlModel,

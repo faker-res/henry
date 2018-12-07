@@ -17,6 +17,7 @@ const dbProposalUtil = require('../db_common/dbProposalUtility');
 const dbPlayerConsumptionWeekSummary = require('./../db_modules/dbPlayerConsumptionWeekSummary');
 const dbGameType = require('../db_modules/dbGameType');
 const dbPropUtil = require('./../db_common/dbProposalUtility');
+const moment = require('moment-timezone');
 
 let cpmsAPI = require("../externalAPI/cpmsAPI");
 let SettlementBalancer = require('../settlementModule/settlementBalancer');
@@ -256,6 +257,11 @@ var dbRewardEvent = {
                                         rewardAmount: ximaData.totalAmount? ximaData.totalAmount: 0,
                                         betTimes: ximaData.event && ximaData.event.param && ximaData.event.param.consumptionTimesRequired? ximaData.event.param.consumptionTimesRequired: 0,
                                     };
+
+                                    returnData.code = rewardEvent.code || null;
+                                    returnData.eventName = rewardEvent.name || null;
+                                    returnData.rewardType = rewardEvent.type && rewardEvent.type.name ? rewardEvent.type.name : null;
+
                                     delete ximaData.totalAmount;
                                     delete ximaData.totalConsumptionAmount;
                                     delete ximaData.event;
@@ -652,8 +658,9 @@ var dbRewardEvent = {
         if (eventData.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP) {
             if (rewardData && rewardData.selectedTopup) {
                 selectedTopUp = rewardData.selectedTopup;
-                applyAmount = rewardData.selectedTopup.amount;
-
+                // oriAmount: the topup amount; amount: the topup amount - service charge
+                // when applying reward, check the oriAmount, not the amount
+                applyAmount = rewardData.selectedTopup.oriAmount || rewardData.selectedTopup.amount;
                 let withdrawPropQuery = {
                     'data.platformId': playerData.platform._id,
                     'data.playerObjId': playerData._id,
@@ -705,7 +712,9 @@ var dbRewardEvent = {
 
             if (rewardData && rewardData.selectedTopup) {
                 selectedTopUp = rewardData.selectedTopup;
-                applyAmount = rewardData.selectedTopup.amount;
+                // oriAmount: the topup amount; amount: the topup amount - service charge
+                // when applying reward, check the oriAmount, not the amount
+                applyAmount = rewardData.selectedTopup.oriAmount || rewardData.selectedTopup.amount;
 
                 if (eventData.condition && eventData.condition.allowOnlyLatestTopUp){
                     //will check is there consumption or withdrawal after the latestTopUp

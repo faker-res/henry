@@ -170,6 +170,7 @@ var PaymentServiceImplement = function () {
        
         let lastLoginIp = dbUtility.getIpAddress(conn);
         var isValidData = Boolean(data && conn.playerId && data.amount && data.amount > 0 && data.alipayName && Number.isInteger(data.amount) && data.amount < 10000000);
+        console.log("LH Check Alipay Topup 1---------------", conn.playerId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerTopUpRecord.requestAlipayTopup, [data.userAgent, conn.playerId, data.amount, data.alipayName, data.alipayAccount,
             data.bonusCode, "CLIENT", null, null, null, null, data.realName, data.limitedOfferObjId, data.topUpReturnCode, data.bPMSGroup, lastLoginIp], isValidData);
     };

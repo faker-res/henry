@@ -63,12 +63,25 @@ div(ng-show="vm.curPlatformText")
         div
             label &nbsp;
             button.btn.btn-primary.common-button(ng-click="vm.searchAdminPhoneList(true);") {{'SEARCH' | translate}}
+            button.btn.btn-primary.common-button(ng-if="vm.ctiData.hasOnGoingMission && !vm.showFinishCalloutMissionButton",ng-click='vm.toggleCallOutMissionStatus()') {{"Pause/Resume Mission" | translate}}
+            button.btn.btn-primary.common-button(ng-if="vm.ctiData.hasOnGoingMission && !vm.showFinishCalloutMissionButton",ng-click='vm.stopCallOutMission()') {{"Stop Mission" | translate}}
+            //button.btn.btn-warning.common-button(ng-if="vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.initBulkAddPlayerFeedback()') {{"Failed Call Player Feedback" | translate}}
+            button.btn.btn-warning.common-button(ng-if="vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.initBulkSMSToFailCallee()') {{"Bulk SMS to Failed Callee" | translate}}
+            button.btn.btn-success.common-button(ng-if="vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.endCallOutMission()') {{"Finish Mission" | translate}}
             span#adminPhoneListTableSpin.collapse
                 i.fa.fa-spinner.fa-spin
     .clearfix
-    label {{"Total" | translate}} {{vm.queryAdminPhoneList.totalCount}} {{"records" | translate}}
-    table.common-table#adminPhoneListTable.display(style="width:100%;overflow: scroll;max-height:700px")
-    #adminPhoneListTablePage
+    div
+        .inlineBlk
+            label {{"Total" | translate}} {{vm.queryAdminPhoneList.totalCount}} {{"records" | translate}}
+        .inlineBlk
+            .btn.btn-primary(ng-click="vm.createCallOutMission()" ng-if="!vm.ctiData.hasOnGoingMission") {{"BULK_CALL" | translate}}
+        .inlineBlk
+            label.inlineBlk(ng-show='vm.ctiData.hasOnGoingMission') {{vm.callOutMissionStatus}}
+            label.inlineBlk(ng-show='vm.ctiData.hasOnGoingMission') {{vm.ctiData.adminName}} : {{vm.callOutMissionStatusText}}  /  {{"Completed" | translate}} : ({{vm.callOutMissionProgressText}})
+    div
+        table.common-table#adminPhoneListTable.display(style="width:100%;overflow: scroll;max-height:700px")
+        #adminPhoneListTablePage
 
 
 

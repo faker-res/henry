@@ -4092,8 +4092,13 @@ var dbPlatform = {
         }
     },
 
-    callBackToUser: (platformId, phoneNumber, randomNumber, captcha, lineId, playerId) => {
+    callBackToUser: (platformId, phoneNumber, randomNumber, captcha, lineId, playerId, ipAddress) => {
         let platform, url, platformString;
+        let playerData;
+        let blackWhiteListingConfig;
+        let timeNow = new Date();
+        let hourNow = dbUtility.getSGTimeCurrentHourInterval(timeNow);
+
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platformData => {
                 if (!platformData) {
@@ -4128,7 +4133,7 @@ var dbPlatform = {
 
                 let stringProm = getPlatformStringForCallback(platformStringArray, playerId, lineId);
                 let playerProm = null;
-                if(playerId){
+                if (playerId) {
                     playerProm = dbconfig.collection_players.findOne({playerId: playerId}).lean();
                 }
                 let blackWhiteListingProm = dbPlatform.getBlackWhiteListingConfig(platform._id);
@@ -4136,24 +4141,59 @@ var dbPlatform = {
             }
         ).then(
             data => {
-                platformString = data&&data[0] ? data[0] : "";
-                let playerData = data[1];
-                let blackWhiteListingConfig = data[2];
+                if (data) {
+                    platformString = data[0] ? data[0] : "";
+                    playerData = data[1] ? data[1] : "";
+                    blackWhiteListingConfig = data[2] ? data[2] : "";
 
-                if( !phoneNumber || (phoneNumber && phoneNumber.indexOf("*") > 0) ){
-                    phoneNumber = data&&data[1] ? data[1].phoneNumber : phoneNumber;
-                }
-
-                if (blackWhiteListingConfig && blackWhiteListingConfig.blackListingCallRequestIpAddress && playerData && playerData.lastLoginIp) {
-                    let indexNo = blackWhiteListingConfig.blackListingCallRequestIpAddress.findIndex(p => p.toString() === playerData.lastLoginIp.toString());
-
-                    if (indexNo > -1) {
-                        return Promise.reject({
-                            status: constServerCode.BLACKLIST_IP,
-                            name: "DBError",
-                            message: localization.localization.translate("Invalid phone number, unable to call")
-                        });
+                    if (!phoneNumber || (phoneNumber && phoneNumber.indexOf("*") > 0)) {
+                        phoneNumber = data && data[1] ? data[1].phoneNumber : phoneNumber;
                     }
+
+                    if (blackWhiteListingConfig && blackWhiteListingConfig.blackListingCallRequestIpAddress && ipAddress) {
+                        let indexNo = blackWhiteListingConfig.blackListingCallRequestIpAddress.findIndex(p => p.toString() === ipAddress.toString());
+                        if (indexNo > -1) {
+                            return Promise.reject({
+                                status: constServerCode.BLACKLIST_IP,
+                                name: "DBError",
+                                message: localization.localization.translate("Invalid phone number, unable to call")
+                            });
+                        }
+                    }
+
+                    let callBackToUserLogProm = Promise.resolve(true);
+                    callBackToUserLogProm = dbconfig.collection_callBackToUserLog.aggregate(
+                        {
+                            $match: {
+                                createTime: {
+                                    $gte: hourNow.startTime,
+                                    $lte: hourNow.endTime
+                                },
+                                platform: platform._id,
+                                // player: playerData._id,
+                                ipAddress: ipAddress
+                            }
+                        }, {
+                            $group: {
+                                _id: "$ipAddress",
+                                count: {$sum: 1}
+                            }
+                        }
+                    ).read("secondaryPreferred");
+
+                    return Promise.all([callBackToUserLogProm]);
+                }
+            }
+        ).then(
+            data => {
+                let callBackToUserLog = data && data[0] && data[0][0] ? data[0][0] : "";
+
+                if (callBackToUserLog && callBackToUserLog.count && platform  && platform.callRequestLimitPerHour && callBackToUserLog.count >= platform.callRequestLimitPerHour) {
+                    return Promise.reject({
+                        status: constServerCode.INVALID_DATA,
+                        name: "DataError",
+                        message: localization.localization.translate("The current maximum number of callbacks has been reached. Please try later or contact customer service")
+                    });
                 }
 
                 url = platform.callRequestUrlConfig;
@@ -4174,7 +4214,15 @@ var dbPlatform = {
                         if (err) {
                             reject({code: constServerCode.EXTERNAL_API_FAILURE, message: err});
                         } else {
-                            console.log('callBackToUser API output:', body);
+                            let newLog = {
+                                platform: platform._id,
+                                player: playerData && playerData._id ? playerData._id : "",
+                                ipAddress: ipAddress
+                            };
+
+                            // add new log
+                            dbconfig.collection_callBackToUserLog(newLog).save().catch(errorUtils.reportError);
+
                             let bodyJson = body.replace("jsonp1(", "").replace(")", "").replace(/'/g, '"');
                             try {
                                 bodyJson = JSON.parse(String(bodyJson));

@@ -18,9 +18,7 @@
                 #phoneListEndTimePicker
             .search-filter.col-md-3(style="padding-top: 25px;")
                 label.control-label
-                //button#resetPlayerQuery.btn.btn-primary.common-button-sm {{'Reset' | translate}}
-                //button#searchPhoneListManagement.btn.btn-primary.common-button-sm(ng-click="vm.filterPhoneListManagement();") {{'SEARCH' | translate}}
-                button#searchPhoneListManagement.btn.btn-primary.common-button-sm(ng-click="vm.showPhoneListManagement(true);") {{'SEARCH' | translate}}
+                button#searchPhoneListManagement.btn.btn-primary.common-button-sm(ng-click="vm.filterPhoneListManagement(true);") {{'SEARCH' | translate}}
     .col-md-12(ng-show="vm.curPlatformText")
         div
             table#phoneListManagementTable.common-table.display(style="min-width:100% ;overflow: scroll")
@@ -109,117 +107,6 @@
                                     .panel.panel-default
                                         label(ng-show='!vm.allRetentionLineData || vm.allRetentionLineData.length==0') Please select a date at left.
                                         #line-playerRetention.lineChart(style='height:100%;')
-
-//ModaltsAnalyticsPhoneList
-#modaltsAnalyticsPhoneList.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
-        .modal-content
-            .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"FILTER_THEN_IMPORT_XLS_TS" | translate}}
-            .modal-body
-                .panel.panel-primary
-                    .panel-body
-                        .row
-                            .col-md-12
-                                .well
-                                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%;white-space:normal;')
-                                        thead
-                                            tr
-                                                th {{'FIELD' | translate}}
-                                                th {{'CONTENT' | translate}}
-                                        tbody
-                                            tr
-                                                td {{'Name Of List (Required) (Unique)' | translate}}
-                                                td
-                                                    input.form-control(type='text', ng-model='vm.tsAnalyticsPhoneList.name' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsdisableAll')
-                                            tr
-                                                td {{'Feedback Result Of Default Failure System Call (Required)' | translate}}
-                                                td
-                                                    select.form-control(ng-model='vm.tsAnalyticsPhoneList.failFeedBackResult',  ng-options='v.key as v.value for (i,v) in vm.allPlayerFeedbackResults' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsPhoneListEdit')
-                                            tr
-                                                td {{'Feedback Topic Of Default Failure System Call (Required)' | translate}}
-                                                td
-                                                    select.form-control(ng-model='vm.tsAnalyticsPhoneList.failFeedBackTopic',  ng-options='v.key as v.value for (i,v) in vm.playerFeedbackTopic' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsPhoneListEdit')
-                                            tr
-                                                td {{'Feedback Content Of Default Failure System Call (Required)' | translate}}
-                                                td
-                                                    input.form-control(type='text', ng-model='vm.tsAnalyticsPhoneList.failFeedBackContent' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsPhoneListEdit')
-                                            tr
-                                                td {{'Assign To N Caller For Each Unregistered Phone Number (Required)' | translate}}
-                                                td
-                                                    input.form-control(type='number', min=0, ng-model='vm.tsAnalyticsPhoneList.callerCycleCount' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsPhoneListEdit')
-                                            tr
-                                                td {{'Daily Distribute Task Count Equally Divide For Each Caller (Required)' | translate}}
-                                                td
-                                                    input.form-control(type='number', min=0, ng-model='vm.tsAnalyticsPhoneList.dailyCallerMaximumTask' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsPhoneListEdit')
-                                            tr
-                                                td {{'Daily Distribute Task Time (Required)' | translate}}
-                                                td
-                                                    #tsAnalyticsTimePicker.datetimepicker.form-control
-                                                        input.input-append.playerDate(style='border:0;', data-format="hh:mm:ss", type='text' ng-disabled='vm.analyticsPhoneListEdit')
-                                                        span.add-on
-                                                            i.fa-clock-o.fa(data-time-icon='fa fa-clock-o' ng-show='!vm.analyticsPhoneListEdit')
-                                            tr
-                                                td {{'Distribute Task Start Date (Required)' | translate}}
-                                                td
-                                                    #tsAnalyticsDatePicker.datetimepicker.form-control
-                                                        input.input-append.playerDate(style='border:0;', data-format="dd/MM/yyyy", type='text' ng-disabled='vm.analyticsdisableAll')
-                                                        span.add-on
-                                                            i.fa-calendar.fa(data-date-icon='fa fa-calendar' ng-show='!vm.analyticsdisableAll')
-                                            tr
-                                                td {{'Reclaim Task After X Days And Re-assign Task (Required)' | translate}}
-                                                td
-                                                    input.form-control(type='number', min=0, ng-model='vm.tsAnalyticsPhoneList.reclaimDayCount' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsPhoneListEdit')
-                                            tr
-                                                td {{'Zone Will Not Be Call' | translate}}
-                                                td
-                                                    table.common-table.playerLvlTable
-                                                        thead
-                                                            tr
-                                                                th(style="width:50%") {{"CITY" | translate}}
-                                                                th(style="width:50%") {{"PROVINCE" | translate}}
-                                                                th
-                                                        tbody
-                                                            tr(ng-repeat='(i, v) in vm.tsAnalyticsPhoneList.dangerZoneList')
-                                                                td
-                                                                    select.form-control(ng-model='vm.tsAnalyticsPhoneList.dangerZoneList[i].province',  ng-options='i as i for (i, v) in constPhoneArea' ng-disabled='vm.analyticsPhoneListEdit')
-                                                                td
-                                                                    select.form-control(ng-model='vm.tsAnalyticsPhoneList.dangerZoneList[i].city',  ng-options='val as val for (n, val) in constPhoneArea[vm.tsAnalyticsPhoneList.dangerZoneList[i].province]' ng-disabled='vm.analyticsPhoneListEdit')
-                                                                td
-                                                                    i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.tsAnalyticsPhoneList.dangerZoneList, $index)'  ng-disabled='vm.analyticsPhoneListEdit')
-                                                            tr(ng-show="!vm.analyticsPhoneListEdit")
-                                                                td(colspan=3) {{'ADD' | translate}}
-                                                            tr(ng-show="!vm.analyticsPhoneListEdit")
-                                                                td
-                                                                    select.form-control(ng-model='vm.tsAnalyticsProvince',  ng-options='i as i for (i, v) in constPhoneArea' ng-disabled='vm.analyticsPhoneListEdit')
-                                                                td
-                                                                    select.form-control(ng-model='vm.tsAnalyticsCity',  ng-options='val as val for (n, val) in constPhoneArea[vm.tsAnalyticsProvince]' ng-disabled='vm.analyticsPhoneListEdit')
-                                                                td
-                                                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.tsAnalyticsPhoneList.dangerZoneList, {province: vm.tsAnalyticsProvince, city: vm.tsAnalyticsCity}); vm.resetAnalyticsProvince();' ng-show='vm.tsAnalyticsProvince && vm.tsAnalyticsCity' ng-disabled='vm.analyticsPhoneListEdit')
-                                            tr
-                                                td {{'Filter Phone Number From White List And Recycle Bin' | translate}}
-                                                td
-                                                    input(type='checkbox', min=0, ng-model='vm.tsAnalyticsPhoneList.isCheckWhiteListAndRecycleBin' ng-disabled='vm.analyticsdisableAll')
-                                            tr(ng-repeat='(i,v) in vm.tsAnalyticsPhoneList.time_operator_description track by $index')
-                                                td {{'Time/Operator/Description' | translate}}
-                                                td
-                                                    text.form-control {{vm.tsAnalyticsPhoneList.time_operator_description[i].importTime | date : 'yyyy-MM-dd HH:mm:ss'}}  {{" - " + vm.tsAnalyticsPhoneList.time_operator_description[i].adminName + " - " + vm.tsAnalyticsPhoneList.time_operator_description[i].description}}
-
-            .modal-footer
-                div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px')
-                button.btn.btn-success.common-button(data-dismiss='modal'  ng-click="vm.editTsNewList()" ng-disabled="vm.checkFilterIsDisable" ng-show="!vm.analyticsPhoneListEdit")
-                    i.fa.fa-check
-                    text {{"CONFIRM" | translate}}
-                button.btn.btn-danger.common-button(data-dismiss='modal' ng-show="vm.analyticsPhoneListEdit")
-                    i.fa.fa-ban
-                    text {{"CANCEL" | translate}}
-                button.btn.btn-warning.common-button(ng-click = "vm.analyticsPhoneListEdit = true;vm.cancelEditTsAnalyticsPhoneList()"  ng-show="!vm.analyticsPhoneListEdit")
-                    i.fa.fa-ban
-                    text {{"CANCEL" | translate}}
-                button.btn.btn-primary.common-button(ng-click="vm.tsAnalyticsPhoneListEdit()" ng-show="vm.analyticsPhoneListEdit")
-                    i.fa.fa-pencil-square-o
-                    text {{'EDIT' | translate}}
 
 
 //.col-md-12

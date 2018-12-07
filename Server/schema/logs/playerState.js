@@ -12,6 +12,8 @@ let playerStateSchema = new Schema({
     lastApplyLevelUpReward: {type: Date, default: new Date()},
     // Last wechat top up
     lastWechatTopUp: {type: Date, default: new Date()},
+    // Last alipay top up
+    lastAlipayTopUp: {type: Date, default: new Date()},
     // Last manual top up
     lastManualTopUp: {type: Date, default: new Date()},
     // Last generate promo code reward

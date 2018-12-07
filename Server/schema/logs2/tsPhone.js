@@ -41,7 +41,7 @@ let tsPhoneSchema = new Schema({
     // been top up multiple times
     isMultipleTopUp: {type: Boolean, default:false, index: true},
     // is valid player
-    isValidPlayer: {type: Boolean, default:false, index: true},
+    // isValidPlayer: {type: Boolean, default:false, index: true},
 
 });
 

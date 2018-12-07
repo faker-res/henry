@@ -10,6 +10,17 @@ const constRewardType = require('./../const/constRewardType');
 const constServerCode = require('./../const/constServerCode');
 
 const dbRewardUtility = {
+    // region Reward operation
+    findStartedRewardTaskGroup: (platformObjId, playerObjId) => {
+        return dbConfig.collection_rewardTaskGroup.findOne({
+            platformId: platformObjId,
+            playerId: playerObjId,
+            status: {$in: [constRewardTaskStatus.STARTED]}
+        }).lean();
+    },
+
+    // endregion
+
     // region Reward Time
     getRewardEventIntervalTime: (rewardData, eventData, isNewDefineHalfMonth) => {
         let todayTime = rewardData.applyTargetDate ? dbUtil.getTargetSGTime(rewardData.applyTargetDate) : dbUtil.getTodaySGTime();
@@ -43,6 +54,24 @@ const dbRewardUtility = {
         }
 
         return intervalTime;
+    },
+
+    isRewardValidNow: (eventData) => {
+        let isValid = true;
+
+        if (eventData) {
+            let dateNow = Date.now();
+
+            if (eventData.validStartTime && eventData.validStartTime.getTime() > dateNow) {
+                isValid = false;
+            }
+
+            if (eventData.validEndTime && eventData.validEndTime.getTime() < dateNow) {
+                isValid = false;
+            }
+        }
+
+        return isValid;
     },
 
     /**
@@ -551,7 +580,7 @@ const dbRewardUtility = {
 
                 // Check reward apply limit in period
                 if (rewardEvent.condition && rewardEvent.condition.quantityLimitInInterval && rewardEvent.condition.quantityLimitInInterval <= eventInPeriodCount) {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
                         message: "Reward claimed exceed limit, fail to claim reward"
@@ -674,6 +703,8 @@ const dbRewardUtility = {
                     }
                     return dbConfig.collection_proposal.findOne(query).sort({createTime: -1}).lean();
                 }
+
+                return false;
             }
         ).then(
             intentionProp => {

@@ -25,6 +25,7 @@ const constProposalMainType = {
     //BONUS
     "PartnerBonus": constMainType.BONUS,
     "PlayerBonus": constMainType.BONUS,
+    "PlayerFKPWithdraw": constMainType.BONUS,
 
     //REWARD
     "AddPlayerRewardTask": constMainType.REWARD,
@@ -61,6 +62,7 @@ const constProposalMainType = {
     "PlayerConsecutiveRewardGroup": constMainType.REWARD,
     "PlayerConsumptionSlipRewardGroup": constMainType.REWARD,
     "PlayerRetentionRewardGroup": constMainType.REWARD,
+    "PlayerBonusDoubledRewardGroup": constMainType.REWARD,
 
     //UPDATE_PLAYER
     "UpdatePlayerInfo" : constMainType.UPDATE_PLAYER,

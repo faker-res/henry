@@ -85,7 +85,8 @@ const constProposalType = {
     PLAYER_BONUS_DOUBLED_REWARD_GROUP: "PlayerBonusDoubledRewardGroup",
 
     // Third party payment system
-    PLAYER_FKP_TOP_UP: "PlayerFKPTopUp"
+    PLAYER_FKP_TOP_UP: "PlayerFKPTopUp",
+    PLAYER_FKP_WITHDRAW: "PlayerFKPWithdraw"
 };
 
 module.exports = constProposalType;

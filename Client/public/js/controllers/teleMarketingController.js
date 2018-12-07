@@ -32,6 +32,9 @@ define(['js/app'], function (myApp) {
         vm.phoneListSearch = {};
         vm.workloadSearch = {};
         vm.checkFilterIsDisable = true;
+        vm.ctiData = {};
+        vm.isCallOutMissionMode = true;
+        vm.callOutMissionStatusText = "";
 
         vm.updatePageTile = function () {
             window.document.title = $translate("teleMarketing") + "->" + $translate(vm.teleMarketingPageName);
@@ -420,6 +423,7 @@ define(['js/app'], function (myApp) {
                     vm.getPlatformTsListName();
                     break;
                 case 'PHONE_LIST_ANALYSE_AND_MANAGEMENT':
+                    vm.isPhoneListEditable = true;
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#phoneListStartTimePicker', utilService.getNdayagoStartTime(30));
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#phoneListEndTimePicker', utilService.getTodayEndTime());
                     break;
@@ -452,6 +456,22 @@ define(['js/app'], function (myApp) {
                     });
                     break;
                 case 'RECYCLE_BIN':
+                    let phoneListStatus = [vm.constTsPhoneListStatus.PERFECTLY_COMPLETED, vm.constTsPhoneListStatus.FORCE_COMPLETED]
+                    commonService.getTSPhoneListName($scope, {platform: vm.selectedPlatform.id, status: {$in: phoneListStatus}}).then(
+                        data => {
+                            vm.recycleBinPhoneListName = data;
+                            $scope.$evalAsync();
+                        }
+                    )
+                    vm.recycleBinPhoneListSearch = {};
+                    vm.isPhoneListEditable = false;
+                    utilService.actionAfterLoaded("#recycleBinPhoneListTablePage", function () {
+                        commonService.commonInitTime(utilService, vm, 'recycleBinPhoneListSearch', 'startTime', '#recycleBinPhoneListStartTimePicker', utilService.getNdayagoStartTime(30));
+                        commonService.commonInitTime(utilService, vm, 'recycleBinPhoneListSearch', 'endTime', '#recycleBinPhoneListEndTimePicker', utilService.getTodayEndTime());
+                        vm.recycleBinPhoneListSearch.pageObj = utilService.createPageForPagingTable("#recycleBinPhoneListTablePage", {}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "recycleBinPhoneListSearch", vm.filterRecycleBinPhoneList);
+                        });
+                    });
                     break;
                 case 'PHONE_MISSION':
                     vm.initTeleMarketingOverview();
@@ -538,13 +558,24 @@ define(['js/app'], function (myApp) {
             }, true);
         }
 
-        vm.searchAdminPhoneList = function (newSearch) {
-
-            console.log('vm.queryAdminPhoneList', vm.queryAdminPhoneList);
+        vm.createCallOutMission = function () {
             $('#adminPhoneListTableSpin').show();
+            let sendQuery = {};
 
+            sendQuery.platformObjId = vm.selectedPlatform.id;
+            sendQuery.adminObjId = authService.adminId;
+            sendQuery.searchQuery = JSON.stringify(vm.generateAdminPhoneQuery());
+            sendQuery.searchFilter = sendQuery.searchQuery;
+            sendQuery.sortCol = sendQuery.searchQuery.sortCol || {endTime: -1};
 
-            var sendObj = {
+            $scope.$socketPromise("createTsCallOutMission", sendQuery).then(data => {
+                console.log(data);
+                vm.getCtiData();
+            });
+        };
+
+        vm.generateAdminPhoneQuery = (newSearch) => {
+            return {
                 platform: vm.selectedPlatform.id,
                 admin: authService.adminId,
                 phoneListName: vm.queryAdminPhoneList.phoneListName,
@@ -566,8 +597,18 @@ define(['js/app'], function (myApp) {
                 index: newSearch ? 0 : (vm.queryAdminPhoneList.index || 0),
                 limit: vm.queryAdminPhoneList.limit || 10,
                 sortCol: vm.queryAdminPhoneList.sortCol || {assignTimes: 1, endTime: 1}
+            };
+        };
 
+        vm.searchAdminPhoneList = function (newSearch) {
+            console.log('vm.queryAdminPhoneList', vm.queryAdminPhoneList);
+            $('#adminPhoneListTableSpin').show();
+
+            if (vm.isCallOutMissionMode) {
+                return vm.getCtiData(newSearch);
             }
+
+            let sendObj = vm.generateAdminPhoneQuery(newSearch);
 
             socketService.$socket($scope.AppSocket, 'getAdminPhoneList', sendObj, function (data) {
                 $('#adminPhoneListTableSpin').hide();
@@ -707,6 +748,13 @@ define(['js/app'], function (myApp) {
                 ],
                 "paging": false,
                 fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    if(vm.ctiData && vm.ctiData.hasOnGoingMission) {
+                        if(aData.callOutMissionStatus == $scope.constCallOutMissionCalleeStatus.SUCCEEDED) {
+                            $(nRow).addClass('callOutSucceeded');
+                        } else if(aData.callOutMissionStatus == $scope.constCallOutMissionCalleeStatus.FAILED) {
+                            $(nRow).addClass('callOutFailed');
+                        }
+                    }
                     $compile(nRow)($scope);
                 },
                 fnDrawCallback: function (oSettings) {
@@ -911,6 +959,7 @@ define(['js/app'], function (myApp) {
             vm.existRealName = false;
             vm.newPlayer = {};
             vm.newPlayer.gender = "true";
+            vm.newPlayer.tsAssignee = authService.adminId;
             if (tsDistributedPhoneData.tsPhone) {
                 let tsPhoneData = tsDistributedPhoneData.tsPhone;
                 if (tsPhoneData.realName) {
@@ -938,6 +987,9 @@ define(['js/app'], function (myApp) {
                 if (tsPhoneData.dob) {
                     vm.playerDOB.data('datetimepicker').setDate(utilService.getLocalTime(new Date(tsPhoneData.dob)));
                 }
+            }
+            if (tsDistributedPhoneData.tsPhoneList && tsDistributedPhoneData.tsPhoneList._id) {
+                vm.newPlayer.tsPhoneList = tsDistributedPhoneData.tsPhoneList._id;
             }
             vm.duplicateNameFound = false;
             vm.euPrefixNotExist = false;
@@ -1240,7 +1292,8 @@ define(['js/app'], function (myApp) {
         }
 
         vm.createNewPlayer = function () {
-            if (!vm.newPlayer.tsPhone) {
+            // save tsPhone details when create new player
+            if (!(vm.newPlayer.tsPhone && vm.newPlayer.tsPhoneList && vm.newPlayer.tsAssignee)) {
                 return;
             }
             vm.newPlayer.platform = vm.selectedPlatform.id;
@@ -1339,7 +1392,8 @@ define(['js/app'], function (myApp) {
                     nickName: data.tsPhone.nickName || "",
                     platformId: vm.selectedPlatform.data.platformId,
                     channel: $scope.channelList[0],
-                    hasPhone: data.tsPhone.phoneNumber
+                    hasPhone: data.tsPhone.phoneNumber,
+                    platform: vm.selectedPlatform.id
                 }
                 vm.sendSMSResult = {};
                 $scope.safeApply();
@@ -1408,6 +1462,9 @@ define(['js/app'], function (myApp) {
                 vm.autoRefreshTsDistributedPhoneReminder();
                 vm.tsPhoneAddFeedback.content = "";
                 vm.tsPhoneAddFeedback.result = "";
+                if ($scope.tsDistributedPhoneObjId) {
+                    vm.getTsDistributedPhoneDetail($scope.tsDistributedPhoneObjId)
+                }
             });
         };
 
@@ -1439,7 +1496,7 @@ define(['js/app'], function (myApp) {
                 console.log('getTsDistributedPhoneDetail', data);
                 if (data && data.data) {
                     vm.targetedTsDistributedPhoneDetail = data.data;
-                    vm.tsPhoneAddFeedback = vm.targetedTsDistributedPhoneDetail.tsPhone;
+                    vm.tsPhoneAddFeedback = {tsPhone: vm.targetedTsDistributedPhoneDetail.tsPhone};
                     $scope.$evalAsync();
                 }
             }).done();
@@ -6062,6 +6119,31 @@ define(['js/app'], function (myApp) {
                         });
                     }
                 })
+
+                vm.tsAnalyticsPhoneListMaxCaller = null; // reset max caller count
+                if (rowData.status == vm.constTsPhoneListStatus.HALF_COMPLETE) {
+                    vm.disableAnalyticsPhoneListEdit = true;
+                } else {
+                    vm.disableAnalyticsPhoneListEdit = false;
+                }
+
+                if (rowData.status == vm.constTsPhoneListStatus.DISTRIBUTING || rowData.status == vm.constTsPhoneListStatus.MANUAL_PAUSED) {
+                    let sendData = {
+                        query: {
+                            platform: vm.selectedPlatform.id,
+                            tsPhoneList: rowData._id,
+                            status: 1
+                        }
+                    }
+                    socketService.$socket($scope.AppSocket, 'getTsAssigneesCount', sendData, function (data) {
+                        if (data && data.data) {
+                            $scope.$evalAsync(() => {
+                                vm.tsAnalyticsPhoneListMaxCaller = data.data;
+                            });
+                        }
+                    })
+                }
+
             });
 
             vm.editTsNewList = function () {
@@ -6106,8 +6188,42 @@ define(['js/app'], function (myApp) {
             vm.tsCity = "";
         }
 
+        vm.filterRecycleBinPhoneList = (newSearch) => {
+            vm.selectedTsPhoneList = false;
+            let sendQuery = {
+                platform: vm.selectedPlatform.id,
+                startTime: vm.recycleBinPhoneListSearch.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.recycleBinPhoneListSearch.endTime.data('datetimepicker').getLocalDate(),
+                index: newSearch ? 0 : (vm.recycleBinPhoneListSearch.index || 0),
+                limit: vm.recycleBinPhoneListSearch.limit || 10,
+                sortCol: vm.recycleBinPhoneListSearch.sortCol,
+            }
+
+            if (vm.recycleBinPhoneListSearch) {
+                if (vm.recycleBinPhoneListSearch.name && vm.recycleBinPhoneListSearch.name.length) {
+                    sendQuery.name = vm.recycleBinPhoneListSearch.name;
+                }
+
+                if (vm.recycleBinPhoneListSearch.sendStatus && vm.recycleBinPhoneListSearch.sendStatus.length) {
+                    sendQuery.status = vm.recycleBinPhoneListSearch.sendStatus;
+                }
+            }
+
+            socketService.$socket($scope.AppSocket, 'getRecycleBinTsPhoneList', sendQuery, function (data) {
+                if(data && data.data && data.data.data){
+                    $scope.$evalAsync(() => {
+                        let tsPhoneList = data.data.data.map(item => {
+                            item.recycleTime = item.recycleTime ? vm.dateReformat(item.recycleTime) : "";
+                            return item;
+                        })
+                        let size = data.data.size || 0;
+                        vm.drawRecycleBinPhoneListTable(newSearch, tsPhoneList, size);
+                    })
+                }
+            });
+        };
+
         vm.showPhoneListManagement = function () {
-            vm.responseMsg = false;
             utilService.actionAfterLoaded(('#phoneListSearch'), function () {
                 vm.phoneListSearch.pageObj = utilService.createPageForPagingTable("#phoneListManagementTablePage", {}, $translate, function (curP, pageSize) {
                     vm.commonPageChangeHandler(curP, pageSize, "phoneListSearch", vm.filterPhoneListManagement);
@@ -6210,7 +6326,13 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        vm.showAssignmentStatusDetail = (tsPhoneListObjId) => {
+        vm.showAssignmentStatusDetail = (tsPhoneListObjId, status) => {
+            vm.disableUpdateTsAssignee = false
+            if (status == vm.constTsPhoneListStatus.HALF_COMPLETE || status == vm.constTsPhoneListStatus.PERFECTLY_COMPLETED || status == vm.constTsPhoneListStatus.DECOMPOSED) {
+                vm.disableAllowDistributionSettingsEdit = true;
+            } else {
+                vm.disableAllowDistributionSettingsEdit = false;
+            }
             vm.currentPhoneListObjId = tsPhoneListObjId;
             vm.allowDistributionSettingsEdit = false;
             vm.tsAssigneesDisplay = [];
@@ -6342,6 +6464,29 @@ define(['js/app'], function (myApp) {
             vm.updateTsAssigneesDisplay();
             vm.selectedAssignees = vm.tsAssigneesDisplay.map(assignee=>assignee.adminName);
         };
+
+        vm.checkUpdateTsAssignee = () => {
+            vm.disableUpdateTsAssignee = false;
+            let checkStatus = [vm.constTsPhoneListStatus.DISTRIBUTING, vm.constTsPhoneListStatus.MANUAL_PAUSED]
+            if (vm.selectedTsPhoneList && checkStatus.includes(vm.selectedTsPhoneList.status)) {
+                if (vm.tsAssigneesDisplay && vm.tsAssigneesDisplay.length < vm.selectedTsPhoneList.callerCycleCount) {
+                    vm.disableUpdateTsAssignee = true;
+                } else {
+                    let onCount = 0; // count assignee who turn on participant
+                    for (let i = 0; i < vm.tsAssigneesDisplay.length || 0; i++) {
+                        if (vm.tsAssigneesDisplay[i].status == 1) {
+                            onCount++;
+                        }
+                        if (onCount >= vm.selectedTsPhoneList.callerCycleCount) {
+                            break;
+                        }
+                    }
+                    if (onCount < vm.selectedTsPhoneList.callerCycleCount) {
+                        vm.disableUpdateTsAssignee = true;
+                    }
+                }
+            }
+        }
         vm.updateDistributionSettings = () => {
             //add and remove ts Assignee commands will be triggered synchronously
             let commonSendData = {
@@ -6421,6 +6566,241 @@ define(['js/app'], function (myApp) {
             })
         };
 
+        vm.drawRecycleBinPhoneListTable = function (newSearch, tblData, size) {
+            console.log("recycleBinPhoneListTable",tblData);
+            var tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                data: tblData,
+                aoColumnDefs: [
+                    // {'sortCol': 'createTime$', bSortable: true, 'aTargets': [3]},
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                "scrollX": true,
+                "autoWidth": true,
+                "sScrollY": 550,
+                "scrollCollapse": true,
+                columns: [
+                    {title: $translate('RECYCLE_TIME'), data: "recycleTime"},
+                    {
+                        title: $translate('NAME_LIST_TITLE'), data: "name",
+                        render: function (data, type, row, index) {
+                            var link = $('<a>', {
+                                'ng-click': 'vm.initAnalyticsFilterAndImportDXSystem(' + JSON.stringify(row) + ');',
+                                'data-toggle': 'modal',
+                                'data-target': '#modaltsAnalyticsPhoneList'
+                            }).text(data);
+                            return link.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('SEND_STATUS'), data: "status",
+                        render: function (data, type, row, index) {
+                            let link = $('<a>', {
+                                'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'", '+ row.status +');',
+                            }).text($translate(vm.constTsPhoneListStatusStr[data]));
+                            return link.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_NAME_LIST'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'text': row.totalPhone || 0
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_DISTRIBUTED'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "曾经指派给电销员的总电话数量。（同一电话循环2人，派发＝1）",
+                                'text': row.totalDistributed || 0
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_USED'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "所有曾经添加『回访结果』的电话。（同一电话循环2人，使用＝1）",
+                                'text': row.totalUsed || 0
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_UNUSED'),
+                        render: function(data, type, row, index){
+                            let totalUnused = (row.totalPhone - row.totalUsed) || 0;
+                            let divWithToolTip = $('<div>', {
+                                'title': "名单总数当中，尚未添加回访的电话量",
+                                'text': totalUnused
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_SUCCESS'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "基础数据中，定义何谓成功接听（选择回访状态）的设定（同一电话 2 电销员都有接听，接听人＝1）",
+                                'text': row.totalSuccess || 0
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_SUCCESS_RATE'),
+                        render: function(data, type, row, index){
+                            let percentage = row.totalSuccess / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
+                            let divWithToolTip = $('<div>', {
+                                'title': "成功接听量/已使用量",
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_REGISTERED'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "已使用量当中，电话在系统有开户（不管帐号禁用与否）",
+                                'text': row.totalRegistration || 0
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_REGISTERED_RATE'),
+                        render: function(data, type, row, index){
+                            let percentage = row.totalRegistration / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
+                            let divWithToolTip = $('<div>', {
+                                'title': "成功开户量/已使用量",
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_TOPUP_PERSON'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "已使用量当中，有成功存款的人数",
+                                'text': row.totalTopUp || 0
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_TOPUP_RATE'),
+                        render: function(data, type, row, index){
+                            let percentage = row.totalTopUp / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
+                            let divWithToolTip = $('<div>', {
+                                'title': "成功存款人数/已使用量",
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_MULTIPLE_TOPUP'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "已使用量当中，存款 2 笔以上的人数",
+                                'text': row.totalMultipleTopUp || 0
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_MULTIPLE_TOPUP_RATE'),
+                        render: function(data, type, row, index){
+                            let percentage = row.totalMultipleTopUp / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
+                            let divWithToolTip = $('<div>', {
+                                'title': "成功存款2笔人数/已使用量",
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_VALID'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "已使用量当中，系统定义的有效开户人数",
+                                'text': row.totalValidPlayer || 0
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('TOTAL_VALID_RATE'),
+                        render: function(data, type, row, index){
+                            let percentage = row.totalValidPlayer / row.totalDistributed;
+                            let showPercentage = isFinite(percentage)? percentage: 0;
+                            let divWithToolTip = $('<div>', {
+                                'title': "有效开户量/已使用量",
+                                'text': $noRoundTwoDecimalToFix(showPercentage)
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('PLAYER_RETENTION'),
+                        render: function(data, type, row, index){
+                            let divWithToolTip = $('<div>', {
+                                'title': "根据『分析』功能给出报表。（首次导入后30日分析）",
+                                'text': "详情"
+                            });
+
+                            return divWithToolTip.prop('outerHTML');
+                        }
+                    },
+                ],
+                "paging": false,
+                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    $compile(nRow)($scope);
+
+                    $(nRow).off('click');
+                    $(nRow).on('click', function () {
+                        vm.phoneListManagementTableRowClicked(aData, nRow);
+                    });
+
+                }
+            });
+            // tableOptions.language.emptyTable=$translate("No data available in table");
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+            utilService.createDatatableWithFooter('#recycleBinPhoneListTable', tableOptions, {
+            });
+
+            vm.recycleBinPhoneListSearch.pageObj.init({maxCount: size}, newSearch);
+            $('#recycleBinPhoneListTable').off('order.dt');
+            $('#recycleBinPhoneListTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'recycleBinPhoneListSearch', vm.filterRecycleBinPhoneList);
+            });
+            $('#recycleBinPhoneListTable').resize();
+        };
+
         vm.drawPhoneListManagementTable = function (newSearch, tblData, size) {
             console.log("phoneListManagementTable",tblData);
             vm.phoneNumberInfo.remark = {};
@@ -6450,7 +6830,7 @@ define(['js/app'], function (myApp) {
                         title: $translate('SEND_STATUS'), data: "status",
                         render: function (data, type, row, index) {
                             let link = $('<a>', {
-                                'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'");',
+                                'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'", '+ row.status +');',
                             }).text($translate(vm.constTsPhoneListStatusStr[data]));
                             return link.prop('outerHTML');
                         }
@@ -6640,21 +7020,22 @@ define(['js/app'], function (myApp) {
 
                     $(nRow).off('click');
                     $(nRow).on('click', function () {
-                        vm.selectedTsPhoneList;
-                        $('#phoneListManagementTable tbody tr').removeClass('selected');
-                        $scope.$evalAsync(() => {
-                            if (vm.selectedTsPhoneList != aData) {
-                                vm.selectedTsPhoneList = aData;
-                                $(this).toggleClass('selected');
-                            } else {
-                                vm.selectedTsPhoneList = false;
-                            }
-                            if (!(vm.selectedTsPhoneList && (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING || vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.MANUAL_PAUSED))) {
-                                vm.disableManualPauseTsPhoneList = true;
-                            } else {
-                                vm.disableManualPauseTsPhoneList = false;
-                            }
-                        })
+                        vm.phoneListManagementTableRowClicked(aData, nRow);
+                        // vm.selectedTsPhoneList;
+                        // $('#phoneListManagementTable tbody tr').removeClass('selected');
+                        // $scope.$evalAsync(() => {
+                        //     if (vm.selectedTsPhoneList != aData) {
+                        //         vm.selectedTsPhoneList = aData;
+                        //         $(this).toggleClass('selected');
+                        //     } else {
+                        //         vm.selectedTsPhoneList = false;
+                        //     }
+                        //     if (!(vm.selectedTsPhoneList && (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING || vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.MANUAL_PAUSED))) {
+                        //         vm.disableManualPauseTsPhoneList = true;
+                        //     } else {
+                        //         vm.disableManualPauseTsPhoneList = false;
+                        //     }
+                        // })
                     });
 
                 }
@@ -6667,10 +7048,27 @@ define(['js/app'], function (myApp) {
             vm.phoneListSearch.pageObj.init({maxCount: size}, newSearch);
             $('#phoneListManagementTable').off('order.dt');
             $('#phoneListManagementTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'phoneListSearch', vm.getTeleMarketingOverview);
+                vm.commonSortChangeHandler(a, 'phoneListSearch', vm.filterPhoneListManagement);
             });
             $('#phoneListManagementTable').resize();
         };
+
+        vm.phoneListManagementTableRowClicked = (data, nRow) => {
+            $('#phoneListManagementTable tbody tr').removeClass('selected');
+            $scope.$evalAsync(() => {
+                if (vm.selectedTsPhoneList != data) {
+                    vm.selectedTsPhoneList = data;
+                    $(nRow).toggleClass('selected');
+                } else {
+                    vm.selectedTsPhoneList = false;
+                }
+                if (!(vm.selectedTsPhoneList && (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING || vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.MANUAL_PAUSED))) {
+                    vm.disableManualPauseTsPhoneList = true;
+                } else {
+                    vm.disableManualPauseTsPhoneList = false;
+                }
+            })
+        }
 
         vm.bindHover = function (placeholder, callback) {
             $(placeholder).bind("plothover", function (event, pos, obj) {
@@ -7060,8 +7458,219 @@ define(['js/app'], function (myApp) {
             $('#nameInput').focus();
         };
 
+        vm.getCtiData = (newSearch) => {
+            clearTimeout(vm.ctiLoop);
+            if (vm.selectedTab != "REMINDER_PHONE_LIST") {
+                return;
+            }
+
+            $('#adminPhoneListTableSpin').show();
+            vm.isCallOutMissionMode = true;
+
+            let sendData = {
+                platformObjId: vm.selectedPlatform.id,
+                limit: vm.queryAdminPhoneList.limit || 10,
+                index: vm.queryAdminPhoneList.index || 0
+            };
+            console.log('sendData', sendData);
+
+            return $scope.$socketPromise("getTsUpdatedAdminMissionStatusFromCti", sendData).then(
+                ctiDataOutput => {
+                    console.log('ctiData', ctiDataOutput);
+                    if (!(ctiDataOutput && ctiDataOutput.data && ctiDataOutput.data.hasOnGoingMission)) {
+                        vm.ctiData = ctiDataOutput && ctiDataOutput.data || {};
+                        return backToNormalSearch(newSearch);
+                    }
+                    vm.ctiData = ctiDataOutput.data;
+
+                    vm.callOutMissionStatusText = '';
+                    let completedAmount = 0;
+                    vm.bulkCalleeToAddFeedback = [];
+
+                    vm.ctiData.callee.forEach(callee => {
+                        if (callee.player) {
+                            callee.player.callOutMissionStatus = callee.status;
+                        }
+
+                        let playerFeedbackDetail = vm.ctiData.feedbackPlayerDetail;
+                        let playerTableData = playerFeedbackDetail.data || [];
+
+                        for (let i = 0; i < playerTableData.length; i++) {
+                            if (callee._id && callee._id == playerTableData[i]._id) {
+                                playerTableData[i].callOutMissionStatus = callee.status;
+                                break;
+                            }
+                        }
+
+                        if (vm.lastSelectedCallPlayer && callee.player && vm.lastSelectedCallPlayer._id == callee.player._id) {
+                            vm.lastSelectedCallPlayer = callee.player;
+                        }
+
+                        if (callee.status != 0) {
+                            completedAmount++;
+                        }
+
+                        if (callee.status == 2) {
+                            vm.bulkCalleeToAddFeedback.push(callee._id)
+                        }
+                    });
+
+                    if (vm.ctiData.status == $scope.constCallOutMissionStatus.ON_GOING) {
+                        vm.callOutMissionStatusText = $translate("On Going");
+                    } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.PAUSED) {
+                        vm.callOutMissionStatusText = $translate("Paused");
+                    } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.FINISHED) {
+                        vm.callOutMissionStatusText = $translate("Finished");
+                    } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.CANCELLED) {
+                        vm.callOutMissionStatusText = $translate("Gave Up");
+                    }
+
+                    vm.callOutMissionProgressText = completedAmount + '/' + vm.ctiData.callee.length;
+
+                    vm.showFinishCalloutMissionButton = Boolean(vm.ctiData.status == $scope.constCallOutMissionStatus.FINISHED || vm.ctiData.status == $scope.constCallOutMissionStatus.CANCELLED);
+
+                    let phonesData = vm.ctiData.feedbackPlayerDetail;
+                    let tableData;
+                    if (phonesData && phonesData.data && phonesData.data.map) {
+                        vm.queryAdminPhoneList.totalCount = phonesData.size = phonesData.total;
+                        tableData = phonesData.data.map(item => {
+                            let tsDPhone = item.tsDistributedPhone;
+
+                            if (tsDPhone.tsPhone && tsDPhone.tsPhone.phoneNumber) {
+                                tsDPhone.tsPhone.phoneNumber = item.phoneNumber;
+                                tsDPhone.callOutMissionStatus = item.callOutMissionStatus;
+                                tsDPhone.encodedPhoneNumber$ = utilService.encodePhoneNum(tsDPhone.tsPhone.phoneNumber);
+                            }
+                            tsDPhone.startTime$ = utilService.getFormatTime(tsDPhone.startTime);
+                            let endDate = utilService.setNDaysAgo(new Date(tsDPhone.endTime), 1); // endTime in DB store end time of day
+                            let daysDiff = Math.abs(endDate.getTime() - new Date().getTime());
+                            tsDPhone.reclaimDaysLeft$ = Math.ceil(daysDiff / (1000 * 3600 * 24));
+
+                            return tsDPhone;
+                        });
+                    }
+
+                    if (!vm.calleeCallOutStatus) {
+                        vm.calleeCallOutStatus = {};
+                        vm.ctiData.callee.map(callee => {
+                            vm.calleeCallOutStatus[callee._id] = callee.status;
+                        });
+                    }
+                    else {
+                        vm.ctiData.callee.map(callee => {
+                            if (vm.calleeCallOutStatus[callee._id] != 1 && callee.status == 1) {
+                                let tsDPhoneId = callee.tsDistributedPhone && callee.tsDistributedPhone._id;
+                                let url = window.location.origin + "/teleMarketing/tsPhone/" + tsDPhoneId;
+                                utilService.openInNewTab(url);
+                            }
+                            vm.calleeCallOutStatus[callee._id] = callee.status;
+                        });
+                    }
+
+                    vm.drawAdminPhoneList(tableData, phonesData.size, {}, newSearch);
+                    $('#adminPhoneListTableSpin').hide();
+                    $scope.$evalAsync();
+
+                    vm.ctiLoop = setTimeout(vm.getCtiData, 15000);
+
+                },
+                err => {
+                    console.error(err);
+                    backToNormalSearch(newSearch);
+                }
+            );
+        };
+
+        vm.stopCallOutMission = () => {
+            $('#adminPhoneListTableSpin').show();
+            socketService.$socket($scope.AppSocket, 'stopTsCallOutMission', {
+                platformObjId: vm.selectedPlatform.id,
+                missionName: vm.ctiData.missionName
+            }, function (data) {
+                console.log("stopCallOutMission ret" , data);
+                $scope.$evalAsync(function(){
+                    vm.searchAdminPhoneList(true);
+                });
+            });
+        }
+
+        function backToNormalSearch(newSearch) {
+            vm.isCallOutMissionMode = false;
+            vm.searchAdminPhoneList(newSearch);
+        }
+
+        vm.toggleCallOutMissionStatus = function() {
+            socketService.$socket($scope.AppSocket, 'toggleTsCallOutMissionStatus', {
+                platformObjId: vm.selectedPlatform.id,
+                missionName: vm.ctiData.missionName
+            }, function (data) {
+                console.log("toggleCallOutMissionStatus ret" , data);
+                if(data && data.data && data.data.hasOwnProperty('status')) {
+                    vm.ctiData.status = data.data.status;
+                    $scope.$evalAsync(function () {
+                        if (vm.ctiData.status == $scope.constCallOutMissionStatus.ON_GOING) {
+                            vm.callOutMissionStatusText = $translate("On Going");
+                        } else if (vm.ctiData.status == $scope.constCallOutMissionStatus.PAUSED) {
+                            vm.callOutMissionStatusText = $translate("Paused");
+                        }
+                    });
+                }
+            });
+        };
+
+        vm.endCallOutMission = function() {
+            socketService.$socket($scope.AppSocket, 'endTsCallOutMission', {
+                platformObjId: vm.selectedPlatform.id,
+                missionName: vm.ctiData.missionName
+            }, function (data) {
+                console.log("endCallOutMission ret" , data);
+                $scope.$evalAsync(function(){
+                    vm.ctiData = {};
+                    vm.feedbackPlayersPara.total = 0;
+                    vm.callOutMissionStatus = "";
+                    vm.getCtiData(true);
+                    vm.playerCredibilityComment = [];
+                    vm.curPlayerFeedbackDetail = {};
+                });
+            });
+        };
+
+        vm.initBulkSMSToFailCallee = () => {
+            vm.sendSMSResult = {};
+            vm.bulkFailCalleeToSendSMS = [];
+            vm.smsPlayer = {};
+            vm.ctiData.callee.map(callee => {
+                if (callee.status == 2) {
+                    let encodedPhoneNumber = utilService.encodePhoneNum(callee.phoneNumber);
+                    vm.bulkFailCalleeToSendSMS.push({tsPhoneId: callee.tsPhone._id, tsDistributedPhoneId: callee.tsDistributedPhone._id, encodedPhoneNumber: encodedPhoneNumber});
+                }
+            });
+            $('#modalBulkSendSMSToFailCallPlayer').modal().show();
+        };
+
+        vm.bulkSMSToFailCallee = () => {
+            let smsObj = {
+                tsPhoneDetails: vm.bulkFailCalleeToSendSMS,
+                platformId: vm.selectedPlatform.data.platformId,
+                channel: vm.smsPlayer.channel,
+                message: vm.smsPlayer.message
+            };
+
+            console.log('bulk sms send', smsObj);
+            socketService.$socket($scope.AppSocket, 'bulkSendSmsToFailCallee', smsObj, function (data) {
+                console.log('sms sent', data);
+                $scope.$evalAsync(() => {
+                    vm.smsPlayer = {};
+                });
+            });
+        };
 
     };
+
+
+
+
+
 
     let injectParams = [
         '$sce',

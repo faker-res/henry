@@ -250,7 +250,8 @@
                                     i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
 
                                 td(ng-repeat="(i,v) in cond.header track by $index")
-                                    input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
+                                    span(ng-if="i == 'loginDay'") {{entry[i]}}
+                                    input(ng-if="i != 'loginDay' && (v.type == 'text' || v.type == 'checkbox' || v.type == 'number')" type="{{v.type}})" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
                                     span.percentage(ng-if="v.type == 'percentage'")
                                         input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
 
@@ -276,7 +277,8 @@
                                                 i.fa.fa-plus(ng-click='cond.value.push({"rewardPercentageAmount":[{percentage: "", amount: ""}]})' ng-if='cond.header.hasOwnProperty("rewardPercentageAmount") && vm.isMultiStepReward && !vm.platformRewardShowEdit()')
                                                 i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                                             td(ng-repeat="(i,v) in cond.header")
-                                                input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
+                                                span(ng-if="i == 'loginDay'") {{entry[i]}}
+                                                input(ng-if="i != 'loginDay' && (v.type == 'text' || v.type == 'checkbox' || v.type == 'number')" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
                                                 span.percentage(ng-if="v.type == 'percentage'")
                                                     input(type='number', min='0', percentage, style="display: inline-block", ng-model='entry[i]')
 

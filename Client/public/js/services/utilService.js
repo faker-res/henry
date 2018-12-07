@@ -234,7 +234,11 @@ define([], function () {
             };
             return new Date(data).toLocaleString('en-US', option).replace(/(\d+)\/(\d+)\/(\d+)/, '$3/$1/$2')
                 .replace(',', ' ');
-        }
+        };
+
+        this.openInNewTab = function (url) {
+            Object.assign(document.createElement('a'), { target: '_blank', href: url}).click();
+        };
 
         this.getLocalTime = function (date) {
             if (!date) return null;

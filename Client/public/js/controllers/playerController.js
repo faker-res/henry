@@ -1001,7 +1001,7 @@ define(['js/app'], function (myApp) {
         }
         //search platform by name
         vm.getAllDepartmentData = function (callback) {
-            if (!authService.checkViewPermission('Platform', 'Platform', 'Read')) {
+            if (!authService.checkViewPermission('Platform', 'PlatformSetting', 'Read')) {
                 return;
             }
             socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
@@ -19653,6 +19653,8 @@ define(['js/app'], function (myApp) {
                 result = $translate(val);
             } else if (fieldName === 'definePlayerLoginMode') {
                 result = $translate($scope.playerLoginMode[val]);
+            } else if (fieldName === 'rewardInterval') {
+                result = $translate($scope.rewardInterval[val]);
             }
             return $sce.trustAsHtml(result);
         };

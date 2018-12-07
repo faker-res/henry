@@ -293,30 +293,51 @@ var roleChecker = {
             },
         },
         Platform: {
-            "Platform": {
+            "PlatformSetting": {
                 Read: ['getAllPlatforms', 'getPlatform', 'getDepartmentsByPlatformId', 'getPlatformAnnouncementsByPlatformId', 'getPlatformAnnouncementById', 'getAllGameTypes', 'getPlayerLvlPeriodConst', 'getAllGameStatus', 'getAllMessageTypes', 'syncPlatform',
                     'getPlatformBankCardGroup', 'getPlatformMerchantGroup', 'getPlatformAlipayGroup','getConsumptionRecordByGameProvider','getProfitDisplayDetailByPlatform', 'getPlayerConsumptionDetailByPlatform'],
-                Create: ['createPlatform', 'getDepartmentTreeById'],
-                Delete: ['deletePlatformById'],
-                Edit: ['updatePlatform'],
-                ReplicateSetting: ['replicatePlatformSetting'],
-                DailySettlement: ['startPlatformDailySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformDailySettlement'],
-                WeeklySettlement: ['startPlatformWeeklySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformWeeklySettlement'],
-                RewardSettlement: ['startPlatformRewardEventSettlement', 'startPlatformRTGEventSettlement'],
-                SettlementHistory: ['getSettlementHistory'],
-                PartnerCommissionSettlement: ['startPlatformPartnerCommissionSettlement'],
-                transferPlayerCreditFromProvider: ['transferAllPlayersCreditFromProvider'],
-                PlayerConsumptionIncentiveSettlement: ['startPlatformPlayerConsumptionIncentiveSettlement'],
-                PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement', 'getYesterdayConsumptionReturnSGTime'],
+                CreatePlatform: ['createPlatform', 'getDepartmentTreeById'],
+                DeletePlatform: ['deletePlatformById'],
+                EditForAllTab: ['updatePlatform'],
+                ReplicateSetting: ['replicatePlatformSetting']
+                //DailySettlement: ['startPlatformDailySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformDailySettlement'],
+               // WeeklySettlement: ['startPlatformWeeklySettlement', 'getPlatformConsumptionReturnDetail', 'fixPlatformWeeklySettlement'],
+                //RewardSettlement: ['startPlatformRewardEventSettlement', 'startPlatformRTGEventSettlement'],
+                //SettlementHistory: ['getSettlementHistory'],
+                //PartnerCommissionSettlement: ['startPlatformPartnerCommissionSettlement'],
+                //transferPlayerCreditFromProvider: ['transferAllPlayersCreditFromProvider'],
+                //PlayerConsumptionIncentiveSettlement: ['startPlatformPlayerConsumptionIncentiveSettlement'],
+                //PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement', 'getYesterdayConsumptionReturnSGTime'],
+                //PlayerLevelSettlement: ['startPlatformPlayerLevelSettlement'],
+                //PlayerConsecutiveConsumptionSettlement: ['startPlayerConsecutiveConsumptionSettlement'],
+                //BackstageSettings: [],
+                //PlayerDisplayData: [],
+                //PartnerDisplayData: [],
+                //SystemSettlement: [],
+                //FrontendModuleSetting: [],
+                //ThemeSelect: [],
+            },
+            "PlayerDisplayData": {
+                Read: []
+            },
+            "PartnerDisplayData": {
+                Read: []
+            },
+            "SystemSettlement": {
+                Read: [],
                 PlayerLevelSettlement: ['startPlatformPlayerLevelSettlement'],
-                PlayerConsecutiveConsumptionSettlement: ['startPlayerConsecutiveConsumptionSettlement'],
-                FrontendConfiguration: [],
-                BackstageSettings: [],
-                PlayerDisplayData: [],
-                PartnerDisplayData: [],
-                SystemSettlement: [],
-                FrontendModuleSetting: [],
-                ThemeSelect: [],
+                PartnerCommissionSettlement: ['startPlatformPartnerCommissionSettlement'],
+                PlayerConsumptionReturnSettlement: ['startPlatformPlayerConsumptionReturnSettlement', 'getYesterdayConsumptionReturnSGTime'],
+                SystemRewardGroupSettlement: []
+            },
+            "FrontendModule": {
+                Read: []
+            },
+            "ThemeSelect": {
+                Read: []
+            },
+            "BackstageSettings": {
+                Read: []
             },
             // "Player": {
             //     Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList', "getDepartmentTreeById",
@@ -566,6 +587,9 @@ var roleChecker = {
             "batchPermit": {
                 Read: [],
                 Update: ['updateBatchPlayerCredibilityRemark', 'updateBatchPlayerPermission', 'updateBatchPlayerForbidRewardEvents', 'updateBatchPlayerForbidProviders', 'updateBatchPlayerForbidPaymentType', 'updateBatchPlayerForbidRewardPointsEvent'],
+            },
+            "FrontendConfiguration": {
+                Read: []
             }
         },
         Report: {
@@ -688,6 +712,12 @@ var roleChecker = {
             },
             "Payment Monitor Total":{
                 Read: ['']
+            },
+            ConsumptionRecord:{
+                Read: []
+            },
+            AttemptCreate:{
+                Read: []
             }
         },
         Payment: {
@@ -805,16 +835,16 @@ var roleChecker = {
                 Delete: ['deleteRolesById'],
                 Update: ['updateRole']
             },
-            Platform: {
+            platform: {
                 Read: ['getPlatform', 'getAllPlatforms'],
-                Move: ['addPlatformsToDepartmentById', 'removePlatformsFromDepartmentById'],
-                Create: ['createPlatform'],
+                //Move: ['addPlatformsToDepartmentById', 'removePlatformsFromDepartmentById'],
+                //Create: ['createPlatform'],
                 Edit: ['updatePlatform'],
-                Delete: ['deletePlatformById']
+                //Delete: ['deletePlatformById']
             },
-            PlayerMail: {
-                Read: []
-            }
+            // PlayerMail: {
+            //     Read: []
+            // }
         },
         QualityInspection: {
             QualityInsectionSetting: {

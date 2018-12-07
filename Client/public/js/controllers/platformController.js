@@ -570,17 +570,17 @@ define(['js/app'], function (myApp) {
 
             vm.showPlatformDetailTab = function (tabName) {
                 if (tabName === null) {
-                    if (authService.checkViewPermission('Platform', 'Platform','BackstageSettings')) {
+                    if (authService.checkViewPermission('Platform', 'BackstageSettings','Read')) {
                         tabName = "backstage-settings";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','PlayerDisplayData')) {
+                    } else if (authService.checkViewPermission('Platform', 'PlayerDisplayData','Read')) {
                         tabName = "player-display-data";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','PartnerDisplayData')) {
+                    } else if (authService.checkViewPermission('Platform', 'PartnerDisplayData','Read')) {
                         tabName = "partner-display-data";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','SystemSettlement')) {
+                    } else if (authService.checkViewPermission('Platform', 'SystemSettlement','Read')) {
                         tabName = "system-settlement";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','FrontendModuleSetting')) {
+                    } else if (authService.checkViewPermission('Platform', 'FrontendModule','Read')) {
                         tabName = "frontend-module-setting";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','ThemeSelect')) {
+                    } else if (authService.checkViewPermission('Platform', 'ThemeSelect','Read')) {
                         tabName = "theme-select";
                     }
                 }
@@ -1317,7 +1317,7 @@ define(['js/app'], function (myApp) {
             }
             //search platform by name
             vm.getAllDepartmentData = function (callback) {
-                if (!authService.checkViewPermission('Platform', 'Platform', 'Read')) {
+                if (!authService.checkViewPermission('Platform', 'PlatformSetting', 'Read')) {
                     return;
                 }
                 socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
@@ -20827,6 +20827,17 @@ define(['js/app'], function (myApp) {
                                     // set the default as the first level
                                     vm.selectedPlayerLvlTab = 0;
                                }
+
+                               if (vm.rewardCondition && vm.rewardCondition.definePlayerLoginMode){
+                                   if (vm.rewardCondition.definePlayerLoginMode == 2) {
+                                       v.params.param.tblOptDynamic.rewardParam.loginDay.des = "EXACT_LOGIN_DATE";
+                                       v.params.param.tblOptFixed.rewardParam.loginDay.des = "EXACT_LOGIN_DATE";
+                                   }
+                                   else if (vm.rewardCondition.definePlayerLoginMode == 1) {
+                                       v.params.param.tblOptDynamic.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
+                                       v.params.param.tblOptFixed.rewardParam.loginDay.des = "ACCUMULATIVE_LOGIN_DAY";
+                                   }
+                               }
                             }
 
                             if (v && v.name && (v.name == "PlayerRetentionRewardGroup" || v.name == "PlayerBonusDoubledRewardGroup")) {
@@ -21436,7 +21447,7 @@ console.log('typeof ',typeof gameProviders);
                     }
 
                     if (model.i == "multiplier" && model.v.type == "number" && vm.isDynamicRewardAmt) {
-                        model.entry.rewardPercentage = model.entry.multiplier;
+                        model.entry.rewardPercentage = model.entry.multiplier/100;
                     }
                 }
 
@@ -21957,6 +21968,7 @@ console.log('typeof ',typeof gameProviders);
                 if (type == 'add') {
                     if (data && data.hasOwnProperty('lineId') && data.hasOwnProperty('lineName')) {
                         vm.callRequestConfig.callRequestLineConfig.push({
+                            status: Number(data.status),
                             lineId: data.lineId,
                             lineName: data.lineName,
                             minLevel: data.minLevel? data.minLevel: ""
@@ -28438,6 +28450,7 @@ console.log('typeof ',typeof gameProviders);
             vm.getCallRequestConfig = () => {
                 vm.callRequestConfig = {};
                 vm.callRequestConfig.callRequestUrlConfig = vm.selectedPlatform.data.callRequestUrlConfig? vm.selectedPlatform.data.callRequestUrlConfig: "";
+                vm.callRequestConfig.callRequestLimitPerHour = vm.selectedPlatform.data.callRequestLimitPerHour? vm.selectedPlatform.data.callRequestLimitPerHour: "";
                 vm.callRequestConfig.callRequestLineConfig = vm.selectedPlatform.data.callRequestLineConfig && vm.selectedPlatform.data.callRequestLineConfig.length?
                     vm.selectedPlatform.data.callRequestLineConfig: [];
 
@@ -29664,6 +29677,7 @@ console.log('typeof ',typeof gameProviders);
                     query: {_id: vm.selectedPlatform.id},
                     updateData: {
                         callRequestUrlConfig: srcData.callRequestUrlConfig,
+                        callRequestLimitPerHour: srcData.callRequestLimitPerHour,
                         callRequestLineConfig: srcData.callRequestLineConfig
                     }
                 };
@@ -36109,6 +36123,18 @@ console.log('typeof ',typeof gameProviders);
                     vm.frontendConfigurationUrl = $sce.trustAsResourceUrl(url);
                 }
             };
+
+
+            vm.changeFrameHeight = function() {
+                var ifm = document.getElementById("configIframe");
+                ifm.height = document.documentElement.clientHeight;
+
+            }
+
+            window.onresize=function(){
+                vm.changeFrameHeight();
+
+            }
         };
 
         let injectParams = [
