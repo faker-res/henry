@@ -179,7 +179,7 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.getTsWorkloadReport, [data.platformObjId, data.phoneListObjIds, data.startTime, data.endTime, data.adminObjIds], actionName, isValidData);
         },
 
-        bulkSendSmsToPhoneCallFailurePlayer: function bulkSendSmsToPhoneCallFailurePlayer(data) {
+        bulkSendSmsToFailCallee: function bulkSendSmsToFailCallee(data) {
             let actionName = arguments.callee.name;
             let adminObjId = getAdminId();
             let adminName = getAdminName();
@@ -187,7 +187,7 @@ function socketActionTeleSales(socketIO, socket) {
             if (data) {
                 data.delay = data.delay || 0;
             }
-            socketUtil.emitter(self.socket, dbTeleSales.bulkSendSmsToPhoneCallFailurePlayer, [adminObjId, adminName, data, data.tsPhoneDetails], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbTeleSales.bulkSendSmsToFailCallee, [adminObjId, adminName, data, data.tsPhoneDetails], actionName, isValidData);
         },
 
     };

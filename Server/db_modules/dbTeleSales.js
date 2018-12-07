@@ -961,7 +961,7 @@ let dbTeleSales = {
         });
     },
 
-    bulkSendSmsToPhoneCallFailurePlayer: (adminObjId, adminName, data, tsPhoneDetails) => {
+    bulkSendSmsToFailCallee: (adminObjId, adminName, data, tsPhoneDetails) => {
         let proms = [];
         if (tsPhoneDetails && tsPhoneDetails.length) {
             tsPhoneDetails.map(tsPhone => {

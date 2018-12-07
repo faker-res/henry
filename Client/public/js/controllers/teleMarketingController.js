@@ -7392,12 +7392,12 @@ define(['js/app'], function (myApp) {
 
         vm.initBulkSMSToFailCallee = () => {
             vm.sendSMSResult = {};
-            vm.bulkPlayersToSendSMS = [];
+            vm.bulkFailCalleeToSendSMS = [];
             vm.smsPlayer = {};
             vm.ctiData.callee.map(callee => {
                 if (callee.status == 2) {
                     let encodedPhoneNumber = utilService.encodePhoneNum(callee.phoneNumber);
-                    vm.bulkPlayersToSendSMS.push({tsPhoneId: callee.tsPhone._id, tsDistributedPhoneId: callee.tsDistributedPhone._id, encodedPhoneNumber: encodedPhoneNumber});
+                    vm.bulkFailCalleeToSendSMS.push({tsPhoneId: callee.tsPhone._id, tsDistributedPhoneId: callee.tsDistributedPhone._id, encodedPhoneNumber: encodedPhoneNumber});
                 }
             });
             $('#modalBulkSendSMSToFailCallPlayer').modal().show();
@@ -7405,14 +7405,14 @@ define(['js/app'], function (myApp) {
 
         vm.bulkSMSToFailCallee = () => {
             let smsObj = {
-                tsPhoneDetails: vm.bulkPlayersToSendSMS,
+                tsPhoneDetails: vm.bulkFailCalleeToSendSMS,
                 platformId: vm.selectedPlatform.data.platformId,
                 channel: vm.smsPlayer.channel,
                 message: vm.smsPlayer.message
             };
 
             console.log('bulk sms send', smsObj);
-            socketService.$socket($scope.AppSocket, 'bulkSendSmsToPhoneCallFailurePlayer', smsObj, function (data) {
+            socketService.$socket($scope.AppSocket, 'bulkSendSmsToFailCallee', smsObj, function (data) {
                 console.log('sms sent', data);
                 $scope.$evalAsync(() => {
                     vm.smsPlayer = {};
