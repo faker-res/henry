@@ -4864,13 +4864,19 @@ let dbPlayerReward = {
                         if (String(f._id) == String(limitedOfferObjId)) {
                             eventObj = e;
                             limitedOfferObj = f;
-                            console.log("yH checking----limitedOfferObj", limitedOfferObj)
                         }
                     });
                 });
 
                 if (dbRewardUtil.isRewardEventForbidden(playerObj, eventObj._id)) {
                     return Q.reject({name: "DataError", message: "Player does not have permission for this limited offer. Please contact cs for more detail."});
+                }
+
+                if (!dbRewardUtil.isRewardValidNow(eventObj)) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "This reward event is not valid anymore"
+                    });
                 }
 
                 return dbConfig.collection_playerLevel.find({
@@ -5315,6 +5321,84 @@ let dbPlayerReward = {
         }, {
             multi: true
         }).exec();
+    },
+
+    checkRewardParamForBonusDoubledRewardGroup: (eventData, playerData, intervalTime) => {
+        let selectedRewardParam;
+        let bonusAmount = 0;
+        let playerBonusDoubledRewardGroupRecord;
+        let todayTime = dbUtility.getTodaySGTime();
+
+        // Set reward param for player level to use
+        if (eventData.condition.isPlayerLevelDiff) {
+            selectedRewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
+        } else {
+            selectedRewardParam = eventData.param.rewardParam[0].value;
+        }
+
+        let recordQuery = {
+            platformObjId: playerData.platform._id,
+            rewardEventObjId: eventData._id,
+            playerObjId: playerData._id,
+            isApplying: true,
+            lastApplyDate: {$gte: todayTime.startTime, $lte: todayTime.endTime}
+        };
+
+        if (intervalTime) {
+            recordQuery.lastApplyDate = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
+        }
+
+        return dbConfig.collection_playerBonusDoubledRewardGroupRecord.findOne(recordQuery).lean().then(
+            recordData => {
+                if (recordData && recordData.transferInAmount && recordData.transferInTime && recordData.transferOutTime && recordData.gameProviderObjId){
+                    playerBonusDoubledRewardGroupRecord = recordData;
+                    // get the win-lose amount
+                    let matchQuery = {
+                        providerId:recordData.gameProviderObjId,
+                        playerId: playerData._id,
+                        createTime: {$gte: recordData.transferInTime, $lt: recordData.transferOutTime}
+                    };
+
+                    return dbConfig.collection_playerConsumptionRecord.aggregate([
+                        {$match: matchQuery},
+                        {$group: {_id: "$providerId",  bonusAmount: {$sum: "$bonusAmount"},}}
+                    ]).read("secondaryPreferred");
+                }
+                else{
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Player record is not found in playerBonusDoubledRewardGroupRecord "
+                    })
+                }
+            }
+        ).then(
+            consumptionRecord => {
+                if (consumptionRecord && consumptionRecord.length && playerBonusDoubledRewardGroupRecord && selectedRewardParam){
+                    bonusAmount = Math.abs(consumptionRecord[0].bonusAmount);
+                    let transferInAmount = playerBonusDoubledRewardGroupRecord.transferInAmount;
+                    let rate = bonusAmount/transferInAmount;
+                    let rewardAmount;
+                    let spendingAmount;
+
+                    if (eventData.param.isMultiStepReward) { 
+                        selectedRewardParam = selectedRewardParam.filter(e => rate >= e.multiplier).sort((a, b) => b.multiplier - a.multiplier);
+                        selectedRewardParam = selectedRewardParam[0] || null;    
+                    } else {
+                        selectedRewardParam = selectedRewardParam[0];
+                    }
+
+                    if (!selectedRewardParam || rate < selectedRewardParam.multiplier) {
+                        return Q.reject({
+                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                            name: "DataError",
+                            message: "not eligible to obtain the reward bonus"
+                        });
+                    }
+
+                    return {selectedRewardParam: selectedRewardParam, record: playerBonusDoubledRewardGroupRecord, winLoseAmount: bonusAmount};
+                }
+            }
+        )
     },
 
     /**
@@ -7903,53 +7987,6 @@ let dbPlayerReward = {
                         return Promise.reject({name: "DataError", message: "Sort order supported digit 1 to 4 only"});
                     }
 
-                    let query = [];
-                    if (isPaging) {
-                        query = [
-                            {
-                                $match: matchQuery
-                            },
-                            {
-                                $group: {
-                                    "_id": "$data.playerObjId",
-                                    "username": {$first: "$data.playerName"},
-                                    "receiveCount": {$sum: 1},
-                                    "totalReceiveAmount": {$sum: "$data.rewardAmount"},
-                                    "highestAmount": {$max: "$data.rewardAmount"},
-                                    "createTime": {$max: "$createTime"}
-                                }
-                            },
-                            {
-                                $sort: sortCol
-                            },
-                            {
-                                $skip: index
-                            },
-                            {
-                                $limit: limit
-                            }
-                        ];
-                    } else {
-                        query = [
-                            {
-                                $match: matchQuery
-                            },
-                            {
-                                $group: {
-                                    "_id": "$data.playerObjId",
-                                    "username": {$first: "$data.playerName"},
-                                    "receiveCount": {$sum: 1},
-                                    "totalReceiveAmount": {$sum: "$data.rewardAmount"},
-                                    "highestAmount": {$max: "$data.rewardAmount"},
-                                    "createTime": {$max: "$createTime"}
-                                }
-                            },
-                            {
-                                $sort: sortCol
-                            }
-                        ];
-                    }
-
                     let countProm = dbConfig.collection_proposal.aggregate([
                         {
                             $match: matchQuery
@@ -7967,7 +8004,24 @@ let dbPlayerReward = {
                         }
                     ]).read("secondaryPreferred");
 
-                    let rewardProm = dbConfig.collection_proposal.aggregate(query).read("secondaryPreferred");
+                    let rewardProm = dbConfig.collection_proposal.aggregate([
+                        {
+                            $match: matchQuery
+                        },
+                        {
+                            $group: {
+                                "_id": "$data.playerObjId",
+                                "username": {$first: "$data.playerName"},
+                                "receiveCount": {$sum: 1},
+                                "totalReceiveAmount": {$sum: "$data.rewardAmount"},
+                                "highestAmount": {$max: "$data.rewardAmount"},
+                                "createTime": {$max: "$createTime"}
+                            }
+                        },
+                        {
+                            $sort: sortCol
+                        }
+                    ]).read("secondaryPreferred");
 
                     let sumRewardProm = dbConfig.collection_proposal.aggregate([
                         {
@@ -7989,7 +8043,9 @@ let dbPlayerReward = {
                             totalReceiveCount = data && data[2] && data[2][0] && data[2][0].totalReceiveCount ? data[2][0].totalReceiveCount : 0;
                             totalAmount = data && data[2] && data[2][0] && data[2][0].totalAmount ? data[2][0].totalAmount : 0;
 
-                            return data[1];
+                            let result = data[1] && data[1].length > 0 ? (isPaging === true || isPaging === "true") ? data[1].slice(index, index + limit) : data[1] : [];
+
+                            return result;
                         }
                     );
 
@@ -8045,7 +8101,7 @@ let dbPlayerReward = {
             lastRewardData => {
                 statsObj = {};
                 statsObj.totalCount = totalCount;
-                statsObj.totalPage = totalPage;
+                statsObj.totalPage = (isPaging === true || isPaging === "true") ? totalPage : 1;
                 statsObj.currentPage = currentPage;
                 statsObj.totalReceiveCount = totalReceiveCount;
                 statsObj.totalAmount = totalAmount;

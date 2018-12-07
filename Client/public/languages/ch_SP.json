@@ -1649,6 +1649,9 @@
   "Fixed Reward Amount": "固定优惠金额",
   "PlayerBonusDoubledRewardGroup": "盈利翻倍奖（组）",
   "The credit balance is not enough for this reward": "余额不足， 无法参与活动",
+  "rewardStartTime": "优惠起始时间",
+  "rewardEndTime": "优惠结束时间",
+  "PlayerBonusDoubledRewardGroup": "盈利翻倍奖 （组）",
   "For instance: 100$ is transferred in and bet, and 110 is gained; the calculation: +110/100 = 1.1, which is the multiplier": "举例：玩家带入100元、下注100元、报表输赢+110; 算法为：+110 / 100元＝1.1，总计翻 1.1 倍。",
 
   "REWARD_POINTS_ADJUSTMENT": "修改积分",
@@ -4749,6 +4752,9 @@
   "Current Game Status": "目前游戏状态",
   "Actions":"状态操作",
   "FPMS System": "客服系统",
+
+  "Bulk SMS to Failed Callee": "群发短信给拨电失败名单",
+
   "Cannot modify , please contact game provider": "不可操作，请询问供应商",
   "Partner Architecture": "代理架构",
   "Parent Partner Name": "上级代理帐号",
