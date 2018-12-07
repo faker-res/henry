@@ -14386,6 +14386,8 @@ let dbPlayerInfo = {
                                     if (data.hasOwnProperty('sortCol')){
                                         rewardData.sortCol = data.sortCol;
                                     }
+
+                                    
                                     if(data.appliedRewardList){
                                         rewardData.appliedRewardList = data.appliedRewardList
                                     }
@@ -22173,7 +22175,7 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
 }
 
 function checkBeforeApplyingBonusDoubled(checkList, rewardTypeWithProposalList, eventData){
-    if (!checkList || !checkList.length){
+    if (checkList && !checkList.length){
         return Promise.reject({
             name: "DataError",
             message: "checkList is not found"
@@ -22197,7 +22199,6 @@ function checkBeforeApplyingBonusDoubled(checkList, rewardTypeWithProposalList, 
     }
 
     if (timesHasApplied){
-        console.log("checking 1", timesHasApplied)
         if (timesHasApplied.hasOwnProperty('applyTimes')){
             let chances = eventData.condition && eventData.condition.quantityLimitInInterval ? eventData.condition.quantityLimitInInterval : 1;
             if (timesHasApplied.applyTimes >= chances){
@@ -22300,8 +22301,9 @@ function updateOrSaveBonusDoubledRewardGroupRecord(playerData, eventData, select
                 let updateData = {
                     lastApplyDate: new Date(),
                     $inc: {applyTimes: 1},
-                    gameProviders: selectedProviderList,
-                    isApplying: true
+                    isApplying: true,
+                    intervalStartTime: intervalTime.startTime,
+                    intervalEndTime: intervalTime.endTime,
                 }
 
                 return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate({_id: retRecord._id}, updateData).lean()
@@ -22314,8 +22316,9 @@ function updateOrSaveBonusDoubledRewardGroupRecord(playerData, eventData, select
                     platformObjId: playerData.platform._id,
                     lastApplyDate: new Date(),
                     applyTimes: 1,
-                    gameProviders: selectedProviderList,
-                    isApplying: true
+                    isApplying: true,
+                    intervalStartTime: intervalTime.startTime,
+                    intervalEndTime: intervalTime.endTime,
                 };
 
                 let newRecord = new dbconfig.collection_playerBonusDoubledRewardGroupRecord(recordData);
@@ -22325,12 +22328,9 @@ function updateOrSaveBonusDoubledRewardGroupRecord(playerData, eventData, select
     )
 }
 
-function getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewardParam, playerBonusDoubledRecord, lastConsumptionRecord, winLoseAmount){
+function getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewardParam, playerBonusDoubledRecord, lastConsumptionRecord, winLoseAmount, consumptionRecordList){
     let gameProviderObjId;
     let gameProviderId;
-    let rewardAmount = 0;
-    let spendingAmount = 0;
-    let transferOutRecord;
 
     if (playerBonusDoubledRecord && playerBonusDoubledRecord.gameProviderObjId && playerBonusDoubledRecord.gameProviderId && playerBonusDoubledRecord.hasOwnProperty('transferInAmount') ){
         gameProviderObjId = playerBonusDoubledRecord.gameProviderObjId;
@@ -22383,110 +22383,14 @@ function getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewa
         }
     ).then(
         lastTransferOutRecord => {
-            if (!lastTransferOutRecord){
+            if (!lastTransferOutRecord) {
                 return Promise.reject({
                     name: "DataError",
                     errorMessage: "The last transferring-in record is not found"
                 })
             }
-
-            transferOutRecord = lastTransferOutRecord;
-
             // generate proposal
-            if (selectedRewardParam.hasOwnProperty('rewardPercentage')){
-                rewardAmount = playerBonusDoubledRecord.transferInAmount * selectedRewardParam.rewardPercentage;
-                spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
-            }
-            else {
-                rewardAmount = selectedRewardParam.rewardAmount;
-                spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
-            }
-
-            // create reward proposal
-            let proposalData = {
-                type: eventData.executeProposal,
-                creator: {
-                        type: 'player',
-                        name: playerData.name,
-                        id: playerData._id
-                    },
-                data: {
-                    playerObjId: playerData._id,
-                    playerId: playerData.playerId,
-                    playerName: playerData.name,
-                    realName: playerData.realName,
-                    platformObjId: playerData.platform._id,
-                    rewardAmount: rewardAmount,
-                    spendingAmount: spendingAmount,
-                    eventId: eventData._id,
-                    eventName: eventData.name,
-                    eventCode: eventData.code,
-                    eventDescription: eventData.description,
-                    isIgnoreAudit: eventData.condition && (typeof(eventData.condition.isIgnoreAudit) === "boolean" && eventData.condition.isIgnoreAudit === true) || (Number.isInteger(eventData.condition.isIgnoreAudit) && eventData.condition.isIgnoreAudit >= rewardAmount),
-                    forbidWithdrawAfterApply: Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true),
-                    remark: selectedRewardParam.remark,
-                    useConsumption: Boolean(!eventData.condition.isSharedWithXIMA),
-                    providerGroup: eventData.condition.providerGroup,
-                    // Use this flag for auto apply reward
-                    isGroupReward: true,
-                    // If player credit is more than this number after unlock reward group, will ban bonus
-                    forbidWithdrawIfBalanceAfterUnlock: selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0,
-                    isDynamicRewardAmount: false,
-                },
-                entryType: constProposalEntryType.CLIENT,
-                userType: constProposalUserType.PLAYERS
-            };
-
-            // proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
-            proposalData.data.rewardStartTime = eventData.condition.validStartTime;
-            proposalData.data.rewardEndTime = eventData.condition.validEndTime;
-            proposalData.data.interval = eventData.condition.interval;
-            proposalData.data.timesHasApplied = playerBonusDoubledRecord.applyTimes;
-            proposalData.data.quantityLimitInInterval = eventData.condition.quantityLimitInInterval;
-            proposalData.data.gameProviderInEvent = playerBonusDoubledRecord.gameProviderObjId;
-            proposalData.data.transferInAmount = playerBonusDoubledRecord.transferInAmount;
-            proposalData.data.transferInId = playerBonusDoubledRecord.transferInId || 'TEST TRANFER IN ID';
-            proposalData.data.transferOutAmount = transferOutRecord.amount;
-            proposalData.data.transferOutId = transferOutRecord.transferId;
-            proposalData.data.winLose = winLoseAmount;
-            proposalData.data.countWinLostStartTime = playerBonusDoubledRecord.transferInTime;
-            proposalData.data.countWinLostEndTime = playerBonusDoubledRecord.transferOutTime;
-            proposalData.data.lastLoginIp = playerData.lastLoginIp;
-            proposalData.data.phoneNumber = playerData.phoneNumber;
-
-            if (playerData.deviceId) {
-                proposalData.data.deviceId = playerData.deviceId;
-            }
-
-            if (lastConsumptionRecord && Object.keys(lastConsumptionRecord).length > 0) {
-                proposalData.data.betTime = lastConsumptionRecord.createTime || null;
-                proposalData.data.betAmount = lastConsumptionRecord.validAmount || null;
-                proposalData.data.winAmount = lastConsumptionRecord.bonusAmount || null;
-                proposalData.data.winTimes = lastConsumptionRecord.winRatio || null;
-            }
-
-            if (selectedRewardParam && selectedRewardParam.maxRewardAmountInSingleReward) {
-                proposalData.data.maxReward = selectedRewardParam.maxRewardAmountInSingleReward;
-            }
-
-            if (selectedRewardParam && selectedRewardParam.rewardPercentage) {
-                proposalData.data.rewardPercent = selectedRewardParam.rewardPercentage*100;
-            }
-            
-            return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
-                proposalData => {
-                   
-                    // update the playerBonusDoubledRewardGroupRecord
-                    let query = {
-                        platformObjId: playerData.platform._id,
-                        playerObjId: playerData._id,
-                        rewardEventObjId: eventData._id,
-                        lastApplyDate: {$gte: intervalTime.startTime, $lte: intervalTime.endTime}
-                    };
-
-                    return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, {isApplying: false}).lean();
-                }
-            );
+            return dbProposal.createPlayerBonusDoubledRewardGroupProposal(lastTransferOutRecord, selectedRewardParam, playerData, eventData, playerBonusDoubledRecord, lastConsumptionRecord, intervalTime, consumptionRecordList, winLoseAmount);
         }
     )
 }
@@ -22514,7 +22418,8 @@ function transferOutFromSelectedGameProvider(selectedProviderList, playerData, e
                             }
                         }
                     )
-                   return dbGameProvider.checkTransferInSequence(playerData.platform._id, playerData._id, providerIdList);
+                    // check if the last operaton of the game provide is transfer-in, yes -> transfer out; no -> already transfer out so no need to do anything
+                   return dbGameProvider.checkLastOperationTransferIn(playerData.platform._id, playerData._id, providerIdList);
                 }
                 else{
                     return Promise.reject({
@@ -22527,7 +22432,6 @@ function transferOutFromSelectedGameProvider(selectedProviderList, playerData, e
             transferInList => {
                 console.log("checking 101 lastTransferInList", transferInList)
                 if (transferInList && transferInList.length) {
-                    transferInList.sort((a, b) => new Date(a.operationTime).getTime() - new Date(b.operationTime).getTime());
                     // to get the credit of the provider
                     transferInList.forEach(
                         gameProvider => {
@@ -22624,6 +22528,7 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
     let selectedProviderList;
     let selectedRewardParam;
     let winLoseAmount;
+    let consumptionRecordList;
     let playerBonusDoubledRecord;
     let lastConsumptionRecord;
     let intervalTime;
@@ -22763,11 +22668,30 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
                 return checkBeforeApplyingBonusDoubled(checkList, rewardTypeWithProposalList, eventData);
             }
             else if (type && type == 2) {
-                if (checkList[4] && checkList[4].selectedRewardParam && checkList[4].record && checkList[4].hasOwnProperty('winLoseAmount')){
-                    selectedRewardParam = checkList[4].selectedRewardParam;
-                    playerBonusDoubledRecord = checkList[4].record;
-                    winLoseAmount = checkList[4].winLoseAmount;
-                    lastConsumptionRecord = checkList[5] || null;
+                selectedRewardParam =  checkList[4] && checkList[4].selectedRewardParam ? checkList[4].selectedRewardParam : null;
+                playerBonusDoubledRecord =  checkList[4] && checkList[4].record ? checkList[4].record : null;
+                winLoseAmount = checkList[4] && checkList[4].winLoseAmount ? checkList[4].winLoseAmount : 0;
+                consumptionRecordList = checkList[4] && checkList[4].consumptionRecordList ? checkList[4].consumptionRecordList : null;
+                lastConsumptionRecord = checkList[5] || null;
+
+                if (!selectedRewardParam) {
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                        name: "DataError",
+                        message: "not eligible to obtain the reward bonus"
+                    })
+                }
+                if (!selectedRewardParam) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "playerBonusDoubledRecord cannot be found"
+                    })
+                }
+                if (!winLoseAmount || !consumptionRecordList) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "no consumption record is found during the interval"
+                    })
                 }
                 return true;
             }
@@ -22780,11 +22704,16 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
                     return transferOutFromSelectedGameProvider(selectedProviderList, playerData, eventData, intervalTime);
                 }
                 else if (type == 2){
-                    return getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewardParam, playerBonusDoubledRecord, lastConsumptionRecord, winLoseAmount)
+                    return getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewardParam, playerBonusDoubledRecord, lastConsumptionRecord, winLoseAmount, consumptionRecordList)
                 }
             }
         }
-    )
+    ).catch(
+        err => {
+            console.log('applyRewardEvent error', playerData._playerId, err);
+            throw err;
+        }
+    );
 }
 
 function manualPlayerLevelUpReward(playerObjId, adminInfo) {

@@ -66,7 +66,7 @@ div(ng-show="vm.curPlatformText")
             button.btn.btn-primary.common-button(ng-if="vm.ctiData.hasOnGoingMission && !vm.showFinishCalloutMissionButton",ng-click='vm.toggleCallOutMissionStatus()') {{"Pause/Resume Mission" | translate}}
             button.btn.btn-primary.common-button(ng-if="vm.ctiData.hasOnGoingMission && !vm.showFinishCalloutMissionButton",ng-click='vm.stopCallOutMission()') {{"Stop Mission" | translate}}
             //button.btn.btn-warning.common-button(ng-if="vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.initBulkAddPlayerFeedback()') {{"Failed Call Player Feedback" | translate}}
-            //button.btn.btn-warning.common-button(ng-if="vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.initBulkSMSToFailCallee()') {{"Bulk SMS to Failed Callee" | translate}} todo
+            button.btn.btn-warning.common-button(ng-if="vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.initBulkSMSToFailCallee()') {{"Bulk SMS to Failed Callee" | translate}}
             button.btn.btn-success.common-button(ng-if="vm.ctiData.hasOnGoingMission && vm.showFinishCalloutMissionButton",ng-click='vm.endCallOutMission()') {{"Finish Mission" | translate}}
             span#adminPhoneListTableSpin.collapse
                 i.fa.fa-spinner.fa-spin

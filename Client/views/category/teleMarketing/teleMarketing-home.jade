@@ -1625,12 +1625,12 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"Send SMS to Player" | translate}}
+                h4.modal-title {{"Send SMS to Fail Callee List" | translate}}
             .modal-body
                 .row
                     div.form-group.col-md-12
-                        label.control-label {{"TO_PLAYER" | translate}}:&nbsp;
-                        text {{"Failed Call Player" | translate}}
+                        label.control-label {{"TO" | translate}}:&nbsp;
+                        text {{"Fail Callee List" | translate}}
 
                         label.margin-left-5.control-label {{"Channel" | translate}}:&nbsp;
                         select(ng-model='vm.smsPlayer.channel', ng-options='a for a in channelList')
@@ -1653,6 +1653,6 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                         label.control-label {{"CONTENT" | translate}}
                         textarea.form-control(ng-model="vm.smsPlayer.message", placeholder="...", rows="8", maxlength="100")
             .modal-footer
-                button.btn.common-button.btn-primary(ng-click="vm.bulkSMSToFailCallee()", ng-disabled="!vm.smsPlayer.message || !vm.smsPlayer.channel") {{"SEND" | translate}}
+                button.btn.common-button.btn-primary(data-dismiss='modal' ng-click="vm.bulkSMSToFailCallee()", ng-disabled="!vm.smsPlayer.message || !vm.smsPlayer.channel") {{"SEND" | translate}}
                 button.btn.common-button.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
 
