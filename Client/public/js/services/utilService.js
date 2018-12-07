@@ -462,13 +462,13 @@ define([], function () {
 
         this.getDifferenceBetweenTwoDays = function (startTime, endTime) {
 
-            var date1_ms = startTime.getLocalDate();
-            var date2_ms = endTime.getLocalDate();
+            let date1_ms = startTime.getTime();
+            let date2_ms = endTime.getTime();
 
-            var difference_ms = Math.abs(date1_ms - date2_ms);
-            var ONE_DAY = 1000 * 60 * 60 * 24;
+            let difference_ms = Math.abs(date1_ms - date2_ms);
+            let ONE_DAY = 1000 * 60 * 60 * 24;
             // Convert back to days and return
-            var difference = Math.round(difference_ms / ONE_DAY);
+            let difference = Math.ceil(difference_ms / ONE_DAY);
             return difference;
         };
         this.createDatatableWithFooter = function (tableId, option, sumData, showPageOnly) {
