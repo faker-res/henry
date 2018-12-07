@@ -5681,6 +5681,10 @@ let dbPlayerReward = {
             promArr.push(periodPropsProm);
 
             lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(consumptionMatchQuery).sort({createTime: -1}).limit(1).lean();
+
+            // check reward apply restriction on ip, phone and IMEI
+            let checkHasReceivedProm = dbProposalUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, playerData, eventData);
+            promArr.push(checkHasReceivedProm);
         }
 
 
@@ -6800,6 +6804,7 @@ let dbPlayerReward = {
                         let consumptionRecords = rewardSpecificData[0];
                         let topUpRecords = rewardSpecificData[1];
                         let periodProps = rewardSpecificData[2];
+                        let checkHasReceived = rewardSpecificData[3];
                         let applyRewardTimes = periodProps.length;
                         let topUpAmount = topUpRecords.reduce((sum, value) => sum + value.amount, 0);
                         let consumptionAmount = consumptionRecords.reduce((sum, value) => sum + value.validAmount, 0);
@@ -6812,6 +6817,35 @@ let dbPlayerReward = {
                                 return a.amount - b.amount;
                             })
                         }
+
+                        let sameIPAddressHasReceived = checkHasReceived && checkHasReceived.sameIPAddressHasReceived ? checkHasReceived.sameIPAddressHasReceived : "";
+                        let samePhoneNumHasReceived = checkHasReceived && checkHasReceived.samePhoneNumHasReceived ? checkHasReceived.samePhoneNumHasReceived : "";
+                        let sameDeviceIdHasReceived = checkHasReceived && checkHasReceived.sameDeviceIdHasReceived ? checkHasReceived.sameDeviceIdHasReceived : "";
+
+                        if (sameIPAddressHasReceived) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "This IP address has applied for max reward times in event period"
+                            });
+                        }
+
+                        if (samePhoneNumHasReceived) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "This phone number has applied for max reward times in event period"
+                            });
+                        }
+
+                        if (sameDeviceIdHasReceived) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "This mobile device has applied for max reward times in event period"
+                            });
+                        }
+
                         if (selectedRewardParam.numberParticipation && applyRewardTimes < selectedRewardParam.numberParticipation) {
                             let meetTopUpCondition = false, meetConsumptionCondition = false;
                             if (topUpAmount >= (selectedRewardParam.requiredTopUpAmount? selectedRewardParam.requiredTopUpAmount: 0)) {
