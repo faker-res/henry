@@ -1625,12 +1625,12 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"Send SMS to Player" | translate}}
+                h4.modal-title {{"Send SMS to Fail Callee List" | translate}}
             .modal-body
                 .row
                     div.form-group.col-md-12
-                        label.control-label {{"TO_PLAYER" | translate}}:&nbsp;
-                        text {{"Failed Call Player" | translate}}
+                        label.control-label {{"TO" | translate}}:&nbsp;
+                        text {{"Fail Callee List" | translate}}
 
                         label.margin-left-5.control-label {{"Channel" | translate}}:&nbsp;
                         select(ng-model='vm.smsPlayer.channel', ng-options='a for a in channelList')
