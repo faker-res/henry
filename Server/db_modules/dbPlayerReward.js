@@ -4872,7 +4872,7 @@ let dbPlayerReward = {
                     return Q.reject({name: "DataError", message: "Player does not have permission for this limited offer. Please contact cs for more detail."});
                 }
 
-                if (!dbRewardUtil.isRewardValidNow(eventData)) {
+                if (!dbRewardUtil.isRewardValidNow(eventObj)) {
                     return Promise.reject({
                         name: "DataError",
                         message: "This reward event is not valid anymore"
