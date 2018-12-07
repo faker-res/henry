@@ -1,8 +1,79 @@
 form(name="form_player_topup", novalidate)
+    label.control-label 请在指定 XX 分钟内，按照下列订单方式，转帐至指定银行卡。
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
-            label.control-label *{{"PLAYER_NAME" | translate}}
+            label.control-label *{{"ProposalId" | translate}}
         .form-group.col-md-6
-            label.control-label {{"REAL_NAME" | translate}}
+            div {{vm.existingAssignTopup.proposalId}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"充值金额" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.amount}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"充值方式" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.depositMethod}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"网银-姓名" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.playerRealName}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"ATM-存款省" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.proposalId}}
+
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"ATM-存款市" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.proposalId}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"银行柜台-存款方式" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.proposalId}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"银行柜台-银行卡姓名" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.playerRealName}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"银行柜台-转帐编号*请将此编号告知银行员，请他填写备注" | translate}}
+        .form-group.col-md-6
             div {{vm.existingAssignTopup.data.playerId}}
     .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"收款银行名称：" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.proposalId}}
+
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"收款人姓名：" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.playerRealName}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"收款卡号：" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.lastBankcardNo}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"收款卡开户省：" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.proposalId}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"收款卡开户市：" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.proposalId}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"收款卡支行：" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.proposalId}}
