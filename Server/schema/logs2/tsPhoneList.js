@@ -14,6 +14,8 @@ let tsPhoneListSchema = new Schema({
     name: {type: String, required: true, index: true},
     // list description
     description: {type: String, required: true},
+    // default feedback result key when fail to call
+    failFeedBackResultKey: {type: String},
     // default feedback result when fail to call
     failFeedBackResult: {type: String, required: true},
     // default feedback topic when fail to call

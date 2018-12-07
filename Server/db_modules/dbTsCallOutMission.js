@@ -1,6 +1,7 @@
 const dbconfig = require('./../modules/dbproperties');
 const dbutility = require('./../modules/dbutility');
 const dbCtiCallOut = require('./dbCtiCallOut');
+const dbTeleSales = require('./dbTeleSales');
 
 const constCallOutMissionStatus = require('./../const/constCallOutMissionStatus');
 const constCallOutMissionCalleeStatus = require('./../const/constCallOutMissionCalleeStatus');
@@ -237,7 +238,16 @@ let dbTsCallOutMission = {
                     isUsing: true
                 }, {
                     isUsing: false
+                }, {
+                    new: true
                 }).lean();
+            }
+        ).then(
+            mission => {
+                addCallOutMissionFailureFeedback(mission._id, adminObjId).catch(err => {
+                    console.log("ts auto feedback failure", mission._id, err);
+                });
+                return mission;
             }
         );
     },
@@ -500,3 +510,44 @@ function getCalleeList (query, sortCol) {
     );
 }
 
+function addCallOutMissionFailureFeedback(missionObjId, adminObjId) {
+    return dbconfig.collection_tsCallOutMissionCallee.find({mission: missionObjId, status: constCallOutMissionCalleeStatus.FAILED}).lean().then(
+        calleeList => {
+            let proms = [];
+
+            calleeList.map(callee => {
+                let prom = addCalleeFeedback(callee, adminObjId).catch(err => {
+                    console.log("create callee feedback failure:", missionObjId, callee._id, err);
+                    return errorUtils.reportError(err);
+                });
+                proms.push(prom);
+            });
+
+            return Promise.all(proms);
+        }
+    );
+}
+
+function addCalleeFeedback(callee, adminObjId) {
+    let tsPhoneList;
+    return dbconfig.collection_tsPhone.findOne({_id: callee.tsPhone}).populate({path: "tsPhoneList", model: dbconfig.collection_tsPhoneList}).lean().then(
+        tsPhone => {
+            if (tsPhone && tsPhone.tsPhoneList) {
+                tsPhoneList = tsPhone.tsPhoneList;
+            }
+
+            let feedbackContent = {
+                tsPhone: tsPhone._id,
+                tsPhoneList: tsPhoneList._id,
+                platform: tsPhoneList.platform,
+                adminId: adminObjId,
+                content: tsPhoneList.failFeedBackContent,
+                result: tsPhoneList.failFeedBackResultKey,
+                resultName: tsPhoneList.failFeedBackResult,
+                topic: tsPhoneList.failFeedBackTopic,
+            };
+
+            return dbTeleSales.createTsPhoneFeedback(feedbackContent);
+        }
+    );
+}
