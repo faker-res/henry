@@ -1,0 +1,8 @@
+form(name="form_player_topup", novalidate)
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"PLAYER_NAME" | translate}}
+        .form-group.col-md-6
+            label.control-label {{"REAL_NAME" | translate}}
+            div {{vm.existingAssignTopup.data.playerId}}
+    .row.margin-left-5.margin-right-5
