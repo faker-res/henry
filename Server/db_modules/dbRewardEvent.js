@@ -17,6 +17,7 @@ const dbProposalUtil = require('../db_common/dbProposalUtility');
 const dbPlayerConsumptionWeekSummary = require('./../db_modules/dbPlayerConsumptionWeekSummary');
 const dbGameType = require('../db_modules/dbGameType');
 const dbPropUtil = require('./../db_common/dbProposalUtility');
+const moment = require('moment-timezone');
 
 let cpmsAPI = require("../externalAPI/cpmsAPI");
 let SettlementBalancer = require('../settlementModule/settlementBalancer');
