@@ -11760,7 +11760,7 @@ define(['js/app'], function (myApp) {
                 cityId: vm.playerAssignTopUp.cityId,
                 districtId: vm.playerAssignTopUp.districtId,
                 fromFPMS: true,
-                createTime: vm.playerAssignTopUp.createTime.data('datetimepicker').getLocalDate(),
+                createTime: new Date(),
                 remark: vm.playerAssignTopUp.remark,
                 groupBankcardList: vm.playerAssignTopUp.groupBankcardList,
                 bonusCode: vm.playerAssignTopUp.bonusCode,
@@ -15752,6 +15752,8 @@ define(['js/app'], function (myApp) {
         }
         vm.getBankCardMaxAmount = function (bankAcc) {
             vm.playerAssignTopUp.maxDepositAmount = vm.pickBankAcc.maxDepositAmount;
+            vm.playerAssignTopUp.bankTypeId = vm.pickBankAcc.bankTypeId;
+
         }
         vm.playerAssignPlayerId = function (counterDepositType){
             if(counterDepositType==2){

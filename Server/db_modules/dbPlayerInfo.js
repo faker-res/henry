@@ -7748,7 +7748,7 @@ let dbPlayerInfo = {
                     for (var i = 0; i < rewardEvent.length; i++) {
                         var rewardEventItem = rewardEvent[i].toObject();
                         delete rewardEventItem.platform;
-                        
+
                         let providerGroup = null;
                         let providerGroupName = null;
                         if (rewardEventItem.condition && rewardEventItem.condition.providerGroup && rewardEventItem.condition.providerGroup._id){
@@ -7820,7 +7820,7 @@ let dbPlayerInfo = {
                             rewardEventArray.push(rewardEventItem);
                         }
                     }
-                    return rewardEventArray;              
+                    return rewardEventArray;
                 }
             },
             function (error) {
@@ -13195,7 +13195,7 @@ let dbPlayerInfo = {
                     platformObjectId = playerData.platform._id;
                     return dbconfig.collection_proposalType.findOne({
                         platformId: platformObjectId,
-                        name: constProposalType.PLAYER_ASSIGN_TOP_UP
+                        name: constProposalType.PLAYER_MANUAL_TOP_UP
                     });
                 }
                 else {
@@ -13204,11 +13204,13 @@ let dbPlayerInfo = {
             }
         ).then(
             proposalTypeData => {
+                console.log(proposalTypeData);
+                console.log(playerId)
                 if (proposalTypeData) {
                     var queryObject = {
                         "data.playerId": playerId,
-                        type: proposalTypeData._id,
-                        status: constProposalStatus.PENDING
+                        type: proposalTypeData._id
+                        // status: constProposalStatus.PENDING
                     };
                     return dbconfig.collection_proposal.findOne(queryObject).lean();
                 }
@@ -22465,7 +22467,7 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
             message: "The way of applying this reward is not correct."
         })
     }
-    
+
     if (type && type == 1){
         // check the requirement when applying the reward
         //check valid time for reward event

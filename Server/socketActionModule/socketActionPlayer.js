@@ -809,6 +809,15 @@ function socketActionPlayer(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerTopUpRecord.addManualTopupRequest, [userAgent, data.playerId, data, "ADMIN", getAdminId(), getAdminName(), data.fromFPMS, null, data.topUpReturnCode, data.platform], actionName, isValidData);
         },
         /**
+        *
+        */
+        applyAssignTopUpRequest: function applyAssignTopUpRequest(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.playerId && data.amount && data.amount > 0 && data.depositMethod);
+            let userAgent = '';
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.addManualTopupRequest, [userAgent, data.playerId, data, "ADMIN", getAdminId(), getAdminName(), data.fromFPMS, null, data.topUpReturnCode, data.platform, isPlayerAssign], actionName, isValidData);
+        },
+        /**
          *  Get deposit methods
          */
         getDepositMethodList: function getDepositMethodList() {

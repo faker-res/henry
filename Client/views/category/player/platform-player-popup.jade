@@ -1192,12 +1192,16 @@
                                 button.btn.btn-primary.pull-right(disabled) {{'Cancel' | translate}}
                                 label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingAssignTopup.data.validTime)}}
                                 label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingAssignTopup.data.amount}}
-                            div(ng-if='!vm.existingAssignTopup.isCanceled')
+                            //div(ng-if='!vm.existingAssignTopup.isCanceled')
                                 i.fa.fa-exclamation-triangle.text-danger.margin-right-5
                                 label.margin-right-5 {{"Player has pending manual topup request already." | translate}}
                                 label.margin-right-5 {{'validTime' | translate}} : {{vm.dateReformat(vm.existingAssignTopup.data.validTime)}}
                                 label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingAssignTopup.data.amount}}
                                 button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerAssignTop()') {{'CANCEL' | translate}}
+                            div(ng-if='!vm.existingAssignTopup.isCanceled')
+                                i.fa.fa-exclamation-triangle.text-danger.margin-right-5
+                                include player-assign-topup-form
+
                     .col-md-12(ng-show='vm.existingAssignTopup===false || vm.existingAssignTopup.isCanceled')
                         form.col-md-12(name='form_assign_topup', style="border-radius:0 4px 4px 4px;box-shadow:none;").well
                             .form-group
@@ -1216,18 +1220,18 @@
                                 label.control-label(style='width:100%') {{'Bankcard' | translate}}
                                 select.form-control.spicker(ng-options='a.displayText for a in vm.bankCards', ng-model='vm.chosenBankAcc', ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)', bsp, data-live-search="true")
                                     option(value='')
-                            .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "1"')
+                            .form-group(ng-if='vm.playerAssignTopUp.depositMethod === "1"')
                                 label.control-label {{'ONLINE BANK NAME' | translate}}
-                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.bonusCode', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "1"')
-                            .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "2"')
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.realName', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "1"')
+                            .form-group(ng-if='vm.playerAssignTopUp.depositMethod === "2"')
                                 label.control-label {{'ATM SAVING PROVINCE' | translate}}
                                 select.form-control(ng-model='vm.playerAssignTopUp.provinceId', ng-change='vm.getZoneList(vm.playerAssignTopUp.provinceId)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "2"')
                                     option(ng-repeat='(i,v) in vm.provinceList', value='{{v.id}}') {{v.name}}
-                            .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "2"')
+                            .form-group(ng-if='vm.playerAssignTopUp.depositMethod === "2"')
                                 label.control-label {{'ATM SAVING CITY' | translate}}
                                 select.form-control(ng-model='vm.playerAssignTopUp.cityId', ng-change='vm.getZoneList(vm.playerAssignTopUp.provinceId,vm.playerAssignTopUp.cityId)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "2" ')
                                     option(ng-repeat='(i,v) in vm.cityList', value='{{v.id}}') {{v.name}}
-                            .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "3"')
+                            .form-group(ng-if='vm.playerAssignTopUp.depositMethod === "3"')
                                 label.control-label {{'BANK COUNTER DEPOSIT METHOD' | translate}}
                                 select.form-control(ng-model='vm.playerAssignTopUp.counterDepositType',ng-change='vm.playerAssignPlayerId(vm.playerAssignTopUp.counterDepositType)')
                                     option(value='')
@@ -1236,7 +1240,7 @@
                                 //input.form-control(type='text', ng-model='vm.playerAssignTopUp.bonusCode', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "3"')
                             .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "3"', ng-if='vm.playerAssignTopUp.counterDepositType==1')
                                 label.control-label {{'BANK COUNTER BANK CARD HOLDER' | translate}}
-                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.topUpReturnCode', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "3"')
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.realName', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "3"')
                             .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "3"', ng-if='vm.playerAssignTopUp.counterDepositType==2')
                                 label.control-label {{'BANK COUNTER TRANSFER NUMBER' | translate}}
                                 span(style="color:red;") {{'PLEASE INFORM BANK STAFF THIS SERIAL NUMBER, AND LET THEM FILL UP REMARK' | translate}}
@@ -1294,7 +1298,7 @@
                 //assign
                 div(ng-show="vm.selectedTopupTab == 'assign'")
                     button.common-button.margin-right-5.btn.btn-success(disabled, ng-show='vm.playerAssignTopUp.submitted') {{'Submitted' | translate}}
-                    button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_assign_topup.$invalid || form_assign_topup.$pristine || (vm.existingAssignTopup && !vm.existingAssignTopup.isCanceled)', ng-show='!vm.AssignTopUp.submitted', ng-click='vm.applyAssignTopUp()') {{'APPLY' | translate}}
+                    button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_assign_topup.$invalid || form_assign_topup.$pristine || (vm.existingAssignTopup && !vm.existingAssignTopup.isCanceled)', ng-show='!vm.AssignTopUp.submitted', ng-click='vm.applyPlayerAssignTopUp()') {{'APPLY' | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
                     label.inlineBlk.wordWrap(ng-if='vm.playerAssignTopUp.submitted && vm.playerAssignTopUp.responseMsg', style="width: calc(100% - 210px)") {{vm.playerAssignTopUp.responseMsg}}
 
