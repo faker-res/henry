@@ -177,7 +177,18 @@ function socketActionTeleSales(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformObjId && data.phoneListObjIds && data.startTime && data.endTime && data.adminObjIds);
             socketUtil.emitter(self.socket, dbTeleSales.getTsWorkloadReport, [data.platformObjId, data.phoneListObjIds, data.startTime, data.endTime, data.adminObjIds], actionName, isValidData);
-        }
+        },
+
+        bulkSendSmsToPhoneCallFailurePlayer: function bulkSendSmsToPhoneCallFailurePlayer(data) {
+            let actionName = arguments.callee.name;
+            let adminObjId = getAdminId();
+            let adminName = getAdminName();
+            let isValidData = Boolean(data && data.tsPhoneDetails && data.channel != null && data.platformId != null  && data.message && adminObjId && adminName);
+            if (data) {
+                data.delay = data.delay || 0;
+            }
+            socketUtil.emitter(self.socket, dbTeleSales.bulkSendSmsToPhoneCallFailurePlayer, [adminObjId, adminName, data, data.tsPhoneDetails], actionName, isValidData);
+        },
 
     };
     socketActionTeleSales.actions = this.actions;

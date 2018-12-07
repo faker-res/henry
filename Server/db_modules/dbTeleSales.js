@@ -8,6 +8,9 @@ const constServerCode = require('../const/constServerCode');
 const constProposalType = require("./../const/constProposalType");
 const constProposalStatus = require("./../const/constProposalStatus");
 const ObjectId = mongoose.Types.ObjectId;
+var dbPlayerMail = require("../db_modules/dbPlayerMail");
+var smsAPI = require('../externalAPI/smsAPI');
+var dbLogger = require('./../modules/dbLogger');
 
 let dbTeleSales = {
     getAllTSPhoneList: function (platformObjId) {
@@ -956,6 +959,74 @@ let dbTeleSales = {
                 return workloadData;
             })
         });
+    },
+
+    bulkSendSmsToPhoneCallFailurePlayer: (adminObjId, adminName, data, tsPhoneDetails) => {
+        let proms = [];
+        if (tsPhoneDetails && tsPhoneDetails.length) {
+            tsPhoneDetails.map(tsPhone => {
+                let clonedData = Object.assign({}, data);
+                clonedData.tsPhoneId = tsPhone.tsPhoneId;
+                clonedData.tsDistributedPhone = tsPhone.tsDistributedPhoneId;
+                clonedData.encodedPhoneNumber = tsPhone.encodedPhoneNumber;
+                let prom = dbTeleSales.sendSMS(adminObjId, adminName, clonedData).catch(error => {
+                    console.error("Sms failed for tsPhoneId:", tsPhone.tsPhoneId, "- error:", error);
+                    errorUtils.reportError(error);
+                    return {playerId, error}
+                });
+
+                proms.push(prom);
+            });
+        }
+
+        return Promise.resolve(proms);
+    },
+
+    sendSMS: function (adminObjId, adminName, data) {
+
+        return dbconfig.collection_tsPhone.findOne({_id: ObjectId(data.tsPhoneId)}).then(
+            tsPhoneData => {
+                if (!tsPhoneData || !tsPhoneData.phoneNumber) {
+                    return Q.reject({message: "Error when finding phone number", data: data});
+                }
+
+                if (tsPhoneData.phoneNumber && tsPhoneData.phoneNumber.length > 20) {
+                    try {
+                        tsPhoneData.phoneNumber = rsaCrypto.decrypt(tsPhoneData.phoneNumber);
+                    }
+                    catch (err) {
+                        console.log(err);
+                    }
+                }
+                var sendObj = {
+                    tel: tsPhoneData.phoneNumber,
+                    channel: data.channel,
+                    platformId: data.platformId,
+                    message: data.message,
+                    delay: data.delay
+                };
+                var recipientName = data.encodedPhoneNumber;
+
+                return dbPlayerMail.isFilteredKeywordExist(data.message, data.platformId, "sms", data.channel).then(
+                    exist => {
+                        if (exist) {
+                            return Promise.reject({errorMessage: "Content consist of sensitive keyword."});
+                        }
+
+                        return smsAPI.sending_sendMessage(sendObj).then(
+                            retData => {
+                                dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, tsPhoneData.platform, 'success');
+                                return retData;
+                            },
+                            retErr => {
+                                dbLogger.createSMSLog(adminObjId, adminName, recipientName, data, sendObj, tsPhoneData.platform, 'failure', retErr);
+                                return Q.reject({message: retErr, data: data});
+                            }
+                        );
+                    }
+                );
+            }
+        );
     }
 };
 

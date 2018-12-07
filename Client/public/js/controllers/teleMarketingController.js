@@ -1385,7 +1385,8 @@ define(['js/app'], function (myApp) {
                     nickName: data.tsPhone.nickName || "",
                     platformId: vm.selectedPlatform.data.platformId,
                     channel: $scope.channelList[0],
-                    hasPhone: data.tsPhone.phoneNumber
+                    hasPhone: data.tsPhone.phoneNumber,
+                    platform: vm.selectedPlatform.id
                 }
                 vm.sendSMSResult = {};
                 $scope.safeApply();
@@ -7390,11 +7391,13 @@ define(['js/app'], function (myApp) {
         };
 
         vm.initBulkSMSToFailCallee = () => {
+            vm.sendSMSResult = {};
             vm.bulkPlayersToSendSMS = [];
             vm.smsPlayer = {};
             vm.ctiData.callee.map(callee => {
                 if (callee.status == 2) {
-                    vm.bulkPlayersToSendSMS.push(callee.tsPhone._id)
+                    let encodedPhoneNumber = utilService.encodePhoneNum(callee.phoneNumber);
+                    vm.bulkPlayersToSendSMS.push({tsPhoneId: callee.tsPhone._id, tsDistributedPhoneId: callee.tsDistributedPhone._id, encodedPhoneNumber: encodedPhoneNumber});
                 }
             });
             $('#modalBulkSendSMSToFailCallPlayer').modal().show();
@@ -7402,14 +7405,14 @@ define(['js/app'], function (myApp) {
 
         vm.bulkSMSToFailCallee = () => {
             let smsObj = {
-                playerIds: vm.bulkPlayersToSendSMS,
+                tsPhoneDetails: vm.bulkPlayersToSendSMS,
                 platformId: vm.selectedPlatform.data.platformId,
                 channel: vm.smsPlayer.channel,
                 message: vm.smsPlayer.message
             };
 
             console.log('bulk sms send', smsObj);
-            socketService.$socket($scope.AppSocket, 'bulkSendSMSToPlayer', smsObj, function (data) {
+            socketService.$socket($scope.AppSocket, 'bulkSendSmsToPhoneCallFailurePlayer', smsObj, function (data) {
                 console.log('sms sent', data);
                 $scope.$evalAsync(() => {
                     vm.smsPlayer = {};
