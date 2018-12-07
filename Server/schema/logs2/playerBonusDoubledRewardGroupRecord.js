@@ -25,7 +25,7 @@ let playerBonusDoubledRewardGroupRecordSchema = new Schema({
     // transferOutAmount: {type: Number},
     //transferring-in time
     transferInTime: {type: Date, index: true},
-    //transferring-out time when the player is trigger the transfer-in/out
+    //transferring-out time when the player is trigger the transfer-in/out, recorded only when gameCredit >= 1
     transferOutTime: {type: Date, index: true},
     // the transferring-in Id
     transferInId: {type: String, index: true},
