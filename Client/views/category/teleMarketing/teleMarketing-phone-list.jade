@@ -79,9 +79,6 @@
                                             option(value='individual') {{"REAL_PLAYER_INDIVIDUAL"|translate}}
                                             option(value='underPartner') {{"REAL_PLAYER_UNDER_PARTNER"|translate}}
                                             option(value='test') {{"Test Player"|translate}}
-                                        label {{'Registration Domain' | translate}} ({{'Multiple' | translate}})
-                                        select.form-control.spicker(ng-options='item for item in vm.domainList', ng-model='vm.chosenDomain', multiple, bsp, data-actions-box='true', data-live-search="true")
-                                        label.blink(ng-if='!vm.domainList') {{"Searching related domain name..." | translate}}
                                     div
                                         label &nbsp;
                                         button.btn.btn-primary.common-button(ng-click='vm.getTsPlayerRetentionAnalysis()') {{'SEARCH' | translate}}

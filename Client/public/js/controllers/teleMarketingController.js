@@ -6625,7 +6625,7 @@ define(['js/app'], function (myApp) {
                             let divWithToolTip = $('<a>', {
                                 'title': "根据『分析』功能给出报表。（首次导入后30日分析）",
                                 'text': "详情",
-                                'ng-click': 'vm.initPlayerRetentionAnalysis("'+row._id+'");',
+                                'ng-click': 'vm.initPlayerRetentionAnalysis('+JSON.stringify(row)+');',
                                 'data-toggle': 'modal',
                                 'data-target': '#modalTsPlayerRetentionAnalysis'
                             });
@@ -6726,25 +6726,25 @@ define(['js/app'], function (myApp) {
             }
         };
 
-        vm.initPlayerRetentionAnalysis = (tsPhoneListObjId) => {
-            console.log(tsPhoneListObjId);
+        vm.initPlayerRetentionAnalysis = (tsPhoneList) => {
+            console.log(tsPhoneList);
             $scope.$evalAsync(() => {
                 vm.playerRetentionQuery = {};
                 vm.retentionData = null;
                 vm.allRetentionLineData = null;
-                vm.playerRetentionQuery.tsPhoneListObjId = tsPhoneListObjId;
+                vm.playerRetentionQuery.tsPhoneListObjId = tsPhoneList._id;
                 vm.playerRetentionQuery.days = [1, 2, 3, 5, 7, 10, 12, 14, 16, 18, 21, 23, 25, 27, 30];
-                vm.playerRetentionQuery.playerType = "1"; //set default value
+                vm.playerRetentionQuery.playerType = "1";
                 vm.dayListLength = [];
                 for (let i = 1; i < 31; i++) {
                     vm.dayListLength.push(i);
                 }
                 vm.playerRetentionQuery.userType = "all";
                 setTimeout(function(){
-                    vm.playerRetentionQuery.startTime = utilService.setNDaysAgo(new Date(vm.selectedTsPhoneList.createTime), 0);
-                    vm.playerRetentionQuery.endTime = utilService.setNDaysAfter(new Date(vm.selectedTsPhoneList.createTime), 30);
+                    vm.playerRetentionQuery.startTime = utilService.setNDaysAgo(new Date(tsPhoneList.createTime), 0);
+                    vm.playerRetentionQuery.endTime = utilService.setNDaysAfter(new Date(tsPhoneList.createTime), 30);
                     vm.playerRetentionQuery.minTime = utilService.getFormatDate(vm.playerRetentionQuery.startTime);
-                    let daysTillDate = utilService.getDifferenceBetweenTwoDays(new Date(vm.selectedTsPhoneList.createTime), new Date());
+                    let daysTillDate = utilService.getDifferenceBetweenTwoDays(new Date(tsPhoneList.createTime), new Date());
                     vm.playerRetentionQuery.days.forEach((day, i) => {
                         if(day > daysTillDate) {
                             vm.playerRetentionQuery.days.splice(i);
