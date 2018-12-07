@@ -972,7 +972,7 @@ let dbTeleSales = {
                 let prom = dbTeleSales.sendSMS(adminObjId, adminName, clonedData).catch(error => {
                     console.error("Sms failed for tsPhoneId:", tsPhone.tsPhoneId, "- error:", error);
                     errorUtils.reportError(error);
-                    return {playerId, error}
+                    return {tsPhone, error}
                 });
 
                 proms.push(prom);
