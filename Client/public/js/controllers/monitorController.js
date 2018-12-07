@@ -89,6 +89,8 @@ define(['js/app'], function (myApp) {
             }else if(window.location.pathname == "/monitor/wechatGroup") {
                 vm.seleDataType["WECHAT_GROUP_CONTROL_MONITOR"] = 'bg-bright';
                 vm.showPlatformList = false;
+                $('#wechatMonitor.collapse').addClass('in');
+                $('#paymentMonitor.collapse').removeClass('in');
             }else if(window.location.pathname == "/monitor/consumptionRecord") {
                 vm.seleDataType["CONSUMPTION_RECORD_MONITOR"] = 'bg-bright';
                 vm.showPlatformList = false;
