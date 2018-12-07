@@ -51,6 +51,13 @@ define(['js/app'], function (myApp) {
             7: "DECOMPOSED"
         };
 
+        vm.allNewPlayerType = {
+            1: "allNewRegistrationCount",
+            2: "rechargedPlayer",
+            3: "multipleTopUpPlayer",
+            4: "Valid Player"
+        };
+
         vm.constTsPhoneListStatus = {
             PRE_DISTRIBUTION: 0,
             DISTRIBUTING: 1,
@@ -6995,9 +7002,12 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('PLAYER_RETENTION'),
                         render: function(data, type, row, index){
-                            let divWithToolTip = $('<div>', {
+                            let divWithToolTip = $('<a>', {
                                 'title': "根据『分析』功能给出报表。（首次导入后30日分析）",
-                                'text': "详情"
+                                'text': "详情",
+                                'ng-click': 'vm.initPlayerRetentionAnalysis('+JSON.stringify(row)+');',
+                                'data-toggle': 'modal',
+                                'data-target': '#modalTsPlayerRetentionAnalysis'
                             });
 
                             return divWithToolTip.prop('outerHTML');
@@ -7059,6 +7069,241 @@ define(['js/app'], function (myApp) {
                 }
             })
         }
+
+        vm.bindHover = function (placeholder, callback) {
+            $(placeholder).bind("plothover", function (event, pos, obj) {
+                let previousPoint;
+                if (!obj) {
+                    $("#tooltip").hide();
+                    previousPoint = null;
+                    return;
+                } else {
+                    if (previousPoint != obj.dataIndex) {
+                        previousPoint = obj.dataIndex;
+
+                        if (callback) {
+                            callback(obj);
+                        }
+                    }
+                }
+            });
+        };
+        vm.retentionAddDay = function () {
+            vm.playerRetentionQuery.days.push(parseInt(vm.newDay));
+            vm.playerRetentionInit();
+        };
+        vm.retentionRemoveDay = function () {
+            vm.playerRetentionQuery.days.pop();
+            if (vm.playerRetentionQuery.days.length == 0) {
+                vm.playerRetentionQuery.days = [1];
+            }
+            vm.playerRetentionInit();
+        };
+
+        vm.playerRetentionInit = function () {
+            $scope.$evalAsync(() => {
+                vm.newDay = (vm.playerRetentionQuery.days.slice(-1).pop() + 1).toString();
+            });
+        };
+        vm.retentionFilterOnChange = function () {
+            $scope.$evalAsync( () => {
+                vm.playerRetentionQuery.minTime = utilService.getFormatDate(vm.playerRetentionQuery.startTime);
+            })
+        };
+        vm.tableDataReformat = function (data) {
+            if (data == null) {
+                return "-";
+            } else if (Number.isInteger(data)) {
+                return data;
+            } else {
+                if(data.toFixed(1) != "0.0"){
+                    return data.toFixed(1);
+                }else{
+                    return "0";
+                }
+            }
+        };
+
+        vm.initPlayerRetentionAnalysis = (tsPhoneList) => {
+            console.log(tsPhoneList);
+            $scope.$evalAsync(() => {
+                vm.playerRetentionQuery = {};
+                vm.retentionData = null;
+                vm.allRetentionLineData = null;
+                vm.playerRetentionQuery.tsPhoneListObjId = tsPhoneList._id;
+                vm.playerRetentionQuery.days = [1, 2, 3, 5, 7, 10, 12, 14, 16, 18, 21, 23, 25, 27, 30];
+                vm.playerRetentionQuery.playerType = "1";
+                vm.dayListLength = [];
+                for (let i = 1; i < 31; i++) {
+                    vm.dayListLength.push(i);
+                }
+                vm.playerRetentionQuery.userType = "all";
+                setTimeout(function(){
+                    vm.playerRetentionQuery.startTime = utilService.setNDaysAgo(new Date(tsPhoneList.createTime), 0);
+                    vm.playerRetentionQuery.endTime = utilService.setNDaysAfter(new Date(tsPhoneList.createTime), 30);
+                    vm.playerRetentionQuery.minTime = utilService.getFormatDate(vm.playerRetentionQuery.startTime);
+                    let daysTillDate = utilService.getDifferenceBetweenTwoDays(new Date(tsPhoneList.createTime), new Date());
+                    vm.playerRetentionQuery.days.forEach((day, i) => {
+                        if(day > daysTillDate) {
+                            vm.playerRetentionQuery.days.splice(i);
+                        }
+                    });
+                    vm.playerRetentionInit();
+
+                    let leftPanel = $('#modalTsPlayerRetentionAnalysis .row .col-md-5 .panel')[0];
+                    let rightPanel = $('#modalTsPlayerRetentionAnalysis .row .col-md-7 .panel')[0];
+                    let height = $(leftPanel).width() * .9;
+                    $(leftPanel).height(height);
+                    $(rightPanel).height(height);
+                    $('#line-playerRetention').empty();
+                },500);
+            });
+        };
+
+        vm.getTsPlayerRetentionAnalysis = () => {
+            vm.retentionGraphData = [];
+            vm.showRetention = {0: true};
+            vm.retentionCheckAll = false;
+            vm.allRetentionLineData = [];
+            let sendData = {
+                platformObjId: vm.selectedPlatform.id,
+                days: vm.playerRetentionQuery.days,
+                startTime: vm.playerRetentionQuery.startTime,
+                endTime: vm.playerRetentionQuery.endTime,
+                playerType: vm.playerRetentionQuery.playerType,
+                tsPhoneListObjId: vm.playerRetentionQuery.tsPhoneListObjId
+            };
+            switch (vm.playerRetentionQuery.userType) {
+                case 'all':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    break;
+                case 'individual':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = false;
+                    break;
+                case 'underPartner':
+                    sendData.isRealPlayer = true;
+                    sendData.isTestPlayer = false;
+                    sendData.hasPartner = true;
+                    break;
+                case 'test':
+                    sendData.isRealPlayer = false;
+                    sendData.isTestPlayer = true;
+                    break;
+            }
+
+            if (typeof sendData.hasPartner !== 'boolean'){
+                sendData.hasPartner = null;
+            }
+
+            console.log("send data", sendData);
+            socketService.$socket($scope.AppSocket, 'getTsPlayerRetentionAnalysis', sendData, function (data) {
+                console.log("getTsPlayerRetentionAnalysis_ret", data);
+                $scope.$evalAsync(() => {
+                    vm.retentionData = data.data;
+                    let dataLength = vm.retentionData.length;
+                    vm.averageRetention = {};
+                    vm.retentionData.forEach(retentionData => {
+                        for (let key in retentionData) {
+                            if (retentionData[key] != "date") {
+                                if (vm.averageRetention[key]) {
+                                    vm.averageRetention[key] += retentionData[key];
+                                } else {
+                                    vm.averageRetention[key] = retentionData[key];
+                                }
+                            }
+                        }
+                    });
+                    for (let key in vm.averageRetention) {
+                        if (vm.averageRetention.hasOwnProperty(key)){
+                            vm.averageRetention[key] = (vm.averageRetention[key] / dataLength);
+                        }
+                    }
+                    vm.averageRetention.date = $translate("average line");
+                    vm.retentionData.splice(0,0,vm.averageRetention);
+
+                    vm.drawRetentionGraph();
+                })
+            }, function (data) {
+                console.log("retention data not", data);
+            });
+        };
+
+        vm.drawRetentionGraph = function () {
+            vm.allRetentionLineData = [];
+            $.each(vm.retentionData, function (day, obj) {
+                let rowData = [];
+                if (vm.showRetention[day]) {
+                    $.each(obj, function (a, b) {
+                        if (a != 'day0' && a != 'date' && a != '$$hashKey') {
+                            if (obj.day0 != 0) {
+                                rowData.push([a, b / obj.day0 * 100]);
+                            } else {
+                                rowData.push([a, 0]);
+                            }
+                        }
+                    });
+                    rowData.sort((a, b) => {
+                        return a[0] - b[0];
+                    });
+                    let lineData = {label: obj.date == $translate("average line") ? $translate("average line") : vm.dateReformat(obj.date), data: rowData};
+                    vm.allRetentionLineData.push(lineData);
+                }
+            });
+            let xLabel = [];
+            for (let j in vm.playerRetentionQuery.days) {
+                xLabel.push([vm.playerRetentionQuery.days[j], vm.playerRetentionQuery.days[j]]);
+            }
+            let placeholder = '#line-playerRetention';
+            let newOptions = {};
+            newOptions.xaxes = [{
+                position: 'bottom',
+                axisLabel: 'day N',
+            }];
+            newOptions.yaxes = [{
+                position: 'left',
+                axisLabel: 'Retention %',
+            }];
+            newOptions.xaxis = {
+                ticks: xLabel,
+            };
+
+            let retentionGraph = socketService.$plotLine(placeholder, vm.allRetentionLineData, newOptions);
+            $.each(retentionGraph.getData()[0].data, function(i, el){
+                let o = retentionGraph.pointOffset({x: el[0], y: el[1]});
+                $('<div class="data-point-label">' + el[1].toFixed(1) + '%</div>').css( {
+                    position: 'absolute',
+                    left: o.left + 4,
+                    top: o.top - 15,
+                    display: 'none'
+                }).appendTo(retentionGraph.getPlaceholder()).fadeIn('slow');
+            });
+
+            vm.bindHover(placeholder, function (obj) {
+                let x = obj.datapoint[0],
+                    y = obj.datapoint[1].toFixed(0);
+
+                let fre = $translate('DAY');
+                $("#tooltip").html("% : " + y + '<br>' + fre + " : " + x)
+                    .css({top: obj.pageY + 5, left: obj.pageX + 5})
+                    .fadeIn(200);
+            })
+        };
+
+        vm.toggleRetentionCheckAll = function () {
+            $scope.$safeApply(() => {
+                if (vm.retentionCheckAll) {
+                    for (let i in vm.retentionData) {
+                        vm.showRetention[i] = true;
+                    }
+                } else {
+                    vm.showRetention = {};
+                }
+            });
+            vm.drawRetentionGraph();
+        };
 
         vm.manualPauseTsPhoneListStatus = () => {
             if (!(vm.selectedTsPhoneList && (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING || vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.MANUAL_PAUSED))) {

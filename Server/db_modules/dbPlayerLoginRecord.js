@@ -617,7 +617,7 @@ var dbPlayerLoginRecord = {
         )
     },
 
-    getPlayerRetention: function (platform, startTime, days, playerType, dayCount, isRealPlayer, isTestPlayer, hasPartner, domainList) {
+    getPlayerRetention: function (platform, startTime, days, playerType, dayCount, isRealPlayer, isTestPlayer, hasPartner, domainList, tsPhoneListObjId) {
         var day0PlayerObj = {};
         var dayNPlayerObj = {};
         var day0PlayerArrayProm = [];
@@ -628,6 +628,7 @@ var dbPlayerLoginRecord = {
         lastDay.setDate(lastDay.getDate() + 30 + days[days.length - 1]);
         let playerFilter = {};
         let validPlayerProm = Promise.resolve(false);
+        let tsPhoneObjIds = [];
         if (playerType) {
             switch(playerType) {
                 case "2":
@@ -642,6 +643,17 @@ var dbPlayerLoginRecord = {
                 default:
                     break;
             }
+        }
+        if(tsPhoneListObjId) {
+            validPlayerProm = dbconfig.collection_tsPhone.find({tsPhoneList:tsPhoneListObjId}).then(phones => {
+                if(phones && phones.length > 0) {
+                    phones.forEach(phone => {
+                        tsPhoneObjIds.push(phone._id);
+                    });
+                    playerFilter = {tsPhone: {$in: tsPhoneObjIds}};
+                }
+                return playerFilter;
+            })
         }
 
         return validPlayerProm.then(
