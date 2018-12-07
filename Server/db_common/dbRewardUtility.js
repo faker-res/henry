@@ -62,11 +62,11 @@ const dbRewardUtility = {
         if (eventData) {
             let dateNow = Date.now();
 
-            if (eventData.validStartTime && eventData.validStartTime.getTime() > dateNow.getTime()) {
+            if (eventData.validStartTime && eventData.validStartTime.getTime() > dateNow) {
                 isValid = false;
             }
 
-            if (eventData.validEndTime && eventData.validEndTime.getTime() < dateNow.getTime()) {
+            if (eventData.validEndTime && eventData.validEndTime.getTime() < dateNow) {
                 isValid = false;
             }
         }
