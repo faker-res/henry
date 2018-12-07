@@ -14386,6 +14386,12 @@ let dbPlayerInfo = {
                                     if (data.hasOwnProperty('sortCol')){
                                         rewardData.sortCol = data.sortCol;
                                     }
+
+                                    if (appliedObjIdList){
+                                        console.log("checking playerId appliedRewardList", [playerId, appliedObjIdList])
+                                        console.log("checking playerId typeof appliedObjIdList", [playerId, typeof appliedObjIdList])
+                                    }
+
                                     if(data.appliedRewardList){
                                         rewardData.appliedRewardList = data.appliedRewardList
                                     }
@@ -14406,6 +14412,8 @@ let dbPlayerInfo = {
                                             rewardData.appliedRewardList = appliedObjIdList
                                         }
                                     }
+
+                                    console.log("checking playerId rewardData.appliedRewardList", rewardData.appliedRewardList)
 
                                     rewardData.smsCode = data.smsCode;
                                     return dbPlayerReward.applyGroupReward(userAgent, playerInfo, rewardEvent, adminInfo, rewardData, isPreview, isBulkApply);
