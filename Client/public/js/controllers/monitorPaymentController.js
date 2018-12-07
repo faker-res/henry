@@ -93,6 +93,7 @@ define(['js/app'], function (myApp) {
             vm.getCredibilityRemarksByPlatformId(vm.selectedPlatform._id);
             vm.getRewardList();
             vm.getPlatformGameData(vm.getProviderLatestTimeRecord);
+            initPageParam();
             vm.initPlayerModal();
             $cookies.put("platform", vm.selectedPlatform.name);
             console.log('vm.selectedPlatform', vm.selectedPlatform);
@@ -182,6 +183,26 @@ define(['js/app'], function (myApp) {
                 vm.preparePaymentMonitorTotalPage();
             }
         };
+
+        vm.initFeedBackData = function () {
+            commonService.getAllPlayerFeedbackResults($scope).then(
+                data => {
+                    console.log("walaogere")
+                    vm.allPlayerFeedbackResults = data;
+                    $scope.$evalAsync();
+                }
+            )
+        }
+
+        vm.initFeedbackTopic = function () {
+            commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform._id).then(
+                data => {
+                    console.log("walaotopic")
+                    vm.playerFeedbackTopic = data;
+                    $scope.$evalAsync();
+                }
+            )
+        }
 
         vm.getProviderLatestTimeRecord = function () {
             let longestDelayDate = new Date().toString();
@@ -300,16 +321,25 @@ define(['js/app'], function (myApp) {
             $scope.$evalAsync();
         }, 1000);
 
-            vm.initPlayerModal = function () {
+        function initPageParam() {
+            vm.queryPara = {};
+            vm.addPlayerFeedbackResultData = {};
+            vm.deletePlayerFeedbackResultData = {};
+            vm.addPlayerFeedbackTopicData = {};
+            vm.deletePlayerFeedbackTopicData = {};
+        }
+
+        vm.initPlayerModal = function () {
             $('#newPlayerListTab').addClass('active');
             $('#attemptNumberListTab').removeClass('active');
             $scope.safeApply();
             vm.playerModalTab = "newPlayerListPanel";
             vm.newPlayerList();
+            vm.initFeedBackData();
+            vm.initFeedbackTopic();
         };
 
         vm.initQueryTimeFilter = function (field, callback) {
-            vm.queryPara = {};
             vm.queryPara[field] = {};
             utilService.actionAfterLoaded(('#' + field ), function () {
                 vm.queryPara[field].startTime = utilService.createDatePicker('#' + field + ' .startTime');
@@ -324,6 +354,388 @@ define(['js/app'], function (myApp) {
             });
 
         }
+
+        vm.initFeedbackModal = function (rowData) {
+            if (rowData && rowData.playerId) {
+                $('#addFeedbackTab').addClass('active');
+                $('#feedbackHistoryTab').removeClass('active');
+                $scope.safeApply();
+                vm.feedbackModalTab = "addFeedbackPanel";
+            }
+
+            if (rowData && rowData.partnerId) {
+                $('#addPartnerFeedbackTab').addClass('active');
+                $('#partnerFeedbackHistoryTab').removeClass('active');
+                $scope.safeApply();
+                vm.feedbackModalTabPartner = "addPartnerFeedbackPanel";
+            }
+        };
+
+        vm.prepareShowFeedbackRecord = function (rowData) {
+            if (rowData && rowData.playerId) {
+                vm.playerFeedbackRecord = vm.playerFeedbackRecord || {totalCount: 0};
+                utilService.actionAfterLoaded('#modalAddPlayerFeedback .searchDiv .startTime', function () {
+                    vm.playerFeedbackRecord.startTime = utilService.createDatePicker('#modalAddPlayerFeedback .searchDiv .startTime');
+                    vm.playerFeedbackRecord.endTime = utilService.createDatePicker('#modalAddPlayerFeedback .searchDiv .endTime');
+                    vm.playerFeedbackRecord.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 365)));
+                    vm.playerFeedbackRecord.endTime.data('datetimepicker').setDate(utilService.setLocalDayEndTime(new Date()));
+
+                    utilService.actionAfterLoaded('#playerFeedbackRecord', function () {
+                        vm.playerFeedbackRecord.pageObj = utilService.createPageForPagingTable("#playerFeedbackRecordTablePage", {}, $translate, function (curP, pageSize) {
+                            vm.commonPageChangeHandler(curP, pageSize, "playerFeedbackRecord", vm.getFeedbackRecord)
+                        });
+                        vm.getFeedbackRecord(true);
+                    });
+                });
+            }
+        };
+
+        vm.getFeedbackRecord = function (newSearch) {
+            vm.playerFeedbackRecord.searching = true;
+            let queryData = {
+                query: {
+                    startTime: vm.playerFeedbackRecord.startTime.data('datetimepicker').getLocalDate(),
+                    endTime: vm.playerFeedbackRecord.endTime.data('datetimepicker').getLocalDate(),
+                    playerId: vm.selectedSinglePlayer._id
+                },
+                limit: newSearch ? 10 : (vm.playerFeedbackRecord.limit || 10),
+                index: newSearch ? 0 : (vm.playerFeedbackRecord.index || 0),
+                sortCol: vm.playerFeedbackRecord.sortCol || null
+            };
+            console.log("queryData", queryData);
+            vm.prepareFeedbackRecord(queryData, newSearch);
+        }
+
+        vm.prepareFeedbackRecord = function (queryData, newSearch) {
+            vm.playerFeedbackData = [];
+            socketService.$socket($scope.AppSocket, 'getPlayerFeedbackReport', queryData, function (data) {
+                console.log('getPlayerFeedback', data);
+
+                vm.playerFeedbackData = data.data.data;
+                vm.playerFeedbackRecord.totalCount = data.data.size;
+                vm.playerFeedbackRecord.searching = false;
+
+                var tableData = vm.playerFeedbackData.map(
+                    record => {
+                        let resultName;
+                        if(!record.resultName) {
+                            resultName = utilService.getPlayerFeedbackResultName(vm.allPlayerFeedbackResults, record.result);
+                        }
+
+                        record.createTime = (record && record.createTime) ? vm.dateReformat(record.createTime) : "";
+                        record.result = (record && record.resultName) ? record.resultName :
+                            (resultName ? resultName : $translate(record.result));
+                        record.content = (record && record.content) ? record.content : "";
+                        record.adminName = (record && record.adminId && record.adminId.adminName) ? record.adminId.adminName : "";
+                        record.topic = (record && record.topic) ? record.topic : "";
+                        return record
+                    }
+                );
+                var option = $.extend({}, vm.generalDataTableOptions, {
+                    data: tableData,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {title: $translate('TIME'), data: "createTime"},
+                        {title: $translate('RESULT'), data: "result"},
+                        {title: $translate('CONTENT'), data: "content"},
+                        {title: $translate('adminName'), data: "adminName"},
+                        {title: $translate('FEEDBACK_TOPIC'), data: "topic"}
+                    ],
+                    bSortClasses: false,
+                    destroy: true,
+                    paging: false,
+                    autoWidth: true,
+                    fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                        $compile(nRow)($scope);
+                    }
+                });
+                var a = utilService.createDatatableWithFooter('#playerFeedbackRecordTable', option, {});
+                vm.playerFeedbackRecord.pageObj.init({maxCount: vm.playerFeedbackRecord.totalCount}, newSearch);
+                $("#playerFeedbackRecordTable").off('order.dt');
+                $("#playerFeedbackRecordTable").on('order.dt', function (event, a, b) {
+                    vm.commonSortChangeHandler(a, 'playerFeedbackRecord', vm.getFeedbackRecord);
+                });
+                $('#playerFeedbackRecordTable').resize();
+                $scope.safeApply();
+            });
+        };
+
+        vm.updatePlayerFeedbackData = function (modalId, tableId, opt) {
+            opt = opt || {'dom': 't'};
+            vm.playerFeedbackRecord.searching = true;
+            socketService.$socket($scope.AppSocket, 'getPlayerFeedbackReport', {
+                query: {
+                    startTime: vm.playerFeedbackRecord.startTime.data('datetimepicker').getLocalDate(),
+                    endTime: vm.playerFeedbackRecord.endTime.data('datetimepicker').getLocalDate(),
+                    playerId: vm.selectedSinglePlayer._id
+                }
+            }, function (data) {
+                console.log('getPlayerFeedback', data);
+                vm.playerFeedbackRecord.searching = false;
+                vm.playerFeedbackData = data.data;
+
+                vm.playerFeedbackData.data.forEach(item => {
+                    item.result$ = item.resultName ? item.resultName : $translate(item.result);
+                });
+
+                $scope.safeApply();
+                vm.updateDataTableinModal(modalId, tableId, opt)
+            });
+        };
+
+        vm.clearFeedBackResultDataStatus = function (rowData) {
+            if (rowData && rowData.playerId) {
+                vm.addPlayerFeedbackResultData.message = null;
+                vm.addPlayerFeedbackResultData.success = null;
+                vm.addPlayerFeedbackResultData.failure = null;
+
+                vm.deletePlayerFeedbackResultData.message = null;
+                vm.deletePlayerFeedbackResultData.success = null;
+                vm.deletePlayerFeedbackResultData.failure = null;
+            }
+
+            if (rowData && rowData.partnerId) {
+                vm.addPartnerFeedbackResultData.message = null;
+                vm.addPartnerFeedbackResultData.success = null;
+                vm.addPartnerFeedbackResultData.failure = null;
+
+                vm.deletePartnerFeedbackResultData.message = null;
+                vm.deletePartnerFeedbackResultData.success = null;
+                vm.deletePartnerFeedbackResultData.failure = null;
+            }
+        };
+
+        vm.addFeedbackResult = function (rowData) {
+            vm.clearFeedBackResultDataStatus(rowData);
+            let reqData = {};
+
+            if (rowData && rowData.playerId) {
+                reqData.key = vm.addPlayerFeedbackResultData.key;
+                reqData.value = vm.addPlayerFeedbackResultData.value;
+                console.log(reqData);
+                return $scope.$socketPromise('createPlayerFeedbackResult', reqData).then(
+                    () => {
+                        $scope.$evalAsync(async () => {
+                            vm.addPlayerFeedbackResultData.message = "SUCCESS";
+                            vm.addPlayerFeedbackResultData.success = true;
+                            vm.allPlayerFeedbackResults = await commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([]));
+                        })
+                    },
+                    function (err) {
+                        console.log("vm.addPlayerFeedbackResults()ErrIn", err);
+                        vm.addPlayerFeedbackResultData.message = "FAILURE";
+                        vm.addPlayerFeedbackResultData.failure = true;
+                        $scope.safeApply();
+                    }
+                );
+            }
+
+            if (rowData && rowData.partnerId) {
+                reqData.key = vm.addPartnerFeedbackResultData.key;
+                reqData.value = vm.addPartnerFeedbackResultData.value;
+                console.log(reqData);
+                return $scope.$socketPromise('createPartnerFeedbackResult', reqData).then(
+                    () => {
+                        $scope.$evalAsync(async () => {
+                            vm.addPartnerFeedbackResultData.message = "SUCCESS";
+                            vm.addPartnerFeedbackResultData.success = true;
+                            vm.allPartnerFeedbackResults = await commonService.getAllPartnerFeedbackResults($scope).catch(err => Promise.resolve([]));
+                        })
+                    },
+                    function (err) {
+                        console.log("vm.addPartnerFeedbackResults()ErrIn", err);
+                        vm.addPartnerFeedbackResultData.message = "FAILURE";
+                        vm.addPartnerFeedbackResultData.failure = true;
+                        $scope.safeApply();
+                    }
+                ).catch(
+                    function (err) {
+                        console.log("vm.addPartnerFeedbackResults()ErrOut", err);
+                        vm.addPartnerFeedbackResultData.message = "FAILURE";
+                        vm.addPartnerFeedbackResultData.failure = true;
+                        $scope.safeApply();
+                    }
+                );
+            }
+        };
+
+        vm.deleteFeedbackResult = function (rowData) {
+            vm.clearFeedBackResultDataStatus(rowData);
+            let reqData = {};
+
+            if (rowData && rowData.playerId) {
+                reqData._id = vm.deletePlayerFeedbackResultData._id;
+                return $scope.$socketPromise('deletePlayerFeedbackResult', reqData).then(
+                    function (data) {
+                        $scope.$evalAsync(async () => {
+                            vm.deletePlayerFeedbackResultData.message = "SUCCESS";
+                            vm.deletePlayerFeedbackResultData.success = true;
+                            vm.allPlayerFeedbackResults = await commonService.getAllPlayerFeedbackResults($scope).catch(err => Promise.resolve([]));
+                        })
+                    },
+                    function (err) {
+                        console.log("vm.addPlayerFeedbackResults()ErrIn", err);
+                        vm.deletePlayerFeedbackResultData.message = "FAILURE";
+                        vm.deletePlayerFeedbackResultData.failure = true;
+                        $scope.safeApply();
+                    }
+                );
+            }
+
+            if (rowData && rowData.partnerId) {
+                reqData._id = vm.deletePartnerFeedbackResultData._id;
+                return $scope.$socketPromise('deletePartnerFeedbackResult', reqData).then(
+                    () => {
+                        $scope.$evalAsync(async () => {
+                            vm.deletePartnerFeedbackResultData.message = "SUCCESS";
+                            vm.deletePartnerFeedbackResultData.success = true;
+                            vm.allPartnerFeedbackResults = await commonService.getAllPartnerFeedbackResults($scope).catch(err => Promise.resolve([]));
+                        })
+                    },
+                    function (err) {
+                        console.log("vm.addPartnerFeedbackResults()ErrIn", err);
+                        vm.deletePartnerFeedbackResultData.message = "FAILURE";
+                        vm.deletePartnerFeedbackResultData.failure = true;
+                        $scope.safeApply();
+                    }
+                ).catch(
+                    function (err) {
+                        console.log("vm.addPartnerFeedbackResults()Out", err);
+                        vm.deletePartnerFeedbackResultData.message = "FAILURE";
+                        vm.deletePartnerFeedbackResultData.failure = true;
+                        $scope.safeApply();
+                    }
+                );
+            }
+        };
+
+        vm.clearFeedBackTopicDataStatus = function (rowData) {
+            if (rowData && rowData.playerId) {
+                vm.addPlayerFeedbackTopicData.message = null;
+                vm.addPlayerFeedbackTopicData.success = null;
+                vm.addPlayerFeedbackTopicData.failure = null;
+
+                vm.deletePlayerFeedbackTopicData.message = null;
+                vm.deletePlayerFeedbackTopicData.success = null;
+                vm.deletePlayerFeedbackTopicData.failure = null;
+            }
+
+            if (rowData && rowData.partnerId) {
+                vm.addPartnerFeedbackTopicData.message = null;
+                vm.addPartnerFeedbackTopicData.success = null;
+                vm.addPartnerFeedbackTopicData.failure = null;
+
+                vm.deletePartnerFeedbackTopicData.message = null;
+                vm.deletePartnerFeedbackTopicData.success = null;
+                vm.deletePartnerFeedbackTopicData.failure = null;
+            }
+        };
+
+        vm.addFeedbackTopic = function (rowData) {
+            vm.clearFeedBackTopicDataStatus(rowData);
+            let reqData = {};
+
+            if (rowData && rowData.playerId) {
+                reqData.key = vm.addPlayerFeedbackTopicData.value;
+                reqData.value = vm.addPlayerFeedbackTopicData.value;
+                reqData.platform = vm.selectedPlatform._id;
+                console.log(reqData);
+                return $scope.$socketPromise('createPlayerFeedbackTopic', reqData).then(
+                    () => $scope.$evalAsync(async () => {
+                        vm.addPlayerFeedbackTopicData.message = "SUCCESS";
+                        vm.addPlayerFeedbackTopicData.success = true;
+                        vm.playerFeedbackTopic = await commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform._id).catch(err => Promise.resolve([]));
+                    }),
+                    function (err) {
+                        console.log("vm.addPlayerFeedbackTopics()ErrIn", err);
+                        vm.addPlayerFeedbackTopicData.message = "FAILURE";
+                        vm.addPlayerFeedbackTopicData.failure = true;
+                        if(err.error && err.error.error && err.error.error.code == '11000'){
+                            vm.addPlayerFeedbackTopicData.message = '失败，回访主题已存在'
+                        }
+                        $scope.safeApply();
+                    }
+                );
+            }
+
+            if (rowData && rowData.partnerId) {
+                reqData.key = vm.addPartnerFeedbackTopicData.value;
+                reqData.value = vm.addPartnerFeedbackTopicData.value;
+                reqData.platform = vm.selectedPlatform._id;
+                console.log(reqData);
+                return $scope.$socketPromise('createPartnerFeedbackTopic', reqData).then(
+                    () => $scope.$evalAsync(async () => {
+                        vm.addPartnerFeedbackTopicData.message = "SUCCESS";
+                        vm.addPartnerFeedbackTopicData.success = true;
+                        vm.partnerFeedbackTopic = await commonService.getPartnerFeedbackTopic($scope, vm.selectedPlatform._id).catch(err => Promise.resolve([]));
+                    }),
+                    function (err) {
+                        console.log("vm.addPartnerFeedbackTopics()ErrIn", err);
+                        vm.addPartnerFeedbackTopicData.message = "FAILURE";
+                        vm.addPartnerFeedbackTopicData.failure = true;
+                        if(err.error && err.error.error && err.error.error.code == '11000'){
+                            vm.addPartnerFeedbackTopicData.message = '失败，回访主题已存在'
+                        }
+                        $scope.safeApply();
+                    }
+                ).catch(
+                    function (err) {
+                        console.log("vm.addPartnerFeedbackTopics()ErrOut", err);
+                        vm.addPartnerFeedbackTopicData.message = "FAILURE";
+                        vm.addPartnerFeedbackTopicData.failure = true;
+                        $scope.safeApply();
+                    }
+                );
+            }
+        };
+
+        vm.deleteFeedbackTopic = function (rowData) {
+            vm.clearFeedBackTopicDataStatus(rowData);
+            let reqData = {};
+
+            if (rowData && rowData.playerId) {
+                reqData._id = vm.deletePlayerFeedbackTopicData._id;
+                return $scope.$socketPromise('deletePlayerFeedbackTopic', reqData).then(
+                    () => $scope.$evalAsync(async () => {
+                        vm.deletePlayerFeedbackTopicData.message = "SUCCESS";
+                        vm.deletePlayerFeedbackTopicData.success = true;
+                        vm.playerFeedbackTopic = await commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform._id).catch(err => Promise.resolve([]));
+                    }),
+                    function (err) {
+                        console.log("vm.addPlayerFeedbackTopics()ErrIn", err);
+                        vm.deletePlayerFeedbackTopicData.message = "FAILURE";
+                        vm.deletePlayerFeedbackTopicData.failure = true;
+                        $scope.safeApply();
+                    }
+                );
+            }
+
+            if (rowData && rowData.partnerId) {
+                reqData._id = vm.deletePartnerFeedbackTopicData._id;
+                return $scope.$socketPromise('deletePartnerFeedbackTopic', reqData).then(
+                    () => $scope.$evalAsync(async () => {
+                        vm.deletePartnerFeedbackTopicData.message = "SUCCESS";
+                        vm.deletePartnerFeedbackTopicData.success = true;
+                        vm.partnerFeedbackTopic = await commonService.getPartnerFeedbackTopic($scope, vm.selectedPlatform._id).catch(err => Promise.resolve([]));
+                    }),
+                    function (err) {
+                        console.log("vm.addPartnerFeedbackTopics()ErrIn", err);
+                        vm.deletePartnerFeedbackTopicData.message = "FAILURE";
+                        vm.deletePartnerFeedbackTopicData.failure = true;
+                        $scope.safeApply();
+                    }
+                ).catch(
+                    function (err) {
+                        console.log("vm.addPartnerFeedbackTopics()Out", err);
+                        vm.deletePartnerFeedbackTopicData.message = "FAILURE";
+                        vm.deletePartnerFeedbackTopicData.failure = true;
+                        $scope.safeApply();
+                    }
+                );
+            }
+        };
 
         vm.generalDataTableOptions = {
             "paging": true,
@@ -1749,6 +2161,15 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.prepareShowPlayerForbidTopUpType = function () {
+            let sendData = {_id: vm.isOneSelectedPlayer()._id};
+
+            socketService.$socket($scope.AppSocket, 'getOnePlayerInfo', sendData, (playerData) => {
+                vm.showForbidTopupTypes = playerData.data.forbidTopUpType || [];
+                $scope.safeApply();
+            });
+        }
+
         vm.initNewPlayerFeedbackModal = function (selectedPlayer) {
             vm.selectedSinglePlayer = selectedPlayer;
 
@@ -1821,7 +2242,7 @@ define(['js/app'], function (myApp) {
                 endDate: new Date(),
                 maxDate: new Date()
             });
-            // vm.playerDOB.data('datetimepicker').setDate(utilService.getLocalTime(new Date("January 01, 1990")));
+            vm.playerDOB.data('datetimepicker').setDate(utilService.getLocalTime(new Date("January 01, 1990")));
 
             vm.existPhone = false;
             vm.existRealName = false;
@@ -1842,6 +2263,38 @@ define(['js/app'], function (myApp) {
             });
             vm.getAllPromoteWay();
         }
+
+        vm.updatePlayerFeedback = function () {
+            let resultName = vm.allPlayerFeedbackResults.filter(item => {
+                return item.key == vm.playerFeedback.result;
+            });
+            resultName = resultName.length > 0 ? resultName[0].value : "";
+            let sendData = {
+                playerId: vm.isOneSelectedPlayer()._id,
+                platform: vm.selectedPlatform._id,
+                createTime: Date.now(),
+                adminId: authService.adminId,
+                content: vm.playerFeedback.content,
+                result: vm.playerFeedback.result,
+                resultName: resultName,
+                topic: vm.playerFeedback.topic
+            };
+            console.log('add feedback', sendData);
+            socketService.$socket($scope.AppSocket, 'createPlayerFeedback', sendData, function (data) {
+                console.log('feedbackadded', data);
+                vm.playerFeedback = {};
+                // vm.getPlatformPlayersData();
+
+                let rowData = vm.playerTableClickedRow.data();
+                rowData.feedbackTimes++;
+                vm.playerTableClickedRow.data(rowData).draw();
+
+                if (vm.platformPageName == 'Feedback') {
+                    vm.submitPlayerFeedbackQuery();
+                }
+                $scope.safeApply();
+            });
+        };
 
         vm.showNewPlayerModal = function (data, templateNo) {
             vm.newPlayerProposal = data;
@@ -2067,6 +2520,88 @@ define(['js/app'], function (myApp) {
                     }
                 }
             });
+        };
+
+        //player datatable row click handler
+        vm.playerTableRowClicked = function (rowData) {
+            var deferred = Q.defer();
+            console.log('player', rowData);
+            vm.selectedPlayers = {};
+            vm.selectedPlayers[rowData._id] = rowData;
+            vm.selectedSinglePlayer = rowData;
+            vm.currentSelectedPlayerObjId = '';
+
+            var sendData = {_id: rowData._id};
+            socketService.$socket($scope.AppSocket, 'getOnePlayerInfo', sendData, function (retData) {
+                $scope.$evalAsync(() => {
+                    var player = retData.data;
+                    console.log('updated info');
+                    if (!vm.selectedSinglePlayer) return;
+                    if (player._id != vm.selectedSinglePlayer._id) {
+                        console.log('click rowId is not equal to resultId');
+                        //the result should be same with the click , if some condition like network not stable ,
+                        //then we would rather use the pre-load data.
+                        return;
+                    }
+                    vm.currentSelectedPlayerObjId = player._id;
+                    vm.selectedPlayers[player._id] = player;
+                    vm.selectedSinglePlayer = player;
+                    vm.editPlayer = {
+                        name: vm.selectedSinglePlayer.name,
+                        email: vm.selectedSinglePlayer.email,
+                        realName: vm.selectedSinglePlayer.realName,
+                        nickName: vm.selectedSinglePlayer.nickName,
+                        gameCredit: vm.selectedSinglePlayer.gameCredit,
+                        gold: vm.selectedSinglePlayer.gold,
+                        phoneNumber: vm.selectedSinglePlayer.phoneNumber,
+                        partner: vm.selectedSinglePlayer.partner,
+                        receiveSMS: vm.selectedSinglePlayer.receiveSMS,
+                        bankCardGroup: vm.selectedSinglePlayer.bankCardGroup,
+                        merchantGroup: vm.selectedSinglePlayer.merchantGroup,
+                        alipayGroup: vm.selectedSinglePlayer.alipayGroup,
+                        wechatPayGroup: vm.selectedSinglePlayer.wechatPayGroup,
+                        quickPayGroup: vm.selectedSinglePlayer.quickPayGroup,
+                        trustLevel: vm.selectedSinglePlayer.trustLevel,
+                        photoUrl: vm.selectedSinglePlayer.photoUrl,
+                        playerLevel: vm.selectedSinglePlayer.playerLevel._id,
+                        referral: vm.selectedSinglePlayer.referral,
+                        smsSetting: vm.selectedSinglePlayer.smsSetting,
+                        gender: vm.selectedSinglePlayer.gender,
+                        DOB: vm.selectedSinglePlayer.DOB,
+                        accAdmin: vm.selectedSinglePlayer.accAdmin
+                    };
+                    vm.selectedSinglePlayer.encodedBankAccount =
+                        vm.selectedSinglePlayer.bankAccount ?
+                            vm.selectedSinglePlayer.bankAccount.slice(0, 6) + "**********" + vm.selectedSinglePlayer.bankAccount.slice(-4)
+                            : null;
+
+                    // Fix partnerName disappeared on second load
+                    if (!vm.selectedSinglePlayer.partnerName) {
+                        if (vm.selectedSinglePlayer.partner) {
+                            vm.selectedSinglePlayer.partnerName = vm.selectedSinglePlayer.partner.partnerName;
+                        }
+                    }
+
+                    if (vm.selectedSinglePlayer.sourceUrl && vm.selectedSinglePlayer.sourceUrl.length > 35) {
+                        vm.selectedSinglePlayer.$displaySourceUrl = vm.selectedSinglePlayer.sourceUrl.substring(0, 30) + "...";
+                    } else {
+                        vm.selectedSinglePlayer.$displaySourceUrl = vm.selectedSinglePlayer.sourceUrl || null;
+                    }
+
+                    if (vm.selectedSinglePlayer.domain && vm.selectedSinglePlayer.domain.length > 35) {
+                        vm.selectedSinglePlayer.$displayDomain = vm.selectedSinglePlayer.domain.substring(0, 30) + "...";
+                    } else {
+                        vm.selectedSinglePlayer.$displayDomain = vm.selectedSinglePlayer.domain || null;
+                    }
+                })
+                deferred.resolve();
+            }, function (err) {
+                vm.selectedPlayers = {};
+                vm.selectedPlayers[rowData._id] = rowData;
+                vm.selectedSinglePlayer = rowData;
+                deferred.resolve();
+            })
+            return deferred.promise;
         };
 
         vm.loadSMSSettings = function () {
