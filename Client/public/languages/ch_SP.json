@@ -3377,6 +3377,7 @@
   "PlayerCredibilityStatus":"会员信用",
   "TopupAmount":"存款金额",
   "OnlineTopUpType":"在线充值方式",
+  "TopUpType":"充值方式",
   "MerchantBackendId":"后台商户ID",
   "DAYLIMIT": "单日限额",
   "ACCNAME":"存款人姓名",

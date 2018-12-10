@@ -7,12 +7,12 @@ form(name="form_player_topup", novalidate)
             div {{vm.existingAssignTopup.proposalId}}
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
-            label.control-label *{{"充值金额" | translate}}
+            label.control-label *{{"TopUp Amount" | translate}}
         .form-group.col-md-6
             div {{vm.existingAssignTopup.data.amount}}
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
-            label.control-label *{{"充值方式" | translate}}
+            label.control-label *{{"TopUpType" | translate}}
         .form-group.col-md-6
             div {{vm.existingAssignTopup.data.depositMethod}}
     .row.margin-left-5.margin-right-5

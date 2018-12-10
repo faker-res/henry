@@ -14536,14 +14536,10 @@ define(['js/app'], function (myApp) {
 
             socketService.$socket($scope.AppSocket, 'requestBankTypeByUserName', {playerId: vm.selectedSinglePlayer.playerId, clientType:1}, function (data) {
                 $scope.$evalAsync(() => {
-                    console.log(data);
-                    // vm.existingAssignTopup = data.data ? data.data : false;
                     let depositMethodList = data.data.data.map(item=>{
                         return item.depositMethod
                     })
                     vm.depositMethodType = vm.getDepositMethod(data.data.data);
-                    console.log(vm.depositMethodType);
-
                 })
             })
             // utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
@@ -14561,6 +14557,10 @@ define(['js/app'], function (myApp) {
                 result[item.depositMethod] = item.data;
             })
             return result;
+        }
+        vm.copyClipboard = function(){
+            $('#qrClipBoard').select();
+            document.execCommand('copy', true);
         }
         vm.initPlayerManualTopUp = function () {
             vm.getZoneList();

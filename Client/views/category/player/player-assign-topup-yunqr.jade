@@ -1,4 +1,4 @@
-form(name="form_player_topup_yunqr", novalidate)
+form(name="form_player_topup_yunqr", novalidate, id="qrCode")
     label.control-label 请在指定 XX 分钟内，按照下列订单方式，转帐至指定银行卡。
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
@@ -7,17 +7,26 @@ form(name="form_player_topup_yunqr", novalidate)
             div {{vm.existingAssignTopup.proposalId}}
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
-            label.control-label *{{"充值金额" | translate}}
+            label.control-label *{{"TopUp Amount" | translate}}
         .form-group.col-md-6
             div {{vm.existingAssignTopup.data.amount}}
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
-            label.control-label *{{"充值金额" | translate}}
+            label.control-label *{{"TopUpType" | translate}}
         .form-group.col-md-6
-            div {{vm.existingAssignTopup.data.amount}}
+            div {{vm.getDepositMethodbyId[vm.existingAssignTopup.data.depositMethod] | translate}}
     .row.margin-left-5.margin-right-5
-        div qrcode
+        .form-group.col-md-6
+            img(ng-src="{{vm.existingAssignTopup.data && vm.existingAssignTopup.data.resultData && vm.existingAssignTopup.data.resultData.codeAddress}}")
     .row.margin-left-5.margin-right-5
         div *此二维码仅提供本次云闪付转帐使用。
     .row.margin-left-5.margin-right-5
-        div.btn.btn-primary 复制上述信息
+        div.btn.btn-primary(ng-click="vm.copyClipboard()") 复制上述信息
+
+//div(style='visibility: hidden;')
+textarea(name="form_player_topup_yunqr", id="qrClipBoard", aria-hidden="true", style='opacity:0')
+    请在指定 XX 分钟内，按照下列订单方式，转帐至指定银行卡。
+    {{"ProposalId" | translate}} : {{vm.existingAssignTopup.proposalId}}
+    {{"TopUp Amount" | translate}}  :{{vm.existingAssignTopup.data.amount}}
+    {{"TopUpType" | translate}} : {{vm.getDepositMethodbyId[vm.existingAssignTopup.data.depositMethod] | translate}}
+    {{vm.existingAssignTopup.data && vm.existingAssignTopup.data.resultData && vm.existingAssignTopup.data.resultData.codeAddress}}
