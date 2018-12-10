@@ -254,3 +254,14 @@ include ../common-widget/telephone-popover
                     span(style="color:red;",ng-show="vm.deletePlayerFeedbackTopicData.failure === true") &nbsp{{vm.deletePlayerFeedbackTopicData.message | translate}}
 
 
+#duplicatePhoneNumberLog.modal.fade(style='z-index:1052;', tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:95%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Duplicate Phone Number"|translate}}
+            .modal-body
+                div
+                    label {{"Total" | translate}} {{vm.duplicatePhoneNumber.totalCount}} {{"records" | translate}}
+                    table#duplicatePhoneNumberLogTable.common-table.display(style='min-width:100%')
+                    #duplicatePhoneNumberLogTablePage.height30
