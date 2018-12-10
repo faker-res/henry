@@ -238,6 +238,7 @@ define(['js/app'], function (myApp) {
         });
 
         vm.loadPlatformData = function (option) {
+            vm.hideLeftPanel = false;
             vm.showPlatformSpin = true;
             socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                 console.log('all platform data', data.data);
@@ -7761,6 +7762,15 @@ define(['js/app'], function (myApp) {
 
         vm.getDecomposedDetail = function (data) {
             console.log(data);
+        }
+
+        vm.setPanel = function (isSet) {
+            vm.hideLeftPanel = isSet;
+            $cookies.put("reportShowLeft", vm.hideLeftPanel);
+            $timeout(()=>{
+                $('#trashClassificationDecompositionListRightTable').resize();
+            },0)
+            $scope.safeApply();
         }
     };
 
