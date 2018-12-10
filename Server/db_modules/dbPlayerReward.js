@@ -5372,7 +5372,7 @@ let dbPlayerReward = {
                 else{
                     return Promise.reject({
                         name: "DataError",
-                        message: "Player record is not found in playerBonusDoubledRewardGroupRecord "
+                        message: "Player has not applied to join this reward event yet"
                     })
                 }
             }
