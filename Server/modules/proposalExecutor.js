@@ -97,6 +97,7 @@ var proposalExecutor = {
             || executionType === 'executePlayerWechatTopUp'
             || executionType === 'executeManualPlayerTopUp'
             || executionType === 'executePlayerFKPTopUp'
+            || executionType === 'executePlayerCommonTopUp'
 
             // Group reward
             || executionType === 'executePlayerLoseReturnRewardGroup'
@@ -282,6 +283,7 @@ var proposalExecutor = {
             this.executions.executePlayerRetentionRewardGroup.des = "Player Retention Reward";
             this.executions.executePlayerBonusDoubledRewardGroup.des = "Player Bonus Doubled Reward";
             this.executions.executePlayerFKPTopUp.des = "Player Fukuaipay Top Up";
+            this.executions.executePlayerCommonTopUp.des = "Player Common PMS Top Up";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -361,6 +363,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerRetentionRewardGroup.des = "reject Player Retention Reward";
             this.rejections.rejectPlayerBonusDoubledRewardGroup.des = "reject Player Bonus Doubled Reward";
             this.rejections.rejectPlayerFKPTopUp.des = "reject Player Fukuaipay Top Up";
+            this.rejections.rejectPlayerCommonTopUp.des = "reject Player Common PMS Top Up";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -1605,6 +1608,23 @@ var proposalExecutor = {
                         () => {
                             dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.FUKUAIPAY).catch(errorUtils.reportError);
                             sendMessageToPlayer(proposalData, constMessageType.FUKUAIPAY_TOPUP_SUCCESS, {});
+                            return proposalData;
+                        },
+                        error => Promise.reject(error)
+                    )
+                }
+                else {
+                    return Promise.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
+                }
+            },
+
+            executePlayerCommonTopUp: function (proposalData) {
+                //valid data
+                if (proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.amount) {
+                    return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.COMMON, proposalData).then(
+                        () => {
+                            dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.COMMON).catch(errorUtils.reportError);
+                            sendMessageToPlayer(proposalData, constMessageType.COMMON_TOPUP_SUCCESS, {});
                             return proposalData;
                         },
                         error => Promise.reject(error)
@@ -3898,6 +3918,10 @@ var proposalExecutor = {
             },
 
             rejectPlayerFKPTopUp: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerCommonTopUp: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
 

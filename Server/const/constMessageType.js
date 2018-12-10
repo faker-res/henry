@@ -31,6 +31,9 @@ const constMessageType = {
     PLAYER_LEVEL_UP_SUCCESS: "PlayerLevelUpSuccess",
     PROMO_CODE_SEND: "PromoCodeSend",
 
+    // TOP UP
+    COMMON_TOPUP_SUCCESS: "CommonTopupSuccess",
+
     // THIRD PARTY PAYMENT SYSTEM
     FUKUAIPAY_TOPUP_SUCCESS: "FukuaipayTopupSuccess",
 
