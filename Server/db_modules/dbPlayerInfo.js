@@ -64,6 +64,7 @@ var constRewardPointsLogCategory = require("../const/constRewardPointsLogCategor
 const constSMSPurpose = require("../const/constSMSPurpose");
 const constClientQnA = require("../const/constClientQnA");
 const constFinancialPointsType = require("../const/constFinancialPointsType");
+const constTsPhoneListStatus = require('../const/constTsPhoneListStatus');
 
 // constants
 const constProviderStatus = require("./../const/constProviderStatus");
@@ -18919,7 +18920,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_tsPhoneList.distinct("name", {platform: platformObjId});
     },
 
-    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName) {
+    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName, targetTsPhoneListId) {
         let tsPhoneList;
         if (phoneListDetail.length <= 0) {
             return Promise.reject("None of the phone has pass the filter");
@@ -18973,6 +18974,22 @@ let dbPlayerInfo = {
                         tsPhoneList: tsPhoneList._id
                     }).save();
 
+                    if(targetTsPhoneListId && phone._id) {
+                        prom = prom.then(
+                            tsPhoneData => {
+                                return dbconfig.collection_tsPhoneFeedback.update(
+                                    {
+                                        tsPhone: phone._id,
+                                        tsPhoneList: targetTsPhoneListId
+                                    },
+                                    {
+                                        tsPhone: tsPhoneData._id,
+                                        tsPhoneList: tsPhoneList._id
+                                    }, {multi: true})
+                            }
+                        )
+                    }
+
                     promArr.push(prom);
                 });
 
@@ -18981,6 +18998,9 @@ let dbPlayerInfo = {
         ).then(
             () => {
                 recalculateTsPhoneListPhoneNumber(tsPhoneList.platform, tsPhoneList._id).catch(errorUtils.reportError);
+                if (targetTsPhoneListId) {
+                    dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: targetTsPhoneListId}, {status: constTsPhoneListStatus.DECOMPOSED}).lean().catch(errorUtils.reportError);
+                }
                 return true;
             }
         );
