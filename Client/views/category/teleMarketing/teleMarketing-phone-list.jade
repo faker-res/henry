@@ -26,7 +26,7 @@
         br
         br
         .clearfix
-            button.common-button.btn.btn-success(ng-disabled='!vm.selectedTsPhoneList || vm.disableManualPauseTsPhoneList', ng-click="vm.manualPauseTsPhoneListStatus()") {{"Manual pause/ continue task" | translate}}
+            button.common-button.btn.btn-success(ng-disabled='!vm.selectedTsPhoneList || vm.disableManualPauseTsPhoneList', ng-click="vm.manualPauseTsPhoneList()") {{"Manual pause/ continue task" | translate}}
             button.common-button.btn.btn-danger(ng-disabled='!vm.selectedTsPhoneList', ng-click="vm.forceCompleteTsPhoneList()") {{"FORCE_COMPLETED" | translate}}
 
 

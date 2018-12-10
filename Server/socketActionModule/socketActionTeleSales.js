@@ -71,6 +71,12 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.getRecycleBinTsPhoneList, [data.platform, data.startTime, data.endTime, data.status, data.name, index, limit, sortCol], actionName, isValidData);
         },
 
+        getTsPhoneListRecyclePhone: function getTsPhoneListRecyclePhone(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform && data.tsPhoneList);
+            socketUtil.emitter(self.socket, dbTeleSales.getTsPhoneListRecyclePhone, [data], actionName, isValidData);
+        },
+
         createTsPhoneFeedback: function createTsPhoneFeedback(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.tsPhone && data.tsPhoneList && data.platform && data.adminId);
@@ -85,7 +91,7 @@ function socketActionTeleSales(socketIO, socket) {
 
         getTsPhoneFeedback: function getTsPhoneFeedback(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.tsPhone && data.platform && data.adminId);
+            var isValidData = Boolean(data && data.tsPhone && data.platform);
             socketUtil.emitter(self.socket, dbTeleSales.getTsPhoneFeedback, [data], actionName, isValidData);
         },
 
@@ -155,10 +161,10 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.removeTsAssignees, [data.platformObjId, data.tsPhoneListObjId, data.adminNames], actionName, isValidData);
         },
 
-        manualPauseTsPhoneListStatus: function manualPauseTsPhoneListStatus(data){
+        updateTsPhoneListStatus: function updateTsPhoneListStatus(data){
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.tsPhoneList && data.status);
-            socketUtil.emitter(self.socket, dbTeleSales.manualPauseTsPhoneListStatus, [data.tsPhoneList, data.status], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbTeleSales.updateTsPhoneListStatus, [data.tsPhoneList, data.status], actionName, isValidData);
         },
 
         forceCompleteTsPhoneList: function forceCompleteTsPhoneList(data){
