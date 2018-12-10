@@ -418,7 +418,10 @@ var proposal = {
                     }
 
                     // For third party payment system, we just set the proposal to pending without any process
-                    if (data[0].name === constProposalType.PLAYER_FKP_TOP_UP) {
+                    if (
+                        data[0].name === constProposalType.PLAYER_FKP_TOP_UP
+                        || data[0].name === constProposalType.PLAYER_COMMON_TOP_UP
+                    ) {
                         bExecute = false;
                         proposalData.status = constProposalStatus.PENDING;
                     }

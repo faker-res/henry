@@ -427,26 +427,24 @@ const dbPlayerPayment = {
             }
         ).then(
             eventData => {
-                if (eventData) {
-                    rewardEvent = eventData;
+                rewardEvent = eventData;
 
-                    if (player && player.platform) {
-                        let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount, topupRequest.limitedOfferObjId);
-                        let proms = [limitedOfferProm];
-                        if (topupRequest.bonusCode) {
-                            let bonusCodeCheckProm;
-                            let isOpenPromoCode = topupRequest.bonusCode.toString().trim().length === 3;
-                            if (isOpenPromoCode) {
-                                bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount, lastLoginIp);
-                            }
-                            else {
-                                bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount);
-                            }
-                            proms.push(bonusCodeCheckProm)
+                if (player && player.platform) {
+                    let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount, topupRequest.limitedOfferObjId);
+                    let proms = [limitedOfferProm];
+                    if (topupRequest.bonusCode) {
+                        let bonusCodeCheckProm;
+                        let isOpenPromoCode = topupRequest.bonusCode.toString().trim().length === 3;
+                        if (isOpenPromoCode) {
+                            bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount, lastLoginIp);
                         }
-
-                        return Promise.all(proms);
+                        else {
+                            bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount);
+                        }
+                        proms.push(bonusCodeCheckProm)
                     }
+
+                    return Promise.all(proms);
                 }
             }
         ).then(
@@ -532,7 +530,7 @@ const dbPlayerPayment = {
                 if (proposal) {
                     let pmsUrl = env.paymentHTTPAPIUrl;
 
-                    return generatePMSHTTPUrl(player, proposal, pmsUrl, clientType, ipAddress, amount);
+                    return generatePMSHTTPUrl(player, proposal, pmsUrl, topupRequest.clientType, ipAddress, topupRequest.amount);
                 }
             }
         )
