@@ -4,7 +4,7 @@ let Schema = mongoose.Schema;
 // demo player details
 let tsCallOutMissionSchema = new Schema({
     // platform
-    platform:  {type: Schema.ObjectId, required: true, index: true},
+    platform: {type: Schema.ObjectId, required: true, index: true},
     // adminObjId
     admin: {type: Schema.Types.ObjectId, index: true},
     // admin name

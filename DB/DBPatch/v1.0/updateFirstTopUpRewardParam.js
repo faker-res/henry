@@ -878,8 +878,23 @@ db.rewardParam.update({
                     type: "datetimePeriod",
                     des: "Period show reward",
                     value: [{startDate: "", startTime: "", endDate: "", endTime: ""}]
+                },
+                checkSameIP: {
+                    index: 27,
+                    type: "checkbox",
+                    des: "Check if this IP address has received the reward"
+                },
+                checkSamePhoneNumber: {
+                    index: 28,
+                    type: "checkbox",
+                    des: "Check if this phone number has received the reward"
+                },
+                checkSameDeviceId: {
+                    index: 29,
+                    type: "checkbox",
+                    des: "Check if this portable device has received the reward",
+                    detail: "Check the IMEI value/unique code of each handset when applying through APP"
                 }
-
             }
         },
         param: {

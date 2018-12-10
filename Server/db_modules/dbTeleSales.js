@@ -234,19 +234,21 @@ let dbTeleSales = {
     createTsPhoneFeedback: function (inputData) {
 
         let isSuccessFeedback = false;
-        return dbconfig.collection_tsPhoneFeedback(inputData).save().then(
-            (feedbackData) => {
-                if (!feedbackData) {
-                    return Promise.reject({name: "DataError", message: "fail to save feedback data"});
-                }
 
-                return dbconfig.collection_platform.findOne({_id: inputData.platform}, {definitionOfAnsweredPhone: 1}).lean();
-            }
-        ).then(
+        return dbconfig.collection_platform.findOne({_id: inputData.platform}, {definitionOfAnsweredPhone: 1}).lean().then(
             platformData => {
                 if (platformData && platformData.definitionOfAnsweredPhone
                     && platformData.definitionOfAnsweredPhone.length && platformData.definitionOfAnsweredPhone.indexOf(inputData.result) > -1) {
                     isSuccessFeedback = true;
+                }
+                inputData.isSuccessful = isSuccessFeedback;
+
+                return dbconfig.collection_tsPhoneFeedback(inputData).save();
+            }
+        ).then(
+            (feedbackData) => {
+                if (!feedbackData) {
+                    return Promise.reject({name: "DataError", message: "fail to save feedback data"});
                 }
 
                 return dbconfig.collection_tsDistributedPhone.findOneAndUpdate({
@@ -312,6 +314,14 @@ let dbTeleSales = {
 
     getTSPhoneListName: function (query) {
         return dbconfig.collection_tsPhoneList.distinct("name", query);
+    },
+
+    getTsPhoneListRecyclePhone: function (inputData) {
+        return dbconfig.collection_tsPhone.find({
+            platform: inputData.platform,
+            tsPhoneList: inputData.tsPhoneList,
+            $or: [{isUsed: false}, {isSucceedBefore: true, registered: false}]
+        })
     },
 
     getRecycleBinTsPhoneList: function (platform, startTime, endTime, status, name, index, limit, sortCol) {
@@ -769,7 +779,7 @@ let dbTeleSales = {
         }
     },
 
-    manualPauseTsPhoneListStatus: (tsPhoneList, status) => {
+    updateTsPhoneListStatus: (tsPhoneList, status) => {
         return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneList}, {status: status}).lean();
     },
 
@@ -972,7 +982,7 @@ let dbTeleSales = {
                 let prom = dbTeleSales.sendSMS(adminObjId, adminName, clonedData).catch(error => {
                     console.error("Sms failed for tsPhoneId:", tsPhone.tsPhoneId, "- error:", error);
                     errorUtils.reportError(error);
-                    return {playerId, error}
+                    return {tsPhone, error}
                 });
 
                 proms.push(prom);

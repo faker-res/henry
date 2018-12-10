@@ -5686,6 +5686,10 @@ let dbPlayerReward = {
             promArr.push(periodPropsProm);
 
             lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(consumptionMatchQuery).sort({createTime: -1}).limit(1).lean();
+
+            // check reward apply restriction on ip, phone and IMEI
+            let checkHasReceivedProm = dbProposalUtil.checkRestrictionOnDeviceForApplyReward(intervalTime, playerData, eventData);
+            promArr.push(checkHasReceivedProm);
         }
 
 
@@ -6805,6 +6809,7 @@ let dbPlayerReward = {
                         let consumptionRecords = rewardSpecificData[0];
                         let topUpRecords = rewardSpecificData[1];
                         let periodProps = rewardSpecificData[2];
+                        let checkHasReceived = rewardSpecificData[3];
                         let applyRewardTimes = periodProps.length;
                         let topUpAmount = topUpRecords.reduce((sum, value) => sum + value.amount, 0);
                         let consumptionAmount = consumptionRecords.reduce((sum, value) => sum + value.validAmount, 0);
@@ -6817,6 +6822,35 @@ let dbPlayerReward = {
                                 return a.amount - b.amount;
                             })
                         }
+
+                        let sameIPAddressHasReceived = checkHasReceived && checkHasReceived.sameIPAddressHasReceived ? checkHasReceived.sameIPAddressHasReceived : "";
+                        let samePhoneNumHasReceived = checkHasReceived && checkHasReceived.samePhoneNumHasReceived ? checkHasReceived.samePhoneNumHasReceived : "";
+                        let sameDeviceIdHasReceived = checkHasReceived && checkHasReceived.sameDeviceIdHasReceived ? checkHasReceived.sameDeviceIdHasReceived : "";
+
+                        if (sameIPAddressHasReceived) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "This IP address has applied for max reward times in event period"
+                            });
+                        }
+
+                        if (samePhoneNumHasReceived) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "This phone number has applied for max reward times in event period"
+                            });
+                        }
+
+                        if (sameDeviceIdHasReceived) {
+                            return Promise.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "This mobile device has applied for max reward times in event period"
+                            });
+                        }
+
                         if (selectedRewardParam.numberParticipation && applyRewardTimes < selectedRewardParam.numberParticipation) {
                             let meetTopUpCondition = false, meetConsumptionCondition = false;
                             if (topUpAmount >= (selectedRewardParam.requiredTopUpAmount? selectedRewardParam.requiredTopUpAmount: 0)) {
@@ -7927,6 +7961,7 @@ let dbPlayerReward = {
         let sortCol = {};
         let totalReceiveCount = 0;
         let totalAmount = 0;
+        let totalDeposit = 0;
 
         if (typeof currentPage != 'number' || typeof limit != 'number') {
             return Promise.reject({name: "DataError", message: "Incorrect parameter type"});
@@ -8037,6 +8072,7 @@ let dbPlayerReward = {
                                 "_id": null,
                                 "totalAmount": {$sum: "$data.rewardAmount"},
                                 "totalReceiveCount": {$sum: 1},
+                                "totalDeposit": {$sum: "$data.actualAmount"}
                             }
                         }
                     ]).read("secondaryPreferred");
@@ -8047,6 +8083,7 @@ let dbPlayerReward = {
                             totalPage = Math.ceil(totalCount / limit);
                             totalReceiveCount = data && data[2] && data[2][0] && data[2][0].totalReceiveCount ? data[2][0].totalReceiveCount : 0;
                             totalAmount = data && data[2] && data[2][0] && data[2][0].totalAmount ? data[2][0].totalAmount : 0;
+                            totalDeposit = data && data[2] && data[2][0] && data[2][0].totalDeposit ? data[2][0].totalDeposit : 0;
 
                             let result = data[1] && data[1].length > 0 ? (isPaging === true || isPaging === "true") ? data[1].slice(index, index + limit) : data[1] : [];
 
@@ -8111,6 +8148,7 @@ let dbPlayerReward = {
                 statsObj.totalReceiveCount = totalReceiveCount;
                 statsObj.totalAmount = totalAmount;
                 statsObj.totalPlayerCount = totalCount;
+                statsObj.totalDeposit = totalDeposit;
 
                 if (rewardRecord && rewardRecord.length > 0 && lastRewardData && lastRewardData.length > 0) {
                     rewardRecord.forEach(reward => {

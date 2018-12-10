@@ -1267,6 +1267,9 @@ let dbPlayerCreditTransfer = {
                         $inc: {validCredit: updateObj.freeAmt}
                     };
 
+                    // Temp log
+                    console.log('RT - Updating player credit after transfer out', playerObjId);
+
                     //move credit to player
                     return dbOps.findOneAndUpdateWithRetry(dbConfig.collection_players, {_id: playerObjId, platform: platform}, updatePlayerObj, {new: true});
                 } else {
