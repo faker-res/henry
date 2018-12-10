@@ -4,7 +4,7 @@ let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
 
 let tsPhoneTradeSchema = new Schema({
-    // encoded phone number (e.g. '139****5588)
+    // encoded phone number (e.g. '139****5588')
     encodedPhoneNumber: {type: String, index: true},
     // platform obj id that the phone originated from
     sourcePlatform: {type: Schema.ObjectId, ref: 'platform', index: true, required: true},

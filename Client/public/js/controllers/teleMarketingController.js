@@ -6202,7 +6202,24 @@ define(['js/app'], function (myApp) {
         vm.resetProvince = function () {
             vm.tsProvince = "";
             vm.tsCity = "";
-        }
+        };
+
+        vm.decomposeTsPhoneList = () => {
+            let sourceTsPhoneListName = vm.selectedTsPhoneList.name;
+            return vm.getTsPhoneListRecyclePhone().then(
+                data => {
+                    if (data.data && data.data.length) {
+                        let sendQuery = {
+                            sourceTsPhoneListName: sourceTsPhoneListName,
+                            tsPhones: data.data
+                        };
+                        socketService.$socket($scope.AppSocket, 'decomposeTsPhoneList', sendQuery, function (data) {
+                            vm.filterRecycleBinPhoneList(true);
+                        })
+                    }
+                }
+            )
+        };
 
         vm.importToTsPhoneList = () => {
             if (vm.selectedTab == "RECYCLE_BIN") {
@@ -6216,7 +6233,7 @@ define(['js/app'], function (myApp) {
             } else {
                 vm.uploadPhoneFileXLS('', true, null, true)
             }
-        }
+        };
 
         vm.filterRecycleBinPhoneList = (newSearch) => {
             vm.selectedTsPhoneList = false;
