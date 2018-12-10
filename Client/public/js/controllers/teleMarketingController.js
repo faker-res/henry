@@ -7713,6 +7713,38 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.initTrashClassificationDecompositionList = function () {
+            vm.getTrashClassificationList();
+            vm.getDecompositionListCount();
+        };
+
+        vm.getTrashClassificationList = function () {
+            vm.trashClassificationList = [];
+            socketService.$socket($scope.AppSocket, 'getTrashClassification', {}, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.trashClassificationList = data.data;
+                    console.log('vm.trashClassificationList', vm.trashClassificationList);
+                });
+            });
+        };
+
+        vm.getDecompositionListCount = function () {
+            vm.decompositionListCount = 0;
+            socketService.$socket($scope.AppSocket, 'getDecompositionList', {}, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.decompositionListCount = data.data;
+                    console.log('vm.decompositionListCount', vm.decompositionListCount);
+                });
+            });
+        };
+
+        vm.getTrashClassificationDetail = function (data) {
+            console.log(data);
+        };
+
+        vm.getDecomposedDetail = function (data) {
+            console.log(data);
+        }
     };
 
 

@@ -212,6 +212,18 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerRetention, [ObjectId(data.platformObjId), startTime, data.days, data.playerType, diffDays, data.isRealPlayer, data.isTestPlayer, data.hasPartner, null, data.tsPhoneListObjId], actionName, isValidData);
         },
 
+        getTrashClassification: function getTrashClassification() {
+            let actionName = arguments.callee.name;
+            let isValidData = true;
+            socketUtil.emitter(self.socket, dbTeleSales.getTrashClassification, [], actionName, isValidData);
+        },
+
+        getDecompositionList: function getDecompositionList() {
+        let actionName = arguments.callee.name;
+        let isValidData = true;
+        socketUtil.emitter(self.socket, dbTeleSales.getDecompositionList, [], actionName, isValidData);
+    },
+
     };
     socketActionTeleSales.actions = this.actions;
 }
