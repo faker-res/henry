@@ -11405,6 +11405,7 @@ let dbPlayerInfo = {
                 }
             ).then(
                 RTGs => {
+                    console.log('RTGs===', RTGs);
                     if (!RTGs || isUsingXima) {
                         if (!player.bankName || !player.bankAccountName || !player.bankAccount) {
                             return Q.reject({
@@ -11460,6 +11461,9 @@ let dbPlayerInfo = {
                                 let creditChargeWithoutDecimal = 0;
                                 let amountAfterUpdate = player.validCredit - amount;
                                 let playerLevelVal = player.playerLevel.value;
+                                console.log('player.name===', player.name);
+                                console.log('player.validCredit===', player.validCredit);
+                                console.log('amount===', amount);
                                 if (player.platform.bonusSetting) {
                                     // let bonusSetting = playerData.platform.bonusSetting.find((item) => {
                                     //     return item.value == playerLevelVal
@@ -11481,6 +11485,12 @@ let dbPlayerInfo = {
                                             finalAmount = finalAmount - creditCharge;
                                         }
                                     }
+                                    console.log('bonusSetting===', bonusSetting);
+                                    console.log('bonusSetting.bonusCharges===', bonusSetting.bonusCharges);
+                                    console.log('bonusSetting.bonusPercentageCharges===', bonusSetting.bonusPercentageCharges);
+                                    console.log('creditCharge===', creditCharge);
+                                    console.log('finalAmount===', finalAmount);
+                                    console.log('todayBonusApply===', todayBonusApply);
                                 }
 
                                 return dbconfig.collection_players.findOneAndUpdate(
@@ -11507,6 +11517,10 @@ let dbPlayerInfo = {
                                                     data: '(detected after withdrawl)'
                                                 });
                                             }
+                                            console.log('amountAfterUpdate===', amountAfterUpdate);
+                                            console.log('parseInt(amountAfterUpdate)===', parseInt(amountAfterUpdate));
+                                            console.log('newPlayerData.validCredit===', newPlayerData.validCredit);
+                                            console.log('parseInt(newPlayerData.validCredit)===', parseInt(newPlayerData.validCredit));
                                             //check if player's credit is correct after update
                                             if (parseInt(amountAfterUpdate) != parseInt(newPlayerData.validCredit)) {
                                                 console.log("PlayerBonus: Update player credit failed", amountAfterUpdate, newPlayerData.validCredit);
