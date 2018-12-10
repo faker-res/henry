@@ -12,6 +12,7 @@ var dbGame = require('./../db_modules/dbGame');
 var cpmsAPI = require("./../externalAPI/cpmsAPI");
 var Q = require("q");
 const errorUtils = require('./../modules/errorUtils');
+const constPlayerCreditTransferStatus = require('../const/constPlayerCreditTransferStatus');
 
 let mongoose = require('mongoose');
 let ObjectId = mongoose.Types.ObjectId;
@@ -547,6 +548,33 @@ var dbGameProvider = {
                             retData.push({
                                 providerId: providerId,
                                 operationTime: changeLog[0].operationTime
+                            });
+                        }
+                    }
+                )
+            )
+        });
+
+        return Promise.all(promArr).then(() => retData);
+    },
+
+    checkLastOperationTransferIn: (platformObjId, playerObjId, providerIdArr) => {
+        let promArr = [];
+        let retData = [];
+
+        providerIdArr.map(providerId => {
+            promArr.push(
+                dbconfig.collection_playerCreditTransferLog.find({
+                    platformObjId: platformObjId,
+                    playerObjId: playerObjId,
+                    providerId: providerId,
+                    status: constPlayerCreditTransferStatus.SUCCESS
+                }).sort({createTime: -1}).limit(1).lean().then(
+                    changeLog => {
+                        if (changeLog && changeLog[0] && changeLog[0].type == constPlayerCreditChangeType.TRANSFER_IN) {
+                            retData.push({
+                                providerId: providerId,
+                                createTime: changeLog[0].createTime
                             });
                         }
                     }

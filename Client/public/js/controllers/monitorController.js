@@ -81,7 +81,7 @@ define(['js/app'], function (myApp) {
                 socketService.clearValue();
                 vm.seleDataType = {};
                 vm.seleDataType[choice] = 'bg-bright';
-            }else if(Object.keys(vm.seleDataType).length === 0 && window.location.pathname != "/monitor/paymentTotal" && window.location.pathname != "/monitor/wechatGroup"){
+            }else if(Object.keys(vm.seleDataType).length === 0 && window.location.pathname != "/monitor/paymentTotal" && window.location.pathname != "/monitor/wechatGroup" && window.location.pathname != "/monitor/consumptionRecord" && window.location.pathname != "/monitor/attemptCreate"){
                 vm.seleDataType["PAYMENT_MONITOR"] = 'bg-bright';
             }else if(window.location.pathname == "/monitor/paymentTotal"){
                 vm.seleDataType["PAYMENT_MONITOR_TOTAL"] = 'bg-bright';
@@ -89,6 +89,8 @@ define(['js/app'], function (myApp) {
             }else if(window.location.pathname == "/monitor/wechatGroup") {
                 vm.seleDataType["WECHAT_GROUP_CONTROL_MONITOR"] = 'bg-bright';
                 vm.showPlatformList = false;
+                $('#wechatMonitor.collapse').addClass('in');
+                $('#paymentMonitor.collapse').removeClass('in');
             }else if(window.location.pathname == "/monitor/consumptionRecord") {
                 vm.seleDataType["CONSUMPTION_RECORD_MONITOR"] = 'bg-bright';
                 vm.showPlatformList = false;

@@ -2443,7 +2443,18 @@ var dbPlayerTopUpRecord = {
             ).then(
                 playerState => {
                     if(playerState){
-                        if (player && player.platform && player.alipayGroup && player.alipayGroup.alipays && player.alipayGroup.alipays.length > 0) {
+                        if (
+                            player
+                            && player.platform
+                            && (
+                                player.platform.aliPayGroupIsPMS
+                                || (
+                                    player.alipayGroup
+                                    && player.alipayGroup.alipays
+                                    && player.alipayGroup.alipays.length > 0
+                                )
+                            )
+                        ) {
                             let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, amount, limitedOfferObjId);
                             let proms = [limitedOfferProm];
 
@@ -2462,7 +2473,7 @@ var dbPlayerTopUpRecord = {
                             return Promise.all(proms);
                         }
                         else {
-                            return Q.reject({name: "DataError", errorMessage: "Invalid player data"});
+                            return Promise.reject({name: "DataError", errorMessage: "Invalid player alipay group data"});
                         }
                     }else{
                         return Q.reject({name: "DataError", errorMessage: "Concurrent issue detected"});

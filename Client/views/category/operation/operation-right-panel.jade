@@ -550,6 +550,7 @@ style.
 
                 textarea.form-control(style="margin-top: 12px;" ng-model="vm.partnerLargeWithdrawLog.comment" ng-disabled='!(vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending")')
             .modal-footer
+                button.btn.btn-warning.common-button(data-dismiss='modal' ng-click="vm.recalculatePartnerLargeWithdrawal()" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"Recalculate" | translate}}
                 div(ng-if="vm.isPartnerLargeWithdrawalReviewer")
                     // is reviewer
                     button.btn.btn-danger.common-button(data-dismiss='modal' ng-click="vm.auditLargeWithdrawal(false, true)" ng-if='vm.selectedProposal.status==="CsPending" || vm.selectedProposal.status==="Pending"') {{"Cancel Proposal" | translate}}
