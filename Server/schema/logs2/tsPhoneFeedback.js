@@ -22,6 +22,8 @@ let tsPhoneFeedback = new Schema({
     tsPhoneList: {type: Schema.Types.ObjectId, ref: 'tsPhoneList', index: true},
     // registered
     registered: {type: Boolean, default: false, index: true},
+    // is Successful
+    isSuccessful: {type: Boolean, default: false, index: true},
 
 
 

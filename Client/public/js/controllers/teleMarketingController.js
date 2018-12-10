@@ -2315,6 +2315,9 @@ define(['js/app'], function (myApp) {
                         phoneArr.forEach(phoneNumber => {
                             uploadData.push(phoneList[phoneNumber]);
                         });
+                        let failFeedbackResult = vm.allPlayerFeedbackResults.find(result => result.value == vm.tsNewList.failFeedBackResult);
+                        vm.tsNewList.failFeedBackResultKey = failFeedbackResult && failFeedbackResult.key || "";
+
                         vm.importTSNewList(uploadData, vm.tsNewList)
                     } else if (importXLS) {
                         vm.importDiffPhoneNum(vm.diffPhoneXLS, dxMission)
@@ -7458,7 +7461,7 @@ define(['js/app'], function (myApp) {
 
         vm.getCtiData = (newSearch) => {
             clearTimeout(vm.ctiLoop);
-            if (vm.selectedTab != "REMINDER_PHONE_LIST") {
+            if (!(window.location.pathname == "/teleMarketing" && vm.selectedTab == "REMINDER_PHONE_LIST")) {
                 return;
             }
 
