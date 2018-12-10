@@ -542,7 +542,7 @@ const dbPlayerMail = {
                     return dbPlatform.getBlackWhiteListingConfig(platform._id).then(
                         blackWhiteListingConfig => {
                             //check if phone number is white listed
-                            if (checkBlackWhiteListPhoneNumber && blackWhiteListingConfig.whiteListingSmsPhoneNumbers && blackWhiteListingConfig.whiteListingSmsPhoneNumbers.length > 0) {
+                            if (checkBlackWhiteListPhoneNumber && blackWhiteListingConfig && blackWhiteListingConfig.whiteListingSmsPhoneNumbers && blackWhiteListingConfig.whiteListingSmsPhoneNumbers.length > 0) {
                                 let phones = blackWhiteListingConfig.whiteListingSmsPhoneNumbers;
                                 for (let i = 0, len = phones.length; i < len; i++) {
                                     let phone = phones[i];
@@ -553,7 +553,7 @@ const dbPlayerMail = {
                             }
 
                             //check if IP address is white listed
-                            if (checkBlackWhiteListIpAddress && blackWhiteListingConfig.whiteListingSmsIpAddress && blackWhiteListingConfig.whiteListingSmsIpAddress.length > 0) {
+                            if (checkBlackWhiteListIpAddress && blackWhiteListingConfig && blackWhiteListingConfig.whiteListingSmsIpAddress && blackWhiteListingConfig.whiteListingSmsIpAddress.length > 0) {
                                 let ipAddress = blackWhiteListingConfig.whiteListingSmsIpAddress;
                                 for (let i = 0, len = ipAddress.length; i < len; i++) {
                                     let ip = ipAddress[i];
