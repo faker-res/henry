@@ -187,7 +187,6 @@ define(['js/app'], function (myApp) {
         vm.initFeedBackData = function () {
             commonService.getAllPlayerFeedbackResults($scope).then(
                 data => {
-                    console.log("walaogere")
                     vm.allPlayerFeedbackResults = data;
                     $scope.$evalAsync();
                 }
@@ -197,7 +196,6 @@ define(['js/app'], function (myApp) {
         vm.initFeedbackTopic = function () {
             commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform._id).then(
                 data => {
-                    console.log("walaotopic")
                     vm.playerFeedbackTopic = data;
                     $scope.$evalAsync();
                 }
@@ -2332,7 +2330,7 @@ define(['js/app'], function (myApp) {
             $scope.initPhoneCall(phoneCall);
             $scope.phoneCall.phone = phoneNumber;
             $scope.phoneCall.loadingNumber = false;
-            $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
+            $scope.makePhoneCall(vm.selectedPlatform.platformId);
         }
 
         vm.smsNewPlayerBtn = function (phoneNumber, data) {

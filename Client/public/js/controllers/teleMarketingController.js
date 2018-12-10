@@ -238,6 +238,7 @@ define(['js/app'], function (myApp) {
         });
 
         vm.loadPlatformData = function (option) {
+            vm.hideLeftPanel = false;
             vm.showPlatformSpin = true;
             socketService.$socket($scope.AppSocket, 'getPlatformByAdminId', {adminId: authService.adminId}, function (data) {
                 console.log('all platform data', data.data);
@@ -6206,7 +6207,24 @@ define(['js/app'], function (myApp) {
         vm.resetProvince = function () {
             vm.tsProvince = "";
             vm.tsCity = "";
-        }
+        };
+
+        vm.decomposeTsPhoneList = () => {
+            let sourceTsPhoneListName = vm.selectedTsPhoneList.name;
+            return vm.getTsPhoneListRecyclePhone().then(
+                data => {
+                    if (data.data && data.data.length) {
+                        let sendQuery = {
+                            sourceTsPhoneListName: sourceTsPhoneListName,
+                            tsPhones: data.data
+                        };
+                        socketService.$socket($scope.AppSocket, 'decomposeTsPhoneList', sendQuery, function (data) {
+                            vm.filterRecycleBinPhoneList(true);
+                        })
+                    }
+                }
+            )
+        };
 
         vm.importToTsPhoneList = () => {
             if (vm.selectedTab == "RECYCLE_BIN") {
@@ -6224,7 +6242,7 @@ define(['js/app'], function (myApp) {
             } else {
                 vm.uploadPhoneFileXLS('', true, null, true)
             }
-        }
+        };
 
         vm.filterRecycleBinPhoneList = (newSearch) => {
             vm.selectedTsPhoneList = false;
@@ -7721,6 +7739,47 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.initTrashClassificationDecompositionList = function () {
+            vm.getTrashClassificationList();
+            vm.getDecompositionListCount();
+        };
+
+        vm.getTrashClassificationList = function () {
+            vm.trashClassificationList = [];
+            socketService.$socket($scope.AppSocket, 'getTrashClassification', {}, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.trashClassificationList = data.data;
+                    console.log('vm.trashClassificationList', vm.trashClassificationList);
+                });
+            });
+        };
+
+        vm.getDecompositionListCount = function () {
+            vm.decompositionListCount = 0;
+            socketService.$socket($scope.AppSocket, 'getDecompositionList', {}, function (data) {
+                $scope.$evalAsync(() => {
+                    vm.decompositionListCount = data.data;
+                    console.log('vm.decompositionListCount', vm.decompositionListCount);
+                });
+            });
+        };
+
+        vm.getTrashClassificationDetail = function (data) {
+            console.log(data);
+        };
+
+        vm.getDecomposedDetail = function (data) {
+            console.log(data);
+        }
+
+        vm.setPanel = function (isSet) {
+            vm.hideLeftPanel = isSet;
+            $cookies.put("reportShowLeft", vm.hideLeftPanel);
+            $timeout(()=>{
+                $('#trashClassificationDecompositionListRightTable').resize();
+            },0)
+            $scope.safeApply();
+        }
     };
 
 

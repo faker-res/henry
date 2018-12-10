@@ -801,6 +801,42 @@ let dbTeleSales = {
         )
     },
 
+    decomposeTsPhoneList: (sourceTsPhoneListName, tsPhones) => {
+        let promArr = [];
+        let sourceTsPhoneList = tsPhones[0].tsPhoneList;
+        if (!sourceTsPhoneList) {
+            return;
+        }
+        dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: sourceTsPhoneList}, {status: constTsPhoneListStatus.DECOMPOSED}).lean().catch(errorUtils.reportError);
+        tsPhones.forEach(
+            tsPhone => {
+                let tsPhoneQuery = dbconfig.collection_tsPhoneFeedback.findOne({
+                    platform: tsPhone.platform,
+                    tsPhone: tsPhone._id,
+                    isSuccessful: true
+                }).sort({createTime: -1}).lean().then(
+                    tsPhoneFeedbackData => {
+                        let saveObj = {
+                            encodedPhoneNumber: dbUtility.encodePhoneNum(rsaCrypto.decrypt(tsPhone.phoneNumber)),
+                            sourcePlatform: tsPhone.platform,
+                            sourceTsPhone: tsPhone._id,
+                            sourceTsPhoneList: tsPhone.tsPhoneList,
+                            sourceTsPhoneListName: sourceTsPhoneListName
+                        };
+
+                        if (tsPhoneFeedbackData) {
+                            saveObj.lastSuccessfulFeedbackTime = tsPhoneFeedbackData.createTime || "";
+                            saveObj.lastSuccessfulFeedbackTopic = tsPhoneFeedbackData.topic || "";
+                            saveObj.lastSuccessfulFeedbackContent = tsPhoneFeedbackData.content || "";
+                        }
+                        return dbconfig.collection_tsPhoneTrade(saveObj).save()
+                    }).catch(errorUtils.reportError);
+                promArr.push(tsPhoneQuery);
+            }
+        )
+        return Promise.all(promArr);
+    },
+
     getDistributionDetails: (platformObjId, tsPhoneListObjId, adminNames) => {
         let distributionDetails = [];
         let phoneListProm = dbconfig.collection_tsPhoneList.findOne({_id: tsPhoneListObjId});
@@ -1039,6 +1075,63 @@ let dbTeleSales = {
 
     updateTsPhoneListDecomposedTime: (tsPhoneListObjId) => {
         return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObjId}, {decomposedTime: new Date(Date.now())}, {new: true}).lean();
+    },
+  
+    getTrashClassification: function () {
+        let noClassificationCountProm = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: {$exists: true}, targetPlatform: {$exists: false}}).count();
+        let noFeedbackTopicCountProm = dbconfig.collection_tsPhoneTrade.find({
+            sourcePlatform: {$exists: true},
+            $or: [
+                {lastSuccessfulFeedbackTopic: {$exists: false}},
+                {lastSuccessfulFeedbackTopic: {$exists: true, $eq: null}},
+                {lastSuccessfulFeedbackTopic: {$exists: true, $eq: ''}}
+            ]
+        }).count();
+        let feedbankTopicCountProm = dbconfig.collection_tsPhoneTrade.aggregate(
+            {
+                $match: {
+                    lastSuccessfulFeedbackTopic: {$exists: true, $ne: ''},
+                    sourcePlatform: {$exists: true},
+                    targetPlatform: {$exists: false}
+                }
+            }, {
+                $group: {
+                    _id: "$lastSuccessfulFeedbackTopic",
+                    count: {$sum: 1}
+                }
+            }
+        ).read("secondaryPreferred");
+
+        return Promise.all([noClassificationCountProm, noFeedbackTopicCountProm, feedbankTopicCountProm]).then(
+            data => {
+                let trashClassificationList = [];
+                if (data) {
+                    if (data[0]) {
+                        trashClassificationList.push({name: 'noClassification', size: data[0]});
+                    }
+
+                    if (data[1]) {
+                        trashClassificationList.push({name: 'noFeedbackTopic', size: data[1]});
+                    }
+
+                    if (data[2] && data[2].length > 0) {
+                        data[2].forEach(feedbackCount => {
+                            if (feedbackCount && feedbackCount._id) {
+                                trashClassificationList.push({name: feedbackCount._id, size: feedbackCount.count});
+                            }
+                        })
+                    }
+                }
+
+                return trashClassificationList;
+            }
+        );
+    },
+
+    getDecompositionList: function () {
+        return dbconfig.collection_tsPhoneTrade.find({
+            targetPlatform: {$exists: true},
+            $or: [{targetTsPhone: {$exists: false}}, {targetTsPhone: {$exists: true, $eq: null}}]}).count();
     },
 };
 
