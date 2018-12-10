@@ -60,6 +60,8 @@ let tsPhoneListSchema = new Schema({
     totalValidPlayer: {type: Number, default: 0},
     // recycle time
     recycleTime: {type: Date},
+    // decomposed time
+    decomposedTime: {type: Date, index: true},
     // assignees
     assignees: [{type: Schema.Types.ObjectId, ref: 'admin', index: true}],
 });

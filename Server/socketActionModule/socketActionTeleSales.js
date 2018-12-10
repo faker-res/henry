@@ -163,6 +163,12 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.removeTsAssignees, [data.platformObjId, data.tsPhoneListObjId, data.adminNames], actionName, isValidData);
         },
 
+        updateTsPhoneListDecomposedTime: function updateTsPhoneListDecomposedTime(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.tsPhoneListObjId);
+            socketUtil.emitter(self.socket, dbTeleSales.updateTsPhoneListDecomposedTime, [data.tsPhoneListObjId], actionName, isValidData);
+        },
+
         updateTsPhoneListStatus: function updateTsPhoneListStatus(data){
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.tsPhoneList && data.status);

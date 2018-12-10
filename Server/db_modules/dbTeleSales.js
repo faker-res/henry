@@ -610,14 +610,12 @@ let dbTeleSales = {
                     $inc: {totalDistributed: totalDistributed},
                     status: distributeStatus
                 }
-                if (distributeStatus == constTsPhoneListStatus.PERFECTLY_COMPLETED || distributeStatus == constTsPhoneListStatus.PERFECTLY_COMPLETED) {
+                if (distributeStatus == constTsPhoneListStatus.HALF_COMPLETE || distributeStatus == constTsPhoneListStatus.PERFECTLY_COMPLETED) {
                     updateObj.recycleTime = new Date();
                 }
                 return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObj._id}, updateObj).lean();
             }
         );
-
-        return inputData;
     },
 
     updateTsPhoneDistributedPhone: function (query, updateData) {
@@ -1075,6 +1073,10 @@ let dbTeleSales = {
         );
     },
 
+    updateTsPhoneListDecomposedTime: (tsPhoneListObjId) => {
+        return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObjId}, {decomposedTime: new Date(Date.now())}, {new: true}).lean();
+    },
+  
     getTrashClassification: function () {
         let noClassificationCountProm = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: {$exists: true}, targetPlatform: {$exists: false}}).count();
         let noFeedbackTopicCountProm = dbconfig.collection_tsPhoneTrade.find({
@@ -1130,7 +1132,7 @@ let dbTeleSales = {
         return dbconfig.collection_tsPhoneTrade.find({
             targetPlatform: {$exists: true},
             $or: [{targetTsPhone: {$exists: false}}, {targetTsPhone: {$exists: true, $eq: null}}]}).count();
-    }
+    },
 };
 
 function addTsFeedbackCount (feedbackObj, isSucceedBefore = false) {
