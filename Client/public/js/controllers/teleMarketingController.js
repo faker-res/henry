@@ -6037,7 +6037,7 @@ define(['js/app'], function (myApp) {
                 $('#dxDatePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
                 $('#dxTimePicker').datetimepicker({
                     language: 'en',
-                    format: 'HH:mm:ss',
+                    format: 'hh:mm:ss',
                     pickDate: false,
                 });
                 $('#dxTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
@@ -6069,7 +6069,7 @@ define(['js/app'], function (myApp) {
 
                 $('#tsAnalyticsTimePicker').datetimepicker({
                     language: 'en',
-                    format: 'HH:mm:ss',
+                    format: 'hh:mm:ss',
                     pickDate: false,
                 });
 
