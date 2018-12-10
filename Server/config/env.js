@@ -24,7 +24,9 @@ var localConfig = {
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login",
     disableCPAPI: false,
     disablePaymentAPI: false,
-    disableSMSAPI: false
+    disableSMSAPI: false,
+    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/pc/",
+    internalRESTUrl: "http://localhost:7100",
 };
 
 //for aws-development
@@ -46,7 +48,9 @@ var devConfig = {
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
     paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
     smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
-    cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login"
+    cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login",
+    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/pc/",
+    internalRESTUrl: "http://localhost:7100",
 };
 
 //for settlement
@@ -68,7 +72,9 @@ var settleConfig = {
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
     paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
     smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
-    cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login"
+    cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login",
+    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/pc/",
+    internalRESTUrl: "http://localhost:7100",
 };
 
 //for testing
@@ -91,7 +97,9 @@ var qaConfig = {
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
     paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
     smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
-    cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login"
+    cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login",
+    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/pc/",
+    internalRESTUrl: "http://localhost:7100",
 };
 
 var testAPIConfig = {
@@ -113,7 +121,9 @@ var testAPIConfig = {
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
     paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
     smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
-    cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login"
+    cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login",
+    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/pc/",
+    internalRESTUrl: "http://localhost:7100",
 };
 
 /*
@@ -179,7 +189,9 @@ var prodConfig = {
     cpAPIUrl : "ws://10.167.11.229:9020/websocketapi",
     paymentAPIUrl: "ws://10.168.11.128:8330/acc",
     //smsAPIUrl: "ws://203.192.151.12:8560/sms"
-    smsAPIUrl: "ws://smsapiserver99.pms8.me/sms"
+    smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
+    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/pc/",
+    internalRESTUrl: "http://localhost:7100",
 };
 
 
@@ -200,7 +212,9 @@ var botConfig = {
     paymentAPIServerUrl: "ws://54.169.235.54:9480",
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
     paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
-    smsAPIUrl: "ws://smsapiserver99.pms8.me/sms"
+    smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
+    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/pc/",
+    internalRESTUrl: "http://localhost:7100",
 };
 
 //env parameters

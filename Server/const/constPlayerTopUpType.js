@@ -8,6 +8,8 @@ const constPlayerTopUpTypes = {
     WECHAT: 4,
     QUICKPAY: 5,
 
+    COMMON: 6,
+
     // 3rd party payment type
     FUKUAIPAY: 100
 };

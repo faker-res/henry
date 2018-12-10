@@ -1,12 +1,27 @@
-const dbconfig = require('./../modules/dbproperties');
-const pmsAPI = require("../externalAPI/pmsAPI.js");
-const serverInstance = require("../modules/serverInstance");
-const constPlayerTopUpTypes = require("../const/constPlayerTopUpType.js");
-const constProposalType = require('./../const/constProposalType');
-const constDepositMethod = require('./../const/constDepositMethod');
 const Q = require("q");
 const errorUtils = require('./../modules/errorUtils');
 const ObjectId = require('mongoose').Types.ObjectId;
+
+const env = require('../config/env').config();
+
+const pmsAPI = require("../externalAPI/pmsAPI.js");
+
+const dbconfig = require('./../modules/dbproperties');
+const dbUtil = require("../modules/dbutility");
+const serverInstance = require("../modules/serverInstance");
+
+const constDepositMethod = require('./../const/constDepositMethod');
+const constPlayerTopUpType = require("../const/constPlayerTopUpType.js");
+const constProposalEntryType = require("../const/constProposalEntryType");
+const constProposalType = require('./../const/constProposalType');
+const constProposalUserType = require('../const/constProposalUserType');
+const constRewardType = require('../const/constRewardType');
+const constServerCode = require("../const/constServerCode");
+
+const dbRewardUtil = require("../db_common/dbRewardUtility")
+
+const dbPromoCode = require('../db_modules/dbPromoCode');
+const dbProposal = require('../db_modules/dbProposal');
 
 const dbPlayerPayment = {
 
@@ -38,7 +53,7 @@ const dbPlayerPayment = {
                         });
                     }
                 } else {
-                    return Q.reject({name: "DataError", message: "Invalid player data"})
+                    return Promise.reject({name: "DataError", message: "Invalid player data"})
                 }
             }
         ).then(
@@ -95,12 +110,12 @@ const dbPlayerPayment = {
                                 merchantNoFromGroup => {
                                     if (merchantNoFromGroup == merchantFromPms.merchantNo && merchantFromPms.status == "ENABLED") {
                                         bValid = true;
-                                        if (merchantFromPms.topupType && merchantFromPms.topupType == constPlayerTopUpTypes.ONLINE) {
+                                        if (merchantFromPms.topupType && merchantFromPms.topupType == constPlayerTopUpType.ONLINE) {
                                             if (merchantFromPms.permerchantLimits > singleLimitList.wechat) {
                                                 singleLimitList.wechat = merchantFromPms.permerchantLimits;
                                             }
                                         }
-                                        else if (merchantFromPms.topupType && merchantFromPms.topupType == constPlayerTopUpTypes.ALIPAY) {
+                                        else if (merchantFromPms.topupType && merchantFromPms.topupType == constPlayerTopUpType.ALIPAY) {
                                             if (merchantFromPms.permerchantLimits > singleLimitList.alipay) {
                                                 singleLimitList.alipay = merchantFromPms.permerchantLimits;
                                             }
@@ -375,9 +390,158 @@ const dbPlayerPayment = {
                 return returnData;
             }
         ).catch(() => {});
+    },
+
+    // region Common payment
+    createCommonTopupProposal: (playerId, topupRequest, ipAddress, entryType, adminId, adminName) => {
+        let player, rewardEvent;
+
+        if (topupRequest.bonusCode && topupRequest.topUpReturnCode) {
+            return Promise.reject({
+                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                name: "DataError",
+                message: "Cannot apply 2 reward in 1 top up"
+            });
+        }
+
+        return dbconfig.collection_players.findOne({
+            playerId: playerId
+        }).populate({
+            path: "platform", model: dbconfig.collection_platform
+        }).then(
+            playerdata => {
+                if (playerdata) {
+                    player = playerdata;
+
+                    if (player && player._id) {
+                        if (!topupRequest.topUpReturnCode) {
+                            return Promise.resolve();
+                        }
+
+                        return dbRewardUtil.checkApplyTopUpReturn(player, topupRequest.topUpReturnCode, topupRequest.userAgentStr, topupRequest, constPlayerTopUpType.COMMON);
+
+                    }
+                } else {
+                    return Promise.reject({name: "DataError", message: "Invalid player data"})
+                }
+            }
+        ).then(
+            eventData => {
+                if (eventData) {
+                    rewardEvent = eventData;
+
+                    if (player && player.platform) {
+                        let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount, topupRequest.limitedOfferObjId);
+                        let proms = [limitedOfferProm];
+                        if (topupRequest.bonusCode) {
+                            let bonusCodeCheckProm;
+                            let isOpenPromoCode = topupRequest.bonusCode.toString().trim().length === 3;
+                            if (isOpenPromoCode) {
+                                bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount, lastLoginIp);
+                            }
+                            else {
+                                bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount);
+                            }
+                            proms.push(bonusCodeCheckProm)
+                        }
+
+                        return Promise.all(proms);
+                    }
+                }
+            }
+        ).then(
+            res => {
+                let minTopUpAmount = player.platform.minTopUpAmount || 0;
+                let limitedOfferTopUp = res[0];
+                let bonusCodeValidity = res[1];
+
+                // check bonus code validity if exist
+                if (topupRequest.bonusCode && !bonusCodeValidity) {
+                    return Promise.reject({
+                        status: constServerCode.FAILED_PROMO_CODE_CONDITION,
+                        name: "DataError",
+                        errorMessage: "Wrong promo code has entered"
+                    });
+                }
+
+                if (topupRequest.amount < minTopUpAmount) {
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_TOP_UP_FAIL,
+                        name: "DataError",
+                        errorMessage: "Top up amount is not enough"
+                    });
+                }
+
+                if (topupRequest.userAgent) {
+                    topupRequest.userAgent = dbUtil.retrieveAgent(topupRequest.userAgent);
+                }
+
+                let proposalData = Object.assign({}, topupRequest);
+                proposalData.playerId = playerId;
+                proposalData.playerObjId = player._id;
+                proposalData.platformId = player.platform._id;
+                proposalData.playerLevel = player.playerLevel;
+                proposalData.platform = player.platform.platformId;
+                proposalData.playerName = player.name;
+                proposalData.amount = Number(topupRequest.amount);
+                proposalData.creator = entryType === "ADMIN" ? {
+                    type: 'admin',
+                    name: adminName,
+                    id: adminId
+                } : {
+                    type: 'player',
+                    name: player.name,
+                    id: playerId
+                };
+
+                if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){
+                    if (rewardEvent.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP){
+                        proposalData.topUpReturnCode = rewardEvent.code;
+                    }
+                    else if (rewardEvent.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP){
+                        proposalData.retentionRewardCode = rewardEvent.code;
+                        // delete the unrelated rewardEvent.code
+                        if (proposalData.topUpReturnCode){
+                            delete proposalData.topUpReturnCode;
+                        }
+                    }
+                }
+
+                // Check Limited Offer Intention
+                if (limitedOfferTopUp) {
+                    proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                    proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
+                }
+
+                if(ipAddress){
+                    proposalData.lastLoginIp = ipAddress;
+                }
+
+                let newProposal = {
+                    creator: proposalData.creator,
+                    data: proposalData,
+                    entryType: constProposalEntryType[entryType],
+                    //createTime: createTime ? new Date(createTime) : new Date(),
+                    userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
+                };
+                newProposal.inputDevice = dbUtil.getInputDevice(topupRequest.userAgent, false);
+                return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_COMMON_TOP_UP, newProposal);
+            }
+        ).then(
+            proposal => {
+                if (proposal) {
+                    let pmsUrl = env.paymentHTTPAPIUrl;
+
+                    return generatePMSHTTPUrl(player, proposal, pmsUrl, clientType, ipAddress, amount);
+                }
+            }
+        )
     }
 
+    // endregion
+
 };
+
 function getBankTypeNameArr (bankCardFilterList, maxDeposit) {
     let bankListArr = [];
     return pmsAPI.bankcard_getBankTypeList({}).then(
@@ -406,6 +570,22 @@ function getBankTypeNameArr (bankCardFilterList, maxDeposit) {
 
             return {data: bankListArr};
         })
+}
+
+function generatePMSHTTPUrl (playerData, proposalData, domain, clientType, ipAddress, amount) {
+    let delimiter = "**";
+    let url = domain;
+    url += "?"
+    url += playerData.platform.platformId + delimiter;
+    url += playerData.name + delimiter;
+    url += playerData.realName + delimiter;
+    url += env.internalRESTUrl + "/notifyPayment" + delimiter;
+    url += clientType + delimiter;
+    url += ipAddress + delimiter;
+    url += amount + delimiter;
+    url += proposalData.proposalId
+
+    return url;
 }
 
 module.exports = dbPlayerPayment;
