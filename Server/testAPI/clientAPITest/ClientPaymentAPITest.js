@@ -341,6 +341,12 @@
         this._service.requestBankTypeByUserName.once(callback);
     };
 
+    proto.createCommonTopupProposal = function (callback, requestData) {
+        let data = requestData || {};
+        this._service.createCommonTopupProposal.request(data);
+        this._service.createCommonTopupProposal.once(callback);
+    };
+
     proto.createFKPTopupProposal = function (callback, requestData) {
         let data = requestData || {};
         this._service.createFKPTopupProposal.request(data);

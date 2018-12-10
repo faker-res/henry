@@ -18991,7 +18991,7 @@ let dbPlayerInfo = {
                     if(targetTsPhoneListId && phone._id) {
                         prom = prom.then(
                             tsPhoneData => {
-                                return dbconfig.collection_tsPhoneFeedback.update(
+                                dbconfig.collection_tsPhoneFeedback.update(
                                     {
                                         tsPhone: phone._id,
                                         tsPhoneList: targetTsPhoneListId
@@ -18999,7 +18999,8 @@ let dbPlayerInfo = {
                                     {
                                         tsPhone: tsPhoneData._id,
                                         tsPhoneList: tsPhoneList._id
-                                    }, {multi: true})
+                                    }, {multi: true}).catch(errorUtils.reportError);
+                                return tsPhoneData;
                             }
                         )
                     }
