@@ -2006,6 +2006,10 @@ define(['js/app'], function (myApp) {
             return $scope.$socketPromise('getTsPhoneListRecyclePhone', sendData)
         };
 
+        vm.updateDecomposedTime = function (tsPhoneListObjId) {
+            return $scope.$socketPromise('updateTsPhoneListDecomposedTime', {tsPhoneListObjId});
+        };
+
         // import phone number to system
         vm.importTSNewList = function (uploadData, tsNewListObj, targetTsPhoneListId) {
             let dailyDistributeTaskDate = $('#dxTimePicker').data('datetimepicker').getLocalDate();
@@ -6210,7 +6214,11 @@ define(['js/app'], function (myApp) {
                 let targetTsPhoneListId = vm.selectedTsPhoneList._id;
                 return vm.getTsPhoneListRecyclePhone().then(
                     data => {
-                        vm.importTSNewList(data.data, vm.tsNewList, targetTsPhoneListId);
+                        return vm.importTSNewList(data.data, vm.tsNewList, targetTsPhoneListId);
+                    }
+                ).then(
+                    () => {
+                        return vm.updateDecomposedTime(targetTsPhoneListId);
                     }
                 )
             } else {

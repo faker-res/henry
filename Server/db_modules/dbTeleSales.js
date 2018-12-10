@@ -610,14 +610,12 @@ let dbTeleSales = {
                     $inc: {totalDistributed: totalDistributed},
                     status: distributeStatus
                 }
-                if (distributeStatus == constTsPhoneListStatus.PERFECTLY_COMPLETED || distributeStatus == constTsPhoneListStatus.PERFECTLY_COMPLETED) {
+                if (distributeStatus == constTsPhoneListStatus.HALF_COMPLETE || distributeStatus == constTsPhoneListStatus.PERFECTLY_COMPLETED) {
                     updateObj.recycleTime = new Date();
                 }
                 return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObj._id}, updateObj).lean();
             }
         );
-
-        return inputData;
     },
 
     updateTsPhoneDistributedPhone: function (query, updateData) {
@@ -1037,7 +1035,11 @@ let dbTeleSales = {
                 );
             }
         );
-    }
+    },
+
+    updateTsPhoneListDecomposedTime: (tsPhoneListObjId) => {
+        return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObjId}, {decomposedTime: new Date(Date.now())}, {new: true}).lean();
+    },
 };
 
 function addTsFeedbackCount (feedbackObj, isSucceedBefore = false) {
