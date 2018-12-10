@@ -81,7 +81,9 @@ let RewardServiceImplement = function () {
     this.applyRewardEvent.expectsData = 'code: String';
     this.applyRewardEvent.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && conn.playerId && data.code);
-        console.log("checking applyRewardEvent [isValidData, data, playerId]", [isValidData, data, conn.playerId]);
+        if (conn) {
+            console.log("checking applyRewardEvent [isValidData, data, playerId]", [isValidData, data, conn.playerId]);
+        }
         data.data = data.data || {};
         data.data.requestId = data.requestId || "";
         data.data.isFrontEnd = true;
@@ -213,9 +215,6 @@ let RewardServiceImplement = function () {
     // to show if player can apply reward
     this.getRewardApplicationData.onRequest = function (wsFunc, conn, data) {
         let isValidData = Boolean(data && data.code && data.hasOwnProperty("platformId") && conn.playerObjId);
-        if (data && conn) {
-            console.log("checking getRewardApplicationData input" [conn.playerObjId, data.code, data.platformId])
-        }
         WebSocketUtil.performAction(conn, wsFunc, data, dbRewardEvent.getRewardApplicationData, [conn.playerObjId, data.platformId, data.code], isValidData);
     };
 
