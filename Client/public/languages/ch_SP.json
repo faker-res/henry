@@ -4192,6 +4192,9 @@
   "RECYCLE_TIME" :"回收时间",
   "RECYCLE_TIME_START" :"回收时间（开始）",
   "RECYCLE_TIME_END" :"回收时间（结束）",
+  "REIMPORT_PHONE_TO_SYSTEM" :"电话重新导入系统",
+  "Decompose / trash classification in advance" :"提前分解此名单/垃圾分类",
+  "Reimport unregistered, unused phone number to system" :"将『成功接听（尚未注册）、未使用』的电话重新导入系统",
 
   "PLAYER CAN RECEIVE MONEY FROM THE BANK":"玩家可用收款银行",
   "ONLINE BANK NAME":"网银-姓名",

@@ -21024,6 +21024,15 @@ define(['js/app'], function (myApp) {
                                     }
                                 }
 
+                                // Get reward dynamic amount flag for playerBonusDoubledRewardGroup
+                                if (el == "defineRewardBonusCount" && vm.showReward && vm.showReward.condition && vm.showReward.condition[el]) {
+                                    if (vm.showReward.condition[el] == 1){
+                                        vm.isDynamicRewardAmt = true;
+                                    }else {
+                                        vm.isDynamicRewardAmt = false;
+                                    }
+                                }
+
                                 if (el == "canApplyFromClient" && !(vm.rewardMainCondition[cond.index] && vm.rewardMainCondition[cond.index].value)) {
                                     vm.rewardDisabledParam.push("showInRealServer")
                                 }

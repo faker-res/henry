@@ -81,6 +81,9 @@ let RewardServiceImplement = function () {
     this.applyRewardEvent.expectsData = 'code: String';
     this.applyRewardEvent.onRequest = function (wsFunc, conn, data) {
         var isValidData = Boolean(data && conn.playerId && data.code);
+        if (conn) {
+            console.log("checking applyRewardEvent [isValidData, data, playerId]", [isValidData, data, conn.playerId]);
+        }
         data.data = data.data || {};
         data.data.requestId = data.requestId || "";
         data.data.isFrontEnd = true;

@@ -13,7 +13,7 @@ let tsPhoneTradeSchema = new Schema({
     // the original tsPhone
     sourceTsPhone: {type: Schema.Types.ObjectId, ref: 'tsPhone'},
     // the phone list of original tsPhone
-    sourceTsPhoneList: {type: Schema.Types.ObjectId, ref: 'tsPhoneList'},
+    sourceTsPhoneList: {type: Schema.Types.ObjectId, ref: 'tsPhoneList', index: true},
     // name of sourceTsPhoneList
     sourceTsPhoneListName: {type: String},
     // the platform that the phone traded/exported to (only exist after it traded to new platform)
@@ -27,10 +27,11 @@ let tsPhoneTradeSchema = new Schema({
     // last successful feedback time, empty means it was not used before
     lastSuccessfulFeedbackTime: {type: Date},
     // last successful feedback topic, empty means it was not used before
-    lastSuccessfulFeedbackTopic: {type: String},
+    lastSuccessfulFeedbackTopic: {type: String, index: true},
     // last successful feedback content, empty means it was not used before
     lastSuccessfulFeedbackContent: {type: String},
 });
 
 module.exports = tsPhoneTradeSchema;
 
+tsPhoneTradeSchema.index({sourcePlatform: 1, targetPlatform: 1, lastSuccessfulFeedbackTopic: 1, targetTsPhone: 1});

@@ -417,6 +417,8 @@ const dbPlayerMail = {
         let minuteNow = dbUtility.getSGTimeCurrentMinuteInterval(timeNow);
         let hourNow = dbUtility.getSGTimeCurrentHourInterval(timeNow);
         let dayNow = dbUtility.getSGTimeCurrentDayInterval(timeNow);
+        let checkBlackWhiteListPhoneNumber = telNum ? telNum : '';
+        let checkBlackWhiteListIpAddress = inputData && inputData.ipAddress ? inputData.ipAddress : '';
 
         return getPlatform.then(
             platformData => {
@@ -536,13 +538,56 @@ const dbPlayerMail = {
             }
         ).then(
             () => {
-                // fixed limit 1, 5, 10
-                let checkPhoneByMinuteProm = smsLogCheckLimit(minuteNow, 'tel',"$tel", 1, telNum, inputData.ipAddress, isPartner);
-                let checkPhoneByHourProm = smsLogCheckLimit(hourNow, 'tel', "$tel", 5, telNum, inputData.ipAddress, isPartner);
-                let checkPhoneByDayProm = smsLogCheckLimit(dayNow, 'tel', "$tel", 10, telNum, inputData.ipAddress, isPartner);
-                let checkIpByMinuteProm = smsLogCheckLimit(minuteNow, 'ipAddress', "$ipAddress", 1, telNum, inputData.ipAddress, isPartner);
-                let checkIpByHourProm = smsLogCheckLimit(hourNow, 'ipAddress', "$ipAddress", 5, telNum, inputData.ipAddress, isPartner);
-                let checkIpByDayProm = smsLogCheckLimit(dayNow, 'ipAddress', "$ipAddress", 10, telNum, inputData.ipAddress, isPartner);
+                if (platform && platform._id) {
+                    return dbPlatform.getBlackWhiteListingConfig(platform._id).then(
+                        blackWhiteListingConfig => {
+                            //check if phone number is white listed
+                            if (checkBlackWhiteListPhoneNumber && blackWhiteListingConfig.whiteListingSmsPhoneNumbers && blackWhiteListingConfig.whiteListingSmsPhoneNumbers.length > 0) {
+                                let phones = blackWhiteListingConfig.whiteListingSmsPhoneNumbers;
+                                for (let i = 0, len = phones.length; i < len; i++) {
+                                    let phone = phones[i];
+                                    if (phone === checkBlackWhiteListPhoneNumber) {
+                                        checkBlackWhiteListPhoneNumber = '';
+                                    }
+                                }
+                            }
+
+                            //check if IP address is white listed
+                            if (checkBlackWhiteListIpAddress && blackWhiteListingConfig.whiteListingSmsIpAddress && blackWhiteListingConfig.whiteListingSmsIpAddress.length > 0) {
+                                let ipAddress = blackWhiteListingConfig.whiteListingSmsIpAddress;
+                                for (let i = 0, len = ipAddress.length; i < len; i++) {
+                                    let ip = ipAddress[i];
+                                    if (ip === checkBlackWhiteListIpAddress) {
+                                        checkBlackWhiteListIpAddress = '';
+                                    }
+                                }
+                            }
+                        }
+                    );
+                }
+            }
+        ).then(
+            () => {
+                let checkPhoneByMinuteProm = Promise.resolve(true);
+                let checkPhoneByHourProm = Promise.resolve(true);
+                let checkPhoneByDayProm = Promise.resolve(true);
+                let checkIpByMinuteProm = Promise.resolve(true);
+                let checkIpByHourProm = Promise.resolve(true);
+                let checkIpByDayProm = Promise.resolve(true);
+
+                // skip smsLogCheckLimit if phone or IP is white listed
+                if (checkBlackWhiteListPhoneNumber) {
+                    // fixed limit 1, 5, 10
+                    checkPhoneByMinuteProm = smsLogCheckLimit(minuteNow, 'tel',"$tel", 1, checkBlackWhiteListPhoneNumber, '', isPartner);
+                    checkPhoneByHourProm = smsLogCheckLimit(hourNow, 'tel', "$tel", 5, checkBlackWhiteListPhoneNumber, '', isPartner);
+                    checkPhoneByDayProm = smsLogCheckLimit(dayNow, 'tel', "$tel", 10, checkBlackWhiteListPhoneNumber, '', isPartner);
+                }
+                if (checkBlackWhiteListIpAddress) {
+                    // fixed limit 1, 5, 10
+                    checkIpByMinuteProm = smsLogCheckLimit(minuteNow, 'ipAddress', "$ipAddress", 1, '', checkBlackWhiteListIpAddress, isPartner);
+                    checkIpByHourProm = smsLogCheckLimit(hourNow, 'ipAddress', "$ipAddress", 5, '', checkBlackWhiteListIpAddress, isPartner);
+                    checkIpByDayProm = smsLogCheckLimit(dayNow, 'ipAddress', "$ipAddress", 10, '', checkBlackWhiteListIpAddress, isPartner);
+                }
 
                 return Promise.all([
                     checkPhoneByMinuteProm,

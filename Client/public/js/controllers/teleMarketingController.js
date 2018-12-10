@@ -472,6 +472,9 @@ define(['js/app'], function (myApp) {
                             vm.commonPageChangeHandler(curP, pageSize, "recycleBinPhoneListSearch", vm.filterRecycleBinPhoneList);
                         });
                     });
+                    vm.tsNewList = {phoneIdx: 0};
+                    // vm.phoneNumFilterClicked();
+                    vm.getPlatformTsListName();
                     break;
                 case 'PHONE_MISSION':
                     vm.initTeleMarketingOverview();
@@ -1425,7 +1428,7 @@ define(['js/app'], function (myApp) {
             vm.tsPhoneFeedbackDetail = [];
             let sendData = {
                 platform: vm.selectedPlatform.id,
-                adminId: authService.adminId,
+                // adminId: authService.adminId,
                 tsPhone: tsPhoneObjId
             }
             socketService.$socket($scope.AppSocket, 'getTsPhoneFeedback', sendData, function (data) {
@@ -1995,12 +1998,21 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.getTsPhoneListRecyclePhone = function () {
+            let sendData = {
+                platform: vm.selectedPlatform.id,
+                tsPhoneList: vm.selectedTsPhoneList._id
+            }
+            return $scope.$socketPromise('getTsPhoneListRecyclePhone', sendData)
+        };
+
         // import phone number to system
-        vm.importTSNewList = function (uploadData, tsNewListObj) {
+        vm.importTSNewList = function (uploadData, tsNewListObj, targetTsPhoneListId) {
             let dailyDistributeTaskDate = $('#dxTimePicker').data('datetimepicker').getLocalDate();
             let sendData = {
                 phoneListDetail: uploadData,
                 isUpdateExisting: vm.tsNewList && vm.tsNewList.checkBoxA || false,
+                targetTsPhoneListId: targetTsPhoneListId,
                 updateData: {
                     platform: vm.selectedPlatform.id,
                     creator: authService.adminId,
@@ -2029,6 +2041,9 @@ define(['js/app'], function (myApp) {
                         vm.getPlatformTsListName();
                         //display success
                         vm.importPhoneResult = 'IMPORT_SUCCESS';
+                        if (targetTsPhoneListId) {
+                            vm.filterRecycleBinPhoneList(true);
+                        }
                     } else {
                         //display error
                         vm.importPhoneResult = 'IMPORT_FAIL';
@@ -2315,6 +2330,9 @@ define(['js/app'], function (myApp) {
                         phoneArr.forEach(phoneNumber => {
                             uploadData.push(phoneList[phoneNumber]);
                         });
+                        let failFeedbackResult = vm.allPlayerFeedbackResults.find(result => result.value == vm.tsNewList.failFeedBackResult);
+                        vm.tsNewList.failFeedBackResultKey = failFeedbackResult && failFeedbackResult.key || "";
+
                         vm.importTSNewList(uploadData, vm.tsNewList)
                     } else if (importXLS) {
                         vm.importDiffPhoneNum(vm.diffPhoneXLS, dxMission)
@@ -6044,8 +6062,7 @@ define(['js/app'], function (myApp) {
                 $('#dxDatePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
                 $('#dxTimePicker').datetimepicker({
                     language: 'en',
-                    format: 'HH:mm:ss',
-                    pick12HourFormat: true,
+                    format: 'hh:mm:ss',
                     pickDate: false,
                 });
                 $('#dxTimePicker').data('datetimepicker').setDate(utilService.setLocalDayStartTime(new Date()));
@@ -6077,8 +6094,7 @@ define(['js/app'], function (myApp) {
 
                 $('#tsAnalyticsTimePicker').datetimepicker({
                     language: 'en',
-                    format: 'HH:mm:ss',
-                    pick12HourFormat: true,
+                    format: 'hh:mm:ss',
                     pickDate: false,
                 });
 
@@ -6186,6 +6202,20 @@ define(['js/app'], function (myApp) {
         vm.resetProvince = function () {
             vm.tsProvince = "";
             vm.tsCity = "";
+        }
+
+        vm.importToTsPhoneList = () => {
+            if (vm.selectedTab == "RECYCLE_BIN") {
+                // import unused/ unregistered phone number and import associated feedback record
+                let targetTsPhoneListId = vm.selectedTsPhoneList._id;
+                return vm.getTsPhoneListRecyclePhone().then(
+                    data => {
+                        vm.importTSNewList(data.data, vm.tsNewList, targetTsPhoneListId);
+                    }
+                )
+            } else {
+                vm.uploadPhoneFileXLS('', true, null, true)
+            }
         }
 
         vm.filterRecycleBinPhoneList = (newSearch) => {
@@ -6782,7 +6812,7 @@ define(['js/app'], function (myApp) {
 
                     $(nRow).off('click');
                     $(nRow).on('click', function () {
-                        vm.phoneListManagementTableRowClicked(aData, nRow);
+                        vm.recycleBinPhoneListTableRowClicked(aData, nRow);
                     });
 
                 }
@@ -6800,6 +6830,23 @@ define(['js/app'], function (myApp) {
             });
             $('#recycleBinPhoneListTable').resize();
         };
+
+        vm.recycleBinPhoneListTableRowClicked = (data, nRow) => {
+            $('#recycleBinPhoneListTable tbody tr').removeClass('selected');
+            $scope.$evalAsync(() => {
+                if (vm.selectedTsPhoneList != data) {
+                    vm.selectedTsPhoneList = data;
+                    $(nRow).toggleClass('selected');
+                } else {
+                    vm.selectedTsPhoneList = false;
+                }
+                if (!(vm.selectedTsPhoneList && vm.selectedTsPhoneList.status != vm.constTsPhoneListStatus.DECOMPOSED )) {
+                    vm.disableReimportRecycleBinPhone = true;
+                } else {
+                    vm.disableReimportRecycleBinPhone = false;
+                }
+            })
+        }
 
         vm.drawPhoneListManagementTable = function (newSearch, tblData, size) {
             console.log("phoneListManagementTable",tblData);
@@ -7070,6 +7117,7 @@ define(['js/app'], function (myApp) {
             })
         }
 
+
         vm.bindHover = function (placeholder, callback) {
             $(placeholder).bind("plothover", function (event, pos, obj) {
                 let previousPoint;
@@ -7305,7 +7353,7 @@ define(['js/app'], function (myApp) {
             vm.drawRetentionGraph();
         };
 
-        vm.manualPauseTsPhoneListStatus = () => {
+        vm.manualPauseTsPhoneList = () => {
             if (!(vm.selectedTsPhoneList && (vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.DISTRIBUTING || vm.selectedTsPhoneList.status == vm.constTsPhoneListStatus.MANUAL_PAUSED))) {
                 return;
             }
@@ -7319,7 +7367,7 @@ define(['js/app'], function (myApp) {
                 tsPhoneList: vm.selectedTsPhoneList._id,
                 status: status
             }
-            socketService.$socket($scope.AppSocket, 'manualPauseTsPhoneListStatus', sendData, function (data) {
+            socketService.$socket($scope.AppSocket, 'updateTsPhoneListStatus', sendData, function (data) {
                 vm.filterPhoneListManagement(true);
             })
         };
@@ -7460,7 +7508,7 @@ define(['js/app'], function (myApp) {
 
         vm.getCtiData = (newSearch) => {
             clearTimeout(vm.ctiLoop);
-            if (vm.selectedTab != "REMINDER_PHONE_LIST") {
+            if (!(window.location.pathname == "/teleMarketing" && vm.selectedTab == "REMINDER_PHONE_LIST")) {
                 return;
             }
 
