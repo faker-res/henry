@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 
+const dbUtil = require('./../modules/dbutility');
+const dbPlayerLoginRecord = require('./../db_modules/dbPlayerLoginRecord');
 const dbPlayerReward = require('./../db_modules/dbPlayerReward');
 const dbPromoCode = require('./../db_modules/dbPromoCode');
 const dbTeleSales = require('./../db_modules/dbTeleSales');
@@ -188,6 +190,20 @@ function socketActionTeleSales(socketIO, socket) {
                 data.delay = data.delay || 0;
             }
             socketUtil.emitter(self.socket, dbTeleSales.bulkSendSmsToFailCallee, [adminObjId, adminName, data, data.tsPhoneDetails], actionName, isValidData);
+        },
+
+        getTsPlayerRetentionAnalysis: function getTsPlayerRetentionAnalysis(data) {
+            let actionName = arguments.callee.name;
+            let diffDays;
+            if (data.startTime && data.endTime) {
+                let timeDiff =  new Date(data.endTime).getTime() - new Date(data.startTime).getTime();
+                if (timeDiff >= 0) {
+                    diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1; // + 1 to include end day
+                }
+            }
+            let isValidData = Boolean(data && data.platformObjId && data.startTime && data.endTime && data.days && diffDays && typeof data.isRealPlayer === 'boolean' && typeof data.isTestPlayer === 'boolean' && data.tsPhoneListObjId);
+            let startTime = data.startTime ? dbUtil.getDayStartTime(data.startTime) : new Date(0);
+            socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerRetention, [ObjectId(data.platformObjId), startTime, data.days, data.playerType, diffDays, data.isRealPlayer, data.isTestPlayer, data.hasPartner, null, data.tsPhoneListObjId], actionName, isValidData);
         },
 
     };
