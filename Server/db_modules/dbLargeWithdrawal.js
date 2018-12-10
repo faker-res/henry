@@ -329,6 +329,7 @@ const dbLargeWithdrawal = {
     fillUpPartnerLargeWithdrawalLogDetail: (logObjId) => {
         let log, partner, proposal, setting, todayLargeAmount, bankCityName, lastWithdrawalDate, downLinePlayerAmount, downlinePartnerAmount;
         let todayTime = dbUtility.getTodaySGTime();
+        let updateData = {};
         return dbconfig.collection_partnerLargeWithdrawalLog.findOne({_id: logObjId}).lean().then(
             logData => {
                 if (!logData) {
@@ -469,8 +470,7 @@ const dbLargeWithdrawal = {
                         break;
                 }
 
-
-                let updateData = {
+                updateData = {
                     emailNameExtension: setting.emailNameExtension || "",
                     todayLargeAmountNo: todayLargeAmount,
                     partnerName: partner.partnerName,
@@ -489,7 +489,10 @@ const dbLargeWithdrawal = {
 
                 return dbconfig.collection_partnerLargeWithdrawalLog.findOneAndUpdate({_id: log._id}, updateData, {new: true}).lean();
             }
-        );
+        ).catch(err => {
+            console.log("fill up partner large withdrawal failed", logObjId, updateData, err);
+            return Promise.reject(err);
+        });
     },
 
     sendPartnerLargeAmountDetailMail: (largeWithdrawalLogObjId, comment, admin, host) => {

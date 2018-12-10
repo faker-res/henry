@@ -316,6 +316,14 @@ let dbTeleSales = {
         return dbconfig.collection_tsPhoneList.distinct("name", query);
     },
 
+    getTsPhoneListRecyclePhone: function (inputData) {
+        return dbconfig.collection_tsPhone.find({
+            platform: inputData.platform,
+            tsPhoneList: inputData.tsPhoneList,
+            $or: [{isUsed: false}, {isSucceedBefore: true, registered: false}]
+        })
+    },
+
     getRecycleBinTsPhoneList: function (platform, startTime, endTime, status, name, index, limit, sortCol) {
         if(!platform){
             return;
@@ -771,7 +779,7 @@ let dbTeleSales = {
         }
     },
 
-    manualPauseTsPhoneListStatus: (tsPhoneList, status) => {
+    updateTsPhoneListStatus: (tsPhoneList, status) => {
         return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneList}, {status: status}).lean();
     },
 
