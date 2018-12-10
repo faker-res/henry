@@ -234,19 +234,21 @@ let dbTeleSales = {
     createTsPhoneFeedback: function (inputData) {
 
         let isSuccessFeedback = false;
-        return dbconfig.collection_tsPhoneFeedback(inputData).save().then(
-            (feedbackData) => {
-                if (!feedbackData) {
-                    return Promise.reject({name: "DataError", message: "fail to save feedback data"});
-                }
 
-                return dbconfig.collection_platform.findOne({_id: inputData.platform}, {definitionOfAnsweredPhone: 1}).lean();
-            }
-        ).then(
+        return dbconfig.collection_platform.findOne({_id: inputData.platform}, {definitionOfAnsweredPhone: 1}).lean().then(
             platformData => {
                 if (platformData && platformData.definitionOfAnsweredPhone
                     && platformData.definitionOfAnsweredPhone.length && platformData.definitionOfAnsweredPhone.indexOf(inputData.result) > -1) {
                     isSuccessFeedback = true;
+                }
+                inputData.isSuccessful = isSuccessFeedback;
+
+                return dbconfig.collection_tsPhoneFeedback(inputData).save();
+            }
+        ).then(
+            (feedbackData) => {
+                if (!feedbackData) {
+                    return Promise.reject({name: "DataError", message: "fail to save feedback data"});
                 }
 
                 return dbconfig.collection_tsDistributedPhone.findOneAndUpdate({
