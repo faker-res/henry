@@ -2315,7 +2315,8 @@ define(['js/app'], function (myApp) {
                         phoneArr.forEach(phoneNumber => {
                             uploadData.push(phoneList[phoneNumber]);
                         });
-                        vm.tsNewList.failFeedBackResultKey = vm.allPlayerFeedbackResults.find(result => result.value == vm.tsNewList.failFeedBackResult).key;
+                        let failFeedbackResult = vm.allPlayerFeedbackResults.find(result => result.value == vm.tsNewList.failFeedBackResult);
+                        vm.tsNewList.failFeedBackResultKey = failFeedbackResult && failFeedbackResult.key || "";
 
                         vm.importTSNewList(uploadData, vm.tsNewList)
                     } else if (importXLS) {
