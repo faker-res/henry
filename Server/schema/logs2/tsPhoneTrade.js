@@ -30,6 +30,8 @@ let tsPhoneTradeSchema = new Schema({
     lastSuccessfulFeedbackTopic: {type: String, index: true},
     // last successful feedback content, empty means it was not used before
     lastSuccessfulFeedbackContent: {type: String},
+    // relevant proposal of manual phone trade action that
+    proposalId: {type: String, index: true},
 });
 
 module.exports = tsPhoneTradeSchema;
