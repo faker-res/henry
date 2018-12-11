@@ -13195,7 +13195,7 @@ let dbPlayerInfo = {
                     platformObjectId = playerData.platform._id;
                     return dbconfig.collection_proposalType.findOne({
                         platformId: platformObjectId,
-                        name: constProposalType.PLAYER_MANUAL_TOP_UP
+                        name: constProposalType.PLAYER_ASSIGN_TOP_UP
                     });
                 }
                 else {

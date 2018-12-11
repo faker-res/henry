@@ -1,5 +1,5 @@
 form(name="form_player_topup", novalidate)
-    label.control-label 请在指定 XX 分钟内，按照下列订单方式，转帐至指定银行卡。
+    label.control-label 请在指定 {{vm.existingAssignTopup.data.resultData.validTime}} 分钟内，按照下列订单方式，转帐至指定银行卡。
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
             label.control-label *{{"ProposalId" | translate}}
@@ -14,66 +14,66 @@ form(name="form_player_topup", novalidate)
         .form-group.col-md-6
             label.control-label *{{"TopUpType" | translate}}
         .form-group.col-md-6
-            div {{vm.existingAssignTopup.data.depositMethod}}
-    .row.margin-left-5.margin-right-5
+            div {{vm.getDepositMethodbyId[vm.existingAssignTopup.data.depositMethod] | translate}}
+    .row.margin-left-5.margin-right-5(ng-if='vm.existingAssignTopup.data.inputData.netPayName')
         .form-group.col-md-6
             label.control-label *{{"网银-姓名" | translate}}
         .form-group.col-md-6
-            div {{vm.existingAssignTopup.data.playerRealName}}
-    .row.margin-left-5.margin-right-5
+            div {{vm.existingAssignTopup.data.inputData.netPayName}}
+    .row.margin-left-5.margin-right-5(ng-if='vm.existingAssignTopup.data.inputData.atmProvince')
         .form-group.col-md-6
             label.control-label *{{"ATM-存款省" | translate}}
         .form-group.col-md-6
-            div {{vm.existingAssignTopup.proposalId}}
+            div {{vm.existingAssignTopup.data.inputData.province.name}}
 
-    .row.margin-left-5.margin-right-5
+    .row.margin-left-5.margin-right-5(ng-if='vm.existingAssignTopup.data.inputData.atmCity')
         .form-group.col-md-6
             label.control-label *{{"ATM-存款市" | translate}}
         .form-group.col-md-6
-            div {{vm.existingAssignTopup.proposalId}}
-    .row.margin-left-5.margin-right-5
+            div {{vm.existingAssignTopup.data.inputData.city.name}}
+    .row.margin-left-5.margin-right-5(ng-if='vm.existingAssignTopup.data.inputData.counterDepositType')
         .form-group.col-md-6
             label.control-label *{{"银行柜台-存款方式" | translate}}
         .form-group.col-md-6
-            div {{vm.existingAssignTopup.proposalId}}
-    .row.margin-left-5.margin-right-5
+            div {{vm.existingAssignTopup.data.inputData.counterDepositType}}
+    .row.margin-left-5.margin-right-5(ng-if='vm.existingAssignTopup.data.inputData.counterCardOwner')
         .form-group.col-md-6
             label.control-label *{{"银行柜台-银行卡姓名" | translate}}
         .form-group.col-md-6
-            div {{vm.existingAssignTopup.data.playerRealName}}
-    .row.margin-left-5.margin-right-5
+            div {{vm.existingAssignTopup.data.inputData.counterCardOwner}}
+    .row.margin-left-5.margin-right-5(ng-if="{{vm.existingAssignTopup.data.inputData.counterTransferId}}")
         .form-group.col-md-6
             label.control-label *{{"银行柜台-转帐编号*请将此编号告知银行员，请他填写备注" | translate}}
         .form-group.col-md-6
-            div {{vm.existingAssignTopup.data.playerId}}
+            div {{vm.existingAssignTopup.data.inputData.counterTransferId}}
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
             label.control-label *{{"收款银行名称：" | translate}}
         .form-group.col-md-6
-            div {{vm.existingAssignTopup.proposalId}}
+            div {{vm.existingAssignTopup.data.resultData.bankName}}
 
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
             label.control-label *{{"收款人姓名：" | translate}}
         .form-group.col-md-6
-            div {{vm.existingAssignTopup.data.playerRealName}}
+            div {{vm.existingAssignTopup.data.resultData.cardOwner}}
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
             label.control-label *{{"收款卡号：" | translate}}
         .form-group.col-md-6
-            div {{vm.existingAssignTopup.data.lastBankcardNo}}
+            div {{vm.existingAssignTopup.data.resultData.bankCardNo}}
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
             label.control-label *{{"收款卡开户省：" | translate}}
         .form-group.col-md-6
-            div {{vm.existingAssignTopup.proposalId}}
+            div {{vm.existingAssignTopup.data.resultData.provinceName}}
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
             label.control-label *{{"收款卡开户市：" | translate}}
         .form-group.col-md-6
-            div {{vm.existingAssignTopup.proposalId}}
+            div {{vm.existingAssignTopup.data.resultData.cityName}}
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
             label.control-label *{{"收款卡支行：" | translate}}
         .form-group.col-md-6
-            div {{vm.existingAssignTopup.proposalId}}
+            div {{vm.existingAssignTopup.data.resultData.openingPoint}}

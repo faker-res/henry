@@ -1225,14 +1225,14 @@
                                     option(value='')
                             .form-group(ng-if='vm.playerAssignTopUp.depositMethod === "1"')
                                 label.control-label {{'ONLINE BANK NAME' | translate}}
-                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.realName', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "1"')
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.netPayName', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "1"')
                             .form-group(ng-if='vm.playerAssignTopUp.depositMethod === "2"')
                                 label.control-label {{'ATM SAVING PROVINCE' | translate}}
-                                select.form-control(ng-model='vm.playerAssignTopUp.provinceId', ng-change='vm.getZoneList(vm.playerAssignTopUp.provinceId)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "2"')
+                                select.form-control(ng-model='vm.playerAssignTopUp.atmProvince', ng-change='vm.getZoneList(vm.playerAssignTopUp.provinceId)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "2"')
                                     option(ng-repeat='(i,v) in vm.provinceList', value='{{v.id}}') {{v.name}}
                             .form-group(ng-if='vm.playerAssignTopUp.depositMethod === "2"')
                                 label.control-label {{'ATM SAVING CITY' | translate}}
-                                select.form-control(ng-model='vm.playerAssignTopUp.cityId', ng-change='vm.getZoneList(vm.playerAssignTopUp.provinceId,vm.playerAssignTopUp.cityId)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "2" ')
+                                select.form-control(ng-model='vm.playerAssignTopUp.atmCity', ng-change='vm.getZoneList(vm.playerAssignTopUp.provinceId,vm.playerAssignTopUp.cityId)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "2" ')
                                     option(ng-repeat='(i,v) in vm.cityList', value='{{v.id}}') {{v.name}}
                             .form-group(ng-if='vm.playerAssignTopUp.depositMethod === "3"')
                                 label.control-label {{'BANK COUNTER DEPOSIT METHOD' | translate}}
@@ -1243,11 +1243,11 @@
                                 //input.form-control(type='text', ng-model='vm.playerAssignTopUp.bonusCode', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "3"')
                             .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "3"', ng-if='vm.playerAssignTopUp.counterDepositType==1')
                                 label.control-label {{'BANK COUNTER BANK CARD HOLDER' | translate}}
-                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.realName', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "3"')
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.counterCardOwner', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "3"')
                             .form-group(ng-show='vm.playerAssignTopUp.depositMethod === "3"', ng-if='vm.playerAssignTopUp.counterDepositType==2')
                                 label.control-label {{'BANK COUNTER TRANSFER NUMBER' | translate}}
                                 span(style="color:red;") {{'PLEASE INFORM BANK STAFF THIS SERIAL NUMBER, AND LET THEM FILL UP REMARK' | translate}}
-                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.playerId', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "3"')
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.counterTransferId', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "3"')
                             .form-group
                                 label.control-label {{'TopupAmount' | translate}}
                                 input.form-control(type='text', ng-model='vm.playerAssignTopUp.amount')

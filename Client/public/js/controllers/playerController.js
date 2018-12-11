@@ -11767,7 +11767,13 @@ define(['js/app'], function (myApp) {
                 realName: vm.playerAssignTopUp.realName,
                 topUpReturnCode: vm.playerAssignTopUp.topUpReturnCode,
                 orderNo: vm.playerAssignTopUp.orderNo,
-                platform: vm.selectedPlatform.id
+                platform: vm.selectedPlatform.id,
+                netPayName:vm.playerAssignTopUp.netPayName,
+                atmProvince:vm.playerAssignTopUp.atmProvince,
+                atmCity:vm.playerAssignTopUp.atmCity,
+                counterDepositType:vm.playerAssignTopUp.counterDepositType,
+                counterCardOwner:vm.playerAssignTopUp.counterCardOwner,
+                counterTransferId:vm.playerAssignTopUp.counterTransferId
             };
 
             vm.playerAssignTopUp.submitted = true;
@@ -14530,6 +14536,15 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getAssignTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
                 $scope.$evalAsync(() => {
                     vm.existingAssignTopup = data.data ? data.data : false;
+
+                    if(vm.existingAssignTopup && vm.existingAssignTopup.data && vm.existingAssignTopup.data.inputData.atmProvince){
+                        vm.existingAssignTopup.data.inputData.province = vm.getProvinceName(vm.existingAssignTopup.data.inputData.atmProvince);
+                    }
+
+                    if(vm.existingAssignTopup && vm.existingAssignTopup.data && vm.existingAssignTopup.data.inputData.atmCity){
+                        vm.existingAssignTopup.data.inputData.city = vm.getCityName(vm.existingAssignTopup.data.inputData.atmCity);
+                    }
+
                 })
 
             });
@@ -19503,7 +19518,7 @@ define(['js/app'], function (myApp) {
                 } else {
                     vm.selectedProposal.data.provinceName = text;
                 }
-                $scope.safeApply();
+                return text;
             });
         }
 
@@ -19515,7 +19530,7 @@ define(['js/app'], function (myApp) {
                 } else {
                     vm.selectedProposal.data.cityName = text;
                 }
-                $scope.safeApply();
+                return text;
             });
         }
 
