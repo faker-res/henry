@@ -12418,7 +12418,13 @@ let dbPlayerInfo = {
                 if (bTransferIn) {
                     return dbPlayerInfo.transferPlayerCreditToProvider(playerData.playerId, playerData.platform._id, gameData.provider.providerId, -1).then(
                         data => data,
-                        error => false
+                        error => {
+                            if(isApplyBonusDoubledReward){
+                                return Promise.reject({name: "DataError", message: error.message});
+                            }
+
+                            return false;
+                        }
                     );
                 }
                 else {
@@ -12622,7 +12628,6 @@ let dbPlayerInfo = {
 
                                                 return retData;
                                             }
-                                        //).then(transferCreditToProvider, errorUtils.reportError);
                                         ).then(
                                             data => {
                                                 return transferCreditToProvider(data);
