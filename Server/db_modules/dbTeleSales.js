@@ -1239,11 +1239,42 @@ let dbTeleSales = {
         );
     },
 
-    getDecompositionList: function () {
+    getCountDecompositionList: function () {
         return dbconfig.collection_tsPhoneTrade.find({
             targetPlatform: {$exists: true},
-            $or: [{targetTsPhone: {$exists: false}}, {targetTsPhone: {$exists: true, $eq: null}}]}).count();
+            tradeTime: {$exists: true},
+            $or: [{targetTsPhone: {$exists: false}}, {targetTsPhone: {$exists: true, $eq: null}}]
+        }).count();
     },
+
+    getDecomposedNewPhoneRecord: function (startTime, endTime, index, limit, sortCol) {
+
+        let query = {
+            tradeTime: {$gte: new Date(startTime), $lte: new Date(endTime)},
+            targetPlatform: {$exists: true},
+            $or: [{targetTsPhone: {$exists: false}}, {targetTsPhone: {$exists: true, $eq: null}}]
+        };
+
+        let countProm = dbconfig.collection_tsPhoneTrade.find(query).count();
+        let decomposedNewPhoneProm = dbconfig.collection_tsPhoneTrade.find(query, {
+            tradeTime: 1,
+            encodedPhoneNumber: 1,
+            lastSuccessfulFeedbackTime: 1,
+            lastSuccessfulFeedbackTopic: 1,
+            lastSuccessfulFeedbackContent: 1
+        }).sort(sortCol).skip(index).limit(limit);
+
+        return Promise.all([countProm, decomposedNewPhoneProm]).then(
+            data => {
+                if (data) {
+                    let count = data[0] ? data[0] : 0;
+                    let decomposedNewPhoneData = data[1] ? data[1] : [];
+
+                    return {data: decomposedNewPhoneData, size: count};
+                }
+            }
+        );
+    }
 };
 
 function addTsFeedbackCount (feedbackObj, isSucceedBefore = false) {

@@ -238,11 +238,20 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.getTrashClassification, [], actionName, isValidData);
         },
 
-        getDecompositionList: function getDecompositionList() {
-        let actionName = arguments.callee.name;
-        let isValidData = true;
-        socketUtil.emitter(self.socket, dbTeleSales.getDecompositionList, [], actionName, isValidData);
-    },
+        getCountDecompositionList: function getCountDecompositionList() {
+            let actionName = arguments.callee.name;
+            let isValidData = true;
+            socketUtil.emitter(self.socket, dbTeleSales.getCountDecompositionList, [], actionName, isValidData);
+        },
+
+        getDecomposedNewPhoneRecord: function getDecomposedNewPhoneRecord(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.startTime && data.endTime);
+            let index = data.index || 0;
+            let limit = data.limit || 100;
+            let sortCol = data.sortCol || {"tradeTime": -1};
+            socketUtil.emitter(self.socket, dbTeleSales.getDecomposedNewPhoneRecord, [data.startTime, data.endTime, index, limit, sortCol], actionName, isValidData);
+        }
 
     };
     socketActionTeleSales.actions = this.actions;

@@ -813,7 +813,6 @@ define(['js/app'], function (myApp) {
         }
 
         vm.playerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-            $compile(nRow)($scope);
             vm.operatePlayerListTableRow(nRow, aData, iDisplayIndex, iDisplayIndexFull);
         };
 
@@ -2096,7 +2095,7 @@ define(['js/app'], function (myApp) {
                     $scope.phoneCall.phone = data.data;
                     $scope.phoneCall.loadingNumber = false;
                     $scope.safeApply();
-                    $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
+                    $scope.makePhoneCall(vm.selectedPlatform.platformId);
                 }, function (err) {
                     $scope.phoneCall.loadingNumber = false;
                     $scope.phoneCall.err = err.error.message;
@@ -2105,6 +2104,60 @@ define(['js/app'], function (myApp) {
                 }, true);
             }
         };
+
+        vm.callDemoPlayer = function (data) {
+            var phoneCall = {
+                // playerId: "5a74167afe96b103da96f5fc",//data.playerId,
+                name: $translate("demoPlayer"),
+                toText: $translate("demoPlayer"),
+                platform: "jinshihao",
+                loadingNumber: true,
+            }
+            $scope.initPhoneCall(phoneCall);
+            $scope.phoneCall.phone = data.tel;
+            $scope.phoneCall.loadingNumber = false;
+            $scope.safeApply();
+            $scope.makePhoneCall(vm.selectedPlatform.platformId);
+        }
+
+        vm.telToPlayer = function (data) {
+            $scope.$evalAsync(() => {
+                let phoneCall = {
+                    playerId: data.data.playerId || '',
+                    name: data.data.playerName || '',
+                    toText: data.data.playerName || '',
+                    platform: "jinshihao",
+                    loadingNumber: true,
+                }
+
+                $scope.initPhoneCall(phoneCall);
+                $scope.phoneCall.phone = data.data.updateData.phoneNumber;
+                $scope.phoneCall.loadingNumber = false;
+                $scope.makePhoneCall(vm.selectedPlatform.platformId);
+            });
+        };
+
+        vm.callPlayer = function (data) {
+            var phoneCall = {
+                playerId: data.playerId,
+                name: data.name,
+                toText: data.name,
+                platform: "jinshihao",
+                loadingNumber: true,
+            }
+            $scope.initPhoneCall(phoneCall);
+            socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: data._id}, function (data) {
+                $scope.phoneCall.phone = data.data;
+                $scope.phoneCall.loadingNumber = false;
+                $scope.safeApply();
+                $scope.makePhoneCall(vm.selectedPlatform.platformId);
+            }, function (err) {
+                $scope.phoneCall.loadingNumber = false;
+                $scope.phoneCall.err = err.error.message;
+                alert($scope.phoneCall.err);
+                $scope.safeApply();
+            }, true);
+        }
 
         vm.createMessageTemplate = function () {
 

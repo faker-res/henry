@@ -20,7 +20,7 @@ var localConfig = {
     messageServerUrl: "ws://localhost:9580",
     cpAPIUrl : "ws://gameapi-server.neweb.me/websocketapi",
     paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
-    smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
+    smsAPIUrl: "ws://203.192.151.12:8560/sms",
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login",
     disableCPAPI: false,
     disablePaymentAPI: false,
@@ -214,7 +214,7 @@ var botConfig = {
     paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
     smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
     paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/pc/",
-    internalRESTUrl: "http://localhost:7100",
+    internalRESTUrl: "http://devtest.wsweb.me:7100",
 };
 
 //env parameters

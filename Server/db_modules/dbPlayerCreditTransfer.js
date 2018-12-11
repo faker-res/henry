@@ -778,7 +778,7 @@ let dbPlayerCreditTransfer = {
      * @param cpName
      * @param forSync
      */
-    playerCreditTransferToProviderWithProviderGroup: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) {
+    playerCreditTransferToProviderWithProviderGroup: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync, isUpdateTransferId, currentDate) {
         let dPCT = this;
         let gameAmount = 0;
         let rewardAmount = 0;
@@ -928,6 +928,10 @@ let dbPlayerCreditTransfer = {
                     }).then(
                         id => {
                             transferId = id;
+
+                            if(isUpdateTransferId){
+                                dbPlayerInfo.updatePlayerBonusDoubledReward(playerObjId, platform, currentDate, transferId, transferAmount);
+                            }
                             //let lockedAmount = rewardData.currentAmount ? rewardData.currentAmount : 0;
                             // Second log before call cpmsAPI
                             dbLogger.createPlayerCreditTransferStatusLog(playerObjId, player.playerId, player.name, platform, platformId, "transferIn",
@@ -1064,7 +1068,7 @@ let dbPlayerCreditTransfer = {
         let gameCredit = 0;
         let playerCredit = 0;
         let rewardTaskCredit = 0;
-        let providerPlayerObj = 0;
+        let providerPlayerObj;
         let checkBResolve = false;
 
         // First, need to make sure there's money in provider first
@@ -1368,7 +1372,7 @@ let dbPlayerCreditTransfer = {
         );
     },
 
-    playerCreditTransferToEbetWallets: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync) {
+    playerCreditTransferToEbetWallets: function (playerObjId, platform, providerId, amount, providerShortId, userName, platformId, adminName, cpName, forSync, isUpdateTransferId, currentDate) {
         let checkAmountProm = [];
         let transferIn = Promise.resolve();
         let transferInSuccessData = [];
@@ -1434,6 +1438,13 @@ let dbPlayerCreditTransfer = {
                     }).then(() => {
                         console.log('transferin promise data',transferInSuccessData);
                         if(transferInSuccessData && transferInSuccessData.length > 0) {
+                            if(isUpdateTransferId){
+                                console.log("LH check Ebet 1--------------", transferInSuccessData);
+                                let totalTransferAmount = transferInSuccessData.reduce((a, b) => a + b.transferAmount, 0);
+                                console.log("LH check Ebet 2--------------", totalTransferAmount);
+                                dbPlayerInfo.updatePlayerBonusDoubledReward(playerObjId, platform, currentDate, transferInSuccessData[0].transferId, totalTransferAmount);
+                            }
+
                             return Promise.resolve({
                                 playerId: transferInSuccessData[0].playerId,
                                 providerId: transferInSuccessData[0].providerId,
@@ -1663,7 +1674,9 @@ let dbPlayerCreditTransfer = {
                                 transferCredit: {
                                     playerCredit: parseFloat(gameAmount - rewardAmount).toFixed(2),
                                     rewardCredit: parseFloat(rewardAmount).toFixed(2)
-                                }
+                                },
+                                transferId: transferId,
+                                transferAmount: transferAmount
                             };
 
                             return responseData;
