@@ -7801,6 +7801,7 @@ define(['js/app'], function (myApp) {
         vm.searchDecomposedNewPhoneQuery = function (newSearch) {
             vm.decomposedNewPhoneQuery = vm.decomposedNewPhoneQuery || {};
             var sendData = {
+                platformId: vm.selectedPlatform.id,
                 startTime: vm.decomposedNewPhoneQuery.startTime.data('datetimepicker').getLocalDate(),
                 endTime: vm.decomposedNewPhoneQuery.endTime.data('datetimepicker').getLocalDate(),
                 limit: vm.decomposedNewPhoneQuery.limit || 100,
