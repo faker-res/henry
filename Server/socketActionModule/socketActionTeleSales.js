@@ -232,16 +232,16 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerRetention, [ObjectId(data.platformObjId), startTime, data.days, data.playerType, diffDays, data.isRealPlayer, data.isTestPlayer, data.hasPartner, null, data.tsPhoneListObjId], actionName, isValidData);
         },
 
-        getTrashClassification: function getTrashClassification() {
+        getTrashClassification: function getTrashClassification(data) {
             let actionName = arguments.callee.name;
-            let isValidData = true;
-            socketUtil.emitter(self.socket, dbTeleSales.getTrashClassification, [], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbTeleSales.getTrashClassification, [data.platformId], actionName, isValidData);
         },
 
-        getCountDecompositionList: function getCountDecompositionList() {
+        getCountDecompositionList: function getCountDecompositionList(data) {
             let actionName = arguments.callee.name;
-            let isValidData = true;
-            socketUtil.emitter(self.socket, dbTeleSales.getCountDecompositionList, [], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbTeleSales.getCountDecompositionList, [data.platformId], actionName, isValidData);
         },
 
         getDecomposedNewPhoneRecord: function getDecomposedNewPhoneRecord(data) {

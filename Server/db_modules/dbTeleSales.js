@@ -1188,10 +1188,11 @@ let dbTeleSales = {
         return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObjId}, {decomposedTime: new Date(Date.now())}, {new: true}).lean();
     },
   
-    getTrashClassification: function () {
-        let noClassificationCountProm = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: {$exists: true}, targetPlatform: {$exists: false}}).count();
+    getTrashClassification: function (platformObjId) {
+        let noClassificationCountProm = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: {$exists: true}, sourcePlatform: ObjectId(platformObjId), targetPlatform: {$exists: false}}).count();
         let noFeedbackTopicCountProm = dbconfig.collection_tsPhoneTrade.find({
             sourcePlatform: {$exists: true},
+            sourcePlatform: ObjectId(platformObjId),
             $or: [
                 {lastSuccessfulFeedbackTopic: {$exists: false}},
                 {lastSuccessfulFeedbackTopic: {$exists: true, $eq: null}},
@@ -1203,6 +1204,7 @@ let dbTeleSales = {
                 $match: {
                     lastSuccessfulFeedbackTopic: {$exists: true, $ne: ''},
                     sourcePlatform: {$exists: true},
+                    sourcePlatform: ObjectId(platformObjId),
                     targetPlatform: {$exists: false}
                 }
             }, {
@@ -1239,9 +1241,9 @@ let dbTeleSales = {
         );
     },
 
-    getCountDecompositionList: function () {
+    getCountDecompositionList: function (platformObjId) {
         return dbconfig.collection_tsPhoneTrade.find({
-            targetPlatform: {$exists: true},
+            targetPlatform: ObjectId(platformObjId),
             tradeTime: {$exists: true},
             $or: [{targetTsPhone: {$exists: false}}, {targetTsPhone: {$exists: true, $eq: null}}]
         }).count();
