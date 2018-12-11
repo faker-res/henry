@@ -1655,7 +1655,6 @@
   "gameProviderInEvent": "参加翻倍的游戏供应商",
   "countWinLoseStartTime": "计算报表输赢开始时间",
   "countWinLoseEndTime": "计算报表输赢结束时间",
-  "PlayerBonusDoubledRewardGroup": "盈利翻倍奖 （组）",
   "rewardInterval": "优惠周期",
   "For instance: 100$ is transferred in and bet, and 110 is gained; the calculation: +110/100 = 1.1, which is the multiplier": "举例：玩家带入100元、下注100元、报表输赢+110; 算法为：+110 / 100元＝1.1，总计翻 1.1 倍。",
 
@@ -4533,6 +4532,12 @@
   "Not send": "未发送",
   "Sent": "已发送",
   "audit link domain": "审核链接域名",
+  "exportTargetDepartmentId": "转出目标部门ID",
+  "exportTargetDepartmentName": "转出目标部门名称",
+  "exportWhiteListCount": "转出白名单总笔数",
+  "sourceTsPhoneType": "来源电话分类",
+  "exportTargetPlatformObjId": "平台识别码",
+  "ManualExportTsPhone": "手动转出白名单电话",
 
   "Reward (Amount OR %)" : "优惠（金额 OR %）",
   "TOTAL_REWARD_FEE" : "需扣除的优惠",
