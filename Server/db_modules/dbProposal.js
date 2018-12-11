@@ -805,6 +805,15 @@ var proposal = {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 proposalObj = proposalData;
+
+                // Check passed in amount vs proposal amount
+                if (callbackData && callbackData.amount && proposalData.data.amount && Number(callbackData.amount) !== Number(proposalData.data.amount)) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Invalid top up amount"
+                    });
+                }
+
                 if (proposalData && proposalData.data && (proposalData.data.bankCardType != null || proposalData.data.bankTypeId != null || proposalData.data.bankCardNo != null)) {
                     type = constPlayerTopUpType.MANUAL;
                 }
