@@ -514,10 +514,16 @@ var dbRewardEvent = {
                                                                         select: "providerId name"
                                                                     })
                                                                 }
+                                                                if (playerObj && playerObj.playerId && populatedGameGroup && populatedGameGroup.code) {
+                                                                    console.log("checking getRewardApplicationData playerId code", [playerObj.playerId, populatedGameGroup.code])
+                                                                }
                                                                 return populatedProviderGroup;
                                                             }
                                                         )
                                                     } else {
+                                                        if (playerObj && playerObj.playerId && populatedGameGroup && populatedGameGroup.code) {
+                                                            console.log("checking getRewardApplicationData playerId code", [playerObj.playerId, populatedGameGroup.code])
+                                                        }
                                                         return populatedGameGroup;
                                                     }
                                                 }

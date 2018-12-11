@@ -1,0 +1,6 @@
+#trashClassificationDecompositionListRightTable.panel.panel-danger(style='width:100%;display:inline-block')
+    .panel-heading
+        .pull-left(style='margin-top: -5px;')
+            a.fa.fa-chevron-circle-left.contractIcon(ng-show='!vm.hideLeftPanel', ng-click='vm.setPanel(true)')
+            a.fa.fa-chevron-circle-right.contractIcon(ng-show='vm.hideLeftPanel', ng-click='vm.setPanel(false)')
+        label {{vm.showPageName | translate}}
