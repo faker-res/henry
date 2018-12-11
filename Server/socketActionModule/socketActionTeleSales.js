@@ -246,11 +246,11 @@ function socketActionTeleSales(socketIO, socket) {
 
         getDecomposedNewPhoneRecord: function getDecomposedNewPhoneRecord(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.startTime && data.endTime);
+            let isValidData = Boolean(data && data.platformId && data.startTime && data.endTime);
             let index = data.index || 0;
             let limit = data.limit || 100;
             let sortCol = data.sortCol || {"tradeTime": -1};
-            socketUtil.emitter(self.socket, dbTeleSales.getDecomposedNewPhoneRecord, [data.startTime, data.endTime, index, limit, sortCol], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbTeleSales.getDecomposedNewPhoneRecord, [data.platformId, data.startTime, data.endTime, index, limit, sortCol], actionName, isValidData);
         }
 
     };

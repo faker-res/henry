@@ -1245,16 +1245,43 @@ let dbTeleSales = {
         return dbconfig.collection_tsPhoneTrade.find({
             targetPlatform: ObjectId(platformObjId),
             tradeTime: {$exists: true},
-            $or: [{targetTsPhone: {$exists: false}}, {targetTsPhone: {$exists: true, $eq: null}}]
+            $and: [
+                {
+                    $or: [
+                        {targetTsPhone: {$exists: false}},
+                        {targetTsPhone: {$exists: true, $eq: null}}
+                    ]
+                },
+                {
+                    $or: [
+                        {proposalId: {$exists: false}},
+                        {proposalId: {$exists: true, $eq: null}}
+                    ]
+                }
+            ]
         }).count();
     },
 
-    getDecomposedNewPhoneRecord: function (startTime, endTime, index, limit, sortCol) {
+    getDecomposedNewPhoneRecord: function (platformObjId, startTime, endTime, index, limit, sortCol) {
 
         let query = {
             tradeTime: {$gte: new Date(startTime), $lte: new Date(endTime)},
-            targetPlatform: {$exists: true},
-            $or: [{targetTsPhone: {$exists: false}}, {targetTsPhone: {$exists: true, $eq: null}}]
+            targetPlatform: ObjectId(platformObjId),
+            $and: [
+                {
+                    $or: [
+                        {targetTsPhone: {$exists: false}},
+                        {targetTsPhone: {$exists: true, $eq: null}}
+                    ]
+                },
+                {
+                    $or: [
+                        {proposalId: {$exists: false}},
+                        {proposalId: {$exists: true, $eq: null}}
+                    ]
+                }
+            ]
+
         };
 
         let countProm = dbconfig.collection_tsPhoneTrade.find(query).count();
