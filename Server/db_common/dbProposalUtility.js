@@ -103,6 +103,9 @@ const dbProposalUtility = {
 
     // check reward apply restriction on ip, phone and IMEI
     checkRestrictionOnDeviceForApplyReward: (intervalTime, player, rewardEvent) => {
+        console.log('intervalTime===', intervalTime);
+        console.log('player.name===', player.name);
+        console.log('rewardEvent.name===', rewardEvent.name);
         return dbConfig.collection_proposal.aggregate(
             {
                 $match: {

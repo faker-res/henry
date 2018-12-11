@@ -4,3 +4,26 @@
             a.fa.fa-chevron-circle-left.contractIcon(ng-show='!vm.hideLeftPanel', ng-click='vm.setPanel(true)')
             a.fa.fa-chevron-circle-right.contractIcon(ng-show='vm.hideLeftPanel', ng-click='vm.setPanel(false)')
         label {{vm.showPageName | translate}}
+    .panel-body
+        div(ng-if='vm.showPageName=="New Phone"')
+            div
+                #decomposedNewPhoneQuery.block-query.col-md-12.well
+                    div
+                        label {{"Trade Time(Start)"|translate}}
+                        .startTime
+                    div
+                        label {{"Trade Time(End)"|translate}}
+                        .endTime
+                    div
+                        label &nbsp;
+                        button.btn.btn-success(ng-click='vm.searchDecomposedNewPhoneQuery(true)') {{'SEARCH' | translate}}
+                        span#decomposedNewPhoneTableSpin.collapse
+                            i.fa.fa-spinner.fa-spin
+                .clearfix
+                label {{"Total" | translate}} {{vm.decomposedNewPhoneQuery.totalCount}} {{"records" | translate}}
+                table.common-table#decomposedNewPhoneTable.display(style="width:100% ;overflow-x: scroll")
+                #decomposedNewPhoneTablePage
+            br
+            br
+            div(style='text-align:right')
+                button.btn.btn-danger(ng-click='') {{'IMPORT_XLS_TS' | translate}}

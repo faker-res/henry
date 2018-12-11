@@ -408,6 +408,8 @@ const dbPlayerPayment = {
             playerId: playerId
         }).populate({
             path: "platform", model: dbconfig.collection_platform
+        }).populate({
+            path: "playerLevel", model: dbconfig.collection_playerLevel
         }).then(
             playerdata => {
                 if (playerdata) {

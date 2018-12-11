@@ -224,15 +224,17 @@ var dailyPlatformSettlement = {
             () => dbPlatform.checkPlayerLevelDownForPlatform(platformId).catch(
                 error => console.log({name: "DBError", message: "Error checking player level down!", error: error})
             )
-        ).then(
-            () => dbPlatform.resetPlatformPlayerLevelData(platformId).catch(
-                error => console.log({
-                    name: "DBError",
-                    message: "Error resetting platform player level data!",
-                    error: error
-                })
-            )
         )
+        //     .then(
+        //     () => dbPlatform.resetPlatformPlayerLevelData(platformId).catch(
+        //         error => console.log({
+        //             name: "DBError",
+        //             message: "Error resetting platform player level data!",
+        //             error: error
+        //         })
+        //     )
+        // )
+
         // Moved this to independent schedule
         // .then(
         //     () => dbPlayerRewardPoints.startConvertPlayersRewardPoints().catch(

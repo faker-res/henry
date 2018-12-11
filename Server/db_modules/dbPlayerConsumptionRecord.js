@@ -827,30 +827,13 @@ var dbPlayerConsumptionRecord = {
         return dbconfig.collection_playerConsumptionRecord.findOne({orderNo: recordData.orderNo}).lean().then(
             data => {
                 if (data) {
-                    if (data.bDirty) {
-                        if (data.validAmount != recordData.validAmount) {
-                            recordData.amount -= data.amount;
-                            recordData.validAmount -= data.validAmount;
-                            recordData.bonusAmount -= data.bonusAmount;
-                            // recordData.commissionAmount -= data.commissionAmount;
-                            return dbPlayerConsumptionRecord.createExternalPlayerConsumptionRecord(recordData, resolveError);
-                        }
-                        else {
-                            return dbPlayerConsumptionRecord.updateExternalPlayerConsumptionRecordData(data, recordData, resolveError);
-                        }
-                    }
-                    else {
-                        if (data.validAmount != recordData.validAmount) {
-                            //var amountDiff = recordData.validAmount - data.validAmount;
-                            return dbPlayerConsumptionRecord.updatePlayerConsumptionRecordAmount(data, recordData, resolveError);
-                        }
-                        else {
-                            return dbPlayerConsumptionRecord.updateExternalPlayerConsumptionRecordData(data, recordData, resolveError);
-                        }
-                    }
-                }
-                else {
-                    return dbPlayerConsumptionRecord.addMissingConsumption(recordData, resolveError);
+                      if (data.validAmount != recordData.validAmount) {
+                          //var amountDiff = recordData.validAmount - data.validAmount;
+                          return dbPlayerConsumptionRecord.updatePlayerConsumptionRecordAmount(data, recordData, resolveError);
+                      }
+                      else {
+                          return dbPlayerConsumptionRecord.updateExternalPlayerConsumptionRecordData(data, recordData, resolveError);
+                      }
                 }
             }
         ).catch(
