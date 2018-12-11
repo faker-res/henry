@@ -12397,6 +12397,8 @@ let dbPlayerInfo = {
         let platform = null;
         let bTransferIn = false;
         let gameData = null;
+        let isApplyBonusDoubledReward = false;
+        let resultData;
         //transfer out from current provider
         let playerProm = dbconfig.collection_players.findOne({playerId: playerId})
             .populate({path: "platform", model: dbconfig.collection_platform})
@@ -12444,7 +12446,26 @@ let dbPlayerInfo = {
             }
         }
 
-        return Promise.all([playerProm, gameProm]).then(
+        return Promise.all([playerProm, gameProm])
+            .then(data => {
+                resultData = data;
+                if(data && data[0]){
+                    let query = {
+                        playerObjId : data[0]._id || null,
+                        platformObjId: data[0].platform && data[0].platform._id ? data[0].platform._id : null,
+                        isApplying: true
+                    };
+                    return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOne(query);
+                }
+            }).then(
+                playerApplyBonusDoubledRewardResult => {
+                    if(playerApplyBonusDoubledRewardResult){
+                        isApplyBonusDoubledReward = true;
+                    }
+
+                    return resultData;
+                }
+            ).then(
             data => {
                 //check if its a demo player
                 if (data && data[0] && data[0].isTestPlayer) {
@@ -12601,11 +12622,19 @@ let dbPlayerInfo = {
 
                                                 return retData;
                                             }
-                                        ).then(transferCreditToProvider, errorUtils.reportError);
+                                        //).then(transferCreditToProvider, errorUtils.reportError);
+                                        ).then(
+                                            data => {
+                                                return transferCreditToProvider(data);
+                                            },
+                                            err => {
+                                                return Promise.reject({name: "DataError", message: err.message});
+                                            }
+                                        );
                                     }
                                     //if it's ipm ,ky or some providers, don't use async here
                                     if (providerData && (providerData.providerId == "51" || providerData.providerId == "57" || providerData.providerId == "41"
-                                        || providerData.providerId == "70" || providerData.providerId == "82" || providerData.providerId == "83")) {
+                                        || providerData.providerId == "70" || providerData.providerId == "82" || providerData.providerId == "83" || isApplyBonusDoubledReward)) {
                                         return transferProm;
                                     }
                                     else {
@@ -12658,6 +12687,9 @@ let dbPlayerInfo = {
                     clientType: clientType || 1
                 };
                 return cpmsAPI.player_getLoginURL(sendData);
+            },
+            err => {
+                return Promise.reject({name: "DataError", message: err.message});
             }
         ).then(
             loginData => {
@@ -12668,6 +12700,9 @@ let dbPlayerInfo = {
                 dbApiLog.createProviderLoginActionLog(playerData.platform._id, playerData._id, providerData._id, ip, clientDomainName, userAgent, inputDevice);
                 dbPlayerInfo.updatePlayerPlayedProvider(playerData._id, providerData._id).catch(errorUtils.reportError);
                 return {gameURL: loginData.gameURL};
+            },
+            err => {
+                return Promise.reject({name: "DataError", message: err.message});
             }
         );
     },
@@ -21707,7 +21742,7 @@ let dbPlayerInfo = {
                             }
                         )
                     }
-                };
+                }
             }
         )
     },

@@ -5059,5 +5059,6 @@
   "Fuzzy Search": "模糊搜索",
   "Total Conversation(Message Sent)": "对话条数(发出的句子)",
   "Total Player In Conversation(By Wechat ID)": "对话的会员数量（根据微信号）",
-  "EditForAllTab": "编辑（所有TAB共用）"
+  "EditForAllTab": "编辑（所有TAB共用）",
+  "IMPORT_XLS_TS": "导入电销系统"
 }
