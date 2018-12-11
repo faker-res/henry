@@ -556,6 +556,7 @@ var proposal = {
                                 && data[0].name != constProposalType.PLAYER_LEVEL_MIGRATION
                                 && data[0].name != constProposalType.PLAYER_LEVEL_UP
                                 && data[0].name != constProposalType.BULK_EXPORT_PLAYERS_DATA
+                                && data[0].name !== constProposalType.PLAYER_COMMON_TOP_UP
                             ) {
                                 deferred.reject({
                                     name: "DBError",
@@ -798,11 +799,9 @@ var proposal = {
         return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate({_id: ObjectId(id)}, updateData, {new: true}).exec();
     },
     updateTopupProposal: function (proposalId, status, requestId, orderStatus, remark, callbackData) {
-        // Debug credit missing after top up issue
-        console.log('updateTopupProposal', proposalId, status);
+        let proposalObj = null;
+        let type = constPlayerTopUpType.ONLINE;
 
-        var proposalObj = null;
-        var type = constPlayerTopUpType.ONLINE;
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 proposalObj = proposalData;
@@ -815,11 +814,18 @@ var proposal = {
                 if (proposalData && proposalData.data && (proposalData.data.weChatAccount != null || proposalData.data.weChatQRCode != null)) {
                     type = constPlayerTopUpType.WECHAT;
                 }
-                if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.PREPENDING || ((
-                        proposalData.status == constProposalStatus.PENDING || proposalData.status == constProposalStatus.PROCESSING
-                        || proposalData.status == constProposalStatus.EXPIRED || proposalData.status == constProposalStatus.RECOVER
-                        || proposalData.status == constProposalStatus.CANCEL) && proposalData.data &&
-                    (proposalData.data.requestId == requestId || !proposalData.data.requestId)))) {
+                if (proposalData
+                    && proposalData.data
+                    && (proposalData.status == constProposalStatus.PREPENDING || (
+                            (
+                                proposalData.status == constProposalStatus.PENDING
+                                || proposalData.status == constProposalStatus.PROCESSING
+                                || proposalData.status == constProposalStatus.EXPIRED
+                                || proposalData.status == constProposalStatus.RECOVER
+                                || proposalData.status == constProposalStatus.CANCEL
+                            )
+                            && proposalData.data
+                        && (proposalData.data.requestId == requestId || !proposalData.data.requestId)))) {
                     return proposalData;
                 }
                 else {
