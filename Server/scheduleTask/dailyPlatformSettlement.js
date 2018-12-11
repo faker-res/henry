@@ -3,6 +3,7 @@
  */
 
 var Q = require("q");
+const errorUtils = require('../modules/errorUtils');
 var dbUtil = require('./../modules/dbutility');
 var dbPlayerTopUpRecord = require('../db_modules/dbPlayerTopUpRecord');
 var dbPlayerTopUpDaySummary = require('../db_modules/dbPlayerTopUpDaySummary');
@@ -394,6 +395,36 @@ var dailyPlatformSettlement = {
                }
            }
        );
+    },
+
+    startDailyDecomposeTsPhoneList: function (platformData) {
+        let decomposeDate = dbUtil.getNDaysAgoFromSpecificStartTime(new Date(), (platformData.decomposeAfterNDays || 1));
+
+        return dbconfig.collection_tsPhoneList.find({
+            platform: platformData._id,
+            status: {$in: [constTsPhoneListStatus.HALF_COMPLETE, constTsPhoneListStatus.PERFECTLY_COMPLETED]},
+            recycleTime: {$lte: decomposeDate}
+        }).lean().then(
+            tsPhoneListData => {
+                if (tsPhoneListData && tsPhoneListData.length) {
+                    let promArr = [];
+                    tsPhoneListData.forEach(
+                        tsPhoneList => {
+                            let decomposeProm = dbTeleSales.getTsPhoneListRecyclePhone({platform: platformData._id, tsPhoneList: tsPhoneList._id}).then(
+                                tsPhones => {
+                                    if (tsPhones && tsPhones.length) {
+                                        return dbTeleSales.decomposeTsPhoneList(tsPhoneList.name,tsPhones);
+                                    }
+                                }
+                            ).catch(errorUtils.reportError);
+                            promArr.push(decomposeProm);
+                        })
+                    return Promise.all(promArr);
+                } else {
+                    return Promise.resolve(true);
+                }
+            }
+        )
     },
 
     startDailyRefreshPaymentQuota: function (platformData) {
