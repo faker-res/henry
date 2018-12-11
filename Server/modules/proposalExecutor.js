@@ -46,6 +46,7 @@ let dbPlayerRewardPoints = require("../db_modules/dbPlayerRewardPoints.js");
 let dbRewardPointsLog = require("../db_modules/dbRewardPointsLog.js");
 let dbRewardTaskGroup = require("../db_modules/dbRewardTaskGroup");
 let dbOperation = require("../db_common/dbOperations");
+const dbTeleSales = require("../db_modules/dbTeleSales");
 
 let dbConsumptionReturnWithdraw = require("../db_modules/dbConsumptionReturnWithdraw");
 const constManualTopupOperationType = require("../const/constManualTopupOperationType");
@@ -97,6 +98,7 @@ var proposalExecutor = {
             || executionType === 'executePlayerWechatTopUp'
             || executionType === 'executeManualPlayerTopUp'
             || executionType === 'executePlayerFKPTopUp'
+            || executionType === 'executePlayerCommonTopUp'
 
             // Group reward
             || executionType === 'executePlayerLoseReturnRewardGroup'
@@ -282,6 +284,8 @@ var proposalExecutor = {
             this.executions.executePlayerRetentionRewardGroup.des = "Player Retention Reward";
             this.executions.executePlayerBonusDoubledRewardGroup.des = "Player Bonus Doubled Reward";
             this.executions.executePlayerFKPTopUp.des = "Player Fukuaipay Top Up";
+            this.executions.executePlayerCommonTopUp.des = "Player Common PMS Top Up";
+            this.executions.executeManualExportTsPhone.des = "Export Telesales Phone Across Platform";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -361,6 +365,8 @@ var proposalExecutor = {
             this.rejections.rejectPlayerRetentionRewardGroup.des = "reject Player Retention Reward";
             this.rejections.rejectPlayerBonusDoubledRewardGroup.des = "reject Player Bonus Doubled Reward";
             this.rejections.rejectPlayerFKPTopUp.des = "reject Player Fukuaipay Top Up";
+            this.rejections.rejectPlayerCommonTopUp.des = "reject Player Common PMS Top Up";
+            this.rejections.rejectManualExportTsPhone.des = "reject Export Telesales Phone Across Platform";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -1609,6 +1615,38 @@ var proposalExecutor = {
                         },
                         error => Promise.reject(error)
                     )
+                }
+                else {
+                    return Promise.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
+                }
+            },
+
+            executePlayerCommonTopUp: function (proposalData) {
+                //valid data
+                if (proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.amount) {
+                    return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.COMMON, proposalData).then(
+                        () => {
+                            dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.COMMON).catch(errorUtils.reportError);
+                            sendMessageToPlayer(proposalData, constMessageType.COMMON_TOPUP_SUCCESS, {});
+                            return proposalData;
+                        },
+                        error => Promise.reject(error)
+                    )
+                }
+                else {
+                    return Promise.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
+                }
+            },
+
+            executeManualExportTsPhone: function (proposalData) {
+                if (proposalData && proposalData.data && proposalData.data.exportTargetPlatformObjId) {
+                    return dbconfig.collection_tsPhoneTrade.find({proposalId: proposalData.proposalId}).lean().then(
+                        tsPhoneTrades => {
+                            let objIds = tsPhoneTrades.map(trade => trade._id);
+
+                            return dbTeleSales.exportDecomposedPhones(objIds, proposalData.data.exportTargetPlatformObjId);
+                        }
+                    );
                 }
                 else {
                     return Promise.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
@@ -3807,6 +3845,35 @@ var proposalExecutor = {
             },
 
             /**
+             * reject function for manual export ts phone
+             */
+            rejectManualExportTsPhone: function (proposalData, deferred) {
+                dbconfig.collection_tsPhoneTrade.find({proposalId: proposalData.proposalId}).lean().then(
+                    tsPhoneTrades => {
+                        let objIds = tsPhoneTrades.map(trade => trade._id);
+
+                        let proms = [];
+
+                        objIds.map(objId => {
+                            let prom = dbconfig.collection_tsPhoneTrade.update({_id: objId}, {$unset: {proposalId: ""}}).catch(
+                                err => {
+                                    console.log("unset proposalId failed for phonetrade", objId, err);
+                                }
+                            );
+
+                            proms.push(prom);
+                        });
+
+                        return Promise.all(proms);
+                    }
+                ).catch(err => {
+                    console.log("rejectManualExportTsPhone failed", err);
+                });
+
+                deferred.resolve("Proposal is rejected");
+            },
+
+            /**
              * reject function for partner consumption return reward
              */
             rejectPlayerConsumptionReturn: function (proposalData, deferred) {
@@ -3898,6 +3965,10 @@ var proposalExecutor = {
             },
 
             rejectPlayerFKPTopUp: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectPlayerCommonTopUp: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
 
@@ -5453,6 +5524,7 @@ function updateAllCustomizeCommissionRate (proposalData) {
 function getProviderCredit(providers, playerName, platformId) {
     let promArr = [];
     let providerCredit = 0;
+    let cpmsAPI = require('../externalAPI/cpmsAPI');
 
     providers.forEach(provider => {
         if (provider) {

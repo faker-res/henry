@@ -190,7 +190,7 @@ var roleChecker = {
                 Read: ['getPlayersByPlatform', 'getPlayerInfo', 'getPlayerCreditChangeLogs', 'getPlayerTrustLevelList', "getDepartmentTreeById",
                     'getPlayersCountByPlatform', 'getPlatform', 'getPlayerStatusChangeLog', 'getPlayerForAttachGroup',
                     'getIpHistory', 'getPlayerTrustLevelByPlatformId', 'getPlayerLevelByPlatformId', 'getSimilarPlayers', 'getPlayerCreditInProvider', "getAdminInfo", 'getUpdateCredibilityLog', 'getPlayerTopUpGroupLog',
-                    'getProviderLatestTimeRecord', 'checkTransferInSequence'],
+                    'getProviderLatestTimeRecord', 'checkTransferInSequence', 'getConsumptionRecordByGameProvider'],
                 AdvancedSearch: ['getPlayerByAdvanceQuery'],
                 Create: ['createPlayer', 'checkPlayerNameValidity'],
                 CreateTrial: ['createTestPlayerForPlatform'],
@@ -522,7 +522,7 @@ var roleChecker = {
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
-                PlatformAnnouncementRead: ['getPlatformAnnouncements'],
+                PlatformAnnouncementRead: ['getPlatformAnnouncements', 'getPlatformAnnouncementsByPlatformId'],
                 PlatformAnnouncementUpdate: ['updatePlatformAnnouncement'],
                 PlatformAnnouncementDelete: ['deletePlatformAnnouncementByIds'],
             },

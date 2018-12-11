@@ -4,7 +4,7 @@ let mongoose = require('mongoose');
 let Schema = mongoose.Schema;
 
 let tsPhoneTradeSchema = new Schema({
-    // encoded phone number (e.g. '139****5588)
+    // encoded phone number (e.g. '139****5588')
     encodedPhoneNumber: {type: String, index: true},
     // platform obj id that the phone originated from
     sourcePlatform: {type: Schema.ObjectId, ref: 'platform', index: true, required: true},
@@ -30,6 +30,8 @@ let tsPhoneTradeSchema = new Schema({
     lastSuccessfulFeedbackTopic: {type: String, index: true},
     // last successful feedback content, empty means it was not used before
     lastSuccessfulFeedbackContent: {type: String},
+    // relevant proposal of manual phone trade action that
+    proposalId: {type: String, index: true},
 });
 
 module.exports = tsPhoneTradeSchema;

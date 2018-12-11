@@ -69,6 +69,23 @@ define(['js/app'], function (myApp) {
             NOVERIFY: "NoVerify"
         };
 
+        vm.allPlayersStatusString = {
+            NORMAL: 1,
+            FORBID_GAME: 2,
+            FORBID: 3,
+            BALCKLIST: 4,
+            ATTENTION: 5,
+            LOGOFF: 6,
+            CHEAT_NEW_ACCOUNT_REWARD: 7,
+            TOPUP_ATTENTION: 8,
+            HEDGING: 9,
+            TOPUP_BONUS_SPAM: 10,
+            MULTIPLE_ACCOUNT: 11,
+            BANNED: 12,
+            FORBID_ONLINE_TOPUP: 13,
+            BAN_PLAYER_BONUS: 14
+        };
+
         vm.proposalTemplate = {
             1: '#modalProposal',
             2: '#newPlayerModal'
@@ -187,7 +204,6 @@ define(['js/app'], function (myApp) {
         vm.initFeedBackData = function () {
             commonService.getAllPlayerFeedbackResults($scope).then(
                 data => {
-                    console.log("walaogere")
                     vm.allPlayerFeedbackResults = data;
                     $scope.$evalAsync();
                 }
@@ -197,7 +213,6 @@ define(['js/app'], function (myApp) {
         vm.initFeedbackTopic = function () {
             commonService.getPlayerFeedbackTopic($scope, vm.selectedPlatform._id).then(
                 data => {
-                    console.log("walaotopic")
                     vm.playerFeedbackTopic = data;
                     $scope.$evalAsync();
                 }
@@ -798,7 +813,6 @@ define(['js/app'], function (myApp) {
         }
 
         vm.playerListTableRow = function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-            $compile(nRow)($scope);
             vm.operatePlayerListTableRow(nRow, aData, iDisplayIndex, iDisplayIndexFull);
         };
 
@@ -2081,7 +2095,7 @@ define(['js/app'], function (myApp) {
                     $scope.phoneCall.phone = data.data;
                     $scope.phoneCall.loadingNumber = false;
                     $scope.safeApply();
-                    $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
+                    $scope.makePhoneCall(vm.selectedPlatform.platformId);
                 }, function (err) {
                     $scope.phoneCall.loadingNumber = false;
                     $scope.phoneCall.err = err.error.message;
@@ -2090,6 +2104,60 @@ define(['js/app'], function (myApp) {
                 }, true);
             }
         };
+
+        vm.callDemoPlayer = function (data) {
+            var phoneCall = {
+                // playerId: "5a74167afe96b103da96f5fc",//data.playerId,
+                name: $translate("demoPlayer"),
+                toText: $translate("demoPlayer"),
+                platform: "jinshihao",
+                loadingNumber: true,
+            }
+            $scope.initPhoneCall(phoneCall);
+            $scope.phoneCall.phone = data.tel;
+            $scope.phoneCall.loadingNumber = false;
+            $scope.safeApply();
+            $scope.makePhoneCall(vm.selectedPlatform.platformId);
+        }
+
+        vm.telToPlayer = function (data) {
+            $scope.$evalAsync(() => {
+                let phoneCall = {
+                    playerId: data.data.playerId || '',
+                    name: data.data.playerName || '',
+                    toText: data.data.playerName || '',
+                    platform: "jinshihao",
+                    loadingNumber: true,
+                }
+
+                $scope.initPhoneCall(phoneCall);
+                $scope.phoneCall.phone = data.data.updateData.phoneNumber;
+                $scope.phoneCall.loadingNumber = false;
+                $scope.makePhoneCall(vm.selectedPlatform.platformId);
+            });
+        };
+
+        vm.callPlayer = function (data) {
+            var phoneCall = {
+                playerId: data.playerId,
+                name: data.name,
+                toText: data.name,
+                platform: "jinshihao",
+                loadingNumber: true,
+            }
+            $scope.initPhoneCall(phoneCall);
+            socketService.$socket($scope.AppSocket, 'getPlayerPhoneNumber', {playerObjId: data._id}, function (data) {
+                $scope.phoneCall.phone = data.data;
+                $scope.phoneCall.loadingNumber = false;
+                $scope.safeApply();
+                $scope.makePhoneCall(vm.selectedPlatform.platformId);
+            }, function (err) {
+                $scope.phoneCall.loadingNumber = false;
+                $scope.phoneCall.err = err.error.message;
+                alert($scope.phoneCall.err);
+                $scope.safeApply();
+            }, true);
+        }
 
         vm.createMessageTemplate = function () {
 
@@ -2332,7 +2400,7 @@ define(['js/app'], function (myApp) {
             $scope.initPhoneCall(phoneCall);
             $scope.phoneCall.phone = phoneNumber;
             $scope.phoneCall.loadingNumber = false;
-            $scope.makePhoneCall(vm.selectedPlatform.data.platformId);
+            $scope.makePhoneCall(vm.selectedPlatform.platformId);
         }
 
         vm.smsNewPlayerBtn = function (phoneNumber, data) {
@@ -2602,6 +2670,469 @@ define(['js/app'], function (myApp) {
                 deferred.resolve();
             })
             return deferred.promise;
+        };
+
+
+        vm.createNewPlayer = function () {
+            vm.newPlayer.platform = vm.selectedPlatform._id;
+            vm.newPlayer.platformId = vm.selectedPlatform.platformId;
+            vm.newPlayer.DOB = vm.playerDOB.data('datetimepicker').getLocalDate();
+            vm.newPlayer.DOB = vm.newPlayer.DOB.toISOString();
+            vm.newPlayer.gender = (vm.newPlayer.gender && vm.newPlayer.gender == "true") ? true : false;
+
+            console.log('newPlayer', vm.newPlayer);
+            if (vm.newPlayer.createPartner) {
+                socketService.$socket($scope.AppSocket, 'createPlayerPartner', vm.newPlayer, function (data) {
+                    vm.playerCreateResult = data;
+                    vm.getPlatformPlayersData();
+                    vm.displayPhoneError(data.status);
+                    $scope.safeApply();
+                }, function (err) {
+                    vm.playerCreateResult = err;
+                    console.log('createPlayerDataError', err);
+                    vm.displayPhoneError(err.status);
+                    if (err.status && err.status == 454) {
+                        vm.existPhone = true;
+                    }
+                    $scope.safeApply();
+                });
+            } else {
+                socketService.$socket($scope.AppSocket, 'createPlayer', vm.newPlayer, function (data) {
+                    vm.createPlayerRegistrationIntentRecord(data);
+                    vm.playerCreateResult = data;
+                    vm.getPlatformPlayersData();
+                    vm.displayPhoneError(data.status);
+                    $scope.safeApply();
+                }, function (err) {
+                    vm.playerCreateResult = err;
+                    console.log('createPlayerDataError', err);
+                    vm.displayPhoneError(err.error.status);
+
+                    $scope.safeApply();
+                });
+            }
+        };
+
+        vm.displayPhoneError = function (status) {
+            if (status && status == 454) {
+                vm.existPhone = true;
+            } else {
+                vm.existPhone = false;
+            }
+        }
+
+        vm.createPlayerRegistrationIntentRecord = function (data) {
+
+            var intentData = {
+                adminInfo: {
+                    type: "admin",
+                    name: authService.adminName,
+                    id: authService.adminId
+                },
+                name: data.data.name,
+                realName: data.data.realName,
+                password: data.data.password,
+                platformId: data.data.platformId,
+                domain: data.data.domain,
+                phoneNumber: data.data.phoneNumber,
+                email: data.data.email,
+                smsCode: "",
+                lastLoginIp: data.data.lastLoginIp,
+                loginIps: data.data.loginIps,
+                userAgent: data.data.userAgent,
+                phoneProvince: data.data.phoneProvince,
+                phoneCity: data.data.phoneCity,
+                phoneType: data.data.phoneType,
+                partnerId: data.data.partnerId,
+                isOnline: data.data.isOnline,
+                playerObjId: data.data._id,
+                playerId: data.data.playerId,
+                remarks: data.data.partnerName ? $translate("PARTNER") + ": " + data.data.partnerName : "",
+                status: vm.constProposalStatus.MANUAL,
+                platform: data.data.platform
+            };
+
+            socketService.$socket($scope.AppSocket, 'createPlayerRegistrationIntentRecord', intentData, function (data) {
+                console.log('player registration intent record created', data);
+            }, function (err) {
+                console.log('player registration intent record creation failed', err);
+            });
+        }
+
+
+        vm.existNumberDetector = function (newSearch) {
+
+            if (!vm.newPlayer.phoneNumber) {
+                return
+            }
+
+            if (vm.selectedPlatform.whiteListingPhoneNumbers && vm.selectedPlatform.whiteListingPhoneNumbers.indexOf(String(vm.newPlayer.phoneNumber)) !== -1) {
+                // $scope.$evalAsync(() => {
+                //     vm.existPhone = false;
+                // });
+                vm.existPhone = false;
+                $scope.safeApply();
+                return;
+            }
+
+            //var selectedStatus = ["Success", "Fail", "Pending", "Manual"]; //["Success", "Manual"];
+            var selectedStatus = [vm.constProposalStatus.PENDING, vm.constProposalStatus.MANUAL, vm.constProposalStatus.SUCCESS];
+            var sendData = {
+                adminId: authService.adminId,
+                platformId: vm.selectedPlatform._id,
+                type: ["PlayerRegistrationIntention"],
+                phoneNumber: vm.newPlayer.phoneNumber,
+                size: newSearch ? 10 : (vm.phoneDuplicate.limit || 10),
+                index: newSearch ? 0 : (vm.phoneDuplicate.index || 0),
+                // sortCol: vm.newPlayerRecords.sortCol || null,
+                displayPhoneNum: true
+            }
+            sendData.status = selectedStatus;
+            socketService.$socket($scope.AppSocket, 'getDuplicatePlayerPhoneNumber', sendData, function (data) {
+                let phoneDuplicateCount = data.data.size;
+                vm.phoneDuplicateCount = phoneDuplicateCount
+                if (data.data.size == 0) {
+                    vm.existPhone = false;
+                } else {
+                    vm.existPhone = true;
+                }
+                $scope.safeApply();
+
+            });
+        }
+
+        vm.duplicatePhoneNumberDetector = function (newSearch, isPlayer) {
+            let phoneNum = '';
+            if (isPlayer) {
+                if (!vm.newPlayer.phoneNumber) {
+                    return;
+                } else {
+                    phoneNum = vm.newPlayer.phoneNumber;
+                }
+            } else {
+                if (!vm.newPartner.phoneNumber) {
+                    return;
+                } else {
+                    phoneNum = vm.newPartner.phoneNumber;
+                }
+            }
+
+            let sendData = {
+                platformId: vm.selectedPlatform.id,
+                phoneNumber: phoneNum,
+                limit: newSearch ? 10 : (vm.duplicatePhoneNumber.limit || 10),
+                index: newSearch ? 0 : (vm.duplicatePhoneNumber.index || 0),
+                isPlayer: isPlayer
+            }
+
+            socketService.$socket($scope.AppSocket, 'getDuplicatePhoneNumber', sendData, function (data) {
+                let duplicatePhoneNumberCount = data.data.size || 0;
+
+                if (duplicatePhoneNumberCount == 0) {
+                    vm.existPhone = false;
+                } else {
+                    vm.existPhone = true;
+                }
+
+                $scope.safeApply();
+
+            });
+        };
+
+        vm.initPhoneNumberRecord = function () {
+            vm.duplicatePhoneNumber = {};
+            utilService.actionAfterLoaded('#duplicatePhoneNumberLog.in #duplicatePhoneNumberLogTablePage', function () {
+                vm.duplicatePhoneNumber.pageObj = utilService.createPageForPagingTable("#duplicatePhoneNumberLogTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "duplicatePhoneNumber", vm.loadPhoneNumberRecord);
+                });
+
+                let isPlayer = true;
+                if (vm.newPlayer && vm.newPlayer.createPartner) {
+                    isPlayer = false;
+                }
+                vm.loadPhoneNumberRecord(true, isPlayer);
+            });
+        }
+
+
+
+        vm.loadPhoneNumberRecord = function (newSearch, isPlayer) {
+            let phoneNum = '';
+
+            if (isPlayer) {
+                if (!vm.newPlayer.phoneNumber) {
+                    return;
+                } else {
+                    phoneNum = vm.newPlayer.phoneNumber;
+                }
+            } else {
+                if (!vm.newPartner.phoneNumber) {
+                    return;
+                } else {
+                    phoneNum = vm.newPartner.phoneNumber;
+                }
+            }
+
+            vm.getCredibilityRemarks();
+
+            let sendData = {
+                platformId: vm.selectedPlatform._id,
+                phoneNumber: phoneNum,
+                limit: newSearch ? 10 : (vm.duplicatePhoneNumber.limit || 10),
+                index: newSearch ? 0 : (vm.duplicatePhoneNumber.index || 0),
+                sortCol: vm.duplicatePhoneNumber.sortCol || null,
+                isPlayer: isPlayer
+            }
+
+            socketService.$socket($scope.AppSocket, 'getDuplicatePhoneNumber', sendData, function (data) {
+                console.log("getDuplicatePhoneNumber", data);
+                let tblData = data && data.data ? data.data.data : [];
+                let total = data.data ? data.data.size : 0;
+                vm.duplicatePhoneNumber.totalCount = total;
+
+                if (tblData && tblData.length > 0) {
+                    tblData.map(
+                        record => {
+                            let credibilityRemarksTXT = '';
+                            record.name = record.data.name ? record.data.name : "";
+                            record.realName = record.data.realName ? record.data.realName : "";
+                            record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
+                            record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
+                            record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
+                            record.playerLevelName = record.data.playerLevel ? $translate(record.data.playerLevel.name) : "";
+                            record.credibilityRemarks = record.data.credibilityRemarks ? vm.credibilityRemarks.filter(item => {
+                                return record.data.credibilityRemarks.includes(item._id);
+                            }) : [];
+                            record.credibilityRemarksName = record.credibilityRemarks.map(function (value, index) {
+                                let colon = '';
+                                credibilityRemarksTXT += value.name + colon;
+                                return credibilityRemarksTXT;
+                            }) || '';
+                            record.valueScore = record.data.valueScore ? record.data.valueScore : "";
+                            record.ipAreaName = record.data.ipArea ? vm.getIpAreaName(record.data.ipArea) : '';
+                            record.lastAccessTime = record.data.lastAccessTime ? vm.dateReformat(record.data.lastAccessTime) : "";
+                            Object.keys(vm.allPlayersStatusString).filter(item => {
+                                return record.data.playerStatus == vm.allPlayersStatusString[item];
+                            })[0];
+                            record.playerStatusName = $translate("Enable");
+                            if (record.data.forbidPlayerFromLogin == true) {
+                                record.playerStatusName = $translate("Disable")
+                            }
+                            return record;
+                        }
+                    );
+                }
+                vm.prepareDuplicatePhoneNumberRecords(newSearch, tblData, total, isPlayer);
+            });
+        };
+
+        vm.prepareDuplicatePhoneNumberRecords = function (newSearch, tblData, size, isPlayer) {
+            let columns = [];
+            if (isPlayer) {
+                columns = [
+                    {title: $translate('PLAYERNAME'), data: "name"},
+                    {title: $translate('Real Name'), data: "realName"},
+                    {title: $translate('CREDIBILITY'), data: "credibilityRemarksName"},
+                    {title: $translate('PLAYER_VALUE'), data: "valueScore"},
+                    {
+                        title: $translate('STATUS'), data: "playerStatusName",
+                        render: function (data, type, row) {
+                            let color = "black";
+                            if (row.data.forbidPlayerFromLogin == true) {
+                                color = "red";
+                            }
+                            return '<div style="color:' + color + '">' + data + '</div>';
+                        }
+                    },
+                    {title: $translate('PlayerLevel'), data: "playerLevelName"},
+                    {title: $translate('REGISTERED_IP'), data: "ipAreaName"},
+                    {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
+                    {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
+                    {title: $translate('last_access_time'), data: "lastAccessTime"}
+                ]
+            } else {
+                columns = [
+                    {title: $translate('PARTNER_NAME'), data: "name"},
+                    {title: $translate('Real Name'), data: "realName"},
+                    {title: $translate('CREDIBILITY'), data: "credibilityRemarksName"},
+                    {
+                        title: $translate('STATUS'), data: "playerStatusName",
+                        render: function (data, type, row) {
+                            let color = "black";
+                            if (row.data.forbidPlayerFromLogin == true) {
+                                color = "red";
+                            }
+                            return '<div style="color:' + color + '">' + data + '</div>';
+                        }
+                    },
+                    {title: $translate('REGISTERED_IP'), data: "ipAreaName"},
+                    {title: $translate('PHONE_LOCATION'), data: "combinedArea"},
+                    {title: $translate('REGISTERED_TIME'), data: "registrationTime"},
+                    {title: $translate('last_access_time'), data: "lastAccessTime"}
+                ]
+            }
+
+            let tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                data: tblData,
+                aoColumnDefs: [
+                    {'sortCol': 'status', bSortable: true, 'aTargets': [1]},
+                    {'sortCol': 'data.name', bSortable: true, 'aTargets': [3]},
+                    {'sortCol': 'data.realName', bSortable: true, 'aTargets': [4]},
+                    {'sortCol': 'lastLoginIp', bSortable: true, 'aTargets': [5]},
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [6]},
+                    {'sortCol': 'data.phoneNumber', bSortable: true, 'aTargets': [7]},
+                ],
+                columns: columns,
+                destroy: true,
+                paging: false,
+                autoWidth: true,
+            });
+            let aTable = $("#duplicatePhoneNumberLogTable").DataTable(tableOptions);
+            aTable.columns.adjust().draw();
+            vm.duplicatePhoneNumber.pageObj.init({maxCount: size}, newSearch);
+            $('#duplicatePhoneNumberLogTable').resize();
+            $('#duplicatePhoneNumberLogTable').off('order.dt');
+            $scope.safeApply();
+        };
+
+
+        vm.prepareCredibilityConfig = () => {
+            vm.removedRemarkId = [];
+            return vm.getCredibilityRemarks(true).then(
+                () => {
+                    $scope.$evalAsync(() => {
+                        let cloneRemarks = vm.credibilityRemarks.slice(0);
+                        vm.positiveRemarks = [];
+                        vm.negativeRemarks = [];
+                        vm.neutralRemarks = [];
+
+                        let len = cloneRemarks.length;
+
+                        for (let i = 0; i < len; i++) {
+                            let remark = cloneRemarks[i];
+                            if (remark.score > 0) {
+                                vm.positiveRemarks.push(remark);
+                            }
+                            else if (remark.score < 0) {
+                                vm.negativeRemarks.push(remark);
+                            }
+                            else {
+                                vm.neutralRemarks.push(remark);
+                            }
+                        }
+
+                        vm.positiveRemarks.sort((a, b) => {
+                            return b.score - a.score;
+                        });
+
+                        vm.negativeRemarks.sort((a, b) => {
+                            return a.score - b.score;
+                        });
+                    });
+                }
+            );
+        };
+
+        vm.getCredibilityRemarks = (forbidUIRenderTwice) => {
+            return new Promise((resolve, reject) => {
+                socketService.$socket($scope.AppSocket, 'getCredibilityRemarks', {platformObjId: vm.selectedPlatform._id}, function (data) {
+                    vm.credibilityRemarks = data.data;
+                    vm.filterCredibilityRemarks = data.data ? JSON.parse(JSON.stringify(data.data)) : [];
+                    vm.filterCredibilityRemarks.push({'_id':'', 'name':'N/A'});
+                    if(!forbidUIRenderTwice){
+                        vm.setupRemarksMultiInput();
+                        vm.setupRemarksMultiInputFeedback();
+                    }
+                    resolve();
+                }, function (err) {
+                    reject(err);
+                });
+            });
+        };
+
+        vm.setupRemarksMultiInput = function () {
+            let remarkSelect = $('select#selectCredibilityRemark');
+            // if (remarkSelect.css('display') && remarkSelect.css('display').toLowerCase() === "none") {
+            //     return;
+            // }
+            remarkSelect.multipleSelect({
+                showCheckbox: true,
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: false,
+                countSelected: $translate('# of % selected')
+            });
+            remarkSelect.multipleSelect('refresh');
+        };
+
+        vm.setupRemarksMultiInputFeedback = function () {
+            let remarkSelect = $('select#selectCredibilityRemarkFeedback');
+            // if (remarkSelect.css('display') && remarkSelect.css('display').toLowerCase() === "none") {
+            //     return;
+            // }
+            remarkSelect.multipleSelect({
+                showCheckbox: true,
+                allSelected: $translate("All Selected"),
+                selectAllText: $translate("Select All"),
+                displayValues: false,
+                countSelected: $translate('# of % selected')
+            });
+            remarkSelect.multipleSelect("uncheckAll");
+        };
+
+        vm.loadRealNameRecord = function (newSearch) {
+            if (!vm.newPlayer.realName) {
+                return;
+            }
+            vm.getCredibilityRemarks();
+            let sendData = {
+                platformId: vm.selectedPlatform.id,
+                realName: vm.newPlayer.realName,
+                limit: newSearch ? 10 : (vm.realNameDuplicate.limit || 10),
+                index: newSearch ? 0 : (vm.realNameDuplicate.index || 0),
+                sortCol: vm.realNameDuplicate.sortCol || null
+            }
+
+            socketService.$socket($scope.AppSocket, 'getDuplicatePlayerRealName', sendData, function (data) {
+                console.log("getDuplicatePlayerRealName", data);
+                let tblData = data && data.data ? data.data.data : [];
+                let total = data.data ? data.data.size : 0;
+                vm.realNameDuplicate.totalCount = total;
+
+                if (tblData && tblData.length > 0) {
+                    tblData.map(
+                        record => {
+                            let credibilityRemarksTXT = '';
+                            record.name = record.data.name ? record.data.name : "";
+                            record.realName = record.data.realName ? record.data.realName : "";
+                            record.lastLoginIp = record.lastLoginIp ? record.lastLoginIp : "";
+                            record.combinedArea = (record.data.phoneProvince && record.data.phoneCity) ? record.data.phoneProvince + " " + record.data.phoneCity : "";
+                            record.registrationTime = record.data.registrationTime ? vm.dateReformat(record.data.registrationTime) : "";
+                            record.playerLevelName = record.data.playerLevel ? $translate(record.data.playerLevel.name) : "";
+                            record.credibilityRemarks = record.data.credibilityRemarks ? vm.credibilityRemarks.filter(item => {
+                                return record.data.credibilityRemarks.includes(item._id);
+                            }) : [];
+                            record.credibilityRemarksName = record.credibilityRemarks.map(function (value, index) {
+                                let colon = '';
+                                credibilityRemarksTXT += value.name + colon;
+                                return credibilityRemarksTXT;
+                            }) || '';
+                            record.valueScore = record.data.valueScore ? record.data.valueScore : "";
+                            record.ipAreaName = record.data.ipArea ? vm.getIpAreaName(record.data.ipArea) : '';
+                            record.lastAccessTime = record.data.lastAccessTime ? vm.dateReformat(record.data.lastAccessTime) : "";
+                            Object.keys(vm.allPlayersStatusString).filter(item => {
+                                return record.data.playerStatus == vm.allPlayersStatusString[item];
+                            })[0];
+                            record.playerStatusName = $translate("Enable");
+                            if (record.data.forbidPlayerFromLogin == true) {
+                                record.playerStatusName = $translate("Disable")
+                            }
+                            return record;
+                        }
+                    );
+                }
+                vm.prepareRealNameDuplicateRecords(newSearch, tblData, total);
+            });
         };
 
         vm.loadSMSSettings = function () {

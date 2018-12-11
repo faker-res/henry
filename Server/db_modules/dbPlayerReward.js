@@ -6819,9 +6819,16 @@ let dbPlayerReward = {
                             })
                         }
 
+                        console.log('rewardSpecificData===', rewardSpecificData);
+                        console.log('checkHasReceived===', checkHasReceived);
+
                         let sameIPAddressHasReceived = checkHasReceived && checkHasReceived.sameIPAddressHasReceived ? checkHasReceived.sameIPAddressHasReceived : "";
                         let samePhoneNumHasReceived = checkHasReceived && checkHasReceived.samePhoneNumHasReceived ? checkHasReceived.samePhoneNumHasReceived : "";
                         let sameDeviceIdHasReceived = checkHasReceived && checkHasReceived.sameDeviceIdHasReceived ? checkHasReceived.sameDeviceIdHasReceived : "";
+
+                        console.log('sameIPAddressHasReceived===', sameIPAddressHasReceived);
+                        console.log('samePhoneNumHasReceived===', samePhoneNumHasReceived);
+                        console.log('sameDeviceIdHasReceived===', sameDeviceIdHasReceived);
 
                         if (sameIPAddressHasReceived) {
                             return Promise.reject({
@@ -7293,6 +7300,11 @@ let dbPlayerReward = {
 
                         if (eventData.type.name === constRewardType.PLAYER_RANDOM_REWARD_GROUP) {
                             proposalData.data.rewardAppearPeriod = showRewardPeriod;
+                            proposalData.data.lastLoginIp = playerData.lastLoginIp;
+                            proposalData.data.phoneNumber = playerData.phoneNumber;
+                            if (playerData.deviceId) {
+                                proposalData.data.deviceId = playerData.deviceId;
+                            }
                         }
 
                         if (eventData.type.name === constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
