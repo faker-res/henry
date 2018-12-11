@@ -7097,7 +7097,6 @@ let dbPlayerInfo = {
                     }
 
                     if(!byPassBonusDoubledRewardChecking){
-                        console.log("2222222222222222222222222222");
                         return dbPlayerInfo.checkPlayerBonusDoubledRewardTransferOut(playerObj, playerObj._id, playerObj.platform._id, playerObj.platform.platformId, gameProvider.providerId, playerObj.name);
                     }else{
                         return;
