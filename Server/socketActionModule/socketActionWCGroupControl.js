@@ -67,18 +67,13 @@ function socketActionWCGroupControl(socketIO, socket) {
             socketUtil.emitter(self.socket, dbWCGroupControl.isNewWechatDeviceDataExist, [data.deviceId, data.deviceNickName], actionName, isValidData);
         },
 
-        getWCGroupControlSessionDeviceNickName: function getWCGroupControlSessionDeviceNickName(data) {
-            let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjIds);
-            socketUtil.emitter(self.socket, dbWCGroupControl.getWCGroupControlSessionDeviceNickName, [data.platformObjIds], actionName, isValidData);
-        },
-
         getWCGroupControlSessionMonitor: function getWCGroupControlSessionMonitor(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data);
             let index = data.index || 0;
             let limit = data.limit || 1000;
-            socketUtil.emitter(self.socket, dbWCGroupControl.getWCGroupControlSessionMonitor, [data.deviceNickNames, data.adminIds, index, limit], actionName, isValidData);
+            let sortCol = data.sortCol || {createTime: -1};
+            socketUtil.emitter(self.socket, dbWCGroupControl.getWCGroupControlSessionMonitor, [data.platformIds ,data.deviceNickNames, data.adminIds, index, limit, sortCol], actionName, isValidData);
         },
 
         getWCGroupControlSessionHistory: function getWCGroupControlSessionHistory(data) {
