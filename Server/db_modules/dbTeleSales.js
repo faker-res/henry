@@ -324,7 +324,7 @@ let dbTeleSales = {
             platform: inputData.platform,
             tsPhoneList: inputData.tsPhoneList,
             $or: [{isUsed: false}, {isSucceedBefore: true, registered: false}]
-        })
+        }).lean();
     },
 
     getRecycleBinTsPhoneList: function (platform, startTime, endTime, status, name, index, limit, sortCol) {
