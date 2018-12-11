@@ -7756,7 +7756,7 @@ define(['js/app'], function (myApp) {
 
         vm.getDecompositionListCount = function () {
             vm.decompositionListCount = 0;
-            socketService.$socket($scope.AppSocket, 'getDecompositionList', {}, function (data) {
+            socketService.$socket($scope.AppSocket, 'getCountDecompositionList', {}, function (data) {
                 $scope.$evalAsync(() => {
                     vm.decompositionListCount = data.data;
                     console.log('vm.decompositionListCount', vm.decompositionListCount);
@@ -7768,8 +7768,133 @@ define(['js/app'], function (myApp) {
             console.log(data);
         };
 
-        vm.getDecomposedDetail = function (data) {
-            console.log(data);
+        vm.getDecomposedDetail = function () {
+            vm.showPageName = 'New Phone';
+            vm.decomposedNewPhoneQuery = {};
+            vm.decomposedNewPhoneQuery.totalCount = 0;
+
+            utilService.actionAfterLoaded(('#decomposedNewPhoneQuery'), function () {
+                let today = new Date();
+                let todayEndTime = today.setHours(23, 59, 59, 999);
+                vm.decomposedNewPhoneQuery.startTime = utilService.createDatePicker('#decomposedNewPhoneQuery .startTime');
+                vm.decomposedNewPhoneQuery.endTime = utilService.createDatePicker('#decomposedNewPhoneQuery .endTime');
+                vm.decomposedNewPhoneQuery.startTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 30)));
+                vm.decomposedNewPhoneQuery.endTime.data('datetimepicker').setLocalDate(new Date(todayEndTime));
+
+                utilService.actionAfterLoaded("#decomposedNewPhoneTablePage", function () {
+                    vm.decomposedNewPhoneQuery.pageObj = utilService.createPageForPagingTable("#decomposedNewPhoneTablePage", {pageSize: 100}, $translate, function (curP, pageSize) {
+                        vm.commonPageChangeHandler(curP, pageSize, "decomposedNewPhoneQuery", vm.searchDecomposedNewPhoneQuery)
+                    });
+                })
+            });
+            $scope.$evalAsync();
+        };
+
+        vm.searchDecomposedNewPhoneQuery = function (newSearch) {
+            vm.decomposedNewPhoneQuery = vm.decomposedNewPhoneQuery || {};
+            var sendData = {
+                startTime: vm.decomposedNewPhoneQuery.startTime.data('datetimepicker').getLocalDate(),
+                endTime: vm.decomposedNewPhoneQuery.endTime.data('datetimepicker').getLocalDate(),
+                limit: vm.decomposedNewPhoneQuery.limit || 100,
+                index: newSearch ? 0 : (vm.decomposedNewPhoneQuery.index || 0),
+                sortCol: vm.decomposedNewPhoneQuery.sortCol
+            };
+
+            $('#decomposedNewPhoneTableSpin').show();
+            console.log('sendData', sendData);
+            socketService.$socket($scope.AppSocket, 'getDecomposedNewPhoneRecord', sendData, function (data) {
+                $('#decomposedNewPhoneTableSpin').hide();
+                console.log('getDecomposedNewPhoneRecord', data.data);
+                $scope.$evalAsync(() => {
+                    vm.decomposedNewPhoneQuery.totalCount = data.data.size;
+                });
+                vm.drawDecomposedNewPhoneTable(newSearch, data.data.data || [], vm.decomposedNewPhoneQuery.totalCount);
+            }, function (err) {
+                $('#decomposedNewPhoneTableSpin').hide();
+            }, true);
+        };
+
+        vm.drawDecomposedNewPhoneTable = function (newSearch, data, size) {
+            console.log("drawDecomposedNewPhoneTable", data);
+            let tableOptions = $.extend(true, {}, vm.generalDataTableOptions, {
+                data: data,
+                columnDefs: [
+                    {
+                        targets: [0],
+                        title: '<input type="checkbox" class="toggleCheckAll">',
+                        orderable: false,
+                        render: function (data, type, row) {
+                            '<input type="checkbox">'
+                        }
+                    },
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                columns: [
+                    {
+                        render: function () {
+                            var link = $('<input>', {
+                                class: "checkRow",
+                                type: 'checkbox'
+                            });
+                            return link.prop('outerHTML');
+                        },
+                        bSortable: false,
+                        sClass: "text-center"
+
+                    },
+                    {
+                        title: $translate('Trade Time'), data: "tradeTime",
+                        render: function (data, type, row) {
+                            return utilService.getFormatTime(data);
+                        }
+                    },
+                    {
+                        title: $translate('TELEPHONE'), data: "encodedPhoneNumber",
+                        render: function (data, type, row) {
+                            return data;
+                        }
+                    },
+                    {
+                        title: $translate('Last Successful Feedback Time'), data: 'lastSuccessfulFeedbackTime',
+                        render: function (data, type, row) {
+                            return utilService.getFormatTime(data);
+                        }
+                    },
+                    {
+                        title: $translate('Last Successful Feedback Topic'), data: "lastSuccessfulFeedbackTopic",
+                        render: function (data, type, row) {
+                            return data;
+                        }
+                    },
+                    {
+                        title: $translate('Last Successful Feedback Content'), data: "lastSuccessfulFeedbackContent",
+                        render: function (data, type, row) {
+                            return data;
+                        }
+                    }
+                ],
+                sScrollY: false,
+                searching: false,
+                "destroy": true,
+                "paging": false,
+            });
+
+            vm.decomposedNewPhoneTable = $('#decomposedNewPhoneTable').DataTable(tableOptions);
+            vm.decomposedNewPhoneQuery.pageObj.init({maxCount: size}, newSearch);
+            $('#decomposedNewPhoneTable').off('order.dt');
+            $('#decomposedNewPhoneTable').on('order.dt', function (event, a, b) {
+                vm.commonSortChangeHandler(a, 'decomposedNewPhoneQuery', vm.searchDecomposedNewPhoneQuery);
+            });
+            // vm.decomposedNewPhoneTable.columns.adjust().draw();
+            // $('#decomposedNewPhoneTable').resize();
+            //
+            // $('#decomposedNewPhoneTable' + ' tbody').off('click', 'tr');
+            // $('#decomposedNewPhoneTable' + ' tbody').on('click', 'tr', function () {
+            //     $(this).toggleClass('selected');
+            // });
+
+            $scope.$evalAsync();
+
         }
 
         vm.setPanel = function (isSet) {

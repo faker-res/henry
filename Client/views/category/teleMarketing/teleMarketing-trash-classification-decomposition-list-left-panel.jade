@@ -20,7 +20,7 @@
                 #decompositionList.panel-collapse.collapse
                     .panel-body
                         div
-                            li.list-group-item(ng-if='vm.decompositionListCount!=0' ng-click='vm.getDecomposedDetail(vm.decompositionListCount)')
+                            li.list-group-item(ng-if='vm.decompositionListCount!=0' ng-click='vm.getDecomposedDetail()')
                                 text {{'New Phone' | translate}}
                                 .badge.pull-right(style='background-color:red; color:white', ng-show='vm.decompositionListCount > 0') {{vm.decompositionListCount}}
                             li.list-group-item.text-danger(ng-if='vm.decompositionListCount==0') {{"NONE" | translate}} {{"New Phone List" | translate}}
