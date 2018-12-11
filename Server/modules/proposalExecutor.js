@@ -5477,6 +5477,7 @@ function updateAllCustomizeCommissionRate (proposalData) {
 function getProviderCredit(providers, playerName, platformId) {
     let promArr = [];
     let providerCredit = 0;
+    let cpmsAPI = require('../externalAPI/cpmsAPI');
 
     providers.forEach(provider => {
         if (provider) {

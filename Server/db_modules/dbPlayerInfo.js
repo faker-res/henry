@@ -14098,6 +14098,7 @@ let dbPlayerInfo = {
     applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply, appliedObjIdList, type, gameProviderList) {
         console.log('Apply reward event', playerId, code);
         data = data || {};
+        let dbPlayerUtil = require('../db_common/dbPlayerUtility');
         let isFrontEnd = data.isFrontEnd || false;
         let isPreview = data.isPreview || false;
         let playerInfo = null;
@@ -21980,6 +21981,7 @@ function getProviderCredit(providers, playerName, platformId) {
     let promArr = [];
     let providerCredit = 0;
     let isError = false;
+    let cpmsAPI = require('../externalAPI/cpmsAPI');
 
     providers.forEach(provider => {
         if (provider && provider.status == constProviderStatus.NORMAL) {
