@@ -363,9 +363,10 @@ var dbGameProviderPlayerDaySummary = {
                     fpmsData.validAmount = 0;
                 }
                 //1 - 数字相同不用补收录  2 - 需要补收录  3 - 重新收录中
-                let status = (cpmsData.validAmount - fpmsData.validAmount == 0) ? 1 : 2;
-                let validAmtSyncPercent = dbGameProviderPlayerDaySummary.getValidAmtSyncPercent(fpmsData.validAmount, cpmsData.validAmount);
                 let fpmsValidAmount = parseFloat(fpmsData.validAmount.toFixed(2));
+                let status = (cpmsData.validAmount - fpmsValidAmount == 0) ? 1 : 2;
+                let validAmtSyncPercent = dbGameProviderPlayerDaySummary.getValidAmtSyncPercent(fpmsData.validAmount, cpmsData.validAmount);
+
                 result = {
                     providerId:proId,
                     fpmsConsumption:fpmsData.consumption,
