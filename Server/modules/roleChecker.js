@@ -522,7 +522,7 @@ var roleChecker = {
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
-                PlatformAnnouncementRead: ['getPlatformAnnouncements'],
+                PlatformAnnouncementRead: ['getPlatformAnnouncements', 'getPlatformAnnouncementsByPlatformId'],
                 PlatformAnnouncementUpdate: ['updatePlatformAnnouncement'],
                 PlatformAnnouncementDelete: ['deletePlatformAnnouncementByIds'],
             },

@@ -116,6 +116,7 @@ const constProposalMainType = {
     "UpdateParentPartnerCommission": constMainType.OTHERS,
     "PartnerCreditTransferToDownline": constMainType.OTHERS,
     "DownlineReceivePartnerCredit": constMainType.OTHERS,
+    "ManualExportTsPhone": constMainType.OTHERS,
 
 };
 

@@ -210,6 +210,14 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.bulkSendSmsToFailCallee, [adminObjId, adminName, data, data.tsPhoneDetails], actionName, isValidData);
         },
 
+        exportDecomposedPhone: function exportDecomposedPhone(data) {
+            let actionName = arguments.callee.name;
+            let adminObjId = getAdminId();
+            let adminName = getAdminName();
+            let isValidData = Boolean(data && data.sourcePlatform && data.sourceTopicName && data.exportCount && data.targetPlatform && data.phoneTradeObjIdArr && adminObjId && adminName);
+            socketUtil.emitter(self.socket, dbTeleSales.manualExportDecomposedPhones, [ ], actionName, isValidData);
+        },
+
         getTsPlayerRetentionAnalysis: function getTsPlayerRetentionAnalysis(data) {
             let actionName = arguments.callee.name;
             let diffDays;
@@ -224,17 +232,26 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlayerLoginRecord.getPlayerRetention, [ObjectId(data.platformObjId), startTime, data.days, data.playerType, diffDays, data.isRealPlayer, data.isTestPlayer, data.hasPartner, null, data.tsPhoneListObjId], actionName, isValidData);
         },
 
-        getTrashClassification: function getTrashClassification() {
+        getTrashClassification: function getTrashClassification(data) {
             let actionName = arguments.callee.name;
-            let isValidData = true;
-            socketUtil.emitter(self.socket, dbTeleSales.getTrashClassification, [], actionName, isValidData);
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbTeleSales.getTrashClassification, [data.platformId], actionName, isValidData);
         },
 
-        getDecompositionList: function getDecompositionList() {
-        let actionName = arguments.callee.name;
-        let isValidData = true;
-        socketUtil.emitter(self.socket, dbTeleSales.getDecompositionList, [], actionName, isValidData);
-    },
+        getCountDecompositionList: function getCountDecompositionList(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId);
+            socketUtil.emitter(self.socket, dbTeleSales.getCountDecompositionList, [data.platformId], actionName, isValidData);
+        },
+
+        getDecomposedNewPhoneRecord: function getDecomposedNewPhoneRecord(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.startTime && data.endTime);
+            let index = data.index || 0;
+            let limit = data.limit || 100;
+            let sortCol = data.sortCol || {"tradeTime": -1};
+            socketUtil.emitter(self.socket, dbTeleSales.getDecomposedNewPhoneRecord, [data.platformId, data.startTime, data.endTime, index, limit, sortCol], actionName, isValidData);
+        }
 
     };
     socketActionTeleSales.actions = this.actions;

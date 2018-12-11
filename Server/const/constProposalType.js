@@ -97,6 +97,9 @@ const constProposalType = {
     DOWNLINE_RECEIVE_PARTNER_CREDIT: "DownlineReceivePartnerCredit",
     UPDATE_PARENT_PARTNER_COMMISSION: "UpdateParentPartnerCommission",
     SETTLE_PARTNER_COMMISSION: "SettlePartnerCommission",
+
+    // Other
+    MANUAL_EXPORT_TS_PHONE: "ManualExportTsPhone",
 };
 
 module.exports = constProposalType;
