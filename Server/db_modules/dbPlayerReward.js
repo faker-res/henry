@@ -1341,7 +1341,7 @@ let dbPlayerReward = {
             }
 
             let consumptionQuery = {
-                platformId: ObjectId(player.platform),
+                platformId: ObjectId(platformId),
                 playerId: player._id,
                 createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}
             };
