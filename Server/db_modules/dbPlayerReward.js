@@ -1340,13 +1340,17 @@ let dbPlayerReward = {
                 topUpIntervalProm = Promise.resolve([]);
             }
 
-            let consumptionQuery = {
-                platformId: ObjectId(platformId),
-                playerId: player._id,
-                createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}
-            };
+            let lastConsumptionProm = Promise.resolve([]);
 
-            let lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(consumptionQuery).sort({createTime: -1}).limit(1).lean();
+            if (player && player._id) {
+                let consumptionQuery = {
+                    platformId: ObjectId(platformId),
+                    playerId: player._id,
+                    createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}
+                };
+
+                lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(consumptionQuery).sort({createTime: -1}).limit(1).lean();
+            }
 
             return Promise.all([Promise.all(checkRequirementMeetProms), consumptionIntervalProm, topUpIntervalProm, lastConsumptionProm]);
         }).then(checkAllResults => {
@@ -1355,7 +1359,7 @@ let dbPlayerReward = {
                 let checkResults = checkAllResults[0];
                 let consumptionResults = checkAllResults[1];
                 let topUpResults = checkAllResults[2];
-                lastConsumption = checkAllResults[3] && checkAllResults[3][0] ? checkAllResults[3][0] : {};
+                lastConsumption = checkAllResults[3] && checkAllResults[3][0] ? checkAllResults[3][0] : null;
 
                 console.log("yH checking-- checkResults", checkResults)
 
