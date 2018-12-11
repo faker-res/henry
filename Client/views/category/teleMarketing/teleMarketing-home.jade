@@ -54,7 +54,7 @@
                                                 a.common-tab(data-toggle="tab", href="#tsRecycleBinOverview")
                                                     text.span {{"RECYCLE_BIN_OVERVIEW" | translate}}
                                             li
-                                                a.common-tab(data-toggle="tab", href="#tsTrashClassificationDecompositionList" ng-click='vm.initTrashClassificationDecompositionList()')
+                                                a.common-tab(data-toggle="tab", href="#tsTrashClassificationDecompositionList" ng-click='vm.initTrashClassificationDecompositionList();vm.multiDecomposedNewPhoneSelected=[];')
                                                     text.span {{"Decomposed list / trash classification and reuse" | translate}}
 
                                     .panel-body.common-right-panel-body
