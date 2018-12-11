@@ -22694,31 +22694,30 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
                 consumptionRecordList = checkList[4] && checkList[4].consumptionRecordList ? checkList[4].consumptionRecordList : null;
                 lastConsumptionRecord = checkList[5] || null;
 
-                if (!selectedRewardParam) {
-                    return Promise.reject({
-                        status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                        name: "DataError",
-                        message: "not eligible to obtain the reward bonus"
-                    })
-                }
-                if (!selectedRewardParam) {
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "playerBonusDoubledRecord cannot be found"
-                    })
-                }
-                if (!winLoseAmount || !consumptionRecordList) {
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "no consumption record is found during the interval"
-                    })
+                if (!selectedRewardParam || !playerBonusDoubledRecord || !winLoseAmount) {
+                    // end this activity without giving reward bonu
+                    console.log("applyRewarEvent - Ended the activity without giving reward bonus", [playerData.playerId, eventData.type.name]);
+                    // update the playerBonusDoubledRewardGroupRecord
+                    let query = {
+                        platformObjId: playerData.platform._id,
+                        playerObjId: playerData._id,
+                        rewardEventObjId: eventData._id,
+                        lastApplyDate: {$gte: intervalTime.startTime, $lte: intervalTime.endTime}
+                    };
+                    let updateObj = {
+                        isApplying: false,
+                        gameProviderObjId: null,
+                        gameProviderId: null,
+                    };
+
+                    return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, updateObj).lean();
                 }
                 return true;
             }
         }
     ).then(
         hasPassChecking => {
-            if (hasPassChecking) {
+            if (typeof hasPassChecking == 'boolean' && hasPassChecking) {
                 if (type && type == 1) {
                     // transfer out all the credit from all the  selected game providers for applying the reward in the later process
                     return transferOutFromSelectedGameProvider(selectedProviderList, playerData, eventData, intervalTime);

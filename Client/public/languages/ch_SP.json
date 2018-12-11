@@ -1657,6 +1657,9 @@
   "countWinLoseEndTime": "计算报表输赢结束时间",
   "PlayerBonusDoubledRewardGroup": "盈利翻倍奖 （组）",
   "rewardInterval": "优惠周期",
+  "transferInDetail": "玩家带入额度",
+  "transferOutDetail": "玩家带出额度",
+  "appliedQuantityOverApplicationLimit": "周期内已申请次数/申请上限",
   "For instance: 100$ is transferred in and bet, and 110 is gained; the calculation: +110/100 = 1.1, which is the multiplier": "举例：玩家带入100元、下注100元、报表输赢+110; 算法为：+110 / 100元＝1.1，总计翻 1.1 倍。",
 
   "REWARD_POINTS_ADJUSTMENT": "修改积分",
