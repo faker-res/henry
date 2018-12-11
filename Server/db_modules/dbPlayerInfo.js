@@ -11906,49 +11906,51 @@ let dbPlayerInfo = {
      */
     updatePlayerTopupProposal: function (proposalId, bSuccess, remark, callbackData) {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId})
-            .populate({path: "type", model: dbconfig.collection_proposalType}).then(
-                data => {
-                    if (data && data.type && data.status != constProposalStatus.SUCCESS
-                        && data.status != constProposalStatus.FAIL) {
-                        var status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
-                        var lastSettleTime = new Date();
-                        return dbconfig.collection_proposal.findOneAndUpdate(
-                            {_id: data._id, createTime: data.createTime},
-                            {
-                                status: status,
-                                "data.lastSettleTime": lastSettleTime,
-                                settleTime: lastSettleTime
-                            }
-                        ).then(
-                            updateProposal => {
-                                // Debug credit missing after top up issue
-                                console.log('updatePlayerTopupProposal updateProposal', updateProposal);
+            .populate({path: "type", model: dbconfig.collection_proposalType}
+        ).then(
+            data => {
+                if (data && data.type && data.status != constProposalStatus.SUCCESS
+                    && data.status != constProposalStatus.FAIL) {
+                    var status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
+                    var lastSettleTime = new Date();
 
-                                if (updateProposal && updateProposal.status != constProposalStatus.SUCCESS
-                                    && updateProposal.status != constProposalStatus.FAIL) {
-                                    return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
-                                        () => dbconfig.collection_proposal.findOneAndUpdate(
-                                            {_id: data._id, createTime: data.createTime},
-                                            {
-                                                status: status,
-                                                "data.lastSettleTime": lastSettleTime,
-                                                "data.remark": remark,
-                                                "data.alipayer": callbackData ? callbackData.payer : "",
-                                                "data.alipayerAccount": callbackData ? callbackData.account : "",
-                                                "data.alipayerNickName": callbackData ? callbackData.nickName : "",
-                                                "data.alipayerRemark": callbackData ? callbackData.remark : "",
-                                            }
-                                        )
-                                    );
-                                }
+                    return dbconfig.collection_proposal.findOneAndUpdate(
+                        {_id: data._id, createTime: data.createTime},
+                        {
+                            status: status,
+                            "data.lastSettleTime": lastSettleTime,
+                            settleTime: lastSettleTime
+                        }
+                    ).then(
+                        updateProposal => {
+                            // Debug credit missing after top up issue
+                            console.log('updatePlayerTopupProposal updateProposal', updateProposal);
+
+                            if (updateProposal && updateProposal.status != constProposalStatus.SUCCESS
+                                && updateProposal.status != constProposalStatus.FAIL) {
+                                return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
+                                    () => dbconfig.collection_proposal.findOneAndUpdate(
+                                        {_id: data._id, createTime: data.createTime},
+                                        {
+                                            status: status,
+                                            "data.lastSettleTime": lastSettleTime,
+                                            "data.remark": remark,
+                                            "data.alipayer": callbackData ? callbackData.payer : "",
+                                            "data.alipayerAccount": callbackData ? callbackData.account : "",
+                                            "data.alipayerNickName": callbackData ? callbackData.nickName : "",
+                                            "data.alipayerRemark": callbackData ? callbackData.remark : "",
+                                        }
+                                    )
+                                );
                             }
-                        );
-                    }
-                    else {
-                        return Q.reject({name: "DataError", message: "Invalid proposal id or status"});
-                    }
+                        }
+                    );
                 }
-            );
+                else {
+                    return Q.reject({name: "DataError", message: "Invalid proposal id or status"});
+                }
+            }
+        );
     },
 
     /*
