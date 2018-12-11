@@ -1009,6 +1009,25 @@ var dbUtility = {
         return res;
     },
 
+    /*
+     *  Shuffle array, based on most efficient method shown at https://jsperf.com/array-shuffle-comparator/5
+     */
+    shuffleArray: function (arr) {
+        if (!arr || !arr.length) {
+            return [];
+        }
+
+        let temp, j, i = arr.length;
+        while (--i) {
+            j = ~~(Math.random() * (i + 1));
+            temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+        }
+
+        return arr;
+    },
+
     getDomainName: function (src) {
         src = src || '';
         return src

@@ -210,6 +210,14 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.bulkSendSmsToFailCallee, [adminObjId, adminName, data, data.tsPhoneDetails], actionName, isValidData);
         },
 
+        exportDecomposedPhone: function exportDecomposedPhone(data) {
+            let actionName = arguments.callee.name;
+            let adminObjId = getAdminId();
+            let adminName = getAdminName();
+            let isValidData = Boolean(data && data.sourcePlatform && data.sourceTopicName && data.exportCount && data.targetPlatform && data.phoneTradeObjIdArr && adminObjId && adminName);
+            socketUtil.emitter(self.socket, dbTeleSales.manualExportDecomposedPhones, [ ], actionName, isValidData);
+        },
+
         getTsPlayerRetentionAnalysis: function getTsPlayerRetentionAnalysis(data) {
             let actionName = arguments.callee.name;
             let diffDays;
