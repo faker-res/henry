@@ -13338,13 +13338,11 @@ let dbPlayerInfo = {
             }
         ).then(
             proposalTypeData => {
-                console.log(proposalTypeData);
-                console.log(playerId)
                 if (proposalTypeData) {
                     var queryObject = {
                         "data.playerId": playerId,
                         type: proposalTypeData._id
-                        // status: constProposalStatus.PENDING
+                        status: constProposalStatus.PENDING
                     };
                     return dbconfig.collection_proposal.findOne(queryObject).lean();
                 }
