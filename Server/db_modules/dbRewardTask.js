@@ -190,8 +190,10 @@ const dbRewardTask = {
 
     insertConsumptionValueIntoFreeAmountProviderGroup: (rewardData, proposalData, rewardType) => {
         let consumptionAmt = 0;
+
+        console.log('RT - rewardData', rewardData);
+
         rewardData.requiredUnlockAmount = Number(rewardData.requiredUnlockAmount);
-        rewardData.actualAmount = Number(rewardData.actualAmount);
         rewardData.applyAmount = Number(rewardData.applyAmount);
 
         // Search available reward task group for this reward & this player
@@ -206,7 +208,6 @@ const dbRewardTask = {
                     rewardData.applyAmount = 0;
                 }
 
-                console.log('RT - rewardData', rewardData);
                 console.log('RT - providerGroup', providerGroup);
 
                 if (providerGroup) {
