@@ -1455,6 +1455,7 @@ var dbUtility = {
     getIpAddress: (conn) => {
         let ipAddress = conn.upgradeReq.connection.remoteAddress || '';
         console.log('ipAddress===1', ipAddress);
+        console.log('conn.upgradeReq.headers', conn.upgradeReq.headers);
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
             if(forwardedIp[0].trim() != "undefined"){
