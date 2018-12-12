@@ -81,7 +81,8 @@ function socketActionWCGroupControl(socketIO, socket) {
             let isValidData = Boolean(data && data.platformObjId && data.deviceNickName && data.deviceId && data.adminIds && data.startDate && data.endDate);
             let index = data.index || 0;
             let limit = data.limit || 1000;
-            socketUtil.emitter(self.socket, dbWCGroupControl.getWCGroupControlSessionHistory, [data.platformObjId, data.deviceNickName, data.deviceId, data.adminIds, data.startDate, data.endDate, index, limit], actionName, isValidData);
+            let sortCol = data.sortCol || {createTime: -1};
+            socketUtil.emitter(self.socket, dbWCGroupControl.getWCGroupControlSessionHistory, [data.platformObjId, data.deviceNickName, data.deviceId, data.adminIds, data.startDate, data.endDate, index, limit, sortCol], actionName, isValidData);
         }
     };
     socketActionWCGroupControl.actions = this.actions;

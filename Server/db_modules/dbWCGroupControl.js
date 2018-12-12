@@ -539,7 +539,7 @@ var dbWCGroupControl = {
 
     },
 
-    getWCGroupControlSessionHistory: (platformObjId, deviceNickName, deviceId, adminIds, startDate, endDate, index, limit) => {
+    getWCGroupControlSessionHistory: (platformObjId, deviceNickName, deviceId, adminIds, startDate, endDate, index, limit, sortCol) => {
         platformObjId = ObjectId(platformObjId);
         index = index || 0;
         let csOfficerList = [];
@@ -566,7 +566,7 @@ var dbWCGroupControl = {
         let countWCGroupControlSessionHistoryProm = dbConfig.collection_wcGroupControlSession.find(query).count();
         let WCGroupControlSessionHistoryProm = dbConfig.collection_wcGroupControlSession.find(query)
             .populate({path: "platformObjId", model: dbConfig.collection_platform, select: {name: 1, platformId: 1}})
-            .populate({path: "csOfficer", model: dbConfig.collection_admin, select: {adminName: 1}}).skip(index).limit(limit);
+            .populate({path: "csOfficer", model: dbConfig.collection_admin, select: {adminName: 1}}).sort(sortCol).skip(index).limit(limit);
 
         return Promise.all([countWCGroupControlSessionHistoryProm, WCGroupControlSessionHistoryProm]).then(
             data => {
