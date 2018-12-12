@@ -165,7 +165,7 @@ function socketActionQualityInspection(socketIO, socket) {
             var isDataValid = Boolean(data && data.startTime && data.endTime);
             let index = data.index || 0;
             let limit = data.limit || 1000;
-            socketUtil.emitter(self.socket, dbQualityInspection.getWechatConversationDeviceList, [data.platform, data.deviceNickName, data.csName, data.startTime, data.endTime, data.content, index, limit], actionName, isDataValid);
+            socketUtil.emitter(self.socket, dbQualityInspection.getWechatConversationDeviceList, [data.platform, data.deviceNickName, data.csName, data.startTime, data.endTime, data.content, data.playerWechatRemark, index, limit], actionName, isDataValid);
         },
 
         getWechatConversation: function getWechatConversation(data){

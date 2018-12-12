@@ -7073,6 +7073,7 @@ let dbPlayerInfo = {
                 .populate({path: "platform", model: dbconfig.collection_platform})
                 .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean();
         let providerProm = dbconfig.collection_gameProvider.findOne({providerId: targetProviderId}).lean();
+        let currentDate = new Date();
 
         return Promise.all([playerProm, providerProm]).then(
             data => {
@@ -7103,7 +7104,7 @@ let dbPlayerInfo = {
                     }
 
                     if(!byPassBonusDoubledRewardChecking){
-                        return dbPlayerInfo.checkPlayerBonusDoubledRewardTransferOut(playerObj, playerObj._id, playerObj.platform._id, playerObj.platform.platformId, gameProvider.providerId, playerObj.name);
+                        return dbPlayerInfo.checkPlayerBonusDoubledRewardTransferOut(playerObj, playerObj._id, playerObj.platform._id, playerObj.platform.platformId, gameProvider.providerId, playerObj.name, currentDate);
                     }else{
                         return;
                     }
@@ -21715,13 +21716,14 @@ let dbPlayerInfo = {
         )
     },
 
-    checkPlayerBonusDoubledRewardTransferOut: function(playerData, playerObjId, platformObjId, platformId, providerShortId, userName){
+    checkPlayerBonusDoubledRewardTransferOut: function(playerData, playerObjId, platformObjId, platformId, providerShortId, userName, currentDate){
         let playerBonusDoubledRewardObj;
         let query = {
             playerObjId: playerObjId,
             platformObjId: platformObjId,
             isApplying: true,
-            gameProviderId: providerShortId
+            intervalStartTime: {$lte: currentDate},
+            intervalEndTime: {$gt: currentDate}
         };
 
         return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOne(query)
