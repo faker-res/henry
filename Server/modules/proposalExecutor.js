@@ -99,6 +99,7 @@ var proposalExecutor = {
             || executionType === 'executeManualPlayerTopUp'
             || executionType === 'executePlayerFKPTopUp'
             || executionType === 'executePlayerCommonTopUp'
+            || executionType === 'executePlayerAssignTopUp'
 
             // Group reward
             || executionType === 'executePlayerLoseReturnRewardGroup'
@@ -237,6 +238,7 @@ var proposalExecutor = {
             this.executions.executePlayerConsumptionReturn.des = "Player consumption return Reward";
             this.executions.executeManualPlayerTopUp.des = "Player manual top up";
             this.executions.executePlayerAlipayTopUp.des = "Player manual top up";
+            this.executions.executePlayerAssignTopUp = "Player assign top up";
             this.executions.executePlayerBonus.des = "Player bonus";
             this.executions.executePlayerTopUpReturn.des = "Player top up return";
             this.executions.executePlayerConsumptionIncentive.des = "Player consumption incentive";
@@ -318,6 +320,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerTopUp.des = "Reject Player Top up";
             this.rejections.rejectPlayerAlipayTopUp.des = "Reject Player Top up";
             this.rejections.rejectManualPlayerTopUp.des = "Reject Player Manual Top up";
+            this.rejections.rejectPlayerAssignTopUp = "Reject Player Assign Manual Top up";
             this.rejections.rejectPlayerBonus.des = "Reject Player bonus";
             this.rejections.rejectPlayerTopUpReturn.des = "Reject Player top up return";
             this.rejections.rejectPlayerConsumptionIncentive.des = "Reject Player consumption incentive";
@@ -1592,6 +1595,26 @@ var proposalExecutor = {
                             //     );
                             // }
                             // DEBUG: Reward sometime not applied issue
+                            dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.MANUAL).catch(errorUtils.reportError);
+                            sendMessageToPlayer(proposalData,constMessageType.MANUAL_TOPUP_SUCCESS,{});
+                            return proposalData;
+                        },
+                        error => Promise.reject(error)
+                    )
+                }
+                else {
+                    return Promise.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
+                }
+            },
+
+            /**
+             * execution function for player manual top up proposal type
+             */
+            executePlayerAssignTopUp: function (proposalData) {
+                //valid data
+                if (proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.amount) {
+                    return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.MANUAL, proposalData).then(
+                        data => {
                             dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.MANUAL).catch(errorUtils.reportError);
                             sendMessageToPlayer(proposalData,constMessageType.MANUAL_TOPUP_SUCCESS,{});
                             return proposalData;
@@ -4108,6 +4131,51 @@ var proposalExecutor = {
              * reject function for player manual top up
              */
             rejectManualPlayerTopUp: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.requestId) {
+                    var wsMessageClient = serverInstance.getWebSocketMessageClient();
+                    if (wsMessageClient) {
+                        wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "manualTopupStatusNotify",
+                            {
+                                proposalId: proposalData.proposalId,
+                                amount: proposalData.data.amount,
+                                handleTime: new Date(),
+                                status: proposalData.status,
+                                playerId: proposalData.data.playerId
+                            }
+                        );
+                    }
+                    pmsAPI.payment_modifyManualTopupRequest({
+                        requestId: proposalData.data.requestId,
+                        operationType: constManualTopupOperationType.CANCEL,
+                        data: null
+                    }).then(
+                        deferred.resolve, deferred.reject
+                    );
+                    //deferred.resolve("Proposal is rejected");
+                } else {
+                    //deduct bank daily quota
+                    if (proposalData.data && proposalData.data.bankCardNo && proposalData.data.platform && proposalData.data.amount) {
+                        dbconfig.collection_platformBankCardList.findOneAndUpdate(
+                            {
+                                accountNumber: proposalData.data.bankCardNo,
+                                platformId: proposalData.data.platform
+                            },
+                            {
+                                $inc: {quotaUsed: -proposalData.data.amount}
+                            }
+                        ).then(
+                            deferred.resolve, deferred.reject
+                        );
+                    } else {
+                        deferred.reject("Proposal is rejected");
+                    }
+                }
+            },
+
+            /**
+             * reject function for player assign manual top up
+             */
+            rejectPlayerAssignTopUp: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.requestId) {
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     if (wsMessageClient) {

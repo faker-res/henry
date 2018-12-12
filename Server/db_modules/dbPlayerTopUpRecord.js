@@ -1189,7 +1189,7 @@ var dbPlayerTopUpRecord = {
      * @param playerID
      * @param inputData
      */
-    addManualTopupRequest: function (userAgent, playerId, inputData, entryType, adminId, adminName, fromFPMS, bPMSGroup, topUpReturnCode, lastLoginIp) {
+    addManualTopupRequest: function (userAgent, playerId, inputData, entryType, adminId, adminName, fromFPMS, bPMSGroup, topUpReturnCode, lastLoginIp, isPlayerAssign) {
         var player = null;
         var proposal = null;
         var request = null;
@@ -1197,6 +1197,13 @@ var dbPlayerTopUpRecord = {
         let rewardEvent;
         let isFPMS = false; // true - use FPMS to manage payment
         let newProposal;
+        let proposalType;
+
+        if(isPlayerAssign){
+            proposalType = constProposalType.PLAYER_ASSIGN_TOP_UP;
+        }else{
+            proposalType = constProposalType.PLAYER_MANUAL_TOP_UP;
+        }
 
         if (inputData.bonusCode && topUpReturnCode) {
             return Q.reject({
@@ -1206,7 +1213,7 @@ var dbPlayerTopUpRecord = {
             });
         }
 
-        return dbPlayerInfo.getManualTopupRequestList(playerId).then(
+        return dbPlayerInfo.getManualTopupRequestList(playerId, isPlayerAssign).then(
             retData => {
                 if (retData) {
                     return Q.reject({
@@ -1397,7 +1404,7 @@ var dbPlayerTopUpRecord = {
                     }
                 }
                 newProposal.inputDevice = dbUtility.getInputDevice(userAgentStr, false, adminInfo);//newProposal.isPartner
-                return dbPropUtil.isLastTopUpProposalWithin30Mins(constProposalType.PLAYER_MANUAL_TOP_UP, player.platform._id, player);
+                return dbPropUtil.isLastTopUpProposalWithin30Mins(proposalType, player.platform._id, player);
             }
         ).then(
             lastTopUpProposal => {
@@ -1419,7 +1426,7 @@ var dbPlayerTopUpRecord = {
                     }
                 }
 
-                return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_MANUAL_TOP_UP, newProposal);
+                return dbProposal.createProposalWithTypeName(player.platform._id, proposalType, newProposal);
             }
         ).then(
             proposalData => {
@@ -1616,7 +1623,7 @@ var dbPlayerTopUpRecord = {
                     if (data.noSteps) {
                         dbconfig.collection_proposalType.findOne({
                             platformId: player.platform._id,
-                            name: constProposalType.PLAYER_MANUAL_TOP_UP
+                            name: proposalType
                         }).then(
                             proposalTypeData => {
                                 if (!proposalTypeData) {

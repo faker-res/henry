@@ -7807,7 +7807,7 @@ let dbPlayerInfo = {
                     for (var i = 0; i < rewardEvent.length; i++) {
                         var rewardEventItem = rewardEvent[i].toObject();
                         delete rewardEventItem.platform;
-                        
+
                         let providerGroup = null;
                         let providerGroupName = null;
                         if (rewardEventItem.condition && rewardEventItem.condition.providerGroup && rewardEventItem.condition.providerGroup._id){
@@ -7879,7 +7879,7 @@ let dbPlayerInfo = {
                             rewardEventArray.push(rewardEventItem);
                         }
                     }
-                    return rewardEventArray;              
+                    return rewardEventArray;
                 }
             },
             function (error) {
@@ -13117,8 +13117,14 @@ let dbPlayerInfo = {
         );
     },
 
-    getManualTopupRequestList: function (playerId) {
+    getManualTopupRequestList: function (playerId, isPlayerAssign) {
         var platformObjectId = null;
+        let proposalType;
+        if(isPlayerAssign){
+            proposalType = constProposalType.PLAYER_ASSIGN_TOP_UP;
+        }else{
+            proposalType = constProposalType.PLAYER_MANUAL_TOP_UP;
+        }
         return dbconfig.collection_players.findOne({playerId: playerId}).populate({
             path: "platform",
             model: dbconfig.collection_platform
@@ -13128,7 +13134,7 @@ let dbPlayerInfo = {
                     platformObjectId = playerData.platform._id;
                     return dbconfig.collection_proposalType.findOne({
                         platformId: platformObjectId,
-                        name: constProposalType.PLAYER_MANUAL_TOP_UP
+                        name: proposalType
                     });
                 }
                 else {
@@ -14492,7 +14498,7 @@ let dbPlayerInfo = {
                                         rewardData.sortCol = data.sortCol;
                                     }
 
-                                    
+
                                     if(data.appliedRewardList){
                                         rewardData.appliedRewardList = data.appliedRewardList
                                     }
@@ -22684,7 +22690,7 @@ function getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewa
             message: "selectedRewardParam is not found"
         })
     }
-    
+
     return dbGameProvider.getPlayerCreditInProvider(playerData.name, playerData.platform.platformId, gameProviderId).then(
         providerCredit => {
             if (providerCredit){
