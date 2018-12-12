@@ -1912,8 +1912,7 @@
                             tr
                                 td {{'Definition of Answered Phone Call(Choose from feedback status/ multi selection)' | translate}}
                                 td
-                                    input.form-control(ng-if="!vm.configTableEdit" ng-model="vm.bulkCallBasic.definitionOfAnsweredPhone" ng-disabled="true")
-                                    select.form-control#selectFeedBackTopic(ng-if='vm.configTableEdit' ng-model="vm.bulkCallBasic.definitionOfAnsweredPhone" ng-options="a.key as a.key for (i,a) in vm.playerAllFeedBackResult" multiple bsp)
+                                    select.form-control#selectFeedBackTopic(ng-model="vm.bulkCallBasic.definitionOfAnsweredPhone" ng-options="a.key as a.key for (i,a) in vm.playerAllFeedBackResult" ng-disabled="!vm.configTableEdit")
                             tr
                                 td {{'Decompose after N days(Start to deal with other departments)' | translate}}
                                 td
