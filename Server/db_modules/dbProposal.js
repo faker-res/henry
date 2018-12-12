@@ -805,6 +805,15 @@ var proposal = {
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
             proposalData => {
                 proposalObj = proposalData;
+
+                // Check passed in amount vs proposal amount
+                if (callbackData && callbackData.amount && proposalData.data.amount && Number(callbackData.amount) !== Number(proposalData.data.amount)) {
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Invalid top up amount"
+                    });
+                }
+
                 if (proposalData && proposalData.data && (proposalData.data.bankCardType != null || proposalData.data.bankTypeId != null || proposalData.data.bankCardNo != null)) {
                     type = constPlayerTopUpType.MANUAL;
                 }
@@ -4626,6 +4635,25 @@ var proposal = {
             spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
         }
 
+        if (!selectedRewardParam || !playerBonusDoubledRecord || !winLoseAmount) {
+            // end this activity without giving reward bonus
+            console.log("applyRewarEvent - Ended the activity without giving reward bonus", [playerData.playerId, eventData.type.name]);
+            // update the playerBonusDoubledRewardGroupRecord
+            let query = {
+                platformObjId: playerData.platform._id,
+                playerObjId: playerData._id,
+                rewardEventObjId: eventData._id,
+                lastApplyDate: {$gte: intervalTime.startTime, $lte: intervalTime.endTime}
+            };
+            let updateObj = {
+                isApplying: false,
+                gameProviderObjId: null,
+                gameProviderId: null,
+            };
+
+            return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, updateObj).lean();
+        }
+
         // create reward proposal
         let proposalData = {
             type: eventData.executeProposal,
@@ -4669,7 +4697,7 @@ var proposal = {
         proposalData.data.quantityLimitInInterval = eventData.condition.quantityLimitInInterval;
         proposalData.data.gameProviderInEvent = playerBonusDoubledRecord.gameProviderObjId;
         proposalData.data.transferInAmount = playerBonusDoubledRecord.transferInAmount;
-        proposalData.data.transferInId = playerBonusDoubledRecord.transferInId || 'TEST TRANFER IN ID';
+        proposalData.data.transferInId = playerBonusDoubledRecord.transferInId || "";
         proposalData.data.transferOutAmount = transferOutRecord && transferOutRecord.amount ? transferOutRecord.amount : 0;
         proposalData.data.transferOutId = transferOutRecord && transferOutRecord.transferId ? transferOutRecord.transferId : "";
         proposalData.data.winLoseAmount = winLoseAmount;

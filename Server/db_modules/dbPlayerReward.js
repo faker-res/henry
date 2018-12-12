@@ -1340,13 +1340,17 @@ let dbPlayerReward = {
                 topUpIntervalProm = Promise.resolve([]);
             }
 
-            let consumptionQuery = {
-                platformId: ObjectId(player.platform),
-                playerId: player._id,
-                createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}
-            };
+            let lastConsumptionProm = Promise.resolve([]);
 
-            let lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(consumptionQuery).sort({createTime: -1}).limit(1).lean();
+            if (player && player._id) {
+                let consumptionQuery = {
+                    platformId: ObjectId(platformId),
+                    playerId: player._id,
+                    createTime: {$gte: intervalTime.startTime, $lt: intervalTime.endTime}
+                };
+
+                lastConsumptionProm = dbConfig.collection_playerConsumptionRecord.find(consumptionQuery).sort({createTime: -1}).limit(1).lean();
+            }
 
             return Promise.all([Promise.all(checkRequirementMeetProms), consumptionIntervalProm, topUpIntervalProm, lastConsumptionProm]);
         }).then(checkAllResults => {
@@ -1355,7 +1359,7 @@ let dbPlayerReward = {
                 let checkResults = checkAllResults[0];
                 let consumptionResults = checkAllResults[1];
                 let topUpResults = checkAllResults[2];
-                lastConsumption = checkAllResults[3] && checkAllResults[3][0] ? checkAllResults[3][0] : {};
+                lastConsumption = checkAllResults[3] && checkAllResults[3][0] ? checkAllResults[3][0] : null;
 
                 console.log("yH checking-- checkResults", checkResults)
 
@@ -5326,6 +5330,8 @@ let dbPlayerReward = {
     checkRewardParamForBonusDoubledRewardGroup: (eventData, playerData, intervalTime) => {
         let selectedRewardParam;
         let bonusAmount = 0;
+        let rate = 0;
+        let totalBetAmount = 0;
         let playerBonusDoubledRewardGroupRecord;
         let consumptionRecordList;
         let todayTime = dbUtility.getTodaySGTime();
@@ -5366,6 +5372,7 @@ let dbPlayerReward = {
                             _id: "$providerId",
                             bonusAmount: {$sum: "$bonusAmount"},
                             consumptionRecordList: {$addToSet: "$_id"},
+                            betAmount: {$sum: "$amount"},
                         }}
                     ]).read("secondaryPreferred");
                 }
@@ -5381,8 +5388,9 @@ let dbPlayerReward = {
                 if (consumptionRecord && consumptionRecord.length && playerBonusDoubledRewardGroupRecord && selectedRewardParam){
                     bonusAmount = Math.abs(consumptionRecord[0].bonusAmount);
                     consumptionRecordList = consumptionRecord[0].consumptionRecordList;
+                    totalBetAmount = consumptionRecord[0].betAmount;
                     let transferInAmount = playerBonusDoubledRewardGroupRecord.transferInAmount;
-                    let rate = bonusAmount/transferInAmount;
+                    rate = bonusAmount/transferInAmount;
                     let rewardAmount;
                     let spendingAmount;
 
@@ -5392,16 +5400,8 @@ let dbPlayerReward = {
                     } else {
                         selectedRewardParam = selectedRewardParam[0];
                     }
-
-                    if (!selectedRewardParam || rate < selectedRewardParam.multiplier) {
-                        return Q.reject({
-                            status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                            name: "DataError",
-                            message: "not eligible to obtain the reward bonus"
-                        });
-                    }
                 }
-                return {selectedRewardParam: selectedRewardParam, record: playerBonusDoubledRewardGroupRecord, consumptionRecordList: consumptionRecordList, winLoseAmount: bonusAmount};
+                return {selectedRewardParam: selectedRewardParam, record: playerBonusDoubledRewardGroupRecord, consumptionRecordList: consumptionRecordList, winLoseAmount: bonusAmount, winTimes: rate, totalBetAmount: totalBetAmount};
             }
         )
     },

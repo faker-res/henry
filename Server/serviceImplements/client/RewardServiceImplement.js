@@ -89,7 +89,7 @@ let RewardServiceImplement = function () {
         data.data.isFrontEnd = true;
         let userAgent = conn['upgradeReq']['headers']['user-agent'];
         data.userAgent = userAgent;
-        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyRewardEvent, [data.userAgent, conn.playerId, data.code, data.data, null, null, null, data.appliedObjIdList, data.type, data.gameProviderList], isValidData, true, false, false).then(
+        WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.applyRewardEvent, [data.userAgent, conn.playerId, data.code, data.data, null, null, null, data.appliedObjIdList, data.type], isValidData, true, false, false).then(
             function (res) {
                 wsFunc.response(conn, {
                     status: constServerCode.SUCCESS,

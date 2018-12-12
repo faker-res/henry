@@ -25426,6 +25426,13 @@ console.log('typeof ',typeof gameProviders);
                     result = $translate(val);
                 } else if (fieldName === 'definePlayerLoginMode') {
                     result = $translate($scope.playerLoginMode[val]);
+                } else if (fieldName === 'rewardInterval') {
+                    result = $translate($scope.rewardInterval[val]);
+                } else if (fieldName === 'gameProviderInEvent') {
+                    let index = vm.allGameProviders.findIndex(p => p._id.toString() == val.toString());
+                    if (index != -1){
+                        result =  vm.allGameProviders[index].name;
+                    }
                 }
                 return $sce.trustAsHtml(result);
             };
@@ -28093,7 +28100,7 @@ console.log('typeof ',typeof gameProviders);
                 vm.bulkCallBasic.teleMarketingMinRedialInterval = vm.selectedPlatform.data.teleMarketingMinRedialInterval || 10;
                 vm.bulkCallBasic.teleMarketingIdleAgentMultiple = vm.selectedPlatform.data.teleMarketingIdleAgentMultiple || 2.0;
                 vm.bulkCallBasic.definitionOfAnsweredPhone = vm.selectedPlatform.data.definitionOfAnsweredPhone || "";
-                vm.bulkCallBasic.decomposeAfterNDays = vm.selectedPlatform.data.decomposeAfterNDays || 0;
+                vm.bulkCallBasic.decomposeAfterNDays = vm.selectedPlatform.data.decomposeAfterNDays || 1;
                 vm.bulkCallBasic.phoneWhiteListExportMaxNumber = vm.selectedPlatform.data.phoneWhiteListExportMaxNumber || 0;
 
                 socketService.$socket($scope.AppSocket, 'getAllPlayerFeedbackResults', {}, function (data) {

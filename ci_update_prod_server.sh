@@ -38,6 +38,10 @@ NODE_ENV=${env} forever start -a -l ${LOGDIR}/payment.log -o ${LOGDIR}/paymentOu
 
 NODE_ENV=${env} forever start -a -l ${LOGDIR}/mig.log -o ${LOGDIR}/migOut.log -e ${LOGDIR}/migErr.log Server/dataMigrationServer.js
 
+NODE_ENV=${env} forever start -a -l ${LOGDIR}/extRest.log -o ${LOGDIR}/extRestOut.log -e ${LOGDIR}/extRestErr.log Server/externalRESTServer.js
+
+NODE_ENV=${env} forever start -a -l ${LOGDIR}/intRest.log -o ${LOGDIR}/intRestOut.log -e ${LOGDIR}/intRestErr.log Server/internalRESTServer.js
+
 
 
 

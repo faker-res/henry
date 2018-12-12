@@ -29,6 +29,10 @@
         label {{'Message Content (Keyword)' | translate}}
         input.form-control(type='text', ng-model='vm.inspectionWechat.content')
 
+    div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'WechatConversationRecord', 'Read')")
+        label {{'wechatReceivingPlayer' | translate}}
+        input.form-control(type='text', ng-model='vm.inspectionWechat.playerWechatRemark')
+
     div
         label &nbsp;
         button.button.common-button.btn.btn-primary(ng-click='vm.searchWechatConversationDevice()' ng-show="checkViewPermission('QualityInspection', 'WechatConversationRecord', 'Read')") {{'SEARCH' | translate}}
@@ -37,25 +41,10 @@
             i.fa.fa-spinner.fa-spin
 .clearfix
 
-.panel.panel-primary(ng-if="vm.showDeviceTable")
+br
+.panel.panel-primary
     .panel-body
-        .well.block-query.col-md-12.well
-            div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'WechatConversationRecord', 'Read')")
-                label {{'PRODUCT' | translate}}
-                select.form-control(style='max-width:155px', ng-change='vm.getWechatDeviceNickNameList(true);',ng-model='vm.inspectionWechat.fuzzyPlatform', ng-options='product.data._id as product.data.name for product in vm.platformList', multiple, bsp, data-actions-box='true', required)
-
-            div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'WechatConversationRecord', 'Read')")
-                label {{'Create Device Name' | translate}}
-                select.form-control(style='max-width:155px',ng-model='vm.inspectionWechat.fuzzyDeviceName', ng-options='device for device in vm.fuzzyWechatDeviceList', multiple, bsp, data-actions-box='true', required)
-
-            div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'WechatConversationRecord', 'Read')")
-                label {{'wechatReceivingPlayer' | translate}}
-                input.form-control(type='text', ng-model='vm.inspectionWechat.fuzzyPlayerWechatRemark')
-            div
-                label &nbsp;
-                button.button.common-button.btn.btn-primary(ng-click='vm.fuzzySearchDeviceList()' ng-show="checkViewPermission('QualityInspection', 'WechatConversationRecord', 'Read')") {{'Fuzzy Search' | translate}}
-
-        div(ng-if="vm.deviceList != 0")
+        div(ng-if="vm.deviceList && vm.deviceList != 0")
             label {{"Total" | translate}} {{vm.deviceListTotal || 0}} {{"records" | translate}}
             table#wechatMessageDeviceTable(style="width: 60%; text-align: center;")
                 thead
@@ -73,13 +62,13 @@
                                     tr.lastchild-noborder(ng-repeat="device in deviceList.deviceNickName" style='border-right:1px solid; border-bottom:1px solid;' )
                                         td(style="width: 433px; vertical-align: top; line-height: 2.5;border-left:1px solid; ")
                                             a(ng-click="vm.searchWechatConversation(deviceList.platformId, device.deviceNickName);") {{device.deviceNickName}}
-                                         td
+                                        td
                                         td(style="width: 433px; line-height: 2.5; ")
                                             table(style="margin: 0 auto;width: 100%;")
                                                 tbody
-                                                    tr.lastchild-topborder(ng-repeat="wechatRemark in device.playerWechatRemark"  )
+                                                    tr(ng-repeat="wechatRemark in device.playerWechatRemark" style='border-bottom: 1px solid')
                                                         td(style="border-left:1px solid;")
-                                                            a(ng-click="vm.searchWechatConversation(deviceList.platformId, device.deviceNickName, wechatRemark.playerWechatRemark);") {{wechatRemark.playerWechatRemark}} {{"("}} {{wechatRemark.playerWechatId}} {{")"}}
+                                                            a(ng-click="vm.searchWechatConversation(deviceList.platformId, device.deviceNickName, [wechatRemark.playerWechatRemark]);") {{wechatRemark.playerWechatRemark}} {{"("}} {{wechatRemark.playerWechatId}} {{")"}}
                 tfoot
                     tr
                         th
@@ -99,7 +88,7 @@
         div(ng-if="!vm.deviceList || vm.deviceList == 0")
             label {{ 'No data available in table' | translate }}
 br
-.panel.panel-primary
+.panel.panel-primary(ng-if="vm.wechatConversationList && vm.wechatConversationList.length && vm.wechatConversationList.length > 0")
     .panel-body
         label {{"Total" | translate}} {{vm.wechatConversationList.length || 0}} {{"records" | translate}}
         table#wechatMessageTable.common-table.display(style="min-width:100% ;overflow: scroll")
