@@ -6494,6 +6494,7 @@ let dbPlayerInfo = {
         let transferAmount = 0;
         let isUpdateTransferId = false;
         let currentDate = new Date();
+        let playerBonusDoubledRewardValidity = false;
 
         return Promise.all([playerProm, providerProm]).then(
             data => {
@@ -6518,23 +6519,7 @@ let dbPlayerInfo = {
                             message: "Provider is not available"
                         });
                     }
-
-                    transferAmount += parseFloat(playerData.validCredit.toFixed(2));
-
-                    if (playerData.platform.useLockedCredit) {
-                        transferAmount += playerData.lockedCredit;
-                    }
-
-                    // Check if player has enough credit to play
-                    if (transferAmount < 1 || amount == 0) {
-                        return Promise.reject({
-                            status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                            name: "DataError",
-                            errorMessage: "Player does not have enough credit."
-                        });
-                    }
-
-                    return dbPlayerInfo.checkPlayerBonusDoubledRewardTransferIn(playerData, playerData._id, playerData.platform._id, providerData._id, playerData.platform.platformId, providerData.providerId, playerData.name, amount, currentDate);
+                    return dbPlayerInfo.checkPlayerBonusDoubledRewardValidity(playerData._id, playerData.platform._id, currentDate);
                 } else {
                     return Promise.reject({name: "DataError", message: "Cannot find player or provider"});
                 }
@@ -6547,16 +6532,43 @@ let dbPlayerInfo = {
                 })
             }
         ).then(
-            checkPlayerBonusDoubledRewardResult => {
-                if(checkPlayerBonusDoubledRewardResult){
-                    isUpdateTransferId = true;
-                }
-
+            isApply => {
+                playerBonusDoubledRewardValidity = isApply;
                 return dbRewardTaskGroup.getPlayerRewardTaskGroup(playerData.platform._id, providerData._id, playerData._id, new Date());
             }
         ).then(
             rewardTaskGroup => {
                 if (rewardTaskGroup) { rewardTaskGroupData = rewardTaskGroup; }
+
+                //if player applied BonusDoubledReward, check if player has enough credit.
+                if(playerBonusDoubledRewardValidity){
+                    let checkTransferAmount = 0;
+                    checkTransferAmount += parseFloat(playerData.validCredit.toFixed(2));
+
+                    if (playerData.platform.useProviderGroup && rewardTaskGroupData && rewardTaskGroupData.rewardAmt) {
+                        checkTransferAmount += rewardTaskGroupData.rewardAmt;
+                    }
+
+                    // Check if player has enough credit to play
+                    if (checkTransferAmount < 1 || amount == 0) {
+                        return Promise.reject({
+                            status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                            name: "DataError",
+                            errorMessage: "Player does not have enough credit."
+                        });
+                    }
+
+                    return dbPlayerInfo.checkPlayerBonusDoubledRewardTransferIn(playerData, playerData._id, playerData.platform._id, providerData._id, playerData.platform.platformId, providerData.providerId, playerData.name, amount, currentDate);
+                }
+
+                return false;
+
+            }
+        ).then(
+            checkPlayerBonusDoubledRewardResult => {
+                if(checkPlayerBonusDoubledRewardResult){
+                    isUpdateTransferId = true;
+                }
 
                 return dbPlayerUtil.setPlayerBState(playerData._id, "transferToProvider", true)
             }
@@ -6587,6 +6599,8 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+                transferAmount += parseFloat(playerData.validCredit.toFixed(2));
+
                 if (playerData.platform.useProviderGroup && rewardTaskGroupData && rewardTaskGroupData.rewardAmt) {
                     transferAmount += rewardTaskGroupData.rewardAmt;
                 }
@@ -7041,7 +7055,7 @@ let dbPlayerInfo = {
      * @param {objectId} providerId
      * @param {Number} amount
      */
-    transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
+    transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync, byPassBonusDoubledRewardChecking) {
         let playerObj;
         let gameProvider;
         let targetProviderId = providerId;
@@ -7082,7 +7096,12 @@ let dbPlayerInfo = {
                         }
                     }
 
-                    return dbPlayerInfo.checkPlayerBonusDoubledRewardTransferOut(playerObj, playerObj._id, playerObj.platform._id, playerObj.platform.platformId, gameProvider.providerId, playerObj.name);
+                    if(!byPassBonusDoubledRewardChecking){
+                        return dbPlayerInfo.checkPlayerBonusDoubledRewardTransferOut(playerObj, playerObj._id, playerObj.platform._id, playerObj.platform.platformId, gameProvider.providerId, playerObj.name);
+                    }else{
+                        return;
+                    }
+
                 } else {
                     return Promise.reject({name: "DataError", message: "Cant find player or provider"});
                 }
@@ -21705,7 +21724,8 @@ let dbPlayerInfo = {
         let query = {
             playerObjId: playerObjId,
             platformObjId: platformObjId,
-            isApplying: true
+            isApplying: true,
+            gameProviderId: providerShortId
         };
 
         return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOne(query)
@@ -21801,6 +21821,27 @@ let dbPlayerInfo = {
                 return dbProposal.createPlayerBonusDoubledRewardGroupProposal({}, selectedRewardParam, playerData, eventData, playerBonusDoubledRecord, lastConsumptionRecord, intervalTime, consumptionRecordList, winLoseAmount);
             }
         );
+    },
+
+    checkPlayerBonusDoubledRewardValidity: function(playerObjId, platformObjId, currentDate){
+        let playerBonusDoubledRewardObj;
+        let query = {
+            playerObjId: playerObjId,
+            platformObjId: platformObjId,
+            intervalStartTime: {$lte: currentDate},
+            intervalEndTime: {$gt: currentDate},
+            isApplying: true
+        };
+
+        return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOne(query).then(
+            data => {
+                if(data){
+                    return true;
+                }
+
+                return false;
+            }
+        )
     }
 };
 
@@ -22656,7 +22697,7 @@ function getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewa
                     let platform = playerData.platform._id;
                     let playerId = playerData.playerId;
                     let amount = providerCredit.gameCredit;
-                    return dbPlayerInfo.transferPlayerCreditFromProvider(playerId, platform, providerId, amount);
+                    return dbPlayerInfo.transferPlayerCreditFromProvider(playerId, platform, providerId, amount, null, null, null, null, true);
                 }
                 else{
                     return Promise.reject({
@@ -22972,24 +23013,6 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
                 consumptionRecordList = checkList[4] && checkList[4].consumptionRecordList ? checkList[4].consumptionRecordList : null;
                 lastConsumptionRecord = checkList[5] || null;
 
-                if (!selectedRewardParam || !playerBonusDoubledRecord || !winLoseAmount) {
-                    // end this activity without giving reward bonu
-                    console.log("applyRewarEvent - Ended the activity without giving reward bonus", [playerData.playerId, eventData.type.name]);
-                    // update the playerBonusDoubledRewardGroupRecord
-                    let query = {
-                        platformObjId: playerData.platform._id,
-                        playerObjId: playerData._id,
-                        rewardEventObjId: eventData._id,
-                        lastApplyDate: {$gte: intervalTime.startTime, $lte: intervalTime.endTime}
-                    };
-                    let updateObj = {
-                        isApplying: false,
-                        gameProviderObjId: null,
-                        gameProviderId: null,
-                    };
-
-                    return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, updateObj).lean();
-                }
                 return true;
             }
         }

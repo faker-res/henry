@@ -410,15 +410,19 @@ var dbWCGroupControl = {
         );
     },
 
-    getWCGroupControlSessionDeviceNickName: (platformIds) => {
-        let plaformObjIds = platformIds.map(x => ObjectId(x));
-        return dbConfig.collection_wcGroupControlSession.distinct('deviceNickName', {platformObjId: {$in: plaformObjIds}}).lean();
-    },
-
-    getWCGroupControlSessionMonitor: (deviceNickNames, adminIds, index, limit) => {
+    getWCGroupControlSessionMonitor: (platformIds, deviceNickNames, adminIds, index, limit, sortCol) => {
         index = index || 0;
         let match = {};
+        let platformList = [];
         let csOfficerList = [];
+        let adminQuery = {};
+
+        if (platformIds && platformIds.length > 0) {
+            platformIds.forEach(x => {
+                platformList.push(ObjectId(x));
+            });
+            match['platformObjId'] = {$in: platformList};
+        }
 
         if (deviceNickNames && deviceNickNames.length > 0) {
             match['deviceNickName'] = {$in: deviceNickNames};
@@ -429,18 +433,18 @@ var dbWCGroupControl = {
                 csOfficerList.push(ObjectId(x));
             });
 
-            if (!deviceNickNames.length) {
-                match['csOfficer'] = {$in: csOfficerList};
-            } else {
-                match['$or'] = [{csOfficer: {$eq: null}},
-                    {csOfficer: {$in: csOfficerList}}
-                ]
-            }
-        } else {
-            match['csOfficer'] = {$eq: null};
+            match['$or'] = [{csOfficer: {$eq: null}},
+                {csOfficer: {$in: csOfficerList}}
+            ]
         }
 
-        let adminProm = dbConfig.collection_admin.find({_id: {$in: adminIds}}, {adminName: 1}).lean();
+        if (adminIds && adminIds.length > 0) {
+            adminQuery = {
+                _id: {$in: adminIds}
+            };
+        }
+
+        let adminProm = dbConfig.collection_admin.find(adminQuery, {adminName: 1}).lean();
         let platformProm = dbConfig.collection_platform.find({}, {name:1, platformId: 1}).lean();
 
         let countWCGroupControlSessionMonitorProm = dbConfig.collection_wcGroupControlSession.aggregate([
@@ -470,7 +474,7 @@ var dbWCGroupControl = {
                 $match: match
             },
             {
-                $sort : { createTime : 1}
+                $sort : { _id : 1}
             },
             {
                 $group: {
@@ -482,6 +486,18 @@ var dbWCGroupControl = {
                     lastUpdateTime: {$last: '$lastUpdateTime'}
                 }
             },
+            {
+                $project: {
+                    _id: 1,
+                    csOfficer: 1,
+                    status: 1,
+                    connectionAbnormalClickTimes: 1,
+                    createTime: 1,
+                    lastUpdateTime: 1,
+                    duration: { $divide:[ {$subtract: [ {$ifNull: [ "$lastUpdateTime", new Date()]}, "$createTime" ]}, 60000] }
+                }
+            },
+            {   $sort: sortCol },
             {   $skip: index },
             {   $limit: limit },
             {
@@ -494,10 +510,10 @@ var dbWCGroupControl = {
                     status: 1,
                     connectionAbnormalClickTimes: 1,
                     createTime: 1,
-                    lastUpdateTime: 1
-
+                    lastUpdateTime: 1,
+                    duration: 1
                 }
-            },
+            }
         ]).read("secondaryPreferred");
 
         return Promise.all([countWCGroupControlSessionMonitorProm, wcGroupControlSessionMonitorProm, adminProm, platformProm]).then(
@@ -506,7 +522,7 @@ var dbWCGroupControl = {
                 let wcGroupSessionRecord = [];
                 let adminRecord = [];
                 let platformRecord = [];
-                let result = []
+                let result = [];
 
                 if (data) {
                     size = data[0] && data[0][0] && data[0][0].count ? data[0][0].count : 0;

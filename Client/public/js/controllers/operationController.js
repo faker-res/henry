@@ -1153,7 +1153,7 @@ define(['js/app'], function (myApp) {
             var tableData = [];
             $.each(data, function (i, v) {
                 if (v) {
-                    if (v.mainType == 'Reward') {
+                    if (v.mainType == 'Reward' && !(v.data && v.type && v.type.name && v.type.name == "PlayerBonusDoubledRewardGroup")) {
                         v.type.name = v.data && v.data.eventName ? v.data.eventName : v.type.name;
                     }
                     if (v.mainType == 'Others')
@@ -3078,7 +3078,7 @@ define(['js/app'], function (myApp) {
                     proposalDetail["maxReward"] = vm.selectedProposal.data.maxReward;
                 }
 
-                vm.selectedProposal.data = proposalDetail;
+                vm.selectedProposalDetailForDisplay = proposalDetail;
             }
 
             // Remove fields for detail viewing

@@ -232,17 +232,6 @@ function socketActionDepartment(socketIO, socket) {
             socketUtil.emitter(self.socket, dbDepartment.getDepartmentById, [data.departmentObjId, data.departmentIds], actionName, isDataValid);
         },
 
-        getWCDepartmentDetailByAdminObjId: function getWCDepartmentDetailByAdminObjId(data) {
-            let actionName = arguments.callee.name;
-            let isDataValid = Boolean(data && data.adminId);
-            socketUtil.emitter(self.socket, dbDepartment.getWCDepartmentDetailByAdminObjId, [data.adminId], actionName, isDataValid);
-        },
-
-        getWCAdminDetailByDepartmentIds: function getWCAdminDetailByDepartmentIds(data) {
-            let actionName = arguments.callee.name;
-            let isDataValid = Boolean(data && data.departmentObjIds);
-            socketUtil.emitter(self.socket, dbDepartment.getWCAdminDetailByDepartmentIds, [data.departmentObjIds], actionName, isDataValid);
-        },
     };
 
     socketActionDepartment.actions = this.actions;
