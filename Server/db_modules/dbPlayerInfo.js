@@ -13341,7 +13341,7 @@ let dbPlayerInfo = {
                 if (proposalTypeData) {
                     var queryObject = {
                         "data.playerId": playerId,
-                        type: proposalTypeData._id
+                        type: proposalTypeData._id,
                         status: constProposalStatus.PENDING
                     };
                     return dbconfig.collection_proposal.findOne(queryObject).lean();
