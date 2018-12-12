@@ -486,6 +486,18 @@ var dbWCGroupControl = {
                     lastUpdateTime: {$last: '$lastUpdateTime'}
                 }
             },
+            {
+                $project: {
+                    _id: 1,
+                    csOfficer: 1,
+                    status: 1,
+                    connectionAbnormalClickTimes: 1,
+                    createTime: 1,
+                    lastUpdateTime: 1,
+                    duration: { $divide:[ {$subtract: [ {$ifNull: [ "$lastUpdateTime", new Date()]}, "$createTime" ]}, 60000] }
+                }
+            },
+            {   $sort: sortCol },
             {   $skip: index },
             {   $limit: limit },
             {
@@ -498,10 +510,10 @@ var dbWCGroupControl = {
                     status: 1,
                     connectionAbnormalClickTimes: 1,
                     createTime: 1,
-                    lastUpdateTime: 1
-
+                    lastUpdateTime: 1,
+                    duration: 1
                 }
-            },
+            }
         ]).read("secondaryPreferred");
 
         return Promise.all([countWCGroupControlSessionMonitorProm, wcGroupControlSessionMonitorProm, adminProm, platformProm]).then(
@@ -510,7 +522,7 @@ var dbWCGroupControl = {
                 let wcGroupSessionRecord = [];
                 let adminRecord = [];
                 let platformRecord = [];
-                let result = []
+                let result = [];
 
                 if (data) {
                     size = data[0] && data[0][0] && data[0][0].count ? data[0][0].count : 0;
