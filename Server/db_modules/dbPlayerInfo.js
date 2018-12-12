@@ -7055,7 +7055,7 @@ let dbPlayerInfo = {
      * @param {objectId} providerId
      * @param {Number} amount
      */
-    transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync) {
+    transferPlayerCreditFromProvider: function (playerId, platform, providerId, amount, adminName, bResolve, maxReward, forSync, byPassBonusDoubledRewardChecking) {
         let playerObj;
         let gameProvider;
         let targetProviderId = providerId;
@@ -7096,7 +7096,12 @@ let dbPlayerInfo = {
                         }
                     }
 
-                    return dbPlayerInfo.checkPlayerBonusDoubledRewardTransferOut(playerObj, playerObj._id, playerObj.platform._id, playerObj.platform.platformId, gameProvider.providerId, playerObj.name);
+                    if(!byPassBonusDoubledRewardChecking){
+                        return dbPlayerInfo.checkPlayerBonusDoubledRewardTransferOut(playerObj, playerObj._id, playerObj.platform._id, playerObj.platform.platformId, gameProvider.providerId, playerObj.name);
+                    }else{
+                        return;
+                    }
+
                 } else {
                     return Promise.reject({name: "DataError", message: "Cant find player or provider"});
                 }
@@ -22692,7 +22697,7 @@ function getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewa
                     let platform = playerData.platform._id;
                     let playerId = playerData.playerId;
                     let amount = providerCredit.gameCredit;
-                    return dbPlayerInfo.transferPlayerCreditFromProvider(playerId, platform, providerId, amount);
+                    return dbPlayerInfo.transferPlayerCreditFromProvider(playerId, platform, providerId, amount, null, null, null, null, true);
                 }
                 else{
                     return Promise.reject({
@@ -23008,24 +23013,6 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
                 consumptionRecordList = checkList[4] && checkList[4].consumptionRecordList ? checkList[4].consumptionRecordList : null;
                 lastConsumptionRecord = checkList[5] || null;
 
-                if (!selectedRewardParam || !playerBonusDoubledRecord || !winLoseAmount) {
-                    // end this activity without giving reward bonu
-                    console.log("applyRewarEvent - Ended the activity without giving reward bonus", [playerData.playerId, eventData.type.name]);
-                    // update the playerBonusDoubledRewardGroupRecord
-                    let query = {
-                        platformObjId: playerData.platform._id,
-                        playerObjId: playerData._id,
-                        rewardEventObjId: eventData._id,
-                        lastApplyDate: {$gte: intervalTime.startTime, $lte: intervalTime.endTime}
-                    };
-                    let updateObj = {
-                        isApplying: false,
-                        gameProviderObjId: null,
-                        gameProviderId: null,
-                    };
-
-                    return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, updateObj).lean();
-                }
                 return true;
             }
         }

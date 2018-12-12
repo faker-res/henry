@@ -4635,6 +4635,25 @@ var proposal = {
             spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
         }
 
+        if (!selectedRewardParam || !playerBonusDoubledRecord || !winLoseAmount) {
+            // end this activity without giving reward bonus
+            console.log("applyRewarEvent - Ended the activity without giving reward bonus", [playerData.playerId, eventData.type.name]);
+            // update the playerBonusDoubledRewardGroupRecord
+            let query = {
+                platformObjId: playerData.platform._id,
+                playerObjId: playerData._id,
+                rewardEventObjId: eventData._id,
+                lastApplyDate: {$gte: intervalTime.startTime, $lte: intervalTime.endTime}
+            };
+            let updateObj = {
+                isApplying: false,
+                gameProviderObjId: null,
+                gameProviderId: null,
+            };
+
+            return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, updateObj).lean();
+        }
+
         // create reward proposal
         let proposalData = {
             type: eventData.executeProposal,
