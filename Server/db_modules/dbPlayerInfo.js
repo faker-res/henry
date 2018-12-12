@@ -19030,7 +19030,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_tsPhoneList.distinct("name", {platform: platformObjId});
     },
 
-    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName, targetTsPhoneListId) {
+    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName, targetTsPhoneListId, isImportFeedback, isPhoneTrade) {
         let tsPhoneList;
         if (phoneListDetail.length <= 0) {
             return Promise.reject("None of the phone has pass the filter");
@@ -19084,22 +19084,42 @@ let dbPlayerInfo = {
                         tsPhoneList: tsPhoneList._id
                     }).save();
 
-                    if(targetTsPhoneListId && phone._id) {
-                        prom = prom.then(
-                            tsPhoneData => {
-                                dbconfig.collection_tsPhoneFeedback.update(
-                                    {
-                                        tsPhone: phone._id,
-                                        tsPhoneList: targetTsPhoneListId
-                                    },
-                                    {
-                                        tsPhone: tsPhoneData._id,
-                                        tsPhoneList: tsPhoneList._id
-                                    }, {multi: true}).catch(errorUtils.reportError);
-                                return tsPhoneData;
-                            }
-                        )
+                    if(isImportFeedback && phone._id) {
+                        if (isImportFeedback) {
+                            prom = prom.then(
+                                tsPhoneData => {
+                                    dbconfig.collection_tsPhoneFeedback.update(
+                                        {
+                                            tsPhone: phone._id,
+                                            tsPhoneList: phone.tsPhoneList
+                                        },
+                                        {
+                                            tsPhone: tsPhoneData._id,
+                                            tsPhoneList: tsPhoneList._id
+                                        }, {multi: true}).catch(errorUtils.reportError);
+                                    return tsPhoneData;
+                                }
+                            )
+                        }
+
+                        if (isPhoneTrade) {
+                            prom = prom.then(
+                                tsPhoneData => {
+                                    dbconfig.collection_tsPhoneTrade.update(
+                                        {
+                                            sourceTsPhone: phone._id,
+                                            sourceTsPhoneList: phone.tsPhoneList
+                                        },
+                                        {
+                                            targetTsPhone: tsPhoneData._id,
+                                            targetTsPhoneList: tsPhoneList._id
+                                        }, {multi: true}).catch(errorUtils.reportError);
+                                    return tsPhoneData
+                                }
+                            )
+                        }
                     }
+
 
                     promArr.push(prom);
                 });

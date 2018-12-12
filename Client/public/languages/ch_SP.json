@@ -4167,6 +4167,10 @@
   "Time/Operator/Description": "导入时间/操作员/描述",
   "FIELD":"栏位",
   "LINE_STATUS":"线路状态",
+  "Import X numbers into telemarketing system":"导入 X 笔电话进入电销系统",
+  "SELECTED_COUNT":"已勾选笔数",
+  "Please enter quantity (random select)":"请输入笔数（随机挑选）",
+  "All phone number?":"全部电话？",
 
   "Distribution": "参与派发",
   "Distribution Name List Settings": "名单派发设定",
