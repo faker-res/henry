@@ -5881,7 +5881,6 @@ let dbPlayerInfo = {
             platform: platformObjId
 
         };
-
         return dbconfig.collection_players.findOne(playerQuery).populate({
             path: "platform",
             model: dbconfig.collection_platform
@@ -5920,16 +5919,22 @@ let dbPlayerInfo = {
                         record => {
                             if (record && record.lastReceivedDate && record.rewardEventObjId && record.rewardEventObjId.condition && record.rewardEventObjId.condition.interval
                                 && record.rewardEventObjId.validStartTime && record.rewardEventObjId.validEndTime){
-                                let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, record.rewardEventObjId);
+                                let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, record.rewardEventObjId, true);
                                 let isRewardValid = true;
                                 let hasReceived = false;
                                 let isForbidden = false;
+                                let isOutOfAppliedInterval = false;
 
                                 // check if the reward is expired
                                 let curTime = new Date();
                                 if ((record.rewardEventObjId.validStartTime && curTime.getTime() < record.rewardEventObjId.validStartTime.getTime()) ||
                                     (record.rewardEventObjId.validEndTime && curTime.getTime() > record.rewardEventObjId.validEndTime.getTime())) {
                                    isRewardValid = false;
+                                }
+
+                                // check if the applyDate is expired
+                                if (intervalTime.startTime > record.lastApplyDate){
+                                    isOutOfAppliedInterval = true;
                                 }
 
                                 // check has claim the reward
@@ -5944,7 +5949,7 @@ let dbPlayerInfo = {
                                     isForbidden = true;
                                 }
 
-                                if (isRewardValid && !hasReceived && !isForbidden){
+                                if (isRewardValid && !hasReceived && !isForbidden && !isOutOfAppliedInterval){
                                     let rewardParam = {};
                                     // Set reward param for player level to use
                                     if (record.rewardEventObjId.isPlayerLevelDiff) {
@@ -7889,6 +7894,9 @@ let dbPlayerInfo = {
             if (loginMode == 2) {
                 changeToDateTimeFormat(value, eventData);
             }
+            else{
+                changeParamName(value);
+            }
             return value;
         }
 
@@ -7903,6 +7911,18 @@ let dbPlayerInfo = {
                         else {
                             valueObj.loginDay = dbUtility.getNdaylaterFromSpecificStartTime(i, intervalTime.startTime);
                         }
+                    }
+                    return valueObj;
+                }
+            )
+        }
+
+        function changeParamName (value) {
+            value.forEach(
+                (valueObj, i) => {
+                    if (valueObj) {
+                        valueObj.step = valueObj.loginDay;
+                        delete valueObj.loginDay;
                     }
                     return valueObj;
                 }
