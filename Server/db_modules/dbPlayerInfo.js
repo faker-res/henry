@@ -5881,7 +5881,6 @@ let dbPlayerInfo = {
             platform: platformObjId
 
         };
-        
         return dbconfig.collection_players.findOne(playerQuery).populate({
             path: "platform",
             model: dbconfig.collection_platform
@@ -14349,7 +14348,6 @@ let dbPlayerInfo = {
                                 if ((rewardEvent.type.isGrouped && rewardEvent.condition.allowConsumptionAfterTopUp) || isRandomRewardConsumption(rewardEvent)) {
                                     // Bypass this checking
                                 } else {
-                                    console.log("checking 100")
                                     return Q.reject({
                                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                         name: "DataError",
