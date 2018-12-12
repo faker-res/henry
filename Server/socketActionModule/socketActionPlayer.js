@@ -947,8 +947,6 @@ function socketActionPlayer(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data.playerId && data.clientType);
             socketUtil.emitter(self.socket, dbPlayerPayment.requestBankTypeByUserName, [data.playerId, data.clientType, null, data.supportMode], actionName, isValidData);
-            // WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.requestBankTypeByUserName, [conn.playerId, data.clientType, userIp, data.supportMode], isValidData);
-
         },
 
         // Assign TopUp
