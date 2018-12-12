@@ -14188,7 +14188,7 @@ let dbPlayerInfo = {
         );
     },
 
-    applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply, appliedObjIdList, type, gameProviderList) {
+    applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply, appliedObjIdList, type) {
         console.log('Apply reward event', playerId, code);
         data = data || {};
         let dbPlayerUtil = require('../db_common/dbPlayerUtility');
@@ -14427,32 +14427,6 @@ let dbPlayerInfo = {
                                         let objIdList = [];
                                         if (type){
                                             rewardData.type = type;
-                                            if (type == 1){
-                                                if (!gameProviderList){
-                                                    return Promise.reject({
-                                                        status: constServerCode.INVALID_DATA,
-                                                        name: "DataError",
-                                                        message: "No gameProvider is selected"
-                                                    })
-                                                }
-                                                else {
-                                                    if (typeof gameProviderList == 'string') {
-                                                        let splitArr = gameProviderList.split(",");
-
-                                                        splitArr.forEach(
-                                                            objId => {
-                                                                if (objId) {
-                                                                    objIdList.push(ObjectId(objId.trim()));
-                                                                }
-                                                            }
-                                                        )
-                                                        rewardData.gameProviderList = objIdList;
-                                                    }
-                                                    else {
-                                                        rewardData.gameProviderList = gameProviderList
-                                                    }
-                                                }
-                                            }
                                         }
                                         else{
                                             return Promise.reject({
@@ -22865,8 +22839,8 @@ function transferOutFromSelectedGameProvider(selectedProviderList, playerData, e
 
 function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, adminInfo, rewardData, isFrontEnd) {
     rewardData = rewardData || {};
-    let type;  // type: 1- apply; 2- end this session to get reward bonus
-    let selectedProviderList;
+    let type = null;  // type: 1- apply; 2- end this session to get reward bonus
+    let selectedProviderList = null;
     let selectedRewardParam;
     let winLoseAmount;
     let consumptionRecordList;
@@ -22891,14 +22865,13 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
     }
 
     if(isFrontEnd){
-        selectedProviderList = rewardData.gameProviderList;
         type = rewardData.type ? rewardData.type : null;
     }
     else{
-        // this is in ObjectId
-        selectedProviderList = eventData.condition && eventData.condition.gameProvider && eventData.condition.gameProvider.length ? eventData.condition.gameProvider : null;
         type = 1; // if initiated from back-stage, can only apply
     }
+
+    selectedProviderList = eventData.condition && eventData.condition.gameProvider && eventData.condition.gameProvider.length ? eventData.condition.gameProvider : null;
 
     // reject the reward application if it is applied from front-end but the setting is settlement (back-end)
     if (dbUtility.getInputDevice(userAgent, false, adminInfo) != 0 && eventData.condition && eventData.condition.applyType && eventData.condition.applyType == 3) {
@@ -22907,7 +22880,21 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
             message: "The way of applying this reward is not correct."
         })
     }
-    
+
+    if (!type){
+        return Promise.reject({
+            name: "DataError",
+            message: "type is not provided"
+        })
+    }
+
+    if (!selectedProviderList){
+        return Promise.reject({
+            name: "DataError",
+            message: "game provider is not selected"
+        })
+    }
+
     if (type && type == 1){
         // check the requirement when applying the reward
         //check valid time for reward event
