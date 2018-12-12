@@ -5881,7 +5881,6 @@ let dbPlayerInfo = {
             platform: platformObjId
 
         };
-
         return dbconfig.collection_players.findOne(playerQuery).populate({
             path: "platform",
             model: dbconfig.collection_platform
@@ -5920,16 +5919,22 @@ let dbPlayerInfo = {
                         record => {
                             if (record && record.lastReceivedDate && record.rewardEventObjId && record.rewardEventObjId.condition && record.rewardEventObjId.condition.interval
                                 && record.rewardEventObjId.validStartTime && record.rewardEventObjId.validEndTime){
-                                let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, record.rewardEventObjId);
+                                let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, record.rewardEventObjId, true);
                                 let isRewardValid = true;
                                 let hasReceived = false;
                                 let isForbidden = false;
+                                let isOutOfAppliedInterval = false;
 
                                 // check if the reward is expired
                                 let curTime = new Date();
                                 if ((record.rewardEventObjId.validStartTime && curTime.getTime() < record.rewardEventObjId.validStartTime.getTime()) ||
                                     (record.rewardEventObjId.validEndTime && curTime.getTime() > record.rewardEventObjId.validEndTime.getTime())) {
                                    isRewardValid = false;
+                                }
+
+                                // check if the applyDate is expired
+                                if (intervalTime.startTime > record.lastApplyDate){
+                                    isOutOfAppliedInterval = true;
                                 }
 
                                 // check has claim the reward
@@ -5944,7 +5949,7 @@ let dbPlayerInfo = {
                                     isForbidden = true;
                                 }
 
-                                if (isRewardValid && !hasReceived && !isForbidden){
+                                if (isRewardValid && !hasReceived && !isForbidden && !isOutOfAppliedInterval){
                                     let rewardParam = {};
                                     // Set reward param for player level to use
                                     if (record.rewardEventObjId.isPlayerLevelDiff) {
@@ -7067,6 +7072,7 @@ let dbPlayerInfo = {
                 .populate({path: "platform", model: dbconfig.collection_platform})
                 .populate({path: "lastPlayedProvider", model: dbconfig.collection_gameProvider}).lean();
         let providerProm = dbconfig.collection_gameProvider.findOne({providerId: targetProviderId}).lean();
+        let currentDate = new Date();
 
         return Promise.all([playerProm, providerProm]).then(
             data => {
@@ -7097,7 +7103,7 @@ let dbPlayerInfo = {
                     }
 
                     if(!byPassBonusDoubledRewardChecking){
-                        return dbPlayerInfo.checkPlayerBonusDoubledRewardTransferOut(playerObj, playerObj._id, playerObj.platform._id, playerObj.platform.platformId, gameProvider.providerId, playerObj.name);
+                        return dbPlayerInfo.checkPlayerBonusDoubledRewardTransferOut(playerObj, playerObj._id, playerObj.platform._id, playerObj.platform.platformId, gameProvider.providerId, playerObj.name, currentDate);
                     }else{
                         return;
                     }
@@ -7888,6 +7894,9 @@ let dbPlayerInfo = {
             if (loginMode == 2) {
                 changeToDateTimeFormat(value, eventData);
             }
+            else{
+                changeParamName(value);
+            }
             return value;
         }
 
@@ -7902,6 +7911,18 @@ let dbPlayerInfo = {
                         else {
                             valueObj.loginDay = dbUtility.getNdaylaterFromSpecificStartTime(i, intervalTime.startTime);
                         }
+                    }
+                    return valueObj;
+                }
+            )
+        }
+
+        function changeParamName (value) {
+            value.forEach(
+                (valueObj, i) => {
+                    if (valueObj) {
+                        valueObj.step = valueObj.loginDay;
+                        delete valueObj.loginDay;
                     }
                     return valueObj;
                 }
@@ -14195,7 +14216,7 @@ let dbPlayerInfo = {
         );
     },
 
-    applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply, appliedObjIdList, type, gameProviderList) {
+    applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply, appliedObjIdList, type) {
         console.log('Apply reward event', playerId, code);
         data = data || {};
         let dbPlayerUtil = require('../db_common/dbPlayerUtility');
@@ -14434,32 +14455,6 @@ let dbPlayerInfo = {
                                         let objIdList = [];
                                         if (type){
                                             rewardData.type = type;
-                                            if (type == 1){
-                                                if (!gameProviderList){
-                                                    return Promise.reject({
-                                                        status: constServerCode.INVALID_DATA,
-                                                        name: "DataError",
-                                                        message: "No gameProvider is selected"
-                                                    })
-                                                }
-                                                else {
-                                                    if (typeof gameProviderList == 'string') {
-                                                        let splitArr = gameProviderList.split(",");
-
-                                                        splitArr.forEach(
-                                                            objId => {
-                                                                if (objId) {
-                                                                    objIdList.push(ObjectId(objId.trim()));
-                                                                }
-                                                            }
-                                                        )
-                                                        rewardData.gameProviderList = objIdList;
-                                                    }
-                                                    else {
-                                                        rewardData.gameProviderList = gameProviderList
-                                                    }
-                                                }
-                                            }
                                         }
                                         else{
                                             return Promise.reject({
@@ -21727,13 +21722,14 @@ let dbPlayerInfo = {
         )
     },
 
-    checkPlayerBonusDoubledRewardTransferOut: function(playerData, playerObjId, platformObjId, platformId, providerShortId, userName){
+    checkPlayerBonusDoubledRewardTransferOut: function(playerData, playerObjId, platformObjId, platformId, providerShortId, userName, currentDate){
         let playerBonusDoubledRewardObj;
         let query = {
             playerObjId: playerObjId,
             platformObjId: platformObjId,
             isApplying: true,
-            gameProviderId: providerShortId
+            intervalStartTime: {$lte: currentDate},
+            intervalEndTime: {$gt: currentDate}
         };
 
         return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOne(query)
@@ -22871,8 +22867,8 @@ function transferOutFromSelectedGameProvider(selectedProviderList, playerData, e
 
 function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, adminInfo, rewardData, isFrontEnd) {
     rewardData = rewardData || {};
-    let type;  // type: 1- apply; 2- end this session to get reward bonus
-    let selectedProviderList;
+    let type = null;  // type: 1- apply; 2- end this session to get reward bonus
+    let selectedProviderList = null;
     let selectedRewardParam;
     let winLoseAmount;
     let consumptionRecordList;
@@ -22897,20 +22893,33 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
     }
 
     if(isFrontEnd){
-        selectedProviderList = rewardData.gameProviderList;
         type = rewardData.type ? rewardData.type : null;
     }
     else{
-        // this is in ObjectId
-        selectedProviderList = eventData.condition && eventData.condition.gameProvider && eventData.condition.gameProvider.length ? eventData.condition.gameProvider : null;
         type = 1; // if initiated from back-stage, can only apply
     }
+
+    selectedProviderList = eventData.condition && eventData.condition.gameProvider && eventData.condition.gameProvider.length ? eventData.condition.gameProvider : null;
 
     // reject the reward application if it is applied from front-end but the setting is settlement (back-end)
     if (dbUtility.getInputDevice(userAgent, false, adminInfo) != 0 && eventData.condition && eventData.condition.applyType && eventData.condition.applyType == 3) {
         return Promise.reject({
             name: "DataError",
             message: "The way of applying this reward is not correct."
+        })
+    }
+
+    if (!type){
+        return Promise.reject({
+            name: "DataError",
+            message: "type is not provided"
+        })
+    }
+
+    if (!selectedProviderList){
+        return Promise.reject({
+            name: "DataError",
+            message: "game provider is not selected"
         })
     }
 

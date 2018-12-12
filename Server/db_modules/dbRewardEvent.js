@@ -312,6 +312,7 @@ var dbRewardEvent = {
                                 return checkRewardData;
                             }
                         );
+                        break;
 
                     case constRewardType.PLAYER_CONSUMPTION_RETURN:
                         let returnData = {
@@ -522,7 +523,7 @@ var dbRewardEvent = {
 
                                 let promArr = [];
                                 if (topUpData && topUpData.length) {
-                                    if (rewardEvent.condition && rewardEvent.condition.hasOwnProperty('allowConsumptionAfterTopUp') && !rewardEvent.condition.allowConsumptionAfterTopUp) {
+                                    if (rewardEvent.condition && !rewardEvent.condition.allowConsumptionAfterTopUp) {
                                         if (consumptionData && consumptionData.length === 0) { // if no consumption, use all valid top up
                                             for (let i = 0; i < topUpData.length; i++) {
                                                 promArr.push(checkRewardEventWithTopUp(topUpData[i]));

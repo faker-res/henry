@@ -486,6 +486,18 @@ var dbWCGroupControl = {
                     lastUpdateTime: {$last: '$lastUpdateTime'}
                 }
             },
+            {
+                $project: {
+                    _id: 1,
+                    csOfficer: 1,
+                    status: 1,
+                    connectionAbnormalClickTimes: 1,
+                    createTime: 1,
+                    lastUpdateTime: 1,
+                    duration: { $divide:[ {$subtract: [ {$ifNull: [ "$lastUpdateTime", new Date()]}, "$createTime" ]}, 60000] }
+                }
+            },
+            {   $sort: sortCol },
             {   $skip: index },
             {   $limit: limit },
             {
@@ -498,10 +510,10 @@ var dbWCGroupControl = {
                     status: 1,
                     connectionAbnormalClickTimes: 1,
                     createTime: 1,
-                    lastUpdateTime: 1
-
+                    lastUpdateTime: 1,
+                    duration: 1
                 }
-            },
+            }
         ]).read("secondaryPreferred");
 
         return Promise.all([countWCGroupControlSessionMonitorProm, wcGroupControlSessionMonitorProm, adminProm, platformProm]).then(
@@ -510,7 +522,7 @@ var dbWCGroupControl = {
                 let wcGroupSessionRecord = [];
                 let adminRecord = [];
                 let platformRecord = [];
-                let result = []
+                let result = [];
 
                 if (data) {
                     size = data[0] && data[0][0] && data[0][0].count ? data[0][0].count : 0;
@@ -527,7 +539,7 @@ var dbWCGroupControl = {
 
     },
 
-    getWCGroupControlSessionHistory: (platformObjId, deviceNickName, deviceId, adminIds, startDate, endDate, index, limit) => {
+    getWCGroupControlSessionHistory: (platformObjId, deviceNickName, deviceId, adminIds, startDate, endDate, index, limit, sortCol) => {
         platformObjId = ObjectId(platformObjId);
         index = index || 0;
         let csOfficerList = [];
@@ -554,7 +566,7 @@ var dbWCGroupControl = {
         let countWCGroupControlSessionHistoryProm = dbConfig.collection_wcGroupControlSession.find(query).count();
         let WCGroupControlSessionHistoryProm = dbConfig.collection_wcGroupControlSession.find(query)
             .populate({path: "platformObjId", model: dbConfig.collection_platform, select: {name: 1, platformId: 1}})
-            .populate({path: "csOfficer", model: dbConfig.collection_admin, select: {adminName: 1}}).skip(index).limit(limit);
+            .populate({path: "csOfficer", model: dbConfig.collection_admin, select: {adminName: 1}}).sort(sortCol).skip(index).limit(limit);
 
         return Promise.all([countWCGroupControlSessionHistoryProm, WCGroupControlSessionHistoryProm]).then(
             data => {

@@ -130,7 +130,8 @@ define(['js/app'], function (myApp) {
                 adminIds: vm.wechatGroupControlMonitorQuery.csOfficer,
                 deviceNickNames: vm.wechatGroupControlMonitorQuery.deviceNickName,
                 index: vm.wechatGroupControlMonitorQuery.index,
-                limit: vm.wechatGroupControlMonitorQuery.limit || 1000
+                limit: vm.wechatGroupControlMonitorQuery.limit || 1000,
+                sortCol: vm.wechatGroupControlMonitorQuery.sortCol
             };
 
             console.log('sendObj', sendObj);
@@ -143,17 +144,8 @@ define(['js/app'], function (myApp) {
 
                     vm.drawWechatGroupRecordTable(
                         data.data.data ? data.data.data.map(item => {
-                            let lastDate = new Date();
-                            let createDate = new Date(item.createTime);
-                            let duration = 0;
-                            if (item && item.lastUpdateTime) {
-                                lastDate = new Date(item.lastUpdateTime);
-                            } else {
-                                lastDate = new Date();
-                            }
-                            duration = vm.getSessionDuration(lastDate, createDate);
-                            item.duration = duration;
-                            item.duration$ = duration + $translate('minute(s)');
+                            item.duration = Math.floor(item.duration);
+                            item.duration$ = Math.floor(item.duration) + $translate('minute(s)');
                             item.product = item.platformId + '.' + item.platformName;
                             item.adminName$ = item.adminName ? item.adminName : $translate('No first attempt login');
                             item.status$ = item.status == 1 ? $translate('Green light is on(Online)') : $translate('Red light is on(Offline)');
@@ -162,6 +154,7 @@ define(['js/app'], function (myApp) {
                             return item;
                         }) : [], data.data.size, {}, isNewSearch
                     );
+
                 });
             }, function (err) {
                 console.error(err);
@@ -172,7 +165,6 @@ define(['js/app'], function (myApp) {
         vm.drawWechatGroupRecordTable = function (data, size, summary, newSearch) {
             let tableOptions = {
                 data: data,
-                "order": vm.wechatGroupControlMonitorQuery.aaSorting || [[4, 'desc']],
                 aoColumnDefs: [
                     {'sortCol': 'connectionAbnormalClickTimes', bSortable: true, 'aTargets': [4]},
                     {'sortCol': 'duration', bSortable: true, 'aTargets': [5]},
@@ -243,10 +235,7 @@ define(['js/app'], function (myApp) {
                 destroy: true,
                 paging: false,
                 autoWidth: true,
-                fnRowCallback: vm.statusColor,
-                createdRow: function (row, data, dataIndex) {
-                    $compile(angular.element(row).contents())($scope)
-                }
+                fnRowCallback: vm.statusColor
             };
             tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
             vm.lastWechatRefresh = utilService.$getTimeFromStdTimeFormat();
@@ -257,6 +246,7 @@ define(['js/app'], function (myApp) {
                 vm.commonSortChangeHandler(a, 'wechatGroupControlMonitorQuery', vm.searchWechatMonitorRecord);
             });
             $('#wechatGroupMonitorTable').resize();
+            $scope.$evalAsync();
         };
 
         vm.statusColor = function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
@@ -336,6 +326,7 @@ define(['js/app'], function (myApp) {
                 endDate: vm.wcGroupControlSessionHistory.endDate.data('datetimepicker').getLocalDate(),
                 index: newSearch ? 0 : vm.wcGroupControlSessionHistory.index,
                 limit: newSearch ? 1000 : vm.wcGroupControlSessionHistory.limit,
+                sortCol: vm.wcGroupControlSessionHistory.sortCol
             }
 
             console.log('sendSessionQuery', sendQuery);
@@ -375,6 +366,7 @@ define(['js/app'], function (myApp) {
             let tableOptions = {
                 data: data,
                 aoColumnDefs: [
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [

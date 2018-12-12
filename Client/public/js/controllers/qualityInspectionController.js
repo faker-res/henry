@@ -3031,6 +3031,7 @@ define(['js/app'], function (myApp) {
                     startTime: startTime,
                     endTime: endTime,
                     content: vm.inspectionWechat.content,
+                    playerWechatRemark: vm.inspectionWechat.playerWechatRemark,
                     index: vm.inspectionWechat.index || 0,
                     limit: vm.inspectionWechat.limit || 1000
                 };
@@ -3038,6 +3039,7 @@ define(['js/app'], function (myApp) {
                 vm.deviceListTotal = 0;
                 vm.showDeviceTable = true;
                 $('#wechatConversationTableSpin').show();
+                let playerWechatRemarkList = [];
 
                 socketService.$socket($scope.AppSocket, 'getWechatConversationDeviceList', sendData, function (data) {
                     $scope.$evalAsync(() => {
@@ -3049,7 +3051,7 @@ define(['js/app'], function (myApp) {
                             data.data.data.forEach(data => {
                                 if(data && data._id && data._id.platformName && data._id.deviceNickName && data._id.playerWechatRemark){
                                     let indexByPlatform = vm.deviceList.findIndex(d => d.platformName == data._id.platformName);
-
+                                    playerWechatRemarkList.push(data._id.playerWechatRemark);
                                     if(indexByPlatform > -1){
                                         if(vm.deviceList[indexByPlatform]){
                                             let indexByDevice = vm.deviceList[indexByPlatform].deviceNickName.findIndex(d => d.deviceNickName == data._id.deviceNickName);
@@ -3089,7 +3091,7 @@ define(['js/app'], function (myApp) {
 
                             $('#wechatConversationTableSpin').hide();
                             vm.oriDeviceList = vm.deviceList;
-                            vm.searchWechatConversation(vm.inspectionWechat.platform, vm.inspectionWechat.deviceName, vm.inspectionWechat.playerWechatRemark);
+                            vm.searchWechatConversation(vm.inspectionWechat.platform, vm.inspectionWechat.deviceName, playerWechatRemarkList);
                         }
                     })
                 });
@@ -3141,7 +3143,8 @@ define(['js/app'], function (myApp) {
                 let sendData = {
                     platform: vm.inspectionWechat.conversationPlatform,
                     deviceNickName: vm.inspectionWechat.conversationDeviceNickName,
-                    playerWechatRemark: vm.inspectionWechat.conversationPlayerWechatRemark,
+                    playerWechatRemark: vm.inspectionWechat.conversationPlayerWechatRemark && vm.inspectionWechat.conversationPlayerWechatRemark.length > 0 ?
+                        vm.inspectionWechat.conversationPlayerWechatRemark : [],
                     startTime: startTime,
                     endTime: endTime,
                     content: vm.inspectionWechat.content,
