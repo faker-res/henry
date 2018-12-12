@@ -4640,6 +4640,10 @@ var proposal = {
                 isApplying: false,
                 gameProviderObjId: null,
                 gameProviderId: null,
+                transferInAmount: null,
+                transferInTime: null,
+                transferOutTime: null,
+                transferInId: null
             };
 
             return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, updateObj).lean();
@@ -4740,6 +4744,10 @@ var proposal = {
                     isApplying: false,
                     gameProviderObjId: null,
                     gameProviderId: null,
+                    transferInAmount: null,
+                    transferInTime: null,
+                    transferOutTime: null,
+                    transferInId: null
                 };
 
                 postPropPromArr.push(dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, updateObj).lean());
