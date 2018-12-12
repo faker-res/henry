@@ -72,7 +72,7 @@ function socketActionWCGroupControl(socketIO, socket) {
             let isValidData = Boolean(data);
             let index = data.index || 0;
             let limit = data.limit || 1000;
-            let sortCol = data.sortCol || {createTime: -1};
+            let sortCol = data.sortCol || {connectionAbnormalClickTimes: -1};
             socketUtil.emitter(self.socket, dbWCGroupControl.getWCGroupControlSessionMonitor, [data.platformIds ,data.deviceNickNames, data.adminIds, index, limit, sortCol], actionName, isValidData);
         },
 
