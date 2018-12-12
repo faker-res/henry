@@ -205,6 +205,10 @@ const dbRewardTask = {
                 if(isNaN(rewardData.applyAmount)) {
                     rewardData.applyAmount = 0;
                 }
+
+                console.log('RT - rewardData', rewardData);
+                console.log('RT - providerGroup', providerGroup);
+
                 if (providerGroup) {
                     let updObj = {
                         proposalId: proposalData.proposalId,
