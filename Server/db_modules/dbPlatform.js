@@ -3684,13 +3684,7 @@ var dbPlatform = {
     },
 
     getBlackWhiteListingConfig: (platformObjId) => {
-        console.log('platformObjId===', platformObjId);
-        return dbconfig.collection_platformBlackWhiteListing.findOne({platform: platformObjId}).lean().then(
-            result => {
-                console.log('result===', result);
-                return result;
-            }
-        );
+        return dbconfig.collection_platformBlackWhiteListing.findOne({platform: platformObjId}).lean();
     },
 
     saveBlackWhiteListingConfig: (platformObjId, updateData) => {
