@@ -1262,6 +1262,10 @@ let dbTeleSales = {
         }).count();
     },
 
+    getTsPhone: function (query) {
+       return dbconfig.collection_tsPhone.find(query).lean()
+    },
+
     getDecomposedNewPhoneRecord: function (platformObjId, startTime, endTime, index, limit, sortCol) {
 
         let query = {
@@ -1286,6 +1290,7 @@ let dbTeleSales = {
 
         let countProm = dbconfig.collection_tsPhoneTrade.find(query).count();
         let decomposedNewPhoneProm = dbconfig.collection_tsPhoneTrade.find(query, {
+            sourceTsPhone: 1,
             tradeTime: 1,
             encodedPhoneNumber: 1,
             lastSuccessfulFeedbackTime: 1,
