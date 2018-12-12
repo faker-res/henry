@@ -191,8 +191,6 @@ const dbRewardTask = {
     insertConsumptionValueIntoFreeAmountProviderGroup: (rewardData, proposalData, rewardType) => {
         let consumptionAmt = 0;
 
-        console.log('RT - rewardData', rewardData);
-
         rewardData.requiredUnlockAmount = Number(rewardData.requiredUnlockAmount);
         rewardData.applyAmount = Number(rewardData.applyAmount);
 
@@ -207,8 +205,6 @@ const dbRewardTask = {
                 if(isNaN(rewardData.applyAmount)) {
                     rewardData.applyAmount = 0;
                 }
-
-                console.log('RT - providerGroup', providerGroup);
 
                 if (providerGroup) {
                     let updObj = {

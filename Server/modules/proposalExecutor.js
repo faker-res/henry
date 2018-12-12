@@ -2974,7 +2974,7 @@ var proposalExecutor = {
                         type: constRewardType.PLAYER_RANDOM_REWARD_GROUP,
                         rewardType: constRewardType.PLAYER_RANDOM_REWARD_GROUP,
                         platformId: proposalData.data.platformId,
-                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        requiredUnlockAmount: proposalData.data.spendingAmount || 0,
                         currentAmount: proposalData.data.rewardAmount,
                         initAmount: proposalData.data.rewardAmount,
                         useConsumption: Boolean(proposalData.data.useConsumption),
