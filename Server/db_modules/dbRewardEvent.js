@@ -312,6 +312,7 @@ var dbRewardEvent = {
                                 return checkRewardData;
                             }
                         );
+                        break;
 
                     case constRewardType.PLAYER_CONSUMPTION_RETURN:
                         let returnData = {
