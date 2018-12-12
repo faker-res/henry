@@ -191,7 +191,7 @@ var prodConfig = {
     //smsAPIUrl: "ws://203.192.151.12:8560/sms"
     smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
     paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/pc/",
-    internalRESTUrl: "http://localhost:7100",
+    internalRESTUrl: "http://devtest.wsweb.me:7100",
 };
 
 
