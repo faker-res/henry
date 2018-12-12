@@ -4626,18 +4626,9 @@ var proposal = {
         let rewardAmount = 0;
         let spendingAmount = 0;
 
-        if (selectedRewardParam.hasOwnProperty('rewardPercentage')){
-            rewardAmount = playerBonusDoubledRecord.transferInAmount * selectedRewardParam.rewardPercentage;
-            spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
-        }
-        else {
-            rewardAmount = selectedRewardParam.rewardAmount;
-            spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
-        }
-
         if (!selectedRewardParam || !playerBonusDoubledRecord || !winLoseAmount) {
             // end this activity without giving reward bonus
-            console.log("applyRewarEvent - Ended the activity without giving reward bonus", [playerData.playerId, eventData.type.name]);
+            console.log("applyRewardEvent - Ended the activity without giving reward bonus", [playerData.playerId, eventData.type.name]);
             // update the playerBonusDoubledRewardGroupRecord
             let query = {
                 platformObjId: playerData.platform._id,
@@ -4652,6 +4643,16 @@ var proposal = {
             };
 
             return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, updateObj).lean();
+        }
+
+
+        if (selectedRewardParam.hasOwnProperty('rewardPercentage')){
+            rewardAmount = playerBonusDoubledRecord.transferInAmount * selectedRewardParam.rewardPercentage;
+            spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
+        }
+        else {
+            rewardAmount = selectedRewardParam.rewardAmount;
+            spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
         }
 
         // create reward proposal
