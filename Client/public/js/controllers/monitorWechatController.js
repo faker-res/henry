@@ -326,6 +326,7 @@ define(['js/app'], function (myApp) {
                 endDate: vm.wcGroupControlSessionHistory.endDate.data('datetimepicker').getLocalDate(),
                 index: newSearch ? 0 : vm.wcGroupControlSessionHistory.index,
                 limit: newSearch ? 1000 : vm.wcGroupControlSessionHistory.limit,
+                sortCol: vm.wcGroupControlSessionHistory.sortCol
             }
 
             console.log('sendSessionQuery', sendQuery);
@@ -365,6 +366,7 @@ define(['js/app'], function (myApp) {
             let tableOptions = {
                 data: data,
                 aoColumnDefs: [
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [
