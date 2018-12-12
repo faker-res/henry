@@ -14,6 +14,8 @@ let tsPhoneListSchema = new Schema({
     name: {type: String, required: true, index: true},
     // list description
     description: {type: String, required: true},
+    // default feedback result key when fail to call
+    failFeedBackResultKey: {type: String},
     // default feedback result when fail to call
     failFeedBackResult: {type: String, required: true},
     // default feedback topic when fail to call
@@ -56,7 +58,10 @@ let tsPhoneListSchema = new Schema({
     totalMultipleTopUp: {type: Number, default: 0},
     // number of valid players
     totalValidPlayer: {type: Number, default: 0},
-
+    // recycle time
+    recycleTime: {type: Date},
+    // decomposed time
+    decomposedTime: {type: Date, index: true},
     // assignees
     assignees: [{type: Schema.Types.ObjectId, ref: 'admin', index: true}],
 });

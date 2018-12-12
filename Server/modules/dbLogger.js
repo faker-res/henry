@@ -1033,7 +1033,7 @@ var dbLogger = {
     },
 
     // this actually create all the validation sms log instead of just for registration
-    createRegisterSMSLog: function (type, platformObjId, platformId, tel, message, channel, purpose, inputDevice, playerName, status, error) {
+    createRegisterSMSLog: function (type, platformObjId, platformId, tel, message, channel, purpose, inputDevice, playerName, status, error, ipAddress, isPartner) {
         let smsPurposes = Object.keys(constSMSPurpose).map(function (key) {
             return constSMSPurpose[key];
         });
@@ -1075,8 +1075,17 @@ var dbLogger = {
                     channel: channel,
                     purpose: purpose,
                     status: status,
-                    error: error
+                    error: error,
+                    ipAddress: ipAddress,
+                    isPlayer: true,
+                    isPartner: false,
                 };
+
+                // sms log used for player or partner service
+                if (isPartner) {
+                    logData.isPlayer = false,
+                    logData.isPartner = true
+                }
 
                 //do not log recipientName if sms is use for creating demo account,
                 //an incorrect recipientName will be attached to the log if executed.

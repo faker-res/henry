@@ -1,0 +1,267 @@
+ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu
+    .pull-left.padding-all-5
+    li.active(id = 'mNewPlayerListTab', ng-show="checkViewPermission('Player', 'Feedback','AddFeedback')")
+        a.common-tab(data-toggle="tab",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.playerModalTab = \'newPlayerListPanel\';vm.newPlayerList();')
+            .fa.fa-file-text.margin-right-5
+            text.span {{"new player list" | translate}}
+    li(id = 'mAttemptNumberListTab',ng-show="checkViewPermission('Player', 'Feedback','FeedbackHistory')")
+        a.common-tab(data-toggle="tab",ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1", ng-click='vm.playerModalTab = \'attemptNumberListPanel\';vm.playerRegistrationSuccessRateList();')
+            .fa.fa-file-text.margin-right-5
+            text.span {{"attempt number list" | translate}}
+
+
+#newPlayerListPanel.panel-body(ng-if="vm.playerModalTab === 'newPlayerListPanel'")
+    #newPlayerRecords.adminLogQueryDiv
+        .inlineBlk
+            label {{'PLAYERNAME' | translate}}
+            input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.playerName', required)
+        .inlineBlk
+            label {{'REGISTERED_PHONE_NUMBER' | translate}}
+            input.form-control(type='text' ng-model='vm.queryPara.newPlayerList.phoneNumber', required)
+        .inlineBlk
+            label {{'START_DATE' | translate}}
+            .startTime
+        .inlineBlk
+            label {{'END_DATE' | translate}}
+            .endTime
+        .inlineBlk
+            label {{'STATUS' | translate}}
+            select.form-control(ng-model='vm.queryPara.newPlayerList.status', ng-options='i as a | translate for (i,a) in vm.newPlayerListStatus')
+                option(value='',) {{'any' | translate}}
+        .inlineBlk
+            button.btn.btn-primary(ng-click='vm.getNewPlayerListByFilter(true)') {{'SEARCH' | translate}}
+    .well
+        .row
+            .col-md-12
+                p
+                label {{"Total" | translate}} {{vm.newPlayerRecords.totalCount}} {{"records" | translate}}
+                i.fa.fa-spin.fa-spinner(ng-show='vm.playerDailyExpenseLog.loading')
+                table#newPlayerListTable.common-table.display(style='width:100%')
+                #newPlayerListTablePage
+
+#attemptNumberListPanel.panel-body(ng-if="vm.playerModalTab === 'attemptNumberListPanel'")
+    #attemptNumberRecords.adminLogQueryDiv
+        .inlineBlk
+            label {{'START_DATE' | translate}}
+            .startTime
+        .inlineBlk
+            label {{'END_DATE' | translate}}
+            .endTime
+        .inlineBlk
+            button.btn.btn-primary(ng-click='vm.getPlayerRegistrationSucccessRateListByFilter()') {{'SEARCH' | translate}}
+    .well
+        .row
+            .col-md-12
+                p
+                table#selfRegistrationSuccessRateTable.common-table.display(style='width:100%')
+                #selfRegistrationSuccessRateTablePage
+                table#registrationDistributionRecordsTable.common-table.display(style='width:100%')
+                #registrationDistributionRecordsTablePage
+                label {{"Total" | translate}} {{vm.playerRegistrationRecords.totalCount}} {{"records" | translate}}
+                i.fa.fa-spin.fa-spinner(ng-show='vm.playerRegistrationRecords.loading')
+                table#playerRegistrationIntentRecordsTable.common-table.display(style='width:100%')
+                #playerRegistrationIntentRecordsTablePage
+
+
+#newPlayerModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                span
+                    ul.nav.nav-tabs
+                        li
+                            label {{vm.selectedProposal.type.name | translate}}
+                        li.active
+                            a(data-toggle="tab", href="#ProposalDetail", ng-click="")
+                                .fa.fa-user
+                                | {{ 'DETAIL' | translate }}
+                        li(ng-if='vm.chartData')
+                            a(data-toggle="tab", href="#Workflow", ng-click="")
+                                .fa.fa-user
+                                | {{ 'WORKFLOW' | translate }}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .tab-content
+                            #ProposalDetail.tab-pane.fade.in.active
+                                include ./proposal-dialog-detail-newplayer
+            .modal-footer
+                .inlineBlk(ng-show='vm.selectedProposal.isLocked && !vm.selectedProposal.showUnlockBtn')
+                    label.form-control {{'Lock Status' | translate}} : {{vm.selectedProposal.isLocked.adminName}}
+                .inlineBlk(ng-show='!vm.selectedProposal.isLocked || vm.selectedProposal.showUnlockBtn')
+                    button.btn.btn-success.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","ApproveProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, true)") {{"APPROVE" | translate}}
+                    button.btn.btn-danger.common-button(data-dismiss='modal', ng-if='(vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") && vm.rightPanelTitle == "APPROVAL_PROPOSAL" && checkViewPermission("Operation", "Proposal","RejectProposal")', ng-click="vm.updateProposal(vm.selectedProposal._id, false)") {{"REJECT" | translate}}
+                button.btn.btn-warning.common-button(ng-if='vm.selectedProposal.showCancel', ng-click="vm.submitCancelProposal(vm.selectedProposal)") {{"Cancel Proposal" | translate}}
+                .inlineBlk(ng-if='vm.selectedProposal.cancelling')
+                    label {{'Cancelling Proposal' | translate}}
+                    i.fa.fa-spin.fa-2x.fa-spinner
+                label.inlineBlk(ng-if='vm.selectedProposal.cancelled') {{"Cancel" | translate}}
+                button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
+                button.btn.btn-primary.common-button(ng-if='vm.selectedProposal.status==="AutoAudit" && !vm.changeStatusToPendingFromAutoAuditMessage && !vm.selectedProposal.cancelling && !vm.selectedProposal.cancelled', ng-click='vm.changeStatusToPendingFromAutoAudit()') {{"Manual" | translate}}
+                label.inlineBlk.wordWrap(ng-if='vm.changeStatusToPendingFromAutoAuditMessage') {{vm.changeStatusToPendingFromAutoAuditMessage}}
+                .inlineBlk.pull-left(ng-show='vm.rightPanelTitle == "APPROVAL_PROPOSAL"')
+                    label.inlineBlk {{'remark' | translate}}
+                    input.inlineBlk.proposalRemark.form-control(style='width:400px;')
+
+
+// Create Player Modal
+#modalCreatePlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='max-height: 80vh;overflow-y: auto')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"CREATE_PLAYER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            .row
+                                include player-create-form
+                .well(ng-show='vm.playerCreateResult.success')
+                    label.text-success {{'SUCCESS' | translate}}
+                .well(ng-show='vm.playerCreateResult && !vm.playerCreateResult.success')
+                    label.text-danger {{'FAIL' | translate}}
+                    label.form-control {{(vm.playerCreateResult.error.message || vm.playerCreateResult.error.errorMessage || vm.playerCreateResult.error || vm.playerCreateResult) | translate}}
+            .modal-footer
+                button.btn.btn-primary.common-button(ng-disabled='form_new_player.$invalid || vm.passwordLengthCheck(vm.newPlayer.password)', ng-click="vm.createNewPlayer();", ng-hide='vm.playerCreateResult && vm.playerCreateResult.success') {{"CREATE" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal', ng-hide='vm.playerCreateResult') {{"CANCEL" | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal', ng-show='vm.playerCreateResult') {{"CLOSE" | translate}}
+
+
+//Send SMS to Player Modal
+include ../common-widget/telephone-popover
+
+
+
+#modalAddPlayerFeedback.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:60%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"FEEDBACK_PLAYER" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    ul.nav.nav-tabs.common-nav-tabs.popupHeaderMenu
+                        .pull-left.padding-all-5
+                        li.active(id = 'addFeedbackTab', ng-show="checkViewPermission('Player', 'Feedback','AddFeedback')")
+                            a.common-tab(data-toggle="tab", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount != 1", ng-click="vm.feedbackModalTab = 'addFeedbackPanel'")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"ADD_FEEDBACK" | translate}}
+                        li(id = 'feedbackHistoryTab',ng-show="checkViewPermission('Player', 'Feedback','FeedbackHistory')")
+                            a.common-tab(data-toggle="tab", ng-disabled="!vm.canEditPlayer() || vm.selectedPlayersCount != 1", ng-click="vm.feedbackModalTab = 'feedbackHistoryPanel'; vm.prepareShowFeedbackRecord( vm.canEditPlayer() );")
+                                .fa.fa-file-text.margin-right-5
+                                text.span {{"Feedback History" | translate}}
+
+                #addFeedbackPanel.panel-body(ng-if="vm.feedbackModalTab === 'addFeedbackPanel'")
+                    form(name='form_feedback').well
+                        .form-group
+                            label.control-label {{'PLAYER_NAME' | translate}}
+                            label.form-control {{vm.isOneSelectedPlayer().name}}
+                        //.form-group
+                            label.control-label {{'TEST_PLAYER_ID' | translate}}
+                            input.form-control(ng-model='vm.playerFeedback.adminId')
+                        .form-group
+                            label.control-label {{'FEEDBACK_RESULTS' | translate}}
+                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
+                            select.form-control(style='margin-top:5px;', ng-model='vm.playerFeedback.result', required)
+                                option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
+                        .form-group
+                            label.control-label {{'FEEDBACK_TOPIC' | translate}}
+                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
+                            select.form-control(style='margin-top:5px;', ng-model='vm.playerFeedback.topic', required)
+                                option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
+                        .form-group
+                            label.control-label {{'FEEDBACK_CONTENT' | translate}}
+                            .textareaDetail
+                                textarea.form-control(rows='4', ng-model='vm.playerFeedback.content')
+
+                #feedbackHistoryPanel.panel-body(ng-show="vm.feedbackModalTab === 'feedbackHistoryPanel'")
+                    .well.searchDiv
+                        .inlineBlk
+                            label {{"Start date"|translate}}
+                            .startTime
+                        .inlineBlk
+                            label {{"End date"|translate}}
+                            .endTime
+                        .inlineBlk
+                            button.common-button.btn.btn-primary(ng-click='vm.getFeedbackRecord()') {{'FILTER' | translate}}
+                            i.fa.fa-spinner.fa-spin(ng-if='vm.playerFeedbackRecord.searching')
+                    #playerFeedbackRecord
+                        label {{"Total" | translate}} {{vm.playerFeedbackRecord.totalCount}} {{"records" | translate}}
+                            .inlineBlk.margin-left-5(ng-if='vm.playerFeedbackRecord.searching')
+                                i.fa.fa-spin.fa-spinner
+                    table#playerFeedbackRecordTable.common-table.wordWrap.tbodyNoWrap.display(style='width:100%')
+                    #playerFeedbackRecordTablePage
+
+            .modal-footer(ng-if="vm.feedbackModalTab === 'addFeedbackPanel'")
+                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='form_feedback.$invalid', ng-click="vm.updatePlayerFeedback();") {{"ADD" | translate}}
+                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+
+
+
+
+#modalAddPlayerFeedbackResult.modal.fade(style='background: rgba(0,0,0,0.5);z-index:1052', tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:40%; top: 20vh;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_FEEDBACK_RESULT" | translate}}
+            .modal-body
+                div
+                    label.control-label {{'ADD_FEEDBACK_RESULT' | translate}} &nbsp
+                    .inlineBlk
+                        input.form-control(style='width:120px;', ng-model='vm.addPlayerFeedbackResultData.key', placeholder="{{'FEEDBACK_RESULT_KEY' | translate}}")
+                    .inlineBlk
+                        input.form-control(style='width:120px;', ng-model='vm.addPlayerFeedbackResultData.value', placeholder="{{'FEEDBACK_RESULT' | translate}}")
+                    button.btn.btn-primary(ng-click='vm.addFeedbackResult("player");') {{"ADD" | translate}}
+                    span(style="color:green;",ng-show="vm.addPlayerFeedbackResultData.success === true") &nbsp{{vm.addPlayerFeedbackResultData.message | translate}}
+                    span(style="color:red;",ng-show="vm.addPlayerFeedbackResultData.failure === true") &nbsp{{vm.addPlayerFeedbackResultData.message | translate}}
+
+                div
+                    label.control-label {{"DELETE_FEEDBACK_RESULT" | translate}} &nbsp
+                    .inlineBlk
+                        select.form-control(ng-model='vm.deletePlayerFeedbackResultData._id')
+                            option(value='') {{'CHOOSE_FEEDBACK_RESULT' | translate}}
+                            option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v._id}}') {{v.value | translate}}
+                    button.btn.btn-primary(ng-click='vm.deleteFeedbackResult("player");') {{"DELETE" | translate}}
+                    span(style="color:green;",ng-show="vm.deletePlayerFeedbackResultData.success === true") &nbsp{{vm.deletePlayerFeedbackResultData.message | translate}}
+                    span(style="color:red;",ng-show="vm.deletePlayerFeedbackResultData.failure === true") &nbsp{{vm.deletePlayerFeedbackResultData.message | translate}}
+
+#modalAddPlayerFeedbackTopic.modal.fade(style='background: rgba(0,0,0,0.5);z-index:1052', tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:40%; top: 20vh;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ADD_FEEDBACK_TOPIC" | translate}}
+            .modal-body
+                div
+                    label.control-label {{'ADD_FEEDBACK_TOPIC' | translate}} &nbsp
+                    .inlineBlk
+                        input.form-control(ng-model='vm.addPlayerFeedbackTopicData.value', placeholder="{{'FEEDBACK_TOPIC' | translate}}")
+                    button.btn.btn-primary(ng-click='vm.addFeedbackTopic("player");') {{"ADD" | translate}}
+                    span(style="color:green;",ng-show="vm.addPlayerFeedbackTopicData.success === true") &nbsp{{vm.addPlayerFeedbackTopicData.message | translate}}
+                    span(style="color:red;",ng-show="vm.addPlayerFeedbackTopicData.failure === true") &nbsp{{vm.addPlayerFeedbackTopicData.message | translate}}
+
+                div
+                    label.control-label {{"DELETE_FEEDBACK_TOPIC" | translate}} &nbsp
+                    .inlineBlk
+                        select.form-control(ng-model='vm.deletePlayerFeedbackTopicData._id')
+                            option(value='') {{'CHOOSE_FEEDBACK_TOPIC' | translate}}
+                            option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v._id}}') {{v.value | translate}}
+                    button.btn.btn-primary(ng-click='vm.deleteFeedbackTopic("player");') {{"DELETE" | translate}}
+                    span(style="color:green;",ng-show="vm.deletePlayerFeedbackTopicData.success === true") &nbsp{{vm.deletePlayerFeedbackTopicData.message | translate}}
+                    span(style="color:red;",ng-show="vm.deletePlayerFeedbackTopicData.failure === true") &nbsp{{vm.deletePlayerFeedbackTopicData.message | translate}}
+
+
+#duplicatePhoneNumberLog.modal.fade(style='z-index:1052;', tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:95%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Duplicate Phone Number"|translate}}
+            .modal-body
+                div
+                    label {{"Total" | translate}} {{vm.duplicatePhoneNumber.totalCount}} {{"records" | translate}}
+                    table#duplicatePhoneNumberLogTable.common-table.display(style='min-width:100%')
+                    #duplicatePhoneNumberLogTablePage.height30

@@ -54,11 +54,14 @@ var minuteJob = new CronJob('0 * * * * *', function () {
     var processPlatforms = () => dbPlatform.getAllPlatforms().then(
         function (platforms) {
             if (platforms) {
+                let curTime = new Date();
                 return promiseUtils.each(platforms, function (platformData) {
                     var task1 = null;
                     var task2 = null;
                     var task3 = null;
                     var task4 = null;
+                    var task5 = null;
+                    var task6 = null;
 
                     //start daily settlement for platform
                     if (platformData.dailySettlementHour != null && platformData.dailySettlementMinute != null) {
@@ -117,12 +120,42 @@ var minuteJob = new CronJob('0 * * * * *', function () {
                         }
                     ).catch(
                         function (error) {
-                            console.log("Daily  Distribute tsPhone error doing", platformData._id);
+                            console.log("Daily Distribute tsPhone error doing", platformData._id);
                             errorUtils.reportError(error);
                         }
                     );
 
-                    return promiseUtils.each([task1, task2, task3, task4], task => task && task() );
+                    // hard code to reset player data at 00:00
+                    if (curTime.getHours() == 0 && curTime.getMinutes() == 0) {
+                        task5 = () => dbPlatform.resetPlatformPlayerLevelData(platformData._id).catch(
+                            error => {
+                                console.log({
+                                    name: "DBError",
+                                    message: "Error resetting platform player level data!",
+                                    error: error
+                                })
+                                errorUtils.reportError(error);
+                            }
+                        )
+                    }
+
+                    // hard code check at 02:00 everyday
+                    if (curTime.getHours() == 2 && curTime.getMinutes() == 0) {
+                        task6 = () => dailyPlatformSettlement.startDailyDecomposeTsPhoneList(platformData).then(
+                            data => {
+                                if (data) {
+                                    console.log(new Date().toString() + "Daily Decompose tsPhone Done", platformData._id, data)
+                                }
+                            }
+                        ).catch(
+                            function (error) {
+                                console.log("Daily Decompose tsPhone error doing", platformData._id);
+                                errorUtils.reportError(error);
+                            }
+                        );
+                    }
+
+                    return promiseUtils.each([task1, task2, task3, task4, task5, task6], task => task && task() );
                 });
             }
         },

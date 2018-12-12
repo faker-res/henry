@@ -69,7 +69,6 @@ var DXMissionServiceImplement = function () {
         }
 
         var isValidData = Boolean(data && data.code);
-        console.log("LH check DX ------------1 ", data);
         WebSocketUtil.performAction(conn, wsFunc, data, dbDxMission.createPlayerFromCode, [data.code, deviceData, data.domain, loginDetails, conn, wsFunc], isValidData, false, false, true);
     };
 

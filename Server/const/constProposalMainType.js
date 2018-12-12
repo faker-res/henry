@@ -21,6 +21,7 @@ const constProposalMainType = {
     "PlayerTopUp": constMainType.TOP_UP,
     "PlayerQuickpayTopUp": constMainType.TOP_UP,
     "PlayerFKPTopUp": constMainType.TOP_UP,
+    "PlayerCommonTopUp": constMainType.TOP_UP,
 
     //BONUS
     "PartnerBonus": constMainType.BONUS,
@@ -62,6 +63,7 @@ const constProposalMainType = {
     "PlayerConsecutiveRewardGroup": constMainType.REWARD,
     "PlayerConsumptionSlipRewardGroup": constMainType.REWARD,
     "PlayerRetentionRewardGroup": constMainType.REWARD,
+    "PlayerBonusDoubledRewardGroup": constMainType.REWARD,
 
     //UPDATE_PLAYER
     "UpdatePlayerInfo" : constMainType.UPDATE_PLAYER,
@@ -114,6 +116,7 @@ const constProposalMainType = {
     "UpdateParentPartnerCommission": constMainType.OTHERS,
     "PartnerCreditTransferToDownline": constMainType.OTHERS,
     "DownlineReceivePartnerCredit": constMainType.OTHERS,
+    "ManualExportTsPhone": constMainType.OTHERS,
 
 };
 

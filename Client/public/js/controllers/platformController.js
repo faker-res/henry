@@ -570,17 +570,17 @@ define(['js/app'], function (myApp) {
 
             vm.showPlatformDetailTab = function (tabName) {
                 if (tabName === null) {
-                    if (authService.checkViewPermission('Platform', 'Platform','BackstageSettings')) {
+                    if (authService.checkViewPermission('Platform', 'BackstageSettings','Read')) {
                         tabName = "backstage-settings";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','PlayerDisplayData')) {
+                    } else if (authService.checkViewPermission('Platform', 'PlayerDisplayData','Read')) {
                         tabName = "player-display-data";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','PartnerDisplayData')) {
+                    } else if (authService.checkViewPermission('Platform', 'PartnerDisplayData','Read')) {
                         tabName = "partner-display-data";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','SystemSettlement')) {
+                    } else if (authService.checkViewPermission('Platform', 'SystemSettlement','Read')) {
                         tabName = "system-settlement";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','FrontendModuleSetting')) {
+                    } else if (authService.checkViewPermission('Platform', 'FrontendModule','Read')) {
                         tabName = "frontend-module-setting";
-                    } else if (authService.checkViewPermission('Platform', 'Platform','ThemeSelect')) {
+                    } else if (authService.checkViewPermission('Platform', 'ThemeSelect','Read')) {
                         tabName = "theme-select";
                     }
                 }
@@ -1317,7 +1317,7 @@ define(['js/app'], function (myApp) {
             }
             //search platform by name
             vm.getAllDepartmentData = function (callback) {
-                if (!authService.checkViewPermission('Platform', 'Platform', 'Read')) {
+                if (!authService.checkViewPermission('Platform', 'PlatformSetting', 'Read')) {
                     return;
                 }
                 socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
@@ -21024,6 +21024,15 @@ define(['js/app'], function (myApp) {
                                     }
                                 }
 
+                                // Get reward dynamic amount flag for playerBonusDoubledRewardGroup
+                                if (el == "defineRewardBonusCount" && vm.showReward && vm.showReward.condition && vm.showReward.condition[el]) {
+                                    if (vm.showReward.condition[el] == 1){
+                                        vm.isDynamicRewardAmt = true;
+                                    }else {
+                                        vm.isDynamicRewardAmt = false;
+                                    }
+                                }
+
                                 if (el == "canApplyFromClient" && !(vm.rewardMainCondition[cond.index] && vm.rewardMainCondition[cond.index].value)) {
                                     vm.rewardDisabledParam.push("showInRealServer")
                                 }
@@ -21447,7 +21456,7 @@ console.log('typeof ',typeof gameProviders);
                     }
 
                     if (model.i == "multiplier" && model.v.type == "number" && vm.isDynamicRewardAmt) {
-                        model.entry.rewardPercentage = model.entry.multiplier;
+                        model.entry.rewardPercentage = model.entry.multiplier/100;
                     }
                 }
 
@@ -25417,6 +25426,13 @@ console.log('typeof ',typeof gameProviders);
                     result = $translate(val);
                 } else if (fieldName === 'definePlayerLoginMode') {
                     result = $translate($scope.playerLoginMode[val]);
+                } else if (fieldName === 'rewardInterval') {
+                    result = $translate($scope.rewardInterval[val]);
+                } else if (fieldName === 'gameProviderInEvent') {
+                    let index = vm.allGameProviders.findIndex(p => p._id.toString() == val.toString());
+                    if (index != -1){
+                        result =  vm.allGameProviders[index].name;
+                    }
                 }
                 return $sce.trustAsHtml(result);
             };
@@ -36123,6 +36139,18 @@ console.log('typeof ',typeof gameProviders);
                     vm.frontendConfigurationUrl = $sce.trustAsResourceUrl(url);
                 }
             };
+
+
+            vm.changeFrameHeight = function() {
+                var ifm = document.getElementById("configIframe");
+                ifm.height = document.documentElement.clientHeight;
+
+            }
+
+            window.onresize=function(){
+                vm.changeFrameHeight();
+
+            }
         };
 
         let injectParams = [

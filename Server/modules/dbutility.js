@@ -692,9 +692,29 @@ var dbUtility = {
         }
     },
 
+    getSGTimeCurrentMinuteInterval: function (date) {
+        let startTime = moment(date).tz('Asia/Singapore').startOf("minute").toDate();
+        let endTime = moment(date).tz('Asia/Singapore').endOf("minute").toDate();
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        }
+    },
+
     getSGTimeCurrentHourInterval: function (date) {
         let startTime = moment(date).tz('Asia/Singapore').startOf("hour").toDate();
         let endTime = moment(date).tz('Asia/Singapore').endOf("hour").toDate();
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        }
+    },
+
+    getSGTimeCurrentDayInterval: function (date) {
+        let startTime = moment(date).tz('Asia/Singapore').startOf("day").toDate();
+        let endTime = moment(date).tz('Asia/Singapore').endOf("day").toDate();
 
         return {
             startTime: startTime,
@@ -987,6 +1007,25 @@ var dbUtility = {
             }
         }
         return res;
+    },
+
+    /*
+     *  Shuffle array, based on most efficient method shown at https://jsperf.com/array-shuffle-comparator/5
+     */
+    shuffleArray: function (arr) {
+        if (!arr || !arr.length) {
+            return [];
+        }
+
+        let temp, j, i = arr.length;
+        while (--i) {
+            j = ~~(Math.random() * (i + 1));
+            temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+        }
+
+        return arr;
     },
 
     getDomainName: function (src) {
@@ -1415,12 +1454,19 @@ var dbUtility = {
 
     getIpAddress: (conn) => {
         let ipAddress = conn.upgradeReq.connection.remoteAddress || '';
+        console.log('ipAddress===1', ipAddress);
         let forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
         if (forwardedIp && forwardedIp.length > 0 && forwardedIp[0].length > 0) {
             if(forwardedIp[0].trim() != "undefined"){
                 ipAddress = forwardedIp[0].trim();
             }
         }
+        console.log('forwardedIp===', forwardedIp);
+        console.log('ipAddress===2', ipAddress);
+
+        // if (ipAddress && ipAddress.substr(0, 7) === "::ffff:") {
+        //     ipAddress = ipAddress.substr(7)
+        // }
 
         return ipAddress;
     },

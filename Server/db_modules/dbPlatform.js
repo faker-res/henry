@@ -3684,7 +3684,13 @@ var dbPlatform = {
     },
 
     getBlackWhiteListingConfig: (platformObjId) => {
-        return dbconfig.collection_platformBlackWhiteListing.findOne({platform: platformObjId}).lean().exec();
+        console.log('platformObjId===', platformObjId);
+        return dbconfig.collection_platformBlackWhiteListing.findOne({platform: platformObjId}).lean().then(
+            result => {
+                console.log('result===', result);
+                return result;
+            }
+        );
     },
 
     saveBlackWhiteListingConfig: (platformObjId, updateData) => {
@@ -4092,11 +4098,10 @@ var dbPlatform = {
         }
     },
 
-    callBackToUser: (platformId, phoneNumber, randomNumber, captcha, lineId, playerId) => {
+    callBackToUser: (platformId, phoneNumber, randomNumber, captcha, lineId, playerId, ipAddress) => {
         let platform, url, platformString;
         let playerData;
         let blackWhiteListingConfig;
-        let callBackToUserLogProm = Promise.resolve(true);
         let timeNow = new Date();
         let hourNow = dbUtility.getSGTimeCurrentHourInterval(timeNow);
 
@@ -4151,9 +4156,8 @@ var dbPlatform = {
                         phoneNumber = data && data[1] ? data[1].phoneNumber : phoneNumber;
                     }
 
-                    if (blackWhiteListingConfig && blackWhiteListingConfig.blackListingCallRequestIpAddress && playerData && playerData.lastLoginIp) {
-                        let indexNo = blackWhiteListingConfig.blackListingCallRequestIpAddress.findIndex(p => p.toString() === playerData.lastLoginIp.toString());
-
+                    if (blackWhiteListingConfig && blackWhiteListingConfig.blackListingCallRequestIpAddress && ipAddress) {
+                        let indexNo = blackWhiteListingConfig.blackListingCallRequestIpAddress.findIndex(p => p.toString() === ipAddress.toString());
                         if (indexNo > -1) {
                             return Promise.reject({
                                 status: constServerCode.BLACKLIST_IP,
@@ -4163,31 +4167,25 @@ var dbPlatform = {
                         }
                     }
 
-                    if (playerData) {
-                        callBackToUserLogProm = dbconfig.collection_callBackToUserLog.aggregate(
-                            {
-                                $match: {
-                                    createTime: {
-                                        $gte: hourNow.startTime,
-                                        $lte: hourNow.endTime
-                                    },
-                                    platform: platform._id,
-                                    player: playerData._id,
-                                    ipAddress: playerData.lastLoginIp
-                                }
-                            }, {
-                                $group: {
-                                    _id: "$ipAddress",
-                                    count: {$sum: 1}
-                                }
+                    let callBackToUserLogProm = Promise.resolve(true);
+                    callBackToUserLogProm = dbconfig.collection_callBackToUserLog.aggregate(
+                        {
+                            $match: {
+                                createTime: {
+                                    $gte: hourNow.startTime,
+                                    $lte: hourNow.endTime
+                                },
+                                platform: platform._id,
+                                // player: playerData._id,
+                                ipAddress: ipAddress
                             }
-                        ).read("secondaryPreferred");
-                    } else {
-                        return Promise.reject({
-                            name: "DataError",
-                            message: localization.localization.translate("Cannot find player")
-                        })
-                    }
+                        }, {
+                            $group: {
+                                _id: "$ipAddress",
+                                count: {$sum: 1}
+                            }
+                        }
+                    ).read("secondaryPreferred");
 
                     return Promise.all([callBackToUserLogProm]);
                 }
@@ -4224,8 +4222,8 @@ var dbPlatform = {
                         } else {
                             let newLog = {
                                 platform: platform._id,
-                                player: playerData._id,
-                                ipAddress: playerData.lastLoginIp
+                                player: playerData && playerData._id ? playerData._id : "",
+                                ipAddress: ipAddress
                             };
 
                             // add new log

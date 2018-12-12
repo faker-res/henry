@@ -1,0 +1,26 @@
+.panel.panel-primary
+    .panel-body.common-left-panel-body.leftPanel-vlist
+        #trashClassificationDecompositionListCategory.panel-group
+            .panel.panel-default
+                .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#trashClassificationDecompositionListCategory", href='#trashClassification')
+                    h4.panel-title
+                        label.text-success {{'Trash Classification（Export）' | translate}}
+                #trashClassification.panel-collapse.collapse.in
+                    .panel-body
+                        div
+                            li.list-group-item(ng-repeat='(i,v) in vm.trashClassificationList', ng-click='vm.getTrashClassificationDetail(v)')
+                                text {{v.name | translate}}
+                                .badge.pull-right(style='background-color:red; color:white', ng-show='v.size > 0') {{v.size}}
+                            li.list-group-item.text-danger(ng-if='vm.trashClassificationList.length==0') {{"NONE" | translate}} {{"Trash Classification" | translate}}
+
+            .panel.panel-default
+                .panel-heading.panel-heading-sm(data-toggle='collapse', data-parent="#trashClassificationDecompositionListCategory", href='#decompositionList')
+                    h4.panel-title
+                        label.text-success {{'New Phone List（Import）' | translate}}
+                #decompositionList.panel-collapse.collapse
+                    .panel-body
+                        div
+                            li.list-group-item(ng-if='vm.decompositionListCount!=0' ng-click='vm.getDecomposedDetail();vm.multiDecomposedNewPhoneSelected=[];')
+                                text {{'New Phone' | translate}}
+                                .badge.pull-right(style='background-color:red; color:white', ng-show='vm.decompositionListCount > 0') {{vm.decompositionListCount}}
+                            li.list-group-item.text-danger(ng-if='vm.decompositionListCount==0') {{"NONE" | translate}} {{"New Phone List" | translate}}

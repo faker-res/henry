@@ -3,7 +3,7 @@
         .col-md-12
             button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'phoneNumFilter', 'Read')" ng-class='{active: vm.selectedTab === "NEW_PHONE_LIST"}', ng-click='vm.loadTab("NEW_PHONE_LIST")' title='过滤，导入白名单到系统当中')
                 span {{"NEW_PHONE_LIST" | translate}}
-            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'PHONE_LIST_ANALYSE_AND_MANAGEMENT', 'Read')" ng-class='{active: vm.selectedTab === "PHONE_LISTS"}', ng-click='vm.loadTab("PHONE_LIST_ANALYSE_AND_MANAGEMENT")', title='分析名单数据并分配名单给指定的销售人员')
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'PHONE_LIST_ANALYSE_AND_MANAGEMENT', 'Read')" ng-class='{active: vm.selectedTab === "PHONE_LISTS"}', ng-click='vm.loadTab("PHONE_LIST_ANALYSE_AND_MANAGEMENT"); vm.showPhoneListManagement();', title='分析名单数据并分配名单给指定的销售人员')
                 span {{"PHONE_LIST_ANALYSE_AND_MANAGEMENT" | translate}}
             button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'MY_PHONE_LIST_OR_REMINDER_PHONE_LIST', 'Read')" ng-class='{active: vm.selectedTab === "REMINDER_PHONE_LIST"}', ng-click='vm.loadTab("REMINDER_PHONE_LIST")', title='销售员所分配到的会员名单、资料')
                 span {{"MY_PHONE_LIST_OR_REMINDER_PHONE_LIST" | translate}}
@@ -44,6 +44,29 @@
                                                 include ./teleMarketing-admin-phone-list
                                             #tsFeedbackReminder.tab-pane.fade
                                                 include ./teleMarketing-reminder-list
+                    div(ng-switch-when="RECYCLE_BIN")
+                        #tsRecycleBinContent(style="padding-left:0;",ng-class='vm.rightPanelClass')
+                            .padding-all-5
+                                .panel.panel-primary
+                                    .panel-heading.common-left-panel-heading
+                                        ul.nav.nav-tabs.common-nav-tabs.padding-left-5.margi
+                                            li.active
+                                                a.common-tab(data-toggle="tab", href="#tsRecycleBinOverview")
+                                                    text.span {{"RECYCLE_BIN_OVERVIEW" | translate}}
+                                            li
+                                                a.common-tab(data-toggle="tab", href="#tsTrashClassificationDecompositionList" ng-click='vm.initTrashClassificationDecompositionList();vm.multiDecomposedNewPhoneSelected=[];')
+                                                    text.span {{"Decomposed list / trash classification and reuse" | translate}}
+
+                                    .panel-body.common-right-panel-body
+                                        div.tab-content
+                                            #tsRecycleBinOverview.tab-pane.fade.in.active
+                                                include ./teleMarketing-recycle-bin-phone-list
+                                            #tsTrashClassificationDecompositionList.tab-pane.fade
+                                                div
+                                                    .col-md-3(ng-if='!vm.hideLeftPanel')
+                                                        include ./teleMarketing-trash-classification-decomposition-list-left-panel
+                                                    div(ng-class='vm.hideLeftPanel ? "col-md-12" : "col-md-9"', style='padding-left:5px')
+                                                        include ./teleMarketing-trash-classification-decomposition-list-right-panel
 
 
 
@@ -58,6 +81,117 @@
                         //        a.common-tab(data-toggle="tab", href="#Filter", ng-click="vm.teleMarketingPageName='phoneNumFilter';vm.updatePageTile();")
                         //            .fa.fa-file-text.margin-right-5
                         //            text.span {{"phoneNumFilter" | translate}}
+
+//ModaltsAnalyticsPhoneList
+#modaltsAnalyticsPhoneList.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:80%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"FILTER_THEN_IMPORT_XLS_TS" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    table.common-table.playerLvlTable(style='width:auto;min-width:99.9%;white-space:normal;')
+                                        thead
+                                            tr
+                                                th {{'FIELD' | translate}}
+                                                th {{'CONTENT' | translate}}
+                                        tbody
+                                            tr
+                                                td {{'Name Of List (Required) (Unique)' | translate}}
+                                                td
+                                                    input.form-control(type='text', ng-model='vm.tsAnalyticsPhoneList.name' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsdisableAll')
+                                            tr
+                                                td {{'Feedback Result Of Default Failure System Call (Required)' | translate}}
+                                                td
+                                                    select.form-control(ng-model='vm.tsAnalyticsPhoneList.failFeedBackResult',  ng-options='v.key as v.value for (i,v) in vm.allPlayerFeedbackResults' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsPhoneListEdit')
+                                            tr
+                                                td {{'Feedback Topic Of Default Failure System Call (Required)' | translate}}
+                                                td
+                                                    select.form-control(ng-model='vm.tsAnalyticsPhoneList.failFeedBackTopic',  ng-options='v.key as v.value for (i,v) in vm.playerFeedbackTopic' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsPhoneListEdit')
+                                            tr
+                                                td {{'Feedback Content Of Default Failure System Call (Required)' | translate}}
+                                                td
+                                                    input.form-control(type='text', ng-model='vm.tsAnalyticsPhoneList.failFeedBackContent' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsPhoneListEdit')
+                                            tr
+                                                td {{'Assign To N Caller For Each Unregistered Phone Number (Required)' | translate}}
+                                                td
+                                                    input.form-control(type='number', min=0, max='{{vm.tsAnalyticsPhoneListMaxCaller}}', ng-model='vm.tsAnalyticsPhoneList.callerCycleCount' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsPhoneListEdit')
+                                            tr
+                                                td {{'Daily Distribute Task Count Equally Divide For Each Caller (Required)' | translate}}
+                                                td
+                                                    input.form-control(type='number', min=0, ng-model='vm.tsAnalyticsPhoneList.dailyCallerMaximumTask' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsPhoneListEdit')
+                                            tr
+                                                td {{'Daily Distribute Task Time (Required)' | translate}}
+                                                td
+                                                    #tsAnalyticsTimePicker.datetimepicker.form-control
+                                                        input.input-append.playerDate(style='border:0;', data-format="hh:mm:ss", type='text' ng-disabled='vm.analyticsPhoneListEdit')
+                                                        span.add-on
+                                                            i.fa-clock-o.fa(data-time-icon='fa fa-clock-o' ng-show='!vm.analyticsPhoneListEdit')
+                                            tr
+                                                td {{'Distribute Task Start Date (Required)' | translate}}
+                                                td
+                                                    #tsAnalyticsDatePicker.datetimepicker.form-control
+                                                        input.input-append.playerDate(style='border:0;', data-format="dd/MM/yyyy", type='text' ng-disabled='vm.analyticsdisableAll')
+                                                        span.add-on
+                                                            i.fa-calendar.fa(data-date-icon='fa fa-calendar' ng-show='!vm.analyticsdisableAll')
+                                            tr
+                                                td {{'Reclaim Task After X Days And Re-assign Task (Required)' | translate}}
+                                                td
+                                                    input.form-control(type='number', min=0, ng-model='vm.tsAnalyticsPhoneList.reclaimDayCount' ng-change='vm.checkAnalyticsFilterAndImportSystem()' ng-disabled='vm.analyticsPhoneListEdit')
+                                            tr
+                                                td {{'Zone Will Not Be Call' | translate}}
+                                                td
+                                                    table.common-table.playerLvlTable
+                                                        thead
+                                                            tr
+                                                                th(style="width:50%") {{"CITY" | translate}}
+                                                                th(style="width:50%") {{"PROVINCE" | translate}}
+                                                                th
+                                                        tbody
+                                                            tr(ng-repeat='(i, v) in vm.tsAnalyticsPhoneList.dangerZoneList')
+                                                                td
+                                                                    select.form-control(ng-model='vm.tsAnalyticsPhoneList.dangerZoneList[i].province',  ng-options='i as i for (i, v) in constPhoneArea' ng-disabled='vm.analyticsPhoneListEdit')
+                                                                td
+                                                                    select.form-control(ng-model='vm.tsAnalyticsPhoneList.dangerZoneList[i].city',  ng-options='val as val for (n, val) in constPhoneArea[vm.tsAnalyticsPhoneList.dangerZoneList[i].province]' ng-disabled='vm.analyticsPhoneListEdit')
+                                                                td
+                                                                    i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.tsAnalyticsPhoneList.dangerZoneList, $index)'  ng-disabled='vm.analyticsPhoneListEdit')
+                                                            tr(ng-show="!vm.analyticsPhoneListEdit")
+                                                                td(colspan=3) {{'ADD' | translate}}
+                                                            tr(ng-show="!vm.analyticsPhoneListEdit")
+                                                                td
+                                                                    select.form-control(ng-model='vm.tsAnalyticsProvince',  ng-options='i as i for (i, v) in constPhoneArea' ng-disabled='vm.analyticsPhoneListEdit')
+                                                                td
+                                                                    select.form-control(ng-model='vm.tsAnalyticsCity',  ng-options='val as val for (n, val) in constPhoneArea[vm.tsAnalyticsProvince]' ng-disabled='vm.analyticsPhoneListEdit')
+                                                                td
+                                                                    i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.tsAnalyticsPhoneList.dangerZoneList, {province: vm.tsAnalyticsProvince, city: vm.tsAnalyticsCity}); vm.resetAnalyticsProvince();' ng-show='vm.tsAnalyticsProvince && vm.tsAnalyticsCity' ng-disabled='vm.analyticsPhoneListEdit')
+                                            tr
+                                                td {{'Filter Phone Number From White List And Recycle Bin' | translate}}
+                                                td
+                                                    input(type='checkbox', min=0, ng-model='vm.tsAnalyticsPhoneList.isCheckWhiteListAndRecycleBin' ng-disabled='vm.analyticsdisableAll')
+                                            tr(ng-repeat='(i,v) in vm.tsAnalyticsPhoneList.time_operator_description track by $index')
+                                                td {{'Time/Operator/Description' | translate}}
+                                                td
+                                                    text.form-control {{vm.tsAnalyticsPhoneList.time_operator_description[i].importTime | date : 'yyyy-MM-dd HH:mm:ss'}}  {{" - " + vm.tsAnalyticsPhoneList.time_operator_description[i].adminName + " - " + vm.tsAnalyticsPhoneList.time_operator_description[i].description}}
+
+            .modal-footer
+                div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px')
+                button.btn.btn-success.common-button(data-dismiss='modal'  ng-click="vm.editTsNewList()" ng-disabled="vm.checkFilterIsDisable" ng-show="!vm.analyticsPhoneListEdit")
+                    i.fa.fa-check
+                    text {{"CONFIRM" | translate}}
+                button.btn.btn-danger.common-button(data-dismiss='modal' ng-show="vm.analyticsPhoneListEdit")
+                    i.fa.fa-ban
+                    text {{"CANCEL" | translate}}
+                button.btn.btn-warning.common-button(ng-click = "vm.analyticsPhoneListEdit = true;vm.cancelEditTsAnalyticsPhoneList()"  ng-show="!vm.analyticsPhoneListEdit")
+                    i.fa.fa-ban
+                    text {{"CANCEL" | translate}}
+                button.btn.btn-primary.common-button(ng-click="vm.tsAnalyticsPhoneListEdit()" ng-show="vm.analyticsPhoneListEdit && vm.isPhoneListEditable" ng-disabled='vm.disableAnalyticsPhoneListEdit')
+                    i.fa.fa-pencil-square-o
+                    text {{'EDIT' | translate}}
 
 #modalTsPhoneFeedback.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:55%')
@@ -188,7 +322,7 @@
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"Duplicate Phone Number"|translate}}
+                h4.modal-title {{"Set reminder/ clear reminder"|translate}}
             .modal-body
                 #phoneListReminderTimePicker
             .modal-footer
@@ -323,16 +457,16 @@
                                 tbody
                                     tr(ng-repeat='(i,v) in vm.tsAssigneesDisplay')
                                         td
-                                            i.fa.fa-minus(ng-show="vm.allowDistributionSettingsEdit" ng-click="vm.removeAssignee(v.adminName)")
+                                            i.fa.fa-minus(ng-show="vm.allowDistributionSettingsEdit" ng-click="vm.removeAssignee(v.adminName); vm.checkUpdateTsAssignee()")
                                         td {{v.adminName}}
                                         td
-                                            input(id="{{i+'-execute-distribute-on'}}" type="radio" name="{{i+'-execute-distribution'}}" value="1" ng-change="vm.updateAssigneeStatus(v)" ng-model="vm.tsAssigneesDisplay[i].status" ng-disabled="!vm.allowDistributionSettingsEdit" )
+                                            input(id="{{i+'-execute-distribute-on'}}" type="radio" name="{{i+'-execute-distribution'}}" value="1" ng-click='vm.checkUpdateTsAssignee()' ng-change="vm.updateAssigneeStatus(v)" ng-model="vm.tsAssigneesDisplay[i].status" ng-disabled="!vm.allowDistributionSettingsEdit" )
                                             label(for="{{i+'-execute-distribute-on'}}" style="font-weight: normal;") {{"Open" | translate}}
-                                            input(id="{{i+'-execute-distribute-off'}}" type="radio" name="{{i+'-execute-distribution'}}" value="0" ng-change="vm.updateAssigneeStatus(v)" ng-model="vm.tsAssigneesDisplay[i].status" ng-disabled="!vm.allowDistributionSettingsEdit" )
+                                            input(id="{{i+'-execute-distribute-off'}}" type="radio" name="{{i+'-execute-distribution'}}" value="0" ng-click='vm.checkUpdateTsAssignee()' ng-change="vm.updateAssigneeStatus(v)" ng-model="vm.tsAssigneesDisplay[i].status" ng-disabled="!vm.allowDistributionSettingsEdit" )
                                             label(for="{{i+'-execute-distribute-off'}}" style="font-weight: normal;") {{"Closed" | translate}}
                                     tr(ng-show="vm.allowDistributionSettingsEdit")
                                         td
-                                            i.fa.fa-plus(ng-click="vm.addAssignee();")
+                                            i.fa.fa-plus(ng-click="vm.addAssignee();vm.checkUpdateTsAssignee()")
                                         td
                                             select.spicker.form-control(ng-options='admin.adminName as admin.adminName for admin in vm.adminList' ng-model='vm.selectedAssignees' multiple data-actions-box='true')
                                         td
@@ -341,9 +475,9 @@
                                             input(id="new-execute-distribute-off" type="radio", name="new-execute-distribution", value="0" ng-model="vm.newAssigneesExecuteStatus")
                                             label.radio-space(for="new-execute-distribute-off" style="font-weight: normal;") {{"Closed" | translate}}
 
-                            button.btn.btn-primary.common-button.pull-right(ng-show="vm.allowDistributionSettingsEdit" ng-click="vm.updateDistributionSettings()") {{"CONFIRM" | translate}}
+                            button.btn.btn-primary.common-button.pull-right(ng-show="vm.allowDistributionSettingsEdit" ng-disabled='vm.disableUpdateTsAssignee' ng-click="vm.updateDistributionSettings()") {{"CONFIRM" | translate}}
                             button.btn.btn-warning.common-button.pull-right(ng-show="vm.allowDistributionSettingsEdit" ng-click="vm.cancelDistributionSettingsEdit()") {{"CANCEL" | translate}}
-                            button.btn.btn-warning.common-button.pull-right(ng-show="!vm.allowDistributionSettingsEdit" ng-click="vm.enableDistributionSettingsEdit()") {{"Edit" | translate}}
+                            button.btn.btn-warning.common-button.pull-right(ng-show="!vm.allowDistributionSettingsEdit" ng-disabled='vm.disableAllowDistributionSettingsEdit' ng-click="vm.enableDistributionSettingsEdit()") {{"Edit" | translate}}
 
                         .well
                             span(style="font-weight:bold;font-size:20px;line-height:2em;") {{"B."}}{{"Distribution Name List Details" | translate}}
@@ -1488,3 +1622,40 @@ ez-modal(modal-id="smsPlayerModal", modal-title="{{'Send SMS to Player' | transl
                 div(ng-show="vm.selectedRewardPointsAdjustmentTab == 'convert'")
                     button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-disabled='!vm.rewardPointsConvert.updateAmount || vm.rewardPointsConvert.finalValidAmount<0 || vm.rewardPointsConvert.updateAmount + vm.playerRewardPointsDailyConvertedPoints > vm.playerRewardPointsDailyLimit', ng-click="vm.convertPlayerRewardPoints();") {{"UPDATE" | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalBulkSendSMSToFailCallPlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:40%; top: 20vh;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Send SMS to Fail Callee List" | translate}}
+            .modal-body
+                .row
+                    div.form-group.col-md-12
+                        label.control-label {{"TO" | translate}}:&nbsp;
+                        text {{"Fail Callee List" | translate}}
+
+                        label.margin-left-5.control-label {{"Channel" | translate}}:&nbsp;
+                        select(ng-model='vm.smsPlayer.channel', ng-options='a for a in channelList')
+
+                        .pull-right(ng-if='vm.sendSMSResult.sent===true')
+                            .fa.fa-check.text-success(ng-if='vm.sendSMSResult.result')
+                                text {{'SEND' | translate}} {{'SUCCESS' | translate}}
+                            .fa.fa-times.text-danger(ng-if='!vm.sendSMSResult.result')
+                                text {{'SEND' | translate}} {{'FAIL' | translate}}
+                        .pull-right(ng-if='vm.sendSMSResult.sent==="sending"')
+                            text.text-danger.blink {{"Sending" | translate}}
+
+                .row
+                    div.form-group.col-md-12
+                        label.control-label {{"SMS Templates" | translate}}
+                            select.form-control(style='width:100%;resize:none',ng-change="vm.changeSMSTemplate()", ng-model='vm.smstpl' ng-options='a.type|translate for a in vm.smsTemplate')
+                                option(value="")
+                .row
+                    div.form-group.col-md-12
+                        label.control-label {{"CONTENT" | translate}}
+                        textarea.form-control(ng-model="vm.smsPlayer.message", placeholder="...", rows="8", maxlength="100")
+            .modal-footer
+                button.btn.common-button.btn-primary(data-dismiss='modal' ng-click="vm.bulkSMSToFailCallee()", ng-disabled="!vm.smsPlayer.message || !vm.smsPlayer.channel") {{"SEND" | translate}}
+                button.btn.common-button.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
+

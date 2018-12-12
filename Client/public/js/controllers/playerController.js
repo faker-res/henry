@@ -1001,7 +1001,7 @@ define(['js/app'], function (myApp) {
         }
         //search platform by name
         vm.getAllDepartmentData = function (callback) {
-            if (!authService.checkViewPermission('Platform', 'Platform', 'Read')) {
+            if (!authService.checkViewPermission('Platform', 'PlatformSetting', 'Read')) {
                 return;
             }
             socketService.$socket($scope.AppSocket, 'getDepartmentTreeById', {departmentId: authService.departmentId()}, success);
@@ -19480,6 +19480,62 @@ define(['js/app'], function (myApp) {
                     vm.selectedProposal.data = proposalDetail;
                 }
 
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerBonusDoubledRewardGroup") {
+                    let proposalDetail = {};
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    let providerGroupName;
+                    let timesHasApplied = vm.selectedProposal.data.timesHasApplied || "";
+                    let quantityLimitInInterval = vm.selectedProposal.data.quantityLimitInInterval || "";
+                    let transferInAmount = vm.selectedProposal.data.transferInAmount || "";
+                    let transferOutAmount = vm.selectedProposal.data.transferOutAmount || "";
+                    let transferInId = vm.selectedProposal.data.transferInId || "";
+                    let transferOutId = vm.selectedProposal.data.transferOutId || "";
+                    if (vm.selectedProposal.data && vm.selectedProposal.data.providerGroup) {
+                        providerGroupName = vm.getProviderGroupNameById(vm.selectedProposal.data.providerGroup);
+                    } else {
+                        providerGroupName = $translate("LOCAL_CREDIT");
+                    }
+
+                    proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                    proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
+                    proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                    proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
+                    proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.proposalPlayerLevel;
+                    proposalDetail["rewardAmount"] = vm.selectedProposal.data.rewardAmount;
+                    proposalDetail["spendingAmount"] = vm.selectedProposal.data.spendingAmount;
+                    proposalDetail["eventName"] = vm.selectedProposal.data.eventName;
+                    proposalDetail["eventCode"] = vm.selectedProposal.data.eventCode;
+                    proposalDetail["isIgnoreAudit"] = vm.selectedProposal.data.eventCode;
+                    proposalDetail["forbidWithdrawAfterApply"] = vm.selectedProposal.data.forbidWithdrawAfterApply;
+                    proposalDetail["forbidWithdrawIfBalanceAfterUnlock"] = vm.selectedProposal.data.forbidWithdrawIfBalanceAfterUnlock;
+                    proposalDetail["remark"] = vm.selectedProposal.data.remark;
+                    proposalDetail["useConsumption"] = vm.selectedProposal.data.useConsumption;
+                    proposalDetail["providerGroup"] = providerGroupName
+                    proposalDetail["rewardStartTime"] = vm.selectedProposal.data.rewardStartTime;
+                    proposalDetail["rewardEndTime"] = vm.selectedProposal.data.rewardEndTime;
+                    proposalDetail["rewardInterval"] = vm.selectedProposal.data.rewardInterval;
+                    proposalDetail["appliedQuantityOverApplicationLimit"] = timesHasApplied + '/' + quantityLimitInInterval;
+                    proposalDetail["transferInDetail"] = transferInAmount + ' (' + $translate("transferIn") + ': ' + transferInId + ')';
+                    proposalDetail["transferOutDetail"] = transferOutAmount + ' (' + $translate("transferOut") + ': ' + transferOutId  + ')';
+                    proposalDetail["winLoseAmount"] = vm.selectedProposal.data.winLoseAmount;
+                    proposalDetail["countWinLoseStartTime"] = vm.selectedProposal.data.countWinLoseStartTime;
+                    proposalDetail["countWinLoseEndTime"] = vm.selectedProposal.data.countWinLoseEndTime;
+                    proposalDetail["gameProviderInEvent"] = vm.selectedProposal.data.gameProviderInEvent;
+
+                    if (vm.selectedProposal.data.rewardPercent){
+                        proposalDetail["rewardPercent"] = vm.selectedProposal.data.rewardPercent;
+                    }
+
+                    if (vm.selectedProposal.data.maxReward){
+                        proposalDetail["maxReward"] = vm.selectedProposal.data.maxReward;
+                    }
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
+
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
                         vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
@@ -19709,7 +19765,15 @@ define(['js/app'], function (myApp) {
                 result = $translate(val);
             } else if (fieldName === 'definePlayerLoginMode') {
                 result = $translate($scope.playerLoginMode[val]);
+            } else if (fieldName === 'rewardInterval') {
+                result = $translate($scope.rewardInterval[val]);
+            } else if (fieldName === 'gameProviderInEvent') {
+                let index = vm.allGameProviders.findIndex(p => p._id.toString() == val.toString());
+                if (index != -1){
+                    result =  vm.allGameProviders[index].name;
+                }
             }
+
             return $sce.trustAsHtml(result);
         };
         // end iof proposal detail

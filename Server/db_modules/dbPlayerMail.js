@@ -322,7 +322,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationSMS: function (platformObjId, platformId, data, verifyCode, purpose, inputDevice, playerName) {
+    sendVerificationSMS: function (platformObjId, platformId, data, verifyCode, purpose, inputDevice, playerName, ipAddress, isPartner) {
         var sendObj = {
             tel: data.tel,
             channel: data.channel,
@@ -334,11 +334,11 @@ const dbPlayerMail = {
             retData => {
                 console.log(retData);
                 console.log('[smsAPI] Sent verification code to: ', data.tel);
-                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'success');
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'success', '', ipAddress, isPartner);
                 return retData;
             },
             retErr => {
-                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'failure', retErr);
+                dbLogger.createRegisterSMSLog("registration", platformObjId, platformId, data.tel, verifyCode, sendObj.channel, purpose, inputDevice, playerName, 'failure', retErr, ipAddress, isPartner);
                 errorUtils.reportError(retErr);
                 return dbPlayerMail.failSMSErrorOutHandler(data.tel);
             }
@@ -413,6 +413,12 @@ const dbPlayerMail = {
         }
         let isSpam = false;
         let blacklistIPDetected = false;
+        let timeNow = new Date();
+        let minuteNow = dbUtility.getSGTimeCurrentMinuteInterval(timeNow);
+        let hourNow = dbUtility.getSGTimeCurrentHourInterval(timeNow);
+        let dayNow = dbUtility.getSGTimeCurrentDayInterval(timeNow);
+        let checkBlackWhiteListPhoneNumber = telNum ? telNum : '';
+        let checkBlackWhiteListIpAddress = inputData && inputData.ipAddress ? inputData.ipAddress : '';
 
         return getPlatform.then(
             platformData => {
@@ -528,6 +534,158 @@ const dbPlayerMail = {
                             }
                         }
                     );
+                }
+            }
+        ).then(
+            () => {
+                if (platform && platform._id) {
+                    return dbPlatform.getBlackWhiteListingConfig(platform._id).then(
+                        blackWhiteListingConfig => {
+                            console.log('blackWhiteListingConfig===1', blackWhiteListingConfig);
+                            console.log('checkBlackWhiteListPhoneNumber===1', checkBlackWhiteListPhoneNumber);
+                            console.log('checkBlackWhiteListIpAddress===1', checkBlackWhiteListIpAddress);
+                            console.log('checkBlackWhiteListIpAddress===1', checkBlackWhiteListIpAddress);
+
+                            //check if phone number is white listed
+                            if (checkBlackWhiteListPhoneNumber && blackWhiteListingConfig && blackWhiteListingConfig.whiteListingSmsPhoneNumbers && blackWhiteListingConfig.whiteListingSmsPhoneNumbers.length > 0) {
+                                let phones = blackWhiteListingConfig.whiteListingSmsPhoneNumbers;
+                                console.log('phones===', phones);
+                                for (let i = 0, len = phones.length; i < len; i++) {
+                                    let phone = phones[i];
+                                    console.log('TYPE of phone===1', typeof phone);
+                                    console.log('TYPE of checkBlackWhiteListPhoneNumber===1', typeof checkBlackWhiteListPhoneNumber);
+                                    if (phone === checkBlackWhiteListPhoneNumber) {
+                                        checkBlackWhiteListPhoneNumber = '';
+                                    }
+                                }
+                            }
+
+                            //check if IP address is white listed
+                            if (checkBlackWhiteListIpAddress && blackWhiteListingConfig && blackWhiteListingConfig.whiteListingSmsIpAddress && blackWhiteListingConfig.whiteListingSmsIpAddress.length > 0) {
+                                let ipAddress = blackWhiteListingConfig.whiteListingSmsIpAddress;
+                                console.log('ipAddress===', ipAddress);
+                                for (let i = 0, len = ipAddress.length; i < len; i++) {
+                                    let ip = ipAddress[i];
+                                    console.log('TYPE of ip===1', typeof ip);
+                                    console.log('TYPE of checkBlackWhiteListIpAddress===1', typeof checkBlackWhiteListIpAddress);
+                                    if (ip === checkBlackWhiteListIpAddress) {
+                                        checkBlackWhiteListIpAddress = '';
+                                    }
+                                }
+                            }
+                        }
+                    );
+                }
+            }
+        ).then(
+            () => {
+                let checkPhoneByMinuteProm = Promise.resolve(true);
+                let checkPhoneByHourProm = Promise.resolve(true);
+                let checkPhoneByDayProm = Promise.resolve(true);
+                let checkIpByMinuteProm = Promise.resolve(true);
+                let checkIpByHourProm = Promise.resolve(true);
+                let checkIpByDayProm = Promise.resolve(true);
+
+                console.log('checkBlackWhiteListPhoneNumber===2', checkBlackWhiteListPhoneNumber);
+                console.log('checkBlackWhiteListIpAddress===2', checkBlackWhiteListIpAddress);
+
+                // skip smsLogCheckLimit if phone or IP is white listed
+                if (checkBlackWhiteListPhoneNumber) {
+                    console.log('check PHONE======');
+                    // fixed limit 1, 5, 10
+                    checkPhoneByMinuteProm = smsLogCheckLimit(minuteNow, 'tel',"$tel", 1, checkBlackWhiteListPhoneNumber, '', isPartner);
+                    checkPhoneByHourProm = smsLogCheckLimit(hourNow, 'tel', "$tel", 5, checkBlackWhiteListPhoneNumber, '', isPartner);
+                    checkPhoneByDayProm = smsLogCheckLimit(dayNow, 'tel', "$tel", 10, checkBlackWhiteListPhoneNumber, '', isPartner);
+                }
+                if (checkBlackWhiteListIpAddress) {
+                    console.log('check IP======');
+                    // fixed limit 1, 5, 10
+                    checkIpByMinuteProm = smsLogCheckLimit(minuteNow, 'ipAddress', "$ipAddress", 1, '', checkBlackWhiteListIpAddress, isPartner);
+                    checkIpByHourProm = smsLogCheckLimit(hourNow, 'ipAddress', "$ipAddress", 5, '', checkBlackWhiteListIpAddress, isPartner);
+                    checkIpByDayProm = smsLogCheckLimit(dayNow, 'ipAddress', "$ipAddress", 10, '', checkBlackWhiteListIpAddress, isPartner);
+                }
+
+                return Promise.all([
+                    checkPhoneByMinuteProm,
+                    checkPhoneByHourProm,
+                    checkPhoneByDayProm,
+                    checkIpByMinuteProm,
+                    checkIpByHourProm,
+                    checkIpByDayProm,
+                ]);
+            }
+        ).then(
+            (smsLog) => {
+                console.log('smsLog===', smsLog);
+                console.log('smsLog[0]===', smsLog[0]);
+                console.log('smsLog[1]===', smsLog[1]);
+                console.log('smsLog[2]===', smsLog[2]);
+                console.log('smsLog[3]===', smsLog[3]);
+                console.log('smsLog[4]===', smsLog[4]);
+                console.log('smsLog[5]===', smsLog[5]);
+                if (smsLog) {
+                    let checkPhoneByMinute = smsLog[0] && smsLog[0][0] ? smsLog[0][0] : [];
+                    let checkPhoneByHour = smsLog[1] && smsLog[1][0] ? smsLog[1][0] : [];
+                    let checkPhoneByDay = smsLog[2] && smsLog[2][0] ? smsLog[2][0] : [];
+                    let checkIpByMinute = smsLog[3] && smsLog[3][0] ? smsLog[3][0] : [];
+                    let checkIpByHour = smsLog[4] && smsLog[4][0] ? smsLog[4][0] : [];
+                    let checkIpByDay = smsLog[5] && smsLog[5][0] ? smsLog[5][0] : [];
+
+                    console.log('checkPhoneByMinute===', checkPhoneByMinute);
+                    console.log('checkPhoneByHour===', checkPhoneByHour);
+                    console.log('checkPhoneByDay===', checkPhoneByDay);
+                    console.log('checkIpByMinute===', checkIpByMinute);
+                    console.log('checkIpByHour===', checkIpByHour);
+                    console.log('checkIpByDay===', checkIpByDay);
+
+                    if (checkPhoneByMinute && checkPhoneByMinute._id) {
+                        if (!checkPhoneByMinute.countLtLimit) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
+                            })
+                        }
+                    }
+                    if (checkPhoneByHour && checkPhoneByHour._id) {
+                        if (!checkPhoneByHour.countLtLimit) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
+                            })
+                        }
+                    }
+                    if (checkPhoneByDay && checkPhoneByDay._id) {
+                        if (!checkPhoneByDay.countLtLimit) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
+                            })
+                        }
+                    }
+                    if (checkIpByMinute && checkIpByMinute._id) {
+                        if (!checkIpByMinute.countLtLimit) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
+                            })
+                        }
+                    }
+                    if (checkIpByHour && checkIpByHour._id) {
+                        if (!checkIpByHour.countLtLimit) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
+                            })
+                        }
+                    }
+                    if (checkIpByDay && checkIpByDay._id) {
+                        if (!checkIpByDay.countLtLimit) {
+                            return Promise.reject({
+                                name: "DataError",
+                                message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
+                            })
+                        }
+                    }
                 }
             }
         ).then(
@@ -773,7 +931,7 @@ const dbPlayerMail = {
                         return errorUtils.reportError(err);
                     });
 
-                    return dbPlayerMail.sendVerificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName);
+                    return dbPlayerMail.sendVerificationSMS(platformObjId, platformId, sendObj, code, purpose, inputDevice, playerName, inputData.ipAddress, isPartner);
                 }
             }
         ).then(
@@ -930,7 +1088,7 @@ const dbPlayerMail = {
         );
     },
 
-    sendVerificationCodeToPlayer: function (playerId, smsCode, platformId, captchaValidation, purpose, inputDevice) {
+    sendVerificationCodeToPlayer: function (playerId, smsCode, platformId, captchaValidation, purpose, inputDevice, inputData) {
         let blackListingPhoneNumber = [];
         return dbconfig.collection_platform.findOne({platformId: platformId}).lean().then(
             platform => {
@@ -964,7 +1122,7 @@ const dbPlayerMail = {
                     }
                 }
 
-                return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId, captchaValidation, purpose, inputDevice, player.name);
+                return dbPlayerMail.sendVerificationCodeToNumber(player.phoneNumber, smsCode, platformId, captchaValidation, purpose, inputDevice, player.name, inputData);
             },
             error => {
                 return Q.reject({name: "DBError", message: "Error in getting player data", error: error});
@@ -1190,6 +1348,67 @@ const dbPlayerMail = {
         return dbconfig.collection_keywordFilter.find({platform: platform}).lean();
     },
 };
+
+function smsLogCheckLimit (inputTime, queryData, countData, limit, telNum, ipAddress, isPartner) {
+    let matchQuery = {};
+
+    if (queryData === 'tel') {
+        // to find player sms log based on tel number
+        matchQuery = {
+            createTime: {
+                $gte: inputTime.startTime,
+                $lte: inputTime.endTime
+            },
+            tel: telNum ? telNum : "",
+            isPlayer: true,
+            isPartner: false,
+        };
+
+        // to find partner sms log based on tel number
+        if (isPartner) {
+            matchQuery.isPlayer = false;
+            matchQuery.isPartner = true;
+        }
+    }
+
+    if (queryData === 'ipAddress') {
+        // to find player sms log based on ipAddress
+        matchQuery = {
+            createTime: {
+                $gte: inputTime.startTime,
+                $lte: inputTime.endTime
+            },
+            ipAddress: ipAddress ? ipAddress : "",
+            isPlayer: true,
+            isPartner: false,
+        };
+
+        // to find partner sms log based on ipAddress
+        if (isPartner) {
+            matchQuery.isPlayer = false;
+            matchQuery.isPartner = true;
+        }
+    }
+
+    return dbconfig.collection_smsLog.aggregate(
+        {
+            $match: matchQuery
+        }, {
+            $group: {
+                _id: countData,
+                count: {$sum: 1}
+            }
+        }, {
+            $project: {
+                _id: 1,
+                count: 1,
+                countLtLimit: {
+                    $lt: [ "$count", limit]
+                }
+            }
+        }
+    ).read("secondaryPreferred");
+}
 
 const notifyPlayerOfNewMessage = (data) => {
     var wsMessageClient = serverInstance.getWebSocketMessageClient();

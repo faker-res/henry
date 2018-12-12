@@ -1,17 +1,14 @@
 div
     #wechatGroupControlMonitor.block-query.col-md-12.well
         div(style='width:210px')
-            label.control-label  {{'DEPARTMENT' | translate}}
-            select.form-control#selectWechatGroupControlDepartment(multiple='multiple', ng-model='vm.wechatGroupControlMonitorQuery.department')
-                option(ng-repeat='(i,v) in vm.wechatGroupControlDepartmentList', value='{{v._id}}') {{v.departmentName}}
+            label.control-label  {{'PRODUCT' | translate}}
+            select.form-control.spicker(ng-model='vm.wechatGroupControlMonitorQuery.product', ng-change='vm.getWechatSessionDeviceNickName(vm.wechatGroupControlMonitorQuery.product)', ng-options="a._id as a.name  for a in vm.adminPlatformName", style='max-width:200px', multiple, bsp, data-actions-box='true')
         div(style='width:155px')
             label.control-label  {{'Device Name' | translate}}
-            select.form-control#selectWechatGroupControlDeviceNickName(multiple='multiple',ng-model='vm.wechatGroupControlMonitorQuery.deviceNickName')
-                option(ng-repeat='(i,v) in vm.deviceNicknameList', value='{{v}}') {{v}}
+            select.form-control.spicker(ng-model='vm.wechatGroupControlMonitorQuery.deviceNickName', ng-change='vm.getWechatSessionCsOfficer(vm.wechatGroupControlMonitorQuery.product, vm.wechatGroupControlMonitorQuery.deviceNickName)', ng-options="a  for a in vm.wechatSessionNickName", style='max-width:200px', multiple, bsp, data-actions-box='true')
         div(style='width:155px')
             label.control-label  {{'Login Account' | translate}}
-            select.form-control#selectWechatGroupControlAdminId(multiple='multiple', ng-model='vm.wechatGroupControlMonitorQuery.csOfficer')
-                option(ng-repeat='(i,v) in vm.wechatGroupControlAdminList', value='{{v._id}}') {{v.adminName}}
+            select.form-control.spicker(ng-model='vm.wechatGroupControlMonitorQuery.csOfficer', ng-options="a._id as a.adminName  for a in vm.wechatSessionCsOfficer", style='max-width:200px', multiple, bsp, data-actions-box='true')
         div
             label &nbsp;
             button.btn.btn-warning(ng-click='vm.resetWechatGroupControlMonitor()') {{'Reset' | translate}}
