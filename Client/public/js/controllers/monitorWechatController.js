@@ -99,7 +99,8 @@ define(['js/app'], function (myApp) {
             vm.wechatGroupControlMonitorQuery = {};
             getAdminPlatformName();
             vm.wechatGroupControlMonitorQuery.pageObj = utilService.createPageForPagingTable("#wechatGroupMonitorTablePage", {pageSize: 1000}, $translate, function (curP, pageSize) {
-                vm.commonPageChangeHandler(curP, pageSize, "wechatGroupControlMonitorQuery", vm.searchWechatMonitorRecord)
+                vm.commonPageChangeHandler(curP, pageSize, "wechatGroupControlMonitorQuery", vm.searchWechatMonitorRecord);
+                $scope.$evalAsync();
             });
         };
 
@@ -137,25 +138,22 @@ define(['js/app'], function (myApp) {
             console.log('sendObj', sendObj);
 
             socketService.$socket($scope.AppSocket, 'getWCGroupControlSessionMonitor', sendObj, function (data) {
-                $scope.$evalAsync(() => {
-                    $('#wechatGroupMonitorTableSpin').hide();
-                    console.log('getWCGroupControlSessionMonitor', data);
-                    vm.wechatGroupControlMonitorQuery.totalCount = data.data.size;
+                $('#wechatGroupMonitorTableSpin').hide();
+                console.log('getWCGroupControlSessionMonitor', data);
+                vm.wechatGroupControlMonitorQuery.totalCount = data.data.size;
 
-                    vm.drawWechatGroupRecordTable(
-                        data.data.data ? data.data.data.map(item => {
-                            item.duration = Math.floor(item.duration);
-                            item.duration$ = Math.floor(item.duration) + $translate('minute(s)');
-                            item.product = item.platformId + '.' + item.platformName;
-                            item.adminName$ = item.adminName ? item.adminName : $translate('No first attempt login');
-                            item.status$ = item.status == 1 ? $translate('Green light is on(Online)') : $translate('Red light is on(Offline)');
-                            item.connectionAbnormalClickTimes$ = item.connectionAbnormalClickTimes ? item.connectionAbnormalClickTimes + $translate('Time(s)') : '0' + $translate('Time(s)');
+                vm.drawWechatGroupRecordTable(
+                    data.data.data ? data.data.data.map(item => {
+                        item.duration = Math.floor(item.duration);
+                        item.product = item.platformId + '.' + item.platformName;
+                        item.adminName$ = item.adminName ? item.adminName : $translate('No first attempt login');
+                        item.status$ = item.status == 1 ? $translate('Green light is on(Online)') : $translate('Red light is on(Offline)');
 
-                            return item;
-                        }) : [], data.data.size, {}, isNewSearch
-                    );
+                        return item;
+                    }) : [], data.data.size, {}, isNewSearch
+                );
 
-                });
+                $scope.$evalAsync();
             }, function (err) {
                 console.error(err);
             }, true);
@@ -165,6 +163,7 @@ define(['js/app'], function (myApp) {
         vm.drawWechatGroupRecordTable = function (data, size, summary, newSearch) {
             let tableOptions = {
                 data: data,
+                "order": vm.wechatGroupControlMonitorQuery.aaSorting,
                 aoColumnDefs: [
                     {'sortCol': 'connectionAbnormalClickTimes', bSortable: true, 'aTargets': [4]},
                     {'sortCol': 'duration', bSortable: true, 'aTargets': [5]},
@@ -177,7 +176,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('Current System Status'), data: "status$"},
                     {
                         title: $translate('This Connection is Abnormally Clicked'),
-                        data: "connectionAbnormalClickTimes$",
+                        data: "connectionAbnormalClickTimes",
                         render: function (data, type, row) {
                             if (row.status == 2) {
                                 var link = $('<div>', {});
@@ -193,7 +192,7 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
-                        title: $translate('Connection Time'), data: "duration$",
+                        title: $translate('Connection Time'), data: "duration",
                         render: function (data, type, row) {
                             if (row.status == 2) {
                                 var link = $('<div>', {});
