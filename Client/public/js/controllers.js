@@ -583,6 +583,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         CloudFlashPay: 6
     };
 
+    $scope.counterDepositType = {
+        1:'Bankcard',
+        2:'Cash'
+    };
+
     $scope.merchantTargetDeviceJson = {
         '1': "clientType_Web",
         '2': 'clientType_H5',

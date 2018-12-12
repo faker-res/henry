@@ -55,6 +55,7 @@ const constProposalType = {
     PLAYER_CONSUMPTION_SLIP_REWARD_GROUP: "PlayerConsumptionSlipRewardGroup",
     PLAYER_RETENTION_REWARD_GROUP: "PlayerRetentionRewardGroup",
     PLAYER_BONUS_DOUBLED_REWARD_GROUP: "PlayerBonusDoubledRewardGroup",
+    PLAYER_ASSIGN_TOP_UP:"PlayerAssignTopUp",
 
     // Topup
     PLAYER_COMMON_TOP_UP: "PlayerCommonTopUp",

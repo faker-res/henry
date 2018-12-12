@@ -541,19 +541,11 @@ const dbPlayerMail = {
                 if (platform && platform._id) {
                     return dbPlatform.getBlackWhiteListingConfig(platform._id).then(
                         blackWhiteListingConfig => {
-                            console.log('blackWhiteListingConfig===1', blackWhiteListingConfig);
-                            console.log('checkBlackWhiteListPhoneNumber===1', checkBlackWhiteListPhoneNumber);
-                            console.log('checkBlackWhiteListIpAddress===1', checkBlackWhiteListIpAddress);
-                            console.log('checkBlackWhiteListIpAddress===1', checkBlackWhiteListIpAddress);
-
                             //check if phone number is white listed
                             if (checkBlackWhiteListPhoneNumber && blackWhiteListingConfig && blackWhiteListingConfig.whiteListingSmsPhoneNumbers && blackWhiteListingConfig.whiteListingSmsPhoneNumbers.length > 0) {
                                 let phones = blackWhiteListingConfig.whiteListingSmsPhoneNumbers;
-                                console.log('phones===', phones);
                                 for (let i = 0, len = phones.length; i < len; i++) {
                                     let phone = phones[i];
-                                    console.log('TYPE of phone===1', typeof phone);
-                                    console.log('TYPE of checkBlackWhiteListPhoneNumber===1', typeof checkBlackWhiteListPhoneNumber);
                                     if (phone === checkBlackWhiteListPhoneNumber) {
                                         checkBlackWhiteListPhoneNumber = '';
                                     }
@@ -563,11 +555,8 @@ const dbPlayerMail = {
                             //check if IP address is white listed
                             if (checkBlackWhiteListIpAddress && blackWhiteListingConfig && blackWhiteListingConfig.whiteListingSmsIpAddress && blackWhiteListingConfig.whiteListingSmsIpAddress.length > 0) {
                                 let ipAddress = blackWhiteListingConfig.whiteListingSmsIpAddress;
-                                console.log('ipAddress===', ipAddress);
                                 for (let i = 0, len = ipAddress.length; i < len; i++) {
                                     let ip = ipAddress[i];
-                                    console.log('TYPE of ip===1', typeof ip);
-                                    console.log('TYPE of checkBlackWhiteListIpAddress===1', typeof checkBlackWhiteListIpAddress);
                                     if (ip === checkBlackWhiteListIpAddress) {
                                         checkBlackWhiteListIpAddress = '';
                                     }
@@ -586,19 +575,14 @@ const dbPlayerMail = {
                 let checkIpByHourProm = Promise.resolve(true);
                 let checkIpByDayProm = Promise.resolve(true);
 
-                console.log('checkBlackWhiteListPhoneNumber===2', checkBlackWhiteListPhoneNumber);
-                console.log('checkBlackWhiteListIpAddress===2', checkBlackWhiteListIpAddress);
-
                 // skip smsLogCheckLimit if phone or IP is white listed
                 if (checkBlackWhiteListPhoneNumber) {
-                    console.log('check PHONE======');
                     // fixed limit 1, 5, 10
                     checkPhoneByMinuteProm = smsLogCheckLimit(minuteNow, 'tel',"$tel", 1, checkBlackWhiteListPhoneNumber, '', isPartner);
                     checkPhoneByHourProm = smsLogCheckLimit(hourNow, 'tel', "$tel", 5, checkBlackWhiteListPhoneNumber, '', isPartner);
                     checkPhoneByDayProm = smsLogCheckLimit(dayNow, 'tel', "$tel", 10, checkBlackWhiteListPhoneNumber, '', isPartner);
                 }
                 if (checkBlackWhiteListIpAddress) {
-                    console.log('check IP======');
                     // fixed limit 1, 5, 10
                     checkIpByMinuteProm = smsLogCheckLimit(minuteNow, 'ipAddress', "$ipAddress", 1, '', checkBlackWhiteListIpAddress, isPartner);
                     checkIpByHourProm = smsLogCheckLimit(hourNow, 'ipAddress', "$ipAddress", 5, '', checkBlackWhiteListIpAddress, isPartner);
@@ -616,13 +600,6 @@ const dbPlayerMail = {
             }
         ).then(
             (smsLog) => {
-                console.log('smsLog===', smsLog);
-                console.log('smsLog[0]===', smsLog[0]);
-                console.log('smsLog[1]===', smsLog[1]);
-                console.log('smsLog[2]===', smsLog[2]);
-                console.log('smsLog[3]===', smsLog[3]);
-                console.log('smsLog[4]===', smsLog[4]);
-                console.log('smsLog[5]===', smsLog[5]);
                 if (smsLog) {
                     let checkPhoneByMinute = smsLog[0] && smsLog[0][0] ? smsLog[0][0] : [];
                     let checkPhoneByHour = smsLog[1] && smsLog[1][0] ? smsLog[1][0] : [];
@@ -630,13 +607,6 @@ const dbPlayerMail = {
                     let checkIpByMinute = smsLog[3] && smsLog[3][0] ? smsLog[3][0] : [];
                     let checkIpByHour = smsLog[4] && smsLog[4][0] ? smsLog[4][0] : [];
                     let checkIpByDay = smsLog[5] && smsLog[5][0] ? smsLog[5][0] : [];
-
-                    console.log('checkPhoneByMinute===', checkPhoneByMinute);
-                    console.log('checkPhoneByHour===', checkPhoneByHour);
-                    console.log('checkPhoneByDay===', checkPhoneByDay);
-                    console.log('checkIpByMinute===', checkIpByMinute);
-                    console.log('checkIpByHour===', checkIpByHour);
-                    console.log('checkIpByDay===', checkIpByDay);
 
                     if (checkPhoneByMinute && checkPhoneByMinute._id) {
                         if (!checkPhoneByMinute.countLtLimit) {

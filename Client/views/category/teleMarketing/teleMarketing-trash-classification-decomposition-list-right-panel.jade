@@ -26,4 +26,40 @@
             br
             br
             div(style='text-align:right')
-                button.btn.btn-danger(ng-click='') {{'IMPORT_XLS_TS' | translate}}
+                button.btn.btn-danger(data-target="#modalIMPORT_XLS_TS" data-toggle="modal", ng-click='vm.initModalImportTsPhoneTrade()', ng-disabled='!vm.multiDecomposedNewPhoneSelected.length') {{'IMPORT_XLS_TS' | translate}}
+
+#modalIMPORT_XLS_TS.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:35%; margin-top: 12.5em;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"IMPORT_XLS_TS" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                                    thead
+                                        tr
+                                            th(colspan=2) {{'Import X numbers into telemarketing system' | translate}}
+                                    tbody
+                                        tr
+                                            td(style='background-color: LightGrey')
+                                                label {{"SELECTED_COUNT" | translate}}
+                                            td(style='background-color: LightGrey')
+                                                text {{vm.multiDecomposedNewPhoneSelected.length}}
+                                        tr
+                                            td
+                                                text {{"Please enter quantity (random select)" | translate}}
+                                            td
+                                                input.form-control(style='width:60%; display: inline-block' type='number', ng-model='vm.totalTsPhoneTrade', min=1, max='{{vm.multiDecomposedNewPhoneSelected.length}}')
+                                                span &nbsp;
+                                                a(ng-click='vm.totalTsPhoneTrade = vm.multiDecomposedNewPhoneSelected.length')
+                                                    u {{"All phone number?" | translate}}
+
+            .modal-footer
+                div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px')
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled="!vm.totalTsPhoneTrade", data-toggle="modal",
+                data-target='#modalNewTSPhoneListXLS', ng-click="vm.importPhoneResult = ''; vm.initFilterAndImportDXSystem();") {{"CONFIRM" | translate}}
+                button.btn.btn-danger.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
