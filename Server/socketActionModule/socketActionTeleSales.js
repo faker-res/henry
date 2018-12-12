@@ -244,6 +244,12 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.getCountDecompositionList, [data.platformId], actionName, isValidData);
         },
 
+        getTsPhone: function getTsPhone(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query);
+            socketUtil.emitter(self.socket, dbTeleSales.getTsPhone, [data.query], actionName, isValidData);
+        },
+
         getDecomposedNewPhoneRecord: function getDecomposedNewPhoneRecord(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.startTime && data.endTime);
