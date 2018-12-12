@@ -1073,6 +1073,35 @@ let dbTeleSales = {
         );
     },
 
+    searchTrashClassificationTrade: (platformObjId, phoneLists, topic, startTime, endTime, index, limit) => {
+        let query = {
+            sourcePlatform: platformObjId,
+            decomposeTime: {
+                $gte: startTime,
+                $lte: endTime
+            }
+        };
+        if(phoneLists && phoneLists.length > 0) {
+            query.sourceTsPhoneListName = {$in: phoneLists};
+        }
+        if(topic == "noFeedbackTopic") {
+            query['$or'] = [
+                {lastSuccessfulFeedbackTopic: {$exists: false}},
+                {lastSuccessfulFeedbackTopic: null}
+            ];
+        } else if(topic && topic != 'noClassification') {
+            query.lastSuccessfulFeedbackTopic = topic;
+        }
+        console.log("query", query);
+        console.log("index", index);
+        console.log("limit", limit);
+        let dataProm = dbconfig.collection_tsPhoneTrade.find(query).skip(index).limit(limit).sort({decomposeTime: -1}).lean();
+        let sizeProm = dbconfig.collection_tsPhoneTrade.count(query).lean();
+        return Promise.all([dataProm, sizeProm]).then(data => {
+            return {data: data[0], size: data[1]};
+        });
+    },
+
     updateTsPhoneListDecomposedTime: (tsPhoneListObjId) => {
         return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObjId}, {decomposedTime: new Date(Date.now())}, {new: true}).lean();
     },

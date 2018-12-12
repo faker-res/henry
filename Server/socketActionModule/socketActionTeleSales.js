@@ -231,10 +231,16 @@ function socketActionTeleSales(socketIO, socket) {
         },
 
         getDecompositionList: function getDecompositionList() {
-        let actionName = arguments.callee.name;
-        let isValidData = true;
-        socketUtil.emitter(self.socket, dbTeleSales.getDecompositionList, [], actionName, isValidData);
-    },
+            let actionName = arguments.callee.name;
+            let isValidData = true;
+            socketUtil.emitter(self.socket, dbTeleSales.getDecompositionList, [], actionName, isValidData);
+        },
+
+        searchTrashClassificationTrade: function searchTrashClassificationTrade(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.phoneLists && data.topic && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbTeleSales.searchTrashClassificationTrade, [data.platformObjId, data.phoneLists, data.topic, data.startTime, data.endTime, data.index, data.limit], actionName, isValidData);
+        },
 
     };
     socketActionTeleSales.actions = this.actions;

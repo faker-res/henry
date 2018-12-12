@@ -4,3 +4,27 @@
             a.fa.fa-chevron-circle-left.contractIcon(ng-show='!vm.hideLeftPanel', ng-click='vm.setPanel(true)')
             a.fa.fa-chevron-circle-right.contractIcon(ng-show='vm.hideLeftPanel', ng-click='vm.setPanel(false)')
         label {{vm.showPageName | translate}}
+    .panel-body(style='overflow-x:visible;overflow-y:auto')
+        div(ng-if='vm.showPageName=="Trash Classification（Export）"')
+            #topUpReportQuery.block-query.col-md-12.well
+                div
+                    label.control-label {{'Name List (Decomposed / Last 10)' | translate}}
+                    select.spicker.form-control(ng-model='vm.trashClassificationTradeQuery.phoneLists' bsp multiple data-actions-box='true')
+                        option(ng-repeat='(i,v) in vm.lastTenDecomposedPhontList' ng-if="v.status == '7'" value='{{v._id}}') {{v.name}}
+                div
+                    label.control-label {{'RECYCLE_TIME_START' | translate}}
+                    #trashClassificationStartTimePicker
+                div
+                    label.control-label {{'RECYCLE_TIME_END' | translate}}
+                    #trashClassificationEndTimePicker
+                div
+                    label &nbsp;
+                    button#searchTrashClassification.btn.btn-primary.common-button-sm(style="margin-top:.5em; float:right;" ng-click="vm.searchTrashClassificationTrade(true)") {{'SEARCH' | translate}}
+                    span#trashClassificationTableSpin.collapse
+                        i.fa.fa-spinner.fa-spin
+            .clearfix
+            table#trashClassificationTradeTable.common-table.display(style="min-width:100% ;overflow: scroll")
+            #trashClassificationTradeTablePage
+            br
+            br
+            button.btn.btn-danger.common-button(ng-click="") {{"Manual Export to New Phone List" | translate}}

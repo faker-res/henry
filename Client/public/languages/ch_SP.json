@@ -1591,6 +1591,11 @@
   "SELECT_DXMISSION_INSTRUCTION": "请选择电销任务：",
   "IMPORT_SUCCESS": "导入成功",
   "IMPORT_FAIL": "导入失败",
+  "Last Successful Feedback Time": "最后一次成功回访时间",
+  "Last Successful Feedback Topic": "最后一次成功回访主题",
+  "Last Successful Feedback Content": "最后一次成功回访内容",
+  "Manual Export to New Phone List": "手动转出至新的电话池（可指定其他部门）",
+  "Name List (Decomposed / Last 10)": "名单名称（已分解/近10笔）",
 
   "PlayerRetentionRewardGroup": "提升留存（组）",
   "Check if this IP address has received the reward": "（领优惠前）检查该IP是否曾经领过",
