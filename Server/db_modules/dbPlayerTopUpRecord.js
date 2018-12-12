@@ -1213,7 +1213,7 @@ var dbPlayerTopUpRecord = {
             });
         }
 
-        return dbPlayerInfo.getManualTopupRequestList(playerId).then(
+        return dbPlayerInfo.getManualTopupRequestList(playerId, isPlayerAssign).then(
             retData => {
                 if (retData) {
                     return Q.reject({
