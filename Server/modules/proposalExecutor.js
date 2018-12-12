@@ -46,6 +46,7 @@ let dbPlayerRewardPoints = require("../db_modules/dbPlayerRewardPoints.js");
 let dbRewardPointsLog = require("../db_modules/dbRewardPointsLog.js");
 let dbRewardTaskGroup = require("../db_modules/dbRewardTaskGroup");
 let dbOperation = require("../db_common/dbOperations");
+const dbTeleSales = require("../db_modules/dbTeleSales");
 
 let dbConsumptionReturnWithdraw = require("../db_modules/dbConsumptionReturnWithdraw");
 const constManualTopupOperationType = require("../const/constManualTopupOperationType");
@@ -98,6 +99,7 @@ var proposalExecutor = {
             || executionType === 'executeManualPlayerTopUp'
             || executionType === 'executePlayerFKPTopUp'
             || executionType === 'executePlayerCommonTopUp'
+            || executionType === 'executePlayerAssignTopUp'
 
             // Group reward
             || executionType === 'executePlayerLoseReturnRewardGroup'
@@ -236,6 +238,7 @@ var proposalExecutor = {
             this.executions.executePlayerConsumptionReturn.des = "Player consumption return Reward";
             this.executions.executeManualPlayerTopUp.des = "Player manual top up";
             this.executions.executePlayerAlipayTopUp.des = "Player manual top up";
+            this.executions.executePlayerAssignTopUp = "Player assign top up";
             this.executions.executePlayerBonus.des = "Player bonus";
             this.executions.executePlayerTopUpReturn.des = "Player top up return";
             this.executions.executePlayerConsumptionIncentive.des = "Player consumption incentive";
@@ -284,6 +287,7 @@ var proposalExecutor = {
             this.executions.executePlayerBonusDoubledRewardGroup.des = "Player Bonus Doubled Reward";
             this.executions.executePlayerFKPTopUp.des = "Player Fukuaipay Top Up";
             this.executions.executePlayerCommonTopUp.des = "Player Common PMS Top Up";
+            this.executions.executeManualExportTsPhone.des = "Export Telesales Phone Across Platform";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -316,6 +320,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerTopUp.des = "Reject Player Top up";
             this.rejections.rejectPlayerAlipayTopUp.des = "Reject Player Top up";
             this.rejections.rejectManualPlayerTopUp.des = "Reject Player Manual Top up";
+            this.rejections.rejectPlayerAssignTopUp = "Reject Player Assign Manual Top up";
             this.rejections.rejectPlayerBonus.des = "Reject Player bonus";
             this.rejections.rejectPlayerTopUpReturn.des = "Reject Player top up return";
             this.rejections.rejectPlayerConsumptionIncentive.des = "Reject Player consumption incentive";
@@ -364,6 +369,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerBonusDoubledRewardGroup.des = "reject Player Bonus Doubled Reward";
             this.rejections.rejectPlayerFKPTopUp.des = "reject Player Fukuaipay Top Up";
             this.rejections.rejectPlayerCommonTopUp.des = "reject Player Common PMS Top Up";
+            this.rejections.rejectManualExportTsPhone.des = "reject Export Telesales Phone Across Platform";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -1601,6 +1607,26 @@ var proposalExecutor = {
                 }
             },
 
+            /**
+             * execution function for player manual top up proposal type
+             */
+            executePlayerAssignTopUp: function (proposalData) {
+                //valid data
+                if (proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.amount) {
+                    return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.MANUAL, proposalData).then(
+                        data => {
+                            dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.MANUAL).catch(errorUtils.reportError);
+                            sendMessageToPlayer(proposalData,constMessageType.MANUAL_TOPUP_SUCCESS,{});
+                            return proposalData;
+                        },
+                        error => Promise.reject(error)
+                    )
+                }
+                else {
+                    return Promise.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
+                }
+            },
+
             executePlayerFKPTopUp: function (proposalData) {
                 //valid data
                 if (proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.amount) {
@@ -1629,6 +1655,21 @@ var proposalExecutor = {
                         },
                         error => Promise.reject(error)
                     )
+                }
+                else {
+                    return Promise.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
+                }
+            },
+
+            executeManualExportTsPhone: function (proposalData) {
+                if (proposalData && proposalData.data && proposalData.data.exportTargetPlatformObjId) {
+                    return dbconfig.collection_tsPhoneTrade.find({proposalId: proposalData.proposalId}).lean().then(
+                        tsPhoneTrades => {
+                            let objIds = tsPhoneTrades.map(trade => trade._id);
+
+                            return dbTeleSales.exportDecomposedPhones(objIds, proposalData.data.exportTargetPlatformObjId);
+                        }
+                    );
                 }
                 else {
                     return Promise.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
@@ -2888,6 +2929,7 @@ var proposalExecutor = {
             },
 
             executePlayerTopUpReturnGroup: function (proposalData, deferred) {
+                console.log('executePlayerTopUpReturnGroup');
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && (proposalData.data.rewardAmount || (proposalData.data.applyAmount && proposalData.data.isDynamicRewardAmount))) {
                     let amount = proposalData.data.actualAmount ? proposalData.data.actualAmount : proposalData.data.applyAmount;
                     let taskData = {
@@ -2956,7 +2998,7 @@ var proposalExecutor = {
                         type: constRewardType.PLAYER_RANDOM_REWARD_GROUP,
                         rewardType: constRewardType.PLAYER_RANDOM_REWARD_GROUP,
                         platformId: proposalData.data.platformId,
-                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        requiredUnlockAmount: proposalData.data.spendingAmount || 0,
                         currentAmount: proposalData.data.rewardAmount,
                         initAmount: proposalData.data.rewardAmount,
                         useConsumption: Boolean(proposalData.data.useConsumption),
@@ -3827,6 +3869,35 @@ var proposalExecutor = {
             },
 
             /**
+             * reject function for manual export ts phone
+             */
+            rejectManualExportTsPhone: function (proposalData, deferred) {
+                dbconfig.collection_tsPhoneTrade.find({proposalId: proposalData.proposalId}).lean().then(
+                    tsPhoneTrades => {
+                        let objIds = tsPhoneTrades.map(trade => trade._id);
+
+                        let proms = [];
+
+                        objIds.map(objId => {
+                            let prom = dbconfig.collection_tsPhoneTrade.update({_id: objId}, {$unset: {proposalId: ""}}).catch(
+                                err => {
+                                    console.log("unset proposalId failed for phonetrade", objId, err);
+                                }
+                            );
+
+                            proms.push(prom);
+                        });
+
+                        return Promise.all(proms);
+                    }
+                ).catch(err => {
+                    console.log("rejectManualExportTsPhone failed", err);
+                });
+
+                deferred.resolve("Proposal is rejected");
+            },
+
+            /**
              * reject function for partner consumption return reward
              */
             rejectPlayerConsumptionReturn: function (proposalData, deferred) {
@@ -4061,6 +4132,51 @@ var proposalExecutor = {
              * reject function for player manual top up
              */
             rejectManualPlayerTopUp: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.requestId) {
+                    var wsMessageClient = serverInstance.getWebSocketMessageClient();
+                    if (wsMessageClient) {
+                        wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "payment", "manualTopupStatusNotify",
+                            {
+                                proposalId: proposalData.proposalId,
+                                amount: proposalData.data.amount,
+                                handleTime: new Date(),
+                                status: proposalData.status,
+                                playerId: proposalData.data.playerId
+                            }
+                        );
+                    }
+                    pmsAPI.payment_modifyManualTopupRequest({
+                        requestId: proposalData.data.requestId,
+                        operationType: constManualTopupOperationType.CANCEL,
+                        data: null
+                    }).then(
+                        deferred.resolve, deferred.reject
+                    );
+                    //deferred.resolve("Proposal is rejected");
+                } else {
+                    //deduct bank daily quota
+                    if (proposalData.data && proposalData.data.bankCardNo && proposalData.data.platform && proposalData.data.amount) {
+                        dbconfig.collection_platformBankCardList.findOneAndUpdate(
+                            {
+                                accountNumber: proposalData.data.bankCardNo,
+                                platformId: proposalData.data.platform
+                            },
+                            {
+                                $inc: {quotaUsed: -proposalData.data.amount}
+                            }
+                        ).then(
+                            deferred.resolve, deferred.reject
+                        );
+                    } else {
+                        deferred.reject("Proposal is rejected");
+                    }
+                }
+            },
+
+            /**
+             * reject function for player assign manual top up
+             */
+            rejectPlayerAssignTopUp: function (proposalData, deferred) {
                 if (proposalData && proposalData.data && proposalData.data.requestId) {
                     var wsMessageClient = serverInstance.getWebSocketMessageClient();
                     if (wsMessageClient) {
@@ -4472,6 +4588,7 @@ function changePlayerCredit(playerObjId, platformId, updateAmount, reasonType, d
  * @param [resolveValue] - Optional.  Without this, resolves with the newly created reward task.
  */
 function createRewardTaskForProposal(proposalData, taskData, deferred, rewardType, resolveValue) {
+    console.log('createRewardTaskForProposal', createRewardTaskForProposal);
     let rewardTask, platform, gameProviderGroup, playerRecord;
     //check if player object id is in the proposal data
     if (!(proposalData && proposalData.data && proposalData.data.playerObjId)) {
@@ -4480,7 +4597,6 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
     }
 
     // Add proposalId in reward data
-    console.log("createRewardTaskForProposal taskData", taskData);
     taskData.proposalId = proposalData.proposalId;
 
     let gameProviderGroupProm = Promise.resolve(false);
@@ -4493,6 +4609,8 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
         gameProviderGroupProm = dbconfig.collection_gameProviderGroup.findOne({_id: proposalData.data.providerGroup})
             .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean();
     }
+
+    console.log('createRewardTaskForProposal', taskData);
 
     Promise.all([gameProviderGroupProm, platformProm, playerProm]).then(
         res => {
@@ -4738,6 +4856,8 @@ function createRTGForProposal(proposalData, taskData, rewardType, resolveValue) 
             .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean();
     }
 
+    console.log('createRTGForProposal', taskData);
+
     return Promise.all([gameProviderGroupProm, platformProm, playerProm]).then(
         res => {
             [gameProviderGroup, platform, playerRecord] = res;
@@ -4816,7 +4936,7 @@ function createRTGForProposal(proposalData, taskData, rewardType, resolveValue) 
 
                         }
                     }
-                )
+                );
 
                 return Promise.all(rtgArr).catch(err => {
                     // without current catch, the then chain might be broken
@@ -5477,6 +5597,7 @@ function updateAllCustomizeCommissionRate (proposalData) {
 function getProviderCredit(providers, playerName, platformId) {
     let promArr = [];
     let providerCredit = 0;
+    let cpmsAPI = require('../externalAPI/cpmsAPI');
 
     providers.forEach(provider => {
         if (provider) {
@@ -5507,6 +5628,58 @@ function getProviderCredit(providers, playerName, platformId) {
             });
             return providerCredit;
         });
+}
+function getPlayerCreditInProviders (playerData, platformData) {
+    return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: playerData._id}).then(
+        rtgData => {
+            let calCreditArr = [];
+
+            if (rtgData && rtgData.length) {
+                rtgData.forEach(rtg => {
+                    if(rtg){
+                        if (rtg.providerGroup && rtg.providerGroup._id) {
+                            rtg.totalCredit = rtg.rewardAmt || 0;
+
+                            let calCreditProm = dbconfig.collection_gameProviderGroup.findOne({_id: rtg.providerGroup._id}).populate({
+                                path: "providers", model: dbconfig.collection_gameProvider
+                            }).lean().then(
+                                providerGroup => {
+                                    if (providerGroup && providerGroup.providers && providerGroup.providers.length) {
+                                        return getProviderCredit(providerGroup.providers, playerData.name, platformData.platformId).then(
+                                            credit => {
+                                                if (credit) {
+                                                    rtg.totalCredit += credit
+                                                }
+
+                                                return rtg;
+                                            }
+                                        );
+                                    }
+                                }
+                            );
+
+                            calCreditArr.push(calCreditProm);
+                        } else if (!rtg.providerGroup) {
+                            rtg.totalCredit = playerData && playerData.validCredit ? playerData.validCredit : 0;
+                            let calCreditProm = getProviderCredit(platform.gameProviders, playerData.name, platformData.platformId).then(
+                                credit => {
+                                    if(credit){
+                                        rtg.totalCredit += credit;
+                                    }
+
+                                    return rtg;
+                                }
+                            );
+
+                            calCreditArr.push(calCreditProm);
+                        }
+                    }
+                });
+
+                return Promise.all(calCreditArr).then(data => data, err => err);
+            }
+        }
+    )
 }
 
 var proto = proposalExecutorFunc.prototype;

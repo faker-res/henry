@@ -435,7 +435,14 @@ var dbPlatform = {
                                 platformObjIds = platformObjIds.concat(departments[i].platforms);
                             }
                         }
-                        return dbconfig.collection_platform.find({_id: {$in: platformObjIds}}, {name: 1}).lean();
+                        return dbconfig.collection_platform.find({_id: {$in: platformObjIds}}, {name: 1, platformId: 1}).lean().then(
+                            platformData => {
+                                if (platformData && platformData.length > 0) {
+                                    platformData = platformData.sort(comparePlatformId);
+                                }
+                                return platformData;
+                            }
+                        );
                     } else {
                         return [];
                     }
@@ -3684,13 +3691,7 @@ var dbPlatform = {
     },
 
     getBlackWhiteListingConfig: (platformObjId) => {
-        console.log('platformObjId===', platformObjId);
-        return dbconfig.collection_platformBlackWhiteListing.findOne({platform: platformObjId}).lean().then(
-            result => {
-                console.log('result===', result);
-                return result;
-            }
-        );
+        return dbconfig.collection_platformBlackWhiteListing.findOne({platform: platformObjId}).lean();
     },
 
     saveBlackWhiteListingConfig: (platformObjId, updateData) => {
@@ -5988,6 +5989,17 @@ function calculateUniqueIpDomainAnalysis (platform, startTime, endTime) {
             return output;
         }
     );
+}
+
+function comparePlatformId(a, b) {
+    if (a.hasOwnProperty("platformId") && b.hasOwnProperty("platformId")) {
+        let dataA = parseInt(a.platformId);
+        let dataB = parseInt(b.platformId);
+        if (!isNaN(dataA) && !isNaN(dataB)) {
+            return dataA - dataB;
+        }
+    }
+    return 0;
 }
 
 var proto = dbPlatformFunc.prototype;

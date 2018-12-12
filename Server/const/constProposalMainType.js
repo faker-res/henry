@@ -22,6 +22,7 @@ const constProposalMainType = {
     "PlayerQuickpayTopUp": constMainType.TOP_UP,
     "PlayerFKPTopUp": constMainType.TOP_UP,
     "PlayerCommonTopUp": constMainType.TOP_UP,
+    "PlayerAssignTopUp": constMainType.TOP_UP,
 
     //BONUS
     "PartnerBonus": constMainType.BONUS,
@@ -116,6 +117,7 @@ const constProposalMainType = {
     "UpdateParentPartnerCommission": constMainType.OTHERS,
     "PartnerCreditTransferToDownline": constMainType.OTHERS,
     "DownlineReceivePartnerCredit": constMainType.OTHERS,
+    "ManualExportTsPhone": constMainType.OTHERS,
 
 };
 

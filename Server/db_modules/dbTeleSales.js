@@ -4,13 +4,16 @@ const rsaCrypto = require("../modules/rsaCrypto");
 const dbUtility = require('./../modules/dbutility');
 const constPromoCodeStatus = require('../const/constPromoCodeStatus');
 const constTsPhoneListStatus = require('../const/constTsPhoneListStatus');
+const constProposalEntryType = require('../const/constProposalEntryType');
+const constProposalUserType = require('../const/constProposalUserType');
 const constServerCode = require('../const/constServerCode');
 const constProposalType = require("./../const/constProposalType");
 const constProposalStatus = require("./../const/constProposalStatus");
 const ObjectId = mongoose.Types.ObjectId;
-var dbPlayerMail = require("../db_modules/dbPlayerMail");
-var smsAPI = require('../externalAPI/smsAPI');
-var dbLogger = require('./../modules/dbLogger');
+const dbPlayerMail = require("../db_modules/dbPlayerMail");
+const dbProposal = require("../db_modules/dbProposal");
+const smsAPI = require('../externalAPI/smsAPI');
+const dbLogger = require('./../modules/dbLogger');
 
 let dbTeleSales = {
     getAllTSPhoneList: function (platformObjId) {
@@ -321,7 +324,7 @@ let dbTeleSales = {
             platform: inputData.platform,
             tsPhoneList: inputData.tsPhoneList,
             $or: [{isUsed: false}, {isSucceedBefore: true, registered: false}]
-        })
+        }).lean();
     },
 
     getRecycleBinTsPhoneList: function (platform, startTime, endTime, status, name, index, limit, sortCol) {
@@ -1005,6 +1008,114 @@ let dbTeleSales = {
         });
     },
 
+    manualExportDecomposedPhones: (sourcePlatform, sourceTopicName, exportCount, targetPlatform, phoneTradeObjIdArr, adminInfo) => {
+        if (String(sourcePlatform) === String(targetPlatform)) { // export to own platform, skip proposal
+            return dbTeleSales.exportDecomposedPhones(phoneTradeObjIdArr, targetPlatform, exportCount);
+        }
+
+        let platform;
+        return dbconfig.collection_platform.findOne({_id: targetPlatform}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({message: "Platform not found."});
+                }
+                platform = platformData;
+
+                // export to other platform, proposal required
+
+                let proposalData = {
+                    exportTargetDepartmentId: platform.platformId,
+                    exportTargetDepartmentName: platform.name,
+                    exportWhiteListCount: exportCount,
+                    sourceTsPhoneType: sourceTopicName,
+                    exportTargetPlatformObjId: platform._id,
+                };
+
+                let newProposal = {
+                    creator: adminInfo,
+                    data: proposalData,
+                    entryType: constProposalEntryType.ADMIN,
+                    userType: constProposalUserType.SYSTEM_USERS,
+                };
+                newProposal.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
+
+                return dbProposal.createProposalWithTypeName(ObjectId(sourcePlatform), constProposalType.MANUAL_EXPORT_TS_PHONE, newProposal);
+            }
+        ).then(
+            proposalData => {
+                if (!proposalData || !proposalData.proposalId) {
+                    return Promise.reject({message: "Operation failed"});
+                }
+
+                let proposalId = proposalData.proposalId;
+                return dbTeleSales.setTradeProposalId(phoneTradeObjIdArr, proposalId, exportCount);
+            }
+        );
+    },
+
+    setTradeProposalId: (phoneTradeObjIdArr, proposalId, exportCount) => {
+        if (exportCount && exportCount < phoneTradeObjIdArr.length) {
+            phoneTradeObjIdArr = dbUtility.shuffleArray(phoneTradeObjIdArr);
+        }
+
+        let length = exportCount ? Math.min(phoneTradeObjIdArr.length, exportCount) : phoneTradeObjIdArr.length;
+
+        let proms = [];
+        for (let i = 0; i < length; i++) {
+            let phoneTradeObjId = phoneTradeObjIdArr[i];
+            let prom = dbconfig.collection_tsPhoneTrade.findOneAndUpdate({_id: phoneTradeObjId, targetPlatform: null}, {proposalId}, {new: true}).lean().catch(err => {
+                console.log("set phoneTrade proposalId failed", phoneTradeObjId, proposalId, err);
+            });
+
+            proms.push(prom);
+        }
+
+        return Promise.all(proms);
+    },
+
+    exportDecomposedPhones: (phoneTradeObjIdArr, targetPlatform, exportCount) => {
+        return dbconfig.collection_platform.findOne({_id: targetPlatform}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({message: "Platform not found."});
+                }
+
+                if (exportCount && exportCount < phoneTradeObjIdArr.length) {
+                    phoneTradeObjIdArr = dbUtility.shuffleArray(phoneTradeObjIdArr);
+                }
+
+                let length = exportCount ? Math.min(phoneTradeObjIdArr.length, exportCount) : phoneTradeObjIdArr.length;
+
+                let proms = [];
+                for (let i = 0; i < length; i++) {
+                    let phoneTradeObjId = phoneTradeObjIdArr[i];
+                    let prom = dbTeleSales.exportDecomposedPhone(phoneTradeObjId, targetPlatform).catch(err => {
+                        console.log("export decomposed failed", phoneTradeObjId, err);
+                    });
+
+                    proms.push(prom);
+                }
+
+                return Promise.all(proms);
+            }
+        );
+    },
+
+    exportDecomposedPhone: (tsPhoneTradeObjId, targetPlatform) => {
+        return dbconfig.collection_tsPhoneTrade.findOne({_id: tsPhoneTradeObjId}).lean().then(
+            tsPhoneTrade => {
+                if (!tsPhoneTrade) {
+                    return Promise.reject({message: "tsPhoneTrade not found."});
+                }
+                if (tsPhoneTrade.targetPlatform) {
+                    return Promise.reject({message: "This number had been traded."});
+                }
+
+                return dbconfig.collection_tsPhoneTrade.findOneAndUpdate({_id: tsPhoneTrade._id, targetPlatform: null}, {targetPlatform, tradeTime: new Date()}, {new: true}).lean();
+            }
+        );
+    },
+
     bulkSendSmsToFailCallee: (adminObjId, adminName, data, tsPhoneDetails) => {
         let proms = [];
         if (tsPhoneDetails && tsPhoneDetails.length) {
@@ -1106,10 +1217,11 @@ let dbTeleSales = {
         return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObjId}, {decomposedTime: new Date(Date.now())}, {new: true}).lean();
     },
   
-    getTrashClassification: function () {
-        let noClassificationCountProm = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: {$exists: true}, targetPlatform: {$exists: false}}).count();
+    getTrashClassification: function (platformObjId) {
+        let noClassificationCountProm = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: {$exists: true}, sourcePlatform: ObjectId(platformObjId), targetPlatform: {$exists: false}}).count();
         let noFeedbackTopicCountProm = dbconfig.collection_tsPhoneTrade.find({
             sourcePlatform: {$exists: true},
+            sourcePlatform: ObjectId(platformObjId),
             $or: [
                 {lastSuccessfulFeedbackTopic: {$exists: false}},
                 {lastSuccessfulFeedbackTopic: {$exists: true, $eq: null}},
@@ -1121,6 +1233,7 @@ let dbTeleSales = {
                 $match: {
                     lastSuccessfulFeedbackTopic: {$exists: true, $ne: ''},
                     sourcePlatform: {$exists: true},
+                    sourcePlatform: ObjectId(platformObjId),
                     targetPlatform: {$exists: false}
                 }
             }, {
@@ -1157,11 +1270,74 @@ let dbTeleSales = {
         );
     },
 
-    getDecompositionList: function () {
+    getCountDecompositionList: function (platformObjId) {
         return dbconfig.collection_tsPhoneTrade.find({
-            targetPlatform: {$exists: true},
-            $or: [{targetTsPhone: {$exists: false}}, {targetTsPhone: {$exists: true, $eq: null}}]}).count();
+            targetPlatform: ObjectId(platformObjId),
+            tradeTime: {$exists: true},
+            $and: [
+                {
+                    $or: [
+                        {targetTsPhone: {$exists: false}},
+                        {targetTsPhone: {$exists: true, $eq: null}}
+                    ]
+                },
+                {
+                    $or: [
+                        {proposalId: {$exists: false}},
+                        {proposalId: {$exists: true, $eq: null}}
+                    ]
+                }
+            ]
+        }).count();
     },
+
+    getTsPhone: function (query) {
+       return dbconfig.collection_tsPhone.find(query).lean()
+    },
+
+    getDecomposedNewPhoneRecord: function (platformObjId, startTime, endTime, index, limit, sortCol) {
+
+        let query = {
+            tradeTime: {$gte: new Date(startTime), $lte: new Date(endTime)},
+            targetPlatform: ObjectId(platformObjId),
+            $and: [
+                {
+                    $or: [
+                        {targetTsPhone: {$exists: false}},
+                        {targetTsPhone: {$exists: true, $eq: null}}
+                    ]
+                },
+                {
+                    $or: [
+                        {proposalId: {$exists: false}},
+                        {proposalId: {$exists: true, $eq: null}}
+                    ]
+                }
+            ]
+
+        };
+
+        let countProm = dbconfig.collection_tsPhoneTrade.find(query).count();
+        let decomposedNewPhoneProm = dbconfig.collection_tsPhoneTrade.find(query, {
+            sourceTsPhone: 1,
+            tradeTime: 1,
+            encodedPhoneNumber: 1,
+            lastSuccessfulFeedbackTime: 1,
+            lastSuccessfulFeedbackTopic: 1,
+            lastSuccessfulFeedbackContent: 1
+        }).sort(sortCol).skip(index).limit(limit);
+
+        return Promise.all([countProm, decomposedNewPhoneProm]).then(
+            data => {
+                if (data) {
+                    let count = data[0] ? data[0] : 0;
+                    let decomposedNewPhoneData = data[1] ? data[1] : [];
+
+                    return {data: decomposedNewPhoneData, size: count};
+                }
+            }
+        );
+    }
 };
 
 function addTsFeedbackCount (feedbackObj, isSucceedBefore = false) {

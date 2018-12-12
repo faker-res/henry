@@ -1726,5 +1726,6 @@
   "isResetAll": "Reset All Commission Rate",
   "FrontendConfiguration": "Frontend Configuration",
   "FINANCIAL_REPORT": "Financial Report (Deposit(s), Withdrawal(s), Platform Fee(s))",
-  "DELETE_DEPOSIT_GROUP": "Delete Deposit Group"
+  "DELETE_DEPOSIT_GROUP": "Delete Deposit Group",
+  "IMPORT_XLS_TS": "Import TeleMarketing"
 }

@@ -304,6 +304,26 @@ define([], function () {
 
             return ((endDate-startDate)/(24 * 60 * 60 * 1000))
         }
+
+        /*
+     *  Shuffle array, based on most efficient method shown at https://jsperf.com/array-shuffle-comparator/5
+     */
+        this.shuffleArray = function (arr) {
+            if (!arr || !arr.length) {
+                return [];
+            }
+
+            let temp, j, i = arr.length;
+            while (--i) {
+                j = ~~(Math.random() * (i + 1));
+                temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+            }
+
+            return arr;
+        }
+
         this.actionAfterLoaded = function (id, func, times) {
             let count = times || 0;
             if ($(id) && $(id)[0] && func) {

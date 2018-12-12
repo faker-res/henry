@@ -11703,6 +11703,15 @@ define(['js/app'], function (myApp) {
             } else {
                 vm.playerManualTopUp.remark = "";
             }
+
+            vm.listBankByDepositMethod = vm.depositMethodType[depositMethod];
+            vm.listBankByDepositMethod.forEach(bank => {
+                let bankStatus = $translate(bank.status == 'DISABLED' ? 'DISABLE' : bank.status);
+                console.log(bank)
+                bank.displayText = bank.name
+                    + ' ('+bank.bankTypeId+') - ' +bank.maxDepositAmount+' - ' + bankStatus;
+                return bank;
+            });
         };
         vm.applyPlayerManualTopUp = function () {
             var sendData = {
@@ -11751,14 +11760,22 @@ define(['js/app'], function (myApp) {
                 cityId: vm.playerAssignTopUp.cityId,
                 districtId: vm.playerAssignTopUp.districtId,
                 fromFPMS: true,
-                createTime: vm.playerAssignTopUp.createTime.data('datetimepicker').getLocalDate(),
+                createTime: new Date(),
                 remark: vm.playerAssignTopUp.remark,
                 groupBankcardList: vm.playerAssignTopUp.groupBankcardList,
                 bonusCode: vm.playerAssignTopUp.bonusCode,
                 realName: vm.playerAssignTopUp.realName,
                 topUpReturnCode: vm.playerAssignTopUp.topUpReturnCode,
-                orderNo: vm.playerAssignTopUp.orderNo
+                orderNo: vm.playerAssignTopUp.orderNo,
+                platform: vm.selectedPlatform.id,
+                netPayName:vm.playerAssignTopUp.netPayName,
+                atmProvince:vm.playerAssignTopUp.atmProvince,
+                atmCity:vm.playerAssignTopUp.atmCity,
+                counterDepositType:vm.playerAssignTopUp.counterDepositType,
+                counterCardOwner:vm.playerAssignTopUp.counterCardOwner,
+                counterTransferId:vm.playerAssignTopUp.counterTransferId
             };
+
             vm.playerAssignTopUp.submitted = true;
                 socketService.$socket($scope.AppSocket, 'applyAssignTopUpRequest', sendData,
                 function (data) {
@@ -14519,9 +14536,34 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getAssignTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
                 $scope.$evalAsync(() => {
                     vm.existingAssignTopup = data.data ? data.data : false;
-                })
 
+                    if(vm.existingAssignTopup.data.inputData.counterDepositType){
+                        vm.existingAssignTopup.data.inputData.counterDepositTypeName = $scope.counterDepositType[vm.existingAssignTopup.data.inputData.counterDepositType];
+                    }
+                    if(vm.existingAssignTopup && vm.existingAssignTopup.data && vm.existingAssignTopup.data.inputData.atmProvince, vm.existingAssignTopup.data.inputData.atmCity){
+                        let atmProvince = vm.existingAssignTopup.data.inputData.atmProvince;
+                        let atmCity = vm.existingAssignTopup.data.inputData.atmCity;
+
+                        Promise.all([vm.getProvinceName(atmProvince), vm.getCityName(atmCity)])
+                        .then(data=>{
+                            vm.existingAssignTopup.data.inputData.province = data[0];
+                            vm.existingAssignTopup.data.inputData.city = data[1];
+                            vm.existingAssignTopup.data.topupContent = vm.displayAssignTopUp(vm.existingAssignTopup.data);
+                        })
+                    }else{
+                        vm.existingAssignTopup.data.topupContent = vm.displayAssignTopUp(vm.existingAssignTopup.data);
+                    }
+                })
             });
+
+            socketService.$socket($scope.AppSocket, 'requestBankTypeByUserName', {playerId: vm.selectedSinglePlayer.playerId, clientType:1}, function (data) {
+                $scope.$evalAsync(() => {
+                    let depositMethodList = data.data.data.map(item=>{
+                        return item.depositMethod
+                    })
+                    vm.depositMethodType = vm.getDepositMethod(data.data.data);
+                })
+            })
             // utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
             //     vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerManualTopUp .createTime');
             utilService.actionAfterLoaded('#modalPlayerTopUp', function () {
@@ -14531,6 +14573,40 @@ define(['js/app'], function (myApp) {
             vm.refreshSPicker();
         };
 
+        vm.displayAssignTopUp = function(data){
+            let result = '';
+            if(data && data.depositMethod == 1){
+                result = '*' + $translate('ONLINE BANK NAME') + ' :' + data.inputData.netPayName || ''
+            }
+
+            if(data && data.depositMethod == 2){
+                result = '*' + $translate('ATM SAVING PROVINCE') + ' :' + data.inputData.province +'\n'+
+                '*' + $translate('ATM SAVING CITY') + ' :' + data.inputData.city || '';
+            }
+
+            if(data && data.depositMethod == 3){
+                result = '*'+ $translate('BANK COUNTER DEPOSIT METHOD') + ' : ' + $translate(data.inputData.counterDepositTypeName) +'\n';
+                if(data.inputData.counterCardOwner){
+                    result += '*' + $translate('BANK COUNTER BANK CARD HOLDER') +' : ' + data.inputData.counterCardOwner +'\n';
+                }
+                if(data.inputData.counterTransferId){
+                    result += '*' + $translate('BANK COUNTER TRANSFER NUMBER') + '*' + $translate('PLEASE INFORM BANK STAFF THIS SERIAL NUMBER, AND LET THEM FILL UP REMARK') + ': ' + data.inputData.counterTransferId || '';
+                }
+            }
+            return result;
+        }
+
+        vm.getDepositMethod = function(data) {
+            let result = {};
+            data.forEach(item=>{
+                result[item.depositMethod] = item.data;
+            })
+            return result;
+        }
+        vm.copyClipboard = function(el){
+            $(el).select();
+            document.execCommand('copy', true);
+        }
         vm.initPlayerManualTopUp = function () {
             vm.getZoneList();
             vm.provinceList = [];
@@ -14545,6 +14621,7 @@ define(['js/app'], function (myApp) {
                 vm.existingManualTopup = data.data ? data.data : false;
                 $scope.safeApply();
             });
+
             // utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
             //     vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerManualTopUp .createTime');
             utilService.actionAfterLoaded('#modalPlayerTopUp', function () {
@@ -15718,6 +15795,16 @@ define(['js/app'], function (myApp) {
                 vm.playerManualTopUp.bankTypeId = bankcard.bankTypeId;
                 vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 4);
             };
+        }
+        vm.getBankCardMaxAmount = function (bankAcc) {
+            vm.playerAssignTopUp.maxDepositAmount = vm.pickBankAcc.maxDepositAmount;
+            vm.playerAssignTopUp.bankTypeId = vm.pickBankAcc.bankTypeId;
+
+        }
+        vm.playerAssignPlayerId = function (counterDepositType){
+            if(counterDepositType==2){
+                vm.playerAssignTopUp.counterTransferId = vm.selectedSinglePlayer.playerId
+            }
         }
         /////////////////////////////////////// bank card end  /////////////////////////////////////////////////
 
@@ -19424,6 +19511,62 @@ define(['js/app'], function (myApp) {
                     vm.selectedProposal.data = proposalDetail;
                 }
 
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerBonusDoubledRewardGroup") {
+                    let proposalDetail = {};
+                    if (!vm.selectedProposal.data) {
+                        vm.selectedProposal.data = {};
+                    }
+
+                    let providerGroupName;
+                    let timesHasApplied = vm.selectedProposal.data.timesHasApplied || "";
+                    let quantityLimitInInterval = vm.selectedProposal.data.quantityLimitInInterval || "";
+                    let transferInAmount = vm.selectedProposal.data.transferInAmount || "";
+                    let transferOutAmount = vm.selectedProposal.data.transferOutAmount || "";
+                    let transferInId = vm.selectedProposal.data.transferInId || "";
+                    let transferOutId = vm.selectedProposal.data.transferOutId || "";
+                    if (vm.selectedProposal.data && vm.selectedProposal.data.providerGroup) {
+                        providerGroupName = vm.getProviderGroupNameById(vm.selectedProposal.data.providerGroup);
+                    } else {
+                        providerGroupName = $translate("LOCAL_CREDIT");
+                    }
+
+                    proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                    proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
+                    proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                    proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
+                    proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.proposalPlayerLevel;
+                    proposalDetail["rewardAmount"] = vm.selectedProposal.data.rewardAmount;
+                    proposalDetail["spendingAmount"] = vm.selectedProposal.data.spendingAmount;
+                    proposalDetail["eventName"] = vm.selectedProposal.data.eventName;
+                    proposalDetail["eventCode"] = vm.selectedProposal.data.eventCode;
+                    proposalDetail["isIgnoreAudit"] = vm.selectedProposal.data.eventCode;
+                    proposalDetail["forbidWithdrawAfterApply"] = vm.selectedProposal.data.forbidWithdrawAfterApply;
+                    proposalDetail["forbidWithdrawIfBalanceAfterUnlock"] = vm.selectedProposal.data.forbidWithdrawIfBalanceAfterUnlock;
+                    proposalDetail["remark"] = vm.selectedProposal.data.remark;
+                    proposalDetail["useConsumption"] = vm.selectedProposal.data.useConsumption;
+                    proposalDetail["providerGroup"] = providerGroupName
+                    proposalDetail["rewardStartTime"] = vm.selectedProposal.data.rewardStartTime;
+                    proposalDetail["rewardEndTime"] = vm.selectedProposal.data.rewardEndTime;
+                    proposalDetail["rewardInterval"] = vm.selectedProposal.data.rewardInterval;
+                    proposalDetail["appliedQuantityOverApplicationLimit"] = timesHasApplied + '/' + quantityLimitInInterval;
+                    proposalDetail["transferInDetail"] = transferInAmount + ' (' + $translate("transferIn") + ': ' + transferInId + ')';
+                    proposalDetail["transferOutDetail"] = transferOutAmount + ' (' + $translate("transferOut") + ': ' + transferOutId  + ')';
+                    proposalDetail["winLoseAmount"] = vm.selectedProposal.data.winLoseAmount;
+                    proposalDetail["countWinLoseStartTime"] = vm.selectedProposal.data.countWinLoseStartTime;
+                    proposalDetail["countWinLoseEndTime"] = vm.selectedProposal.data.countWinLoseEndTime;
+                    proposalDetail["gameProviderInEvent"] = vm.selectedProposal.data.gameProviderInEvent;
+
+                    if (vm.selectedProposal.data.rewardPercent){
+                        proposalDetail["rewardPercent"] = vm.selectedProposal.data.rewardPercent;
+                    }
+
+                    if (vm.selectedProposal.data.maxReward){
+                        proposalDetail["maxReward"] = vm.selectedProposal.data.maxReward;
+                    }
+
+                    vm.selectedProposal.data = proposalDetail;
+                }
+
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
                         vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
@@ -19455,27 +19598,37 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getProvinceName = function (provinceId, fieldName) {
-            socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
-                var text = data.data.province ? data.data.province.name : '';
-                if (fieldName) {
-                    vm.selectedProposal.data[fieldName] = text;
-                } else {
-                    vm.selectedProposal.data.provinceName = text;
-                }
-                $scope.safeApply();
-            });
+
+            return new Promise((resolve, reject)=>{
+                socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
+                    var text = data.data.province ? data.data.province.name : '';
+                    if(vm.selectedProposal){
+                        if (fieldName) {
+                            vm.selectedProposal.data[fieldName] = text;
+                        } else {
+                            vm.selectedProposal.data.provinceName = text;
+                        }
+                    }
+                    resolve(text);
+                });
+            })
+
         }
 
         vm.getCityName = function (cityId, fieldName) {
-            socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
-                var text = data.data.city ? data.data.city.name : '';
-                if (fieldName) {
-                    vm.selectedProposal.data[fieldName] = text;
-                } else {
-                    vm.selectedProposal.data.cityName = text;
-                }
-                $scope.safeApply();
-            });
+            return new Promise((resolve, reject)=>{
+                socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
+                    var text = data.data.city ? data.data.city.name : '';
+                    if(vm.selectedProposal){
+                        if (fieldName) {
+                            vm.selectedProposal.data[fieldName] = text;
+                        } else {
+                            vm.selectedProposal.data.cityName = text;
+                        }
+                    }
+                    resolve(text);
+                });
+            })
         }
 
         vm.showNewPlayerModal = function (data, templateNo) {
@@ -19655,7 +19808,13 @@ define(['js/app'], function (myApp) {
                 result = $translate($scope.playerLoginMode[val]);
             } else if (fieldName === 'rewardInterval') {
                 result = $translate($scope.rewardInterval[val]);
+            } else if (fieldName === 'gameProviderInEvent') {
+                let index = vm.allGameProviders.findIndex(p => p._id.toString() == val.toString());
+                if (index != -1){
+                    result =  vm.allGameProviders[index].name;
+                }
             }
+
             return $sce.trustAsHtml(result);
         };
         // end iof proposal detail

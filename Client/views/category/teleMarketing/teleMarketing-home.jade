@@ -51,14 +51,15 @@
                                     .panel-heading.common-left-panel-heading
                                         ul.nav.nav-tabs.common-nav-tabs.padding-left-5.margi
                                             li.active
-                                                a.common-tab(data-toggle="tab", href="#tsRecycleBinOverview")
+                                                a.common-tab(data-toggle="tab", href="#tsRecycleBinOverview" ng-click='vm.showPageName="" ')
                                                     text.span {{"RECYCLE_BIN_OVERVIEW" | translate}}
                                             li
-                                                a.common-tab(data-toggle="tab", href="#tsTrashClassificationDecompositionList" ng-click='vm.initTrashClassificationDecompositionList()')
+                                                a.common-tab(data-toggle="tab", href="#tsTrashClassificationDecompositionList" ng-click='vm.initTrashClassificationDecompositionList();vm.multiDecomposedNewPhoneSelected=[];')
                                                     text.span {{"Decomposed list / trash classification and reuse" | translate}}
 
                                     .panel-body.common-right-panel-body
                                         div.tab-content
+                                            include ./modalNewTSPhoneListXLS
                                             #tsRecycleBinOverview.tab-pane.fade.in.active
                                                 include ./teleMarketing-recycle-bin-phone-list
                                             #tsTrashClassificationDecompositionList.tab-pane.fade

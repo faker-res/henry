@@ -2559,7 +2559,7 @@ var dbQualityInspection = {
         return dbconfig.collection_wcConversationLog.distinct('deviceNickName', query).lean();
     },
 
-    getWechatConversationDeviceList: function(platform, deviceNickName, csName, startTime, endTime, content, index, limit){
+    getWechatConversationDeviceList: function(platform, deviceNickName, csName, startTime, endTime, content, playerWechatRemark, index, limit){
         index = index || 0;
         let csOfficerProm = [];
         let checkCSOfficer = false;
@@ -2587,7 +2587,11 @@ var dbQualityInspection = {
         }
 
         if(content){
-            query.csReplyContent = new RegExp('.*' + content + '.*')
+            query.csReplyContent = new RegExp('.*' + content + '.*');
+        }
+
+        if(playerWechatRemark){
+            query.playerWechatRemark = new RegExp('.*' + playerWechatRemark + '.*');
         }
 
         return Promise.all([csOfficerProm]).then(
@@ -2734,8 +2738,8 @@ var dbQualityInspection = {
             query.csReplyContent = new RegExp('.*' + content + '.*')
         }
 
-        if(playerWechatRemark){
-            query.playerWechatRemark = playerWechatRemark;
+        if(playerWechatRemark && playerWechatRemark.length > 0){
+            query.playerWechatRemark = {$in: playerWechatRemark};
         }
 
         return Promise.all([csOfficerProm]).then(

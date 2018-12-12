@@ -191,6 +191,9 @@ const dbRewardTask = {
     insertConsumptionValueIntoFreeAmountProviderGroup: (rewardData, proposalData, rewardType) => {
         let consumptionAmt = 0;
 
+        rewardData.requiredUnlockAmount = Number(rewardData.requiredUnlockAmount);
+        rewardData.applyAmount = Number(rewardData.applyAmount);
+
         // Search available reward task group for this reward & this player
         return dbconfig.collection_rewardTaskGroup.findOne({
             platformId: rewardData.platformId,
@@ -202,6 +205,7 @@ const dbRewardTask = {
                 if(isNaN(rewardData.applyAmount)) {
                     rewardData.applyAmount = 0;
                 }
+
                 if (providerGroup) {
                     let updObj = {
                         proposalId: proposalData.proposalId,
@@ -221,7 +225,7 @@ const dbRewardTask = {
                         || (proposalData.data.promoCodeTypeValue && proposalData.data.promoCodeTypeValue == 1)) {
                         consumptionAmt = rewardData.requiredUnlockAmount;
                     } else {
-                        let amount = rewardData.actualAmount ? rewardData.actualAmount : rewardData.applyAmount;
+                        let amount = Number.isFinite(rewardData.actualAmount) ? rewardData.actualAmount : rewardData.applyAmount;
                         consumptionAmt = rewardData.requiredUnlockAmount - amount;
                     }
 
