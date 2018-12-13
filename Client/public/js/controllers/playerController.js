@@ -11707,9 +11707,8 @@ define(['js/app'], function (myApp) {
             vm.listBankByDepositMethod = vm.depositMethodType[depositMethod];
             vm.listBankByDepositMethod.forEach(bank => {
                 let bankStatus = $translate(bank.status == 'DISABLED' ? 'DISABLE' : bank.status);
-                console.log(bank)
                 bank.displayText = bank.name
-                    + ' ('+bank.bankTypeId+') - ' +bank.maxDepositAmount+' - ' + bankStatus;
+                    + ' ('+bank.bankTypeId+') - ' + $translate('SINGLE_LIMIT') + ':' +bank.maxDepositAmount;
                 return bank;
             });
         };
