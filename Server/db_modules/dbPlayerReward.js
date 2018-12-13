@@ -6710,7 +6710,7 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "This player has applied for max reward times in event period"
+                                message: localization.localization.translate("This player has applied for max reward times in event period")
                             });
                         }
 
@@ -6756,7 +6756,7 @@ let dbPlayerReward = {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
-                                    message: "This player has applied for max reward times in event period"
+                                    message: localization.localization.translate("This player has applied for max reward times in event period")
                                 });
                             }
 
@@ -6764,7 +6764,7 @@ let dbPlayerReward = {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
-                                    message: "This IP address has applied for max reward times in event period"
+                                    message: localization.localization.translate("This IP address has applied for max reward times in event period")
                                 });
                             }
 
@@ -6772,7 +6772,7 @@ let dbPlayerReward = {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
-                                    message: "This phone number has applied for max reward times in event period"
+                                    message: localization.localization.translate("This phone number has applied for max reward times in event period")
                                 });
                             }
 
@@ -6780,7 +6780,7 @@ let dbPlayerReward = {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
-                                    message: "This mobile device has applied for max reward times in event period"
+                                    message: localization.localization.translate("This mobile device has applied for max reward times in event period")
                                 });
                             }
 
@@ -6788,7 +6788,7 @@ let dbPlayerReward = {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
-                                    message: "This player has applied for other reward in event period"
+                                    message: localization.localization.translate("This player has applied for other reward in event period")
                                 });
                             }
                         }
@@ -6796,7 +6796,7 @@ let dbPlayerReward = {
                             return Q.reject({
                                 status: constServerCode.INVALID_PARAM,
                                 name: "DataError",
-                                message: "Reward Amount and Spending Times cannot be empty. Please check reward condition."
+                                message: localization.localization.translate("Reward Amount and Spending Times cannot be empty. Please check reward condition.")
                             });
                         }
 
@@ -6839,7 +6839,7 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "This IP address has applied for max reward times in event period"
+                                message: localization.localization.translate("This IP address has applied for max reward times in event period")
                             });
                         }
 
@@ -6847,7 +6847,7 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "This phone number has applied for max reward times in event period"
+                                message: localization.localization.translate("This phone number has applied for max reward times in event period")
                             });
                         }
 
@@ -6855,7 +6855,7 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "This mobile device has applied for max reward times in event period"
+                                message: localization.localization.translate("This mobile device has applied for max reward times in event period")
                             });
                         }
 
