@@ -1220,7 +1220,6 @@ let dbTeleSales = {
     getTrashClassification: function (platformObjId) {
         let noClassificationCountProm = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: {$exists: true}, sourcePlatform: ObjectId(platformObjId), targetPlatform: {$exists: false}}).count();
         let noFeedbackTopicCountProm = dbconfig.collection_tsPhoneTrade.find({
-            sourcePlatform: {$exists: true},
             sourcePlatform: ObjectId(platformObjId),
             $or: [
                 {lastSuccessfulFeedbackTopic: {$exists: false}},
@@ -1228,11 +1227,10 @@ let dbTeleSales = {
                 {lastSuccessfulFeedbackTopic: {$exists: true, $eq: ''}}
             ]
         }).count();
-        let feedbankTopicCountProm = dbconfig.collection_tsPhoneTrade.aggregate(
+        let feedbackTopicCountProm = dbconfig.collection_tsPhoneTrade.aggregate(
             {
                 $match: {
                     lastSuccessfulFeedbackTopic: {$exists: true, $ne: ''},
-                    sourcePlatform: {$exists: true},
                     sourcePlatform: ObjectId(platformObjId),
                     targetPlatform: {$exists: false}
                 }
@@ -1244,7 +1242,7 @@ let dbTeleSales = {
             }
         ).read("secondaryPreferred");
 
-        return Promise.all([noClassificationCountProm, noFeedbackTopicCountProm, feedbankTopicCountProm]).then(
+        return Promise.all([noClassificationCountProm, noFeedbackTopicCountProm, feedbackTopicCountProm]).then(
             data => {
                 let trashClassificationList = [];
                 if (data) {
