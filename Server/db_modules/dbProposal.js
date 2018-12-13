@@ -412,6 +412,7 @@ var proposal = {
                         || data[0].name == constProposalType.PLAYER_ALIPAY_TOP_UP
                         || data[0].name == constProposalType.PLAYER_WECHAT_TOP_UP
                         || data[0].name == constProposalType.PLAYER_QUICKPAY_TOP_UP
+                        || data[0].name == constProposalType.PLAYER_ASSIGN_TOP_UP
                     ) {
                         bExecute = false;
                         proposalData.status = constProposalStatus.PREPENDING;
@@ -3213,7 +3214,7 @@ var proposal = {
                         if(resultArray && resultArray.length > 0 && isSuccess){
                             resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
                         }
-                        
+
                         dataDeferred.resolve(resultArray);
                     }
                 },
@@ -5892,7 +5893,7 @@ var proposal = {
         if(data.line){
             query['data.line'] = data.line;
         }
-        
+
         let proposalCount, proposals;
         let proposalTypeQuery = {
             name: mainTopUpType
