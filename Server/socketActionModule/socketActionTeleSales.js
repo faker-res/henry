@@ -215,7 +215,7 @@ function socketActionTeleSales(socketIO, socket) {
             let adminObjId = getAdminId();
             let adminName = getAdminName();
             let isValidData = Boolean(data && data.sourcePlatform && data.sourceTopicName && data.exportCount && data.targetPlatform && data.phoneTradeObjIdArr && adminObjId && adminName);
-            socketUtil.emitter(self.socket, dbTeleSales.manualExportDecomposedPhones, [ ], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbTeleSales.manualExportDecomposedPhones, [data.sourcePlatform, data.sourceTopicName, data.exportCount, data.targetPlatform, data.phoneTradeObjIdArr, adminInfo], actionName, isValidData);
         },
 
         getTsPlayerRetentionAnalysis: function getTsPlayerRetentionAnalysis(data) {
