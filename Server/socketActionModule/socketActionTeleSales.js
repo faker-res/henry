@@ -257,7 +257,13 @@ function socketActionTeleSales(socketIO, socket) {
             let limit = data.limit || 100;
             let sortCol = data.sortCol || {"tradeTime": -1};
             socketUtil.emitter(self.socket, dbTeleSales.getDecomposedNewPhoneRecord, [data.platformId, data.startTime, data.endTime, index, limit, sortCol], actionName, isValidData);
-        }
+        },
+
+        searchTrashClassificationTrade: function searchTrashClassificationTrade(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId && data.phoneLists && data.topic && data.startTime && data.endTime);
+            socketUtil.emitter(self.socket, dbTeleSales.searchTrashClassificationTrade, [data.platformObjId, data.phoneLists, data.topic, data.startTime, data.endTime, data.index, data.limit], actionName, isValidData);
+        },
 
     };
     socketActionTeleSales.actions = this.actions;
