@@ -238,7 +238,7 @@ var proposalExecutor = {
             this.executions.executePlayerConsumptionReturn.des = "Player consumption return Reward";
             this.executions.executeManualPlayerTopUp.des = "Player manual top up";
             this.executions.executePlayerAlipayTopUp.des = "Player manual top up";
-            this.executions.executePlayerAssignTopUp = "Player assign top up";
+            this.executions.executePlayerAssignTopUp.des = "Player assign top up";
             this.executions.executePlayerBonus.des = "Player bonus";
             this.executions.executePlayerTopUpReturn.des = "Player top up return";
             this.executions.executePlayerConsumptionIncentive.des = "Player consumption incentive";
@@ -320,7 +320,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerTopUp.des = "Reject Player Top up";
             this.rejections.rejectPlayerAlipayTopUp.des = "Reject Player Top up";
             this.rejections.rejectManualPlayerTopUp.des = "Reject Player Manual Top up";
-            this.rejections.rejectPlayerAssignTopUp = "Reject Player Assign Manual Top up";
+            this.rejections.rejectPlayerAssignTopUp.des = "Reject Player Assign Manual Top up";
             this.rejections.rejectPlayerBonus.des = "Reject Player bonus";
             this.rejections.rejectPlayerTopUpReturn.des = "Reject Player top up return";
             this.rejections.rejectPlayerConsumptionIncentive.des = "Reject Player consumption incentive";
@@ -1267,9 +1267,7 @@ var proposalExecutor = {
                             }
                             Q.resolve().then(
                                 () => {
-                                    if (proposalData.data.updateData.ownDomain) {
-                                        return dbPartner.updatePartnerDomain(proposalData.data.partnerObjId, proposalData.data.updateData.ownDomain);
-                                    }
+                                    return dbPartner.updatePartnerDomain(proposalData.data.partnerObjId, proposalData.data.updateData.ownDomain);
                                 }
                             ).then(
                                 () => Q.all(proms)

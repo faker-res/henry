@@ -7878,9 +7878,11 @@ define(['js/app'], function (myApp) {
                         title: $translate('Tick'),
                         sClass: "customerSelected",
                         render: function(data, type, row, index){
+                            let tick = Boolean(vm.trashClassificationTradeSelection.indexOf(row._id) > -1);
                             let link = $('<input>', {
                                 type: 'checkbox',
                                 "ng-click": 'vm.updateTrashClassificationTradeSelection("'+row._id+'")',
+                                checked: tick,
                                 class: "transform150"
                             });
                             return link.prop('outerHTML');
@@ -7922,13 +7924,14 @@ define(['js/app'], function (myApp) {
             });
             let $checkAll = $(".dataTables_scrollHead thead .customerSelected");
             if ($checkAll.length == 1) {
-                var $showBtn = $('<input>', {
+                let $showBtn = $('<input>', {
                     type: 'checkbox',
-                    class: "customerSelected transform150 checkAllProposal"
+                    class: "customerSelected transform150 checkAllProposal",
+                    checked: vm.isAllChecked("#trashClassificationTradeTable tbody td.customerSelected input")
                 });
                 $checkAll.html($showBtn);
                 $('.customerSelected.checkAllProposal').on('click', function () {
-                    var $checkAll = $(this) && $(this).length == 1 ? $(this)[0] : null;
+                    let $checkAll = $(this) && $(this).length == 1 ? $(this)[0] : null;
                     setCheckAllProposal($checkAll.checked);
                 })
             }
@@ -7943,6 +7946,16 @@ define(['js/app'], function (myApp) {
 
             vm.trashClassificationTradeSearch.pageObj.init({maxCount: size}, newSearch);
             $('#trashClassificationTradeTable').resize();
+        };
+
+        vm.isAllChecked = function(selector) {
+            let checkIt = true;
+            $(selector).each(function () {
+                if($(this).prop("checked")==false){
+                    checkIt = false;
+                }
+            });
+            return checkIt;
         };
 
         vm.updateTrashClassificationTradeSelection = function(tsPhoneTradeObjId, selectAction) {
@@ -7965,6 +7978,8 @@ define(['js/app'], function (myApp) {
                         vm.trashClassificationTradeSelection.push(tsPhoneTradeObjId);
                     }
                 }
+                let isChecked = vm.isAllChecked("#trashClassificationTradeTable tbody td.customerSelected input");
+                $(".dataTables_scrollHead thead .customerSelected").prop("checked",isChecked);
             }
         };
 
