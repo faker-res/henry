@@ -1199,7 +1199,6 @@
                                 label.margin-right-5 {{'CREDIT' | translate}} : {{vm.existingAssignTopup.data.amount}}
                                 button.btn.btn-primary.pull-right(ng-click='vm.cancelPlayerAssignTop()') {{'CANCEL' | translate}}
                             div(ng-if='!vm.existingAssignTopup.isCanceled && vm.existingAssignTopup.data.depositMethod != 6')
-                                i.fa.fa-exclamation-triangle.text-danger.margin-right-5
                                 include player-assign-topup-form
                             div(ng-if='!vm.existingAssignTopup.isCanceled && vm.existingAssignTopup.data.depositMethod == 6')
                                 include player-assign-topup-yunqr
