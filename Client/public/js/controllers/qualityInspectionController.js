@@ -3216,6 +3216,7 @@ define(['js/app'], function (myApp) {
                     vm.commonSortChangeHandler(a, 'inspectionWechat', vm.filterWechatConversation);
                 });
                 $('#wechatMessageTable').resize();
+                $scope.$evalAsync();
             };
 
             vm.fuzzySearchDeviceList = function(){
