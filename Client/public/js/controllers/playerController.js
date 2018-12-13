@@ -1,7 +1,7 @@
 'use strict';
 
 define(['js/app'], function (myApp) {
-    let playerController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, commonService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants) {
+    let playerController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, commonService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants, $interval) {
         let $translate = $filter('translate');
         let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
         let $noRoundTwoDecimalToFix = $filter('noRoundTwoDecimalToFix');
@@ -14532,10 +14532,17 @@ define(['js/app'], function (myApp) {
             vm.filterBankname("playerAssignTopUp");
             vm.existingAssignTopup = false;
             vm.chosenBankAcc = {};
+            vm.timeLeft = 0;
+            vm.loop = null;
+            vm.endCountDown();
 
             socketService.$socket($scope.AppSocket, 'getAssignTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
                 $scope.$evalAsync(() => {
                     vm.existingAssignTopup = data.data ? data.data : false;
+
+                    if(vm.existingAssignTopup.data.validTime){
+                        vm.startCountDown(vm.existingAssignTopup.data.validTime);
+                    }
 
                     if(vm.existingAssignTopup.data.inputData.counterDepositType){
                         vm.existingAssignTopup.data.inputData.counterDepositTypeName = $scope.counterDepositType[vm.existingAssignTopup.data.inputData.counterDepositType];
@@ -14573,6 +14580,30 @@ define(['js/app'], function (myApp) {
             vm.refreshSPicker();
         };
 
+        vm.startCountDown = function(targetTime){
+            let timenow = new Date().getTime()
+            vm.timeLeft = (targetTime.getTime() - timenow) / 1000 / 60;
+            if(vm.timeLeft <= 0){
+                vm.timeLeft = 0;
+            }else{
+                // if that's time left , start the loop
+                vm.loop = $interval(vm.countMachine, 60000);
+            }
+        }
+        vm.countMachine = function(){
+            if(vm.timeLeft <= 0){
+                // break the loop . if the countdown end;
+                console.log('end...');
+                $interval.cancel(vm.loop);
+                vm.timeLeft = 0;
+            }else{
+                vm.timeLeft -= 1;
+                console.log('countDown:', vm.timeLeft);
+            }
+        }
+        vm.endCountDown = function(){
+            $interval.cancel(vm.loop);
+        }
         vm.displayAssignTopUp = function(data){
             let result = '';
             if(data && data.depositMethod == 1){
@@ -14619,7 +14650,6 @@ define(['js/app'], function (myApp) {
             vm.chosenBankAcc = {};
             socketService.$socket($scope.AppSocket, 'getManualTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
                 vm.existingManualTopup = data.data ? data.data : false;
-                $scope.safeApply();
             });
 
             // utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
@@ -14629,7 +14659,6 @@ define(['js/app'], function (myApp) {
                 vm.playerManualTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
             });
             vm.refreshSPicker();
-            $scope.safeApply();
         };
 
         // Player alipay topup
@@ -23761,7 +23790,8 @@ define(['js/app'], function (myApp) {
         "$timeout",
         '$http',
         'uiGridExporterService',
-        'uiGridExporterConstants'
+        'uiGridExporterConstants',
+        '$interval'
     ];
 
     playerController.$inject = injectParams;

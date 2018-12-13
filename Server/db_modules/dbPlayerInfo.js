@@ -6571,7 +6571,7 @@ let dbPlayerInfo = {
                         return Promise.reject({
                             status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                             name: "DataError",
-                            errorMessage: "Player does not have enough credit."
+                            errorMessage: "Player does not have enough credit"
                         });
                     }
 
@@ -6606,6 +6606,10 @@ let dbPlayerInfo = {
 
                     return transferOutProm;
                 } else {
+                    if(playerBonusDoubledRewardValidity){
+                        dbPlayerInfo.clearPlayerBonusDoubledRewardDataWhenTransferFailed(playerData._id, playerData.platform._id, currentDate);
+                    }
+
                     return Promise.reject({
                         name: "DBError",
                         status: constServerCode.CONCURRENT_DETECTED,
@@ -6623,6 +6627,10 @@ let dbPlayerInfo = {
                 }
 
                 if (providerData && providerData.status != constProviderStatus.NORMAL) {
+                    if(playerBonusDoubledRewardValidity){
+                        dbPlayerInfo.clearPlayerBonusDoubledRewardDataWhenTransferFailed(playerData._id, playerData.platform._id, currentDate);
+                    }
+
                     return Promise.reject({
                         status: constServerCode.CP_NOT_AVAILABLE,
                         name: "DataError",
@@ -6632,6 +6640,10 @@ let dbPlayerInfo = {
 
                 // Check if player has enough credit to play
                 if (transferAmount < 1 || amount == 0) {
+                    if(playerBonusDoubledRewardValidity){
+                        dbPlayerInfo.clearPlayerBonusDoubledRewardDataWhenTransferFailed(playerData._id, playerData.platform._id, currentDate);
+                    }
+
                     return Promise.reject({
                         status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
                         name: "DataError",
@@ -6667,6 +6679,10 @@ let dbPlayerInfo = {
                 return Promise.resolve(data);
             },
             function (err) {
+                if(playerBonusDoubledRewardValidity && err && ((err.message && err.message != "Confirm to complete the activity?") || (err.errorMessage && err.errorMessage != "Player does not have enough credit"))){
+                    dbPlayerInfo.clearPlayerBonusDoubledRewardDataWhenTransferFailed(playerData._id, playerData.platform._id, currentDate);
+                }
+
                 if (!err || (!err.hasLog && !err.insufficientAmount && !err.dontLogTransfer && err.code !== constServerCode.PLAYER_NOT_ENOUGH_CREDIT)) {
                     let platformId = playerData.platform ? playerData.platform.platformId : null;
                     let platformObjId = playerData.platform ? playerData.platform._id : null;
@@ -6682,6 +6698,10 @@ let dbPlayerInfo = {
             }
         ).catch(
             err => {
+                if(playerBonusDoubledRewardValidity && err && ((err.message && err.message != "Confirm to complete the activity?") || (err.errorMessage && err.errorMessage != "Player does not have enough credit"))){
+                    dbPlayerInfo.clearPlayerBonusDoubledRewardDataWhenTransferFailed(playerData._id, playerData.platform._id, currentDate);
+                }
+
                 if (err.status === constServerCode.CONCURRENT_DETECTED) {
                     // Ignore concurrent request for now
                 } else {
@@ -12673,7 +12693,8 @@ let dbPlayerInfo = {
                                                 if (retData.rewardCredit < 1
                                                     && playerData.lastPlayedProvider
                                                     && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE
-                                                    && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
+                                                    && playerData.lastPlayedProvider.providerId != gameData.provider.providerId
+                                                ) {
                                                     return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id,
                                                         playerData.lastPlayedProvider.providerId, -1, null, true);
                                                 }
@@ -12685,7 +12706,8 @@ let dbPlayerInfo = {
                                                 return transferCreditToProvider(data);
                                             },
                                             err => {
-                                                return Promise.reject({name: "DataError", message: err.message});
+                                                // Error transfer out from last provider, insufficent amount
+                                                return Promise.reject({name: "DataError", message: "Insufficient amount to enter game"});
                                             }
                                         );
                                     }
@@ -21749,6 +21771,24 @@ let dbPlayerInfo = {
                 }
             }
         )
+    },
+
+    clearPlayerBonusDoubledRewardDataWhenTransferFailed: function(playerObjId, platformObjId, currentDate){
+        let query = {
+            playerObjId: playerObjId,
+            platformObjId: platformObjId,
+            intervalStartTime: {$lte: currentDate},
+            intervalEndTime: {$gt: currentDate}
+        };
+
+        let updateData = {
+            transferInTime: null,
+            transferInAmount: null,
+            gameProviderObjId: null,
+            gameProviderId: null,
+        };
+
+        return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, updateData).exec();
     },
 
     checkPlayerBonusDoubledRewardTransferOut: function(playerData, playerObjId, platformObjId, platformId, providerShortId, userName, currentDate){
