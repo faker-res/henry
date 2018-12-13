@@ -16,7 +16,7 @@ let tsCallOutMissionCalleeSchema = new Schema({
     // tsPhone
     tsPhone: {type: Schema.ObjectId, ref: 'tsPhone'},
     // tsDistributedPhone
-    tsDistributedPhone: {type: Schema.ObjectId, ref: 'tsDistributedPhone'},
+    tsDistributedPhone: {type: Schema.ObjectId, ref: 'tsDistributedPhone', index: true},
     // phone number
     phoneNumber: {type: String},
     // calling time
@@ -32,3 +32,6 @@ let tsCallOutMissionCalleeSchema = new Schema({
 });
 
 module.exports = tsCallOutMissionCalleeSchema;
+
+tsCallOutMissionCalleeSchema.index({platform: 1, admin: 1, mission: 1});
+tsCallOutMissionCalleeSchema.index({platform: 1, admin: 1, mission: 1, tsDistributedPhone: 1});
