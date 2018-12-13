@@ -2970,13 +2970,10 @@ var dbQualityInspection = {
                 // count total player wechat id that csOfficer liasing with
                 if (finalizePlayerResult && finalizePlayerResult.length > 0) {
                     finalizePlayerResult.forEach(player => {
-                        let wechatIndexNo = wechatDetails.findIndex(x => x.playerWechatRemark == player.playerWechatRemark && x.platformObjId.toString() == player.platformObjId.toString());
-                        if(wechatIndexNo != -1){
-                            let deviceIndexNo = deviceList.findIndex(y => y._id.platformObjId.toString() == player.platformObjId.toString() && y._id.csOfficer.toString() == player.csOfficer.toString());
+                        let deviceIndexNo = deviceList.findIndex(y => y._id.platformObjId.toString() == player.platformObjId.toString() && y._id.csOfficer.toString() == player.csOfficer.toString());
 
-                            if(deviceIndexNo != -1){
-                                deviceList[deviceIndexNo].totalPlayerWechatId = deviceList[deviceIndexNo].totalPlayerWechatId ? deviceList[deviceIndexNo].totalPlayerWechatId + 1 : 1;
-                            }
+                        if(deviceIndexNo != -1){
+                            deviceList[deviceIndexNo].totalPlayerWechatId = deviceList[deviceIndexNo].totalPlayerWechatId ? deviceList[deviceIndexNo].totalPlayerWechatId + 1 : 1;
                         }
                     });
                 }
