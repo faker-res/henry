@@ -1337,6 +1337,30 @@ let dbTeleSales = {
                 }
             }
         );
+    },
+
+    filterExistingPhonesForDecomposedPhones: function(phoneArr, targetPlatformObjId) {
+        return dbconfig.collection_players.find({
+            platform: targetPlatformObjId,
+            phoneNumber: {$in:phoneArr}
+        }).then(players => {
+            players.forEach(player=>{
+                if(phoneArr.indexOf(player.phoneNumber) > -1){
+                    phoneArr.splice(phoneArr.indexOf(player.phoneNumber),1);
+                }
+            });
+            return dbconfig.collection_tsPhone.find({
+                platform: targetPlatformObjId,
+                phoneNumber: {$in:phoneArr}
+            });
+        }).then(phones=>{
+            phones.forEach(phone=>{
+                if(phoneArr.indexOf(phone.phoneNumber) > -1){
+                    phoneArr.splice(phoneArr.indexOf(phone.phoneNumber),1);
+                }
+            });
+            return phoneArr;
+        })
     }
 };
 
