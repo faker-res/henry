@@ -2921,6 +2921,7 @@
   "Consecutive transferring-out from the same provider (without transferring-in record during the interval)": "连续转出（从同厅出，期间无转入记录）",
   "Consecutive transferring-in/ transferring-out)": "连续转入/转出",
   "Exclude ebet when checking as it contains many providers in which will easily trigger consecutive transferring-in/ transferring out events": "由于ebet 有多钱包，会触发连续转入/连续转出，所以排除检查",
+  "Insufficient amount to enter game": "本次带入额度不足，请充值后进入游戏",
   "unusual frequency of withdrawal request": "连续提款N次",
   "player - create": "玩家开户",
   "createPlayerPartner": "玩家+代理开户",

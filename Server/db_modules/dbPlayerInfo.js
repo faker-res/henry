@@ -12681,7 +12681,8 @@ let dbPlayerInfo = {
                                                 if (retData.rewardCredit < 1
                                                     && playerData.lastPlayedProvider
                                                     && dbUtility.getPlatformSpecificProviderStatus(playerData.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE
-                                                    && playerData.lastPlayedProvider.providerId != gameData.provider.providerId) {
+                                                    && playerData.lastPlayedProvider.providerId != gameData.provider.providerId
+                                                ) {
                                                     return dbPlayerInfo.transferPlayerCreditFromProvider(playerData.playerId, playerData.platform._id,
                                                         playerData.lastPlayedProvider.providerId, -1, null, true);
                                                 }
@@ -12693,7 +12694,8 @@ let dbPlayerInfo = {
                                                 return transferCreditToProvider(data);
                                             },
                                             err => {
-                                                return Promise.reject({name: "DataError", message: err.message});
+                                                // Error transfer out from last provider, insufficent amount
+                                                return Promise.reject({name: "DataError", message: "Insufficient amount to enter game"});
                                             }
                                         );
                                     }
