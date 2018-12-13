@@ -1213,7 +1213,7 @@
                                     option(ng-repeat="(i,v) in vm.depositMethodList", value='{{v}}') {{i | translate}}
                             .form-group
                                 label.control-label {{'SINGLELIMIT' | translate}}
-                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.maxDepositAmount')
+                                input.form-control(type='text', ng-model='vm.playerAssignTopUp.maxDepositAmount', DISABLED)
                             .form-group
                                 label.control-label {{'PLAYER CAN RECEIVE MONEY FROM THE BANK' | translate}}
                                 //input.form-control(type='text', ng-model='vm.playerAssignTopUp.bonusCode')
@@ -1228,11 +1228,11 @@
                                 input.form-control(type='text', ng-model='vm.playerAssignTopUp.netPayName', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "1"')
                             .form-group(ng-if='vm.playerAssignTopUp.depositMethod === "2"')
                                 label.control-label {{'ATM SAVING PROVINCE' | translate}}
-                                select.form-control(ng-model='vm.playerAssignTopUp.atmProvince', ng-change='vm.getZoneList(vm.playerAssignTopUp.provinceId)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "2"')
+                                select.form-control(ng-model='vm.playerAssignTopUp.atmProvince', ng-change='vm.getZoneList(vm.playerAssignTopUp.atmProvince)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "2"')
                                     option(ng-repeat='(i,v) in vm.provinceList', value='{{v.id}}') {{v.name}}
                             .form-group(ng-if='vm.playerAssignTopUp.depositMethod === "2"')
                                 label.control-label {{'ATM SAVING CITY' | translate}}
-                                select.form-control(ng-model='vm.playerAssignTopUp.atmCity', ng-change='vm.getZoneList(vm.playerAssignTopUp.provinceId,vm.playerAssignTopUp.cityId)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "2" ')
+                                select.form-control(ng-model='vm.playerAssignTopUp.atmCity', ng-change='vm.getZoneList(vm.playerAssignTopUp.atmProvince,vm.playerAssignTopUp.atmCity)', ng-disabled='vm.freezeZoneSelection', ng-required='!vm.playerAssignTopUp.depositMethod || vm.playerAssignTopUp.depositMethod === "2" ')
                                     option(ng-repeat='(i,v) in vm.cityList', value='{{v.id}}') {{v.name}}
                             .form-group(ng-if='vm.playerAssignTopUp.depositMethod === "3"')
                                 label.control-label {{'BANK COUNTER DEPOSIT METHOD' | translate}}
@@ -1301,7 +1301,7 @@
                 //assign
                 div(ng-show="vm.selectedTopupTab == 'assign'")
                     button.common-button.margin-right-5.btn.btn-success(disabled, ng-show='vm.playerAssignTopUp.submitted') {{'Submitted' | translate}}
-                    button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_assign_topup.$invalid || form_assign_topup.$pristine || (vm.existingAssignTopup && !vm.existingAssignTopup.isCanceled)', ng-show='!vm.AssignTopUp.submitted', ng-click='vm.applyPlayerAssignTopUp()') {{'APPLY' | translate}}
+                    button.common-button.margin-right-5.btn.btn-success(ng-disabled='form_assign_topup.$invalid || form_assign_topup.$pristine || (vm.existingAssignTopup && !vm.existingAssignTopup.isCanceled)', ng-show='!vm.playerAssignTopUp.submitted', ng-click='vm.applyPlayerAssignTopUp()') {{'APPLY' | translate}}
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
                     label.inlineBlk.wordWrap(ng-if='vm.playerAssignTopUp.submitted && vm.playerAssignTopUp.responseMsg', style="width: calc(100% - 210px)") {{vm.playerAssignTopUp.responseMsg}}
 

@@ -30,7 +30,7 @@
         input.form-control(type='text', ng-model='vm.inspectionWechat.content')
 
     div(style='width:200px' ng-show="checkViewPermission('QualityInspection', 'WechatConversationRecord', 'Read')")
-        label {{'wechatReceivingPlayer' | translate}}
+        label {{'wechatReceivingPlayer(Precise Search)' | translate}}
         input.form-control(type='text', ng-model='vm.inspectionWechat.playerWechatRemark')
 
     div
@@ -68,7 +68,7 @@ br
                                                 tbody
                                                     tr(ng-repeat="wechatRemark in device.playerWechatRemark" style='border-bottom: 1px solid')
                                                         td(style="border-left:1px solid;")
-                                                            a(ng-click="vm.searchWechatConversation(deviceList.platformId, device.deviceNickName, [wechatRemark.playerWechatRemark]);") {{wechatRemark.playerWechatRemark}} {{"("}} {{wechatRemark.playerWechatId}} {{")"}}
+                                                            a(ng-click="vm.searchWechatConversation(deviceList.platformId, device.deviceNickName, [wechatRemark.playerWechatRemark]);") {{wechatRemark.playerWechatRemark}} {{"("}} {{wechatRemark.encodedPlayerWechatId}} {{")"}}
                 tfoot
                     tr
                         th

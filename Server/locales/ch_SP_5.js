@@ -24,6 +24,7 @@ var simplifiedChinese = {
     "Edit bank card (Auto)": "修改银行卡 （自动）",
     "Authentification Passed": "身份验证通过",
     "To facilitate withdrawing process, please complete your bank information else the previous amendment will not be processed": "为确保正常提款，请同时完善您的银行资料修改，名字修改才可完成",
+    "Insufficient amount to enter game": "本次带入额度不足，请充值后进入游戏",
     "SUBMIT": "提交",
     "Exceeded available application quantity": "超过申请次数",
     "No available consumption list for the reward": "沒有符合申请的投注单",

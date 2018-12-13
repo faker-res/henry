@@ -238,7 +238,7 @@ var proposalExecutor = {
             this.executions.executePlayerConsumptionReturn.des = "Player consumption return Reward";
             this.executions.executeManualPlayerTopUp.des = "Player manual top up";
             this.executions.executePlayerAlipayTopUp.des = "Player manual top up";
-            this.executions.executePlayerAssignTopUp = "Player assign top up";
+            this.executions.executePlayerAssignTopUp.des = "Player assign top up";
             this.executions.executePlayerBonus.des = "Player bonus";
             this.executions.executePlayerTopUpReturn.des = "Player top up return";
             this.executions.executePlayerConsumptionIncentive.des = "Player consumption incentive";
@@ -320,7 +320,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerTopUp.des = "Reject Player Top up";
             this.rejections.rejectPlayerAlipayTopUp.des = "Reject Player Top up";
             this.rejections.rejectManualPlayerTopUp.des = "Reject Player Manual Top up";
-            this.rejections.rejectPlayerAssignTopUp = "Reject Player Assign Manual Top up";
+            this.rejections.rejectPlayerAssignTopUp.des = "Reject Player Assign Manual Top up";
             this.rejections.rejectPlayerBonus.des = "Reject Player bonus";
             this.rejections.rejectPlayerTopUpReturn.des = "Reject Player top up return";
             this.rejections.rejectPlayerConsumptionIncentive.des = "Reject Player consumption incentive";
@@ -2927,6 +2927,7 @@ var proposalExecutor = {
             },
 
             executePlayerTopUpReturnGroup: function (proposalData, deferred) {
+                console.log('executePlayerTopUpReturnGroup');
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && (proposalData.data.rewardAmount || (proposalData.data.applyAmount && proposalData.data.isDynamicRewardAmount))) {
                     let amount = proposalData.data.actualAmount ? proposalData.data.actualAmount : proposalData.data.applyAmount;
                     let taskData = {
@@ -2995,7 +2996,7 @@ var proposalExecutor = {
                         type: constRewardType.PLAYER_RANDOM_REWARD_GROUP,
                         rewardType: constRewardType.PLAYER_RANDOM_REWARD_GROUP,
                         platformId: proposalData.data.platformId,
-                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        requiredUnlockAmount: proposalData.data.spendingAmount || 0,
                         currentAmount: proposalData.data.rewardAmount,
                         initAmount: proposalData.data.rewardAmount,
                         useConsumption: Boolean(proposalData.data.useConsumption),
@@ -4585,6 +4586,7 @@ function changePlayerCredit(playerObjId, platformId, updateAmount, reasonType, d
  * @param [resolveValue] - Optional.  Without this, resolves with the newly created reward task.
  */
 function createRewardTaskForProposal(proposalData, taskData, deferred, rewardType, resolveValue) {
+    console.log('createRewardTaskForProposal', createRewardTaskForProposal);
     let rewardTask, platform, gameProviderGroup, playerRecord;
     //check if player object id is in the proposal data
     if (!(proposalData && proposalData.data && proposalData.data.playerObjId)) {
@@ -4606,15 +4608,67 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean();
     }
 
+    console.log('createRewardTaskForProposal', taskData);
+
     Promise.all([gameProviderGroupProm, platformProm, playerProm]).then(
         res => {
-            [gameProviderGroup, platform, playerRecord] = res;
+            console.log("createRewardTaskForProposal Promise.all res", res);
+            gameProviderGroup = res[0];
+            platform = res[1];
+            playerRecord = res[2];
+            let calCreditArr = [];
+            return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: playerRecord._id})
+                .then(rtgData => {
+                    console.log("createRewardTaskForProposal Promise.all.then rtgData", rtgData);
+                    if (rtgData && rtgData.length) {
+                        rtgData.forEach(rtg => {
+                            if(rtg){
+                                if (rtg.providerGroup && rtg.providerGroup._id) {
+                                    rtg.totalCredit = rtg.rewardAmt || 0;
+                                    let calCreditProm = dbconfig.collection_gameProviderGroup.findOne({_id: rtg.providerGroup._id})
+                                        .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean().then(
+                                            providerGroup => {
+                                                if (providerGroup && providerGroup.providers && providerGroup.providers.length) {
+                                                    return getProviderCredit(providerGroup.providers, playerRecord.name, platform.platformId).then(
+                                                        credit => {
+                                                            if(credit){
+                                                                rtg.totalCredit += credit
+                                                            }
 
-            if (platform && platform.autoUnlockWhenInitAmtLessThanLostThreshold) {
-                return getPlayerCreditInProviders(playerRecord, platform)
-            }
+                                                            return rtg;
+                                                        }
+                                                    );
+                                                }
+                                            }
+                                        );
 
-            return false;
+                                    calCreditArr.push(calCreditProm);
+                                } else if (!rtg.providerGroup) {
+                                    rtg.totalCredit = playerRecord && playerRecord.validCredit ? playerRecord.validCredit : 0;
+                                    let calCreditProm = getProviderCredit(platform.gameProviders, playerRecord.name, platform.platformId).then(
+                                        credit => {
+                                            if(credit){
+                                                rtg.totalCredit += credit;
+                                            }
+
+                                            return rtg;
+                                        }
+                                    );
+
+                                    calCreditArr.push(calCreditProm);
+                                }
+                            }
+                        });
+
+                        return Promise.all(calCreditArr).then(data=>{
+                            console.log("createRewardTaskForProposal Promise.all.then.innerPromise.all success",data);
+                            return data;
+                        },err=>{
+                            console.log("createRewardTaskForProposal Promise.all.then.innerPromise.all error",err)
+                            return err;
+                        });
+                    }
+                });
         }
     ).then(
         rewardTaskGroup => {
@@ -4800,15 +4854,61 @@ function createRTGForProposal(proposalData, taskData, rewardType, resolveValue) 
             .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean();
     }
 
+    console.log('createRTGForProposal', taskData);
+
     return Promise.all([gameProviderGroupProm, platformProm, playerProm]).then(
         res => {
             [gameProviderGroup, platform, playerRecord] = res;
 
-            if (platform && platform.autoUnlockWhenInitAmtLessThanLostThreshold) {
-                return getPlayerCreditInProviders(playerRecord, platform)
-            }
+            return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: playerRecord._id})
+        }
+    ).then(
+        rtgData => {
+            let calCreditArr = [];
 
-            return false;
+            if (rtgData && rtgData.length) {
+                rtgData.forEach(rtg => {
+                    if(rtg){
+                        if (rtg.providerGroup && rtg.providerGroup._id) {
+                            rtg.totalCredit = rtg.rewardAmt || 0;
+
+                            let calCreditProm = dbconfig.collection_gameProviderGroup.findOne({_id: rtg.providerGroup._id})
+                                .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean().then(
+                                    providerGroup => {
+                                        if (providerGroup && providerGroup.providers && providerGroup.providers.length) {
+                                            return getProviderCredit(providerGroup.providers, playerRecord.name, platform.platformId).then(
+                                                credit => {
+                                                    if (credit) {
+                                                        rtg.totalCredit += credit
+                                                    }
+
+                                                    return rtg;
+                                                }
+                                            );
+                                        }
+                                    }
+                                );
+
+                            calCreditArr.push(calCreditProm);
+                        } else if (!rtg.providerGroup) {
+                            rtg.totalCredit = playerRecord && playerRecord.validCredit ? playerRecord.validCredit : 0;
+                            let calCreditProm = getProviderCredit(platform.gameProviders, playerRecord.name, platform.platformId).then(
+                                credit => {
+                                    if(credit){
+                                        rtg.totalCredit += credit;
+                                    }
+
+                                    return rtg;
+                                }
+                            );
+
+                            calCreditArr.push(calCreditProm);
+                        }
+                    }
+                });
+
+                return Promise.all(calCreditArr).then(data => data, err => err);
+            }
         }
     ).then(
         rewardTaskGroup => {
