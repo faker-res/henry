@@ -14538,9 +14538,9 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getAssignTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
                 $scope.$evalAsync(() => {
                     vm.existingAssignTopup = data.data ? data.data : false;
-
-                    if(vm.existingAssignTopup.data.validTime){
-                        vm.startCountDown(vm.existingAssignTopup.data.validTime);
+                    if(vm.existingAssignTopup.data && vm.existingAssignTopup.data.validTime){
+                        let validTime = new Date(vm.existingAssignTopup.data.validTime);
+                        vm.startCountDown(validTime);
                     }
 
                     if(vm.existingAssignTopup.data.inputData.counterDepositType){
