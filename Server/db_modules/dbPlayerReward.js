@@ -5329,6 +5329,7 @@ let dbPlayerReward = {
 
     checkRewardParamForBonusDoubledRewardGroup: (eventData, playerData, intervalTime) => {
         let selectedRewardParam;
+        let rewardParam;
         let bonusAmount = 0;
         let rate = 0;
         let totalBetAmount = 0;
@@ -5338,9 +5339,9 @@ let dbPlayerReward = {
 
         // Set reward param for player level to use
         if (eventData.condition.isPlayerLevelDiff) {
-            selectedRewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
+            rewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
         } else {
-            selectedRewardParam = eventData.param.rewardParam[0].value;
+            rewardParam = eventData.param.rewardParam[0].value;
         }
 
         let recordQuery = {
@@ -5385,7 +5386,7 @@ let dbPlayerReward = {
             }
         ).then(
             consumptionRecord => {
-                if (consumptionRecord && consumptionRecord.length && playerBonusDoubledRewardGroupRecord && selectedRewardParam){
+                if (consumptionRecord && consumptionRecord.length && playerBonusDoubledRewardGroupRecord && rewardParam){
                     bonusAmount = Math.abs(consumptionRecord[0].bonusAmount);
                     consumptionRecordList = consumptionRecord[0].consumptionRecordList;
                     totalBetAmount = consumptionRecord[0].betAmount;
@@ -5395,10 +5396,10 @@ let dbPlayerReward = {
                     let spendingAmount;
 
                     if (eventData.param.isMultiStepReward) { 
-                        selectedRewardParam = selectedRewardParam.filter(e => rate >= e.multiplier).sort((a, b) => b.multiplier - a.multiplier);
+                        selectedRewardParam = rewardParam.filter(e => rate >= e.multiplier).sort((a, b) => b.multiplier - a.multiplier);
                         selectedRewardParam = selectedRewardParam[0] || null;    
                     } else {
-                        selectedRewardParam = selectedRewardParam[0];
+                        selectedRewardParam = rewardParam[0];
                     }
                 }
                 return {selectedRewardParam: selectedRewardParam, record: playerBonusDoubledRewardGroupRecord, consumptionRecordList: consumptionRecordList, winLoseAmount: bonusAmount, winTimes: rate, totalBetAmount: totalBetAmount};

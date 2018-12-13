@@ -24,7 +24,7 @@ form(name="form_player_topup_yunqr", novalidate, id="qrCode")
         div.btn.btn-primary(ng-click="vm.copyClipboard('#qrClipBoard')") 复制上述信息
 
 textarea(name="form_player_topup_yunqr", id="qrClipBoard", aria-hidden="true", style='opacity:0')
-    请在指定 XX 分钟内，按照下列订单方式，转帐至指定银行卡。
+    请在指定 {{vm.timeLeft | number:0}}  分钟内，按照下列订单方式，转帐至指定银行卡。
     {{"PROPOSAL_NO" | translate}} : {{vm.existingAssignTopup.proposalId}}
     {{"TopUp Amount" | translate}}  :{{vm.existingAssignTopup.data.amount}}
     {{"TopUpType" | translate}} : {{vm.getDepositMethodbyId[vm.existingAssignTopup.data.depositMethod] | translate}}
