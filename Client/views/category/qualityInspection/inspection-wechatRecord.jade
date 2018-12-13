@@ -68,7 +68,7 @@ br
                                                 tbody
                                                     tr(ng-repeat="wechatRemark in device.playerWechatRemark" style='border-bottom: 1px solid')
                                                         td(style="border-left:1px solid;")
-                                                            a(ng-click="vm.searchWechatConversation(deviceList.platformId, device.deviceNickName, [wechatRemark.playerWechatRemark]);") {{wechatRemark.playerWechatRemark}} {{"("}} {{wechatRemark.playerWechatId}} {{")"}}
+                                                            a(ng-click="vm.searchWechatConversation(deviceList.platformId, device.deviceNickName, [wechatRemark.playerWechatRemark]);") {{wechatRemark.playerWechatRemark}} {{"("}} {{wechatRemark.encodedPlayerWechatId}} {{")"}}
                 tfoot
                     tr
                         th
