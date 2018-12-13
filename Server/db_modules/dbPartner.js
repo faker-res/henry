@@ -560,11 +560,11 @@ let dbPartner = {
                     removedElements = dbUtil.difArrays(newDomains, partnerData.ownDomain);
                     if (newElements && newElements.length > 0) {
                         var newProms = newElements.map(ele => new dbconfig.collection_partnerOwnDomain({name: ele}).save());
-                        return Q.all(newProms);
+                        return Promise.all(newProms);
                     }
                 }
                 else {
-                    return Q.reject({
+                    return Promise.reject({
                         name: "DataError",
                         message: "Cannot find partner"
                     });
@@ -581,7 +581,7 @@ let dbPartner = {
             () => {
                 if (removedElements && removedElements.length > 0) {
                     var remProms = removedElements.map(ele => dbconfig.collection_partnerOwnDomain.remove({name: ele}));
-                    return Q.all(remProms);
+                    return Promise.all(remProms);
                 }
             }
         );
