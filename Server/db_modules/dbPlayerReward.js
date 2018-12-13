@@ -5380,14 +5380,14 @@ let dbPlayerReward = {
                 else{
                     return Promise.reject({
                         name: "DataError",
-                        message: "Player has not applied to join this reward event yet"
+                        message: "The requirement is not fulfilled"
                     })
                 }
             }
         ).then(
             consumptionRecord => {
                 if (consumptionRecord && consumptionRecord.length && playerBonusDoubledRewardGroupRecord && rewardParam){
-                    bonusAmount = Math.abs(consumptionRecord[0].bonusAmount);
+                    bonusAmount = consumptionRecord[0].bonusAmount;
                     consumptionRecordList = consumptionRecord[0].consumptionRecordList;
                     totalBetAmount = consumptionRecord[0].betAmount;
                     let transferInAmount = playerBonusDoubledRewardGroupRecord.transferInAmount;
