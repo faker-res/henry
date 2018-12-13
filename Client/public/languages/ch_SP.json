@@ -1895,7 +1895,7 @@
   "New Name": "新姓名",
   "Please enter the sms verification code": "请输入验证码",
   "Phone number is not available": "请输入电话号码",
-  "Please enter the verification code": "请输入您绑定手机接收到的短息验证码",
+  "Please enter the verification code": "请输入您绑定手机接收到的短信验证码",
   "Failed to retrieve account.": "找回账号失败",
   "Phone number does not match": "电话号码不匹配",
   "forgot user ID?": "忘记帐号？",
