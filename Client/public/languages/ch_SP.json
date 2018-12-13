@@ -5066,7 +5066,7 @@
   "attachDetachRolesFromUsersById": "编辑玩家角色",
   "Manual Approval": "人工审核",
   "approveCsPendingAndChangeStatus": "客服审核",
-  "wechatReceivingPlayer": "收话玩家",
+  "wechatReceivingPlayer": "收话玩家（客服备注内容+玩家微信号）",
   "wechatReceivingPlayer(Precise Search)": "收话玩家（模糊搜索）",
   "minute(s)": "分钟",
   "No first attempt login": "无-尚未首次登入",
