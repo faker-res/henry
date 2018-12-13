@@ -5804,8 +5804,18 @@ let dbPlayerInfo = {
                                         // dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'lastLoginIp', playerData.lastLoginIp);
                                     }
 
-                                    // check for playerRetentionRewardGroup
-                                    dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(errorUtils.reportError);
+                                    dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(
+                                        err => {
+                                            if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                                                // Ignore concurrent request for now
+                                            } else {
+                                                // Set BState back to false
+                                                dbPlayerUtil.setPlayerBState(playerData._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+                                            }
+
+                                            console.log('playerRetentionRewardGroup error when login', playerData.playerId, err);
+                                        }
+                                    );
                                 }
                             ).then(
                                 () => {
@@ -5980,6 +5990,11 @@ let dbPlayerInfo = {
                 }
 
                 return checkAndApplyRetentionReward;
+            }
+        ).then(
+            () => {
+                // Reset BState
+                return dbPlayerUtil.setPlayerBState(playerData._id, "applyRewardEvent", false);
             }
         )
     },
