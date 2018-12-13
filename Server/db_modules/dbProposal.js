@@ -334,7 +334,7 @@ var proposal = {
         ).then(
             () => {
                 // update playerRetentionRewardRecord
-                let updateQuery = {lastReceivedDate: dbutility.getTodaySGTime().startTime};
+                let updateQuery = {lastReceivedDate: new Date() };
                 if (eventData && eventData.condition && eventData.condition.definePlayerLoginMode){
                     if (eventData.condition.definePlayerLoginMode == 1){
                         // accumulative
