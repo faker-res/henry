@@ -29,5 +29,3 @@
             button.common-button.btn.btn-danger(title='{{"Reimport unregistered, unused phone number to system" | translate}}', ng-disabled='!vm.selectedTsPhoneList || vm.disableReimportRecycleBinPhone', data-toggle="modal",
             data-target='#modalNewTSPhoneListXLS', ng-click="vm.importPhoneResult = ''; vm.initFilterAndImportDXSystem();") {{"REIMPORT_PHONE_TO_SYSTEM" | translate}}
             button.common-button.btn.btn-success(ng-disabled='!vm.selectedTsPhoneList || vm.disableReimportRecycleBinPhone', ng-click="vm.decomposeTsPhoneList(); vm.disableReimportRecycleBinPhone = true") {{"Decompose / trash classification in advance" | translate}}
-
-include ./modalNewTSPhoneListXLS

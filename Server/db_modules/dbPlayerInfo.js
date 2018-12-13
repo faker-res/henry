@@ -5881,7 +5881,6 @@ let dbPlayerInfo = {
             platform: platformObjId
 
         };
-
         return dbconfig.collection_players.findOne(playerQuery).populate({
             path: "platform",
             model: dbconfig.collection_platform
@@ -5920,16 +5919,22 @@ let dbPlayerInfo = {
                         record => {
                             if (record && record.lastReceivedDate && record.rewardEventObjId && record.rewardEventObjId.condition && record.rewardEventObjId.condition.interval
                                 && record.rewardEventObjId.validStartTime && record.rewardEventObjId.validEndTime){
-                                let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, record.rewardEventObjId);
+                                let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, record.rewardEventObjId, true);
                                 let isRewardValid = true;
                                 let hasReceived = false;
                                 let isForbidden = false;
+                                let isOutOfAppliedInterval = false;
 
                                 // check if the reward is expired
                                 let curTime = new Date();
                                 if ((record.rewardEventObjId.validStartTime && curTime.getTime() < record.rewardEventObjId.validStartTime.getTime()) ||
                                     (record.rewardEventObjId.validEndTime && curTime.getTime() > record.rewardEventObjId.validEndTime.getTime())) {
                                    isRewardValid = false;
+                                }
+
+                                // check if the applyDate is expired
+                                if (intervalTime.startTime > record.lastApplyDate){
+                                    isOutOfAppliedInterval = true;
                                 }
 
                                 // check has claim the reward
@@ -5944,7 +5949,7 @@ let dbPlayerInfo = {
                                     isForbidden = true;
                                 }
 
-                                if (isRewardValid && !hasReceived && !isForbidden){
+                                if (isRewardValid && !hasReceived && !isForbidden && !isOutOfAppliedInterval){
                                     let rewardParam = {};
                                     // Set reward param for player level to use
                                     if (record.rewardEventObjId.isPlayerLevelDiff) {
@@ -7822,7 +7827,7 @@ let dbPlayerInfo = {
                     for (var i = 0; i < rewardEvent.length; i++) {
                         var rewardEventItem = rewardEvent[i].toObject();
                         delete rewardEventItem.platform;
-                        
+
                         let providerGroup = null;
                         let providerGroupName = null;
                         if (rewardEventItem.condition && rewardEventItem.condition.providerGroup && rewardEventItem.condition.providerGroup._id){
@@ -7894,7 +7899,7 @@ let dbPlayerInfo = {
                             rewardEventArray.push(rewardEventItem);
                         }
                     }
-                    return rewardEventArray;              
+                    return rewardEventArray;
                 }
             },
             function (error) {
@@ -7908,6 +7913,9 @@ let dbPlayerInfo = {
             // change to date time format if the loginMode == 2 (the exact date)
             if (loginMode == 2) {
                 changeToDateTimeFormat(value, eventData);
+            }
+            else{
+                changeParamName(value);
             }
             return value;
         }
@@ -7923,6 +7931,18 @@ let dbPlayerInfo = {
                         else {
                             valueObj.loginDay = dbUtility.getNdaylaterFromSpecificStartTime(i, intervalTime.startTime);
                         }
+                    }
+                    return valueObj;
+                }
+            )
+        }
+
+        function changeParamName (value) {
+            value.forEach(
+                (valueObj, i) => {
+                    if (valueObj) {
+                        valueObj.step = valueObj.loginDay;
+                        delete valueObj.loginDay;
                     }
                     return valueObj;
                 }
@@ -13117,8 +13137,14 @@ let dbPlayerInfo = {
         );
     },
 
-    getManualTopupRequestList: function (playerId) {
+    getManualTopupRequestList: function (playerId, isPlayerAssign) {
         var platformObjectId = null;
+        let proposalType;
+        if(isPlayerAssign){
+            proposalType = constProposalType.PLAYER_ASSIGN_TOP_UP;
+        }else{
+            proposalType = constProposalType.PLAYER_MANUAL_TOP_UP;
+        }
         return dbconfig.collection_players.findOne({playerId: playerId}).populate({
             path: "platform",
             model: dbconfig.collection_platform
@@ -13128,7 +13154,7 @@ let dbPlayerInfo = {
                     platformObjectId = playerData.platform._id;
                     return dbconfig.collection_proposalType.findOne({
                         platformId: platformObjectId,
-                        name: constProposalType.PLAYER_MANUAL_TOP_UP
+                        name: proposalType
                     });
                 }
                 else {
@@ -14492,7 +14518,7 @@ let dbPlayerInfo = {
                                         rewardData.sortCol = data.sortCol;
                                     }
 
-                                    
+
                                     if(data.appliedRewardList){
                                         rewardData.appliedRewardList = data.appliedRewardList
                                     }
@@ -19024,7 +19050,7 @@ let dbPlayerInfo = {
         return dbconfig.collection_tsPhoneList.distinct("name", {platform: platformObjId});
     },
 
-    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName, targetTsPhoneListId) {
+    importTSNewList: function (phoneListDetail, saveObj, isUpdateExisting, adminId, adminName, targetTsPhoneListId, isImportFeedback, isPhoneTrade) {
         let tsPhoneList;
         if (phoneListDetail.length <= 0) {
             return Promise.reject("None of the phone has pass the filter");
@@ -19078,22 +19104,42 @@ let dbPlayerInfo = {
                         tsPhoneList: tsPhoneList._id
                     }).save();
 
-                    if(targetTsPhoneListId && phone._id) {
-                        prom = prom.then(
-                            tsPhoneData => {
-                                dbconfig.collection_tsPhoneFeedback.update(
-                                    {
-                                        tsPhone: phone._id,
-                                        tsPhoneList: targetTsPhoneListId
-                                    },
-                                    {
-                                        tsPhone: tsPhoneData._id,
-                                        tsPhoneList: tsPhoneList._id
-                                    }, {multi: true}).catch(errorUtils.reportError);
-                                return tsPhoneData;
-                            }
-                        )
+                    if(isImportFeedback && phone._id) {
+                        if (isImportFeedback) {
+                            prom = prom.then(
+                                tsPhoneData => {
+                                    dbconfig.collection_tsPhoneFeedback.update(
+                                        {
+                                            tsPhone: phone._id,
+                                            tsPhoneList: phone.tsPhoneList
+                                        },
+                                        {
+                                            tsPhone: tsPhoneData._id,
+                                            tsPhoneList: tsPhoneList._id
+                                        }, {multi: true}).catch(errorUtils.reportError);
+                                    return tsPhoneData;
+                                }
+                            )
+                        }
+
+                        if (isPhoneTrade) {
+                            prom = prom.then(
+                                tsPhoneData => {
+                                    dbconfig.collection_tsPhoneTrade.update(
+                                        {
+                                            sourceTsPhone: phone._id,
+                                            sourceTsPhoneList: phone.tsPhoneList
+                                        },
+                                        {
+                                            targetTsPhone: tsPhoneData._id,
+                                            targetTsPhoneList: tsPhoneList._id
+                                        }, {multi: true}).catch(errorUtils.reportError);
+                                    return tsPhoneData
+                                }
+                            )
+                        }
                     }
+
 
                     promArr.push(prom);
                 });
@@ -22696,13 +22742,6 @@ function getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewa
         })
     }
 
-    if (!selectedRewardParam){
-        return Promise.reject({
-            name: "DataError",
-            message: "selectedRewardParam is not found"
-        })
-    }
-    
     return dbGameProvider.getPlayerCreditInProvider(playerData.name, playerData.platform.platformId, gameProviderId).then(
         providerCredit => {
             if (providerCredit){
