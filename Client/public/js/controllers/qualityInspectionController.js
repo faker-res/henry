@@ -3052,25 +3052,31 @@ define(['js/app'], function (myApp) {
                                 if(data && data._id && data._id.platformName && data._id.deviceNickName && data._id.playerWechatRemark){
                                     let indexByPlatform = vm.deviceList.findIndex(d => d.platformName == data._id.platformName);
                                     playerWechatRemarkList.push(data._id.playerWechatRemark);
+
+                                    if (data && data._id && data._id.playerWechatId) {
+                                        let str = data._id.playerWechatId;
+                                        data._id.encodedPlayerWechatId = str.substring(0, 3) + "******" + str.slice(-4);
+                                    }
+
                                     if(indexByPlatform > -1){
                                         if(vm.deviceList[indexByPlatform]){
                                             let indexByDevice = vm.deviceList[indexByPlatform].deviceNickName.findIndex(d => d.deviceNickName == data._id.deviceNickName);
 
                                             if(indexByDevice > -1){
                                                 if(vm.deviceList[indexByPlatform].deviceNickName[indexByDevice]){
-                                                    vm.deviceList[indexByPlatform].deviceNickName[indexByDevice].playerWechatRemark.push({playerWechatRemark: data._id.playerWechatRemark, playerWechatId: data._id.playerWechatId});
+                                                    vm.deviceList[indexByPlatform].deviceNickName[indexByDevice].playerWechatRemark.push({playerWechatRemark: data._id.playerWechatRemark, playerWechatId: data._id.playerWechatId, encodedPlayerWechatId: data._id.encodedPlayerWechatId || ''});
                                                 }else{
-                                                    vm.deviceList[indexByPlatform].deviceNickName.push({deviceNickName: data._id.deviceNickName, playerWechatRemark: [{playerWechatRemark: data._id.playerWechatRemark, playerWechatId: data._id.playerWechatId}]});
+                                                    vm.deviceList[indexByPlatform].deviceNickName.push({deviceNickName: data._id.deviceNickName, playerWechatRemark: [{playerWechatRemark: data._id.playerWechatRemark, playerWechatId: data._id.playerWechatId, encodedPlayerWechatId: data._id.encodedPlayerWechatId || ''}]});
                                                 }
                                             }else{
-                                                vm.deviceList[indexByPlatform].deviceNickName.push({deviceNickName: data._id.deviceNickName, playerWechatRemark: [{playerWechatRemark: data._id.playerWechatRemark, playerWechatId: data._id.playerWechatId}]});
+                                                vm.deviceList[indexByPlatform].deviceNickName.push({deviceNickName: data._id.deviceNickName, playerWechatRemark: [{playerWechatRemark: data._id.playerWechatRemark, playerWechatId: data._id.playerWechatId, encodedPlayerWechatId: data._id.encodedPlayerWechatId || ''}]});
                                             }
                                         }else{
-                                            vm.deviceList.push({platformId: data._id.platformObjId, platformName: data._id.platformName, deviceNickName: [{deviceNickName: data._id.deviceNickName, playerWechatRemark: [{playerWechatRemark: data._id.playerWechatRemark, playerWechatId: data._id.playerWechatId}]}]});
+                                            vm.deviceList.push({platformId: data._id.platformObjId, platformName: data._id.platformName, deviceNickName: [{deviceNickName: data._id.deviceNickName, playerWechatRemark: [{playerWechatRemark: data._id.playerWechatRemark, playerWechatId: data._id.playerWechatId, encodedPlayerWechatId: data._id.encodedPlayerWechatId || ''}]}]});
                                         }
 
                                     }else{
-                                        vm.deviceList.push({platformId: data._id.platformObjId, platformName: data._id.platformName,deviceNickName: [{deviceNickName: data._id.deviceNickName, playerWechatRemark: [{playerWechatRemark: data._id.playerWechatRemark, playerWechatId: data._id.playerWechatId}]}]});
+                                        vm.deviceList.push({platformId: data._id.platformObjId, platformName: data._id.platformName,deviceNickName: [{deviceNickName: data._id.deviceNickName, playerWechatRemark: [{playerWechatRemark: data._id.playerWechatRemark, playerWechatId: data._id.playerWechatId, encodedPlayerWechatId: data._id.encodedPlayerWechatId || ''}]}]});
                                     }
                                 }
                             });
@@ -3210,6 +3216,7 @@ define(['js/app'], function (myApp) {
                     vm.commonSortChangeHandler(a, 'inspectionWechat', vm.filterWechatConversation);
                 });
                 $('#wechatMessageTable').resize();
+                $scope.$evalAsync();
             };
 
             vm.fuzzySearchDeviceList = function(){

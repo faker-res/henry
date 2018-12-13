@@ -11707,9 +11707,8 @@ define(['js/app'], function (myApp) {
             vm.listBankByDepositMethod = vm.depositMethodType[depositMethod];
             vm.listBankByDepositMethod.forEach(bank => {
                 let bankStatus = $translate(bank.status == 'DISABLED' ? 'DISABLE' : bank.status);
-                console.log(bank)
                 bank.displayText = bank.name
-                    + ' ('+bank.bankTypeId+') - ' +bank.maxDepositAmount+' - ' + bankStatus;
+                    + ' ('+bank.bankTypeId+') - ' + $translate('SINGLE_LIMIT') + ':' +bank.maxDepositAmount;
                 return bank;
             });
         };
@@ -11783,6 +11782,7 @@ define(['js/app'], function (myApp) {
                         console.log('assignTopup success', data);
                         vm.playerAssignTopUp.responseData = data.data;
                         vm.getPlatformPlayersData();
+                        vm.initPlayerAssignTopUp();
                     });
                 }, function (error) {
                     vm.playerAssignTopUp.responseMsg = $translate(error.error.errorMessage);
@@ -14539,9 +14539,9 @@ define(['js/app'], function (myApp) {
             socketService.$socket($scope.AppSocket, 'getAssignTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
                 $scope.$evalAsync(() => {
                     vm.existingAssignTopup = data.data ? data.data : false;
-
-                    if(vm.existingAssignTopup.data.validTime){
-                        vm.startCountDown(vm.existingAssignTopup.data.validTime);
+                    if(vm.existingAssignTopup.data && vm.existingAssignTopup.data.validTime){
+                        let validTime = new Date(vm.existingAssignTopup.data.validTime);
+                        vm.startCountDown(validTime);
                     }
 
                     if(vm.existingAssignTopup.data.inputData.counterDepositType){
