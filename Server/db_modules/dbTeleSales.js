@@ -1190,7 +1190,8 @@ let dbTeleSales = {
             decomposeTime: {
                 $gte: startTime,
                 $lte: endTime
-            }
+            },
+            targetPlatform: null
         };
         if(phoneLists && phoneLists.length > 0) {
             query.sourceTsPhoneListName = {$in: phoneLists};
@@ -1218,21 +1219,22 @@ let dbTeleSales = {
     },
   
     getTrashClassification: function (platformObjId) {
-        let noClassificationCountProm = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: {$exists: true}, sourcePlatform: ObjectId(platformObjId), targetPlatform: {$exists: false}}).count();
+        let noClassificationCountProm = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: {$exists: true}, sourcePlatform: ObjectId(platformObjId), targetPlatform: null}, {_id: 1}).lean();
         let noFeedbackTopicCountProm = dbconfig.collection_tsPhoneTrade.find({
             sourcePlatform: ObjectId(platformObjId),
             $or: [
                 {lastSuccessfulFeedbackTopic: {$exists: false}},
                 {lastSuccessfulFeedbackTopic: {$exists: true, $eq: null}},
                 {lastSuccessfulFeedbackTopic: {$exists: true, $eq: ''}}
-            ]
-        }).count();
+            ],
+            targetPlatform: null
+        }, {_id: 1}).lean();
         let feedbackTopicCountProm = dbconfig.collection_tsPhoneTrade.aggregate(
             {
                 $match: {
                     lastSuccessfulFeedbackTopic: {$exists: true, $ne: ''},
                     sourcePlatform: ObjectId(platformObjId),
-                    targetPlatform: {$exists: false}
+                    targetPlatform: null
                 }
             }, {
                 $group: {
@@ -1247,11 +1249,11 @@ let dbTeleSales = {
                 let trashClassificationList = [];
                 if (data) {
                     if (data[0]) {
-                        trashClassificationList.push({name: 'noClassification', size: data[0]});
+                        trashClassificationList.push({name: 'noClassification', size: data[0].length});
                     }
 
                     if (data[1]) {
-                        trashClassificationList.push({name: 'noFeedbackTopic', size: data[1]});
+                        trashClassificationList.push({name: 'noFeedbackTopic', size: data[1].length});
                     }
 
                     if (data[2] && data[2].length > 0) {
