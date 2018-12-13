@@ -22704,13 +22704,6 @@ function getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewa
         })
     }
 
-    if (!selectedRewardParam){
-        return Promise.reject({
-            name: "DataError",
-            message: "selectedRewardParam is not found"
-        })
-    }
-
     return dbGameProvider.getPlayerCreditInProvider(playerData.name, playerData.platform.platformId, gameProviderId).then(
         providerCredit => {
             if (providerCredit){
