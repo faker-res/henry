@@ -1267,9 +1267,7 @@ var proposalExecutor = {
                             }
                             Q.resolve().then(
                                 () => {
-                                    if (proposalData.data.updateData.ownDomain) {
-                                        return dbPartner.updatePartnerDomain(proposalData.data.partnerObjId, proposalData.data.updateData.ownDomain);
-                                    }
+                                    return dbPartner.updatePartnerDomain(proposalData.data.partnerObjId, proposalData.data.updateData.ownDomain);
                                 }
                             ).then(
                                 () => Q.all(proms)

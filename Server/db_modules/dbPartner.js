@@ -551,47 +551,40 @@ let dbPartner = {
         var newElements = [];
         var removedElements = [];
         var partnerObj = null;
-        if (newDomains && Array.isArray(newDomains)) {
-            return dbconfig.collection_partner.findOne({_id: partnerObjId}).lean().then(
-                partnerData => {
-                    if (partnerData) {
-                        partnerObj = partnerData;
-                        newElements = dbUtil.difArrays(partnerData.ownDomain, newDomains);
-                        removedElements = dbUtil.difArrays(newDomains, partnerData.ownDomain);
-                        if (newElements && newElements.length > 0) {
-                            var newProms = newElements.map(ele => new dbconfig.collection_partnerOwnDomain({name: ele}).save());
-                            return Q.all(newProms);
-                        }
-                    }
-                    else {
-                        return Q.reject({
-                            name: "DataError",
-                            message: "Cannot find partner"
-                        });
+
+        return dbconfig.collection_partner.findOne({_id: partnerObjId}).lean().then(
+            partnerData => {
+                if (partnerData) {
+                    partnerObj = partnerData;
+                    newElements = dbUtil.difArrays(partnerData.ownDomain, newDomains);
+                    removedElements = dbUtil.difArrays(newDomains, partnerData.ownDomain);
+                    if (newElements && newElements.length > 0) {
+                        var newProms = newElements.map(ele => new dbconfig.collection_partnerOwnDomain({name: ele}).save());
+                        return Q.all(newProms);
                     }
                 }
-            ).then(
-                () => {
-                    return dbconfig.collection_partner.findOneAndUpdate(
-                        {_id: partnerObj._id, platform: partnerObj.platform},
-                        {ownDomain: newDomains}
-                    );
+                else {
+                    return Q.reject({
+                        name: "DataError",
+                        message: "Cannot find partner"
+                    });
                 }
-            ).then(
-                () => {
-                    if (removedElements && removedElements.length > 0) {
-                        var remProms = removedElements.map(ele => dbconfig.collection_partnerOwnDomain.remove({name: ele}));
-                        return Q.all(remProms);
-                    }
+            }
+        ).then(
+            () => {
+                return dbconfig.collection_partner.findOneAndUpdate(
+                    {_id: partnerObj._id, platform: partnerObj.platform},
+                    {ownDomain: newDomains}
+                );
+            }
+        ).then(
+            () => {
+                if (removedElements && removedElements.length > 0) {
+                    var remProms = removedElements.map(ele => dbconfig.collection_partnerOwnDomain.remove({name: ele}));
+                    return Q.all(remProms);
                 }
-            );
-        }
-        else {
-            return Q.reject({
-                name: "DataError",
-                message: "Invalid domain data"
-            });
-        }
+            }
+        );
     },
 
     /**
