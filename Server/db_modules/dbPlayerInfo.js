@@ -5812,7 +5812,6 @@ let dbPlayerInfo = {
                                                 // Set BState back to false
                                                 dbPlayerUtil.setPlayerBState(playerData._id, "applyRewardEvent", false).catch(errorUtils.reportError);
                                             }
-
                                             console.log('playerRetentionRewardGroup error when login', playerData.playerId, err);
                                         }
                                     );
