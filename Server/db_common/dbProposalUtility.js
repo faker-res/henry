@@ -141,21 +141,9 @@ const dbProposalUtility = {
                 let samePhoneNum = 0;
                 let sameDeviceId = 0;
 
-                console.log('countReward===', countReward);
-                console.log('intervalTime===', intervalTime);
-                console.log('player.name===', player.name);
-                console.log('rewardEvent.name===', rewardEvent.name);
-                console.log('rewardEvent.condition===', rewardEvent.condition);
-                console.log('player._id===', player._id);
-                console.log('player.lastLoginIp===', player.lastLoginIp);
-                console.log('player.phoneNumber===', player.phoneNumber);
-                console.log('player.deviceId===', player.deviceId);
-                console.log('countReward.length===', countReward.length);
-
                 // check playerId
                 if (countReward && countReward.length) {
                     for (let i = 0; i < countReward.length; i++) {
-                        console.log('countReward[i].data===', countReward[i].data);
                         // check if same player  has already received this reward
                         if (player._id.toString() === countReward[i].data.playerObjId.toString()) {
                             samePlayerId++;

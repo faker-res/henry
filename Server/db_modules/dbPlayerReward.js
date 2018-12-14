@@ -6824,16 +6824,9 @@ let dbPlayerReward = {
                             })
                         }
 
-                        console.log('rewardSpecificData===', rewardSpecificData);
-                        console.log('checkHasReceived===', checkHasReceived);
-
                         let sameIPAddressHasReceived = checkHasReceived && checkHasReceived.sameIPAddressHasReceived ? checkHasReceived.sameIPAddressHasReceived : "";
                         let samePhoneNumHasReceived = checkHasReceived && checkHasReceived.samePhoneNumHasReceived ? checkHasReceived.samePhoneNumHasReceived : "";
                         let sameDeviceIdHasReceived = checkHasReceived && checkHasReceived.sameDeviceIdHasReceived ? checkHasReceived.sameDeviceIdHasReceived : "";
-
-                        console.log('sameIPAddressHasReceived===', sameIPAddressHasReceived);
-                        console.log('samePhoneNumHasReceived===', samePhoneNumHasReceived);
-                        console.log('sameDeviceIdHasReceived===', sameDeviceIdHasReceived);
 
                         if (sameIPAddressHasReceived) {
                             return Promise.reject({
