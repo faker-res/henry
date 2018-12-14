@@ -7863,10 +7863,16 @@ let dbPlayerInfo = {
         ).then(
             function (rewardEvent) {
                 if (rewardEvent) {
+                    console.log('rewardEvent===', rewardEvent);
+                    console.log('rewardEvent.length===', rewardEvent.length);
                     var rewardEventArray = [];
                     for (var i = 0; i < rewardEvent.length; i++) {
                         var rewardEventItem = rewardEvent[i].toObject();
                         delete rewardEventItem.platform;
+                        console.log('rewardEventItem.name===', rewardEventItem.name);
+                        console.log('rewardEventItem.type.name===', rewardEventItem.type.name);
+                        console.log('rewardEventItem.validStartTime===', rewardEventItem.validStartTime);
+                        console.log('rewardEventItem.validEndTime===', rewardEventItem.validEndTime);
 
                         let providerGroup = null;
                         let providerGroupName = null;
