@@ -22858,7 +22858,7 @@ function transferOutFromSelectedGameProvider(selectedProviderList, playerData, e
         let providerIdList = [];
         let notEnoughToTransferProviderId = [];
         let checkCreditProm = Promise.resolve();
-        let isAllDone = true;
+        // let isAllDone = true;
         let query = {
             _id: {$in: selectedProviderList}
         };
@@ -22948,7 +22948,9 @@ function transferOutFromSelectedGameProvider(selectedProviderList, playerData, e
 
                                     }
                                     , err => {
-                                        isAllDone = false;
+                                        return Promise.reject(err);
+                                        console.log("checking error", err)
+                                        // isAllDone = false;
                                     }
                                 )
                             }
@@ -22959,13 +22961,13 @@ function transferOutFromSelectedGameProvider(selectedProviderList, playerData, e
             }
         ).then (
             () => {
-                if (!isAllDone){
-                    // transfer-out is not successful -> show error
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "The transferring-out process is failed"
-                    })
-                }
+                // if (!isAllDone){
+                //     // transfer-out is not successful -> show error
+                //     return Promise.reject({
+                //         name: "DataError",
+                //         message: "The transferring-out process is failed"
+                //     })
+                // }
                 return updateOrSaveBonusDoubledRewardGroupRecord(playerData, eventData, selectedProviderList, intervalTime);
             }
         )
