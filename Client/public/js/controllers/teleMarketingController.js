@@ -8036,21 +8036,21 @@ define(['js/app'], function (myApp) {
                     if(data.data.indexOf(item.phone) > -1) {
                         vm.exportTsPhoneTrade.phoneObjId.push(item._id);
                     }
-                })
-            });
-            let maxCount = vm.exportTsPhoneTrade.phoneObjId.length;
-            let exportCount = vm.exportTsPhoneTrade.exportCount;
-            vm.exportTsPhoneTrade.exportCount = exportCount > maxCount ? maxCount : exportCount;
-            sendData = {
-                sourcePlatform: vm.selectedPlatform.id,
-                sourceTopicName: vm.exportTsPhoneTrade.topic,
-                exportCount: vm.exportTsPhoneTrade.exportCount,
-                targetPlatform: vm.exportTsPhoneTrade.targetPlatform,
-                phoneTradeObjIdArr: vm.exportTsPhoneTrade.phoneObjId
-            };
-            socketService.$socket($scope.AppSocket, 'exportDecomposedPhone', sendData, function (data) {
-                console.log('exportDecomposedPhone ret', data);
-                $scope.$evalAsync(() => {
+                });
+                let maxCount = vm.exportTsPhoneTrade.phoneObjId.length;
+                let exportCount = vm.exportTsPhoneTrade.exportCount;
+                vm.exportTsPhoneTrade.exportCount = exportCount > maxCount ? maxCount : exportCount;
+                sendData = {
+                    sourcePlatform: vm.selectedPlatform.id,
+                    sourceTopicName: vm.exportTsPhoneTrade.topic,
+                    exportCount: vm.exportTsPhoneTrade.exportCount,
+                    targetPlatform: vm.exportTsPhoneTrade.targetPlatform,
+                    phoneTradeObjIdArr: vm.exportTsPhoneTrade.phoneObjId
+                };
+                socketService.$socket($scope.AppSocket, 'exportDecomposedPhone', sendData, function (data) {
+                    console.log('exportDecomposedPhone ret', data);
+                    $scope.$evalAsync(() => {
+                    });
                 });
             });
         };
