@@ -99,7 +99,8 @@ define(['js/app'], function (myApp) {
             vm.wechatGroupControlMonitorQuery = {};
             getAdminPlatformName();
             vm.wechatGroupControlMonitorQuery.pageObj = utilService.createPageForPagingTable("#wechatGroupMonitorTablePage", {pageSize: 1000}, $translate, function (curP, pageSize) {
-                vm.commonPageChangeHandler(curP, pageSize, "wechatGroupControlMonitorQuery", vm.searchWechatMonitorRecord)
+                vm.commonPageChangeHandler(curP, pageSize, "wechatGroupControlMonitorQuery", vm.searchWechatMonitorRecord);
+                $scope.$evalAsync();
             });
         };
 
@@ -130,39 +131,29 @@ define(['js/app'], function (myApp) {
                 adminIds: vm.wechatGroupControlMonitorQuery.csOfficer,
                 deviceNickNames: vm.wechatGroupControlMonitorQuery.deviceNickName,
                 index: vm.wechatGroupControlMonitorQuery.index,
-                limit: vm.wechatGroupControlMonitorQuery.limit || 1000
+                limit: vm.wechatGroupControlMonitorQuery.limit || 1000,
+                sortCol: vm.wechatGroupControlMonitorQuery.sortCol
             };
 
             console.log('sendObj', sendObj);
 
             socketService.$socket($scope.AppSocket, 'getWCGroupControlSessionMonitor', sendObj, function (data) {
-                $scope.$evalAsync(() => {
-                    $('#wechatGroupMonitorTableSpin').hide();
-                    console.log('getWCGroupControlSessionMonitor', data);
-                    vm.wechatGroupControlMonitorQuery.totalCount = data.data.size;
+                $('#wechatGroupMonitorTableSpin').hide();
+                console.log('getWCGroupControlSessionMonitor', data);
+                vm.wechatGroupControlMonitorQuery.totalCount = data.data.size;
 
-                    vm.drawWechatGroupRecordTable(
-                        data.data.data ? data.data.data.map(item => {
-                            let lastDate = new Date();
-                            let createDate = new Date(item.createTime);
-                            let duration = 0;
-                            if (item && item.lastUpdateTime) {
-                                lastDate = new Date(item.lastUpdateTime);
-                            } else {
-                                lastDate = new Date();
-                            }
-                            duration = vm.getSessionDuration(lastDate, createDate);
-                            item.duration = duration;
-                            item.duration$ = duration + $translate('minute(s)');
-                            item.product = item.platformId + '.' + item.platformName;
-                            item.adminName$ = item.adminName ? item.adminName : $translate('No first attempt login');
-                            item.status$ = item.status == 1 ? $translate('Green light is on(Online)') : $translate('Red light is on(Offline)');
-                            item.connectionAbnormalClickTimes$ = item.connectionAbnormalClickTimes ? item.connectionAbnormalClickTimes + $translate('Time(s)') : '0' + $translate('Time(s)');
+                vm.drawWechatGroupRecordTable(
+                    data.data.data ? data.data.data.map(item => {
+                        item.duration = Math.floor(item.duration);
+                        item.product = item.platformId + '.' + item.platformName;
+                        item.adminName$ = item.adminName ? item.adminName : $translate('No first attempt login');
+                        item.status$ = item.status == 1 ? $translate('Green light is on(Online)') : $translate('Red light is on(Offline)');
 
-                            return item;
-                        }) : [], data.data.size, {}, isNewSearch
-                    );
-                });
+                        return item;
+                    }) : [], data.data.size, {}, isNewSearch
+                );
+
+                $scope.$evalAsync();
             }, function (err) {
                 console.error(err);
             }, true);
@@ -172,7 +163,7 @@ define(['js/app'], function (myApp) {
         vm.drawWechatGroupRecordTable = function (data, size, summary, newSearch) {
             let tableOptions = {
                 data: data,
-                "order": vm.wechatGroupControlMonitorQuery.aaSorting || [[4, 'desc']],
+                "order": vm.wechatGroupControlMonitorQuery.aaSorting,
                 aoColumnDefs: [
                     {'sortCol': 'connectionAbnormalClickTimes', bSortable: true, 'aTargets': [4]},
                     {'sortCol': 'duration', bSortable: true, 'aTargets': [5]},
@@ -185,7 +176,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('Current System Status'), data: "status$"},
                     {
                         title: $translate('This Connection is Abnormally Clicked'),
-                        data: "connectionAbnormalClickTimes$",
+                        data: "connectionAbnormalClickTimes",
                         render: function (data, type, row) {
                             if (row.status == 2) {
                                 var link = $('<div>', {});
@@ -201,7 +192,7 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
-                        title: $translate('Connection Time'), data: "duration$",
+                        title: $translate('Connection Time'), data: "duration",
                         render: function (data, type, row) {
                             if (row.status == 2) {
                                 var link = $('<div>', {});
@@ -243,10 +234,7 @@ define(['js/app'], function (myApp) {
                 destroy: true,
                 paging: false,
                 autoWidth: true,
-                fnRowCallback: vm.statusColor,
-                createdRow: function (row, data, dataIndex) {
-                    $compile(angular.element(row).contents())($scope)
-                }
+                fnRowCallback: vm.statusColor
             };
             tableOptions = $.extend(true, {}, vm.generalDataTableOptions, tableOptions);
             vm.lastWechatRefresh = utilService.$getTimeFromStdTimeFormat();
@@ -257,6 +245,7 @@ define(['js/app'], function (myApp) {
                 vm.commonSortChangeHandler(a, 'wechatGroupControlMonitorQuery', vm.searchWechatMonitorRecord);
             });
             $('#wechatGroupMonitorTable').resize();
+            $scope.$evalAsync();
         };
 
         vm.statusColor = function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
@@ -290,29 +279,6 @@ define(['js/app'], function (myApp) {
                     vm.wcGroupControlSessionHistory.deviceId = data.deviceId;
                 };
 
-                $('select#selectWCGroupControlSessionHistoryAdminId').multipleSelect({
-                    allSelected: $translate("All Selected"),
-                    selectAllText: $translate("Select All"),
-                    displayValues: true,
-                    countSelected: $translate('# of % selected'),
-                });
-                let $multi = ($('select#selectWCGroupControlSessionHistoryAdminId').next().find('.ms-choice'))[0];
-                $('select#selectWCGroupControlSessionHistoryAdminId').next().on('click', 'li input[type=checkbox]', function () {
-                    let upText = $($multi).text().split(',').map(item => {
-                        let textShow = '';
-                        vm.wechatGroupControlHistoryAdminList.forEach(admin => {
-                            if (admin && admin._id && item && ((admin._id.toString() == item.trim().toString() || admin.adminName.toString() == item.trim().toString()))) {
-                                textShow = admin.adminName;
-                            } else if (item.trim().includes('/') || item.trim().includes('全选')) {
-                                textShow = item;
-                            }
-                        });
-                        return textShow;
-                    }).join(',');
-                    $($multi).find('span').text(upText);
-                });
-                $("select#selectWCGroupControlSessionHistoryAdminId").multipleSelect("checkAll");
-
                 vm.wcGroupControlSessionHistory.startDate = utilService.createDatePicker('#wcGroupControlSessionHistoryQuery .startTime');
                 vm.wcGroupControlSessionHistory.endDate = utilService.createDatePicker('#wcGroupControlSessionHistoryQuery .endTime');
                 vm.wcGroupControlSessionHistory.startDate.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 7)));
@@ -336,6 +302,7 @@ define(['js/app'], function (myApp) {
                 endDate: vm.wcGroupControlSessionHistory.endDate.data('datetimepicker').getLocalDate(),
                 index: newSearch ? 0 : vm.wcGroupControlSessionHistory.index,
                 limit: newSearch ? 1000 : vm.wcGroupControlSessionHistory.limit,
+                sortCol: vm.wcGroupControlSessionHistory.sortCol
             }
 
             console.log('sendSessionQuery', sendQuery);
@@ -375,6 +342,7 @@ define(['js/app'], function (myApp) {
             let tableOptions = {
                 data: data,
                 aoColumnDefs: [
+                    {'sortCol': 'createTime', bSortable: true, 'aTargets': [3]},
                     {targets: '_all', defaultContent: ' ', bSortable: false}
                 ],
                 columns: [

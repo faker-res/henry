@@ -1912,7 +1912,7 @@
                             tr
                                 td {{'Definition of Answered Phone Call(Choose from feedback status/ multi selection)' | translate}}
                                 td
-                                    select.form-control#selectFeedBackTopic(ng-model="vm.bulkCallBasic.definitionOfAnsweredPhone" ng-options="a.key as a.key for (i,a) in vm.playerAllFeedBackResult" ng-disabled="!vm.configTableEdit")
+                                    select.form-control.spicker#configSelectFeedBackTopic(ng-model="vm.bulkCallBasic.definitionOfAnsweredPhone" ng-options="a.key as a.key for (i,a) in vm.playerAllFeedBackResult" ng-disabled="!vm.configTableEdit" multiple)
                             tr
                                 td {{'Decompose after N days(Start to deal with other departments)' | translate}}
                                 td
@@ -1921,7 +1921,7 @@
                                 td {{'Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday' | translate}}
                                 td
                                     input(ng-model='vm.bulkCallBasic.phoneWhiteListExportMaxNumber' ng-disabled='!vm.configTableEdit' type="number" step="1" min="0")
-                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'BulkCall')", ng-click='vm.configTableEdit=!vm.configTableEdit')
+                    button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'BulkCall')", ng-click='vm.configTableEdit=!vm.configTableEdit; vm.debounceRefreshSPicker()')
                         text {{'EDIT' | translate}}
                         img.img-edit
                     button.btn.btn-danger.common-button(ng-if='vm.configTableEdit', ng-click='vm.configTableEdit=!vm.configTableEdit;vm.configTabClicked("bulkPhoneCallSetting")') {{"CANCEL" | translate}}

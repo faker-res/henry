@@ -5329,6 +5329,7 @@ let dbPlayerReward = {
 
     checkRewardParamForBonusDoubledRewardGroup: (eventData, playerData, intervalTime) => {
         let selectedRewardParam;
+        let rewardParam;
         let bonusAmount = 0;
         let rate = 0;
         let totalBetAmount = 0;
@@ -5338,9 +5339,9 @@ let dbPlayerReward = {
 
         // Set reward param for player level to use
         if (eventData.condition.isPlayerLevelDiff) {
-            selectedRewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
+            rewardParam = eventData.param.rewardParam.filter(e => e.levelId == String(playerData.playerLevel))[0].value;
         } else {
-            selectedRewardParam = eventData.param.rewardParam[0].value;
+            rewardParam = eventData.param.rewardParam[0].value;
         }
 
         let recordQuery = {
@@ -5379,14 +5380,14 @@ let dbPlayerReward = {
                 else{
                     return Promise.reject({
                         name: "DataError",
-                        message: "Player has not applied to join this reward event yet"
+                        message: "The requirement is not fulfilled"
                     })
                 }
             }
         ).then(
             consumptionRecord => {
-                if (consumptionRecord && consumptionRecord.length && playerBonusDoubledRewardGroupRecord && selectedRewardParam){
-                    bonusAmount = Math.abs(consumptionRecord[0].bonusAmount);
+                if (consumptionRecord && consumptionRecord.length && playerBonusDoubledRewardGroupRecord && rewardParam){
+                    bonusAmount = consumptionRecord[0].bonusAmount;
                     consumptionRecordList = consumptionRecord[0].consumptionRecordList;
                     totalBetAmount = consumptionRecord[0].betAmount;
                     let transferInAmount = playerBonusDoubledRewardGroupRecord.transferInAmount;
@@ -5395,10 +5396,10 @@ let dbPlayerReward = {
                     let spendingAmount;
 
                     if (eventData.param.isMultiStepReward) { 
-                        selectedRewardParam = selectedRewardParam.filter(e => rate >= e.multiplier).sort((a, b) => b.multiplier - a.multiplier);
+                        selectedRewardParam = rewardParam.filter(e => rate >= e.multiplier).sort((a, b) => b.multiplier - a.multiplier);
                         selectedRewardParam = selectedRewardParam[0] || null;    
                     } else {
-                        selectedRewardParam = selectedRewardParam[0];
+                        selectedRewardParam = rewardParam[0];
                     }
                 }
                 return {selectedRewardParam: selectedRewardParam, record: playerBonusDoubledRewardGroupRecord, consumptionRecordList: consumptionRecordList, winLoseAmount: bonusAmount, winTimes: rate, totalBetAmount: totalBetAmount};
@@ -6709,7 +6710,7 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "This player has applied for max reward times in event period"
+                                message: localization.localization.translate("This player has applied for max reward times in event period")
                             });
                         }
 
@@ -6755,7 +6756,7 @@ let dbPlayerReward = {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
-                                    message: "This player has applied for max reward times in event period"
+                                    message: localization.localization.translate("This player has applied for max reward times in event period")
                                 });
                             }
 
@@ -6763,7 +6764,7 @@ let dbPlayerReward = {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
-                                    message: "This IP address has applied for max reward times in event period"
+                                    message: localization.localization.translate("This IP address has applied for max reward times in event period")
                                 });
                             }
 
@@ -6771,7 +6772,7 @@ let dbPlayerReward = {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
-                                    message: "This phone number has applied for max reward times in event period"
+                                    message: localization.localization.translate("This phone number has applied for max reward times in event period")
                                 });
                             }
 
@@ -6779,7 +6780,7 @@ let dbPlayerReward = {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
-                                    message: "This mobile device has applied for max reward times in event period"
+                                    message: localization.localization.translate("This mobile device has applied for max reward times in event period")
                                 });
                             }
 
@@ -6787,7 +6788,7 @@ let dbPlayerReward = {
                                 return Q.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
-                                    message: "This player has applied for other reward in event period"
+                                    message: localization.localization.translate("This player has applied for other reward in event period")
                                 });
                             }
                         }
@@ -6795,7 +6796,7 @@ let dbPlayerReward = {
                             return Q.reject({
                                 status: constServerCode.INVALID_PARAM,
                                 name: "DataError",
-                                message: "Reward Amount and Spending Times cannot be empty. Please check reward condition."
+                                message: localization.localization.translate("Reward Amount and Spending Times cannot be empty. Please check reward condition.")
                             });
                         }
 
@@ -6823,22 +6824,15 @@ let dbPlayerReward = {
                             })
                         }
 
-                        console.log('rewardSpecificData===', rewardSpecificData);
-                        console.log('checkHasReceived===', checkHasReceived);
-
                         let sameIPAddressHasReceived = checkHasReceived && checkHasReceived.sameIPAddressHasReceived ? checkHasReceived.sameIPAddressHasReceived : "";
                         let samePhoneNumHasReceived = checkHasReceived && checkHasReceived.samePhoneNumHasReceived ? checkHasReceived.samePhoneNumHasReceived : "";
                         let sameDeviceIdHasReceived = checkHasReceived && checkHasReceived.sameDeviceIdHasReceived ? checkHasReceived.sameDeviceIdHasReceived : "";
-
-                        console.log('sameIPAddressHasReceived===', sameIPAddressHasReceived);
-                        console.log('samePhoneNumHasReceived===', samePhoneNumHasReceived);
-                        console.log('sameDeviceIdHasReceived===', sameDeviceIdHasReceived);
 
                         if (sameIPAddressHasReceived) {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "This IP address has applied for max reward times in event period"
+                                message: localization.localization.translate("This IP address has applied for max reward times in event period")
                             });
                         }
 
@@ -6846,7 +6840,7 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "This phone number has applied for max reward times in event period"
+                                message: localization.localization.translate("This phone number has applied for max reward times in event period")
                             });
                         }
 
@@ -6854,7 +6848,7 @@ let dbPlayerReward = {
                             return Promise.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
-                                message: "This mobile device has applied for max reward times in event period"
+                                message: localization.localization.translate("This mobile device has applied for max reward times in event period")
                             });
                         }
 
@@ -7958,10 +7952,11 @@ let dbPlayerReward = {
         );
     },
 
-    getRewardRanking: function (platformId, promoCode, sortType, startTime, endTime, usePaging, requestPage, count) {
+    getRewardRanking: function (platformId, playerId, promoCode, sortType, startTime, endTime, usePaging, requestPage, count) {
         let platformRecord;
         let rewardEventRecord;
         let rewardRecord;
+        let rankingRecord;
         let statsObj;
         let isPaging = usePaging || true;
         let index = 0;
@@ -8097,9 +8092,14 @@ let dbPlayerReward = {
                             totalAmount = data && data[2] && data[2][0] && data[2][0].totalAmount ? data[2][0].totalAmount : 0;
                             totalDeposit = data && data[2] && data[2][0] && data[2][0].totalDeposit ? data[2][0].totalDeposit : 0;
 
+                            let playerRank = Promise.resolve({});
+                            if (playerId) {
+                                playerRank = getPlayerRewardRanking(data[1], playerId);
+                            }
+
                             let result = data[1] && data[1].length > 0 ? (isPaging === true || isPaging === "true") ? data[1].slice(index, index + limit) : data[1] : [];
 
-                            return result;
+                            return Promise.all([result, playerRank]);
                         }
                     );
 
@@ -8110,14 +8110,16 @@ let dbPlayerReward = {
         ).then(
             rewardData => {
                 let proms = [];
-                rewardRecord = rewardData && rewardData.length > 0 ? rewardData : [];
 
-                if (rewardData && rewardData.length > 0) {
-                    rewardData.forEach(
+                rewardRecord = rewardData && rewardData[0] && rewardData[0].length > 0 ? rewardData[0] : [];
+                rankingRecord = rewardData && rewardData[1] ? rewardData[1] : {};
+
+                if (rewardRecord && rewardRecord.length > 0) {
+                    rewardRecord.forEach(
                         reward => {
                             if (reward) {
                                 let query = {
-                                    "data.playerObjId": ObjectId(reward._id),
+                                    "data.playerObjId" : ObjectId(reward._id),
                                     "data.platformId": platformRecord._id,
                                     "createTime": {
                                         "$gte": new Date(startTime),
@@ -8128,28 +8130,51 @@ let dbPlayerReward = {
                                     "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
                                 };
 
-                                proms.push(dbConfig.collection_proposal.findOne(query).sort({createTime: -1}).lean().then(
-                                    lastProposalData => {
-                                        let result = {};
-                                        if (lastProposalData) {
-                                            result.playerObjId = lastProposalData.data.playerObjId;
-                                            result.rewardAmount = lastProposalData.data.rewardAmount;
-                                            result.depositAmount = lastProposalData.data.actualAmount;
-                                            result.rewardTime = lastProposalData.createTime;
-                                            result.betTime = lastProposalData.data.betTime;
-                                            result.betType = lastProposalData.data.betType;
-                                            result.betAmount = lastProposalData.data.betAmount;
-                                            result.winAmount = lastProposalData.data.winAmount;
-                                            result.winTimes = lastProposalData.data.winTimes;
-                                        }
-                                        return result;
-                                    }
-                                ));
+                                proms.push(getLastRewardDetail(query));
                             }
                         }
                     );
                 }
-                return Promise.all(proms);
+
+                return Promise.all(proms).then(
+                    allPlayerLastRewardData => {
+
+                        let rankPlayerLastRewardProm = Promise.resolve({});
+
+                        if (rankingRecord && Object.keys(rankingRecord).length > 0 && rankingRecord._id) {
+                            let query = {
+                                "data.playerObjId" : ObjectId(rankingRecord._id),
+                                "data.platformId": platformRecord._id,
+                                "createTime": {
+                                    "$gte": new Date(startTime),
+                                    "$lte": new Date(endTime)
+                                },
+                                "data.eventId": rewardEventRecord._id,
+                                "mainType": "Reward",
+                                "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                            };
+
+                            rankPlayerLastRewardProm = getLastRewardDetail(query);
+
+                            return Promise.all([rankPlayerLastRewardProm]).then(
+                                rankPlayerLastRewardData => {
+
+                                    if (rankPlayerLastRewardData && rankPlayerLastRewardData[0]) {
+                                        delete rankPlayerLastRewardData[0].playerObjId;
+                                        delete rankingRecord._id;
+                                        delete rankingRecord.createTime;
+
+                                        rankingRecord.data = rankPlayerLastRewardData[0];
+                                    }
+
+                                    return allPlayerLastRewardData;
+                                }
+                            )
+                        } else {
+                            return allPlayerLastRewardData;
+                        }
+                    }
+                );
             }
         ).then(
             lastRewardData => {
@@ -8176,7 +8201,7 @@ let dbPlayerReward = {
                     });
                 }
 
-                return {stats: statsObj, rewardRanking: rewardRecord};
+                return {stats: statsObj, rewardRanking: rewardRecord, playerRanking: rankingRecord};
             }
         )
     },
@@ -8521,6 +8546,59 @@ function addUsedRewardToTopUpRecord(topUpProposalId, rewardEvent) {
                 }).lean().exec();
             }
             return Promise.resolve();
+        }
+    );
+}
+
+function getPlayerRewardRanking(rewardRecord, playerId) {
+    let rankNo = 0;
+    let playerRankingData = {};
+
+    return dbConfig.collection_players.findOne({playerId: playerId}, {_id: 1}).lean().then(
+        playerData => {
+            if (playerData && playerData._id) {
+
+                if(rewardRecord && rewardRecord.length > 0) {
+                    for (let x = 0, len = rewardRecord.length; x < len; x++) {
+                        let rank = rewardRecord[x];
+
+                        if (rank) {
+                            rankNo = rankNo + 1;
+                        }
+
+                        if (rank._id && (playerData._id.toString() == rank._id.toString())) {
+                            playerRankingData = JSON.parse(JSON.stringify(rank));
+                            playerRankingData.index = rankNo;
+                            break;
+                        }
+                    }
+
+                    return playerRankingData;
+                }
+            } else {
+                return Promise.reject({name: "DataError", message: "Invalid player data"});
+            }
+        }
+    );
+}
+
+function getLastRewardDetail(query) {
+    let result = {};
+
+    return dbConfig.collection_proposal.findOne(query).sort({createTime: -1}).lean().then(
+        lastProposalData => {
+            if (lastProposalData) {
+                result.playerObjId = lastProposalData.data.playerObjId;
+                result.rewardAmount = lastProposalData.data.rewardAmount;
+                result.depositAmount = lastProposalData.data.actualAmount;
+                result.rewardTime = lastProposalData.createTime;
+                result.betTime = lastProposalData.data.betTime;
+                result.betType = lastProposalData.data.betType;
+                result.betAmount = lastProposalData.data.betAmount;
+                result.winAmount = lastProposalData.data.winAmount;
+                result.winTimes = lastProposalData.data.winTimes;
+            }
+            return result;
         }
     );
 }

@@ -415,6 +415,17 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.getActivePhoneListNameForAdmin = () => {
+            return $scope.$socketPromise("getActivePhoneListNameForAdmin", {platformObjId: vm.selectedPlatform.id}).then(
+                data => {
+                    if (data) {
+                        vm.adminPhoneListName = data.data || [];
+                        $scope.$evalAsync();
+                    }
+                }
+            );
+        };
+
         vm.loadTab = function (tabName) {
             vm.selectedTab = tabName;
 
@@ -430,17 +441,12 @@ define(['js/app'], function (myApp) {
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#phoneListEndTimePicker', utilService.getTodayEndTime());
                     break;
                 case 'REMINDER_PHONE_LIST':
-                    commonService.getTSPhoneListName($scope, {assignees: authService.adminId, platform: vm.selectedPlatform.id}).then(
-                        data => {
-                            vm.adminPhoneListName = data;
-                            $scope.$evalAsync();
-                        }
-                    );
+                    vm.getActivePhoneListNameForAdmin();
 
                     vm.queryAdminPhoneList = {totalCount: 0, sortCol: {assignTimes: 1, endTime: 1}};
                     utilService.actionAfterLoaded("#adminPhoneListTablePage", function () {
-                        commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'startTime', '#adminPhoneListLastFeedbackStart', utilService.getNdayagoStartTime(30));
-                        commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'endTime', '#adminPhoneListLastFeedbackEnd', utilService.getTodayEndTime());
+                        commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'startTime', '#adminPhoneListLastFeedbackStart');
+                        commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'endTime', '#adminPhoneListLastFeedbackEnd');
                         commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'startTime', '#adminPhoneListDistributeStart', utilService.getNdayagoStartTime(30));
                         commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'endTime', '#adminPhoneListDistributeEnd', utilService.getTodayEndTime());
                         vm.queryAdminPhoneList.pageObj = utilService.createPageForPagingTable("#adminPhoneListTablePage", {}, $translate, function (curP, pageSize) {
@@ -458,6 +464,7 @@ define(['js/app'], function (myApp) {
                     });
                     break;
                 case 'RECYCLE_BIN':
+                    vm.showPageName = '';
                     let phoneListStatus = [vm.constTsPhoneListStatus.PERFECTLY_COMPLETED, vm.constTsPhoneListStatus.FORCE_COMPLETED]
                     commonService.getTSPhoneListName($scope, {platform: vm.selectedPlatform.id, status: {$in: phoneListStatus}}).then(
                         data => {
@@ -466,6 +473,7 @@ define(['js/app'], function (myApp) {
                         }
                     )
                     vm.recycleBinPhoneListSearch = {};
+                    vm.trashClassificationTradeQuery = {};
                     vm.isPhoneListEditable = false;
                     utilService.actionAfterLoaded("#recycleBinPhoneListTablePage", function () {
                         commonService.commonInitTime(utilService, vm, 'recycleBinPhoneListSearch', 'startTime', '#recycleBinPhoneListStartTimePicker', utilService.getNdayagoStartTime(30));
@@ -7797,6 +7805,260 @@ define(['js/app'], function (myApp) {
 
         vm.getTrashClassificationDetail = function (data) {
             console.log(data);
+            vm.showPageName = "Trash Classification（Export）";
+            vm.trashClassificationTradeSearch = {};
+            vm.trashClassificationTradeSelection = [];
+            vm.trashClassificationTradeSelectionPhoneNumber = [];
+            vm.lastTenDecomposedPhontList = [];
+            vm.lastTenDecomposedPhontList = vm.allTsPhoneList.filter(item => {
+                return item.status == vm.constTsPhoneListStatus.DECOMPOSED;
+            });
+            vm.lastTenDecomposedPhontList.sort(function(a,b) {
+                if(a.decomposedTime && b.decomposedTime) {
+                    let aTime = new Date(a.decomposedTime).getTime();
+                    let bTime = new Date(b.decomposedTime).getTime();
+                    return bTime - aTime;
+                } else if(!a.decomposedTime) {
+                    return 1;
+                } else if(!b.decomposedTime) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            });
+            vm.lastTenDecomposedPhontList.splice(9);
+            vm.trashClassificationTradeQuery = {
+                topic: data.name
+            };
+            commonService.commonInitTime(utilService, vm, 'trashClassificationTradeQuery', 'startTime', '#trashClassificationStartTimePicker', utilService.getNdayagoStartTime(30));
+            commonService.commonInitTime(utilService, vm, 'trashClassificationTradeQuery', 'endTime', '#trashClassificationEndTimePicker', utilService.getTodayEndTime());
+            setTimeout(()=>{
+                $('.spicker').selectpicker('refresh');
+            }, 1);
+            utilService.actionAfterLoaded("#trashClassificationTradeTablePage", function () {
+                vm.trashClassificationTradeSearch.pageObj = utilService.createPageForPagingTable("#trashClassificationTradeTablePage", {}, $translate, function (curP, pageSize) {
+                    vm.commonPageChangeHandler(curP, pageSize, "trashClassificationTradeQuery", vm.searchTrashClassificationTrade);
+                });
+            });
+        };
+
+        vm.searchTrashClassificationTrade = function(newSearch) {
+            let startTime = vm.trashClassificationTradeQuery.startTime.data('datetimepicker').getLocalDate();
+            let endTime = vm.trashClassificationTradeQuery.endTime.data('datetimepicker').getLocalDate();
+            let sendData = {
+                platformObjId: vm.selectedPlatform.id,
+                phoneLists: vm.trashClassificationTradeQuery.phoneLists || [],
+                topic: vm.trashClassificationTradeQuery.topic,
+                startTime: startTime,
+                endTime: endTime,
+                index: newSearch ? 0 : (vm.trashClassificationTradeQuery.index || 0),
+                limit: vm.trashClassificationTradeQuery.limit || 10,
+            };
+            console.log('send data', sendData);
+            socketService.$socket($scope.AppSocket, 'searchTrashClassificationTrade', sendData, function (data) {
+                console.log('searchTrashClassificationTrade_ret', data);
+                let phoneTradeData = data.data.data;
+                let phoneTradeSize = data.data.size;
+                phoneTradeData.map(item => {
+                    item.decomposeTime$ = utilService.getFormatTime(item.decomposeTime);
+                    item.lastSuccessfulFeedbackTime$ = item.lastSuccessfulFeedbackTime ? utilService.getFormatTime(item.lastSuccessfulFeedbackTime) : '';
+                    item.lastSuccessfulFeedbackTopic$ = item.lastSuccessfulFeedbackTopic || '';
+                    item.lastSuccessfulFeedbackContent$ = item.lastSuccessfulFeedbackContent || '';
+                });
+                vm.drawTrashClassificationTradeTable(newSearch, phoneTradeData, phoneTradeSize);
+            });
+        };
+
+        vm.drawTrashClassificationTradeTable = function (newSearch, tblData, size) {
+            console.log("drawTrashClassificationTradeTable",tblData);
+            let tableOptions = $.extend({}, vm.generalDataTableOptions, {
+                data: tblData,
+                aoColumnDefs: [
+                    {targets: '_all', defaultContent: ' ', bSortable: false}
+                ],
+                "scrollX": true,
+                "autoWidth": true,
+                "sScrollY": 550,
+                "scrollCollapse": true,
+                columns: [
+                    {
+                        title: $translate('Tick'),
+                        sClass: "customerSelected",
+                        render: function(data, type, row, index){
+                            let tick = Boolean(vm.trashClassificationTradeSelection.indexOf(row._id) > -1);
+                            let link = $('<input>', {
+                                type: 'checkbox',
+                                "ng-click": 'vm.updateTrashClassificationTradeSelection("'+row._id+'","'+row.encodedPhoneNumber+'")',
+                                checked: tick,
+                                class: "transform150"
+                            });
+                            return link.prop('outerHTML');
+                        }
+                    },
+                    {
+                        title: $translate('NAME_LIST_TITLE'),
+                        data: "sourceTsPhoneListName"
+                    },
+                    {
+                        title: $translate('RECYCLE_TIME'),
+                        data: "decomposeTime$"
+                    },
+                    {
+                        title: $translate('TELEPHONE'),
+                        data: "encodedPhoneNumber"
+                    },
+                    {
+                        title: $translate('Last Successful Feedback Time'),
+                        data: "lastSuccessfulFeedbackTime$"
+                    },
+                    {
+                        title: $translate('Last Successful Feedback Topic'),
+                        data: "lastSuccessfulFeedbackTopic$"
+                    },
+                    {
+                        title: $translate('Last Successful Feedback Content'),
+                        data: "lastSuccessfulFeedbackContent$"
+                    }
+                ],
+                "paging": false,
+                fnRowCallback: function (nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                    $compile(nRow)($scope);
+                }
+            });
+            tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+
+            utilService.createDatatableWithFooter('#trashClassificationTradeTable', tableOptions, {
+            });
+            let $checkAll = $(".dataTables_scrollHead thead .customerSelected");
+            if ($checkAll.length == 1) {
+                let $showBtn = $('<input>', {
+                    type: 'checkbox',
+                    class: "customerSelected transform150 checkAllProposal",
+                    checked: vm.isAllChecked("#trashClassificationTradeTable tbody td.customerSelected input")
+                });
+                $checkAll.html($showBtn);
+                $('.customerSelected.checkAllProposal').on('click', function () {
+                    let $checkAll = $(this) && $(this).length == 1 ? $(this)[0] : null;
+                    setCheckAllProposal($checkAll.checked);
+                })
+            }
+            function setCheckAllProposal(flag) {
+                $("#trashClassificationTradeTable tbody td.customerSelected input").each(function () {
+                    $(this).prop("checked", flag);
+                });
+                tblData.forEach(item => {
+                    vm.updateTrashClassificationTradeSelection(item._id, item.encodedPhoneNumber, flag);
+                });
+            }
+
+            vm.trashClassificationTradeSearch.pageObj.init({maxCount: size}, newSearch);
+            $('#trashClassificationTradeTable').resize();
+        };
+
+        vm.isAllChecked = function(selector) {
+            let checkIt = true;
+            $(selector).each(function () {
+                if($(this).prop("checked")==false){
+                    checkIt = false;
+                }
+            });
+            return checkIt;
+        };
+
+        vm.updateTrashClassificationTradeSelection = function(tsPhoneTradeObjId, encodedPhoneNumber, selectAction) {
+            console.log(tsPhoneTradeObjId);
+            console.log(selectAction);
+            if(tsPhoneTradeObjId) {
+                let arrIndex = vm.trashClassificationTradeSelection.indexOf(tsPhoneTradeObjId);
+                if (selectAction === true) {
+                    if (arrIndex == -1) {
+                        vm.trashClassificationTradeSelection.push(tsPhoneTradeObjId);
+                    }
+                } else if (selectAction === false) {
+                    if (arrIndex > -1) {
+                        vm.trashClassificationTradeSelection.splice(arrIndex, 1);
+                    }
+                } else {
+                    if (arrIndex > -1) {
+                        vm.trashClassificationTradeSelection.splice(arrIndex, 1);
+                    } else {
+                        vm.trashClassificationTradeSelection.push(tsPhoneTradeObjId);
+                    }
+                }
+                let isChecked = vm.isAllChecked("#trashClassificationTradeTable tbody td.customerSelected input");
+                $(".dataTables_scrollHead thead .customerSelected").prop("checked",isChecked);
+            }
+            if(encodedPhoneNumber) {
+                let arrIndex = -1;
+                vm.trashClassificationTradeSelectionPhoneNumber.forEach((item,index)=>{
+                    if(item.phone == encodedPhoneNumber) {
+                        arrIndex = index;
+                    }
+                });
+                if (selectAction === true) {
+                    if (arrIndex == -1) {
+                        vm.trashClassificationTradeSelectionPhoneNumber.push({_id:tsPhoneTradeObjId,phone:encodedPhoneNumber});
+                    }
+                } else if (selectAction === false) {
+                    if (arrIndex > -1) {
+                        vm.trashClassificationTradeSelectionPhoneNumber.splice(arrIndex, 1);
+                    }
+                } else {
+                    if (arrIndex > -1) {
+                        vm.trashClassificationTradeSelectionPhoneNumber.splice(arrIndex, 1);
+                    } else {
+                        vm.trashClassificationTradeSelectionPhoneNumber.push({_id:tsPhoneTradeObjId,phone:encodedPhoneNumber});
+                    }
+                }
+                let isChecked = vm.isAllChecked("#trashClassificationTradeTable tbody td.customerSelected input");
+                $(".dataTables_scrollHead thead .customerSelected").prop("checked",isChecked);
+            }
+        };
+
+        vm.initModalExportTsPhoneTrade = function() {
+            let topic = vm.trashClassificationTradeQuery.topic;
+            if(vm.trashClassificationTradeQuery.topic == 'noClassification' || vm.trashClassificationTradeQuery.topic == 'noFeedbackTopic') {
+                topic = $translate(vm.trashClassificationTradeQuery.topic);
+            }
+            vm.exportTsPhoneTrade = {
+                targetPlatform: vm.selectedPlatform.id,
+                topic: topic,
+            };
+        };
+
+        vm.exportDecomposedPhones = function() {
+            let phoneNumbers = [];
+            vm.trashClassificationTradeSelectionPhoneNumber.forEach(item => {
+                phoneNumbers.push(item.phone);
+            });
+            let sendData = {
+                targetPlatformObjId: vm.exportTsPhoneTrade.targetPlatform,
+                phoneNumbers: phoneNumbers
+            };
+            socketService.$socket($scope.AppSocket, 'filterExistingPhonesForDecomposedPhones', sendData, function (data) {
+                console.log("filterExistingPhonesForDecomposedPhones ret", data);
+                vm.exportTsPhoneTrade.phoneObjId = [];
+                vm.trashClassificationTradeSelectionPhoneNumber.forEach(item=>{
+                    if(data.data.indexOf(item.phone) > -1) {
+                        vm.exportTsPhoneTrade.phoneObjId.push(item._id);
+                    }
+                });
+                let maxCount = vm.exportTsPhoneTrade.phoneObjId.length;
+                let exportCount = vm.exportTsPhoneTrade.exportCount;
+                vm.exportTsPhoneTrade.exportCount = exportCount > maxCount ? maxCount : exportCount;
+                sendData = {
+                    sourcePlatform: vm.selectedPlatform.id,
+                    sourceTopicName: vm.exportTsPhoneTrade.topic,
+                    exportCount: vm.exportTsPhoneTrade.exportCount,
+                    targetPlatform: vm.exportTsPhoneTrade.targetPlatform,
+                    phoneTradeObjIdArr: vm.exportTsPhoneTrade.phoneObjId
+                };
+                socketService.$socket($scope.AppSocket, 'exportDecomposedPhone', sendData, function (data) {
+                    console.log('exportDecomposedPhone ret', data);
+                    $scope.$evalAsync(() => {
+                    });
+                });
+            });
         };
 
         vm.getDecomposedDetail = function () {

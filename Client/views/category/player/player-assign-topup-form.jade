@@ -1,0 +1,98 @@
+form(name="form_player_topup", novalidate)
+    i.fa.fa-exclamation-triangle.text-danger.margin-right-5
+    label.control-label 请在指定 {{vm.timeLeft | number:0}} 分钟内，按照下列订单方式，转帐至指定银行卡。
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"PROPOSAL_NO" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.proposalId}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"TopUp Amount" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.amount}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"TopUpType" | translate}}
+        .form-group.col-md-6
+            div {{vm.getDepositMethodbyId[vm.existingAssignTopup.data.depositMethod] | translate}}
+    .row.margin-left-5.margin-right-5(ng-if='vm.existingAssignTopup.data.depositMethod == 1')
+        .form-group.col-md-6
+            label.control-label *{{"ONLINE BANK NAME" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.inputData.netPayName}}
+    .row.margin-left-5.margin-right-5(ng-if='vm.existingAssignTopup.data.depositMethod == 2')
+        .form-group.col-md-6
+            label.control-label *{{"ATM SAVING PROVINCE" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.inputData.province}}
+
+    .row.margin-left-5.margin-right-5(ng-if='vm.existingAssignTopup.data.depositMethod == 2')
+        .form-group.col-md-6
+            label.control-label *{{"ATM SAVING CITY" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.inputData.city}}
+    .row.margin-left-5.margin-right-5(ng-if='vm.existingAssignTopup.data.depositMethod == 3')
+        .form-group.col-md-6
+            label.control-label *{{"BANK COUNTER DEPOSIT METHOD" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.inputData.counterDepositTypeName | translate}}
+    .row.margin-left-5.margin-right-5(ng-if='vm.existingAssignTopup.data.depositMethod == 3 && vm.existingAssignTopup.data.inputData.counterCardOwner')
+        .form-group.col-md-6
+            label.control-label *{{"BANK COUNTER BANK CARD HOLDER" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.inputData.counterCardOwner}}
+    .row.margin-left-5.margin-right-5(ng-if="vm.existingAssignTopup.data.depositMethod == 3 && vm.existingAssignTopup.data.inputData.counterTransferId")
+        .form-group.col-md-6
+            label.control-label {{"BANK COUNTER TRANSFER NUMBER" | translate}}*{{"PLEASE INFORM BANK STAFF THIS SERIAL NUMBER, AND LET THEM FILL UP REMARK" | translate}}
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.inputData.counterTransferId}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"ToBankName" | translate}}：
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.resultData.bankName}}
+
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"Payee Name" | translate}}：
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.resultData.cardOwner}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"Payee Bank Card" | translate}}：
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.resultData.bankCardNo}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"Payee Bankcard Province" | translate}}：
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.resultData.provinceName}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"Payee Bankcard City" | translate}}：
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.resultData.cityName}}
+    .row.margin-left-5.margin-right-5
+        .form-group.col-md-6
+            label.control-label *{{"Payee Bankcard Branch" | translate}}：
+        .form-group.col-md-6
+            div {{vm.existingAssignTopup.data.resultData.openingPoint}}
+
+
+.row.margin-left-5.margin-right-5
+    div.btn.btn-primary(ng-click="vm.copyClipboard('#topUpClipBoard')") 复制上述信息
+
+textarea(name="form_player_topup_yunqr", id="topUpClipBoard", aria-hidden="true", style='opacity:0')
+    请在指定 {{vm.timeLeft | number:0}}  分钟内，按照下列订单方式，转帐至指定银行卡。
+    {{"PROPOSAL_NO" | translate}} : {{vm.existingAssignTopup.proposalId}}
+    {{"TopUp Amount" | translate}}  :{{vm.existingAssignTopup.data.amount}}
+    {{"TopUpType" | translate}} : {{vm.getDepositMethodbyId[vm.existingAssignTopup.data.depositMethod] | translate}}
+    {{vm.existingAssignTopup.data && vm.existingAssignTopup.data.resultData && vm.existingAssignTopup.data.resultData.codeAddress}}
+    {{vm.existingAssignTopup.data.topupContent}}
+    *{{"ToBankName" | translate}}:{{vm.existingAssignTopup.data.resultData.bankName}}
+    *{{"Payee Name" | translate}}:{{vm.existingAssignTopup.data.resultData.cardOwner}}
+    *{{"Payee Bank Card" | translate}}:{{vm.existingAssignTopup.data.resultData.bankCardNo}}
+    *{{"Payee Bankcard Province" | translate}}:{{vm.existingAssignTopup.data.resultData.provinceName}}
+    *{{"Payee Bankcard City" | translate}}:{{vm.existingAssignTopup.data.resultData.cityName}}
+    *{{"Payee Bankcard Branch" | translate}}:{{vm.existingAssignTopup.data.resultData.openingPoint}}

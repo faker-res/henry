@@ -15,7 +15,7 @@ let tsDistributedPhoneSchema = new Schema({
     // assignee (whose phone is this)
     assignee: {type: Schema.Types.ObjectId, ref: 'adminInfo', index: true},
     // N th assign time
-    assignTimes: {type: Number, default: 1},
+    assignTimes: {type: Number, default: 1, index: true},
     // feedback times
     feedbackTimes: {type: Number, default: 0, index: true},
     // last feedback date time
@@ -42,6 +42,7 @@ let tsDistributedPhoneSchema = new Schema({
     isSucceedBefore: {type: Boolean, default:false, index: true},
 
 });
+// I understand it is weird that literally all fields are indexed, but literally every field will be used in search query someway or another...
 
 module.exports = tsDistributedPhoneSchema;
 

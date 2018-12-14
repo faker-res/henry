@@ -63,7 +63,8 @@ const constProposalType = {
     PLAYER_WECHAT_TOP_UP: "PlayerWechatTopUp",
     PLAYER_TOP_UP: "PlayerTopUp",
     PLAYER_QUICKPAY_TOP_UP: "PlayerQuickpayTopUp",
-
+    PLAYER_ASSIGN_TOP_UP:"PlayerAssignTopUp",
+    
     // Third party payment system
     PLAYER_FKP_TOP_UP: "PlayerFKPTopUp",
     PLAYER_FKP_WITHDRAW: "PlayerFKPWithdraw",

@@ -258,7 +258,6 @@ var dbRewardEvent = {
                             lastApplyDate: {$gte: todayTime.startTime, $lte: todayTime.endTime}
                         };
 
-
                         if (intervalTime) {
                             topupQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
                             timesQuery.lastApplyDate = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
@@ -286,6 +285,9 @@ var dbRewardEvent = {
                         ).then(
                             checkRewardData => {
 
+                                if (checkRewardData.result && checkRewardData.result.hasOwnProperty('rewardAmount') && checkRewardData.result.rewardAmount == 0){
+                                    checkRewardData.status = 2;
+                                }
                                 if (checkRewardData.condition.device.status == 0) {
                                     delete checkRewardData.condition.device;}
 
@@ -312,6 +314,7 @@ var dbRewardEvent = {
                                 return checkRewardData;
                             }
                         );
+                        break;
 
                     case constRewardType.PLAYER_CONSUMPTION_RETURN:
                         let returnData = {
@@ -522,7 +525,7 @@ var dbRewardEvent = {
 
                                 let promArr = [];
                                 if (topUpData && topUpData.length) {
-                                    if (rewardEvent.condition && rewardEvent.condition.hasOwnProperty('allowConsumptionAfterTopUp') && !rewardEvent.condition.allowConsumptionAfterTopUp) {
+                                    if (rewardEvent.condition && !rewardEvent.condition.allowConsumptionAfterTopUp) {
                                         if (consumptionData && consumptionData.length === 0) { // if no consumption, use all valid top up
                                             for (let i = 0; i < topUpData.length; i++) {
                                                 promArr.push(checkRewardEventWithTopUp(topUpData[i]));
@@ -651,8 +654,6 @@ var dbRewardEvent = {
             },
             result: {
                 rewardAmount: 0,
-                betAmount: 0,
-                betTimes: 0,
                 xima: 2
             }
         };
@@ -671,17 +672,33 @@ var dbRewardEvent = {
             returnData.result.providerGroup = eventData.condition.providerGroup;
         }
 
+        //check isSharedWithXIMA
+        if (eventData.condition.isSharedWithXIMA) {
+            returnData.result.xima = 1;
+        }
+
+        //get the acticity startTime and endTime
+        if (rewardParam && rewardParam.record && rewardParam.record.transferInTime){
+            returnData.condition.createTime = rewardParam.record.transferInTime;
+        }
+        if (rewardParam && rewardParam.record && rewardParam.record.transferOutTime){
+            returnData.condition.endTime = rewardParam.record.transferOutTime;
+        }
+
         let winLoseAmount= 0;
         let winTimes = 0;
         let totalBetAmount = 0;
         let playerBonusDoubledRecord;
         let rewardAmount = 0;
         let spendingAmount = 0;
+        let chances = 0;
+        let appliedCount = 0;
 
         if (timesHasApplied) {
             if (timesHasApplied.hasOwnProperty('applyTimes')) {
-                let chances = eventData.condition && eventData.condition.quantityLimitInInterval ? eventData.condition.quantityLimitInInterval : 1;
-                if (timesHasApplied.applyTimes >= chances) {
+                appliedCount = timesHasApplied.applyTimes;
+                chances = eventData.condition && eventData.condition.quantityLimitInInterval ? eventData.condition.quantityLimitInInterval : 1;
+                if (appliedCount >= chances) {
                     returnData.status = 3;
                 }
             }
@@ -771,6 +788,8 @@ var dbRewardEvent = {
             returnData.result.winTimes = winTimes;
             returnData.result.totalBetAmount = totalBetAmount;
             returnData.result.rewardAmount = rewardAmount;
+            returnData.result.quantityLimit = chances;
+            returnData.result.appliedCount = appliedCount;
         }
 
         return returnData;

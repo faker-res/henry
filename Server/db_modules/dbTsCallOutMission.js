@@ -53,7 +53,7 @@ let dbTsCallOutMission = {
 
                 calleeList = calleeData;
 
-                return dbCtiCallOut.addMissionToCti(platform, admin, calleeList);
+                return dbCtiCallOut.addMissionToCti(platform, admin, calleeList, platform.teleMarketingMaxRingTime, platform.teleMarketingRedialTimes, platform.teleMarketingMinRedialInterval, platform.teleMarketingIdleAgentMultiple);
             }
         ).then(
             missionName => {
@@ -321,7 +321,7 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
                         status = constCallOutMissionCalleeStatus.SUCCEEDED;
                     }
 
-                    let prom = dbconfig.collection_tsCallOutMissionCallee.update({platform: platform._id, admin: admin._id, mission: mission._id, _id: calleeDetail.custName}, {status: status, callingTime: calleeDetail.lastCallTime, callCount: calleeDetail.callCount}).catch(errorUtils.reportError);
+                    let prom = dbconfig.collection_tsCallOutMissionCallee.update({platform: platform._id, admin: admin._id, mission: mission._id, tsDistributedPhone: calleeDetail.custName}, {status: status, callingTime: calleeDetail.lastCallTime, callCount: calleeDetail.callCount}).catch(errorUtils.reportError);
                     proms.push(prom);
                 }
             });

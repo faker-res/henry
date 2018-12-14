@@ -60,7 +60,7 @@ let dbTeleSales = {
                 }
 
                 if (query.feedbackStart && query.feedbackEnd) {
-                    phoneListQuery["$and"].push({$or: [{lastFeedbackTime: null}, {lastFeedbackTime: {$gte: query.feedbackStart, $lt: query.feedbackEnd}}]});
+                    phoneListQuery["$and"].push({$or: {lastFeedbackTime: {$gte: query.feedbackStart, $lt: query.feedbackEnd}}});
                 }
                 if (query.distributeStart && query.distributeEnd) {
                     phoneListQuery["$and"].push({startTime: {$gte: query.distributeStart, $lt: query.distributeEnd}})
@@ -73,19 +73,19 @@ let dbTeleSales = {
                     let reclaimDate =dbUtility.getTargetSGTime(countReclaimDate);
                     switch (query.reclaimDayOperator) {
                         case '<=':
-                            phoneListQuery["$and"].push({endTime: {$lte: reclaimDate.startTime}});
+                            phoneListQuery["$and"].push({endTime: {$lte: reclaimDate.endTime}});
                             break;
                         case '>=':
                             phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime}});
                             break;
                         case '=':
-                            phoneListQuery["$and"].push({endTime: reclaimDate.startTime});
+                            phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime, $lte: reclaimDate.endTime}});
                             break;
                         case 'range':
                             if (query.hasOwnProperty("reclaimDaysTwo") && query.reclaimDaysTwo != null) {
                                 let countReclaimDate2 = dbUtility.getNdaylaterFromSpecificStartTime(query.reclaimDaysTwo + 1, new Date());
                                 let reclaimDate2 = dbUtility.getTargetSGTime(countReclaimDate2);
-                                phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime, $lte: reclaimDate2.startTime}});
+                                phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime, $lte: reclaimDate2.endTime}});
                             }
                             break;
                     }
@@ -326,6 +326,28 @@ let dbTeleSales = {
 
     getTSPhoneListName: function (query) {
         return dbconfig.collection_tsPhoneList.distinct("name", query);
+    },
+
+    getActivePhoneListNameForAdmin: function (platformObjId, adminId) {
+        return dbconfig.collection_tsDistributedPhone.distinct("tsPhoneList", {startTime: {$lte: new Date()}, endTime:{$gte: new Date()}, platform: platformObjId, assignee: adminId}).then(
+            tsPhoneListObjIds => {
+                if (!tsPhoneListObjIds) {
+                    return [];
+                }
+                let proms = [];
+
+                tsPhoneListObjIds.map(tsPhoneListObjId => {
+                    let prom = dbconfig.collection_tsPhoneList.findOne({_id: tsPhoneListObjId}, {name: 1}).lean();
+                    proms.push(prom);
+                });
+
+                return Promise.all(proms);
+            }
+        ).then(
+            tsPhoneLists => {
+                return tsPhoneLists.map(tsPhoneList => tsPhoneList.name);
+            }
+        );
     },
 
     getTsPhoneListRecyclePhone: function (inputData) {
@@ -1193,28 +1215,57 @@ let dbTeleSales = {
         );
     },
 
+    searchTrashClassificationTrade: (platformObjId, phoneLists, topic, startTime, endTime, index, limit) => {
+        let query = {
+            sourcePlatform: platformObjId,
+            decomposeTime: {
+                $gte: startTime,
+                $lte: endTime
+            },
+            targetPlatform: null
+        };
+        if(phoneLists && phoneLists.length > 0) {
+            query.sourceTsPhoneListName = {$in: phoneLists};
+        }
+        if(topic == "noFeedbackTopic") {
+            query['$or'] = [
+                {lastSuccessfulFeedbackTopic: {$exists: false}},
+                {lastSuccessfulFeedbackTopic: null}
+            ];
+        } else if(topic && topic != 'noClassification') {
+            query.lastSuccessfulFeedbackTopic = topic;
+        }
+        console.log("query", query);
+        console.log("index", index);
+        console.log("limit", limit);
+        let dataProm = dbconfig.collection_tsPhoneTrade.find(query).skip(index).limit(limit).sort({decomposeTime: -1}).lean();
+        let sizeProm = dbconfig.collection_tsPhoneTrade.count(query).lean();
+        return Promise.all([dataProm, sizeProm]).then(data => {
+            return {data: data[0], size: data[1]};
+        });
+    },
+
     updateTsPhoneListDecomposedTime: (tsPhoneListObjId) => {
         return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObjId}, {decomposedTime: new Date(Date.now())}, {new: true}).lean();
     },
   
     getTrashClassification: function (platformObjId) {
-        let noClassificationCountProm = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: {$exists: true}, sourcePlatform: ObjectId(platformObjId), targetPlatform: {$exists: false}}).count();
+        let noClassificationCountProm = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: {$exists: true}, sourcePlatform: ObjectId(platformObjId), targetPlatform: null}, {_id: 1}).lean();
         let noFeedbackTopicCountProm = dbconfig.collection_tsPhoneTrade.find({
-            sourcePlatform: {$exists: true},
             sourcePlatform: ObjectId(platformObjId),
             $or: [
                 {lastSuccessfulFeedbackTopic: {$exists: false}},
                 {lastSuccessfulFeedbackTopic: {$exists: true, $eq: null}},
                 {lastSuccessfulFeedbackTopic: {$exists: true, $eq: ''}}
-            ]
-        }).count();
-        let feedbankTopicCountProm = dbconfig.collection_tsPhoneTrade.aggregate(
+            ],
+            targetPlatform: null
+        }, {_id: 1}).lean();
+        let feedbackTopicCountProm = dbconfig.collection_tsPhoneTrade.aggregate(
             {
                 $match: {
                     lastSuccessfulFeedbackTopic: {$exists: true, $ne: ''},
-                    sourcePlatform: {$exists: true},
                     sourcePlatform: ObjectId(platformObjId),
-                    targetPlatform: {$exists: false}
+                    targetPlatform: null
                 }
             }, {
                 $group: {
@@ -1224,16 +1275,16 @@ let dbTeleSales = {
             }
         ).read("secondaryPreferred");
 
-        return Promise.all([noClassificationCountProm, noFeedbackTopicCountProm, feedbankTopicCountProm]).then(
+        return Promise.all([noClassificationCountProm, noFeedbackTopicCountProm, feedbackTopicCountProm]).then(
             data => {
                 let trashClassificationList = [];
                 if (data) {
                     if (data[0]) {
-                        trashClassificationList.push({name: 'noClassification', size: data[0]});
+                        trashClassificationList.push({name: 'noClassification', size: data[0].length});
                     }
 
                     if (data[1]) {
-                        trashClassificationList.push({name: 'noFeedbackTopic', size: data[1]});
+                        trashClassificationList.push({name: 'noFeedbackTopic', size: data[1].length});
                     }
 
                     if (data[2] && data[2].length > 0) {
@@ -1398,6 +1449,31 @@ let dbTeleSales = {
 
         return Promise.all(promArr);
     },
+
+    filterExistingPhonesForDecomposedPhones: function(phoneArr, targetPlatformObjId) {
+        return dbconfig.collection_players.find({
+            platform: targetPlatformObjId,
+            phoneNumber: {$in:phoneArr}
+        }).then(players => {
+            players.forEach(player=>{
+                if(phoneArr.indexOf(player.phoneNumber) > -1){
+                    phoneArr.splice(phoneArr.indexOf(player.phoneNumber),1);
+                }
+            });
+            return dbconfig.collection_tsPhone.find({
+                platform: targetPlatformObjId,
+                phoneNumber: {$in:phoneArr}
+            });
+        }).then(phones=>{
+            phones.forEach(phone=>{
+                if(phoneArr.indexOf(phone.phoneNumber) > -1){
+                    phoneArr.splice(phoneArr.indexOf(phone.phoneNumber),1);
+                }
+            });
+            return phoneArr;
+        })
+    }
+
 };
 
 function isStillTradeAble(platformsArr,platformTsPhoneTrade) {

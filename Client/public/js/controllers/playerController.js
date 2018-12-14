@@ -1,7 +1,7 @@
 'use strict';
 
 define(['js/app'], function (myApp) {
-    let playerController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, commonService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants) {
+    let playerController = function ($sce, $compile, $scope, $filter, $location, $log, authService, socketService, utilService, commonService, CONFIG, $cookies, $timeout, $http, uiGridExporterService, uiGridExporterConstants, $interval) {
         let $translate = $filter('translate');
         let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
         let $noRoundTwoDecimalToFix = $filter('noRoundTwoDecimalToFix');
@@ -11703,6 +11703,14 @@ define(['js/app'], function (myApp) {
             } else {
                 vm.playerManualTopUp.remark = "";
             }
+
+            vm.listBankByDepositMethod = vm.depositMethodType[depositMethod];
+            vm.listBankByDepositMethod.forEach(bank => {
+                let bankStatus = $translate(bank.status == 'DISABLED' ? 'DISABLE' : bank.status);
+                bank.displayText = bank.name
+                    + ' ('+bank.bankTypeId+') - ' + $translate('SINGLE_LIMIT') + ':' +bank.maxDepositAmount;
+                return bank;
+            });
         };
         vm.applyPlayerManualTopUp = function () {
             var sendData = {
@@ -11751,14 +11759,22 @@ define(['js/app'], function (myApp) {
                 cityId: vm.playerAssignTopUp.cityId,
                 districtId: vm.playerAssignTopUp.districtId,
                 fromFPMS: true,
-                createTime: vm.playerAssignTopUp.createTime.data('datetimepicker').getLocalDate(),
+                createTime: new Date(),
                 remark: vm.playerAssignTopUp.remark,
                 groupBankcardList: vm.playerAssignTopUp.groupBankcardList,
                 bonusCode: vm.playerAssignTopUp.bonusCode,
                 realName: vm.playerAssignTopUp.realName,
                 topUpReturnCode: vm.playerAssignTopUp.topUpReturnCode,
-                orderNo: vm.playerAssignTopUp.orderNo
+                orderNo: vm.playerAssignTopUp.orderNo,
+                platform: vm.selectedPlatform.id,
+                netPayName:vm.playerAssignTopUp.netPayName,
+                atmProvince:vm.playerAssignTopUp.atmProvince,
+                atmCity:vm.playerAssignTopUp.atmCity,
+                counterDepositType:vm.playerAssignTopUp.counterDepositType,
+                counterCardOwner:vm.playerAssignTopUp.counterCardOwner,
+                counterTransferId:vm.playerAssignTopUp.counterTransferId
             };
+
             vm.playerAssignTopUp.submitted = true;
                 socketService.$socket($scope.AppSocket, 'applyAssignTopUpRequest', sendData,
                 function (data) {
@@ -11766,6 +11782,7 @@ define(['js/app'], function (myApp) {
                         console.log('assignTopup success', data);
                         vm.playerAssignTopUp.responseData = data.data;
                         vm.getPlatformPlayersData();
+                        vm.initPlayerAssignTopUp();
                     });
                 }, function (error) {
                     vm.playerAssignTopUp.responseMsg = $translate(error.error.errorMessage);
@@ -14515,13 +14532,45 @@ define(['js/app'], function (myApp) {
             vm.filterBankname("playerAssignTopUp");
             vm.existingAssignTopup = false;
             vm.chosenBankAcc = {};
+            vm.timeLeft = 0;
+            vm.loop = null;
+            vm.endCountDown();
 
             socketService.$socket($scope.AppSocket, 'getAssignTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
                 $scope.$evalAsync(() => {
                     vm.existingAssignTopup = data.data ? data.data : false;
-                })
+                    if(vm.existingAssignTopup.data && vm.existingAssignTopup.data.validTime){
+                        let validTime = new Date(vm.existingAssignTopup.data.validTime);
+                        vm.startCountDown(validTime);
+                    }
 
+                    if(vm.existingAssignTopup.data.inputData.counterDepositType){
+                        vm.existingAssignTopup.data.inputData.counterDepositTypeName = $scope.counterDepositType[vm.existingAssignTopup.data.inputData.counterDepositType];
+                    }
+                    if(vm.existingAssignTopup && vm.existingAssignTopup.data && vm.existingAssignTopup.data.inputData.atmProvince, vm.existingAssignTopup.data.inputData.atmCity){
+                        let atmProvince = vm.existingAssignTopup.data.inputData.atmProvince;
+                        let atmCity = vm.existingAssignTopup.data.inputData.atmCity;
+
+                        Promise.all([vm.getProvinceName(atmProvince), vm.getCityName(atmCity)])
+                        .then(data=>{
+                            vm.existingAssignTopup.data.inputData.province = data[0];
+                            vm.existingAssignTopup.data.inputData.city = data[1];
+                            vm.existingAssignTopup.data.topupContent = vm.displayAssignTopUp(vm.existingAssignTopup.data);
+                        })
+                    }else{
+                        vm.existingAssignTopup.data.topupContent = vm.displayAssignTopUp(vm.existingAssignTopup.data);
+                    }
+                })
             });
+
+            socketService.$socket($scope.AppSocket, 'requestBankTypeByUserName', {playerId: vm.selectedSinglePlayer.playerId, clientType:1}, function (data) {
+                $scope.$evalAsync(() => {
+                    let depositMethodList = data.data.data.map(item=>{
+                        return item.depositMethod
+                    })
+                    vm.depositMethodType = vm.getDepositMethod(data.data.data);
+                })
+            })
             // utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
             //     vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerManualTopUp .createTime');
             utilService.actionAfterLoaded('#modalPlayerTopUp', function () {
@@ -14531,6 +14580,64 @@ define(['js/app'], function (myApp) {
             vm.refreshSPicker();
         };
 
+        vm.startCountDown = function(targetTime){
+            let timenow = new Date().getTime()
+            vm.timeLeft = (targetTime.getTime() - timenow) / 1000 / 60;
+            if(vm.timeLeft <= 0){
+                vm.timeLeft = 0;
+            }else{
+                // if that's time left , start the loop
+                vm.loop = $interval(vm.countMachine, 60000);
+            }
+        }
+        vm.countMachine = function(){
+            if(vm.timeLeft <= 0){
+                // break the loop . if the countdown end;
+                console.log('end...');
+                $interval.cancel(vm.loop);
+                vm.timeLeft = 0;
+            }else{
+                vm.timeLeft -= 1;
+                console.log('countDown:', vm.timeLeft);
+            }
+        }
+        vm.endCountDown = function(){
+            $interval.cancel(vm.loop);
+        }
+        vm.displayAssignTopUp = function(data){
+            let result = '';
+            if(data && data.depositMethod == 1){
+                result = '*' + $translate('ONLINE BANK NAME') + ' :' + data.inputData.netPayName || ''
+            }
+
+            if(data && data.depositMethod == 2){
+                result = '*' + $translate('ATM SAVING PROVINCE') + ' :' + data.inputData.province +'\n'+
+                '*' + $translate('ATM SAVING CITY') + ' :' + data.inputData.city || '';
+            }
+
+            if(data && data.depositMethod == 3){
+                result = '*'+ $translate('BANK COUNTER DEPOSIT METHOD') + ' : ' + $translate(data.inputData.counterDepositTypeName) +'\n';
+                if(data.inputData.counterCardOwner){
+                    result += '*' + $translate('BANK COUNTER BANK CARD HOLDER') +' : ' + data.inputData.counterCardOwner +'\n';
+                }
+                if(data.inputData.counterTransferId){
+                    result += '*' + $translate('BANK COUNTER TRANSFER NUMBER') + '*' + $translate('PLEASE INFORM BANK STAFF THIS SERIAL NUMBER, AND LET THEM FILL UP REMARK') + ': ' + data.inputData.counterTransferId || '';
+                }
+            }
+            return result;
+        }
+
+        vm.getDepositMethod = function(data) {
+            let result = {};
+            data.forEach(item=>{
+                result[item.depositMethod] = item.data;
+            })
+            return result;
+        }
+        vm.copyClipboard = function(el){
+            $(el).select();
+            document.execCommand('copy', true);
+        }
         vm.initPlayerManualTopUp = function () {
             vm.getZoneList();
             vm.provinceList = [];
@@ -14543,8 +14650,8 @@ define(['js/app'], function (myApp) {
             vm.chosenBankAcc = {};
             socketService.$socket($scope.AppSocket, 'getManualTopupRequestList', {playerId: vm.selectedSinglePlayer.playerId}, function (data) {
                 vm.existingManualTopup = data.data ? data.data : false;
-                $scope.safeApply();
             });
+
             // utilService.actionAfterLoaded('#modalPlayerManualTopUp', function () {
             //     vm.playerManualTopUp.createTime = utilService.createDatePicker('#modalPlayerManualTopUp .createTime');
             utilService.actionAfterLoaded('#modalPlayerTopUp', function () {
@@ -14552,7 +14659,6 @@ define(['js/app'], function (myApp) {
                 vm.playerManualTopUp.createTime.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 0)));
             });
             vm.refreshSPicker();
-            $scope.safeApply();
         };
 
         // Player alipay topup
@@ -15718,6 +15824,16 @@ define(['js/app'], function (myApp) {
                 vm.playerManualTopUp.bankTypeId = bankcard.bankTypeId;
                 vm.playerManualTopUp.lastBankcardNo = bankcard['accountNumber'].substr(bankcard['accountNumber'].length - 4);
             };
+        }
+        vm.getBankCardMaxAmount = function (bankAcc) {
+            vm.playerAssignTopUp.maxDepositAmount = vm.pickBankAcc.maxDepositAmount;
+            vm.playerAssignTopUp.bankTypeId = vm.pickBankAcc.bankTypeId;
+
+        }
+        vm.playerAssignPlayerId = function (counterDepositType){
+            if(counterDepositType==2){
+                vm.playerAssignTopUp.counterTransferId = vm.selectedSinglePlayer.playerId
+            }
         }
         /////////////////////////////////////// bank card end  /////////////////////////////////////////////////
 
@@ -19511,27 +19627,37 @@ define(['js/app'], function (myApp) {
         };
 
         vm.getProvinceName = function (provinceId, fieldName) {
-            socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
-                var text = data.data.province ? data.data.province.name : '';
-                if (fieldName) {
-                    vm.selectedProposal.data[fieldName] = text;
-                } else {
-                    vm.selectedProposal.data.provinceName = text;
-                }
-                $scope.safeApply();
-            });
+
+            return new Promise((resolve, reject)=>{
+                socketService.$socket($scope.AppSocket, "getProvince", {provinceId: provinceId}, function (data) {
+                    var text = data.data.province ? data.data.province.name : '';
+                    if(vm.selectedProposal){
+                        if (fieldName) {
+                            vm.selectedProposal.data[fieldName] = text;
+                        } else {
+                            vm.selectedProposal.data.provinceName = text;
+                        }
+                    }
+                    resolve(text);
+                });
+            })
+
         }
 
         vm.getCityName = function (cityId, fieldName) {
-            socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
-                var text = data.data.city ? data.data.city.name : '';
-                if (fieldName) {
-                    vm.selectedProposal.data[fieldName] = text;
-                } else {
-                    vm.selectedProposal.data.cityName = text;
-                }
-                $scope.safeApply();
-            });
+            return new Promise((resolve, reject)=>{
+                socketService.$socket($scope.AppSocket, "getCity", {cityId: cityId}, function (data) {
+                    var text = data.data.city ? data.data.city.name : '';
+                    if(vm.selectedProposal){
+                        if (fieldName) {
+                            vm.selectedProposal.data[fieldName] = text;
+                        } else {
+                            vm.selectedProposal.data.cityName = text;
+                        }
+                    }
+                    resolve(text);
+                });
+            })
         }
 
         vm.showNewPlayerModal = function (data, templateNo) {
@@ -23664,7 +23790,8 @@ define(['js/app'], function (myApp) {
         "$timeout",
         '$http',
         'uiGridExporterService',
-        'uiGridExporterConstants'
+        'uiGridExporterConstants',
+        '$interval'
     ];
 
     playerController.$inject = injectParams;
