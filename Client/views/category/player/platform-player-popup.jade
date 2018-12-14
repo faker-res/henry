@@ -958,7 +958,7 @@
                         a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('alipay');vm.initPlayerAlipayTopUp();") {{"ALIPAY" | translate}}
                     li(ng-class="vm.selectedTopupTab == 'wechatpay' ? 'active' : null", ng-if="checkViewPermission('Player', 'TopUp', 'ApplyWechatPayTopup')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('wechatpay');vm.initPlayerWechatPayTopUp();") {{"WECHATPAY" | translate}}
-                    li(ng-class="vm.selectedTopupTab == 'assign' ? 'active' : null", ng-if="checkViewPermission('Player', 'TopUp', 'ApplyAssignTopup')")
+                    //li(ng-class="vm.selectedTopupTab == 'assign' ? 'active' : null", ng-if="checkViewPermission('Player', 'TopUp', 'ApplyAssignTopup')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('assign');vm.initPlayerAssignTopUp();") {{"MANUAL_TOPUP" | translate}} {{"ASSIGN_LIST" | translate}}
                     //li(ng-class="vm.selectedTopupTab == 'quickpay' ? 'active' : null", ng-if="checkViewPermission('Platform', 'Player', 'ApplyQuickpayTopup')")
                         a.common-tab(data-toggle="tab", ng-click="vm.showTopupTab('quickpay');vm.initPlayerQuickpayTopUp();") {{"WECHATPAY" | translate}}
