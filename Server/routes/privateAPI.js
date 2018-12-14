@@ -8,7 +8,7 @@ const dbProposal = require('./../db_modules/dbProposal');
 
 router.post('/notifyPayment', function(req, res, next) {
     // LOG
-    console.log('req.body', req.body);
+    console.log('req.body', req);
     console.log("req.headers", req.headers);
 
     let msgBody = req.body.content|| req.body;
