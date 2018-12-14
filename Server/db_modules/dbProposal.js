@@ -803,7 +803,9 @@ var proposal = {
         let proposalObj = null;
         let type = constPlayerTopUpType.ONLINE;
 
-        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
+            path: 'type', model: dbconfig.collection_proposalType
+        }).then(
             proposalData => {
                 proposalObj = proposalData;
 
@@ -826,7 +828,8 @@ var proposal = {
                 }
                 if (proposalData
                     && proposalData.data
-                    && (proposalData.status == constProposalStatus.PREPENDING || (
+                    && (proposalData.status == constProposalStatus.PREPENDING
+                        || (
                             (
                                 proposalData.status == constProposalStatus.PENDING
                                 || proposalData.status == constProposalStatus.PROCESSING
@@ -835,7 +838,11 @@ var proposal = {
                                 || proposalData.status == constProposalStatus.CANCEL
                             )
                             && proposalData.data
-                        && (proposalData.data.requestId == requestId || !proposalData.data.requestId)))) {
+                            && (proposalData.data.requestId == requestId || !proposalData.data.requestId)
+                        )
+                        || proposalData.type.name === constProposalType.PLAYER_COMMON_TOP_UP
+                    )
+                ) {
                     return proposalData;
                 }
                 else {

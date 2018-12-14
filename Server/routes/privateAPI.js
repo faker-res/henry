@@ -59,7 +59,7 @@ router.post('/notifyPayment', function(req, res, next) {
                     }));
                 },
                 err => {
-                    console.log('updateTopupProposal success', msgBody.proposalId, err);
+                    console.log('updateTopupProposal error', msgBody.proposalId, err);
                     res.send(encodeURIComponent({
                         code: constServerCode.INVALID_DATA,
                         msg: err.message
