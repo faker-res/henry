@@ -250,6 +250,12 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.getTsPhone, [data.query], actionName, isValidData);
         },
 
+        dailyTradeTsPhone: function dailyTradeTsPhone(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data);
+            socketUtil.emitter(self.socket, dbTeleSales.dailyTradeTsPhone, [], actionName, isValidData);
+        },
+
         getDecomposedNewPhoneRecord: function getDecomposedNewPhoneRecord(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformId && data.startTime && data.endTime);

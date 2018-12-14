@@ -1,5 +1,14 @@
+'use strict';
+
+var dbTeleSalesFunc = function () {
+};
+module.exports = new dbTeleSalesFunc();
+
 let dbconfig = require('./../modules/dbproperties');
 let errorUtils = require('../modules/errorUtils');
+var SettlementBalancer = require('../settlementModule/settlementBalancer');
+var Q = require("q");
+const constSystemParam = require('../const/constSystemParam');
 const rsaCrypto = require("../modules/rsaCrypto");
 const dbUtility = require('./../modules/dbutility');
 const constPromoCodeStatus = require('../const/constPromoCodeStatus');
@@ -1308,8 +1317,239 @@ let dbTeleSales = {
                 }
             }
         );
-    }
+    },
+
+    dailyTradeTsPhone: function () {
+        let platformsArr;
+
+        return dbconfig.collection_tsPhoneTrade.distinct("sourcePlatform", {targetPlatform: null}).then(
+            platformIds => {
+                return dbconfig.collection_platform.find({
+                    _id: {$in: platformIds},
+                    phoneWhiteListExportMaxNumber: {$gte: 1}
+                }, {phoneWhiteListExportMaxNumber: 1}).lean();
+            }
+        ).then(
+            platformData => {
+                if (!(platformData && platformData.length >= 2)) {
+                    // must have 2 platforms available in order to swap phone number
+                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                }
+                platformsArr = JSON.parse(JSON.stringify(platformData));
+                getAllTradeablePhone (platformsArr);
+            }
+        )
+    },
+
+    tsPhoneCheckIsExistsAllPlatform: function(platformObjIds, tsPhonesTrade) {
+        let promArr = [];
+        tsPhonesTrade.forEach(tsPhoneTrade => {
+            let checkPhoneProm;
+            if (!(tsPhoneTrade && tsPhoneTrade.sourceTsPhone && tsPhoneTrade.sourceTsPhone.phoneNumber)) {
+                checkPhoneProm= Promise.resolve(tsPhoneTrade);
+            } else {
+                let queryPlatformIds;
+                if (tsPhoneTrade.sourceTsPhone && tsPhoneTrade.sourceTsPhone.platform) {
+                    queryPlatformIds = platformObjIds.filter(platform => String(platform) != String(tsPhoneTrade.sourceTsPhone.platform));
+                } else {
+                    queryPlatformIds = platformObjIds;
+                }
+
+                checkPhoneProm = dbconfig.collection_players.find({
+                    platform: {$in: queryPlatformIds},
+                    phoneNumber: tsPhoneTrade.sourceTsPhone.phoneNumber
+                }, {platform: 1}).lean().then(
+                    playersData => {
+                        if (playersData && playersData.length) {
+                            let existsPlatform = [];
+                            playersData.forEach(
+                                player => {
+                                    existsPlatform.push(String(player.platform));
+                                }
+                            )
+                            tsPhoneTrade.tradeablePlatform = queryPlatformIds.filter(platform => !existsPlatform.includes(String(platform)));
+                        } else {
+                            tsPhoneTrade.tradeablePlatform = queryPlatformIds;
+                        }
+                        return dbconfig.collection_tsPhone.find({
+                            platform: {$in: queryPlatformIds},
+                            phoneNumber: tsPhoneTrade.sourceTsPhone.phoneNumber
+                        }, {platform: 1}).lean();
+                    }
+                ).then(
+                    tsPhonesData => {
+                        if (tsPhonesData && tsPhonesData.length) {
+                            let existsPlatform = [];
+                            tsPhonesData.forEach(
+                                tsPhone => {
+                                    existsPlatform.push(String(tsPhone.platform));
+                                }
+                            )
+                            tsPhoneTrade.tradeablePlatform = queryPlatformIds.filter(platform => !existsPlatform.includes(String(platform)));
+                        } else {
+                            tsPhoneTrade.tradeablePlatform = queryPlatformIds;
+                        }
+                        return tsPhoneTrade;
+                    }
+                )
+            }
+            promArr.push(checkPhoneProm);
+        });
+
+        return Promise.all(promArr);
+    },
 };
+
+function isStillTradeAble(platformsArr,platformTsPhoneTrade) {
+    if (!platformsArr || !platformTsPhoneTrade) {
+        return false;
+    }
+    let tradeablePlatformCount = 0;
+    let isHavePhoneLeft = false;
+    for (let i = 0; i < platformsArr.length; i++) {
+        let platform = platformsArr[i];
+        if (platform.phoneWhiteListExportMaxNumber) {
+            tradeablePlatformCount++;
+        }
+        if(tradeablePlatformCount >= 2) {
+            break;
+        }
+    }
+
+    for (let key in platformTsPhoneTrade) {
+        if (platformTsPhoneTrade[key].length) {
+            isHavePhoneLeft = true;
+            break;
+        }
+    }
+
+    return Boolean(tradeablePlatformCount >= 2 && isHavePhoneLeft);
+}
+
+function getAllTradeablePhone (platformsArr, recursiveCount) {
+    recursiveCount = recursiveCount || 50;
+    if (recursiveCount <= 0) {
+        return Promise.reject({name: "DataError", message: "getAllTradeablePhone reach max recursive count"});
+    }
+    platformsArr = dbUtility.shuffleArray(platformsArr);
+    let promArr = [];
+    let tsPhoneTradeArr = [];
+
+    for (let i = 0; i < platformsArr.length; i++) {
+        let prom = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: platformsArr[i]._id, targetPlatform: null}, {sourceTsPhone: 1})
+            .populate({path: "sourceTsPhone", model: dbconfig.collection_tsPhone, select: "phoneNumber platform"})
+            .sort({decomposeTime: 1})
+            .limit(platformsArr[i].phoneWhiteListExportMaxNumber || 1).lean();
+
+        let stream = prom.cursor({batchSize: 100});
+        let balancer = new SettlementBalancer();
+
+        let balanceProm = balancer.initConns().then(function () {
+            return Q(
+                balancer.processStream(
+                    {
+                        stream: stream,
+                        batchSize: constSystemParam.BATCH_SIZE,
+                        makeRequest: function (tsPhonesTrade, request) {
+                            request("player", "tsPhoneCheckIsExistsAllPlatform", {
+                                platformObjIds: platformsArr.map(platform => platform._id),
+                                tsPhonesTrade: tsPhonesTrade,
+                            });
+                        },
+                        processResponse: function (record) {
+                            tsPhoneTradeArr = tsPhoneTradeArr.concat(record.data);
+                        }
+                    }
+                )
+            );
+        });
+        promArr.push(balanceProm);
+    }
+
+    return Promise.all(promArr).then(
+        () => {
+            return tradePhoneForEachPlatform (platformsArr, tsPhoneTradeArr);
+        }
+    ).then(
+        () => {
+            if (isStillTradeAble()) {
+                getAllTradeablePhone (platformsArr, recursiveCount--);
+            }
+        }
+    );
+}
+
+function tradePhoneForEachPlatform (platformsArr, tsPhoneTradeArr) {
+    if (!(platformsArr && platformsArr.length && tsPhoneTradeArr && tsPhoneTradeArr.length)) {
+        return Promise.reject({name: "DataError", message: "Invalid Data to trade phone numbers"});
+    }
+    let platformTsPhoneTrade = {};
+    let promArr = [];
+
+    for(let i = 0; i < tsPhoneTradeArr.length; i++) {
+        if (tsPhoneTradeArr[i].tradeablePlatform && tsPhoneTradeArr[i].sourceTsPhone && tsPhoneTradeArr[i].sourceTsPhone.platform) {
+            if (!platformTsPhoneTrade[tsPhoneTradeArr[i].sourceTsPhone.platform]) {
+                platformTsPhoneTrade[tsPhoneTradeArr[i].sourceTsPhone.platform] = [];
+            }
+            platformTsPhoneTrade[tsPhoneTradeArr[i].sourceTsPhone.platform].push(tsPhoneTradeArr[i])
+        }
+    }
+
+    platformsArr.forEach(platform => {
+        if ((platformTsPhoneTrade[platform._id] && platformTsPhoneTrade[platform._id].length || 0) < platform.phoneWhiteListExportMaxNumber) {
+            platform.phoneWhiteListExportMaxNumber = platformTsPhoneTrade[platform._id] && platformTsPhoneTrade[platform._id].length || 0;
+        }
+    });
+
+    for (let key in platformTsPhoneTrade) {
+        for (let k = platformTsPhoneTrade[key].length - 1; k >=0; k--) {
+            let tsPhoneTradeSender = platformTsPhoneTrade[key][k];
+            for (let j = platformsArr.length - 1; j >= 0; j--) {
+                if (String(platformsArr[j]._id) == String(key) || !platformTsPhoneTrade[platformsArr[j]._id] || !platformTsPhoneTrade[platformsArr[j]._id].length) {
+                    // skip if own platform / no phoneTrade in the platform
+                    continue;
+                }
+
+                if (tsPhoneTradeSender.tradeablePlatform.includes(String(platformsArr[j]._id)) && platformsArr[j].phoneWhiteListExportMaxNumber) {
+                    for (let l = platformTsPhoneTrade[platformsArr[j]._id].length - 1; l >= 0; l--) {
+                        let tsPhoneTradeReceiver = platformTsPhoneTrade[platformsArr[j]._id][l];
+                        if (tsPhoneTradeReceiver.tradeablePlatform.includes(String(key))) {
+                            promArr.push(dbconfig.collection_tsPhoneTrade.findOneAndUpdate({_id: tsPhoneTradeSender._id}
+                            , {
+                                    targetPlatform: platformsArr[j]._id,
+                                    tradeTime: new Date()
+                                }).lean().catch(errorUtils.reportError))
+
+                            promArr.push(dbconfig.collection_tsPhoneTrade.findOneAndUpdate({_id: tsPhoneTradeReceiver._id}
+                                , {
+                                    targetPlatform: key,
+                                    tradeTime: new Date()
+                                }).lean().catch(errorUtils.reportError))
+
+                            platformTsPhoneTrade[key].splice(k, 1);
+                            platformTsPhoneTrade[platformsArr[j]._id].splice(l, 1);
+                            platformsArr[j].phoneWhiteListExportMaxNumber--;
+
+                            if (platformsArr[j].phoneWhiteListExportMaxNumber <= 0) {
+                                platformsArr.splice(j, 1)
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!(platformsArr && platformsArr.length >= 2)) {
+                // must have 2 platforms to swap phone numbers
+                break;
+            }
+        }
+        if (!(platformsArr && platformsArr.length >=2)) {
+            // must have 2 platforms to swap phone numbers
+            break;
+        }
+    }
+    return Promise.all(promArr);
+}
 
 function addTsFeedbackCount (feedbackObj, isSucceedBefore = false) {
     // let isSucceedBefore = false;
@@ -1379,4 +1619,8 @@ function excludeTelNum(data){
     return data;
 }
 
+var proto = dbTeleSalesFunc.prototype;
+proto = Object.assign(proto, dbTeleSalesFunc);
+
+// This make WebStorm navigation work
 module.exports = dbTeleSales;

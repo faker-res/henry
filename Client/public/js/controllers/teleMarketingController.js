@@ -7985,6 +7985,12 @@ define(['js/app'], function (myApp) {
             $scope.safeApply();
         }
 
+        vm.dailyTradeTsPhone = function () {
+            socketService.$socket($scope.AppSocket, 'dailyTradeTsPhone', {}, function (data) {
+                console.log("dailyTradeTsPhone", data)
+            })
+        }
+
         vm.initModalImportTsPhoneTrade = function () {
             vm.totalTsPhoneTrade = 1;
         }
