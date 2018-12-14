@@ -860,7 +860,9 @@ var dbClientQnA = {
                 if (!playerData) {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
-
+                if (playerData.permission && playerData.permission.forbidPlayerFromLogin) {
+                    return Promise.reject({name: "DBError", message: "Attention! This player has been forbidden to login"})
+                }
                 let updateObj = {
                     QnAData: {
                         name: inputDataObj.name,
@@ -1394,6 +1396,9 @@ var dbClientQnA = {
                 if (!playerData) {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
+                if (playerData.permission && playerData.permission.forbidPlayerFromLogin) {
+                    return Promise.reject({name: "DBError", message: "Attention! This player has been forbidden to login"})
+                }
 
                 let updateObj = {
                     QnAData: {
@@ -1843,7 +1848,9 @@ var dbClientQnA = {
                 if (!playerData) {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
-
+                if (playerData.permission && playerData.permission.forbidPlayerFromLogin) {
+                    return Promise.reject({name: "DBError", message: "Attention! This player has been forbidden to login"})
+                }
                 // if (QnAConfig && QnAConfig.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("editName") && playerData.qnaWrongCount.editName > QnAConfig.wrongCount){
                 //     let endTitle = "Authentification Failed";
                 //     let endDes = "Attention! Contact CS for further instruction";
