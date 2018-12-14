@@ -8038,7 +8038,9 @@ define(['js/app'], function (myApp) {
                     }
                 })
             });
-            // sourcePlatform, sourceTopicName, exportCount, targetPlatform, phoneTradeObjIdArr
+            let maxCount = vm.exportTsPhoneTrade.phoneObjId.length;
+            let exportCount = vm.exportTsPhoneTrade.exportCount;
+            vm.exportTsPhoneTrade.exportCount = exportCount > maxCount ? maxCount : exportCount;
             sendData = {
                 sourcePlatform: vm.selectedPlatform.id,
                 sourceTopicName: vm.exportTsPhoneTrade.topic,
