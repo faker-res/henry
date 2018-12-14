@@ -51,7 +51,7 @@ let dbTeleSales = {
                 }
 
                 if (query.feedbackStart && query.feedbackEnd) {
-                    phoneListQuery["$and"].push({$or: [{lastFeedbackTime: null}, {lastFeedbackTime: {$gte: query.feedbackStart, $lt: query.feedbackEnd}}]});
+                    phoneListQuery["$and"].push({$or: {lastFeedbackTime: {$gte: query.feedbackStart, $lt: query.feedbackEnd}}});
                 }
                 if (query.distributeStart && query.distributeEnd) {
                     phoneListQuery["$and"].push({startTime: {$gte: query.distributeStart, $lt: query.distributeEnd}})
@@ -64,19 +64,19 @@ let dbTeleSales = {
                     let reclaimDate =dbUtility.getTargetSGTime(countReclaimDate);
                     switch (query.reclaimDayOperator) {
                         case '<=':
-                            phoneListQuery["$and"].push({endTime: {$lte: reclaimDate.startTime}});
+                            phoneListQuery["$and"].push({endTime: {$lte: reclaimDate.endTime}});
                             break;
                         case '>=':
                             phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime}});
                             break;
                         case '=':
-                            phoneListQuery["$and"].push({endTime: reclaimDate.startTime});
+                            phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime, $lte: reclaimDate.endTime}});
                             break;
                         case 'range':
                             if (query.hasOwnProperty("reclaimDaysTwo") && query.reclaimDaysTwo != null) {
                                 let countReclaimDate2 = dbUtility.getNdaylaterFromSpecificStartTime(query.reclaimDaysTwo + 1, new Date());
                                 let reclaimDate2 = dbUtility.getTargetSGTime(countReclaimDate2);
-                                phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime, $lte: reclaimDate2.startTime}});
+                                phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime, $lte: reclaimDate2.endTime}});
                             }
                             break;
                     }
@@ -317,6 +317,28 @@ let dbTeleSales = {
 
     getTSPhoneListName: function (query) {
         return dbconfig.collection_tsPhoneList.distinct("name", query);
+    },
+
+    getActivePhoneListNameForAdmin: function (platformObjId, adminId) {
+        return dbconfig.collection_tsDistributedPhone.distinct("tsPhoneList", {startTime: {$lte: new Date()}, endTime:{$gte: new Date()}, platform: platformObjId, assignee: adminId}).then(
+            tsPhoneListObjIds => {
+                if (!tsPhoneListObjIds) {
+                    return [];
+                }
+                let proms = [];
+
+                tsPhoneListObjIds.map(tsPhoneListObjId => {
+                    let prom = dbconfig.collection_tsPhoneList.findOne({_id: tsPhoneListObjId}, {name: 1}).lean();
+                    proms.push(prom);
+                });
+
+                return Promise.all(proms);
+            }
+        ).then(
+            tsPhoneLists => {
+                return tsPhoneLists.map(tsPhoneList => tsPhoneList.name);
+            }
+        );
     },
 
     getTsPhoneListRecyclePhone: function (inputData) {
@@ -1337,6 +1359,30 @@ let dbTeleSales = {
                 }
             }
         );
+    },
+
+    filterExistingPhonesForDecomposedPhones: function(phoneArr, targetPlatformObjId) {
+        return dbconfig.collection_players.find({
+            platform: targetPlatformObjId,
+            phoneNumber: {$in:phoneArr}
+        }).then(players => {
+            players.forEach(player=>{
+                if(phoneArr.indexOf(player.phoneNumber) > -1){
+                    phoneArr.splice(phoneArr.indexOf(player.phoneNumber),1);
+                }
+            });
+            return dbconfig.collection_tsPhone.find({
+                platform: targetPlatformObjId,
+                phoneNumber: {$in:phoneArr}
+            });
+        }).then(phones=>{
+            phones.forEach(phone=>{
+                if(phoneArr.indexOf(phone.phoneNumber) > -1){
+                    phoneArr.splice(phoneArr.indexOf(phone.phoneNumber),1);
+                }
+            });
+            return phoneArr;
+        })
     }
 };
 
