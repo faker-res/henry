@@ -11569,7 +11569,7 @@ let dbPlayerInfo = {
                                     .lean();
                             },
                             err => {
-                                if(err && err.status == constServerCode.CONFIRMATION_TO_COMPLETE_ACTIVITY){
+                                if(err && err.status && err.status == constServerCode.CONFIRMATION_TO_COMPLETE_ACTIVITY){
                                     return Promise.reject(err);
                                 }
                             }
