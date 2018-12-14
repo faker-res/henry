@@ -7863,10 +7863,16 @@ let dbPlayerInfo = {
         ).then(
             function (rewardEvent) {
                 if (rewardEvent) {
+                    console.log('rewardEvent===', rewardEvent);
+                    console.log('rewardEvent.length===', rewardEvent.length);
                     var rewardEventArray = [];
                     for (var i = 0; i < rewardEvent.length; i++) {
                         var rewardEventItem = rewardEvent[i].toObject();
                         delete rewardEventItem.platform;
+                        console.log('rewardEventItem.name===', rewardEventItem.name);
+                        console.log('rewardEventItem.type.name===', rewardEventItem.type.name);
+                        console.log('rewardEventItem.validStartTime===', rewardEventItem.validStartTime);
+                        console.log('rewardEventItem.validEndTime===', rewardEventItem.validEndTime);
 
                         let providerGroup = null;
                         let providerGroupName = null;
@@ -11552,7 +11558,7 @@ let dbPlayerInfo = {
                         let creditProm = Q.resolve();
 
                         if (player.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(player.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE) {
-                            creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(player.playerId, player.platform._id, player.lastPlayedProvider.providerId, -1, null, true).catch(errorUtils.reportError);
+                            creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(player.playerId, player.platform._id, player.lastPlayedProvider.providerId, -1, null, true)
                         }
 
                         return creditProm.then(
@@ -11561,6 +11567,11 @@ let dbPlayerInfo = {
                                     .populate({path: "platform", model: dbconfig.collection_platform})
                                     .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
                                     .lean();
+                            },
+                            err => {
+                                if(err && err.status && err.status == constServerCode.CONFIRMATION_TO_COMPLETE_ACTIVITY){
+                                    return Promise.reject(err);
+                                }
                             }
                         ).then(
                             playerData => {

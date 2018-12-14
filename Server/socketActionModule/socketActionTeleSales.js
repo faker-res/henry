@@ -271,6 +271,12 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.searchTrashClassificationTrade, [data.platformObjId, data.phoneLists, data.topic, data.startTime, data.endTime, data.index, data.limit], actionName, isValidData);
         },
 
+        filterExistingPhonesForDecomposedPhones: function filterExistingPhonesForDecomposedPhones(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.phoneNumbers && data.targetPlatformObjId);
+            socketUtil.emitter(self.socket, dbTeleSales.filterExistingPhonesForDecomposedPhones, [data.phoneNumbers, data.targetPlatformObjId], actionName, isValidData);
+        },
+
     };
     socketActionTeleSales.actions = this.actions;
 }
