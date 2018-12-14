@@ -9,6 +9,7 @@ const dbProposal = require('./../db_modules/dbProposal');
 router.post('/notifyPayment', function(req, res, next) {
     // LOG
     console.log('req.body', req.body);
+    console.log("req.headers", req.headers);
 
     let msgBody = req.body.content|| req.body;
     let isValidData = msgBody && msgBody.proposalId && msgBody.status && msgBody.billNo && msgBody.amount
