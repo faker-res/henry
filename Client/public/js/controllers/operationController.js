@@ -961,12 +961,13 @@ define(['js/app'], function (myApp) {
                 result = $scope.counterDepositType[val];
                 result = $translate(result);
             }
-            // else if (fieldName === 'gameProviderInEvent') {
-            //     let index = vm.allGameProviders.findIndex(p => p._id.toString() == val.toString());
-            //     if (index != -1){
-            //         result =  vm.allGameProviders[index].name;
-            //     }
-            // }
+            else if (fieldName === 'gameProviderInEvent') {
+                let gameProviderById = vm.allGameProviderById[val.toString()];
+
+                if(gameProviderById && gameProviderById.name){
+                    result =  gameProviderById.name;
+                }
+            }
             return $sce.trustAsHtml(result);
         };
         // vm.getTopupIntentionData = function (callback) {
