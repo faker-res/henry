@@ -315,7 +315,7 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
                 if (Number(calleeDetail.callCount) > 0) {
                     let status = 0;
                     if (calleeDetail.callResult == 0) {
-                        if (Number(calleeDetail.callCount) >= (platform.redialTimes || 1)) {
+                        if (Number(calleeDetail.callCount) >= (platform.teleMarketingRedialTimes || 1)) {
                             status = constCallOutMissionCalleeStatus.FAILED;
                         }
                     } else {
