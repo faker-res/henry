@@ -785,9 +785,9 @@ var dbRewardEvent = {
             }
 
             returnData.result.totalWinAmount = winLoseAmount;
-            returnData.result.winTimes = winTimes;
+            returnData.result.winTimes = Math.floor(winTimes);
             returnData.result.totalBetAmount = totalBetAmount;
-            returnData.result.rewardAmount = rewardAmount;
+            returnData.result.rewardAmount = Math.floor((parseFloat(rewardAmount*100)))/100;
             returnData.result.quantityLimit = chances;
             returnData.result.appliedCount = appliedCount;
         }

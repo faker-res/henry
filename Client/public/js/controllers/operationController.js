@@ -3085,8 +3085,8 @@ define(['js/app'], function (myApp) {
                 proposalDetail["rewardEndTime"] = vm.selectedProposal.data.rewardEndTime;
                 proposalDetail["rewardInterval"] = vm.selectedProposal.data.rewardInterval;
                 proposalDetail["appliedQuantityOverApplicationLimit"] = timesHasApplied + '/' + quantityLimitInInterval;
-                proposalDetail["transferInDetail"] = transferInAmount + ' (' + $translate("transferIn") + ': ' + transferInId + ')';
-                proposalDetail["transferOutDetail"] = transferOutAmount + ' (' + $translate("transferOut") + ': ' + transferOutId  + ')';
+                proposalDetail["transferInDetail"] = transferInAmount + ' (' + $translate("transferIn") + "ID" + ': ' + transferInId + ')';
+                proposalDetail["transferOutDetail"] = transferOutAmount + ' (' + $translate("transferOut") + "ID" + ': ' + transferOutId  + ')';
                 proposalDetail["winLoseAmount"] = vm.selectedProposal.data.winLoseAmount;
                 proposalDetail["countWinLoseStartTime"] = vm.selectedProposal.data.countWinLoseStartTime;
                 proposalDetail["countWinLoseEndTime"] = vm.selectedProposal.data.countWinLoseEndTime;

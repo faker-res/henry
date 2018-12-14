@@ -19,12 +19,9 @@ router.post('/notifyPayment', function(req, res, next) {
         inputData.push(data);
     }).on('end', () => {
         let buffer = Buffer.concat(inputData);
-
         let stringBuffer = buffer.toString();
-
-        console.log('stringBuffer', stringBuffer);
-
-        let parsedData = JSON.parse(stringBuffer);
+        let decoded = decodeURIComponent(stringBuffer);
+        let parsedData = JSON.parse(decoded.substring(decoded.indexOf('{')));
 
         let msgBody = parsedData.content;
         let isValidData = msgBody && msgBody.proposalId && msgBody.status && msgBody.billNo && msgBody.amount
@@ -52,25 +49,28 @@ router.post('/notifyPayment', function(req, res, next) {
                     isValidData = false;
                     break;
             }
+            console.log('updateTopupProposal', msgBody.proposalId);
             dbProposal.updateTopupProposal(msgBody.proposalId, statusText, msgBody.billNo, msgBody.status, msgBody.remark, msgBody).then(
                 () => {
-                    res.send({
+                    console.log('updateTopupProposal success', msgBody.proposalId);
+                    res.send(encodeURIComponent({
                         code: constServerCode.SUCCESS,
                         msg: "succ"
-                    });
+                    }));
                 },
                 err => {
-                    res.send({
+                    console.log('updateTopupProposal error', msgBody.proposalId, err);
+                    res.send(encodeURIComponent({
                         code: constServerCode.INVALID_DATA,
                         msg: err.message
-                    })
+                    }))
                 }
             )
         } else {
-            res.send({
+            res.send(encodeURIComponent({
                 code: constServerCode.INVALID_DATA,
                 msg: "Invalid data"
-            })
+            }))
         }
     });
 
