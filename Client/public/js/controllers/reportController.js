@@ -926,13 +926,14 @@ define(['js/app'], function (myApp) {
                 result = $translate($scope.playerLoginMode[val]);
             } else if (fieldName === 'rewardInterval') {
                 result = $translate($scope.rewardInterval[val]);
-            } 
-            // else if (fieldName === 'gameProviderInEvent') {
-            //     let index = vm.allGameProviders.findIndex(p => p._id.toString() == val.toString());
-            //     if (index != -1){
-            //         result =  vm.allGameProviders[index].name;
-            //     }
-            // }
+            }
+            else if (fieldName === 'gameProviderInEvent') {
+                let gameProviderById = vm.allGameProviderById[val.toString()];
+
+                if(gameProviderById && gameProviderById.name){
+                    result =  gameProviderById.name;
+                }
+            }
             return $sce.trustAsHtml(result);
         };
         // end iof proposal detail
@@ -9563,6 +9564,14 @@ define(['js/app'], function (myApp) {
                                 })
                             }
                         })
+                    });
+
+                    socketService.$socket($scope.AppSocket, 'getAllGameProviders', '', function (data) {
+                        vm.allGameProviderById = {};
+                        data.data.map(item => {
+                            vm.allGameProviderById[item._id] = item;
+                        });
+                        console.log("vm.allGameProviderById", vm.allGameProviderById);
                     });
 
                     utilService.actionAfterLoaded("#proposalTablePage", function () {
