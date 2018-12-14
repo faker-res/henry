@@ -12531,7 +12531,7 @@ let dbPlayerInfo = {
                         data => data,
                         error => {
                             if(isApplyBonusDoubledReward){
-                                return Promise.reject({name: "DataError", message: error.message});
+                                return Promise.reject(error);
                             }
 
                             return false;
@@ -12745,9 +12745,7 @@ let dbPlayerInfo = {
                                                 return transferCreditToProvider(data);
                                             },
                                             err => {
-                                                console.log("LH check getLoginUrl error message ------1", isApplyBonusDoubledReward);
                                                 if(isApplyBonusDoubledReward){
-                                                    console.log("LH check getLoginUrl error message ------2", err);
                                                     return Promise.reject(err);
                                                 }
                                                 // Error transfer out from last provider, insufficent amount
@@ -12812,9 +12810,7 @@ let dbPlayerInfo = {
                 return cpmsAPI.player_getLoginURL(sendData);
             },
             err => {
-                console.log("LH check getLoginUrl error message ------3", isApplyBonusDoubledReward);
                 if(isApplyBonusDoubledReward){
-                    console.log("LH check getLoginUrl error message ------4", err);
                     return Promise.reject(err);
                 }
                 return Promise.reject({name: "DataError", message: err.message});
@@ -12830,9 +12826,7 @@ let dbPlayerInfo = {
                 return {gameURL: loginData.gameURL};
             },
             err => {
-                console.log("LH check getLoginUrl error message ------5", isApplyBonusDoubledReward);
                 if(isApplyBonusDoubledReward){
-                    console.log("LH check getLoginUrl error message ------6", err);
                     return Promise.reject(err);
                 }
                 return Promise.reject({name: "DataError", message: err.message});
