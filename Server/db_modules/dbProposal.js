@@ -4661,12 +4661,8 @@ var proposal = {
             entryType: constProposalEntryType.CLIENT,
             userType: constProposalUserType.PLAYERS
         };
-
-        if (!selectedRewardParam || !playerBonusDoubledRecord || winLoseAmount <= 0) {
-            // end this activity without giving reward bonus
-            console.log("applyRewardEvent - Ended the activity without giving reward bonus", [playerData.playerId, eventData.type.name]);
-        }
-        else{
+        
+        if (selectedRewardParam && playerBonusDoubledRecord){
             if (selectedRewardParam.hasOwnProperty('rewardPercentage')){
                 rewardAmount = playerBonusDoubledRecord.transferInAmount * selectedRewardParam.rewardPercentage;
                 spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
