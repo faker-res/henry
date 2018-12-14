@@ -25,7 +25,8 @@ router.post('/notifyPayment', function(req, res, next) {
         console.log('stringBuffer', stringBuffer);
         console.log('decoding', decodeURIComponent(stringBuffer));
 
-        let parsedData = JSON.parse(decodeURIComponent(stringBuffer));
+        let decoded = decodeURIComponent(stringBuffer);
+        let parsedData = JSON.parse(decoded.substring(decoded.indexOf('{')));
 
         let msgBody = parsedData.content;
         let isValidData = msgBody && msgBody.proposalId && msgBody.status && msgBody.billNo && msgBody.amount
