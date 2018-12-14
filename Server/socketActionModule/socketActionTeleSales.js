@@ -218,6 +218,12 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.manualExportDecomposedPhones, [data.sourcePlatform, data.sourceTopicName, data.exportCount, data.targetPlatform, data.phoneTradeObjIdArr, adminInfo], actionName, isValidData);
         },
 
+        getActivePhoneListNameForAdmin: function getActivePhoneListNameForAdmin(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbTeleSales.getActivePhoneListNameForAdmin, [data.platformObjId, getAdminId()], actionName, isValidData);
+        },
+
         getTsPlayerRetentionAnalysis: function getTsPlayerRetentionAnalysis(data) {
             let actionName = arguments.callee.name;
             let diffDays;
