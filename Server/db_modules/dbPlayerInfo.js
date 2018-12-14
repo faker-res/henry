@@ -12745,6 +12745,9 @@ let dbPlayerInfo = {
                                                 return transferCreditToProvider(data);
                                             },
                                             err => {
+                                                if(isApplyBonusDoubledReward){
+                                                    return Promise.reject(err);
+                                                }
                                                 // Error transfer out from last provider, insufficent amount
                                                 return Promise.reject({name: "DataError", message: "Insufficient amount to enter game"});
                                             }
@@ -12807,6 +12810,9 @@ let dbPlayerInfo = {
                 return cpmsAPI.player_getLoginURL(sendData);
             },
             err => {
+                if(isApplyBonusDoubledReward){
+                    return Promise.reject(err);
+                }
                 return Promise.reject({name: "DataError", message: err.message});
             }
         ).then(
@@ -12820,6 +12826,9 @@ let dbPlayerInfo = {
                 return {gameURL: loginData.gameURL};
             },
             err => {
+                if(isApplyBonusDoubledReward){
+                    return Promise.reject(err);
+                }
                 return Promise.reject({name: "DataError", message: err.message});
             }
         );
