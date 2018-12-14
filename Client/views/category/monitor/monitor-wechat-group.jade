@@ -51,8 +51,7 @@ div
                     .inlineBlk
                         div(style='width:155px')
                             label {{"Login Account" | translate}}
-                            select.form-control#selectWCGroupControlSessionHistoryAdminId(multiple='multiple', ng-model='vm.wcGroupControlSessionHistory.csOfficer')
-                                option(ng-repeat='(i,v) in vm.wechatGroupControlHistoryAdminList', value='{{v._id}}') {{v.adminName}}
+                            select.form-control.spicker(ng-model='vm.wcGroupControlSessionHistory.csOfficer', ng-options="a._id as a.adminName  for a in vm.wechatGroupControlHistoryAdminList", style='max-width:200px', multiple, bsp, data-actions-box='true')
                     .inlineBlk
                         label {{"Start Connection Time" | translate}}
                         .startTime
