@@ -3203,7 +3203,7 @@ var proposalExecutor = {
             },
 
             executePlayerBonusDoubledRewardGroup: function (proposalData) {
-                if (proposalData && proposalData.data && proposalData.data.playerObjId && (proposalData.data.rewardAmount || (proposalData.data.applyAmount && proposalData.data.isDynamicRewardAmount))) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId) {
                     let rtgData;
                     let amount = proposalData.data.actualAmount ? proposalData.data.actualAmount : (proposalData.data.applyAmount || 0);
                     let taskData = {

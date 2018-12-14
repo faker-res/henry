@@ -144,18 +144,15 @@ var dbPlayerRegistrationIntentRecord = {
         var deferred = Q.defer();
         dbconfig.collection_proposalType.findOne({platformId:platform, name: constProposalType.PLAYER_REGISTRATION_INTENTION}).lean().then(
             typeData => {
-                console.log('typeData===999', typeData);
                 if( typeData ){
                     dbProposal.createProposalWithTypeName(platform, constProposalType.PLAYER_REGISTRATION_INTENTION, data).then(
                         newProposal => {
-                            console.log('newProposal===999', newProposal);
                             if (newProposal) {
                                 dbconfig.collection_proposal.findOneAndUpdate({
                                     _id: newProposal._id,
                                     createTime: newProposal.createTime
                                 }, {status: status}).then(
                                     function (data) {
-                                        console.log('data===999', data);
                                         if(status === constProposalStatus.APPROVED ||status === constProposalStatus.MANUAL ) {
                                             SMSSender.sendByPlayerObjId(data.data.playerObjId, constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS, data);
                                             // if require on outside, messageDispatcher will be empty object, probably because of circular dependency, so require inside function
@@ -198,12 +195,10 @@ var dbPlayerRegistrationIntentRecord = {
         let updateQuery = {
             data: query
         };
-        console.log('updateData===', updateData);
 
         if(updateData != "Fail"){
             updateQuery.status = updateData;
         }
-        console.log('updateQuery.status===', updateQuery.status);
 
         let intentUpdateData = {
             name: query.name,
@@ -219,22 +214,18 @@ var dbPlayerRegistrationIntentRecord = {
         return dbconfig.collection_players.findOne({playerId:query.playerId,platform:query.platform})
             .populate({path: "playerLevel", model: dbconfig.collection_playerLevel}).then(
                 (playerData) => {
-                    console.log('playerData===', playerData);
                     if(playerData && playerData.playerLevel){
                         updateQuery.data.playerLevelName = playerData.playerLevel.name;
                     }
                     if (query && query._id && query.createTime) {
-                        console.log('HERE11===');
                         proposalProm = dbconfig.collection_proposal.findOneAndUpdate(queryObj, updateQuery, {new: true});
                         if(updateData && updateData != "Fail"){
                             intentUpdateData.status = constRegistrationIntentRecordStatus[intentUpdateData.toString().toUpperCase()];
                         }
                         registrationIntentProm = dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate(queryObj, intentUpdateData, {new: true});
                     } else {
-                        console.log('HERE22===');
                         proposalProm = dbconfig.collection_proposal.findOne(queryObj).lean().then(
                             proposalData => {
-                                console.log('proposalData===', proposalData);
                                 if (proposalData && proposalData._id && proposalData.createTime) {
                                     return dbUtil.findOneAndUpdateForShard(
                                         dbconfig.collection_proposal,
@@ -248,15 +239,11 @@ var dbPlayerRegistrationIntentRecord = {
                             }
                         )
                         if(updateData && updateData != "Fail"){
-                            console.log('HERE33===');
                             intentUpdateData.status = constRegistrationIntentRecordStatus[updateData.toString().toUpperCase()];
                         }
                         if (intentUpdateData) {
-                            console.log('HERE44===');
-                            console.log('queryObj===', queryObj);
                             registrationIntentProm = dbconfig.collection_playerRegistrationIntentRecord.findOne(queryObj).lean().then(
                                 recordData => {
-                                    console.log('recordData===', recordData);
                                     if (recordData && recordData._id && recordData.createTime) {
                                         return dbUtil.findOneAndUpdateForShard(
                                             dbconfig.collection_playerRegistrationIntentRecord,
@@ -272,13 +259,9 @@ var dbPlayerRegistrationIntentRecord = {
                         }
 
                     }
-                    console.log('intentUpdateData.status===', intentUpdateData.status);
                     return Promise.all([proposalProm,registrationIntentProm]).then(
                         (data) =>{
-                            console.log('HERE55===');
-                            console.log('data===', data);
                             if(data && data[0] && updateData && updateData != "Fail"){
-                                console.log('HERE66===');
                                 let proposalData = data[0];
                                 proposalData.data.playerName = playerData.name;
                                 proposalData.data.playerObjId = playerData._id;
