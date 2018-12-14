@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const port = 7100;
 const privateRoutes = require('./routes/privateAPI');
+const bodyParser = require('body-parser');
 const compression = require('compression');
 
 app.use(compression());
