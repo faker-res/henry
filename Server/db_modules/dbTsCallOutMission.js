@@ -53,7 +53,7 @@ let dbTsCallOutMission = {
 
                 calleeList = calleeData;
 
-                return dbCtiCallOut.addMissionToCti(platform, admin, calleeList);
+                return dbCtiCallOut.addMissionToCti(platform, admin, calleeList, platform.teleMarketingMaxRingTime, platform.teleMarketingRedialTimes, platform.teleMarketingMinRedialInterval, platform.teleMarketingIdleAgentMultiple);
             }
         ).then(
             missionName => {
