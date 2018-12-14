@@ -11552,7 +11552,7 @@ let dbPlayerInfo = {
                         let creditProm = Q.resolve();
 
                         if (player.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(player.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE) {
-                            creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(player.playerId, player.platform._id, player.lastPlayedProvider.providerId, -1, null, true).catch(errorUtils.reportError);
+                            creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(player.playerId, player.platform._id, player.lastPlayedProvider.providerId, -1, null, true)
                         }
 
                         return creditProm.then(
@@ -11561,6 +11561,11 @@ let dbPlayerInfo = {
                                     .populate({path: "platform", model: dbconfig.collection_platform})
                                     .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
                                     .lean();
+                            },
+                            err => {
+                                if(err && err.status == constServerCode.CONFIRMATION_TO_COMPLETE_ACTIVITY){
+                                    return Promise.reject(err);
+                                }
                             }
                         ).then(
                             playerData => {
