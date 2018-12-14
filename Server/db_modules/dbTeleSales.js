@@ -1384,7 +1384,7 @@ let dbTeleSales = {
             platformData => {
                 if (!(platformData && platformData.length >= 2)) {
                     // must have 2 platforms available in order to swap phone number
-                    return Promise.reject({name: "DataError", message: "Cannot find platform"});
+                    return Promise.resolve("No platform to swap");
                 }
                 platformsArr = JSON.parse(JSON.stringify(platformData));
                 getAllTradeablePhone (platformsArr);
@@ -1544,11 +1544,14 @@ function getAllTradeablePhone (platformsArr, recursiveCount) {
 
     return Promise.all(promArr).then(
         () => {
+            if (!(platformsArr && platformsArr.length && tsPhoneTradeArr && tsPhoneTradeArr.length)) {
+                return Promise.resolve(false);
+            }
             return tradePhoneForEachPlatform (platformsArr, tsPhoneTradeArr);
         }
     ).then(
-        () => {
-            if (isStillTradeAble()) {
+        (resData) => {
+            if (isStillTradeAble() && resData) {
                 getAllTradeablePhone (platformsArr, recursiveCount--);
             }
         }
@@ -1556,9 +1559,9 @@ function getAllTradeablePhone (platformsArr, recursiveCount) {
 }
 
 function tradePhoneForEachPlatform (platformsArr, tsPhoneTradeArr) {
-    if (!(platformsArr && platformsArr.length && tsPhoneTradeArr && tsPhoneTradeArr.length)) {
-        return Promise.reject({name: "DataError", message: "Invalid Data to trade phone numbers"});
-    }
+    // if (!(platformsArr && platformsArr.length && tsPhoneTradeArr && tsPhoneTradeArr.length)) {
+    //     return Promise.reject({name: "DataError", message: "Invalid Data to trade phone numbers"});
+    // }
     let platformTsPhoneTrade = {};
     let promArr = [];
 
