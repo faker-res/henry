@@ -27,7 +27,7 @@
             #trashClassificationTradeTablePage
             br
             br
-            button.btn.btn-danger.common-button(ng-click="") {{"Manual Export to New Phone List" | translate}}
+            button.btn.btn-danger.common-button(data-target="#modalExportTsPhoneTrade" data-toggle="modal" ng-click="vm.initModalExportTsPhoneTrade()") {{"Manual Export to New Phone List" | translate}}
 
         div(ng-if='vm.showPageName=="New Phone"')
             div
@@ -86,4 +86,51 @@
                 div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px')
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled="!vm.totalTsPhoneTrade", data-toggle="modal",
                 data-target='#modalNewTSPhoneListXLS', ng-click="vm.importPhoneResult = ''; vm.initFilterAndImportDXSystem();") {{"CONFIRM" | translate}}
+                button.btn.btn-danger.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+
+#modalExportTsPhoneTrade.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:35%; margin-top: 12.5em;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"Manual Export to New Phone List" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                table.common-table.playerLvlTable(style='width:auto;min-width:99.9%;white-space:normal;')
+                                    thead
+                                        tr
+                                            th(colspan=2) {{'Export X numbers into new phone list pool' | translate}}
+                                    tbody
+                                        tr
+                                            td(style='background-color: LightGrey')
+                                                label {{"sourceTsPhoneType" | translate}}
+                                            td(style='background-color: LightGrey')
+                                                text {{vm.exportTsPhoneTrade.topic}}
+                                        tr
+                                            td(style='background-color: LightGrey')
+                                                label {{"SELECTED_COUNT" | translate}}
+                                            td(style='background-color: LightGrey')
+                                                text {{vm.trashClassificationTradeSelection.length}}
+                                        tr
+                                            td
+                                                text {{"Please enter quantity (random select)" | translate}}
+                                            td
+                                                input.form-control(style='width:60%; display: inline-block' type='number', ng-model='vm.exportTsPhoneTrade.exportCount', min=1, max='{{vm.trashClassificationTradeSelection.length}}')
+                                                span &nbsp;
+                                                a(ng-click='vm.exportTsPhoneTrade.exportCount = vm.trashClassificationTradeSelection.length')
+                                                    u {{"All phone number?" | translate}}
+                                        tr
+                                            td
+                                                text {{"Please select target department (single selection)" | translate}}
+                                            td
+                                                select.form-control(ng-model='vm.exportTsPhoneTrade.targetPlatform')
+                                                    option(ng-repeat='(i,v) in vm.allPlatformData' value='{{v._id}}') {{v.name}}
+
+            .modal-footer
+                div(style='display:inline-block;font-weight:bold;margin:10px 10px 0 0;font-size:16px')
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-disabled="!vm.exportTsPhoneTrade.exportCount", data-toggle="modal",
+                data-target='#modalExportTsPhoneTrade', ng-click="vm.exportDecomposedPhones();") {{"CONFIRM" | translate}}
                 button.btn.btn-danger.common-button(data-dismiss='modal') {{"CANCEL" | translate}}

@@ -4627,7 +4627,7 @@ var proposal = {
         let rewardAmount = 0;
         let spendingAmount = 0;
 
-        if (!selectedRewardParam || !playerBonusDoubledRecord || !winLoseAmount) {
+        if (!selectedRewardParam || !playerBonusDoubledRecord || winLoseAmount <= 0) {
             // end this activity without giving reward bonus
             console.log("applyRewardEvent - Ended the activity without giving reward bonus", [playerData.playerId, eventData.type.name]);
             // update the playerBonusDoubledRewardGroupRecord

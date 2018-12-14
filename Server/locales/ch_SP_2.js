@@ -76,6 +76,7 @@ var simplifiedChinese = {
     "Please enter bank card name?": "银行卡姓名",
     "Please enter bank card registration city?": "开户城市",
     "Please enter bank name?": "银行名称",
+    "The requirement is not fulfilled": "您的申请不符合要求",
 
     "BACKSTAGE": "后台",
     "APP_AGENT": "APP代理",
