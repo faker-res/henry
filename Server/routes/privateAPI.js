@@ -6,6 +6,10 @@ const constServerCode = require("../const/constServerCode");
 
 const dbProposal = require('./../db_modules/dbProposal');
 
+router.get('/notifyPayment', (req, res, next) => {
+    res.end('Success');
+});
+
 router.post('/notifyPayment', function(req, res, next) {
     console.log(`notifyPayment ${req.method} ${req.url}`);
     // LOG
