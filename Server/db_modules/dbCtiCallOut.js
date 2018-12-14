@@ -72,7 +72,7 @@ let dbCtiCallOut = {
         return dbutility.convertToMD5(firstLevelMd5 + formattedNow);
     },
 
-    addMissionToCti: function addMissionToCti (platform, admin, calleeList) {
+    addMissionToCti: function addMissionToCti (platform, admin, calleeList, maxRingTime, redialTimes, minRedialInterval, idleAgentMultiple) {
         let token = dbCtiCallOut.getCtiToken("POLYLINK_MESSAGE_TOKEN");
         let sanitizedAdminName = String(admin.adminName).replace(/[^0-9a-z]/gi, '');
 
@@ -84,10 +84,10 @@ let dbCtiCallOut = {
         param.queuenum = admin.callerQueue || "9994";
         param.calloutType = '0';
         param.calledNumber = admin.did || "879997";
-        param.maxRingTime = platform.maxRingTime || 30;
-        param.redialTimes = platform.redialTimes || 3;
-        param.minRedialInterval = platform.minRedialInterval || 10;
-        param.idleAgentMultiple = platform.idleAgentMultiple ? Number(platform.idleAgentMultiple).toFixed(1) : "2.0";
+        param.maxRingTime = maxRingTime || 30;
+        param.redialTimes = redialTimes || 3;
+        param.minRedialInterval = minRedialInterval || 10;
+        param.idleAgentMultiple = idleAgentMultiple ? Number(idleAgentMultiple).toFixed(1) : "2.0";
 
         return dbCtiCallOut.callCtiApiWithRetry(platform.platformId, "createCallOutTask.do", param).then(
             apiOutput => {
