@@ -154,7 +154,7 @@ var dbClientQnA = {
                 } else {
                     updObj.$inc = {'QnAData.smsCount': 1};
                 }
-                
+
                 if (clientQnAData.QnAData.phoneNumber) {
                     smsCountProm = dbClientQnA.checkSMSSentCountInPastHour(
                         clientQnAData.QnAData.platformId, clientQnAData.QnAData.phoneNumber, purpose)
@@ -278,7 +278,7 @@ var dbClientQnA = {
                     _id: clientQnAData.playerObjId,
                     phoneNumber: phoneQ
                 }).lean();
-                
+
             }
         ).then(
             playerData => {
@@ -860,7 +860,9 @@ var dbClientQnA = {
                 if (!playerData) {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
-
+                if (playerData.permission && playerData.permission.forbidPlayerFromLogin) {
+                    return Promise.reject({name: "DBError", message: "Attention! This player has been forbidden to login"})
+                }
                 let updateObj = {
                     QnAData: {
                         name: inputDataObj.name,
@@ -1156,7 +1158,7 @@ var dbClientQnA = {
                         inCorrectQues.push(questionNo.phoneNumber);
                     }
 
-                    if (!playerData.bankAccount){
+                    if (!playerData.bankAccount && inputDataObj.bankAccount == '无'){
                         correctQues.push(questionNo.bankAccount);
                         updateObj["QnAData.bankAccount"] = '';
                     }else if (playerData.bankAccount == inputDataObj.bankAccount) {
@@ -1393,6 +1395,9 @@ var dbClientQnA = {
             playerData => {
                 if (!playerData) {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
+                }
+                if (playerData.permission && playerData.permission.forbidPlayerFromLogin) {
+                    return Promise.reject({name: "DBError", message: "Attention! This player has been forbidden to login"})
                 }
 
                 let updateObj = {
@@ -1843,7 +1848,9 @@ var dbClientQnA = {
                 if (!playerData) {
                     return Promise.reject({name: "DBError", message: "Cannot find player"})
                 }
-
+                if (playerData.permission && playerData.permission.forbidPlayerFromLogin) {
+                    return Promise.reject({name: "DBError", message: "Attention! This player has been forbidden to login"})
+                }
                 // if (QnAConfig && QnAConfig.hasOwnProperty("wrongCount") && playerData.qnaWrongCount && playerData.qnaWrongCount.hasOwnProperty("editName") && playerData.qnaWrongCount.editName > QnAConfig.wrongCount){
                 //     let endTitle = "Authentification Failed";
                 //     let endDes = "Attention! Contact CS for further instruction";
@@ -2055,7 +2062,7 @@ var dbClientQnA = {
                 if (!data && !data[0]) {
                     return Promise.reject({name: "DBError", message: "update QnA data failed"})
                 }
-                
+
                 let retClientQnARecord = data[0];
 
                 clientQnAData = retClientQnARecord;
@@ -2145,7 +2152,7 @@ var dbClientQnA = {
 
                     clientQnAData = retClientQnAData;
                     let playerName = clientQnAData.QnAData.name;
-                    
+
                     let newRealName = clientQnAData.QnAData && clientQnAData.QnAData.newRealName ? clientQnAData.QnAData.newRealName : null;
 
                     return dbconfig.collection_clientQnATemplate.findOne({
