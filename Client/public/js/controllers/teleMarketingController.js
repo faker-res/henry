@@ -8059,6 +8059,7 @@ define(['js/app'], function (myApp) {
             vm.showPageName = 'New Phone';
             vm.decomposedNewPhoneQuery = {};
             vm.decomposedNewPhoneQuery.totalCount = 0;
+            vm.multiDecomposedNewPhoneSelected = [];
 
             utilService.actionAfterLoaded(('#decomposedNewPhoneQuery'), function () {
                 let today = new Date();
@@ -8117,9 +8118,12 @@ define(['js/app'], function (myApp) {
                         bSortable: false,
                         sClass: "decomposedNewPhoneSelected",
                         render: function (data, type, row) {
+                            let tick = Boolean(vm.multiDecomposedNewPhoneSelected.indexOf(row.sourceTsPhone) > -1);
                             var link = $('<input>', {
                                 type: 'checkbox',
                                 "data-tsPhoneId": row.sourceTsPhone,
+                                "ng-click": 'vm.updateMultiselectDecomposedNewPhone("'+row.sourceTsPhone+'")',
+                                checked: tick,
                                 class: "transform150"
                             })
                             return link.prop('outerHTML');
@@ -8174,7 +8178,8 @@ define(['js/app'], function (myApp) {
             if ($checkAll.length == 1) {
                 var $showBtn = $('<input>', {
                     type: 'checkbox',
-                    class: "decomposedNewPhoneSelected transform150 checkAllDecomposedNewPhone"
+                    class: "decomposedNewPhoneSelected transform150 checkAllDecomposedNewPhone",
+                    checked: vm.isAllChecked("#decomposedNewPhoneTable tbody td.decomposedNewPhoneSelected input")
                 });
                 $checkAll.html($showBtn);
                 $('.decomposedNewPhoneSelected.checkAllDecomposedNewPhone').on('click', function () {
@@ -8187,27 +8192,29 @@ define(['js/app'], function (myApp) {
                 var s = $("#decomposedNewPhoneTable tbody td.decomposedNewPhoneSelected input").each(function () {
                     $(this).prop("checked", flag);
                 });
-                vm.updateMultiselectDecomposedNewPhone();
+                data.forEach(item => {
+                    vm.updateMultiselectDecomposedNewPhone(item.sourceTsPhone, flag);
+                });
             };
 
             setTimeout(function () {
                 $('#decomposedNewPhoneTable').resize();
             }, 100);
 
-            function tableRowClicked(event) {
-                if (event.target.tagName == "INPUT" && event.target.type == 'checkbox') {
-                    var flagAllChecked = $("#decomposedNewPhoneTable tbody td.decomposedNewPhoneSelected input[type='checkbox']:not(:checked)");
-                    $('.decomposedNewPhoneSelected.checkAllDecomposedNewPhone').prop('checked', flagAllChecked.length == 0);
-                    vm.updateMultiselectDecomposedNewPhone();
-                }
-            };
+            // function tableRowClicked(event) {
+            //     if (event.target.tagName == "INPUT" && event.target.type == 'checkbox') {
+            //         var flagAllChecked = $("#decomposedNewPhoneTable tbody td.decomposedNewPhoneSelected input[type='checkbox']:not(:checked)");
+            //         $('.decomposedNewPhoneSelected.checkAllDecomposedNewPhone').prop('checked', flagAllChecked.length == 0);
+            //         vm.updateMultiselectDecomposedNewPhone();
+            //     }
+            // };
 
-            $('#decomposedNewPhoneTable tbody').off('click', "**");
-            $('#decomposedNewPhoneTable tbody').on('click', 'tr', tableRowClicked);
-            $('#decomposedNewPhoneTable').off('order.dt');
-            $('#decomposedNewPhoneTable').on('order.dt', function (event, a, b) {
-                vm.commonSortChangeHandler(a, 'decomposedNewPhoneQuery', vm.searchDecomposedNewPhoneQuery);
-            });
+            // $('#decomposedNewPhoneTable tbody').off('click', "**");
+            // $('#decomposedNewPhoneTable tbody').on('click', 'tr', tableRowClicked);
+            // $('#decomposedNewPhoneTable').off('order.dt');
+            // $('#decomposedNewPhoneTable').on('order.dt', function (event, a, b) {
+            //     vm.commonSortChangeHandler(a, 'decomposedNewPhoneQuery', vm.searchDecomposedNewPhoneQuery);
+            // });
 
             $scope.$evalAsync();
 
@@ -8217,19 +8224,39 @@ define(['js/app'], function (myApp) {
             $compile(nRow)($scope);
         };
 
-        vm.updateMultiselectDecomposedNewPhone = function () {
-            var allClicked = $("#decomposedNewPhoneTable tr input:checked[type='checkbox']");
-            vm.multiDecomposedNewPhoneSelected = [];
-            if (allClicked.length > 0) {
-                allClicked.each(function () {
-                    var id = $(this)[0].dataset.tsphoneid;
-                    if (id) {
-                        vm.multiDecomposedNewPhoneSelected.push(id);
+        vm.updateMultiselectDecomposedNewPhone = function (tsphoneid, selectAction) {
+            // var allClicked = $("#decomposedNewPhoneTable tr input:checked[type='checkbox']");
+            // if (allClicked.length > 0) {
+            //     allClicked.each(function () {
+            //         var id = $(this)[0].dataset.tsphoneid;
+            //         if (id && !vm.multiDecomposedNewPhoneSelected.includes(id)) {
+            //             vm.multiDecomposedNewPhoneSelected.push(id);
+            //         }
+            //     });
+            // }
+            // $scope.$evalAsync();
+
+            if(tsphoneid) {
+                let arrIndex = vm.multiDecomposedNewPhoneSelected.indexOf(tsphoneid);
+                if (selectAction === true) {
+                    if (arrIndex == -1) {
+                        vm.multiDecomposedNewPhoneSelected.push(tsphoneid);
                     }
-                });
+                } else if (selectAction === false) {
+                    if (arrIndex > -1) {
+                        vm.multiDecomposedNewPhoneSelected.splice(arrIndex, 1);
+                    }
+                } else {
+                    if (arrIndex > -1) {
+                        vm.multiDecomposedNewPhoneSelected.splice(arrIndex, 1);
+                    } else {
+                        vm.multiDecomposedNewPhoneSelected.push(tsphoneid);
+                    }
+                }
+                let isChecked = vm.isAllChecked("#decomposedNewPhoneTable tbody td.decomposedNewPhoneSelected input");
+                $(".dataTables_scrollHead thead .decomposedNewPhoneSelected").prop("checked",isChecked);
             }
             console.log(vm.multiDecomposedNewPhoneSelected);
-            $scope.$evalAsync();
         };
 
         vm.setPanel = function (isSet) {
