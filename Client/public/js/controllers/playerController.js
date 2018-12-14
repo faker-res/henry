@@ -11782,6 +11782,7 @@ define(['js/app'], function (myApp) {
                         console.log('assignTopup success', data);
                         vm.playerAssignTopUp.responseData = data.data;
                         vm.getPlatformPlayersData();
+                        vm.initPlayerAssignTopUp();
                     });
                 }, function (error) {
                     vm.playerAssignTopUp.responseMsg = $translate(error.error.errorMessage);

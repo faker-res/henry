@@ -5804,8 +5804,17 @@ let dbPlayerInfo = {
                                         // dbPlayerInfo.findAndUpdateSimilarPlayerInfoByField(data, 'lastLoginIp', playerData.lastLoginIp);
                                     }
 
-                                    // check for playerRetentionRewardGroup
-                                    dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(errorUtils.reportError);
+                                    dbPlayerInfo.getRetentionRewardAfterLogin(record.platform, record.player, userAgent).catch(
+                                        err => {
+                                            if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                                                // Ignore concurrent request for now
+                                            } else {
+                                                // Set BState back to false
+                                                dbPlayerUtil.setPlayerBState(playerData._id, "applyRewardEvent", false).catch(errorUtils.reportError);
+                                            }
+                                            console.log('playerRetentionRewardGroup error when login', playerData.playerId, err);
+                                        }
+                                    );
                                 }
                             ).then(
                                 () => {
@@ -5886,7 +5895,7 @@ let dbPlayerInfo = {
             model: dbconfig.collection_platform
         }).then(
             playerInfo => {
-                if (!playerInfo){
+                if (!playerInfo) {
                     return Promise.reject({
                         name: "DataError",
                         message: "Player cannot be found",
@@ -5903,13 +5912,25 @@ let dbPlayerInfo = {
                     });
                 }
 
-                return dbconfig.collection_playerRetentionRewardGroupRecord.find(query).populate({
-                    path: "rewardEventObjId",
-                    model: dbconfig.collection_rewardEvent
-                }).populate({
-                    path: "topUpRecordObjId",
-                    model: dbconfig.collection_playerTopUpRecord
-                }).lean();
+                return dbPlayerUtil.setPlayerBState(playerInfo._id, "applyRewardEvent", true);
+            }
+        ).then(
+            playerState => {
+                if (playerState) {
+                    return dbconfig.collection_playerRetentionRewardGroupRecord.find(query).populate({
+                        path: "rewardEventObjId",
+                        model: dbconfig.collection_rewardEvent
+                    }).populate({
+                        path: "topUpRecordObjId",
+                        model: dbconfig.collection_playerTopUpRecord
+                    }).lean();
+                } else {
+                    return Promise.reject({
+                        name: "DBError",
+                        status: constServerCode.CONCURRENT_DETECTED,
+                        message: "Apply Reward Fail, please try again later"
+                    })
+                }
             }
         ).then(
             retentionRecord => {
@@ -5968,6 +5989,11 @@ let dbPlayerInfo = {
                 }
 
                 return checkAndApplyRetentionReward;
+            }
+        ).then(
+            () => {
+                // Reset BState
+                return dbPlayerUtil.setPlayerBState(playerData._id, "applyRewardEvent", false);
             }
         )
     },
@@ -7137,6 +7163,15 @@ let dbPlayerInfo = {
                 return gameProvider;
             },
             err => {
+                if(err && err.status && err.status == constServerCode.CONFIRMATION_TO_COMPLETE_ACTIVITY){
+                    return Promise.reject({
+                        status: err.status,
+                        name: err.name,
+                        message: err.message,
+                        data: err.data
+                    });
+                }
+
                 return Promise.reject({
                     name: "DataError",
                     message: err.message
@@ -7182,8 +7217,13 @@ let dbPlayerInfo = {
 
             },
             function (err) {
-                if(err && err.message && err.message == "Confirm to complete the activity?"){
-                    return Promise.reject({name: "DataError", message: err.message, error: err})
+                if(err && err.status && err.status == constServerCode.CONFIRMATION_TO_COMPLETE_ACTIVITY){
+                    return Promise.reject({
+                        status: err.status,
+                        name: err.name,
+                        message: err.message,
+                        data: err.data
+                    });
                 }
 
                 return Promise.reject({name: "DataError", message: "Cant find player or provider" + err.message, error: err})
@@ -14492,7 +14532,6 @@ let dbPlayerInfo = {
                                     }
                                     return applyPlayerBonusDoubledRewardGroup(userAgent, playerInfo, rewardEvent, adminInfo, rewardData, isFrontEnd);
                                     break;
-                                case constRewardType.PLAYER_BONUS_DOUBLED_REWARD_GROUP:
                                 case constRewardType.PLAYER_TOP_UP_RETURN_GROUP:
                                 case constRewardType.PLAYER_CONSECUTIVE_REWARD_GROUP:
                                 case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
@@ -21693,6 +21732,8 @@ let dbPlayerInfo = {
             intervalStartTime: {$lte: currentDate},
             intervalEndTime: {$gt: currentDate}
         };
+        let rewardEventCode;
+        let rewardEventName;
 
         return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOne(query)
             .populate({path: 'gameProviders', model: dbconfig.collection_gameProvider})
@@ -21700,6 +21741,11 @@ let dbPlayerInfo = {
             .then(
             playerBonusDoubledReward => {
                 playerBonusDoubledRewardObj = playerBonusDoubledReward;
+                rewardEventCode = playerBonusDoubledReward && playerBonusDoubledReward.rewardEventObjId && playerBonusDoubledReward.rewardEventObjId.code ?
+                    playerBonusDoubledReward.rewardEventObjId.code : "";
+                rewardEventName = playerBonusDoubledReward && playerBonusDoubledReward.rewardEventObjId && playerBonusDoubledReward.rewardEventObjId.name ?
+                    playerBonusDoubledReward.rewardEventObjId.name : "";
+
                 if(playerBonusDoubledRewardObj && playerBonusDoubledRewardObj.isApplying){
                     if(playerBonusDoubledRewardObj.gameProviderObjId && playerBonusDoubledRewardObj.gameProviderId){
                         let getCreditQuery = {
@@ -21741,8 +21787,13 @@ let dbPlayerInfo = {
                             }).then(
                                 () => {
                                     return Promise.reject({
+                                        status: constServerCode.CONFIRMATION_TO_COMPLETE_ACTIVITY,
                                         name: "DataError",
-                                        message: "Confirm to complete the activity?"
+                                        message: "Confirm to complete the activity?",
+                                        data: {
+                                            code: rewardEventCode,
+                                            name: rewardEventName
+                                        }
                                     });
                                 }
                             );
@@ -21795,12 +21846,18 @@ let dbPlayerInfo = {
             intervalStartTime: {$lte: currentDate},
             intervalEndTime: {$gt: currentDate}
         };
+        let rewardEventCode;
+        let rewardEventName;
 
         return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOne(query)
         .populate({path: 'rewardEventObjId', model: dbconfig.collection_rewardEvent})
         .then(
             playerBonusDoubledReward => {
                 if(playerBonusDoubledReward){
+                    rewardEventCode = playerBonusDoubledReward.rewardEventObjId && playerBonusDoubledReward.rewardEventObjId.code ?
+                        playerBonusDoubledReward.rewardEventObjId.code : "";
+                    rewardEventName = playerBonusDoubledReward.rewardEventObjId && playerBonusDoubledReward.rewardEventObjId.name ?
+                        playerBonusDoubledReward.rewardEventObjId.name : "";
                     playerBonusDoubledRewardObj = playerBonusDoubledReward;
                     return cpmsAPI.player_queryCredit(
                         {
@@ -21829,8 +21886,13 @@ let dbPlayerInfo = {
                         }).then(
                             () => {
                                 return Promise.reject({
+                                    status: constServerCode.CONFIRMATION_TO_COMPLETE_ACTIVITY,
                                     name: "DataError",
-                                    message: "Confirm to complete the activity?"
+                                    message: "Confirm to complete the activity?",
+                                    data: {
+                                        code: rewardEventCode,
+                                        name: rewardEventName
+                                    }
                                 });
                             }
                         )
