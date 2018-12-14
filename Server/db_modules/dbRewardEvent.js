@@ -258,7 +258,6 @@ var dbRewardEvent = {
                             lastApplyDate: {$gte: todayTime.startTime, $lte: todayTime.endTime}
                         };
 
-
                         if (intervalTime) {
                             topupQuery.createTime = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
                             timesQuery.lastApplyDate = {$gte: intervalTime.startTime, $lte: intervalTime.endTime};
@@ -678,6 +677,14 @@ var dbRewardEvent = {
             returnData.result.xima = 1;
         }
 
+        //get the acticity startTime and endTime
+        if (rewardParam && rewardParam.record && rewardParam.record.transferInTime){
+            returnData.condition.createTime = rewardParam.record.transferInTime;
+        }
+        if (rewardParam && rewardParam.record && rewardParam.record.transferOutTime){
+            returnData.condition.endTime = rewardParam.record.transferOutTime;
+        }
+
         let winLoseAmount= 0;
         let winTimes = 0;
         let totalBetAmount = 0;
@@ -778,9 +785,9 @@ var dbRewardEvent = {
             }
 
             returnData.result.totalWinAmount = winLoseAmount;
-            returnData.result.winTimes = winTimes;
+            returnData.result.winTimes = Math.floor(winTimes);
             returnData.result.totalBetAmount = totalBetAmount;
-            returnData.result.rewardAmount = rewardAmount;
+            returnData.result.rewardAmount = Math.floor((parseFloat(rewardAmount*100)))/100;
             returnData.result.quantityLimit = chances;
             returnData.result.appliedCount = appliedCount;
         }

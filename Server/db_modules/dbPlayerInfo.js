@@ -11558,7 +11558,7 @@ let dbPlayerInfo = {
                         let creditProm = Q.resolve();
 
                         if (player.lastPlayedProvider && dbUtility.getPlatformSpecificProviderStatus(player.lastPlayedProvider, platform.platformId) == constGameStatus.ENABLE) {
-                            creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(player.playerId, player.platform._id, player.lastPlayedProvider.providerId, -1, null, true).catch(errorUtils.reportError);
+                            creditProm = dbPlayerInfo.transferPlayerCreditFromProvider(player.playerId, player.platform._id, player.lastPlayedProvider.providerId, -1, null, true)
                         }
 
                         return creditProm.then(
@@ -11567,6 +11567,11 @@ let dbPlayerInfo = {
                                     .populate({path: "platform", model: dbconfig.collection_platform})
                                     .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
                                     .lean();
+                            },
+                            err => {
+                                if(err && err.status && err.status == constServerCode.CONFIRMATION_TO_COMPLETE_ACTIVITY){
+                                    return Promise.reject(err);
+                                }
                             }
                         ).then(
                             playerData => {
@@ -12740,6 +12745,9 @@ let dbPlayerInfo = {
                                                 return transferCreditToProvider(data);
                                             },
                                             err => {
+                                                if(isApplyBonusDoubledReward){
+                                                    return Promise.reject(err);
+                                                }
                                                 // Error transfer out from last provider, insufficent amount
                                                 return Promise.reject({name: "DataError", message: "Insufficient amount to enter game"});
                                             }
@@ -12802,6 +12810,9 @@ let dbPlayerInfo = {
                 return cpmsAPI.player_getLoginURL(sendData);
             },
             err => {
+                if(isApplyBonusDoubledReward){
+                    return Promise.reject(err);
+                }
                 return Promise.reject({name: "DataError", message: err.message});
             }
         ).then(
@@ -12815,6 +12826,9 @@ let dbPlayerInfo = {
                 return {gameURL: loginData.gameURL};
             },
             err => {
+                if(isApplyBonusDoubledReward){
+                    return Promise.reject(err);
+                }
                 return Promise.reject({name: "DataError", message: err.message});
             }
         );
@@ -22864,7 +22878,7 @@ function transferOutFromSelectedGameProvider(selectedProviderList, playerData, e
         let providerIdList = [];
         let notEnoughToTransferProviderId = [];
         let checkCreditProm = Promise.resolve();
-        let isAllDone = true;
+        // let isAllDone = true;
         let query = {
             _id: {$in: selectedProviderList}
         };
@@ -22954,7 +22968,9 @@ function transferOutFromSelectedGameProvider(selectedProviderList, playerData, e
 
                                     }
                                     , err => {
-                                        isAllDone = false;
+                                        return Promise.reject(err);
+                                        console.log("checking error", err)
+                                        // isAllDone = false;
                                     }
                                 )
                             }
@@ -22965,13 +22981,13 @@ function transferOutFromSelectedGameProvider(selectedProviderList, playerData, e
             }
         ).then (
             () => {
-                if (!isAllDone){
-                    // transfer-out is not successful -> show error
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "The transferring-out process is failed"
-                    })
-                }
+                // if (!isAllDone){
+                //     // transfer-out is not successful -> show error
+                //     return Promise.reject({
+                //         name: "DataError",
+                //         message: "The transferring-out process is failed"
+                //     })
+                // }
                 return updateOrSaveBonusDoubledRewardGroupRecord(playerData, eventData, selectedProviderList, intervalTime);
             }
         )

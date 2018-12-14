@@ -803,7 +803,9 @@ var proposal = {
         let proposalObj = null;
         let type = constPlayerTopUpType.ONLINE;
 
-        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).then(
+        return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
+            path: 'type', model: dbconfig.collection_proposalType
+        }).then(
             proposalData => {
                 proposalObj = proposalData;
 
@@ -826,7 +828,8 @@ var proposal = {
                 }
                 if (proposalData
                     && proposalData.data
-                    && (proposalData.status == constProposalStatus.PREPENDING || (
+                    && (proposalData.status == constProposalStatus.PREPENDING
+                        || (
                             (
                                 proposalData.status == constProposalStatus.PENDING
                                 || proposalData.status == constProposalStatus.PROCESSING
@@ -835,7 +838,11 @@ var proposal = {
                                 || proposalData.status == constProposalStatus.CANCEL
                             )
                             && proposalData.data
-                        && (proposalData.data.requestId == requestId || !proposalData.data.requestId)))) {
+                            && (proposalData.data.requestId == requestId || !proposalData.data.requestId)
+                        )
+                        || proposalData.type.name === constProposalType.PLAYER_COMMON_TOP_UP
+                    )
+                ) {
                     return proposalData;
                 }
                 else {
@@ -4627,39 +4634,6 @@ var proposal = {
         let rewardAmount = 0;
         let spendingAmount = 0;
 
-        if (!selectedRewardParam || !playerBonusDoubledRecord || winLoseAmount <= 0) {
-            // end this activity without giving reward bonus
-            console.log("applyRewardEvent - Ended the activity without giving reward bonus", [playerData.playerId, eventData.type.name]);
-            // update the playerBonusDoubledRewardGroupRecord
-            let query = {
-                platformObjId: playerData.platform._id,
-                playerObjId: playerData._id,
-                rewardEventObjId: eventData._id,
-                lastApplyDate: {$gte: intervalTime.startTime, $lte: intervalTime.endTime}
-            };
-            let updateObj = {
-                isApplying: false,
-                gameProviderObjId: null,
-                gameProviderId: null,
-                transferInAmount: null,
-                transferInTime: null,
-                transferOutTime: null,
-                transferInId: null
-            };
-
-            return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, updateObj).lean();
-        }
-
-
-        if (selectedRewardParam.hasOwnProperty('rewardPercentage')){
-            rewardAmount = playerBonusDoubledRecord.transferInAmount * selectedRewardParam.rewardPercentage;
-            spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
-        }
-        else {
-            rewardAmount = selectedRewardParam.rewardAmount;
-            spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
-        }
-
         // create reward proposal
         let proposalData = {
             type: eventData.executeProposal,
@@ -4674,41 +4648,57 @@ var proposal = {
                 playerName: playerData.name,
                 realName: playerData.realName,
                 platformObjId: playerData.platform._id,
-                rewardAmount: rewardAmount,
-                spendingAmount: spendingAmount,
+                // rewardAmount: rewardAmount,
+                // spendingAmount: spendingAmount,
                 eventId: eventData._id,
                 eventName: eventData.name,
                 eventCode: eventData.code,
                 eventDescription: eventData.description,
                 isIgnoreAudit: eventData.condition && (typeof(eventData.condition.isIgnoreAudit) === "boolean" && eventData.condition.isIgnoreAudit === true) || (Number.isInteger(eventData.condition.isIgnoreAudit) && eventData.condition.isIgnoreAudit >= rewardAmount),
-                forbidWithdrawAfterApply: Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true),
-                remark: selectedRewardParam.remark,
+                // forbidWithdrawAfterApply: Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true),
+                // remark: selectedRewardParam.remark,
                 useConsumption: Boolean(!eventData.condition.isSharedWithXIMA),
                 providerGroup: eventData.condition.providerGroup,
                 // Use this flag for auto apply reward
                 isGroupReward: true,
                 // If player credit is more than this number after unlock reward group, will ban bonus
-                forbidWithdrawIfBalanceAfterUnlock: selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0,
+                // forbidWithdrawIfBalanceAfterUnlock: selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0,
                 isDynamicRewardAmount: false,
             },
             entryType: constProposalEntryType.CLIENT,
             userType: constProposalUserType.PLAYERS
         };
+        
+        if (selectedRewardParam && playerBonusDoubledRecord){
+            if (selectedRewardParam.hasOwnProperty('rewardPercentage')){
+                rewardAmount = playerBonusDoubledRecord.transferInAmount * selectedRewardParam.rewardPercentage;
+                spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
+            }
+            else {
+                rewardAmount = selectedRewardParam.rewardAmount;
+                spendingAmount = rewardAmount * selectedRewardParam.spendingTimes;
+            }
 
-        // proposalData.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
+            proposalData.data.forbidWithdrawAfterApply = Boolean(selectedRewardParam.forbidWithdrawAfterApply && selectedRewardParam.forbidWithdrawAfterApply === true);
+            proposalData.data.remark = selectedRewardParam.remark;
+            proposalData.data.forbidWithdrawIfBalanceAfterUnlock = selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock ? selectedRewardParam.forbidWithdrawIfBalanceAfterUnlock : 0;
+        }
+
+        proposalData.data.rewardAmount = rewardAmount;
+        proposalData.data.spendingAmount = spendingAmount;
         proposalData.data.rewardStartTime = eventData.condition.validStartTime;
         proposalData.data.rewardEndTime = eventData.condition.validEndTime;
         proposalData.data.rewardInterval = eventData.condition.interval;
-        proposalData.data.timesHasApplied = playerBonusDoubledRecord.applyTimes;
+        proposalData.data.timesHasApplied = playerBonusDoubledRecord && playerBonusDoubledRecord.applyTimes ? playerBonusDoubledRecord.applyTimes : null;
         proposalData.data.quantityLimitInInterval = eventData.condition.quantityLimitInInterval;
-        proposalData.data.gameProviderInEvent = playerBonusDoubledRecord.gameProviderObjId;
-        proposalData.data.transferInAmount = playerBonusDoubledRecord.transferInAmount;
-        proposalData.data.transferInId = playerBonusDoubledRecord.transferInId || "";
+        proposalData.data.gameProviderInEvent = playerBonusDoubledRecord && playerBonusDoubledRecord.gameProviderObjId ? playerBonusDoubledRecord.gameProviderObjId : null;
+        proposalData.data.transferInAmount = playerBonusDoubledRecord && playerBonusDoubledRecord.transferInAmount ? playerBonusDoubledRecord.transferInAmount : null;
+        proposalData.data.transferInId = playerBonusDoubledRecord && playerBonusDoubledRecord.transferInId ? playerBonusDoubledRecord.transferInId : "";
         proposalData.data.transferOutAmount = transferOutRecord && transferOutRecord.amount ? transferOutRecord.amount : 0;
         proposalData.data.transferOutId = transferOutRecord && transferOutRecord.transferId ? transferOutRecord.transferId : "";
         proposalData.data.winLoseAmount = winLoseAmount;
-        proposalData.data.countWinLoseStartTime = playerBonusDoubledRecord.transferInTime;
-        proposalData.data.countWinLoseEndTime = playerBonusDoubledRecord.transferOutTime;
+        proposalData.data.countWinLoseStartTime = playerBonusDoubledRecord && playerBonusDoubledRecord.transferInTime ? playerBonusDoubledRecord.transferInTime : null;
+        proposalData.data.countWinLoseEndTime = playerBonusDoubledRecord && playerBonusDoubledRecord.transferOutTime ? playerBonusDoubledRecord.transferOutTime: null;
         proposalData.data.lastLoginIp = playerData.lastLoginIp;
         proposalData.data.phoneNumber = playerData.phoneNumber;
 
@@ -4754,7 +4744,7 @@ var proposal = {
                 postPropPromArr.push(dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, updateObj).lean());
 
                 if (proposalData && proposalData._id) {
-                    if (consumptionRecordList && consumptionRecordList.length > 0) {
+                    if (consumptionRecordList && consumptionRecordList.length > 0 && rewardAmount > 0) {
                         postPropPromArr.push(dbconfig.collection_playerConsumptionRecord.update(
                             {_id: {$in: consumptionRecordList}},
                             {

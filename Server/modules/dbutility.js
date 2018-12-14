@@ -1223,6 +1223,11 @@ var dbUtility = {
         return decryptedPhoneNo;
     },
 
+    countOccurrenceInString: (str, substr) => {
+        let regExp = new RegExp(substr, "g");
+        return (str.match(regExp) || []).length;
+    },
+
     // copy from controller.js, which said to be copied from internet and known for bad naming convention
     convertToMD5: (string) => {
         function RotateLeft(lValue, iShiftBits) {

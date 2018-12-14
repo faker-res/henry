@@ -28107,6 +28107,7 @@ console.log('typeof ',typeof gameProviders);
                     $scope.$evalAsync(() => {
                         vm.playerAllFeedBackResult = data.data;
                     });
+                    vm.debounceRefreshSPicker();
                 });
 
                 $scope.safeApply();

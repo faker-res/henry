@@ -961,12 +961,13 @@ define(['js/app'], function (myApp) {
                 result = $scope.counterDepositType[val];
                 result = $translate(result);
             }
-            // else if (fieldName === 'gameProviderInEvent') {
-            //     let index = vm.allGameProviders.findIndex(p => p._id.toString() == val.toString());
-            //     if (index != -1){
-            //         result =  vm.allGameProviders[index].name;
-            //     }
-            // }
+            else if (fieldName === 'gameProviderInEvent') {
+                let gameProviderById = vm.allGameProviderById[val.toString()];
+
+                if(gameProviderById && gameProviderById.name){
+                    result =  gameProviderById.name;
+                }
+            }
             return $sce.trustAsHtml(result);
         };
         // vm.getTopupIntentionData = function (callback) {
@@ -3084,8 +3085,8 @@ define(['js/app'], function (myApp) {
                 proposalDetail["rewardEndTime"] = vm.selectedProposal.data.rewardEndTime;
                 proposalDetail["rewardInterval"] = vm.selectedProposal.data.rewardInterval;
                 proposalDetail["appliedQuantityOverApplicationLimit"] = timesHasApplied + '/' + quantityLimitInInterval;
-                proposalDetail["transferInDetail"] = transferInAmount + ' (' + $translate("transferIn") + ': ' + transferInId + ')';
-                proposalDetail["transferOutDetail"] = transferOutAmount + ' (' + $translate("transferOut") + ': ' + transferOutId  + ')';
+                proposalDetail["transferInDetail"] = transferInAmount + ' (' + $translate("transferIn") + "ID" + ': ' + transferInId + ')';
+                proposalDetail["transferOutDetail"] = transferOutAmount + ' (' + $translate("transferOut") + "ID" + ': ' + transferOutId  + ')';
                 proposalDetail["winLoseAmount"] = vm.selectedProposal.data.winLoseAmount;
                 proposalDetail["countWinLoseStartTime"] = vm.selectedProposal.data.countWinLoseStartTime;
                 proposalDetail["countWinLoseEndTime"] = vm.selectedProposal.data.countWinLoseEndTime;
