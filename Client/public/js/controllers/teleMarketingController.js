@@ -415,6 +415,17 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        vm.getActivePhoneListNameForAdmin = () => {
+            return $scope.$socketPromise("getActivePhoneListNameForAdmin", {platformObjId: vm.selectedPlatform.id}).then(
+                data => {
+                    if (data) {
+                        vm.adminPhoneListName = data.data || [];
+                        $scope.$evalAsync();
+                    }
+                }
+            );
+        };
+
         vm.loadTab = function (tabName) {
             vm.selectedTab = tabName;
 
@@ -430,17 +441,12 @@ define(['js/app'], function (myApp) {
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#phoneListEndTimePicker', utilService.getTodayEndTime());
                     break;
                 case 'REMINDER_PHONE_LIST':
-                    commonService.getTSPhoneListName($scope, {assignees: authService.adminId, platform: vm.selectedPlatform.id}).then(
-                        data => {
-                            vm.adminPhoneListName = data;
-                            $scope.$evalAsync();
-                        }
-                    );
+                    vm.getActivePhoneListNameForAdmin();
 
                     vm.queryAdminPhoneList = {totalCount: 0, sortCol: {assignTimes: 1, endTime: 1}};
                     utilService.actionAfterLoaded("#adminPhoneListTablePage", function () {
-                        commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'startTime', '#adminPhoneListLastFeedbackStart', utilService.getNdayagoStartTime(30));
-                        commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'endTime', '#adminPhoneListLastFeedbackEnd', utilService.getTodayEndTime());
+                        commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'startTime', '#adminPhoneListLastFeedbackStart');
+                        commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'endTime', '#adminPhoneListLastFeedbackEnd');
                         commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'startTime', '#adminPhoneListDistributeStart', utilService.getNdayagoStartTime(30));
                         commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'endTime', '#adminPhoneListDistributeEnd', utilService.getTodayEndTime());
                         vm.queryAdminPhoneList.pageObj = utilService.createPageForPagingTable("#adminPhoneListTablePage", {}, $translate, function (curP, pageSize) {
@@ -8036,19 +8042,21 @@ define(['js/app'], function (myApp) {
                     if(data.data.indexOf(item.phone) > -1) {
                         vm.exportTsPhoneTrade.phoneObjId.push(item._id);
                     }
-                })
-            });
-            // sourcePlatform, sourceTopicName, exportCount, targetPlatform, phoneTradeObjIdArr
-            sendData = {
-                sourcePlatform: vm.selectedPlatform.id,
-                sourceTopicName: vm.exportTsPhoneTrade.topic,
-                exportCount: vm.exportTsPhoneTrade.exportCount,
-                targetPlatform: vm.exportTsPhoneTrade.targetPlatform,
-                phoneTradeObjIdArr: vm.exportTsPhoneTrade.phoneObjId
-            };
-            socketService.$socket($scope.AppSocket, 'exportDecomposedPhone', sendData, function (data) {
-                console.log('exportDecomposedPhone ret', data);
-                $scope.$evalAsync(() => {
+                });
+                let maxCount = vm.exportTsPhoneTrade.phoneObjId.length;
+                let exportCount = vm.exportTsPhoneTrade.exportCount;
+                vm.exportTsPhoneTrade.exportCount = exportCount > maxCount ? maxCount : exportCount;
+                sendData = {
+                    sourcePlatform: vm.selectedPlatform.id,
+                    sourceTopicName: vm.exportTsPhoneTrade.topic,
+                    exportCount: vm.exportTsPhoneTrade.exportCount,
+                    targetPlatform: vm.exportTsPhoneTrade.targetPlatform,
+                    phoneTradeObjIdArr: vm.exportTsPhoneTrade.phoneObjId
+                };
+                socketService.$socket($scope.AppSocket, 'exportDecomposedPhone', sendData, function (data) {
+                    console.log('exportDecomposedPhone ret', data);
+                    $scope.$evalAsync(() => {
+                    });
                 });
             });
         };
