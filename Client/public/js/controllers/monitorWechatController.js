@@ -279,29 +279,6 @@ define(['js/app'], function (myApp) {
                     vm.wcGroupControlSessionHistory.deviceId = data.deviceId;
                 };
 
-                $('select#selectWCGroupControlSessionHistoryAdminId').multipleSelect({
-                    allSelected: $translate("All Selected"),
-                    selectAllText: $translate("Select All"),
-                    displayValues: true,
-                    countSelected: $translate('# of % selected'),
-                });
-                let $multi = ($('select#selectWCGroupControlSessionHistoryAdminId').next().find('.ms-choice'))[0];
-                $('select#selectWCGroupControlSessionHistoryAdminId').next().on('click', 'li input[type=checkbox]', function () {
-                    let upText = $($multi).text().split(',').map(item => {
-                        let textShow = '';
-                        vm.wechatGroupControlHistoryAdminList.forEach(admin => {
-                            if (admin && admin._id && item && ((admin._id.toString() == item.trim().toString() || admin.adminName.toString() == item.trim().toString()))) {
-                                textShow = admin.adminName;
-                            } else if (item.trim().includes('/') || item.trim().includes('全选')) {
-                                textShow = item;
-                            }
-                        });
-                        return textShow;
-                    }).join(',');
-                    $($multi).find('span').text(upText);
-                });
-                $("select#selectWCGroupControlSessionHistoryAdminId").multipleSelect("checkAll");
-
                 vm.wcGroupControlSessionHistory.startDate = utilService.createDatePicker('#wcGroupControlSessionHistoryQuery .startTime');
                 vm.wcGroupControlSessionHistory.endDate = utilService.createDatePicker('#wcGroupControlSessionHistoryQuery .endTime');
                 vm.wcGroupControlSessionHistory.startDate.data('datetimepicker').setDate(utilService.setLocalDayStartTime(utilService.setNDaysAgo(new Date(), 7)));

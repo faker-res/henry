@@ -78,7 +78,7 @@ function socketActionWCGroupControl(socketIO, socket) {
 
         getWCGroupControlSessionHistory: function getWCGroupControlSessionHistory(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platformObjId && data.deviceNickName && data.deviceId && data.adminIds && data.startDate && data.endDate);
+            let isValidData = Boolean(data && data.platformObjId && data.deviceNickName && data.deviceId && data.startDate && data.endDate);
             let index = data.index || 0;
             let limit = data.limit || 1000;
             let sortCol = data.sortCol || {createTime: -1};

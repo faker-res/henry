@@ -558,9 +558,9 @@ var dbWCGroupControl = {
         };
 
         if (csOfficerList && csOfficerList.length > 0) {
-            query['csOfficer'] = {$in: csOfficerList};
-        } else {
-            query['csOfficer'] = {$eq: null};
+            query['$or'] = [{csOfficer: {$eq: null}},
+                {csOfficer: {$in: csOfficerList}}
+            ]
         }
 
         let countWCGroupControlSessionHistoryProm = dbConfig.collection_wcGroupControlSession.find(query).count();
