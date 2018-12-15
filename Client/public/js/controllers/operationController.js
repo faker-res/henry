@@ -698,18 +698,6 @@ define(['js/app'], function (myApp) {
 
             return dateTimePickerElem.data('datetimepicker').setLocalDate(dateTime);
         };
-        // vm.allProposalClicked = function (callback) {
-        //     vm.blinkAllProposal = false;
-        //     vm.rightPanelTitle = 'ALL_PROPOSAL';
-        //
-        //     // $('#proposalDataTable').resize();
-        //     // $('#proposalDataTable').resize();
-        //     vm.loadProposalQueryData();
-        //     // vm.loadProposalData();
-        //     if (callback) {
-        //         callback();
-        //     }
-        // }
 
         vm.proposalTypeUpdated = function () {
             if (vm.rightPanelTitle == 'ALL_PROPOSAL') {
@@ -766,19 +754,6 @@ define(['js/app'], function (myApp) {
             });
         };
 
-        // vm.topupClicked = function () {
-        //     vm.blinkTopUp = false;
-        //     if (!authService.checkViewPermission('Operation', 'Proposal', 'TopupIntentionDetail')) {
-        //         return;
-        //     }
-        //     vm.rightPanelTitle = $translate('TOPUP_PROPOSAL');
-        //
-        //     vm.getTopupIntentionData();
-        //     vm.drawTopupMonitorTable(vm.allTopupAccount);
-        //     $('#proposalDataTable').resize();
-        //     $('#proposalDataTable').resize();
-        //
-        // };
         vm.showProposalDetailField = function (obj, fieldName, val) {
             if (!obj) return '';
             var result = val ? val.toString() : (val === 0) ? "0" : "";

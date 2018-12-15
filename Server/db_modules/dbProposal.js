@@ -887,10 +887,9 @@ var proposal = {
                     //update proposal for experiation
                     // Update proposal type for common top up proposal
                     let propTypeProm = Promise.resolve();
+                    let propTypeName = constProposalType.PLAYER_COMMON_TOP_UP;
 
                     if (type === constPlayerTopUpType.COMMON && proposalObj.data.platformId && callbackData.topUpType) {
-                        let propTypeName = constProposalType.PLAYER_COMMON_TOP_UP;
-
                         switch (Number(callbackData.topUpType)) {
                             case 1:
                                 propTypeName = constProposalType.PLAYER_MANUAL_TOP_UP;
@@ -919,6 +918,17 @@ var proposal = {
 
                             if (propType && propType._id) {
                                 updObj.type = propType._id;
+                            }
+
+                            // Record sub top up method into proposal
+                            if (callbackData && callbackData.depositMethod) {
+                                if (propTypeName === constProposalType.PLAYER_TOP_UP) {
+                                    updObj.topupType = callbackData.depositMethod;
+                                }
+
+                                if (propTypeName === constProposalType.PLAYER_MANUAL_TOP_UP) {
+                                    updObj.depositMethod = callbackData.depositMethod;
+                                }
                             }
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
