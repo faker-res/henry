@@ -889,7 +889,7 @@ var proposal = {
                     // Update proposal type for common top up proposal
                     let propTypeProm = Promise.resolve();
 
-                    if (type === constPlayerTopUpType.COMMON && proposalObj.data.platformObjId && callbackData.topUpType) {
+                    if (type === constPlayerTopUpType.COMMON && proposalObj.data.platformId && callbackData.topUpType) {
                         let propTypeName = constProposalType.PLAYER_COMMON_TOP_UP;
 
                         switch (Number(callbackData.topUpType)) {
@@ -907,7 +907,7 @@ var proposal = {
                         }
 
                         propTypeProm = dbconfig.collection_proposalType.findOne({
-                            platformId: proposalObj.data.platformObjId,
+                            platformId: proposalObj.data.platformId,
                             name: propTypeName
                         }, '_id').lean();
                     }
