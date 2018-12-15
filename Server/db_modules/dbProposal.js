@@ -846,6 +846,7 @@ var proposal = {
                             && (proposalData.data.requestId == requestId || !proposalData.data.requestId)
                         )
                         || proposalData.type.name === constProposalType.PLAYER_COMMON_TOP_UP
+                        || proposalData.data.isCommonTopUp
                     )
                 ) {
                     return proposalData;
@@ -888,6 +889,7 @@ var proposal = {
                     // Update proposal type for common top up proposal
                     let propTypeProm = Promise.resolve();
                     let propTypeName = constProposalType.PLAYER_COMMON_TOP_UP;
+                    let isCommonTopUp = false;
 
                     if (type === constPlayerTopUpType.COMMON && proposalObj.data.platformId && callbackData.topUpType) {
                         switch (Number(callbackData.topUpType)) {
@@ -908,6 +910,8 @@ var proposal = {
                             platformId: proposalObj.data.platformId,
                             name: propTypeName
                         }, '_id').lean();
+
+                        isCommonTopUp = true;
                     }
 
                     return propTypeProm.then(
@@ -923,12 +927,17 @@ var proposal = {
                             // Record sub top up method into proposal
                             if (callbackData && callbackData.depositMethod) {
                                 if (propTypeName === constProposalType.PLAYER_TOP_UP) {
-                                    updObj.topupType = callbackData.depositMethod;
+                                    updObj.data.topupType = callbackData.depositMethod;
                                 }
 
                                 if (propTypeName === constProposalType.PLAYER_MANUAL_TOP_UP) {
-                                    updObj.depositMethod = callbackData.depositMethod;
+                                    updObj.data.depositMethod = callbackData.depositMethod;
                                 }
+                            }
+
+                            // Mark this proposal as common top up
+                            if (isCommonTopUp) {
+                                updObj.data.isCommonTopUp = true;
                             }
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
