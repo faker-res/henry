@@ -25,7 +25,10 @@ router.post('/notifyPayment', function(req, res, next) {
 
         let msgBody = parsedData.content;
         let isValidData = msgBody && msgBody.proposalId && msgBody.status && msgBody.billNo && msgBody.amount
-            && msgBody.username && msgBody.md5 && msgBody.depositMethod;
+            && msgBody.username && msgBody.md5;
+
+        // TEMP LOG
+        console.log('parsedData', parsedData);
 
         if (isValidData) {
             let statusText;

@@ -799,6 +799,7 @@ var proposal = {
         updateData['data.remarks'] = remarks;
         return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate({_id: ObjectId(id)}, updateData, {new: true}).exec();
     },
+
     updateTopupProposal: function (proposalId, status, requestId, orderStatus, remark, callbackData) {
         let proposalObj = null;
         let type = constPlayerTopUpType.ONLINE;
@@ -826,6 +827,11 @@ var proposal = {
                 if (proposalData && proposalData.data && (proposalData.data.weChatAccount != null || proposalData.data.weChatQRCode != null)) {
                     type = constPlayerTopUpType.WECHAT;
                 }
+
+                if (proposalData.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
+                    type = constPlayerTopUpType.COMMON;
+                }
+
                 if (proposalData
                     && proposalData.data
                     && (proposalData.status == constProposalStatus.PREPENDING
@@ -871,19 +877,57 @@ var proposal = {
             }
         ).then(
             data => {
-                if (status == constProposalStatus.SUCCESS) {
+                if (status === constProposalStatus.SUCCESS) {
                     // Debug credit missing after top up issue
                     console.log('updatePlayerTopupProposal', proposalId);
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, true, remark, callbackData);
-                } else if (status == constProposalStatus.FAIL) {
+                } else if (status === constProposalStatus.FAIL) {
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false, remark, callbackData);
                 }
                 else {
                     //update proposal for experiation
-                    return dbconfig.collection_proposal.findOneAndUpdate(
-                        {_id: proposalObj._id, createTime: proposalObj.createTime},
-                        {status: status}
-                    );
+                    // Update proposal type for common top up proposal
+                    let propTypeProm = Promise.resolve();
+
+                    if (type === constPlayerTopUpType.COMMON && proposalObj.data.platformObjId && callbackData.topUpType) {
+                        let propTypeName = constProposalType.PLAYER_COMMON_TOP_UP;
+
+                        switch (Number(callbackData.topUpType)) {
+                            case 1:
+                                propTypeName = constProposalType.PLAYER_MANUAL_TOP_UP;
+                                break;
+                            case 2:
+                                propTypeName = constProposalType.PLAYER_TOP_UP;
+                                break;
+                            case 3:
+                                propTypeName = constProposalType.PLAYER_ALIPAY_TOP_UP;
+                                break;
+                            case 4:
+                                propTypeName = constProposalType.PLAYER_WECHAT_TOP_UP;
+                        }
+
+                        propTypeProm = dbconfig.collection_proposalType.findOne({
+                            platformId: proposalObj.data.platformObjId,
+                            name: propTypeName
+                        }, '_id').lean();
+                    }
+
+                    return propTypeProm.then(
+                        propType => {
+                            let updObj = {
+                                status: status
+                            };
+
+                            if (propType && propType._id) {
+                                updObj.type = propType._id;
+                            }
+
+                            return dbconfig.collection_proposal.findOneAndUpdate(
+                                {_id: proposalObj._id, createTime: proposalObj.createTime},
+                                updObj
+                            );
+                        }
+                    )
                 }
             }
         ).then(
@@ -897,7 +941,7 @@ var proposal = {
             },
             error => {
                 if (!error.data) {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.COMMON_ERROR,
                         name: "DataError",
                         message: error.message || error,
@@ -910,7 +954,7 @@ var proposal = {
                     });
                 }
                 else {
-                    return Q.reject(error);
+                    return Promise.reject(error);
                 }
             }
         );
