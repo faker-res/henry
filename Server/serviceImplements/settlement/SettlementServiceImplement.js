@@ -15,6 +15,7 @@ const dbPlayerConsumptionRecord = require('./../../db_modules/dbPlayerConsumptio
 const dbPlatform = require('./../../db_modules/dbPlatform');
 const dbPartner = require('./../../db_modules/dbPartner');
 const dbPlayerReward = require('./../../db_modules/dbPlayerReward');
+const dbTeleSales = require('./../../db_modules/dbTeleSales');
 const dbRewardTask = require('./../../db_modules/dbRewardTask');
 const dbRewardEvent = require('./../../db_modules/dbRewardEvent');
 const dbPlayerMail = require("./../../db_modules/dbPlayerMail");
@@ -310,6 +311,12 @@ var SettlementServiceImplement = function () {
         let isValidData = Boolean(data && data.platform && data.partners && data.startTime && data.endTime);
         let args = [data.platform, data.partners, data.startTime, data.endTime];
         WebSocketUtil.performAction(conn, wsFunc, data, dbPartner.findPartnersForCommissionReport, args, isValidData);
+    };
+
+    this.tsPhoneCheckIsExistsAllPlatform.onRequest = (wsFunc, conn, data) => {
+        let isValidData = Boolean(data && data.platformObjIds && data.platformObjIds.length && data.tsPhonesTrade && data.tsPhonesTrade.length);
+        let args = [data.platformObjIds, data.tsPhonesTrade];
+        WebSocketUtil.performAction(conn, wsFunc, data, dbTeleSales.tsPhoneCheckIsExistsAllPlatform, args, isValidData);
     };
 
     this.generatePromoCodes.onRequest = (wsFunc, conn, data) => {
