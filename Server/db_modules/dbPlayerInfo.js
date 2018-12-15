@@ -11978,14 +11978,19 @@ let dbPlayerInfo = {
      * update top up proposal
      */
     updatePlayerTopupProposal: function (proposalId, bSuccess, remark, callbackData) {
+        let prop;
+        let lastSettleTime = new Date();
+        let status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
+
         return dbconfig.collection_proposal.findOne({proposalId: proposalId})
             .populate({path: "type", model: dbconfig.collection_proposalType}
         ).then(
             data => {
-                if (data && data.type && data.status != constProposalStatus.SUCCESS
-                    && data.status != constProposalStatus.FAIL) {
-                    var status = bSuccess ? constProposalStatus.SUCCESS : constProposalStatus.FAIL;
-                    var lastSettleTime = new Date();
+                if (
+                    data && data.type && data.status !== constProposalStatus.SUCCESS
+                    && data.status !== constProposalStatus.FAIL
+                ) {
+                    prop = data;
 
                     return dbconfig.collection_proposal.findOneAndUpdate(
                         {_id: data._id, createTime: data.createTime},
@@ -11994,35 +11999,37 @@ let dbPlayerInfo = {
                             "data.lastSettleTime": lastSettleTime,
                             settleTime: lastSettleTime
                         }
-                    ).then(
-                        updateProposal => {
-                            // Debug credit missing after top up issue
-                            console.log('updatePlayerTopupProposal updateProposal', updateProposal);
-
-                            if (updateProposal && updateProposal.status != constProposalStatus.SUCCESS
-                                && updateProposal.status != constProposalStatus.FAIL) {
-                                return proposalExecutor.approveOrRejectProposal(data.type.executionType, data.type.rejectionType, bSuccess, data).then(
-                                    () => dbconfig.collection_proposal.findOneAndUpdate(
-                                        {_id: data._id, createTime: data.createTime},
-                                        {
-                                            status: status,
-                                            "data.lastSettleTime": lastSettleTime,
-                                            "data.remark": remark,
-                                            "data.alipayer": callbackData ? callbackData.payer : "",
-                                            "data.alipayerAccount": callbackData ? callbackData.account : "",
-                                            "data.alipayerNickName": callbackData ? callbackData.nickName : "",
-                                            "data.alipayerRemark": callbackData ? callbackData.remark : "",
-                                        }
-                                    )
-                                );
-                            }
-                        }
-                    );
+                    )
                 }
                 else {
-                    return Q.reject({name: "DataError", message: "Invalid proposal id or status"});
+                    return Promise.reject({name: "DataError", message: "Invalid proposal id or status"});
                 }
             }
+        ).then(
+            preUpdProp => {
+                // Concurrency check
+                if (
+                    preUpdProp && preUpdProp.status !== constProposalStatus.SUCCESS
+                    && preUpdProp.status !== constProposalStatus.FAIL
+                ) {
+                    return proposalExecutor.approveOrRejectProposal(
+                        prop.type.executionType, prop.type.rejectionType, bSuccess, prop
+                    )
+                }
+            }
+        ).then(
+            () => dbconfig.collection_proposal.findOneAndUpdate(
+                {_id: prop._id, createTime: prop.createTime},
+                {
+                    status: status,
+                    "data.lastSettleTime": lastSettleTime,
+                    "data.remark": remark,
+                    "data.alipayer": callbackData ? callbackData.payer : "",
+                    "data.alipayerAccount": callbackData ? callbackData.account : "",
+                    "data.alipayerNickName": callbackData ? callbackData.nickName : "",
+                    "data.alipayerRemark": callbackData ? callbackData.remark : "",
+                }
+            )
         );
     },
 
