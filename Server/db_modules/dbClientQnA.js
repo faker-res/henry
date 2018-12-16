@@ -610,7 +610,7 @@ var dbClientQnA = {
                     path: "platform",
                     model: dbconfig.collection_platform,
                     select: {platformId: 1}
-                }).lean()
+                }).sort({lastAccessTime : -1}).lean()
             }
         ).then(
             players => {
