@@ -16,6 +16,7 @@ var simplifiedChinese = {
     "Incomplete input data": "不完整的输入数据",
     "Token is not authenticated": "令牌未经过身份验证",
     "Player ip doesn't match!": "玩家IP不匹配",
+    "Sent to your phone, enjoy the game.": "同时也发送至您的绑定手机号，祝您游戏愉快！",
     "top up or consumption summary does not match record": "玩家累计存款或投注与实时记录不匹配",
     "transfer credit fail, please try again later": "转账失败，请稍后重试",
     "Attention! Contact CS for further instruction": "提示！请客服其他方式核实或引导重新开户",

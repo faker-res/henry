@@ -159,7 +159,6 @@ var dbClientQnA = {
                     smsCountProm = dbClientQnA.checkSMSSentCountInPastHour(
                         clientQnAData.QnAData.platformId, clientQnAData.QnAData.phoneNumber, purpose)
                 }
-
                 return smsCountProm.then(
                     smsCountRes => {
                         if (smsCountRes) {
@@ -378,7 +377,6 @@ var dbClientQnA = {
                 if (playerData.platform && playerData.platform.platformId) {
                     updateObj.QnAData.platformId = playerData.platform.platformId;
                 }
-
                 return dbconfig.collection_clientQnA(updateObj).save().then(
                     clientQnAData => {
                         if (!clientQnAData) {
@@ -617,29 +615,24 @@ var dbClientQnA = {
         ).then(
             players => {
                 if (players && players.length) {
-                    // One player found
-                    if (players.length === 1) {
-                        playerData = players[0];
-
-                        if(playerData.permission && playerData.permission.forbidPlayerFromLogin){
-                            throw new Error ("Player is forbidden to login")
-                        }
-
-                        let updateObj = {
-                            $set: {
-                                'QnAData.playerObjId': playerData._id,
-                                'QnAData.playerId': playerData.playerId,
-                                'QnAData.playerName': playerData.name,
-                                'QnAData.platformId': playerData.platform.platformId,
-                            }
+                    let playerCount = players.length;
+                    let countForbidPlayerFromLogin = 0;
+                    players = players.filter(item=>{
+                        if(item.permission.forbidPlayerFromLogin){
+                            countForbidPlayerFromLogin++;
                         };
+                        if(!item.permission.forbidPlayerFromLogin){
+                            return item;
+                        }
+                    })
 
-                        return dbClientQnA.updateClientQnAData(null, constClientQnA.FORGOT_USER_ID, updateObj, clientQnAData._id)
+                    if(playerCount > 0 && (playerCount - countForbidPlayerFromLogin ==0 )){
+                        throw new Error ("Player is forbidden to login")
                     }
 
-                    // Multiple players found
+                    // players found
                     playersArr = players;
-                    throw new Error ('Multiple players found');
+                    throw new Error ('players found');
                 }
 
                 throw new Error('Player not found');
@@ -680,7 +673,7 @@ var dbClientQnA = {
                 return dbClientQnA.rejectFailedRetrieveAccount();
             }
 
-            if (error.message === "Multiple players found") {
+            if (error.message === "players found") {
                 return dbClientQnA.chooseFromMultipleAccount(clientQnAData, playersArr);
             }
 
@@ -694,9 +687,12 @@ var dbClientQnA = {
         })
     },
 
+    switchPage: function (platformObjId, inputDataObj){
+        //generate clickable button purpose
+    },
+
     forgotUserID2_1: function (platformObjId, inputDataObj = {}, qnaObjId) {
         let qnaObj, templateObj;
-
         return dbconfig.collection_clientQnA.findById(qnaObjId).lean().then(
             qnaData => {
                 if (qnaData && qnaData.QnAData && qnaData.QnAData.smsCode && qnaData.QnAData.smsCode == inputDataObj.smsCode) {
@@ -722,7 +718,6 @@ var dbClientQnA = {
 
     forgotUserId3_2: function (platformObjId, inputDataObj = {}, qnaObjId) {
         let clientQnAData;
-
         return dbconfig.collection_clientQnA.findById(qnaObjId).lean().then(
             qnaData => {
                 clientQnAData = qnaData;
@@ -791,8 +786,13 @@ var dbClientQnA = {
     },
 
     chooseFromMultipleAccount: function (clientQnAData, playersArr) {
-        let processNo = '3_2';
 
+        let processNo;
+        if(playersArr && playersArr.length == 1){
+            processNo = '3_1';
+        }else{
+            processNo = '3_2';
+        }
         return dbconfig.collection_clientQnATemplate.findOne({
             type: constClientQnA.FORGOT_USER_ID,
             processNo: processNo
@@ -831,7 +831,7 @@ var dbClientQnA = {
         let endTitle = "Account found. (Password reset)";
         let endDes = localization.localization.translate("The binded account is: ") + qnaObj.QnAData.playerName
             + ", " + localization.localization.translate("Password has reset to: ") + templateObj.defaultPassword
-            + ", " + localization.localization.translate("Please login to change password immediately.");
+            + ", " + localization.localization.translate("Sent to your phone, enjoy the game.");
         return dbClientQnA.qnaEndMessage(endTitle, endDes, true)
     },
     //endregion

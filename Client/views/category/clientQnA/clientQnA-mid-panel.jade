@@ -8,7 +8,7 @@
                 label(style="text-align:center;display:block;color:red" ng-if='vm.clientQnADataErr') {{vm.clientQnADataErr | translate}}
                 div(style="text-align:left;display:block" ng-if='vm.clientQnAData.questionTitle')
                     label {{vm.clientQnAData.questionTitle | translate}}
-                    label(style='color:red' ng-if='vm.clientQnAInputCheck && vm.clientQnAInputCheck.hasOwnProperty("totalWrongCount")') {{"&nbsp("}} {{"WRONG_COUNT" | translate}}{{"&nbsp" + vm.clientQnAInputCheck.totalWrongCount + "/" + vm.clientQnASecurityQuesConfig.config.wrongCount + ")"}}                
+                    label(style='color:red' ng-if='vm.clientQnAInputCheck && vm.clientQnAInputCheck.hasOwnProperty("totalWrongCount")') {{"&nbsp("}} {{"WRONG_COUNT" | translate}}{{"&nbsp" + vm.clientQnAInputCheck.totalWrongCount + "/" + vm.clientQnASecurityQuesConfig.config.wrongCount + ")"}}
                 label(style="text-align:center;display:block" ng-if='vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.title') {{vm.clientQnAData.clientQnAEnd.title | translate}}
                 label(style="text-align:center;display:block" ng-if='vm.clientQnAData && vm.clientQnAData.updateTitle') {{vm.clientQnAData.updateTitle | translate}}
                 br(ng-if='vm.clientQnAData.questionTitle || (vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.title)')
@@ -17,16 +17,25 @@
                     label(ng-if='vm.clientQnAData.isSecurityQuestion') {{v.questionNo + ".&nbsp"}}
                     label(style="{{vm.questionLabelStyle}}") {{v.des | translate}}
                     i.fa.fa-check.text-success(style='width:10px' ng-repeat='(k,o) in vm.clientQnAInputCheck.correctAns' ng-if='vm.clientQnAInputCheck && vm.clientQnAInputCheck.correctAns && o==v.questionNo')
-                    i.fa.fa-times.text-danger(style='width:10px' ng-repeat='(k,o) in vm.clientQnAInputCheck.incorrectAns' ng-if='vm.clientQnAInputCheck && vm.clientQnAInputCheck.incorrectAns && o==v.questionNo')                    
+                    i.fa.fa-times.text-danger(style='width:10px' ng-repeat='(k,o) in vm.clientQnAInputCheck.incorrectAns' ng-if='vm.clientQnAInputCheck && vm.clientQnAInputCheck.incorrectAns && o==v.questionNo')
                     //- br
-                    div(ng-repeat='dataObj in vm.clientQnAData.data')
-                        input(type='radio' ng-model='vm.clientQnAInput.playerObjId' ng-value='dataObj._id')
+                    div(ng-repeat='dataObj in vm.clientQnAData.data', ng-if="vm.clientQnAData.data.length > 1")
+                        input(type='radio' ng-model='vm.clientQnAInput.playerObjId' ng-value='dataObj._id', ng-click="vm.chosenUserName=dataObj.name")
                         label {{ dataObj.name }}
+                    div(ng-repeat='dataObj in vm.clientQnAData.data', ng-if="vm.clientQnAData.data.length == 1")
+                        input(type='hidden' ng-model='vm.clientQnAInput.playerObjId=dataObj._id', ng-init="vm.chosenUserName=dataObj.name")
+                        label {{ dataObj.name }}
+
                     input.form-control(ng-repeat='(k,o) in vm.clientQnAData.answerInput' ng-if='o.questionNo == v.questionNo && o.type!="select" && o.type!="checkbox"' type='{{o.type}}' ng-model='vm.clientQnAInput[o.objKey]' placeholder='{{o.placeHolder | translate}}' ng-disabled="o.disabled" ng-init="o.value ? vm.clientQnAInput[o.objKey] = o.value : null")
                     select.form-control(ng-repeat='(k,o) in vm.clientQnAData.answerInput' ng-if='o.questionNo == v.questionNo && o.type == "select"' ng-model="vm.clientQnAInput[o.objKey]" ng-options="va.id as va.name | translate for (in,va) in vm[o.options]" ng-change='vm[o.options + "Change"]()' ng-init="o.value ? vm.clientQnAInput[o.objKey] = o.value : null; vm[o.options + 'Change']()")
                     br
+
+                text(ng-if='vm.clientQnAData && vm.clientQnAData.hint') {{vm.clientQnAData.hint | translate}}
+                br
                 .pull-right
-                    label.alternative-question-label(style="color:red" ng-if='vm.clientQnAData.alternativeQuestion && vm.clientQnAData.alternativeQuestion.des' ng-click='vm.getClientQnAProcess(true)') {{vm.clientQnAData.alternativeQuestion.des | translate}}
+                    label.alternative-question-label(style="color:red" ng-if='vm.clientQnAData.alternativeQuestion && vm.clientQnAData.alternativeQuestion.des && vm.clientQnAData.type !="forgotUserID"' ng-click='vm.getClientQnAProcess(true)') {{vm.clientQnAData.alternativeQuestion.des | translate}}
+                    label.alternative-question-label(style="color:red" ng-if='vm.clientQnAData.alternativeQuestion && vm.clientQnAData.alternativeQuestion.des && vm.clientQnAData && vm.clientQnAData.type =="forgotUserID"' ng-click='vm.getClientQnAProcess(true, {type:"forgotPassword", processNo:"1", action:"forgotPassword1", username:vm.chosenUserName})') {{vm.clientQnAData.alternativeQuestion.des | translate}}
+
                 text(ng-if='vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.des') {{vm.clientQnAData.clientQnAEnd.des | translate}}
                 text(ng-if='vm.clientQnAData && vm.clientQnAData.updateDes') {{vm.clientQnAData.updateDes | translate}}
                 br(ng-if='vm.clientQnAData && vm.clientQnAData.updateQuestion')
