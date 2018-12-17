@@ -207,12 +207,22 @@
                             thead
                                 th(ng-if="!vm.isPlayerLevelDiff && (vm.isMultiStepReward || (vm.showRewardTypeData.isGrouped === true && vm.showRewardTypeData && vm.showRewardTypeData.name ==='PlayerConsumptionSlipRewardGroup'))")
                                 th(style="width:70px" ng-if="vm.isPlayerLevelDiff") {{vm.allPlayerLvl[$index].name}}
+                                th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Source by provider' | translate}}
+                                th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Bet Type(Multiple Selection)' | translate}}
                                 th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
                             tbody(ng-repeat="entry in cond.value track by $index")
                                 td(ng-if="vm.isPlayerLevelDiff || (vm.isMultiStepReward || (vm.showRewardTypeData.isGrouped === true && vm.showRewardTypeData && vm.showRewardTypeData.name ==='PlayerConsumptionSlipRewardGroup'))")
                                     i.fa.fa-plus(ng-click='cond.value.push({})' ng-if='!cond.header.hasOwnProperty("rewardPercentageAmount") && (vm.isMultiStepReward || (vm.showRewardTypeData.isGrouped === true && vm.showRewardTypeData && vm.showRewardTypeData.name ==="PlayerConsumptionSlipRewardGroup")) && !vm.platformRewardShowEdit()')
                                     i.fa.fa-plus(ng-click='cond.value.push({"rewardPercentageAmount":[{percentage: "", amount: ""}]})' ng-if='cond.header.hasOwnProperty("rewardPercentageAmount") && vm.isMultiStepReward && !vm.platformRewardShowEdit()')
                                     i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='(vm.isMultiStepReward || (vm.showRewardTypeData.isGrouped === true && vm.showRewardTypeData && vm.showRewardTypeData.name ==="PlayerConsumptionSlipRewardGroup")) && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                                td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
+                                    div(style='width:200px;')
+                                        select.form-control(ng-model='entry.sourceProvider', static-bsp, data-actions-box='true')
+                                            option(ng-repeat='(i,v) in vm.allGameProviders', value='{{v._id}}') {{ v.name }}
+                                td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
+                                    div(style='width:200px;')
+                                        select.form-control(ng-model='entry.betType', multiple, static-bsp, data-actions-box='true')
+                                            option(ng-repeat='(i,v) in vm.betType', value='{{v}}') {{ v }}
                                 td(ng-repeat="(i,v) in cond.header track by $index")
                                     input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
                                     span.percentage(ng-if="v.type == 'percentage'")
@@ -242,13 +252,22 @@
                         table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-repeat="cond in vm.rewardMainParamTable track by $index" ng-cloak)
                             thead
                                 th(ng-if="vm.isMultiStepReward")
+                                th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Source by provider' | translate}}
+                                th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Bet Type(Multiple Selection)' | translate}}
                                 th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
                             tbody(ng-repeat="entry in cond.value track by $index" style="overflow: auto;")
                                 td(ng-if="vm.isMultiStepReward")
                                     i.fa.fa-plus(ng-click='cond.value.push({})' ng-if='!cond.header.hasOwnProperty("rewardPercentageAmount") && vm.isMultiStepReward && !vm.platformRewardShowEdit()')
                                     i.fa.fa-plus(ng-click='cond.value.push({"rewardPercentageAmount":[{percentage: "", amount: ""}]})' ng-if='cond.header.hasOwnProperty("rewardPercentageAmount") && vm.isMultiStepReward && !vm.platformRewardShowEdit()')
                                     i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
-
+                                td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
+                                    div(style='width:200px;')
+                                        select.form-control(ng-model='entry.sourceProvider', static-bsp, data-actions-box='true')
+                                            option(ng-repeat='(i,v) in vm.allGameProviders', value='{{v._id}}') {{ v.name }}
+                                td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
+                                    div(style='width:200px;')
+                                        select.form-control(ng-model='entry.betType', multiple, static-bsp, data-actions-box='true')
+                                            option(ng-repeat='(i,v) in vm.betType', value='{{v}}') {{ v }}
                                 td(ng-repeat="(i,v) in cond.header track by $index")
                                     span(ng-if="i == 'loginDay'") {{entry[i]}}
                                     input(ng-if="i != 'loginDay' && (v.type == 'text' || v.type == 'checkbox' || v.type == 'number')" type="{{v.type}})" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
@@ -270,12 +289,22 @@
                                     table#rewardMainParamTable.simple-table.table-vertical-middle.limitOffersTB(ng-if="vm.selectedPlayerLvlTab == $index")
                                         thead
                                             th(ng-if="vm.isMultiStepReward")
+                                            th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Source by provider' | translate}}
+                                            th(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"') {{ 'Bet Type(Multiple Selection)' | translate}}
                                             th(ng-repeat="(i,v) in cond.header") {{v.des | translate}}
                                         tbody(ng-repeat="entry in cond.value")
                                             td(ng-if="vm.isMultiStepReward")
                                                 i.fa.fa-plus(ng-click='cond.value.push({})' ng-if='!cond.header.hasOwnProperty("rewardPercentageAmount") && vm.isMultiStepReward && !vm.platformRewardShowEdit()')
                                                 i.fa.fa-plus(ng-click='cond.value.push({"rewardPercentageAmount":[{percentage: "", amount: ""}]})' ng-if='cond.header.hasOwnProperty("rewardPercentageAmount") && vm.isMultiStepReward && !vm.platformRewardShowEdit()')
                                                 i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
+                                            td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
+                                                div(style='width:200px;')
+                                                    select.form-control(ng-model='entry.sourceProvider', static-bsp, data-actions-box='true')
+                                                        option(ng-repeat='(i,v) in vm.allGameProviders', value='{{v._id}}') {{ v.name }}
+                                            td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
+                                                div(style='width:200px;')
+                                                    select.form-control(ng-model='entry.betType', multiple, static-bsp, data-actions-box='true')
+                                                        option(ng-repeat='(i,v) in vm.betType', value='{{v}}') {{ v }}
                                             td(ng-repeat="(i,v) in cond.header")
                                                 span(ng-if="i == 'loginDay'") {{entry[i]}}
                                                 input(ng-if="i != 'loginDay' && (v.type == 'text' || v.type == 'checkbox' || v.type == 'number')" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
