@@ -17224,7 +17224,7 @@ define(['js/app'], function (myApp) {
             vm.setQueryAdmins = (modal) => {
                 vm.queryAdmins = [];
 
-                if (modal.departments.includes("") && modal.roles.includes("") && modal.admins.includes("")) {
+                if (modal.departments.includes("") && modal.roles.includes("")) {
                     vm.queryAdmins.push({_id:'', adminName:'N/A'});
                 }
 
