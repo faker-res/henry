@@ -577,7 +577,7 @@ define([], function () {
                                 return getFloat(a) + getFloat(b);
                             })
                         }
-                        pageValue = selectedBetTypeConsumption / totalBetTypeConsumption * 100;
+                        pageValue = totalBetTypeConsumption / selectedBetTypeConsumption * 100;
                         totalValue = getFloat(totalValue).toFixed(2);
                         pageValue = getFloat(pageValue).toFixed(2);
                         htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
