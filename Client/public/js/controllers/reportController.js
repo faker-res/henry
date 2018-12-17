@@ -9354,10 +9354,18 @@ define(['js/app'], function (myApp) {
                 "PlayerReferralReward": "PLAYER_REFERRAL_REWARD_REPORT"
             };
 
+            function sortByDepositId (a, b) {
+                return a.depositId - b.depositId
+            }
             // generate a download for xls
             vm.exportToExcel = function(tableId, reportName) {
                 let tab = "";
+                let tabData ="";
                 let htmlContent = "";
+                let tabHeader ="";
+                let tabItem ="";
+                let tabAmount ="";
+
 
                 if(reportName == "PLAYER_DEPOSIT_ANALYSIS_REPORT") {
                     for (let i = 0; i <= vm.playerDepositAnalysis.length - 1; i++) {
@@ -9415,7 +9423,198 @@ define(['js/app'], function (myApp) {
                         htmlContent += "<tr></tr>";
                         htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
                     }
-                }else{
+                }else if(reportName == "FINANCIAL_REPORT") {
+
+                    if(vm.financialReport.platform.length == 1 && vm.financialReport.displayMethod == "daily" ){
+                        tableId = "dailyFinancialReport";
+                        tab = document.getElementById(tableId);
+                        tabData = document.getElementById("dailyFinancialReportData");
+                        console.log(tab)
+                        console.log(tabData)
+
+
+                        htmlContent += "<td rowspan=2>" + tab.getElementsByTagName('th')[0].innerHTML +"</td>";
+                        let count = 0;
+                        for (let i = 1; i <= vm.topUpHeader.length; i++) {
+                            let colSpan = vm.topUpHeader[count].topUpDetail.length + 1;
+                            htmlContent += "<td colspan=" + colSpan + " style='text-align:center;'>" + tab.getElementsByTagName('th')[i].innerHTML +"</td>";
+                            count += 1;
+                        }
+                        let bonusColSpan = vm.bonusHeader[0].bonusDetail.length + 1;
+                        htmlContent += "<td colspan=" + bonusColSpan + " style='text-align:center;'>" + tab.getElementsByTagName('th')[vm.topUpHeader.length + 1].innerHTML;
+                        htmlContent += "<td rowspan=2>" + tab.getElementsByTagName('th')[vm.topUpHeader.length + 2].innerHTML;
+
+                        htmlContent += "<tr></tr>";
+                        for (let l = 2; l <= vm.topUpHeader.length + 2; l++){
+                            htmlContent += tab.getElementsByTagName('tr')[l].innerHTML;
+                        }
+
+                        htmlContent += "<tr></tr>";
+                        htmlContent += "<td>"+ tabData.getElementsByTagName('td')[0].innerHTML;
+
+                        for (let q = 1; q <= vm.topUpHeader.length + 1; q++){
+                            htmlContent += tabData.getElementsByTagName('tr')[q].innerHTML;
+                        }
+                        htmlContent += "<td>" + tabData.getElementsByTagName('td')[vm.topUpHeader.length + 2].innerHTML;
+                    }
+                    else{
+                        tableId = "sumFinancialReport";
+                        tab = document.getElementById(tableId);
+                        // tabHeader = document.getElementById("sumFinancialReportHeader");
+                        tabHeader = document.getElementsByClassName("tdheader");
+                        tabItem = document.getElementsByClassName("tditems");
+                        tabAmount = document.getElementsByClassName("tramounts");
+
+
+
+                        console.log('hello', tabHeader);
+                        console.log('hello2', tabItem);
+                        console.log('hello3', tabAmount);
+
+
+                        // if (document.getElementById("playerPartnerSummaryTable")) {
+                        //     tab = document.getElementById("playerPartnerSummaryTable");
+                        //     htmlContent += "<tr></tr>";
+                        //     htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
+                        // }
+
+
+                        // console.log("aa", tabHeader.getElementsByTagName('td')[0]);
+                        // console.log("bb", tabHeader.getElementsByTagName('td')[1]);
+
+                        // Hardcoded Example
+                        // htmlContent += "<td colspan=2>" + tab.getElementsByTagName('th')[0].innerHTML;
+                        // for (let i = 0; i < vm.sumFinancialReportList.platformFeeEstimateList.length; i++) {
+                        //     htmlContent += "<td>" + tab.getElementsByTagName('td')[i].innerHTML +"</td>";
+                        // }
+                        //
+                        //
+                        // htmlContent += "<tr>";
+                        // let groupOne = vm.sumFinancialReportList.topUpList[0].topUpDetail.length+1;
+                        // htmlContent += "<td rowspan="+ groupOne +" style='text-align: center;'>" + tabHeader[0].innerHTML +"</td>";
+                        // htmlContent += tabItem[0].innerHTML + tabAmount[0].innerHTML;
+                        // for (let f = 1; f < groupOne ; f++) {
+                        //
+                        //     htmlContent += "<tr>" + tabItem[f].innerHTML + tabAmount[f].innerHTML + " </tr> ";
+                        //
+                        // }
+                        // htmlContent += "</tr>";
+                        //
+                        // htmlContent += "<tr>";
+                        // let groupTwo = vm.sumFinancialReportList.topUpList[1].topUpDetail.length+1;
+                        // htmlContent += "<td rowspan="+ groupTwo +" style='text-align: center;'>" + tabHeader[1].innerHTML +"</td>";
+                        // htmlContent += tabItem[groupOne].innerHTML + tabAmount[groupOne].innerHTML;
+                        // console.log(groupTwo)
+                        // for (let k = groupOne+1; k < groupTwo + groupOne;  k++) {
+                        //     console.log('yoyo', k);
+                        //
+                        //     htmlContent += "<tr>" + tabItem[k].innerHTML + tabAmount[k].innerHTML + " </tr> ";
+                        //
+                        // }
+                        // htmlContent += "</tr>";
+
+
+                        htmlContent += "<td colspan=2>" + tab.getElementsByTagName('th')[0].innerHTML;
+                        for (let i = 0; i < vm.sumFinancialReportList.platformFeeEstimateList.length; i++) {
+                            htmlContent += "<td>" + tab.getElementsByTagName('td')[i].innerHTML +"</td>";
+                        }
+
+                        vm.sumFinancialReportList.topUpList.forEach(
+                            topUpList => {
+                                if(topUpList && topUpList.groupName){
+                                    let rowSpan = topUpList.topUpDetail.length+1;
+                                    htmlContent += "<tr>";
+                                    htmlContent += "<td rowspan="+rowSpan+" style='text-align:center; vertical-align:middle;'>" + topUpList.groupName + "</td>";
+
+                                    if(topUpList.topUpDetail && topUpList.topUpDetail.length > 0){
+                                        topUpList.topUpDetail = topUpList.topUpDetail.sort(sortByDepositId);
+                                        topUpList.topUpDetail.forEach(
+                                            topUpDetail => {
+                                                if(topUpDetail && topUpDetail.depositName){
+                                                    if(topUpDetail.topUpTypeId == 2) {
+                                                        htmlContent += "<td>" + $translate(String(topUpDetail.depositName))+ "(" + topUpDetail.depositName + "): " +topUpDetail.topUpMethodId + " </td>";
+                                                    }else{
+                                                        htmlContent += "<td>" + $translate(String(topUpDetail.depositName)) + " </td>";
+
+                                                    }
+
+
+                                                    if(topUpDetail.topUpDetail && topUpDetail.topUpDetail.length > 0){
+                                                        topUpDetail.topUpDetail.forEach(
+                                                            topUpDetail=> {
+                                                                htmlContent += "<td>" + topUpDetail.amount + "</td> ";
+                                                            }
+                                                        )
+                                                    }
+
+
+                                                    htmlContent += "<tr>";
+
+                                                }
+                                            }
+                                        )
+                                    }
+                                    htmlContent += "<td style='color:red;'>" + topUpList.groupName +" (" +$translate(String("Total Sum")) +")"+ "</td>";
+
+                                    topUpList.totalAmountList.forEach(
+                                        totalAmountList    => {
+                                            htmlContent += "<td>" + totalAmountList.totalAmount +"</td>";
+
+                                        }
+                                    )
+
+                                    htmlContent += "</tr>";
+
+                                }
+                            }
+                        )
+
+                        htmlContent += "<td rowspan='3' style='text-align:center;'>" + $translate(String("All Withdrawal"))  + "</td>";
+
+                        vm.sumFinancialReportList.bonusList.forEach(
+                            bonusList => {
+                                bonusList.groups.forEach(
+                                    groups =>{
+                                        htmlContent += "<td>"+ $translate(String(groups.typeName)) +"</td>";
+
+                                        groups.bonusDetail.forEach(
+                                            bonusDetail =>{
+                                                htmlContent += "<td>" + bonusDetail.amount + "</td>"
+                                            }
+                                        )
+                                        htmlContent += "<tr>";
+                                    }
+                                )
+
+                            }
+                        )
+                        htmlContent += "<td style='color:red;'>" + $translate(String("All Withdrawal")) +" (" +$translate(String("Total Sum"))+")" + "</td>";
+
+                        vm.sumFinancialReportList.totalSumBonusTopUp.forEach(
+                            totalSumBonusTopUp => {
+                                htmlContent += "<td style='color:red;'>" + totalSumBonusTopUp.amount + "</td>";
+                            }
+                        )
+
+                        htmlContent += "<tr><td colspan='2' style='text-align:center;'>" + $translate(String('Total Platform Fee'))+ "</td>";
+
+                        vm.sumFinancialReportList.platformFeeEstimateList.forEach(
+                            platformFeeEstimateList => {
+                                htmlContent += "<td>" + platformFeeEstimateList.totalPlatformFeeEstimate + "</td>"
+
+                            }
+                        )
+
+
+
+
+
+
+                    }
+
+
+
+                } else{
                     tab = document.getElementById(tableId);
                     htmlContent = "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
                 }
@@ -10304,6 +10503,15 @@ define(['js/app'], function (myApp) {
                     vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery');
                 });
                 $scope.safeApply();
+            // } else if (choice == "FINANCIAL_REPORT") {
+            //     vm.financialReport = {};
+            //     vm.winRateSummaryData = {};
+            //     vm.winRateQuery.providerId = 'all';
+            //     vm.reportSearchTime = 0;
+            //     utilService.actionAfterLoaded("#winRateTable", function () {
+            //         vm.commonInitTime(vm.winRateQuery, '#winrateReportQuery');
+            //     });
+            //     $scope.safeApply();
             } else if (choice == "FEEDBACK_REPORT") {
                 vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded('#feedbackReportTable', function () {
