@@ -5327,7 +5327,7 @@ let dbPlayerReward = {
         }).exec();
     },
 
-    checkRewardParamForBonusDoubledRewardGroup: (eventData, playerData, intervalTime) => {
+    checkRewardParamForBonusDoubledRewardGroup: (eventData, playerData, intervalTime, forceSettled) => {
         let selectedRewardParam;
         let rewardParam;
         let bonusAmount = 0;
@@ -5336,6 +5336,7 @@ let dbPlayerReward = {
         let playerBonusDoubledRewardGroupRecord;
         let consumptionRecordList;
         let todayTime = dbUtility.getTodaySGTime();
+        let newEndTime = new Date();
 
         // Set reward param for player level to use
         if (eventData.condition.isPlayerLevelDiff) {
@@ -5358,14 +5359,21 @@ let dbPlayerReward = {
 
         return dbConfig.collection_playerBonusDoubledRewardGroupRecord.findOne(recordQuery).lean().then(
             recordData => {
-                if (recordData && recordData.transferInAmount && recordData.transferInTime && recordData.transferOutTime && recordData.gameProviderObjId){
+                if (recordData && recordData.transferInAmount && recordData.transferInTime && recordData.gameProviderObjId && (recordData.transferOutTime || forceSettled)){
                     playerBonusDoubledRewardGroupRecord = recordData;
                     // get the win-lose amount
                     let matchQuery = {
                         providerId:recordData.gameProviderObjId,
                         playerId: playerData._id,
-                        createTime: {$gte: recordData.transferInTime, $lt: recordData.transferOutTime}
+                        // createTime: {$gte: recordData.transferInTime, $lt: recordData.transferOutTime}
                     };
+
+                    if (forceSettled){
+                        matchQuery.createTime = {$gte: recordData.transferInTime, $lt: newEndTime};
+                    }
+                    else{
+                        matchQuery.createTime = {$gte: recordData.transferInTime, $lt: recordData.transferOutTime}
+                    }
 
                     console.log("checking matchQuery", [playerData.playerId, matchQuery])
 
@@ -5396,15 +5404,23 @@ let dbPlayerReward = {
                     let transferInAmount = playerBonusDoubledRewardGroupRecord.transferInAmount;
                     rate = bonusAmount/transferInAmount;
 
-                    if (eventData.param.isMultiStepReward) { 
-                        selectedRewardParam = rewardParam.filter(e => rate >= e.multiplier).sort((a, b) => b.multiplier - a.multiplier);
-                        selectedRewardParam = selectedRewardParam[0] || null;    
-                    } else {
-                        selectedRewardParam = rewardParam[0];
-                    }
+                    selectedRewardParam = rewardParam.filter(e => rate >= e.multiplier).sort((a, b) => b.multiplier - a.multiplier);
+                    selectedRewardParam = selectedRewardParam[0] || null;
                 }
-                console.log("checking returnList", [playerData.playerId, {selectedRewardParam: selectedRewardParam, winLoseAmount: bonusAmount, winTimes: rate, totalBetAmount: totalBetAmount}])
-                return {selectedRewardParam: selectedRewardParam, record: playerBonusDoubledRewardGroupRecord, consumptionRecordList: consumptionRecordList, winLoseAmount: bonusAmount, winTimes: rate, totalBetAmount: totalBetAmount};
+                console.log("checking returnList", [playerData.playerId, {selectedRewardParam: selectedRewardParam, winLoseAmount: bonusAmount, winTimes: rate, totalBetAmount: totalBetAmount}]);
+                let returnList = {
+                    selectedRewardParam: selectedRewardParam,
+                    record: playerBonusDoubledRewardGroupRecord,
+                    consumptionRecordList: consumptionRecordList,
+                    winLoseAmount: bonusAmount,
+                    winTimes: rate,
+                    totalBetAmount: totalBetAmount
+                };
+
+                if (forceSettled){
+                    returnList.newEndTime = newEndTime;
+                }
+                return returnList;
             }
         )
     },

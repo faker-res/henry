@@ -1213,3 +1213,60 @@ var param108Cursor = db.rewardParam.find({"name": type108});
 var param108 = param108Cursor.next();
 
 db.rewardType.update({"name": type108}, {$set: {params: param108._id, des: type108, isGrouped: true}}, {upsert: true});
+
+var type109 = "BaccaratRewardGroup";
+db.rewardParam.update({
+    "name": type109
+}, {
+    $set: {
+        condition: {
+            generalCond: Object.assign({}, generalCond, {
+                applyType: {
+                    index: 2,
+                    type: "select",
+                    des: "Reward apply type",
+                    options: "rewardApplyType",
+                    disabled: true,
+                    value: "1",
+                    detail: "Allow settlement via backstage batch submit"
+                },
+            }),
+            periodCond: {
+                // Reward apply interval
+                interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval", detail: "REWARD_INTERVAL_DETAIL"},
+                // Top up count between interval check type
+                topUpCountType: {index: 21, type: "interval", des: "Top up count between interval type", options: "intervalType", detail: "REWARD_TOPUP_COUNT_TYPE_DETAIL"}
+            },
+            consumptionCond: consumptionCond,
+            customCond: {
+                intervalMaxRewardAmount: {index: 42, type: "number", des: "Apply Max Reward Amount in interval", detail: "MAX_REWARD_AMOUNT_INTERVAL_DETAIL"},
+            }
+        },
+        param: {
+            tblOptFixed: {
+                rewardParam: {
+                    minBetAmount: {type: "number", des: "Minimum Bet Amount"},
+                    bankerResult: {type: "number", des: "Banker Result"},
+                    playerResult: {type: "number", des: "Player Result"},
+                    rewardAmount: {type: "number", des: "Baccarat Reward Amount"},
+                    spendingTimes: {type: "number", des: "Spending times on reward"},
+                    forbidWithdrawAfterApply: {type: "checkbox", des: "Forbid withdraw after apply reward"},
+                    forbidWithdrawIfBalanceAfterUnlock: {
+                        type: "number",
+                        des: "Forbid withdraw if there is balance after unlock"
+                    },
+                    remark: {type: "text", des: "Remark"},
+                }
+            },
+            tblOptDynamic: {}
+        }
+    }
+}, {
+    upsert: true
+});
+
+
+var param109Cursor = db.rewardParam.find({"name": type109});
+var param109 = param109Cursor.next();
+
+db.rewardType.update({"name": type109}, {$set: {params: param109._id, des: type109, isGrouped: true}}, {upsert: true});

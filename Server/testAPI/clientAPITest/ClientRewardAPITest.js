@@ -143,6 +143,7 @@
             code: requestData.code,
             appliedObjIdList: requestData.appliedObjIdList,
             type: requestData.type,
+            forceSettled: requestData.forceSettled,
             data: {
                 requestId: requestData.requestId,
                 //topUpRecordId: requestData.topUpRecordId,
@@ -152,6 +153,7 @@
                 referralName: requestData.referralName,
                 smsCode: requestData.smsCode,
                 type: requestData.type,
+                forceSettled: requestData.forceSettled,
             }
         }
         var data = sendReq ||

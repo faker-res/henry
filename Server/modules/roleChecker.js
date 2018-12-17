@@ -927,7 +927,7 @@ var roleChecker = {
                 Read: []
             },
             MY_PHONE_LIST_OR_REMINDER_PHONE_LIST: {
-                Read: []
+                Read: ['getAllPromoteWay']
             },
             "WORKLOAD REPORT": {
                 Read: []
