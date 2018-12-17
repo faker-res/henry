@@ -21768,49 +21768,15 @@ let dbPlayerInfo = {
             .populate({path: 'gameProviders', model: dbconfig.collection_gameProvider})
             .populate({path: 'rewardEventObjId', model: dbconfig.collection_rewardEvent})
             .then(
-            playerBonusDoubledReward => {
-                playerBonusDoubledRewardObj = playerBonusDoubledReward;
-                rewardEventCode = playerBonusDoubledReward && playerBonusDoubledReward.rewardEventObjId && playerBonusDoubledReward.rewardEventObjId.code ?
-                    playerBonusDoubledReward.rewardEventObjId.code : "";
-                rewardEventName = playerBonusDoubledReward && playerBonusDoubledReward.rewardEventObjId && playerBonusDoubledReward.rewardEventObjId.name ?
-                    playerBonusDoubledReward.rewardEventObjId.name : "";
+                playerBonusDoubledReward => {
+                    playerBonusDoubledRewardObj = playerBonusDoubledReward;
+                    rewardEventCode = playerBonusDoubledReward && playerBonusDoubledReward.rewardEventObjId && playerBonusDoubledReward.rewardEventObjId.code ?
+                        playerBonusDoubledReward.rewardEventObjId.code : "";
+                    rewardEventName = playerBonusDoubledReward && playerBonusDoubledReward.rewardEventObjId && playerBonusDoubledReward.rewardEventObjId.name ?
+                        playerBonusDoubledReward.rewardEventObjId.name : "";
 
-                if(playerBonusDoubledRewardObj && playerBonusDoubledRewardObj.isApplying){
-                    if(playerBonusDoubledRewardObj.gameProviderObjId && playerBonusDoubledRewardObj.gameProviderId){
-                        let getCreditQuery = {
-                            username: userName,
-                            platformId: platformId
-                        };
-
-                        if(playerBonusDoubledRewardObj.gameProviderObjId == providerObjId){
-                            getCreditQuery.providerId = providerShortId;
-                        }else{
-                            getCreditQuery.providerId = playerBonusDoubledRewardObj.gameProviderId;
-                        }
-
-                        return cpmsAPI.player_queryCredit(getCreditQuery);
-                    }
-
-                    return;
-                }
-            }
-        ).then(
-            playerCreditInProvider => {
-                let credit = playerCreditInProvider && playerCreditInProvider.credit ? parseFloat(playerCreditInProvider.credit) : 0;
-                if(playerBonusDoubledRewardObj && playerBonusDoubledRewardObj.isApplying){
-                    if(playerBonusDoubledRewardObj.gameProviderObjId && playerBonusDoubledRewardObj.gameProviderId){
-                        if(credit < 1) {
-                            return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, {
-                                transferOutTime: new Date()
-                            }).then(
-                                () => {
-                                    return dbPlayerInfo.completePlayerBonusDoubledReward(playerData, playerBonusDoubledRewardObj.rewardEventObjId).then(
-                                        () => {
-                                            return false;
-                                        }
-                                    );
-                            });
-                        }else{
+                    if(playerBonusDoubledRewardObj && playerBonusDoubledRewardObj.isApplying){
+                        if(playerBonusDoubledRewardObj.gameProviderObjId && playerBonusDoubledRewardObj.gameProviderId){
                             return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, {
                                 transferOutTime: new Date()
                             }).then(
@@ -21826,26 +21792,25 @@ let dbPlayerInfo = {
                                     });
                                 }
                             );
+                        }else{
+                            let updateData = {
+                                transferInTime: new Date(),
+                                transferInAmount: amount,
+                                gameProviderObjId: providerObjId,
+                                gameProviderId: providerShortId
+                            };
+
+                            return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, updateData).then(
+                                () => {
+                                    return true;
+                                }
+                            );
                         }
                     }else{
-                        let updateData = {
-                            transferInTime: new Date(),
-                            transferInAmount: amount,
-                            gameProviderObjId: providerObjId,
-                            gameProviderId: providerShortId
-                        };
-
-                        return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, updateData).then(
-                            () => {
-                                return true;
-                            }
-                        );
+                        return false;
                     }
-                }else{
-                    return false;
                 }
-            }
-        )
+            );
     },
 
     clearPlayerBonusDoubledRewardDataWhenTransferFailed: function(playerObjId, platformObjId, currentDate){
@@ -21879,37 +21844,15 @@ let dbPlayerInfo = {
         let rewardEventName;
 
         return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOne(query)
-        .populate({path: 'rewardEventObjId', model: dbconfig.collection_rewardEvent})
-        .then(
-            playerBonusDoubledReward => {
-                if(playerBonusDoubledReward){
-                    rewardEventCode = playerBonusDoubledReward.rewardEventObjId && playerBonusDoubledReward.rewardEventObjId.code ?
-                        playerBonusDoubledReward.rewardEventObjId.code : "";
-                    rewardEventName = playerBonusDoubledReward.rewardEventObjId && playerBonusDoubledReward.rewardEventObjId.name ?
-                        playerBonusDoubledReward.rewardEventObjId.name : "";
-                    playerBonusDoubledRewardObj = playerBonusDoubledReward;
-                    return cpmsAPI.player_queryCredit(
-                        {
-                            username: userName,
-                            platformId: platformId,
-                            providerId: providerShortId
-                        }
-                    );
-                }
-            }
-        ).then(
-            playerCreditInProvider => {
-                let credit = playerCreditInProvider && playerCreditInProvider.credit ? parseFloat(playerCreditInProvider.credit) : 0;
-                if(playerBonusDoubledRewardObj){
-                    if(credit < 1){
-                        return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, {
-                            transferOutTime: new Date()
-                        }).then(
-                            () => {
-                                return dbPlayerInfo.completePlayerBonusDoubledReward(playerData, playerBonusDoubledRewardObj.rewardEventObjId);
-                            }
-                        );
-                    }else{
+            .populate({path: 'rewardEventObjId', model: dbconfig.collection_rewardEvent})
+            .then(
+                playerBonusDoubledReward => {
+                    if(playerBonusDoubledReward){
+                        rewardEventCode = playerBonusDoubledReward.rewardEventObjId && playerBonusDoubledReward.rewardEventObjId.code ?
+                            playerBonusDoubledReward.rewardEventObjId.code : "";
+                        rewardEventName = playerBonusDoubledReward.rewardEventObjId && playerBonusDoubledReward.rewardEventObjId.name ?
+                            playerBonusDoubledReward.rewardEventObjId.name : "";
+
                         return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOneAndUpdate(query, {
                             transferOutTime: new Date()
                         }).then(
@@ -21927,8 +21870,7 @@ let dbPlayerInfo = {
                         )
                     }
                 }
-            }
-        )
+            );
     },
 
     updatePlayerBonusDoubledReward: function(playerObjId, platformObjId, currentDate, transferId, transferAmount){
