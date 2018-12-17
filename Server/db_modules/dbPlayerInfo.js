@@ -12763,8 +12763,10 @@ let dbPlayerInfo = {
                                                 if(isApplyBonusDoubledReward){
                                                     return Promise.reject(err);
                                                 }
+
+                                                errorUtils.reportError(err);
                                                 // Error transfer out from last provider, insufficent amount
-                                                return Promise.reject({name: "DataError", message: "Insufficient amount to enter game"});
+                                                //return Promise.reject({name: "DataError", message: "Insufficient amount to enter game"});
                                             }
                                         );
                                     }
