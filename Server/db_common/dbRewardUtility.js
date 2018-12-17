@@ -290,61 +290,6 @@ const dbRewardUtility = {
                                 });
                             }
 
-                            // check correct topup type
-                            let correctTopUpType = true;
-                            let correctMerchantType = true;
-                            let correctBankCardType = true;
-
-                            if (
-                                rewardEvent.condition
-                                && rewardEvent.condition.topupType
-                                && rewardEvent.condition.topupType.length > 0
-                                && rewardEvent.condition.topupType.indexOf(topUpMethod.toString()) === -1
-                            ) {
-                                correctTopUpType = false;
-                            }
-
-                            if (
-                                rewardEvent.condition
-                                && rewardEvent.condition.bankCardType
-                                && inputData.bankTypeId
-                                && rewardEvent.condition.bankCardType.length > 0
-                                && rewardEvent.condition.bankCardType.indexOf(inputData.bankTypeId) === -1
-                            ) {
-                                correctBankCardType = false;
-                            }
-
-                            if (
-                                rewardEvent.condition
-                                && rewardEvent.condition.onlineTopUpType
-                                && inputData.topupType
-                                && rewardEvent.condition.onlineTopUpType.length > 0
-                                && rewardEvent.condition.onlineTopUpType.indexOf(inputData.topupType) === -1
-                            ) {
-                                correctMerchantType = false;
-                            }
-
-                            // if (!correctTopUpType) {
-                            //     return Promise.reject({
-                            //         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                            //         name: "DataError",
-                            //         message: "Top up type does not match, fail to claim reward"
-                            //     });
-                            // }
-                            if (!correctBankCardType) {
-                                return Promise.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "Bank card type does not match, fail to claim reward"
-                                });
-                            }
-                            if (!correctMerchantType) {
-                                return Promise.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "Online top up type does not match, fail to claim reward"
-                                });
-                            }
                             // Check top up count within period
                             if (rewardEvent.condition.topUpCountType) {
                                 let intervalType = rewardEvent.condition.topUpCountType[0];
@@ -388,7 +333,7 @@ const dbRewardUtility = {
                                 selectedRewardParam = selectedRewardParam[0];
                             }
 
-                            if (applyAmount < selectedRewardParam.minTopUpAmount || !correctTopUpType) {
+                            if (applyAmount < selectedRewardParam.minTopUpAmount) {
                                 return Promise.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                     name: "DataError",
