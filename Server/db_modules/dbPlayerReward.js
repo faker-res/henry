@@ -8605,63 +8605,6 @@ function getLastRewardDetail(query) {
     );
 }
 
-function readAGBaccaratResult (resultStr) {
-    resultStr = resultStr || "";
-    let json = JSON.parse("{" + resultStr + "}");
-
-    if (json.hasOwnProperty("庄") && json.hasOwnProperty("闲")) {
-        return {
-            host: Number(json["庄"]),
-            player: Number(json["闲"])
-        };
-    } else {
-        return false;
-    }
-}
-
-function readBYBaccaratResult (resultStr) {
-    resultStr = resultStr || "";
-
-    let strSplit = resultStr.split(",");
-
-    return {
-        host: Number(strSplit[0]),
-        player: Number(strSplit[1])
-    };
-}
-
-function readEBETBaccaratResult (resultStr) {
-    let strSplit;
-    resultStr = resultStr || "";
-    strSplit = resultStr.split(")(");
-    let playerStr = "";
-    let hostStr = "";
-    if (strSplit[0].includes("闲")) {
-        [playerStr, hostStr] = strSplit;
-    }
-    else if (strSplit[1].includes("闲")) {
-        [hostStr, playerStr] = strSplit;
-    }
-    else {
-        return false;
-    }
-
-    return {
-        host: getBaccaratNumber(hostStr),
-        player: getBaccaratNumber(playerStr)
-    };
-
-    function getBaccaratNumber (str) {
-        let total = 0;
-        total += dbUtility.countOccurrenceInString(str, "Ace");
-        for (let i = 2; i <= 9; i++) {
-            total += dbUtility.countOccurrenceInString(str, String(i)) * i;
-        }
-
-        return total;
-    }
-}
-
 
 var proto = dbPlayerRewardFunc.prototype;
 proto = Object.assign(proto, dbPlayerReward);
