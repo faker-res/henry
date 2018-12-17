@@ -8152,7 +8152,12 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('Last Successful Feedback Time'), data: 'lastSuccessfulFeedbackTime',
                         render: function (data, type, row) {
-                            return utilService.getFormatTime(data);
+                            if(data == undefined){
+                                return "";
+                            }else{
+                                return utilService.getFormatTime(data);
+
+                            }
                         }
                     },
                     {
