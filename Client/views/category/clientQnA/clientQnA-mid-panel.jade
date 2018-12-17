@@ -34,7 +34,7 @@
                 br
                 .pull-right
                     label.alternative-question-label(style="color:red" ng-if='vm.clientQnAData.alternativeQuestion && vm.clientQnAData.alternativeQuestion.des && vm.clientQnAData.type !="forgotUserID"' ng-click='vm.getClientQnAProcess(true)') {{vm.clientQnAData.alternativeQuestion.des | translate}}
-                    label.alternative-question-label(style="color:red" ng-if='vm.clientQnAData.alternativeQuestion && vm.clientQnAData.alternativeQuestion.des && vm.clientQnAData && vm.clientQnAData.type =="forgotUserID"' ng-click='vm.getClientQnAProcess(true, {type:"forgotPassword", processNo:"1", action:"forgotPassword1", username:vm.chosenUserName})') {{vm.clientQnAData.alternativeQuestion.des | translate}}
+                    label.alternative-question-label(style="color:red" ng-if='vm.clientQnAData.alternativeQuestion && vm.clientQnAData.alternativeQuestion.des && vm.clientQnAData && (vm.clientQnAData.type =="forgotUserID" && vm.clientQnAData.processNo!="1_1" )' ng-click='vm.getClientQnAProcess(true, {type:"forgotPassword", processNo:"1", action:"forgotPassword1", username:vm.chosenUserName})') {{vm.clientQnAData.alternativeQuestion.des | translate}}
 
                 text(ng-if='vm.clientQnAData.clientQnAEnd && vm.clientQnAData.clientQnAEnd.des') {{vm.clientQnAData.clientQnAEnd.des | translate}}
                 text(ng-if='vm.clientQnAData && vm.clientQnAData.updateDes') {{vm.clientQnAData.updateDes | translate}}
