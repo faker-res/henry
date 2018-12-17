@@ -5016,6 +5016,7 @@ function sendMessageToPlayer (proposalData,type,metaDataObj) {
         messageType = type + 'Success';
     }
 
+    console.log("checking messageType", messageType)
     let providerProm = Promise.resolve();
     if (messageType == messageType.PLAYER_LEVEL_UP_SUCCESS && proposalData && proposalData.data && proposalData.data.providerGroup) {
         providerProm = dbconfig.collection_gameProviderGroup.findOne({
