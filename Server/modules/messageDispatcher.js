@@ -37,6 +37,7 @@ const messageDispatcher = {
                 //const platformId = metaData.proposalData.data.platformId;
                 // const platformId = metaData.platformId;
                 const platformId = player.platform;
+                console.log("checking calling messageDispatcher")
                 return messageDispatcher.dispatchMessagesOfType(platformId, messageType, metaData);
             }
         )
@@ -208,6 +209,7 @@ const messageDispatcher = {
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.lastSettleTime}}', moment(metaData.proposalData.data.lastSettleTime).format("YYYY/MM/DD HH:mm:ss"));
         }
         const renderedContent = renderTemplate(messageTemplate.content, metaData);
+        console.log("checking sendMessage")
         return messageDispatcher.sendMessage(messageTemplate.format, metaData, renderedContent, renderedSubject, contentIsHTML);
     },
 
@@ -248,6 +250,7 @@ const messageDispatcher = {
                     if (wsMessageClient) {
                         data = data.toObject(); //mongoose object to javascript object
                         delete data.senderName; // hide admin name
+                        console.log("checking send internalMail")
                         wsMessageClient.sendMessage(constMessageClientTypes.CLIENT, "player", "notifyNewMail", data);
                     }
                     return data;
