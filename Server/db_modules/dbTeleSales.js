@@ -60,7 +60,7 @@ let dbTeleSales = {
                 }
 
                 if (query.feedbackStart && query.feedbackEnd) {
-                    phoneListQuery["$and"].push({$or: {lastFeedbackTime: {$gte: query.feedbackStart, $lt: query.feedbackEnd}}});
+                    phoneListQuery["$and"].push({lastFeedbackTime: {$gte: query.feedbackStart, $lt: query.feedbackEnd}});
                 }
                 if (query.distributeStart && query.distributeEnd) {
                     phoneListQuery["$and"].push({startTime: {$gte: query.distributeStart, $lt: query.distributeEnd}})
@@ -69,23 +69,23 @@ let dbTeleSales = {
 
 
                 if (query.hasOwnProperty("reclaimDays") && query.reclaimDays != null) {
-                    let countReclaimDate = dbUtility.getNdaylaterFromSpecificStartTime(query.reclaimDays + 1, new Date());
+                    let countReclaimDate = dbUtility.getNdaylaterFromSpecificStartTime(query.reclaimDays, new Date());
                     let reclaimDate =dbUtility.getTargetSGTime(countReclaimDate);
                     switch (query.reclaimDayOperator) {
                         case '<=':
-                            phoneListQuery["$and"].push({endTime: {$lte: reclaimDate.endTime}});
+                            phoneListQuery["$and"].push({endTime: {$lte: reclaimDate.startTime}});
                             break;
                         case '>=':
                             phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime}});
                             break;
                         case '=':
-                            phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime, $lte: reclaimDate.endTime}});
+                            phoneListQuery["$and"].push({endTime: reclaimDate.startTime});
                             break;
                         case 'range':
                             if (query.hasOwnProperty("reclaimDaysTwo") && query.reclaimDaysTwo != null) {
-                                let countReclaimDate2 = dbUtility.getNdaylaterFromSpecificStartTime(query.reclaimDaysTwo + 1, new Date());
+                                let countReclaimDate2 = dbUtility.getNdaylaterFromSpecificStartTime(query.reclaimDaysTwo, new Date());
                                 let reclaimDate2 = dbUtility.getTargetSGTime(countReclaimDate2);
-                                phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime, $lte: reclaimDate2.endTime}});
+                                phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime, $lte: reclaimDate2.startTime}});
                             }
                             break;
                     }
@@ -585,7 +585,7 @@ let dbTeleSales = {
                                             assignTimes: (tsPhoneUpdate.assignTimes + 1) || 1,
                                             assignee: tsAssignee.admin,
                                             startTime: phoneNumberStartTime,
-                                            endTime: phoneNumberEndTime.endTime,
+                                            endTime: phoneNumberEndTime.startTime, // 1 day = today end time
                                             remindTime: phoneNumberEndTime.endTime
                                         }).save().catch(errorUtils.reportError);
                                     });

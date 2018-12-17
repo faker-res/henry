@@ -5367,6 +5367,8 @@ let dbPlayerReward = {
                         createTime: {$gte: recordData.transferInTime, $lt: recordData.transferOutTime}
                     };
 
+                    console.log("checking matchQuery", [playerData.playerId, matchQuery])
+
                     return dbConfig.collection_playerConsumptionRecord.aggregate([
                         {$match: matchQuery},
                         {$group: {
@@ -5386,14 +5388,13 @@ let dbPlayerReward = {
             }
         ).then(
             consumptionRecord => {
+                console.log("checking consumptionRecord", [playerData.playerId, consumptionRecord])
                 if (consumptionRecord && consumptionRecord.length && playerBonusDoubledRewardGroupRecord && rewardParam){
                     bonusAmount = consumptionRecord[0].bonusAmount;
                     consumptionRecordList = consumptionRecord[0].consumptionRecordList;
                     totalBetAmount = consumptionRecord[0].betAmount;
                     let transferInAmount = playerBonusDoubledRewardGroupRecord.transferInAmount;
                     rate = bonusAmount/transferInAmount;
-                    let rewardAmount;
-                    let spendingAmount;
 
                     if (eventData.param.isMultiStepReward) { 
                         selectedRewardParam = rewardParam.filter(e => rate >= e.multiplier).sort((a, b) => b.multiplier - a.multiplier);
@@ -5402,6 +5403,7 @@ let dbPlayerReward = {
                         selectedRewardParam = rewardParam[0];
                     }
                 }
+                console.log("checking returnList", [playerData.playerId, {selectedRewardParam: selectedRewardParam, winLoseAmount: bonusAmount, winTimes: rate, totalBetAmount: totalBetAmount}])
                 return {selectedRewardParam: selectedRewardParam, record: playerBonusDoubledRewardGroupRecord, consumptionRecordList: consumptionRecordList, winLoseAmount: bonusAmount, winTimes: rate, totalBetAmount: totalBetAmount};
             }
         )
