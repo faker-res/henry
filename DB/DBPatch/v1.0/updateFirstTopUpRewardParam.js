@@ -1246,7 +1246,7 @@ db.rewardParam.update({
             tblOptFixed: {
                 rewardParam: {
                     minBetAmount: {type: "number", des: "Minimum Bet Amount"},
-                    bankerResult: {type: "number", des: "Banker Result"},
+                    hostResult: {type: "number", des: "Host Result"},
                     playerResult: {type: "number", des: "Player Result"},
                     rewardAmount: {type: "number", des: "Baccarat Reward Amount"},
                     spendingTimes: {type: "number", des: "Spending times on reward"},
