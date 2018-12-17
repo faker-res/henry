@@ -58,7 +58,7 @@
                                 span {{ type.typeName | translate }}
                             th.text-center(style="color:red;min-width:210px;" ) {{'All Withdrawal' | translate}}（{{'Total Sum' | translate}}）
 
-            tbody#dailyFinancialReportData
+            tbody
                 tr.no-border(ng-repeat="financialReport in vm.dailyFinancialReportList track by $index" style="padding:0 !important;")
                     td
                         span {{ financialReport.date }}
