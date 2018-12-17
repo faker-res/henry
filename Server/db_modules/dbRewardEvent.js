@@ -766,11 +766,15 @@ var dbRewardEvent = {
             }
         }
 
+        console.log("checking rewardParam", rewardParam)
+
         if (rewardParam) {
             winLoseAmount = rewardParam.winLoseAmount;
             winTimes = rewardParam.winTimes;
             totalBetAmount = rewardParam.totalBetAmount;
             playerBonusDoubledRecord = rewardParam.record;
+
+            console.log("checking rewardParam.selectedRewardParam", rewardParam.selectedRewardParam)
 
             if (rewardParam.selectedRewardParam) {
                 if (rewardParam.selectedRewardParam.hasOwnProperty('rewardPercentage')) {
