@@ -440,6 +440,8 @@ let wcConversationLogSchema = require('./../schema/logs2/wcConversationLog');
 let wcConversationLogModel = dbLogs2.model('wcConversationLog', wcConversationLogSchema, 'wcConversationLog');
 let wcGroupControlPlayerWechatSchema = require('./../schema/logs2/wcGroupControlPlayerWechat');
 let wcGroupControlPlayerWechatModel = dbLogs2.model('wcGroupControlPlayerWechat', wcGroupControlPlayerWechatSchema, 'wcGroupControlPlayerWechat');
+let baccaratConsumptionSchema = require('./../schema/logs2/baccaratConsumption');
+let baccaratConsumptionModel = dbLogs2.model('baccaratConsumption', baccaratConsumptionSchema, 'baccaratConsumption');
 
 let openPromoCodeTemplateSchema = require('./../schema/logs2/openPromoCodeTemplate');
 let openPromoCodeTemplateModel = dbLogs2.model('openPromoCodeTemplate', openPromoCodeTemplateSchema, 'openPromoCodeTemplate');
@@ -724,6 +726,7 @@ var dbProperties = {
     collection_wcGroupControlSession: wcGroupControlSessionModel,
     collection_wcConversationLog: wcConversationLogModel,
     collection_wcGroupControlPlayerWechat: wcGroupControlPlayerWechatModel,
+    collection_baccaratConsumption: baccaratConsumptionModel,
 
     collection_qualityInspection: qualityInspectionModel,
     collection_live800RecordDaySummary: live800RecordDaySummaryModel,
