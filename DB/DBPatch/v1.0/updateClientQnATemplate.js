@@ -86,7 +86,6 @@ db.clientQnATemplate.update(
     },
     {
         $set: {
-            alternativeQuestion: {des: "Cannot receive SMS?", action: "rejectFailedRetrieveAccount"},
             question: [{questionNo: 1, des: "Please enter phone number of the account, a sms verification code will be sent"}],
             answerInput: [{type: "text", objKey: "phoneNumber", questionNo: 1, placeHolder: "Please enter phone number"}],
             action: "forgotUserID1_1"
@@ -111,12 +110,28 @@ db.clientQnATemplate.update(
 
 db.clientQnATemplate.update(
     {
+        processNo: "3_1",
+        type: type2
+    },
+    {
+        $set: {
+            alternativeQuestion: {des: "Inconvenient to accept?", action: "switchPage"},
+            question: [{questionNo: 1, des: "This Phone Binded to :"}],
+            hint:"Please press 'Next Step' to retrieve sms code for reset password.",
+            action: "forgotUserId3_2"
+        }
+    },
+    {upsert: true});
+
+db.clientQnATemplate.update(
+    {
         processNo: "3_2",
         type: type2
     },
     {
         $set: {
-            question: [{questionNo: 1, des: "Please choose an account to reset:"}],
+            alternativeQuestion: {des: "Inconvenient to accept?", action: "switchPage"},
+            question: [{questionNo: 1, des: "This Phone binded multiple account , if forgot the password, please choose the account , press 'Next Step' to receive sms validation code(Please Choose One)"}],
             action: "forgotUserId3_2"
         }
     },

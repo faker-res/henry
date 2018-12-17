@@ -30592,16 +30592,29 @@ console.log('typeof ',typeof gameProviders);
             }
 
             // display first step of the selected QnA type if processNo is null
-            vm.getClientQnAProcess = function (isAlternative) {
+            vm.getClientQnAProcess = function (isAlternative, crossPage) {
                 vm.clientQnADataErr = ""; //reset error text
                 vm.clientQnAInputCheck = {}; //reset error text
+
+                let typeName = vm.selectedClientQnAType.data;
+
                 let sendData = {
                     creator: {type: "admin", name: authService.adminName, id: authService.adminId},
-                    type: vm.selectedClientQnAType.data,
+                    type: typeName,
                     platformObjId: vm.selectedPlatform.id,
                     inputDataObj: vm.clientQnAInput,
                     qnaObjId: vm.playerClientQnAObjId
                 }
+
+                if(crossPage){
+                    sendData.type = crossPage.type
+                    sendData.inputDataObj = { name: crossPage.username}
+                    vm.clientQnAData.processNo = crossPage.processNo;
+                    vm.clientQnAData.action= crossPage.action;
+                    vm.clientQnAData.type = crossPage.type;
+                }
+
+
                 if (isAlternative) {
                     sendData.isAlternative = true;
 
@@ -30622,9 +30635,13 @@ console.log('typeof ',typeof gameProviders);
                 if (vm.clientQnAData && vm.clientQnAData.processNo) {
                     sendData.processNo = vm.clientQnAData.processNo;
                     //special handle forgor use ID
-                    if (isAlternative && vm.clientQnAData.processNo == "1" && sendData.type == vm.constClientQnA.FORGOT_PASSWORD) {
+                    if (isAlternative && vm.clientQnAData.processNo == "1" && sendData.type == vm.constClientQnA.FORGOT_PASSWORD && !crossPage) {
                         $('#clientQnATypeTree li[data-nodeid="1"]').trigger("click");
                         return;
+
+                    }
+                    if (isAlternative && vm.clientQnAData.processNo == "1" && sendData.type == vm.constClientQnA.FORGOT_PASSWORD && crossPage) {
+                        $('#clientQnATypeTree li[data-nodeid="0"]').trigger("click");
                     }
                 }
 
