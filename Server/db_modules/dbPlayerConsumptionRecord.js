@@ -816,7 +816,7 @@ var dbPlayerConsumptionRecord = {
                 let regexPattern = new RegExp('百家乐','g');
                 if (newRecord && newRecord.cpGameType && newRecord.result && regexPattern.test(newRecord.cpGameType)) {
                     let baccaratResult;
-                    if (newRecord.providerId == '18' /*'56'*/) { // EBET
+                    if (newRecord.providerId ==  '56') { // EBET
                         baccaratResult = readEBETBaccaratResult(newRecord.result);
                     } else if (newRecord.providerId == '16') { // AG
                         baccaratResult = readAGBaccaratResult(newRecord.result);
