@@ -799,6 +799,7 @@ var proposal = {
         updateData['data.remarks'] = remarks;
         return dbconfig.collection_playerRegistrationIntentRecord.findOneAndUpdate({_id: ObjectId(id)}, updateData, {new: true}).exec();
     },
+
     updateTopupProposal: function (proposalId, status, requestId, orderStatus, remark, callbackData) {
         let proposalObj = null;
         let type = constPlayerTopUpType.ONLINE;
@@ -810,7 +811,7 @@ var proposal = {
                 proposalObj = proposalData;
 
                 // Check passed in amount vs proposal amount
-                if (callbackData && callbackData.amount && proposalData.data.amount && Number(callbackData.amount) !== Number(proposalData.data.amount)) {
+                if (callbackData && callbackData.amount && proposalData.data.amount && Number(parseFloat(callbackData.amount).toFixed(0)) !== Number(parseFloat(proposalData.data.amount).toFixed(0))) {
                     return Promise.reject({
                         name: "DataError",
                         message: "Invalid top up amount"
@@ -826,6 +827,11 @@ var proposal = {
                 if (proposalData && proposalData.data && (proposalData.data.weChatAccount != null || proposalData.data.weChatQRCode != null)) {
                     type = constPlayerTopUpType.WECHAT;
                 }
+
+                if (proposalData.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
+                    type = constPlayerTopUpType.COMMON;
+                }
+
                 if (proposalData
                     && proposalData.data
                     && (proposalData.status == constProposalStatus.PREPENDING
@@ -841,6 +847,7 @@ var proposal = {
                             && (proposalData.data.requestId == requestId || !proposalData.data.requestId)
                         )
                         || proposalData.type.name === constProposalType.PLAYER_COMMON_TOP_UP
+                        || proposalData.data.isCommonTopUp
                     )
                 ) {
                     return proposalData;
@@ -871,19 +878,85 @@ var proposal = {
             }
         ).then(
             data => {
-                if (status == constProposalStatus.SUCCESS) {
+                if (status === constProposalStatus.SUCCESS) {
                     // Debug credit missing after top up issue
                     console.log('updatePlayerTopupProposal', proposalId);
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, true, remark, callbackData);
-                } else if (status == constProposalStatus.FAIL) {
+                } else if (status === constProposalStatus.FAIL) {
                     return dbPlayerInfo.updatePlayerTopupProposal(proposalId, false, remark, callbackData);
                 }
                 else {
                     //update proposal for experiation
-                    return dbconfig.collection_proposal.findOneAndUpdate(
-                        {_id: proposalObj._id, createTime: proposalObj.createTime},
-                        {status: status}
-                    );
+                    // Update proposal type for common top up proposal
+                    let propTypeProm = Promise.resolve();
+                    let propTypeName = constProposalType.PLAYER_COMMON_TOP_UP;
+                    let isCommonTopUp = false;
+
+                    if (type === constPlayerTopUpType.COMMON && proposalObj.data.platformId && callbackData.topUpType) {
+                        switch (Number(callbackData.topUpType)) {
+                            case 1:
+                                propTypeName = constProposalType.PLAYER_MANUAL_TOP_UP;
+                                break;
+                            case 2:
+                                propTypeName = constProposalType.PLAYER_TOP_UP;
+                                break;
+                            case 3:
+                                propTypeName = constProposalType.PLAYER_ALIPAY_TOP_UP;
+                                break;
+                            case 4:
+                                propTypeName = constProposalType.PLAYER_WECHAT_TOP_UP;
+                        }
+
+                        propTypeProm = dbconfig.collection_proposalType.findOne({
+                            platformId: proposalObj.data.platformId,
+                            name: propTypeName
+                        }, '_id').lean();
+
+                        isCommonTopUp = true;
+                    }
+
+                    return propTypeProm.then(
+                        propType => {
+                            let updObj = {
+                                status: status
+                            };
+
+                            if (propType && propType._id) {
+                                updObj.type = propType._id;
+                            }
+
+                            // Record sub top up method into proposal
+                            if (callbackData && callbackData.depositMethod) {
+                                if (propTypeName === constProposalType.PLAYER_TOP_UP) {
+                                    updObj['data.topupType'] = callbackData.depositMethod;
+                                }
+
+                                if (propTypeName === constProposalType.PLAYER_MANUAL_TOP_UP) {
+                                    updObj['data.depositMethod'] = callbackData.depositMethod;
+                                }
+                            }
+
+                            // Update amount to be paid to include decimal
+                            if (
+                                callbackData.count
+                                && callbackData.count === '1'
+                                && Number(callbackData.amount) !== Number(proposalObj.data.amount)
+                                && Number(callbackData.amount) - Number(proposalObj.data.amount) < 1
+                            ) {
+                                updObj['data.amount'] = Number(callbackData.amount);
+                            }
+
+                            // Mark this proposal as common top up
+                            if (isCommonTopUp) {
+                                updObj['data.isCommonTopUp'] = true;
+                            }
+
+                            return dbconfig.collection_proposal.findOneAndUpdate(
+                                {_id: proposalObj._id, createTime: proposalObj.createTime},
+                                updObj
+                            );
+                        }
+                    )
                 }
             }
         ).then(
@@ -897,7 +970,7 @@ var proposal = {
             },
             error => {
                 if (!error.data) {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.COMMON_ERROR,
                         name: "DataError",
                         message: error.message || error,
@@ -910,7 +983,7 @@ var proposal = {
                     });
                 }
                 else {
-                    return Q.reject(error);
+                    return Promise.reject(error);
                 }
             }
         );

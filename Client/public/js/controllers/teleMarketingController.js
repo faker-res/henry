@@ -8152,7 +8152,12 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('Last Successful Feedback Time'), data: 'lastSuccessfulFeedbackTime',
                         render: function (data, type, row) {
-                            return utilService.getFormatTime(data);
+                            if(data == undefined){
+                                return "";
+                            }else{
+                                return utilService.getFormatTime(data);
+
+                            }
                         }
                     },
                     {
@@ -8272,6 +8277,12 @@ define(['js/app'], function (myApp) {
                 $('#trashClassificationDecompositionListRightTable').resize();
             },0)
             $scope.safeApply();
+        }
+
+        vm.dailyTradeTsPhone = function () {
+            socketService.$socket($scope.AppSocket, 'dailyTradeTsPhone', {}, function (data) {
+                console.log("dailyTradeTsPhone", data)
+            })
         }
 
         vm.initModalImportTsPhoneTrade = function () {
