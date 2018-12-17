@@ -633,7 +633,8 @@ define(['js/app'], function (myApp) {
                             item.encodedPhoneNumber$ = utilService.encodePhoneNum(item.tsPhone.phoneNumber);
                         }
                         item.startTime$ = utilService.getFormatTime(item.startTime);
-                        let endDate = utilService.setNDaysAgo(new Date(item.endTime), 1); // endTime in DB store end time of day
+                        // let endDate = utilService.setNDaysAgo(new Date(item.endTime), 1); // endTime in DB store end time of day
+                        let endDate = new Date(item.endTime);
                         let daysDiff = Math.abs(endDate.getTime() - new Date().getTime());
                         item.reclaimDaysLeft$ = Math.ceil(daysDiff / (1000 * 3600 * 24));
 
