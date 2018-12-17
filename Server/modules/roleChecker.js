@@ -590,7 +590,12 @@ var roleChecker = {
             },
             "FrontendConfiguration": {
                 Read: []
-            }
+            },
+            "AuctionSystem": {
+                Read: [],
+                createProduct: [],
+                monitoringSystem: [],
+            },
         },
         Report: {
             General: {

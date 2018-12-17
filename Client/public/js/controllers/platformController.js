@@ -1419,6 +1419,9 @@ define(['js/app'], function (myApp) {
                     case "FrontendConfiguration":
                         vm.initFrontendConfiguration();
                         break;
+                    case "AuctionSystem":
+                        vm.initAuctionSystem();
+                        break;
                 }
 
                 commonService.updatePageTile($translate, "platform", tabName);
@@ -36157,6 +36160,24 @@ console.log('typeof ',typeof gameProviders);
                     vm.frontendConfigurationUrl = $sce.trustAsResourceUrl(url);
                 }
             };
+
+            vm.initAuctionSystem = function() {
+
+            };
+
+            vm.auctionSystemTabClicked = function (choice) {
+                vm.selectedAuctionSystemTab = choice;
+
+                switch (choice) {
+                    case 'createProduct':
+
+                        break;
+                    case 'monitoringSystem':
+
+                        break;
+                }
+            };
+
 
 
             vm.changeFrameHeight = function() {
