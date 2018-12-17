@@ -324,13 +324,13 @@ const dbRewardUtility = {
                                 correctMerchantType = false;
                             }
 
-                            if (!correctTopUpType) {
-                                return Promise.reject({
-                                    status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                    name: "DataError",
-                                    message: "Top up type does not match, fail to claim reward"
-                                });
-                            }
+                            // if (!correctTopUpType) {
+                            //     return Promise.reject({
+                            //         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                            //         name: "DataError",
+                            //         message: "Top up type does not match, fail to claim reward"
+                            //     });
+                            // }
                             if (!correctBankCardType) {
                                 return Promise.reject({
                                     status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
