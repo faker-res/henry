@@ -25,9 +25,10 @@ router.post('/notifyPayment', function(req, res, next) {
 
         let msgBody = parsedData.content;
         let isValidData = msgBody && msgBody.proposalId && msgBody.status && msgBody.billNo && msgBody.amount
-            && msgBody.username && msgBody.md5 && msgBody.depositMethod;
+            && msgBody.username && msgBody.md5;
 
-        console.log('isValidData', isValidData);
+        // TEMP LOG
+        console.log('parsedData', parsedData);
 
         if (isValidData) {
             let statusText;
@@ -52,25 +53,34 @@ router.post('/notifyPayment', function(req, res, next) {
             console.log('updateTopupProposal', msgBody.proposalId);
             dbProposal.updateTopupProposal(msgBody.proposalId, statusText, msgBody.billNo, msgBody.status, msgBody.remark, msgBody).then(
                 () => {
-                    console.log('updateTopupProposal success', msgBody.proposalId);
-                    res.send(encodeURIComponent({
+                    let returnMsg = encodeURIComponent(JSON.stringify({
                         code: constServerCode.SUCCESS,
                         msg: "succ"
                     }));
+
+                    console.log('updateTopupProposal success', msgBody.proposalId, returnMsg);
+
+                    res.send(returnMsg);
+                    res.end();
                 },
                 err => {
                     console.log('updateTopupProposal error', msgBody.proposalId, err);
-                    res.send(encodeURIComponent({
+                    let returnMsg = encodeURIComponent(JSON.stringify({
                         code: constServerCode.INVALID_DATA,
                         msg: err.message
-                    }))
+                    }));
+
+                    res.send(returnMsg);
+                    res.end();
                 }
             )
         } else {
-            res.send(encodeURIComponent({
+            let returnMsg = encodeURIComponent(JSON.stringify({
                 code: constServerCode.INVALID_DATA,
                 msg: "Invalid data"
-            }))
+            }));
+            res.send(returnMsg);
+            res.end();
         }
     });
 

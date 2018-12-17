@@ -19,6 +19,7 @@ var clientQnATemplateSchema = new Schema({
         des: {type: String},
         action: {type: String}
     },
+    hint: {type:String},
     // question 's answer
     answerInput: [{
         type: {type: String},
