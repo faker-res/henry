@@ -5970,6 +5970,14 @@ let dbPlayerInfo = {
                                     isForbidden = true;
                                 }
 
+                                let checkList = {
+                                    isRewardValid: isRewardValid,
+                                    isOutOfAppliedInterval: isOutOfAppliedInterval,
+                                    hasReceived: hasReceived,
+                                    isForbidden: isForbidden
+                                }
+                                console.log("checking playerRetentionRewardGroup", [playerData.playerId, record, checkList]);
+
                                 if (isRewardValid && !hasReceived && !isForbidden && !isOutOfAppliedInterval){
                                     let rewardParam = {};
                                     // Set reward param for player level to use
