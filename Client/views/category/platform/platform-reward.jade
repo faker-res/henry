@@ -217,11 +217,11 @@
                                     i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='(vm.isMultiStepReward || (vm.showRewardTypeData.isGrouped === true && vm.showRewardTypeData && vm.showRewardTypeData.name ==="PlayerConsumptionSlipRewardGroup")) && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                                 td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
                                     div(style='width:200px;')
-                                        select.form-control(ng-model='entry.sourceProvider', static-bsp, data-actions-box='true')
+                                        select.form-control(ng-model='entry.sourceProvider', data-container="body" data-width='100%', static-bsp, data-actions-box='true')
                                             option(ng-repeat='(i,v) in vm.allGameProviders', value='{{v._id}}') {{ v.name }}
                                 td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
-                                    div(style='width:200px;')
-                                        select.form-control(ng-model='entry.betType', multiple, static-bsp, data-actions-box='true')
+                                    div(style='width:280px;')
+                                        select.form-control(ng-model='entry.betType', data-container="body" data-width='100%', multiple, static-bsp, data-actions-box='true')
                                             option(ng-repeat='(i,v) in vm.betType', value='{{v}}') {{ v }}
                                 td(ng-repeat="(i,v) in cond.header track by $index")
                                     input(ng-if="v.type == 'text' || v.type == 'checkbox' || v.type == 'number'" type="{{v.type}}" ng-model="entry[i]" ng-change="vm.changeRewardParamLayout({i:i, v:v, entry:entry});")
@@ -262,11 +262,11 @@
                                     i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                                 td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
                                     div(style='width:200px;')
-                                        select.form-control(ng-model='entry.sourceProvider', static-bsp, data-actions-box='true')
+                                        select.form-control(ng-model='entry.sourceProvider', data-container="body" data-width='100%', static-bsp, data-actions-box='true')
                                             option(ng-repeat='(i,v) in vm.allGameProviders', value='{{v._id}}') {{ v.name }}
                                 td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
-                                    div(style='width:200px;')
-                                        select.form-control(ng-model='entry.betType', multiple, static-bsp, data-actions-box='true')
+                                    div(style='width:280px;')
+                                        select.form-control(ng-model='entry.betType', data-container="body" data-width='100%', multiple, static-bsp, data-actions-box='true')
                                             option(ng-repeat='(i,v) in vm.betType', value='{{v}}') {{ v }}
                                 td(ng-repeat="(i,v) in cond.header track by $index")
                                     span(ng-if="i == 'loginDay'") {{entry[i]}}
@@ -299,11 +299,11 @@
                                                 i.fa.fa-minus(ng-click='cond.value.splice($index, 1)' ng-if='vm.isMultiStepReward && !vm.platformRewardShowEdit() && $index != 0' style='margin-left: 0.3em')
                                             td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
                                                 div(style='width:200px;')
-                                                    select.form-control(ng-model='entry.sourceProvider', static-bsp, data-actions-box='true')
+                                                    select.form-control(ng-model='entry.sourceProvider', data-container="body" data-width='100%', static-bsp, data-actions-box='true')
                                                         option(ng-repeat='(i,v) in vm.allGameProviders', value='{{v._id}}') {{ v.name }}
                                             td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
-                                                div(style='width:200px;')
-                                                    select.form-control(ng-model='entry.betType', multiple, static-bsp, data-actions-box='true')
+                                                div(style='width:280px;')
+                                                    select.form-control(ng-model='entry.betType', data-container="body" data-width='100%', multiple, static-bsp, data-actions-box='true')
                                                         option(ng-repeat='(i,v) in vm.betType', value='{{v}}') {{ v }}
                                             td(ng-repeat="(i,v) in cond.header")
                                                 span(ng-if="i == 'loginDay'") {{entry[i]}}
