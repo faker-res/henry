@@ -14550,7 +14550,7 @@ let dbPlayerInfo = {
                                     // check if there is selected game providers from front-end
                                     if (isFrontEnd){
                                         if (forceSettled){
-                                            rewardData.forceSettled = forceSettled;
+                                            rewardData.forceSettled = true;
                                         }
                                         if (type){
                                             rewardData.type = type;
@@ -23127,7 +23127,7 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
                 playerBonusDoubledRecord =  checkList[4] && checkList[4].record ? checkList[4].record : null;
                 winLoseAmount = checkList[4] && checkList[4].winLoseAmount ? checkList[4].winLoseAmount : 0;
                 consumptionRecordList = checkList[4] && checkList[4].consumptionRecordList ? checkList[4].consumptionRecordList : null;
-                newEndTime = checkList[4] && checkList[4].newEndTime ? checkList[4].consumptionRecordList : null;
+                newEndTime = checkList[4] && checkList[4].newEndTime ? checkList[4].newEndTime : null;
                 lastConsumptionRecord = checkList[5] || null;
 
                 return true;
