@@ -5732,9 +5732,13 @@ define(['js/app'], function (myApp) {
                         title: $translate('GAME_TYPE_CONSUMPTION') + "/ <br>" + $translate('BET_TYPE_CONSUMPTION') + "(%)",
                         data: "betAmtPercent",
                         sClass: 'betAmtPercent alignRight',
-                     //    render: function (data, type, row) {
-                     //     return data + "%";
-                     // }
+                        render: function (data, type, row) {
+                            if(!isFinite(data) || isNaN(data)){
+                                return "-";
+                            }else{
+                                return data + "%";
+                            }
+                     }
                     },
 
                     {title: $translate('BET_TYPE_BONUS'), data: "bonusAmount", sClass: 'sumFloat alignRight'},
