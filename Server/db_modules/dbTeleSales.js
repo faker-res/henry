@@ -187,8 +187,8 @@ let dbTeleSales = {
                 if (!(data && data.length)) {
                     return [0, []];
                 }
-                let tsDistributedPhoneObjId = data.map(tsDistributedPhone => tsDistributedPhone.distributedPhoneIds);
-                let phoneListQuery = {_id: {$in: tsDistributedPhoneObjId}};
+                
+                let phoneListQuery = {_id: {$in: data[0].distributedPhoneIds}};
                 let tsDistributePhoneCountProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).count();
                 let tsDistributePhoneProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).sort(sortObj).skip(index).limit(limit)
                     .populate({path: 'tsPhoneList', model: dbconfig.collection_tsPhoneList, select: "name"})
