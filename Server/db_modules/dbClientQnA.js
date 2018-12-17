@@ -1595,8 +1595,8 @@ var dbClientQnA = {
             return Promise.reject({message: "Phone number must be 11 characters."});
         }
 
-        if (inputDataObj.bankAccount && !(inputDataObj.bankAccount.length === 16 || inputDataObj.bankAccount.length === 19)) {
-            return Promise.reject({message: "Bank account must be either 16 number or 19 number"});
+        if (inputDataObj.bankAccount && (inputDataObj.bankAccount.length < 15 || inputDataObj.bankAccount.length > 19)) {
+            return Promise.reject({message: "Bank account must in between 15 to 19 digits"});
         }
 
         return dbconfig.collection_clientQnA.findOne({_id: qnaObjId}).lean().then(
@@ -1715,8 +1715,8 @@ var dbClientQnA = {
             return Promise.reject({message: "Please insert bank account."});
         }
 
-        if (!(inputDataObj.bankAccount.length === 16 || inputDataObj.bankAccount.length === 19)) {
-            return Promise.reject({message: "Bank account must be either 16 number or 19 number"});
+        if (inputDataObj.bankAccount.length < 15 || inputDataObj.bankAccount.length > 19) {
+            return Promise.reject({message: "Bank account must in between 15 to 19 digits"});
         }
 
         if (!inputDataObj.bankType) {
