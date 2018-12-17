@@ -5728,7 +5728,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PLAYER_NAME'), data: "_id.name", sClass: "sumText", orderable: false},
                     {title: $translate('BET_TYPE_CONSUMPTION'), data: "selectedBetTypeAmt", sClass: 'sumFloat alignRight'},
                     {title: $translate('GAME_TYPE_CONSUMPTION'), data: "totalBetAmt", sClass: 'sumFloat alignRight'},
-                    {title: $translate('GAME_TYPE_CONSUMPTION') + "/ <br>" + $translate('BET_TYPE_CONSUMPTION') + "(%)", data: "betAmtPercent", sClass: 'betAmtPercent alignRight'},
+                    {title: $translate('BET_TYPE_CONSUMPTION') + "/ <br>" + $translate('GAME_TYPE_CONSUMPTION') + "(%)", data: "betAmtPercent", sClass: 'betAmtPercent alignRight'},
                     {title: $translate('BET_TYPE_BONUS'), data: "bonusAmount", sClass: 'sumFloat alignRight'},
                     {title: $translate('BET_TYPE_COUNT'), data: "selectedBetTypeCount", sClass: 'sumInt alignRight'},
                     {title: $translate('GAME_TYPE_COUNT'), data: "totalBetCount", sClass: 'sumInt alignRight'},
@@ -9360,12 +9360,7 @@ define(['js/app'], function (myApp) {
             // generate a download for xls
             vm.exportToExcel = function(tableId, reportName) {
                 let tab = "";
-                let tabData ="";
                 let htmlContent = "";
-                let tabHeader ="";
-                let tabItem ="";
-                let tabAmount ="";
-
 
                 if(reportName == "PLAYER_DEPOSIT_ANALYSIS_REPORT") {
                     for (let i = 0; i <= vm.playerDepositAnalysis.length - 1; i++) {
@@ -9428,10 +9423,6 @@ define(['js/app'], function (myApp) {
                     if(vm.financialReport.platform.length == 1 && vm.financialReport.displayMethod == "daily" ){
                         tableId = "dailyFinancialReport";
                         tab = document.getElementById(tableId);
-                        tabData = document.getElementById("dailyFinancialReportData");
-                        console.log(tab)
-                        console.log(tabData)
-
 
                         htmlContent += "<td rowspan=2>" + tab.getElementsByTagName('th')[0].innerHTML +"</td>";
                         let count = 0;
@@ -9444,74 +9435,58 @@ define(['js/app'], function (myApp) {
                         htmlContent += "<td colspan=" + bonusColSpan + " style='text-align:center;'>" + tab.getElementsByTagName('th')[vm.topUpHeader.length + 1].innerHTML;
                         htmlContent += "<td rowspan=2>" + tab.getElementsByTagName('th')[vm.topUpHeader.length + 2].innerHTML;
 
-                        htmlContent += "<tr></tr>";
+                        htmlContent += "<tr>";
                         for (let l = 2; l <= vm.topUpHeader.length + 2; l++){
                             htmlContent += tab.getElementsByTagName('tr')[l].innerHTML;
                         }
 
-                        htmlContent += "<tr></tr>";
-                        htmlContent += "<td>"+ tabData.getElementsByTagName('td')[0].innerHTML;
 
-                        for (let q = 1; q <= vm.topUpHeader.length + 1; q++){
-                            htmlContent += tabData.getElementsByTagName('tr')[q].innerHTML;
-                        }
-                        htmlContent += "<td>" + tabData.getElementsByTagName('td')[vm.topUpHeader.length + 2].innerHTML;
+                        vm.dailyFinancialReportList.forEach(
+                            dailyFinancialReportList => {
+                                if(dailyFinancialReportList && dailyFinancialReportList.date){
+                                    htmlContent += "<tr>";
+                                    htmlContent += "<td>" + dailyFinancialReportList.date + "</td>";
+                                }
+
+                                dailyFinancialReportList.topUpList.forEach(
+                                    topUpList => {
+
+                                        topUpList.topUpDetail = topUpList.topUpDetail.sort(sortByDepositId);
+                                        topUpList.topUpDetail.forEach(
+                                            topUpDetail => {
+                                                htmlContent += "<td>" + topUpDetail.amount + "</td>";
+
+                                            }
+                                        )
+                                        htmlContent += "<td style='color:red;'>" + topUpList.totalAmount + "</td>";
+                                    }
+                                )
+
+                                dailyFinancialReportList.bonusList.forEach(
+                                    bonusList => {
+                                        bonusList.bonusDetail.forEach(
+                                            bonusDetail =>{
+                                                htmlContent += "<td>" + bonusDetail.amount + "</td>"
+
+                                            }
+                                        )
+                                        htmlContent += "<td style='color:red;'>" + bonusList.totalAmount + "</td>"
+                                    }
+                                )
+
+                                dailyFinancialReportList.platformFeeEstimate.forEach(
+                                    platformFeeEstimate => {
+                                        htmlContent += "<td>" + platformFeeEstimate.totalPlatformFeeEstimate + "</td>"
+
+                                    }
+                                )
+                            }
+                        )
+
                     }
                     else{
                         tableId = "sumFinancialReport";
                         tab = document.getElementById(tableId);
-                        // tabHeader = document.getElementById("sumFinancialReportHeader");
-                        tabHeader = document.getElementsByClassName("tdheader");
-                        tabItem = document.getElementsByClassName("tditems");
-                        tabAmount = document.getElementsByClassName("tramounts");
-
-
-
-                        console.log('hello', tabHeader);
-                        console.log('hello2', tabItem);
-                        console.log('hello3', tabAmount);
-
-
-                        // if (document.getElementById("playerPartnerSummaryTable")) {
-                        //     tab = document.getElementById("playerPartnerSummaryTable");
-                        //     htmlContent += "<tr></tr>";
-                        //     htmlContent += "<tr>" + tab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].innerHTML + "</tr>" + tab.getElementsByTagName('tbody')[0].innerHTML;
-                        // }
-
-
-                        // console.log("aa", tabHeader.getElementsByTagName('td')[0]);
-                        // console.log("bb", tabHeader.getElementsByTagName('td')[1]);
-
-                        // Hardcoded Example
-                        // htmlContent += "<td colspan=2>" + tab.getElementsByTagName('th')[0].innerHTML;
-                        // for (let i = 0; i < vm.sumFinancialReportList.platformFeeEstimateList.length; i++) {
-                        //     htmlContent += "<td>" + tab.getElementsByTagName('td')[i].innerHTML +"</td>";
-                        // }
-                        //
-                        //
-                        // htmlContent += "<tr>";
-                        // let groupOne = vm.sumFinancialReportList.topUpList[0].topUpDetail.length+1;
-                        // htmlContent += "<td rowspan="+ groupOne +" style='text-align: center;'>" + tabHeader[0].innerHTML +"</td>";
-                        // htmlContent += tabItem[0].innerHTML + tabAmount[0].innerHTML;
-                        // for (let f = 1; f < groupOne ; f++) {
-                        //
-                        //     htmlContent += "<tr>" + tabItem[f].innerHTML + tabAmount[f].innerHTML + " </tr> ";
-                        //
-                        // }
-                        // htmlContent += "</tr>";
-                        //
-                        // htmlContent += "<tr>";
-                        // let groupTwo = vm.sumFinancialReportList.topUpList[1].topUpDetail.length+1;
-                        // htmlContent += "<td rowspan="+ groupTwo +" style='text-align: center;'>" + tabHeader[1].innerHTML +"</td>";
-                        // htmlContent += tabItem[groupOne].innerHTML + tabAmount[groupOne].innerHTML;
-                        // console.log(groupTwo)
-                        // for (let k = groupOne+1; k < groupTwo + groupOne;  k++) {
-                        //     console.log('yoyo', k);
-                        //
-                        //     htmlContent += "<tr>" + tabItem[k].innerHTML + tabAmount[k].innerHTML + " </tr> ";
-                        //
-                        // }
-                        // htmlContent += "</tr>";
 
 
                         htmlContent += "<td colspan=2>" + tab.getElementsByTagName('th')[0].innerHTML;
@@ -9535,9 +9510,7 @@ define(['js/app'], function (myApp) {
                                                         htmlContent += "<td>" + $translate(String(topUpDetail.depositName))+ "(" + topUpDetail.depositName + "): " +topUpDetail.topUpMethodId + " </td>";
                                                     }else{
                                                         htmlContent += "<td>" + $translate(String(topUpDetail.depositName)) + " </td>";
-
                                                     }
-
 
                                                     if(topUpDetail.topUpDetail && topUpDetail.topUpDetail.length > 0){
                                                         topUpDetail.topUpDetail.forEach(
@@ -9546,10 +9519,7 @@ define(['js/app'], function (myApp) {
                                                             }
                                                         )
                                                     }
-
-
                                                     htmlContent += "<tr>";
-
                                                 }
                                             }
                                         )
@@ -9558,13 +9528,10 @@ define(['js/app'], function (myApp) {
 
                                     topUpList.totalAmountList.forEach(
                                         totalAmountList    => {
-                                            htmlContent += "<td>" + totalAmountList.totalAmount +"</td>";
-
+                                            htmlContent += "<td style='color:red;'>" + totalAmountList.totalAmount +"</td>";
                                         }
                                     )
-
                                     htmlContent += "</tr>";
-
                                 }
                             }
                         )
@@ -9604,12 +9571,6 @@ define(['js/app'], function (myApp) {
 
                             }
                         )
-
-
-
-
-
-
                     }
 
 
