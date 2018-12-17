@@ -578,9 +578,13 @@ define([], function () {
                             })
                         }
                         pageValue = totalBetTypeConsumption / selectedBetTypeConsumption * 100;
-                        totalValue = getFloat(totalValue).toFixed(2);
-                        pageValue = getFloat(pageValue).toFixed(2);
-                        htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
+                        if(!isFinite(pageValue) || isNaN(pageValue)) {
+                            pageValue = "-";
+                        }else {
+                            totalValue = getFloat(totalValue).toFixed(2);
+                            pageValue = getFloat(pageValue).toFixed(2);
+                            htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
+                        }
                     } else if (classes.indexOf('betCountPercent') > -1) {
                         //consumptionModeReport
                         if (sumData && sumData[i]) {
