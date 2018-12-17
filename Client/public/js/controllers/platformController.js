@@ -30881,6 +30881,20 @@ console.log('typeof ',typeof gameProviders);
                         });
 
                     }
+
+                    if(vm.clientQnAData.action == "forgotUserId3_1" || vm.clientQnAData.action == "forgotUserId3_2"){
+                        if(vm.clientQnAData.data.length > 0){
+                            vm.clientQnAData.data.forEach(player=>{
+                                console.log(player)
+                                copiedText += (player.name) ? player.name : '';
+                                copiedText += ','
+                            })
+                        }
+                    }
+
+                    if(vm.clientQnAData.hint){
+                        copiedText +=  '\n' + $translate(vm.clientQnAData.hint);
+                    }
                 }
                 //add on here
                 commonService.copyToClipboard(copiedText);
