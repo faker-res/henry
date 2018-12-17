@@ -17234,15 +17234,9 @@ define(['js/app'], function (myApp) {
                             vm.queryAdmins.push({_id:'', adminName:'N/A'});
                         }
 
-                        if (modal && modal.roles && modal.admins) {
-                            modal.roles.push("");
-                            modal.admins.push("");
-                        } else {
-                            modal.roles = [];
-                            modal.admins = [];
-                            modal.roles.push("");
-                            modal.admins.push("");
-                        }
+                        // NOTE :: choosing department should not help user to choose roles or admin,
+                        // it will cause a design inconsistency,
+                        // which cause admins to think that it is a bug
                     }
                 }
 
@@ -17253,7 +17247,7 @@ define(['js/app'], function (myApp) {
             vm.setQueryAdmins = (modal) => {
                 vm.queryAdmins = [];
 
-                if (modal.departments.includes("") && modal.roles.includes("") && modal.admins.includes("")) {
+                if (modal.departments.includes("") && modal.roles.includes("")) {
                     vm.queryAdmins.push({_id:'', adminName:'N/A'});
                 }
 
