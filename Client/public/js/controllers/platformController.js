@@ -483,6 +483,29 @@ define(['js/app'], function (myApp) {
                 3: 'Sports Wallet',
                 4: 'Keno Wallet'
             };
+
+            vm.betType = [
+                "庄",
+                "闲",
+                "和",
+                "庄对",
+                "闲对",
+                "大",
+                "小",
+                "庄免佣、庄(免佣)",
+                "庄龙宝",
+                "闲龙宝",
+                "超级六、幸運六、超级六(免佣)",
+                "任意对子",
+                "完美对子",
+                "庄单",
+                "庄双",
+                "闲单",
+                "闲双",
+                "莊保險",
+                "閑保險"
+            ];
+
             vm.partnerCommissionLog= {};
 
             vm.prepareToBeDeletedProviderGroupId = [];
@@ -17211,15 +17234,9 @@ define(['js/app'], function (myApp) {
                             vm.queryAdmins.push({_id:'', adminName:'N/A'});
                         }
 
-                        if (modal && modal.roles && modal.admins) {
-                            modal.roles.push("");
-                            modal.admins.push("");
-                        } else {
-                            modal.roles = [];
-                            modal.admins = [];
-                            modal.roles.push("");
-                            modal.admins.push("");
-                        }
+                        // NOTE :: choosing department should not help user to choose roles or admin,
+                        // it will cause a design inconsistency,
+                        // which cause admins to think that it is a bug
                     }
                 }
 
@@ -17230,7 +17247,7 @@ define(['js/app'], function (myApp) {
             vm.setQueryAdmins = (modal) => {
                 vm.queryAdmins = [];
 
-                if (modal.departments.includes("") && modal.roles.includes("") && modal.admins.includes("")) {
+                if (modal.departments.includes("") && modal.roles.includes("")) {
                     vm.queryAdmins.push({_id:'', adminName:'N/A'});
                 }
 
@@ -21074,14 +21091,14 @@ define(['js/app'], function (myApp) {
                                 }
 
                                 if (el == "consumptionSlipProviderSource") {
-                                    console.log('xx');
+
                                     let gameProviders = {};
                                     if (vm.allGameProviders) {
                                         for (let i = 0; i < vm.allGameProviders.length; i++) {
                                             let provider = vm.allGameProviders[i];
                                             gameProviders[provider._id] = provider.name;
                                         }
-console.log('typeof ',typeof gameProviders);
+
                                         vm.rewardMainParam[el].options = {};
                                         vm.rewardMainParam[el].options = gameProviders;
                                     }
@@ -21332,7 +21349,8 @@ console.log('typeof ',typeof gameProviders);
                             let tempApplyType = JSON.parse(JSON.stringify(vm.rewardMainCondition[index].options));
 
                             //this reward group does not provide second selection
-                            if (vm.showRewardTypeData.name == 'PlayerConsumptionSlipRewardGroup' && tempApplyType){
+                            if ((vm.showRewardTypeData.name == 'PlayerConsumptionSlipRewardGroup' || vm.showRewardTypeData.name == 'BaccaratRewardGroup')
+                                && tempApplyType){
                                 if (tempApplyType[2]){
                                     tempApplyType[2] = undefined;
                                 }
@@ -22316,6 +22334,8 @@ console.log('typeof ',typeof gameProviders);
 
             vm.editReward = function (i) {
                 let isValid = true;
+                let isBankerResult = true;
+                let isPlayerResult = true;
                 console.log('vm.showReward', vm.showReward);
 
                 if (vm.showReward && vm.showReward.type && vm.showReward.type.name
@@ -22421,6 +22441,26 @@ console.log('typeof ',typeof gameProviders);
                     curReward.display = vm.showReward.display || [];
                 }
 
+                if (vm.showRewardTypeData.isGrouped === true && vm.showRewardTypeData.name === 'BaccaratRewardGroup') {
+                    if (vm.rewardParams && vm.rewardParams.rewardParam && vm.rewardParams.rewardParam.length > 0) {
+                        vm.rewardParams.rewardParam.forEach(x => {console.log('x', x)
+                            if (x && x.value && x.value.length > 0) {
+                                x.value.forEach(el => { console.log('el', el)
+                                    if (el && Object.keys(el).length > 0) {
+                                        if (!el.bankerResult) {
+                                            isValid = false;
+                                            isBankerResult = false;
+                                        } else if (!el.playerResult) {
+                                            isValid = false;
+                                            isPlayerResult = false;
+                                        }
+                                    }
+                                })
+                            }
+                        })
+                    }
+                }
+
                 var sendData = {
                     query: {_id: vm.showReward._id},
                     updateData: curReward
@@ -22437,7 +22477,13 @@ console.log('typeof ',typeof gameProviders);
                         vm.rewardTabClicked();
                     });
                 } else {
-                    socketService.showErrorMessage($translate('Min Consumption Amount, Reward Amount is required'));
+                    if (!isBankerResult) {
+                        socketService.showErrorMessage($translate("Banker Result is required"));
+                    } else if (!isPlayerResult) {
+                        socketService.showErrorMessage($translate("Player Result is required"));
+                    } else {
+                        socketService.showErrorMessage($translate('Min Consumption Amount, Reward Amount is required'));
+                    }
                     $scope.$evalAsync(() => {
                         vm.disableAllRewardInput(false);
                     });
@@ -22472,6 +22518,8 @@ console.log('typeof ',typeof gameProviders);
             }
             vm.submitReward = function () {
                 let isValid = true;
+                let isBankerResult = true;
+                let isPlayerResult = true;
                 let sendData = {
                     platform: vm.selectedPlatform.id,
                     type: vm.showRewardTypeData._id,
@@ -22573,6 +22621,26 @@ console.log('typeof ',typeof gameProviders);
                     sendData.display = vm.showReward.display || [];
                 }
 
+                if (vm.showRewardTypeData.isGrouped === true && vm.showRewardTypeData.name === 'BaccaratRewardGroup') {
+                    if (sendData && sendData.param && sendData.param.rewardParam.length > 0) {
+                        sendData.param.rewardParam.forEach(x => {
+                            if (x && x.value && x.value.length > 0) {
+                                x.value.forEach(el => {
+                                    if (el && Object.keys(el).length > 0) {
+                                        if (!el.bankerResult) {
+                                            isValid = false;
+                                            isBankerResult = false;
+                                        } else if (!el.playerResult) {
+                                            isValid = false;
+                                            isPlayerResult = false;
+                                        }
+                                    }
+                                })
+                            }
+                        })
+                    }
+                }
+
                 console.log('vm.showRewardTypeData', vm.showRewardTypeData);
                 console.log('vm.rewardMainCondition', vm.rewardMainCondition);
                 console.log("newReward", sendData);
@@ -22589,7 +22657,13 @@ console.log('typeof ',typeof gameProviders);
                         console.log("created not", data);
                     });
                 } else  {
-                    socketService.showErrorMessage($translate('Min Consumption Amount, Reward Amount is required'));
+                    if (!isBankerResult) {
+                        socketService.showErrorMessage($translate("Banker Result is required"));
+                    } else if (!isPlayerResult) {
+                        socketService.showErrorMessage($translate("Player Result is required"));
+                    } else {
+                        socketService.showErrorMessage($translate('Min Consumption Amount, Reward Amount is required'));
+                    }
                 }
             };
 
@@ -30881,6 +30955,20 @@ console.log('typeof ',typeof gameProviders);
                             });
                         });
 
+                    }
+
+                    if(vm.clientQnAData.action == "forgotUserId3_1" || vm.clientQnAData.action == "forgotUserId3_2"){
+                        if(vm.clientQnAData.data.length > 0){
+                            vm.clientQnAData.data.forEach(player=>{
+                                console.log(player)
+                                copiedText += (player.name) ? player.name : '';
+                                copiedText += ','
+                            })
+                        }
+                    }
+
+                    if(vm.clientQnAData.hint){
+                        copiedText +=  '\n' + $translate(vm.clientQnAData.hint);
                     }
                 }
                 //add on here
