@@ -307,9 +307,9 @@ var dbRewardEvent = {
                                 if (checkRewardData.condition.bet.status == 0) {
                                     delete checkRewardData.condition.bet;
                                 }
-                                if (checkRewardData.status == 2 || checkRewardData.status == 3) {
-                                    delete checkRewardData.result;
-                                }
+                                // if (checkRewardData.status == 2 || checkRewardData.status == 3) {
+                                //     delete checkRewardData.result;
+                                // }
 
                                 return checkRewardData;
                             }
@@ -766,14 +766,14 @@ var dbRewardEvent = {
             }
         }
 
-        if (rewardParam){
+        if (rewardParam) {
             winLoseAmount = rewardParam.winLoseAmount;
             winTimes = rewardParam.winTimes;
             totalBetAmount = rewardParam.totalBetAmount;
             playerBonusDoubledRecord = rewardParam.record;
 
-            if (rewardParam.selectedRewardParam){
-                if (rewardParam.selectedRewardParam.hasOwnProperty('rewardPercentage')){
+            if (rewardParam.selectedRewardParam) {
+                if (rewardParam.selectedRewardParam.hasOwnProperty('rewardPercentage')) {
                     rewardAmount = playerBonusDoubledRecord.transferInAmount * rewardParam.selectedRewardParam.rewardPercentage;
                     spendingAmount = rewardAmount * rewardParam.selectedRewardParam.spendingTimes;
                 }
@@ -783,14 +783,24 @@ var dbRewardEvent = {
                 }
 
             }
-
-            returnData.result.totalWinAmount = winLoseAmount;
-            returnData.result.winTimes = Math.floor(winTimes);
-            returnData.result.totalBetAmount = totalBetAmount;
-            returnData.result.rewardAmount = Math.floor((parseFloat(rewardAmount*100)))/100;
-            returnData.result.quantityLimit = chances;
-            returnData.result.appliedCount = appliedCount;
         }
+
+        console.log("checking winTimes before", winTimes)
+        console.log("checking rewardAmount before", rewardAmount)
+
+        returnData.result.totalWinAmount = winLoseAmount;
+        returnData.result.winTimes = Math.floor(winTimes);
+        returnData.result.totalBetAmount = totalBetAmount;
+        returnData.result.rewardAmount = Math.floor((parseFloat(rewardAmount*100)))/100;
+        returnData.result.quantityLimit = chances;
+        returnData.result.appliedCount = appliedCount;
+
+        if (returnData.result.winTimes <= 0){
+            returnData.result.winTimes = 0;
+        }
+
+        console.log("checking winTimes after", returnData.result.winTimes)
+        console.log("checking rewardAmount after", returnData.result.rewardAmount)
 
         return returnData;
     },
