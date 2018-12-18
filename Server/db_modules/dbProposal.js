@@ -966,13 +966,17 @@ var proposal = {
                             updObj.data.bankCardNo = callbackData.bankCardNo;
                             updObj.data.bankTypeId = callbackData.bankTypeId;
                             updObj.data.cardOwner = callbackData.cardOwner;
-                            updObj.data.depositTime = callbackData.createTime;
-                            updObj.data.validTime = callbackData.validTime;
+                            updObj.data.depositTime = new Date(callbackData.createTime.replace('+', ' '));
+                            updObj.data.validTime = new Date(callbackData.validTime.replace('+', ' '));
                             updObj.data.cityName = callbackData.cityName;
                             updObj.data.provinceName = callbackData.provinceName;
                             updObj.data.orderNo = callbackData.billNo;
                             updObj.data.requestId = callbackData.requestId;
                             updObj.data.realName = callbackData.realName;
+
+                            updObj.data.userAlipayName = callbackData.alipayName;
+                            updObj.data.alipayAccount = callbackData.alipayAccount;
+                            updObj.data.alipayName = callbackData.alipayName;
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
