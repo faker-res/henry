@@ -937,7 +937,7 @@ var proposal = {
                                 }
 
                                 if (propTypeName === constProposalType.PLAYER_MANUAL_TOP_UP) {
-                                    updObj['data.depositMethod'] = callbackData.depositMethod;
+                                    updObj.data.depositMethod = callbackData.depositMethod;
                                 }
                             }
 
