@@ -1250,7 +1250,7 @@ let dbTeleSales = {
     },
   
     getTrashClassification: function (platformObjId) {
-        let noClassificationCountProm = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: {$exists: true}, sourcePlatform: ObjectId(platformObjId), targetPlatform: null}, {_id: 1}).lean();
+        let noClassificationCountProm = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: ObjectId(platformObjId), targetPlatform: null}, {_id: 1}).lean();
         let noFeedbackTopicCountProm = dbconfig.collection_tsPhoneTrade.find({
             sourcePlatform: ObjectId(platformObjId),
             $or: [
