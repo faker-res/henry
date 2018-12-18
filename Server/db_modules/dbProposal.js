@@ -919,15 +919,14 @@ var proposal = {
 
                     return propTypeProm.then(
                         propType => {
-                            let updObj = {
-                                status: status
-                            };
+                            console.log('proposalObj', proposalObj);
+
+                            let updObj = Object.assign({}, proposalObj);
+                            updObj.status = status;
 
                             if (propType && propType._id) {
                                 updObj.type = propType._id;
                             }
-
-                            updObj.data = Object.assign({}, proposalObj.data);
 
                             // Record sub top up method into proposal
                             if (callbackData && callbackData.depositMethod) {
@@ -964,6 +963,8 @@ var proposal = {
                             updObj.data.validTime = callbackData.validTime;
                             updObj.data.remark = callbackData.remark;
 
+                            console.log('updObj', updObj);
+
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
                                 updObj
@@ -982,7 +983,8 @@ var proposal = {
                 };
             },
             error => {
-                if (!error.data) {
+                errorUtils.reportError(error);
+                if (error && !error.data) {
                     return Promise.reject({
                         status: constServerCode.COMMON_ERROR,
                         name: "DataError",
