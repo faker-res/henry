@@ -919,7 +919,7 @@ var proposal = {
 
                     return propTypeProm.then(
                         propType => {
-                            let updStatus = status || constProposalStatus.PENDING;
+                            let updStatus = status || constProposalStatus.PREPENDING;
                             let updObj = {
                                 status: updStatus
                             };
@@ -963,7 +963,10 @@ var proposal = {
                             // updObj.data.bankCardNo = callbackData.cardOwner;
                             // updObj.data.depositTime = callbackData.createTime;
                             // updObj.data.validTime = callbackData.validTime;
-                            updObj.data.remark = callbackData ? callbackData.remark : "";
+
+                            if (callbackData && callbackData.remark) {
+                                updObj.data.remark = callbackData.remark;
+                            }
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
