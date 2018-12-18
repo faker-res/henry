@@ -915,6 +915,8 @@ define([], function () {
                 case "PlayerConsumptionRewardGroup":
                 case "PlayerConsecutiveRewardGroup":
                 case "PlayerConsumptionSlipRewardGroup":
+                case "PlayerBonusDoubledRewardGroup":
+                case "PlayerRetentionRewardGroup":
                     groupName = "Reward Proposal";
                     break;
                 case "UpdatePlayerInfo":

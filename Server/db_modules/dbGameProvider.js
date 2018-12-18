@@ -558,25 +558,31 @@ var dbGameProvider = {
         return Promise.all(promArr).then(() => retData);
     },
 
-    checkLastOperationTransferIn: (platformObjId, playerObjId, providerIdArr) => {
+    checkGameCredit: (platformObjId, playerObjId, providerIdArr, playerData) => {
         let promArr = [];
         let retData = [];
+        let totalCredit = 0;
+        let gameCredit = 0;
+        let freeCredit = 0;
 
         providerIdArr.map(providerId => {
             promArr.push(
-                dbconfig.collection_playerCreditTransferLog.find({
-                    platformObjId: platformObjId,
-                    playerObjId: playerObjId,
-                    providerId: providerId,
-                    status: constPlayerCreditTransferStatus.SUCCESS
-                }).sort({createTime: -1}).limit(1).lean().then(
-                    changeLog => {
-                        if (changeLog && changeLog[0] && changeLog[0].type == constPlayerCreditChangeType.TRANSFER_IN) {
-                            retData.push({
-                                providerId: providerId,
-                                createTime: changeLog[0].createTime
-                            });
+                // check if the player's valid credit + provider credit <= 0
+                dbGameProvider.getPlayerCreditInProvider(playerData.name, playerData.platform.platformId, providerId).then(
+                    gameCreditInProvider => {
+                        if (gameCreditInProvider && gameCreditInProvider.gameCredit){
+                            gameCredit = parseFloat(gameCreditInProvider.gameCredit);
                         }
+
+                        freeCredit = parseFloat(playerData.validCredit || 0);
+                        totalCredit = gameCredit + freeCredit;
+
+                        retData.push({
+                            providerId: providerId,
+                            gameCredit: gameCredit,
+                            freeCredit: freeCredit,
+                            totalCredit: totalCredit// gameCredit In gameProvider
+                        });
                     }
                 )
             )

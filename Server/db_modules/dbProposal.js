@@ -806,12 +806,14 @@ var proposal = {
 
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
             path: 'type', model: dbconfig.collection_proposalType
-        }).then(
+        }).lean().then(
             proposalData => {
                 proposalObj = proposalData;
 
                 // Check passed in amount vs proposal amount
-                if (callbackData && callbackData.amount && proposalData.data.amount && Number(parseFloat(callbackData.amount).toFixed(0)) !== Number(parseFloat(proposalData.data.amount).toFixed(0))) {
+                if (callbackData && callbackData.amount && proposalData.data.amount && Math.floor(callbackData.amount) !== Math.floor(proposalData.data.amount)) {
+                    console.log('callbackData.amount', callbackData.amount, Math.floor(callbackData.amount));
+                    console.log('proposalData.data.amount', proposalData.data.amount, Math.floor(proposalData.data.amount));
                     return Promise.reject({
                         name: "DataError",
                         message: "Invalid top up amount"
@@ -917,22 +919,25 @@ var proposal = {
 
                     return propTypeProm.then(
                         propType => {
+                            let updStatus = status || constProposalStatus.PREPENDING;
                             let updObj = {
-                                status: status
+                                status: updStatus
                             };
 
                             if (propType && propType._id) {
                                 updObj.type = propType._id;
                             }
 
+                            updObj.data = Object.assign({}, proposalObj.data);
+
                             // Record sub top up method into proposal
                             if (callbackData && callbackData.depositMethod) {
                                 if (propTypeName === constProposalType.PLAYER_TOP_UP) {
-                                    updObj['data.topupType'] = callbackData.depositMethod;
+                                    updObj.data.topupType = callbackData.depositMethod;
                                 }
 
                                 if (propTypeName === constProposalType.PLAYER_MANUAL_TOP_UP) {
-                                    updObj['data.depositMethod'] = callbackData.depositMethod;
+                                    updObj.data.depositMethod = callbackData.depositMethod;
                                 }
                             }
 
@@ -943,13 +948,30 @@ var proposal = {
                                 && Number(callbackData.amount) !== Number(proposalObj.data.amount)
                                 && Number(callbackData.amount) - Number(proposalObj.data.amount) < 1
                             ) {
-                                updObj['data.amount'] = Number(callbackData.amount);
+                                updObj.data.amount = Number(callbackData.amount);
                             }
 
                             // Mark this proposal as common top up
                             if (isCommonTopUp) {
-                                updObj['data.isCommonTopUp'] = true;
+                                updObj.data.isCommonTopUp = true;
                             }
+
+                            if (callbackData && callbackData.remark) {
+                                updObj.data.remark = callbackData.remark;
+                            }
+
+                            // Some extra data
+                            updObj.data.merchantNo = callbackData.merchantNo;
+                            updObj.data.merchantName = callbackData.merchantTypeName;
+                            updObj.data.bankCardNo = callbackData.bankCardNo;
+                            updObj.data.bankTypeId = callbackData.bankTypeId;
+                            updObj.data.cardOwner = callbackData.cardOwner;
+                            updObj.data.depositTime = callbackData.createTime;
+                            updObj.data.validTime = callbackData.validTime;
+                            updObj.data.cityName = callbackData.cityName;
+                            updObj.data.provinceName = callbackData.provinceName;
+                            updObj.data.orderNo = callbackData.billNo;
+                            updObj.data.requestId = callbackData.requestId;
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
@@ -969,7 +991,8 @@ var proposal = {
                 };
             },
             error => {
-                if (!error.data) {
+                errorUtils.reportError(error);
+                if (error && !error.data) {
                     return Promise.reject({
                         status: constServerCode.COMMON_ERROR,
                         name: "DataError",
