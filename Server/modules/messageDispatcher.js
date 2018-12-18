@@ -44,9 +44,11 @@ const messageDispatcher = {
     },
 
     dispatchMessagesOfType: function (platformId, messageType, metaData) {
+        console.log("platformId:", platformId);
+        console.log("messageType:", messageType);
         return dbMessageTemplate.getMessageTemplates({platform: platformId, type: messageType}).then(
             function (templates) {
-                //console.log("templates:", templates);
+                console.log("templates:", templates);
                 const proms = templates.map(
                     messageTemplate => messageDispatcher.renderTemplateAndSendMessage(messageTemplate, metaData)
                 );
