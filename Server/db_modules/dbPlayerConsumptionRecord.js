@@ -2483,12 +2483,12 @@ function findRTGToUpdate (oldData, newData) {
 
 function readAGBaccaratResult (resultStr) {
     resultStr = resultStr || "";
-    let json = JSON.parse("{" + resultStr + "}");
+    let resultObj = JSON.parse("{" + resultStr + "}");
 
-    if (json.hasOwnProperty("庄") && json.hasOwnProperty("闲")) {
+    if (resultObj.hasOwnProperty("庄") && resultObj.hasOwnProperty("闲")) {
         return {
-            host: Number(json["庄"]),
-            player: Number(json["闲"])
+            host: Number(resultObj["庄"]),
+            player: Number(resultObj["闲"])
         };
     } else {
         return false;
@@ -2499,6 +2499,9 @@ function readBYBaccaratResult (resultStr) {
     resultStr = resultStr || "";
 
     let strSplit = resultStr.split(",");
+    if (!strSplit || !strSplit[0] || !strSplit[1]) {
+        return false;
+    }
 
     return {
         host: Number(strSplit[0]),
@@ -2512,7 +2515,10 @@ function readEBETBaccaratResult (resultStr) {
     strSplit = resultStr.split(")(");
     let playerStr = "";
     let hostStr = "";
-    if (strSplit[0].includes("闲")) {
+    if (!strSplit || !strSplit[0] || !strSplit[1]) {
+        return false;
+    }
+    else if (strSplit[0].includes("闲")) {
         [playerStr, hostStr] = strSplit;
     }
     else if (strSplit[1].includes("闲")) {
