@@ -189,14 +189,11 @@ const messageDispatcher = {
      * @returns {Promise}
      */
     renderTemplateAndSendMessage: function (messageTemplate, metaData) {
-        console.log('messageTemplate.subject:', messageTemplate.subject);
         const renderedSubject = typeof messageTemplate.subject === 'string' && renderTemplate(messageTemplate.subject, metaData);
         console.log('messageTemplate.content:',messageTemplate.content);
         const contentIsHTML = isHTML(messageTemplate.content);
-        console.log('contentIsHTML:',contentIsHTML);
         // if(messageTemplate.type === constMessageType.UPDATE_PASSWORD)
             messageTemplate.content = messageTemplate.content.replace('{{executeTime}}', moment(new Date()).format("YYYY/MM/DD HH:mm:ss"));
-        console.log('messageTemplate.content1:',messageTemplate.content);
         console.log('metaData:',metaData);
         if (metaData.proposalData) {
             if(metaData.proposalData.createTime)
@@ -206,7 +203,7 @@ const messageDispatcher = {
                 //and sendMessageToPlayer will call before settleTime update
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.settleTime}}', moment(new Date()).format("YYYY/MM/DD HH:mm:ss"));
             if(metaData.proposalData.data.rewardAmount)
-                messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.rewardAmount}}', metaData.proposalData.data.rewardAmount.toFixed(2));
+                messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.rewardAmount}}', parseFloat(metaData.proposalData.data.rewardAmount).toFixed(2));
             if(metaData.proposalData.data.amount)
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.amount}}', metaData.proposalData.data.amount.toFixed(2));
             if(metaData.proposalData.data.lastSettleTime)
