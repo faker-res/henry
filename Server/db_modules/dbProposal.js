@@ -972,6 +972,7 @@ var proposal = {
                             updObj.data.provinceName = callbackData.provinceName;
                             updObj.data.orderNo = callbackData.billNo;
                             updObj.data.requestId = callbackData.requestId;
+                            updObj.data.realName = callbackData.realName;
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
