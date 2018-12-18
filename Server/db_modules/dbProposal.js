@@ -919,8 +919,9 @@ var proposal = {
 
                     return propTypeProm.then(
                         propType => {
+                            let updStatus = status || constProposalStatus.PENDING;
                             let updObj = {
-                                status: status
+                                status: updStatus
                             };
 
                             if (propType && propType._id) {
