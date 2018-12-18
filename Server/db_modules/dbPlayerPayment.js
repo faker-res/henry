@@ -483,7 +483,9 @@ const dbPlayerPayment = {
                 proposalData.playerLevel = player.playerLevel;
                 proposalData.platform = player.platform.platformId;
                 proposalData.playerName = player.name;
+                proposalData.playerRealName = player.realName;
                 proposalData.amount = Number(topupRequest.amount);
+                proposalData.bankCardGroupName = player.bankCardGroup && player.bankCardGroup.name || "";
                 proposalData.creator = entryType === "ADMIN" ? {
                     type: 'admin',
                     name: adminName,
