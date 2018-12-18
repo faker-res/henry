@@ -6445,6 +6445,9 @@ define(['js/app'], function (myApp) {
                         vm.tsAssignees = data.data;
                         vm.updateTsAssigneesDisplay();
                         vm.selectedAssignees = vm.tsAssigneesDisplay.map(assignee=>assignee.adminName);
+                        setTimeout(()=>{
+                            $('.spicker').selectpicker('refresh');
+                        },1);
                     })
                 }
             });

@@ -153,6 +153,10 @@
                             a.common-tab(data-toggle="tab", href="#frontendConfiguration", ng-click="vm.loadTab('FrontendConfiguration');")
                                 .fa.fa-file-text-o.margin-right-5
                                 text.span {{"FrontendConfiguration" | translate}}
+                        li(ng-show="checkViewPermission('Platform', 'AuctionSystem', 'Read')")
+                            a.common-tab(data-toggle="tab", href="#auctionSystem", ng-click="vm.loadTab('AuctionSystem');")
+                                .fa.fa-gavel.margin-right-5
+                                text.span {{"AuctionSystem" | translate}}
 
                 .panel-body(style="position: relative;")
                     div.tab-content
@@ -208,6 +212,8 @@
                             include ./platform-externalUserInfo
                         #frontendConfiguration.tab-pane.fade.frontendConfigurationNoPadding
                             iframe(ng-src="{{vm.frontendConfigurationUrl}}", width="100%", frameborder="0", id="configIframe", ng-onload="vm.changeFrameHeight()")
+                        #auctionSystem.tab-pane.fade
+                            include ./platform-auctionSystem
 
                             //ui-view
                         //#bankCardGroup.tab-pane.fade
