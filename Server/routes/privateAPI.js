@@ -47,7 +47,7 @@ router.post('/notifyPayment', function(req, res, next) {
                     statusText = constProposalStatus.CANCEL;
                     break;
                 default:
-                    isValidData = false;
+                    statusText = constProposalStatus.PREPENDING;
                     break;
             }
             console.log('updateTopupProposal', msgBody.proposalId);
