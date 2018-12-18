@@ -14320,7 +14320,7 @@ let dbPlayerInfo = {
         );
     },
 
-    applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply, appliedObjIdList, type) {
+    applyRewardEvent: function (userAgent, playerId, code, data, adminId, adminName, isBulkApply, appliedObjIdList, type, forceSettled) {
         console.log('Apply reward event', playerId, code);
         data = data || {};
         let dbPlayerUtil = require('../db_common/dbPlayerUtility');
@@ -14556,7 +14556,9 @@ let dbPlayerInfo = {
                                 case constRewardType.PLAYER_BONUS_DOUBLED_REWARD_GROUP:
                                     // check if there is selected game providers from front-end
                                     if (isFrontEnd){
-                                        let objIdList = [];
+                                        if (forceSettled){
+                                            rewardData.forceSettled = true;
+                                        }
                                         if (type){
                                             rewardData.type = type;
                                         }
@@ -22777,7 +22779,7 @@ function updateOrSaveBonusDoubledRewardGroupRecord(playerData, eventData, select
     )
 }
 
-function getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewardParam, playerBonusDoubledRecord, lastConsumptionRecord, winLoseAmount, consumptionRecordList){
+function getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewardParam, playerBonusDoubledRecord, lastConsumptionRecord, winLoseAmount, consumptionRecordList, newEndTime){
     let gameProviderObjId;
     let gameProviderId;
 
@@ -22802,13 +22804,13 @@ function getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewa
                     let amount = providerCredit.gameCredit;
                     return dbPlayerInfo.transferPlayerCreditFromProvider(playerId, platform, providerId, amount, null, null, null, null, true);
                 }
-                else{
-                    return Promise.reject({
-                        status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                        name: "NumError",
-                        errorMessage: "Player does not have enough credit."
-                    })
-                }
+                // else{
+                //     return Promise.reject({
+                //         status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                //         name: "NumError",
+                //         errorMessage: "Player does not have enough credit."
+                //     })
+                // }
             }
         }
     ).then(
@@ -22825,14 +22827,14 @@ function getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewa
         }
     ).then(
         lastTransferOutRecord => {
-            if (!lastTransferOutRecord) {
-                return Promise.reject({
-                    name: "DataError",
-                    errorMessage: "The last transferring-in record is not found"
-                })
-            }
+            // if (!lastTransferOutRecord) {
+            //     return Promise.reject({
+            //         name: "DataError",
+            //         errorMessage: "The last transferring-in record is not found"
+            //     })
+            // }
             // generate proposal
-            return dbProposal.createPlayerBonusDoubledRewardGroupProposal(lastTransferOutRecord, selectedRewardParam, playerData, eventData, playerBonusDoubledRecord, lastConsumptionRecord, intervalTime, consumptionRecordList, winLoseAmount);
+            return dbProposal.createPlayerBonusDoubledRewardGroupProposal(lastTransferOutRecord, selectedRewardParam, playerData, eventData, playerBonusDoubledRecord, lastConsumptionRecord, intervalTime, consumptionRecordList, winLoseAmount, newEndTime);
         }
     )
 }
@@ -22969,7 +22971,9 @@ function transferOutFromSelectedGameProvider(selectedProviderList, playerData, e
 function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, adminInfo, rewardData, isFrontEnd) {
     rewardData = rewardData || {};
     let type = null;  // type: 1- apply; 2- end this session to get reward bonus
+    let forceSettled = null;  // foce to settle the actiity
     let selectedProviderList = null;
+    let newEndTime = null;
     let selectedRewardParam;
     let winLoseAmount;
     let consumptionRecordList;
@@ -22995,6 +22999,7 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
 
     if(isFrontEnd){
         type = rewardData.type ? rewardData.type : null;
+        forceSettled = rewardData.forceSettled ? rewardData.forceSettled : null;
     }
     else{
         type = 1; // if initiated from back-stage, can only apply
@@ -23104,7 +23109,7 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
     }
     else if (type && type == 2){
         // get the reward param
-        getPlayerApplyingRecordProm = dbPlayerReward.checkRewardParamForBonusDoubledRewardGroup(eventData, playerData, intervalTime);
+        getPlayerApplyingRecordProm = dbPlayerReward.checkRewardParamForBonusDoubledRewardGroup(eventData, playerData, intervalTime, forceSettled);
 
         // get the last consumption detail
         let consumptionQuery = {
@@ -23129,6 +23134,7 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
                 playerBonusDoubledRecord =  checkList[4] && checkList[4].record ? checkList[4].record : null;
                 winLoseAmount = checkList[4] && checkList[4].winLoseAmount ? checkList[4].winLoseAmount : 0;
                 consumptionRecordList = checkList[4] && checkList[4].consumptionRecordList ? checkList[4].consumptionRecordList : null;
+                newEndTime = checkList[4] && checkList[4].newEndTime ? checkList[4].newEndTime : null;
                 lastConsumptionRecord = checkList[5] || null;
 
                 return true;
@@ -23142,7 +23148,7 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
                     return transferOutFromSelectedGameProvider(selectedProviderList, playerData, eventData, intervalTime);
                 }
                 else if (type == 2){
-                    return getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewardParam, playerBonusDoubledRecord, lastConsumptionRecord, winLoseAmount, consumptionRecordList)
+                    return getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewardParam, playerBonusDoubledRecord, lastConsumptionRecord, winLoseAmount, consumptionRecordList, newEndTime)
                 }
             }
         }
