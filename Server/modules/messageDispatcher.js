@@ -44,8 +44,6 @@ const messageDispatcher = {
     },
 
     dispatchMessagesOfType: function (platformId, messageType, metaData) {
-        console.log("platformId:", platformId);
-        console.log("messageType:", messageType);
         return dbMessageTemplate.getMessageTemplates({platform: platformId, type: messageType}).then(
             function (templates) {
                 console.log("templates:", templates);
@@ -191,6 +189,8 @@ const messageDispatcher = {
      * @returns {Promise}
      */
     renderTemplateAndSendMessage: function (messageTemplate, metaData) {
+        console.log('messageTemplate.subject:', messageTemplate.subject);
+        console.log('typeof messageTemplate.subject:', typeof messageTemplate.subject);
         const renderedSubject = typeof messageTemplate.subject === 'string' && renderTemplate(messageTemplate.subject, metaData);
         const contentIsHTML = isHTML(messageTemplate.content);
         // if(messageTemplate.type === constMessageType.UPDATE_PASSWORD)
