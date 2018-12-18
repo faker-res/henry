@@ -811,7 +811,9 @@ var proposal = {
                 proposalObj = proposalData;
 
                 // Check passed in amount vs proposal amount
-                if (callbackData && callbackData.amount && proposalData.data.amount && Number(parseFloat(callbackData.amount).toFixed(0)) !== Number(parseFloat(proposalData.data.amount).toFixed(0))) {
+                if (callbackData && callbackData.amount && proposalData.data.amount && Math.floor(callbackData.amount) !== Math.floor(proposalData.data.amount)) {
+                    console.log('callbackData.amount', callbackData.amount, Math.floor(callbackData.amount));
+                    console.log('proposalData.data.amount', proposalData.data.amount, Math.floor(proposalData.data.amount));
                     return Promise.reject({
                         name: "DataError",
                         message: "Invalid top up amount"
@@ -925,14 +927,16 @@ var proposal = {
                                 updObj.type = propType._id;
                             }
 
+                            updObj.data = Object.assign({}, proposalObj.data);
+
                             // Record sub top up method into proposal
                             if (callbackData && callbackData.depositMethod) {
                                 if (propTypeName === constProposalType.PLAYER_TOP_UP) {
-                                    updObj['data.topupType'] = callbackData.depositMethod;
+                                    updObj.data.topupType = callbackData.depositMethod;
                                 }
 
                                 if (propTypeName === constProposalType.PLAYER_MANUAL_TOP_UP) {
-                                    updObj['data.depositMethod'] = callbackData.depositMethod;
+                                    updObj.data.depositMethod = callbackData.depositMethod;
                                 }
                             }
 
@@ -943,13 +947,22 @@ var proposal = {
                                 && Number(callbackData.amount) !== Number(proposalObj.data.amount)
                                 && Number(callbackData.amount) - Number(proposalObj.data.amount) < 1
                             ) {
-                                updObj['data.amount'] = Number(callbackData.amount);
+                                updObj.data.amount = Number(callbackData.amount);
                             }
 
                             // Mark this proposal as common top up
                             if (isCommonTopUp) {
-                                updObj['data.isCommonTopUp'] = true;
+                                updObj.data.isCommonTopUp = true;
                             }
+
+                            // Some extra data
+                            updObj.data.merchantNo = callbackData.merchantNo;
+                            updObj.data.merchantName = callbackData.merchantTypeName;
+                            updObj.data.bankCardNo = callbackData.bankCardNo;
+                            updObj.data.bankCardNo = callbackData.cardOwner;
+                            updObj.data.depositTime = callbackData.createTime;
+                            updObj.data.validTime = callbackData.validTime;
+                            updObj.data.remark = callbackData.remark;
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
