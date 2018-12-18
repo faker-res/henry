@@ -919,7 +919,7 @@ var proposal = {
 
                     return propTypeProm.then(
                         propType => {
-                            console.log('proposalObj', proposalObj);
+
 
                             let updObj = Object.assign({}, proposalObj);
                             updObj.status = status;
@@ -928,14 +928,16 @@ var proposal = {
                                 updObj.type = propType._id;
                             }
 
+                            console.log('updObj', updObj);
+
                             // Record sub top up method into proposal
                             if (callbackData && callbackData.depositMethod) {
                                 if (propTypeName === constProposalType.PLAYER_TOP_UP) {
-                                    updObj.data.topupType = callbackData.depositMethod;
+                                    updObj['data.topupType'] = callbackData.depositMethod;
                                 }
 
                                 if (propTypeName === constProposalType.PLAYER_MANUAL_TOP_UP) {
-                                    updObj.data.depositMethod = callbackData.depositMethod;
+                                    updObj['data.depositMethod'] = callbackData.depositMethod;
                                 }
                             }
 
@@ -946,24 +948,24 @@ var proposal = {
                                 && Number(callbackData.amount) !== Number(proposalObj.data.amount)
                                 && Number(callbackData.amount) - Number(proposalObj.data.amount) < 1
                             ) {
-                                updObj.data.amount = Number(callbackData.amount);
+                                updObj['data.amount'] = Number(callbackData.amount);
                             }
 
                             // Mark this proposal as common top up
                             if (isCommonTopUp) {
-                                updObj.data.isCommonTopUp = true;
+                                updObj['data.isCommonTopUp'] = true;
                             }
 
                             // Some extra data
-                            updObj.data.merchantNo = callbackData.merchantNo;
-                            updObj.data.merchantName = callbackData.merchantTypeName;
-                            updObj.data.bankCardNo = callbackData.bankCardNo;
-                            updObj.data.bankCardNo = callbackData.cardOwner;
-                            updObj.data.depositTime = callbackData.createTime;
-                            updObj.data.validTime = callbackData.validTime;
-                            updObj.data.remark = callbackData.remark;
+                            // updObj.data.merchantNo = callbackData.merchantNo;
+                            // updObj.data.merchantName = callbackData.merchantTypeName;
+                            // updObj.data.bankCardNo = callbackData.bankCardNo;
+                            // updObj.data.bankCardNo = callbackData.cardOwner;
+                            // updObj.data.depositTime = callbackData.createTime;
+                            // updObj.data.validTime = callbackData.validTime;
+                            // updObj.data.remark = callbackData.remark;
 
-                            console.log('updObj', updObj);
+                            console.log('updObj2', updObj);
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
