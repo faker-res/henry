@@ -811,7 +811,9 @@ var proposal = {
                 proposalObj = proposalData;
 
                 // Check passed in amount vs proposal amount
-                if (callbackData && callbackData.amount && proposalData.data.amount && Number(parseFloat(callbackData.amount).toFixed(0)) !== Number(parseFloat(proposalData.data.amount).toFixed(0))) {
+                if (callbackData && callbackData.amount && proposalData.data.amount && Math.floor(callbackData.amount) !== Math.floor(proposalData.data.amount)) {
+                    console.log('callbackData.amount', callbackData.amount, Math.floor(callbackData.amount));
+                    console.log('proposalData.data.amount', proposalData.data.amount, Math.floor(proposalData.data.amount));
                     return Promise.reject({
                         name: "DataError",
                         message: "Invalid top up amount"
