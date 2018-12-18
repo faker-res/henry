@@ -16703,13 +16703,8 @@ let dbPlayerInfo = {
             player => {
                 if (player && player.length) {
                     for (let i = 0; i < player.length; i++) {
-                        playerObjArr.push(player[i]._id);
+                        playerObjArr.push(ObjectId(player[i]._id));
                     }
-                }
-
-                // assign ObjectId
-                for (let j = 0; j < playerObjArr.length; j++) {
-                    playerObjArr[j] = ObjectId(playerObjArr[j]);
                 }
 
                 return playerObjArr;
@@ -16973,51 +16968,43 @@ let dbPlayerInfo = {
 
                     // assign last record date
                     playerData.forEach(player => {
-                        topUpRecord.forEach(topUp => {
-                            if (player && topUp && player._id.toString() === topUp._id.toString()) {
-                                player.lastTopUpDate = topUp.lastTopUpDate;
-                            }
-                        });
+                        let topUpIndexNo = topUpRecord.findIndex(x => x && x._id && player && player._id && (player._id.toString() === x._id.toString()));
+                        if (topUpIndexNo != -1) {
+                            player.lastTopUpDate = topUpRecord[topUpIndexNo].lastTopUpDate;
+                        }
 
-                        bonusRecord.forEach(bonus => {
-                            if (player && bonus && player._id.toString() === bonus._id.toString()) {
-                                player.lastBonusDate = bonus.lastBonusDate;
-                            }
-                        });
+                        let bonusIndexNo = bonusRecord.findIndex(x => x && x._id && player && player._id && (player._id.toString() === x._id.toString()));
+                        if (bonusIndexNo != -1) {
+                            player.lastBonusDate = bonusRecord[bonusIndexNo].lastBonusDate;
+                        }
 
-                        consumptionRecord.forEach(consumption => {
-                            if (player && consumption && player._id.toString() === consumption._id.toString()) {
-                                player.lastConsumptionDate = consumption.lastConsumptionDate;
-                            }
-                        });
-
+                        let consumptionIndexNo = consumptionRecord.findIndex(x => x && x._id && player && player._id && (player._id.toString() === x._id.toString()));
+                        if (consumptionIndexNo != -1) {
+                            player.lastConsumptionDate = consumptionRecord[consumptionIndexNo].lastConsumptionDate;
+                        }
                         // assign deposit tracking group name
-                        trackingGroupRecord.forEach(trackingGroup => {
-                            if (player && trackingGroup && player._id.toString() === trackingGroup.playerId.toString()) {
-                                player.depositTrackingGroupName = trackingGroup.depositTrackingGroupName;
-                            }
-                        });
+                        let trackingGroupIndexNo = trackingGroupRecord.findIndex(x => x && x.playerId && player && player._id && (player._id.toString() === x.playerId.toString()));
+                        if (trackingGroupIndexNo != -1) {
+                            player.depositTrackingGroupName = trackingGroupRecord[trackingGroupIndexNo].depositTrackingGroupName;
+                        }
 
-                        promoCodeType11.forEach(promoCode => {
-                            if (player && promoCode && player._id.toString() === promoCode._id.toString()) {
-                                player.promoCodeType1Total = promoCode.sendCount;
-                                player.promoCodeType1Accepted = promoCode.acceptedCount;
-                            }
-                        });
+                        let promoCodeType11IndexNo = promoCodeType11.findIndex(x => x && x._id && player && player._id && (player._id.toString() === x._id.toString()));
+                        if (promoCodeType11IndexNo != -1) {
+                            player.promoCodeType1Total = promoCodeType11[promoCodeType11IndexNo].sendCount;
+                            player.promoCodeType1Accepted = promoCodeType11[promoCodeType11IndexNo].acceptedCount;
+                        }
 
-                        promoCodeType22.forEach(promoCode => {
-                            if (player && promoCode && player._id.toString() === promoCode._id.toString()) {
-                                player.promoCodeType2Total = promoCode.sendCount;
-                                player.promoCodeType2Accepted = promoCode.acceptedCount;
-                            }
-                        });
+                        let promoCodeType22IndexNo = promoCodeType22.findIndex(x => x && x._id && player && player._id && (player._id.toString() === x._id.toString()));
+                        if (promoCodeType22IndexNo != -1) {
+                            player.promoCodeType2Total = promoCodeType22[promoCodeType22IndexNo].sendCount;
+                            player.promoCodeType2Accepted = promoCodeType22[promoCodeType22IndexNo].acceptedCount;
+                        }
 
-                        promoCodeType33.forEach(promoCode => {
-                            if (player && promoCode && player._id.toString() === promoCode._id.toString()) {
-                                player.promoCodeType3Total = promoCode.sendCount;
-                                player.promoCodeType3Accepted = promoCode.acceptedCount;
-                            }
-                        });
+                        let promoCodeType33IndexNo = promoCodeType33.findIndex(x => x && x._id && player && player._id && (player._id.toString() === x._id.toString()));
+                        if (promoCodeType33IndexNo != -1) {
+                            player.promoCodeType3Total = promoCodeType33[promoCodeType33IndexNo].sendCount;
+                            player.promoCodeType3Accepted = promoCodeType33[promoCodeType33IndexNo].acceptedCount;
+                        }
 
                         return player;
                     });
