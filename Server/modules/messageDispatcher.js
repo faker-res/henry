@@ -197,6 +197,7 @@ const messageDispatcher = {
         // if(messageTemplate.type === constMessageType.UPDATE_PASSWORD)
             messageTemplate.content = messageTemplate.content.replace('{{executeTime}}', moment(new Date()).format("YYYY/MM/DD HH:mm:ss"));
         console.log('messageTemplate.content1:',messageTemplate.content);
+        console.log('metaData:',metaData);
         if (metaData.proposalData) {
             if(metaData.proposalData.createTime)
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.createTime}}', moment(metaData.proposalData.createTime).format("YYYY/MM/DD HH:mm:ss"));
