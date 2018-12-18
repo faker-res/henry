@@ -956,17 +956,22 @@ var proposal = {
                                 updObj.data.isCommonTopUp = true;
                             }
 
-                            // Some extra data
-                            // updObj.data.merchantNo = callbackData.merchantNo;
-                            // updObj.data.merchantName = callbackData.merchantTypeName;
-                            // updObj.data.bankCardNo = callbackData.bankCardNo;
-                            // updObj.data.bankCardNo = callbackData.cardOwner;
-                            // updObj.data.depositTime = callbackData.createTime;
-                            // updObj.data.validTime = callbackData.validTime;
-
                             if (callbackData && callbackData.remark) {
                                 updObj.data.remark = callbackData.remark;
                             }
+
+                            // Some extra data
+                            updObj.data.merchantNo = callbackData.merchantNo;
+                            updObj.data.merchantName = callbackData.merchantTypeName;
+                            updObj.data.bankCardNo = callbackData.bankCardNo;
+                            updObj.data.bankTypeId = callbackData.bankTypeId;
+                            updObj.data.cardOwner = callbackData.cardOwner;
+                            updObj.data.depositTime = callbackData.createTime;
+                            updObj.data.validTime = callbackData.validTime;
+                            updObj.data.cityName = callbackData.cityName;
+                            updObj.data.provinceName = callbackData.provinceName;
+                            updObj.data.orderNo = callbackData.billNo;
+                            updObj.data.requestId = callbackData.requestId;
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
