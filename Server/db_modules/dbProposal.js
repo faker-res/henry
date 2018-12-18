@@ -933,7 +933,7 @@ var proposal = {
                             // Record sub top up method into proposal
                             if (callbackData && callbackData.depositMethod) {
                                 if (propTypeName === constProposalType.PLAYER_TOP_UP) {
-                                    updObj['data.topupType'] = callbackData.depositMethod;
+                                    updObj.data.topupType = callbackData.depositMethod;
                                 }
 
                                 if (propTypeName === constProposalType.PLAYER_MANUAL_TOP_UP) {
@@ -948,12 +948,12 @@ var proposal = {
                                 && Number(callbackData.amount) !== Number(proposalObj.data.amount)
                                 && Number(callbackData.amount) - Number(proposalObj.data.amount) < 1
                             ) {
-                                updObj['data.amount'] = Number(callbackData.amount);
+                                updObj.data.amount = Number(callbackData.amount);
                             }
 
                             // Mark this proposal as common top up
                             if (isCommonTopUp) {
-                                updObj['data.isCommonTopUp'] = true;
+                                updObj.data.isCommonTopUp = true;
                             }
 
                             // Some extra data
