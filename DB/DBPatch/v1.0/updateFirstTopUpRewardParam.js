@@ -1220,7 +1220,17 @@ db.rewardParam.update({
 }, {
     $set: {
         condition: {
-            generalCond: generalCond,
+            generalCond: Object.assign({}, generalCond, {
+                applyType: {
+                    index: 2,
+                    type: "select",
+                    des: "Reward apply type",
+                    options: "rewardApplyType",
+                    disabled: true,
+                    value: "1",
+                    detail: "Allow settlement via backstage batch submit"
+                },
+            }),
             periodCond: {
                 // Reward apply interval
                 interval: {index: 20, type: "select", des: "Reward interval", options: "rewardInterval", detail: "REWARD_INTERVAL_DETAIL"},
@@ -1236,7 +1246,7 @@ db.rewardParam.update({
             tblOptFixed: {
                 rewardParam: {
                     minBetAmount: {type: "number", des: "Minimum Bet Amount"},
-                    bankerResult: {type: "number", des: "Banker Result"},
+                    hostResult: {type: "number", des: "Host Result"},
                     playerResult: {type: "number", des: "Player Result"},
                     rewardAmount: {type: "number", des: "Baccarat Reward Amount"},
                     spendingTimes: {type: "number", des: "Spending times on reward"},

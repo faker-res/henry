@@ -4703,7 +4703,7 @@ var proposal = {
         return deferred.promise;
     },
 
-    createPlayerBonusDoubledRewardGroupProposal: function (transferOutRecord, selectedRewardParam, playerData, eventData, playerBonusDoubledRecord, lastConsumptionRecord, intervalTime, consumptionRecordList, winLoseAmount) {
+    createPlayerBonusDoubledRewardGroupProposal: function (transferOutRecord, selectedRewardParam, playerData, eventData, playerBonusDoubledRecord, lastConsumptionRecord, intervalTime, consumptionRecordList, winLoseAmount, newEndTime) {
         let rewardAmount = 0;
         let spendingAmount = 0;
 
@@ -4774,6 +4774,12 @@ var proposal = {
         proposalData.data.countWinLoseEndTime = playerBonusDoubledRecord && playerBonusDoubledRecord.transferOutTime ? playerBonusDoubledRecord.transferOutTime: null;
         proposalData.data.lastLoginIp = playerData.lastLoginIp;
         proposalData.data.phoneNumber = playerData.phoneNumber;
+
+        if (newEndTime){
+            proposalData.data.countWinLoseEndTime = newEndTime;
+        }
+
+        console.log("checking newENdTime ", [newEndTime,  proposalData.data.countWinLoseEndTime])
 
         if (playerData.deviceId) {
             proposalData.data.deviceId = playerData.deviceId;

@@ -1442,6 +1442,9 @@ define(['js/app'], function (myApp) {
                     case "FrontendConfiguration":
                         vm.initFrontendConfiguration();
                         break;
+                    case "AuctionSystem":
+                        vm.initAuctionSystem();
+                        break;
                 }
 
                 commonService.updatePageTile($translate, "platform", tabName);
@@ -22334,7 +22337,7 @@ define(['js/app'], function (myApp) {
 
             vm.editReward = function (i) {
                 let isValid = true;
-                let isBankerResult = true;
+                let isHostResult = true;
                 let isPlayerResult = true;
                 console.log('vm.showReward', vm.showReward);
 
@@ -22447,9 +22450,9 @@ define(['js/app'], function (myApp) {
                             if (x && x.value && x.value.length > 0) {
                                 x.value.forEach(el => { console.log('el', el)
                                     if (el && Object.keys(el).length > 0) {
-                                        if (!el.bankerResult) {
+                                        if (!el.hostResult) {
                                             isValid = false;
-                                            isBankerResult = false;
+                                            isHostResult = false;
                                         } else if (!el.playerResult) {
                                             isValid = false;
                                             isPlayerResult = false;
@@ -22477,7 +22480,7 @@ define(['js/app'], function (myApp) {
                         vm.rewardTabClicked();
                     });
                 } else {
-                    if (!isBankerResult) {
+                    if (!isHostResult) {
                         socketService.showErrorMessage($translate("Banker Result is required"));
                     } else if (!isPlayerResult) {
                         socketService.showErrorMessage($translate("Player Result is required"));
@@ -22518,7 +22521,7 @@ define(['js/app'], function (myApp) {
             }
             vm.submitReward = function () {
                 let isValid = true;
-                let isBankerResult = true;
+                let isHostResult = true;
                 let isPlayerResult = true;
                 let sendData = {
                     platform: vm.selectedPlatform.id,
@@ -22627,9 +22630,9 @@ define(['js/app'], function (myApp) {
                             if (x && x.value && x.value.length > 0) {
                                 x.value.forEach(el => {
                                     if (el && Object.keys(el).length > 0) {
-                                        if (!el.bankerResult) {
+                                        if (!el.hostResult) {
                                             isValid = false;
-                                            isBankerResult = false;
+                                            isHostResult = false;
                                         } else if (!el.playerResult) {
                                             isValid = false;
                                             isPlayerResult = false;
@@ -22657,7 +22660,7 @@ define(['js/app'], function (myApp) {
                         console.log("created not", data);
                     });
                 } else  {
-                    if (!isBankerResult) {
+                    if (!isHostResult) {
                         socketService.showErrorMessage($translate("Banker Result is required"));
                     } else if (!isPlayerResult) {
                         socketService.showErrorMessage($translate("Player Result is required"));
@@ -36245,6 +36248,24 @@ define(['js/app'], function (myApp) {
                     vm.frontendConfigurationUrl = $sce.trustAsResourceUrl(url);
                 }
             };
+
+            vm.initAuctionSystem = function() {
+
+            };
+
+            vm.auctionSystemTabClicked = function (choice) {
+                vm.selectedAuctionSystemTab = choice;
+
+                switch (choice) {
+                    case 'createProduct':
+
+                        break;
+                    case 'monitoringSystem':
+
+                        break;
+                }
+            };
+
 
 
             vm.changeFrameHeight = function() {

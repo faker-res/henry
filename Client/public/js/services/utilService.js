@@ -597,10 +597,14 @@ define([], function () {
                                 return getFloat(a) + getFloat(b);
                             })
                         }
-                        pageValue = selectedBetTypeConsumption / totalBetTypeConsumption * 100;
-                        totalValue = getFloat(totalValue).toFixed(2);
-                        pageValue = getFloat(pageValue).toFixed(2);
-                        htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
+                        pageValue = totalBetTypeConsumption / selectedBetTypeConsumption * 100;
+                        if(!isFinite(pageValue) || isNaN(pageValue)) {
+                            pageValue = "-";
+                        }else {
+                            totalValue = getFloat(totalValue).toFixed(2);
+                            pageValue = getFloat(pageValue).toFixed(2);
+                            htmlStr = gethtmlStr(pageValue + "%", totalValue + "%");
+                        }
                     } else if (classes.indexOf('betCountPercent') > -1) {
                         //consumptionModeReport
                         if (sumData && sumData[i]) {
