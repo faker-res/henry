@@ -811,31 +811,7 @@ var dbPlayerConsumptionRecord = {
                     newRecord = newRecord.toObject();
                     providerObjId = newRecord.providerId;
                     newRecord.providerId = providerId;
-                }
-
-                let regexPattern = new RegExp('百家乐','g');
-                if (newRecord && newRecord.cpGameType && newRecord.result && regexPattern.test(newRecord.cpGameType)) {
-                    let baccaratResult;
-                    if (newRecord.providerId ==  '56') { // EBET
-                        baccaratResult = readEBETBaccaratResult(newRecord.result);
-                    } else if (newRecord.providerId == '16') { // AG
-                        baccaratResult = readAGBaccaratResult(newRecord.result);
-                    } else if (newRecord.providerId == '55') { // BYLIVE
-                        baccaratResult = readBYBaccaratResult(newRecord.result);
-                    }
-
-                    if (baccaratResult && baccaratResult.host && baccaratResult.player) {
-                        let saveData = {
-                            platform: newRecord.platformId,
-                            provider: providerObjId || newRecord.providerId ,
-                            providerName: providerName || "",
-                            hostResult: baccaratResult.host,
-                            playerResult: baccaratResult.player,
-                            betDetails: newRecord.betDetails || [],
-                            consumption: newRecord._id
-                        }
-                        dbconfig.collection_baccaratConsumption(saveData).save().catch(errorUtils.reportError);
-                    }
+                    createBaccaratConsumption(providerObjId, providerName, newRecord);
                 }
 
                 return newRecord;
@@ -880,6 +856,7 @@ var dbPlayerConsumptionRecord = {
     },
 
     updateExternalPlayerConsumptionRecordData: function (oldData, updateData, resolveError) {
+        let providerName;
         var recordData = Object.assign({}, updateData);
         return dbconfig.collection_platform.findOne({platformId: recordData.platformId}).then(
             platformData => {
@@ -911,6 +888,7 @@ var dbPlayerConsumptionRecord = {
                     recordData.gameId = data[1]._id;
                     recordData.gameType = data[1].type;
                     recordData.providerId = data[2]._id;
+                    providerName = data[2].name;
                     recordData.updateTime = new Date();
                     if(recordData.bonusAmount && recordData.validAmount){
                         recordData.winRatio = recordData.bonusAmount / recordData.validAmount;
@@ -933,8 +911,9 @@ var dbPlayerConsumptionRecord = {
                         newRecord => {
                             if (newRecord && newRecord.toObject) {
                                 newRecord = newRecord.toObject();
+                                let providerObjId = newRecord.providerId;
                                 newRecord.providerId = providerId;
-
+                                createBaccaratConsumption(providerObjId, providerName, newRecord, oldData._id);
                                 // update RTG only if consumption record is updated
                                 findRTGToUpdate(oldData, recordData);
                             }
@@ -2478,6 +2457,41 @@ function findRTGToUpdate (oldData, newData) {
                 }
             }
         )
+    }
+}
+
+function createBaccaratConsumption (providerObjId, providerName, consumptionRecord, oldConsumtionObjId) {
+    let regexPattern = new RegExp('百家乐','g');
+    if (consumptionRecord && consumptionRecord.cpGameType && consumptionRecord.result && regexPattern.test(consumptionRecord.cpGameType)) {
+        let baccaratResult;
+        if (consumptionRecord.providerId ==  "18"/*'56'*/) { // EBET
+            baccaratResult = readEBETBaccaratResult(consumptionRecord.result);
+        } else if (consumptionRecord.providerId == '16') { // AG
+            baccaratResult = readAGBaccaratResult(consumptionRecord.result);
+        } else if (consumptionRecord.providerId == '55') { // BYLIVE
+            baccaratResult = readBYBaccaratResult(consumptionRecord.result);
+        }
+
+        if (baccaratResult && baccaratResult.host && baccaratResult.player) {
+            let saveData = {
+                platform: consumptionRecord.platformId,
+                player: consumptionRecord.playerId,
+                roundNo: consumptionRecord.roundNo || "",
+                bonusAmount: consumptionRecord.bonusAmount || 0,
+                provider: providerObjId || consumptionRecord.providerId ,
+                providerName: providerName || "",
+                hostResult: baccaratResult.host,
+                playerResult: baccaratResult.player,
+                betDetails: consumptionRecord.betDetails || [],
+                consumption: consumptionRecord._id
+            };
+            if (oldConsumtionObjId) {
+                delete saveData.consumption;
+                dbconfig.collection_baccaratConsumption.findOneAndUpdate({consumption: oldConsumtionObjId}, saveData).catch(errorUtils.reportError);
+            } else {
+                dbconfig.collection_baccaratConsumption(saveData).save().catch(errorUtils.reportError);
+            }
+        }
     }
 }
 
