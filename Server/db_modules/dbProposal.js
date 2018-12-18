@@ -948,12 +948,12 @@ var proposal = {
                                 && Number(callbackData.amount) !== Number(proposalObj.data.amount)
                                 && Number(callbackData.amount) - Number(proposalObj.data.amount) < 1
                             ) {
-                                updObj['data.amount'] = Number(callbackData.amount);
+                                updObj.data.amount = Number(callbackData.amount);
                             }
 
                             // Mark this proposal as common top up
                             if (isCommonTopUp) {
-                                updObj['data.isCommonTopUp'] = true;
+                                updObj.data.isCommonTopUp = true;
                             }
 
                             // Some extra data
