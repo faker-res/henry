@@ -558,12 +558,12 @@ var dbGameProvider = {
         return Promise.all(promArr).then(() => retData);
     },
 
-    checkLastOperationTransferIn: (platformObjId, playerObjId, providerIdArr, playerData) => {
+    checkGameCredit: (platformObjId, playerObjId, providerIdArr, playerData) => {
         let promArr = [];
         let retData = [];
         let totalCredit = 0;
         let gameCredit = 0;
-        let isUnknownCredit = false;
+        let freeCredit = 0;
 
         providerIdArr.map(providerId => {
             promArr.push(
@@ -571,30 +571,18 @@ var dbGameProvider = {
                 dbGameProvider.getPlayerCreditInProvider(playerData.name, playerData.platform.platformId, providerId).then(
                     gameCreditInProvider => {
                         if (gameCreditInProvider && gameCreditInProvider.gameCredit){
-                            if (gameCreditInProvider.gameCredit == 'unknown') {
-                                isUnknownCredit = true;
-                            }
                             gameCredit = parseFloat(gameCreditInProvider.gameCredit);
-                            totalCredit = gameCredit + (playerData.validCredit || 0);
                         }
 
-                        // check the last operation is transfer in or not
-                        return dbconfig.collection_playerCreditTransferLog.find({
-                            platformObjId: platformObjId,
-                            playerObjId: playerObjId,
+                        freeCredit = parseFloat(playerData.validCredit || 0);
+                        totalCredit = gameCredit + freeCredit;
+
+                        retData.push({
                             providerId: providerId,
-                            status: constPlayerCreditTransferStatus.SUCCESS
-                        }).sort({createTime: -1}).limit(1).lean();
-                    }
-                ).then(
-                    changeLog => {
-                        console.log("checking changeLog", [providerId, changeLog, gameCredit, totalCredit, totalCredit < 1])
-                        if ((changeLog && changeLog[0] && changeLog[0].type == constPlayerCreditChangeType.TRANSFER_IN) || totalCredit < 1 || isUnknownCredit) {
-                            retData.push({
-                                providerId: providerId,
-                                gameCredit: gameCredit // gameCredit In gameProvider
-                            });
-                        }
+                            gameCredit: gameCredit,
+                            freeCredit: freeCredit,
+                            totalCredit: totalCredit// gameCredit In gameProvider
+                        });
                     }
                 )
             )
