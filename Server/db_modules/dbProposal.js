@@ -806,7 +806,7 @@ var proposal = {
 
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
             path: 'type', model: dbconfig.collection_proposalType
-        }).then(
+        }).lean().then(
             proposalData => {
                 proposalObj = proposalData;
 
@@ -919,14 +919,16 @@ var proposal = {
 
                     return propTypeProm.then(
                         propType => {
-                            console.log('proposalObj', proposalObj);
-
-                            let updObj = Object.assign({}, proposalObj);
-                            updObj.status = status;
+                            let updObj = {
+                                status: status
+                            };
 
                             if (propType && propType._id) {
                                 updObj.type = propType._id;
                             }
+
+                            updObj.data = Object.assign({}, proposalObj.data);
+                            console.log('updObj', updObj);
 
                             // Record sub top up method into proposal
                             if (callbackData && callbackData.depositMethod) {
@@ -955,15 +957,15 @@ var proposal = {
                             }
 
                             // Some extra data
-                            updObj.data.merchantNo = callbackData.merchantNo;
-                            updObj.data.merchantName = callbackData.merchantTypeName;
-                            updObj.data.bankCardNo = callbackData.bankCardNo;
-                            updObj.data.bankCardNo = callbackData.cardOwner;
-                            updObj.data.depositTime = callbackData.createTime;
-                            updObj.data.validTime = callbackData.validTime;
-                            updObj.data.remark = callbackData.remark;
+                            // updObj.data.merchantNo = callbackData.merchantNo;
+                            // updObj.data.merchantName = callbackData.merchantTypeName;
+                            // updObj.data.bankCardNo = callbackData.bankCardNo;
+                            // updObj.data.bankCardNo = callbackData.cardOwner;
+                            // updObj.data.depositTime = callbackData.createTime;
+                            // updObj.data.validTime = callbackData.validTime;
+                            // updObj.data.remark = callbackData.remark;
 
-                            console.log('updObj', updObj);
+                            console.log('updObj2', updObj);
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
