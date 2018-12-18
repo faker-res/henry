@@ -22863,7 +22863,7 @@ function transferOutFromSelectedGameProvider(selectedProviderList, playerData, e
                         }
                     )
                     // check if the last operaton of the game provide is transfer-in, yes -> transfer out; no -> already transfer out so no need to do anything
-                   return dbGameProvider.checkLastOperationTransferIn(playerData.platform._id, playerData._id, providerIdList);
+                   return dbGameProvider.checkLastOperationTransferIn(playerData.platform._id, playerData._id, providerIdList, playerData);
                 }
                 else{
                     return Promise.reject({
@@ -22876,47 +22876,28 @@ function transferOutFromSelectedGameProvider(selectedProviderList, playerData, e
             transferInList => {
                 console.log("checking 101 lastTransferInList", transferInList)
                 if (transferInList && transferInList.length) {
-                    // to get the credit of the provider
-                    transferInList.forEach(
-                        gameProvider => {
-                            if (gameProvider && gameProvider.providerId && playerData.name && playerData.platform && playerData.platform.platformId) {
-                                checkCreditProm = checkCreditProm.then(() => {
-                                    return dbGameProvider.getPlayerCreditInProvider(playerData.name, playerData.platform.platformId, gameProvider.providerId)
-                                }).then(
-                                    retResult => {
-                                        return playerCreditInGameProvider.push(retResult)
-                                    }
-                                )
-                            }
-                        }
-                    )
-                    return checkCreditProm;
-                }
-            }
-        ).then(
-            () => {
-                if (playerCreditInGameProvider && playerCreditInGameProvider.length) {
                     //check the provider if its credit >= 1, transferred out
-                    for (let provider in playerCreditInGameProvider) {
-                        if (parseFloat(playerCreditInGameProvider[provider].gameCredit) >= 1) {
-                            transferProviderId.push({providerId: playerCreditInGameProvider[provider].providerId, gameCredit: playerCreditInGameProvider[provider].gameCredit});
+                    for (let index in transferInList) {
+                        if (parseFloat(transferInList[index].gameCredit) >= 1) {
+                            transferProviderId.push({providerId: transferInList[index].providerId, gameCredit: transferInList[index].gameCredit});
                         }
-                        else{
-                            notEnoughToTransferProviderId.push(playerCreditInGameProvider[provider].providerId);
+                        else {
+                            notEnoughToTransferProviderId.push(transferInList[index].providerId);
                         }
                     }
-
-                    if (notEnoughToTransferProviderId && notEnoughToTransferProviderId.length){
-                        return Promise.reject({
-                            status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                            name: "NumError",
-                            errorMessage: "Player does not have enough credit."
-                        })
-                    }
-                   return transferProviderId;
                 }
-            }
 
+                console.log("checking transferProviderId", transferProviderId)
+                console.log("checking notEnoughToTransferProviderId", notEnoughToTransferProviderId)
+                if (notEnoughToTransferProviderId && notEnoughToTransferProviderId.length){
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                        name: "NumError",
+                        errorMessage: "Player does not have enough credit."
+                    })
+                }
+                return transferProviderId;
+            }
         ).then(
             () => {
                 if (transferProviderId && transferProviderId.length) {
