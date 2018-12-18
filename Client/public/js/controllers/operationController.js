@@ -3078,6 +3078,17 @@ define(['js/app'], function (myApp) {
                 vm.selectedProposalDetailForDisplay = proposalDetail;
             }
 
+            if (vm.selectedProposal && vm.selectedProposal.data) {
+                delete vm.selectedProposal.data.betAmount;
+                delete vm.selectedProposal.data.betTime;
+                delete vm.selectedProposal.data.winAmount;
+                delete vm.selectedProposal.data.winTimes;
+                delete vm.selectedProposalDetailForDisplay.betAmount;
+                delete vm.selectedProposalDetailForDisplay.betTime;
+                delete vm.selectedProposalDetailForDisplay.winAmount;
+                delete vm.selectedProposalDetailForDisplay.winTimes;
+            }
+
             // Remove fields for detail viewing
             delete vm.selectedProposalDetailForDisplay.creator;
             delete vm.selectedProposalDetailForDisplay.platform;
