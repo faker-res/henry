@@ -46,7 +46,7 @@ const messageDispatcher = {
     dispatchMessagesOfType: function (platformId, messageType, metaData) {
         return dbMessageTemplate.getMessageTemplates({platform: platformId, type: messageType}).then(
             function (templates) {
-                console.log("templates:", templates);
+                //console.log("templates:", templates);
                 const proms = templates.map(
                     messageTemplate => messageDispatcher.renderTemplateAndSendMessage(messageTemplate, metaData)
                 );
@@ -190,11 +190,10 @@ const messageDispatcher = {
      */
     renderTemplateAndSendMessage: function (messageTemplate, metaData) {
         const renderedSubject = typeof messageTemplate.subject === 'string' && renderTemplate(messageTemplate.subject, metaData);
-        console.log('messageTemplate.content:',messageTemplate.content);
         const contentIsHTML = isHTML(messageTemplate.content);
         // if(messageTemplate.type === constMessageType.UPDATE_PASSWORD)
             messageTemplate.content = messageTemplate.content.replace('{{executeTime}}', moment(new Date()).format("YYYY/MM/DD HH:mm:ss"));
-        console.log('metaData:',metaData);
+        //console.log('metaData:',metaData);
         if (metaData.proposalData) {
             if(metaData.proposalData.createTime)
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.createTime}}', moment(metaData.proposalData.createTime).format("YYYY/MM/DD HH:mm:ss"));
@@ -210,9 +209,7 @@ const messageDispatcher = {
                 // the time when the withdrawal request is approved
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.lastSettleTime}}', moment(metaData.proposalData.data.lastSettleTime).format("YYYY/MM/DD HH:mm:ss"));
         }
-        console.log('messageTemplate.content2:',messageTemplate.content);
         const renderedContent = renderTemplate(messageTemplate.content, metaData);
-        console.log('renderedContent:',renderedContent);
         console.log("checking sendMessage")
         return messageDispatcher.sendMessage(messageTemplate.format, metaData, renderedContent, renderedSubject, contentIsHTML);
     },
