@@ -190,7 +190,6 @@ const messageDispatcher = {
      */
     renderTemplateAndSendMessage: function (messageTemplate, metaData) {
         console.log('messageTemplate.subject:', messageTemplate.subject);
-        console.log('typeof messageTemplate.subject:', typeof messageTemplate.subject);
         const renderedSubject = typeof messageTemplate.subject === 'string' && renderTemplate(messageTemplate.subject, metaData);
         const contentIsHTML = isHTML(messageTemplate.content);
         // if(messageTemplate.type === constMessageType.UPDATE_PASSWORD)
@@ -210,7 +209,9 @@ const messageDispatcher = {
                 // the time when the withdrawal request is approved
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.lastSettleTime}}', moment(metaData.proposalData.data.lastSettleTime).format("YYYY/MM/DD HH:mm:ss"));
         }
+        console.log('messageTemplate.content:',messageTemplate.content);
         const renderedContent = renderTemplate(messageTemplate.content, metaData);
+        console.log('renderedContent:',renderedContent);
         console.log("checking sendMessage")
         return messageDispatcher.sendMessage(messageTemplate.format, metaData, renderedContent, renderedSubject, contentIsHTML);
     },
