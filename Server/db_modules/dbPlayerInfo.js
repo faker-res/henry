@@ -11577,9 +11577,16 @@ let dbPlayerInfo = {
                                     .lean();
                             },
                             err => {
+                                console.log("LH check apply bonus error -----", err);
                                 if(err && err.status && err.status == constServerCode.CONFIRMATION_TO_COMPLETE_ACTIVITY){
                                     return Promise.reject(err);
                                 }
+
+                                //if not certain error, return playerInfo data
+                                return dbconfig.collection_players.findOne({playerId: playerId})
+                                    .populate({path: "platform", model: dbconfig.collection_platform})
+                                    .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
+                                    .lean();
                             }
                         ).then(
                             playerData => {
