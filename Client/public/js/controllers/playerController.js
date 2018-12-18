@@ -19596,6 +19596,15 @@ define(['js/app'], function (myApp) {
                     vm.selectedProposal.data = proposalDetail;
                 }
 
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerConsumptionReturn") {
+                    if(vm.selectedProposal.data) {
+                        delete vm.selectedProposal.data.betAmount;
+                        delete vm.selectedProposal.data.betTime;
+                        delete vm.selectedProposal.data.winAmount;
+                        delete vm.selectedProposal.data.winTimes;
+                    }
+                }
+
                 if (vm.selectedProposal.data.inputData) {
                     if (vm.selectedProposal.data.inputData.provinceId) {
                         vm.getProvinceName(vm.selectedProposal.data.inputData.provinceId)
