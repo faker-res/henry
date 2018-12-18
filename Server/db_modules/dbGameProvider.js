@@ -558,23 +558,41 @@ var dbGameProvider = {
         return Promise.all(promArr).then(() => retData);
     },
 
-    checkLastOperationTransferIn: (platformObjId, playerObjId, providerIdArr) => {
+    checkLastOperationTransferIn: (platformObjId, playerObjId, providerIdArr, playerData) => {
         let promArr = [];
         let retData = [];
+        let totalCredit = 0;
+        let gameCredit = 0;
+        let isUnknownCredit = false;
 
         providerIdArr.map(providerId => {
             promArr.push(
-                dbconfig.collection_playerCreditTransferLog.find({
-                    platformObjId: platformObjId,
-                    playerObjId: playerObjId,
-                    providerId: providerId,
-                    status: constPlayerCreditTransferStatus.SUCCESS
-                }).sort({createTime: -1}).limit(1).lean().then(
+                // check if the player's valid credit + provider credit <= 0
+                dbGameProvider.getPlayerCreditInProvider(playerData.name, playerData.platform.platformId, providerId).then(
+                    gameCreditInProvider => {
+                        if (gameCreditInProvider && gameCreditInProvider.gameCredit){
+                            if (gameCreditInProvider.gameCredit == 'unknown') {
+                                isUnknownCredit = true;
+                            }
+                            gameCredit = parseFloat(gameCreditInProvider.gameCredit);
+                            totalCredit = gameCredit + (playerData.validCredit || 0);
+                        }
+
+                        // check the last operation is transfer in or not
+                        return dbconfig.collection_playerCreditTransferLog.find({
+                            platformObjId: platformObjId,
+                            playerObjId: playerObjId,
+                            providerId: providerId,
+                            status: constPlayerCreditTransferStatus.SUCCESS
+                        }).sort({createTime: -1}).limit(1).lean();
+                    }
+                ).then(
                     changeLog => {
-                        if (changeLog && changeLog[0] && changeLog[0].type == constPlayerCreditChangeType.TRANSFER_IN) {
+                        console.log("checking changeLog", [providerId, changeLog, gameCredit, totalCredit, totalCredit < 1])
+                        if ((changeLog && changeLog[0] && changeLog[0].type == constPlayerCreditChangeType.TRANSFER_IN) || totalCredit < 1 || isUnknownCredit) {
                             retData.push({
                                 providerId: providerId,
-                                createTime: changeLog[0].createTime
+                                gameCredit: gameCredit // gameCredit In gameProvider
                             });
                         }
                     }
