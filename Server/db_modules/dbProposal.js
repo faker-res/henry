@@ -806,7 +806,7 @@ var proposal = {
 
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
             path: 'type', model: dbconfig.collection_proposalType
-        }).then(
+        }).lean().then(
             proposalData => {
                 proposalObj = proposalData;
 
@@ -919,15 +919,15 @@ var proposal = {
 
                     return propTypeProm.then(
                         propType => {
-
-
-                            let updObj = Object.assign({}, proposalObj);
-                            updObj.status = status;
+                            let updObj = {
+                                status: status
+                            };
 
                             if (propType && propType._id) {
                                 updObj.type = propType._id;
                             }
 
+                            updObj.data = Object.assign({}, proposalObj.data);
                             console.log('updObj', updObj);
 
                             // Record sub top up method into proposal
