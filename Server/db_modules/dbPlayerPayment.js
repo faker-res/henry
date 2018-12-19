@@ -410,7 +410,15 @@ const dbPlayerPayment = {
             path: "platform", model: dbconfig.collection_platform
         }).populate({
             path: "playerLevel", model: dbconfig.collection_playerLevel
-        }).then(
+        }).populate({
+            path: "bankCardGroup", model: dbconfig.collection_platformBankCardGroup
+        }).populate({
+            path: "merchantGroup", model: dbconfig.collection_platformMerchantGroup
+        }).populate({
+            path: "wechatPayGroup", model: dbconfig.collection_platformWechatPayGroup
+        }).populate({
+            path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup
+        }).lean().then(
             playerdata => {
                 if (playerdata) {
                     player = playerdata;
@@ -483,7 +491,10 @@ const dbPlayerPayment = {
                 proposalData.playerLevel = player.playerLevel;
                 proposalData.platform = player.platform.platformId;
                 proposalData.playerName = player.name;
+                proposalData.playerRealName = player.realName;
                 proposalData.amount = Number(topupRequest.amount);
+                proposalData.bankCardGroupName = player.bankCardGroup && player.bankCardGroup.name || "";
+                proposalData.merchantGroupName = player.merchantGroup && player.merchantGroup.name || "";
                 proposalData.creator = entryType === "ADMIN" ? {
                     type: 'admin',
                     name: adminName,
