@@ -960,6 +960,8 @@ var proposal = {
                                 updObj.data.remark = callbackData.remark;
                             }
 
+                            console.log('callbackData', callbackData);
+
                             // Some extra data
                             updObj.data.merchantNo = callbackData.merchantNo;
                             updObj.data.merchantName = callbackData.merchantTypeName;
