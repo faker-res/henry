@@ -539,7 +539,9 @@ let dbTeleSales = {
                                 totalPhoneAdded++;
                                 tsAssigneeArr[j].updateObj.tsPhone.push({
                                     tsPhoneObjId: tsPhoneData[i]._id,
-                                    assignTimes: tsPhoneData[i].assignTimes
+                                    assignTimes: tsPhoneData[i].assignTimes,
+                                    province: tsPhoneData[i].province,
+                                    city: tsPhoneData[i].city,
                                 });
                                 tsAssigneeArr.sort(sortAssigneePhoneCount);
                                 break;
@@ -565,7 +567,7 @@ let dbTeleSales = {
                                         let isInDangerZone = false;
 
                                         dangerZoneList.map(dangerZone => {
-                                            if (dangerZone.province == tsPhoneUpdate.province && dangerZone.city == tsPhoneUpdate.city) {
+                                            if (dangerZone.province == tsPhoneUpdate.province && (dangerZone.city == tsPhoneUpdate.city || dangerZone.city == "all")) {
                                                 isInDangerZone = true;
                                             }
                                         });
@@ -579,8 +581,8 @@ let dbTeleSales = {
                                             tsPhoneList: inputData.tsListObjId,
                                             tsDistributedPhoneList: distributedPhoneListData._id,
                                             tsPhone: ObjectId(tsPhoneUpdate.tsPhoneObjId),
-                                            province: tsPhoneUpdate.province,
-                                            city: tsPhoneUpdate.city,
+                                            province: tsPhoneUpdate.province || "",
+                                            city: tsPhoneUpdate.city || "",
                                             isInDangerZone: isInDangerZone,
                                             assignTimes: (tsPhoneUpdate.assignTimes + 1) || 1,
                                             assignee: tsAssignee.admin,
@@ -698,9 +700,15 @@ let dbTeleSales = {
                     } else if (!(tsPhoneOldData.dangerZoneList && tsPhoneOldData.dangerZoneList.length) && updateData.dangerZoneList && updateData.dangerZoneList.length) {
                         // add danger zone in tsPhone
                         tsPhoneQuery.$or = [];
-                        for (let i = 0; i < i < updateData.dangerZoneList.length; i++) {
+                        for (let i = 0; i < updateData.dangerZoneList.length; i++) {
                             if (updateData.dangerZoneList[i].city && updateData.dangerZoneList[i].province) {
-                                tsPhoneQuery.$or.push({city: updateData.dangerZoneList[i].city, province: updateData.dangerZoneList[i].province})
+                                let tempDangerListQuery = {
+                                    province: updateData.dangerZoneList[i].province
+                                };
+                                if (updateData.dangerZoneList[i].city != "all") {
+                                    tempDangerListQuery.city = updateData.dangerZoneList[i].city;
+                                }
+                                tsPhoneQuery.$or.push(tempDangerListQuery)
                             }
                         }
                         if (tsPhoneQuery.$or.length) {
@@ -719,7 +727,13 @@ let dbTeleSales = {
                             compareCity = inputZone.city;
                             compareProvince = inputZone.province;
                             if (compareCity && compareProvince && !tsPhoneOldData.dangerZoneList.find(findDangerZone)){
-                                addedZone.push({city: compareCity, province: compareProvince});
+                                let tempDangerListQuery = {
+                                    province: compareProvince
+                                };
+                                if (compareCity != "all") {
+                                    tempDangerListQuery.city = compareCity;
+                                };
+                                addedZone.push(tempDangerListQuery);
                             }
                         });
 
@@ -730,7 +744,13 @@ let dbTeleSales = {
                             compareCity = oriZone.city;
                             compareProvince = oriZone.province;
                             if (compareCity && compareProvince && !updateData.dangerZoneList.find(findDangerZone)){
-                                deletedZone.push({city: compareCity, province: compareProvince});
+                                let tempDangerListQuery = {
+                                    province: compareProvince
+                                };
+                                if (compareCity != "all") {
+                                    tempDangerListQuery.city = compareCity;
+                                };
+                                deletedZone.push(tempDangerListQuery);
                             }
                         });
 
