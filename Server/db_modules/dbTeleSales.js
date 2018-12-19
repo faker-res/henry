@@ -1554,7 +1554,7 @@ function getAllTradeablePhone (platformsArr, recursiveCount, remainingPhoneTrade
                     }
                 })
             }
-            // tsPhoneTradeArr = tsPhoneTradeArr.concat(record.data);
+            
             if (!limitPhoneTrade) {
                 continue;
             } else {
