@@ -386,11 +386,20 @@ define(['js/app'], function (myApp) {
             };
 
             vm.setDepartViewList = function (){
+                let departMaxViewListArray;
+
                 if(vm.SelectedDepartmentNode.parent){
-                    vm.departMaxViewList = vm.SelectedDepartmentNode.departData && vm.SelectedDepartmentNode.departData.views ? vm.SelectedDepartmentNode.departData.views : {};
+                    departMaxViewListArray = vm.SelectedDepartmentNode.departData && vm.SelectedDepartmentNode.departData.views ? vm.SelectedDepartmentNode.departData.views : {};
                 }else{
-                    vm.departMaxViewList = vm.allView;
+                    departMaxViewListArray = vm.allView;
                 }
+
+                vm.departMaxViewList = {};
+                vm.viewSequence.forEach(
+                    viewSequence => {
+                        vm.departMaxViewList[viewSequence] = departMaxViewListArray[viewSequence];
+                    }
+                );
             };
 
             vm.getFullDepartmentPath = function () {
