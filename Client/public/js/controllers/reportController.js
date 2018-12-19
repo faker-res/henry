@@ -5691,7 +5691,7 @@ define(['js/app'], function (myApp) {
                 var datatoDraw = data.data.data.map(item => {
                     item.selectedBetTypeAmt = $noRoundTwoDecimalPlaces(item.selectedBetTypeAmt);
                     item.totalBetAmt = $noRoundTwoDecimalPlaces(item.totalBetAmt);
-                    item.betAmtPercent = $noRoundTwoDecimalPlaces(item.totalBetAmt/item.selectedBetTypeAmt * 100);
+                    item.betAmtPercent = $noRoundTwoDecimalPlaces(item.selectedBetTypeAmt/item.totalBetAmt * 100);
                     item.bonusAmount = $noRoundTwoDecimalPlaces(item.bonusAmount);
                     item.betCountPercent = $noRoundTwoDecimalPlaces(item.selectedBetTypeCount/item.totalBetCount * 100);
 
@@ -5730,7 +5730,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('BET_TYPE_CONSUMPTION'), data: "selectedBetTypeAmt", sClass: 'sumFloat alignRight'},
                     {title: $translate('GAME_TYPE_CONSUMPTION'), data: "totalBetAmt", sClass: 'sumFloat alignRight'},
                     {
-                        title: $translate('GAME_TYPE_CONSUMPTION') + "/ <br>" + $translate('BET_TYPE_CONSUMPTION') + "(%)",
+                        title: $translate('BET_TYPE_CONSUMPTION') + "/ <br>" + $translate('GAME_TYPE_CONSUMPTION') + "(%)",
                         data: "betAmtPercent",
                         sClass: 'betAmtPercent alignRight',
                         render: function (data, type, row) {
@@ -5772,7 +5772,7 @@ define(['js/app'], function (myApp) {
             var proposalTbl = utilService.createDatatableWithFooter('#consumptionModeTable', tableOptions, {
                 2: $noRoundTwoDecimalPlaces(summary.selectedBetTypeAmt),
                 3: $noRoundTwoDecimalPlaces(summary.totalBetAmt),
-                4: $noRoundTwoDecimalPlaces(summary.totalBetAmt/summary.selectedBetTypeAmt * 100),
+                4: $noRoundTwoDecimalPlaces(summary.selectedBetTypeAmt/summary.totalBetAmt * 100),
                 5: $noRoundTwoDecimalPlaces(summary.bonusAmount),
                 6: summary.selectedBetTypeCount,
                 7: summary.totalBetCount,
