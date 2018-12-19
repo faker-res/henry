@@ -16618,7 +16618,7 @@ let dbPlayerInfo = {
         });
     },
 
-    getPlayerDepositTrackingReport: function (platformObjId, query, index, limit, sortCol, trackingGroup) {
+    getPlayerDepositTrackingReport: function (platformObjId, query, index, limit, sortCol, loginStartTime, loginEndTime) {
         limit = limit ? limit : 20;
         index = index ? index : 0;
         query = query ? query : {};
@@ -16651,7 +16651,11 @@ let dbPlayerInfo = {
             getPlayerProm = dbconfig.collection_players.findOne({
                 name: query.name,
                 platform: platformObjId,
-                isDepositTracked: true
+                isDepositTracked: true,
+                lastAccessTime: {
+                    "$gte": new Date(loginStartTime),
+                    "$lt": new Date(loginEndTime)
+                }
             }, {_id: 1}).read("secondaryPreferred").lean().then(
                 player => {
                     if (!player) return Q.reject({
@@ -16665,7 +16669,11 @@ let dbPlayerInfo = {
             // search all player with deposit tracked
             getPlayerProm = dbconfig.collection_players.find({
                 platform: platformObjId,
-                isDepositTracked: true
+                isDepositTracked: true,
+                lastAccessTime: {
+                    "$gte": new Date(loginStartTime),
+                    "$lt": new Date(loginEndTime)
+                }
             }, {_id: 1}).read("secondaryPreferred").lean().then(
                 player => {
                     if (!player) return Q.reject({
@@ -16799,80 +16807,48 @@ let dbPlayerInfo = {
                 });
 
                 playerData.forEach(player => {
-                    topUpProm.push(dbconfig.collection_proposal.aggregate([
-                        {
-                            $match: {
-                                "data.playerObjId": ObjectId(player._id),
-                                mainType: "TopUp",
-                                status: constProposalStatus.SUCCESS,
-                            }
+                    // get last top up record
+                    topUpProm.push(dbconfig.collection_proposal.findOne({
+                        "data.platformId": ObjectId(platformObjId),
+                        "data.playerObjId": ObjectId(player._id),
+                        "createTime": {
+                            "$gte": new Date(startDate),
+                            "$lte": new Date(today)
                         },
-                        {
-                            $sort: {settleTime: 1}
-                        },
-                        {
-                            $group: {
-                                _id: "$data.playerObjId",
-                                typeId: {$first: "$type"},
-                                count: {$sum: 1},
-                                amount: {$sum: "$data.amount"},
-                                lastTopUpDate: {$last: "$settleTime"},
-                            }
-                        }
-                    ]).read("secondaryPreferred"));
+                        mainType: "TopUp",
+                        status: constProposalStatus.SUCCESS,
+                    }, {"data.playerObjId": 1, settleTime: 1}).sort({settleTime: -1}));
 
-                    bonusProm.push(dbconfig.collection_proposal.aggregate([
-                        {
-                            $match: {
-                                "data.playerObjId": ObjectId(player._id),
-                                mainType: "PlayerBonus",
-                                status: constProposalStatus.SUCCESS,
-                            }
+                    // get last withdrawal record
+                    bonusProm.push(dbconfig.collection_proposal.findOne({
+                        "data.platformId": ObjectId(platformObjId),
+                        "data.playerObjId": ObjectId(player._id),
+                        "createTime": {
+                            "$gte": new Date(startDate),
+                            "$lte": new Date(today)
                         },
-                        {
-                            $sort: {settleTime: 1}
-                        },
-                        {
-                            $group: {
-                                _id: "$data.playerObjId",
-                                count: {$sum: 1},
-                                amount: {$sum: "$data.amount"},
-                                lastBonusDate: {$last: "$settleTime"},
-                            }
-                        }
-                    ]).read("secondaryPreferred"));
+                        mainType: "PlayerBonus",
+                        status: constProposalStatus.SUCCESS,
+                    }, {"data.playerObjId": 1, settleTime: 1}).sort({settleTime: -1}));
 
-                    consumptionProm.push(dbconfig.collection_playerConsumptionRecord.aggregate([
-                        {
-                            $match: {
-                                playerId: ObjectId(player._id),
-                                $or: [
-                                    {isDuplicate: {$exists: false}},
-                                    {
-                                        $and: [
-                                            {isDuplicate: {$exists: true}},
-                                            {isDuplicate: false}
-                                        ]
-                                    }
+                    // get last consumption record
+                    consumptionProm.push(dbconfig.collection_playerConsumptionRecord.findOne({
+                        platformId: ObjectId(platformObjId),
+                        createTime: {
+                            $gte: new Date(startDate),
+                            $lt: new Date(today)
+                        },
+                        playerId: ObjectId(player._id),
+                        $or: [
+                            {isDuplicate: {$exists: false}},
+                            {
+                                $and: [
+                                    {isDuplicate: {$exists: true}},
+                                    {isDuplicate: false}
                                 ]
                             }
-                        },
-                        {
-                            $sort: {createTime: 1}
-                        },
-                        {
-                            $group: {
-                                _id: "$playerId",
-                                gameId: {$first: "$gameId"},
-                                providerId: {$first: "$providerId"},
-                                count: {$sum: {$cond: ["$count", "$count", 1]}},
-                                amount: {$sum: "$amount"},
-                                validAmount: {$sum: "$validAmount"},
-                                bonusAmount: {$sum: "$bonusAmount"},
-                                lastConsumptionDate: {$last: "$createTime"},
-                            }
-                        }
-                    ]).allowDiskUse(true).read("secondaryPreferred"));
+                        ]
+                    }, {playerId: 1, createTime: 1}).sort({createTime: -1}));
 
                     trackingGroupProm.push(dbconfig.collection_players.findOne({_id: player._id})
                         .populate({path: 'depositTrackingGroup', model: dbconfig.collection_playerDepositTrackingGroup})
@@ -16955,9 +16931,9 @@ let dbPlayerInfo = {
                 });
 
                 return Promise.all([Promise.all(topUpProm), Promise.all(bonusProm), Promise.all(consumptionProm), Promise.all(trackingGroupProm), Promise.all(promoCodeType1Prom), Promise.all(promoCodeType2Prom), Promise.all(promoCodeType3Prom)]).then(data => {
-                    let topUpRecord = [].concat(...data[0]);
-                    let bonusRecord = [].concat(...data[1]);
-                    let consumptionRecord = [].concat(...data[2]);
+                    let lastTopUpRecord = [].concat(...data[0]);
+                    let lastBonusRecord = [].concat(...data[1]);
+                    let lastConsumptionRecord = [].concat(...data[2]);
                     let trackingGroupRecord = [].concat(...data[3]);
                     let promoCodeType11 = [].concat(...data[4]);
                     let promoCodeType22 = [].concat(...data[5]);
@@ -16965,19 +16941,37 @@ let dbPlayerInfo = {
 
                     // assign last record date
                     playerData.forEach(player => {
-                        let topUpIndexNo = topUpRecord.findIndex(x => x && x._id && player && player._id && (player._id.toString() === x._id.toString()));
+                        let topUpIndexNo = lastTopUpRecord.findIndex(x => x && x.data && x.data.playerObjId && player && player._id && (player._id.toString() === x.data.playerObjId.toString()));
                         if (topUpIndexNo != -1) {
-                            player.lastTopUpDate = topUpRecord[topUpIndexNo].lastTopUpDate;
+                            player.lastTopUpDate = lastTopUpRecord[topUpIndexNo].settleTime;
+
+                            // count days
+                            if (player && player.lastTopUpDate) {
+                                let timeDiff = Math.abs(today.getTime() - player.lastTopUpDate.getTime());
+                                player.noDeposit = Math.floor(timeDiff / (1000 * 3600 * 24)); // difference in days
+                            }
                         }
 
-                        let bonusIndexNo = bonusRecord.findIndex(x => x && x._id && player && player._id && (player._id.toString() === x._id.toString()));
+                        let bonusIndexNo = lastBonusRecord.findIndex(x => x && x.data && x.data.playerObjId && player && player._id && (player._id.toString() === x.data.playerObjId.toString()));
                         if (bonusIndexNo != -1) {
-                            player.lastBonusDate = bonusRecord[bonusIndexNo].lastBonusDate;
+                            player.lastBonusDate = lastBonusRecord[bonusIndexNo].settleTime;
+
+                            // count days
+                            if (player && player.lastBonusDate) {
+                                let timeDiff = Math.abs(today.getTime() - player.lastBonusDate.getTime());
+                                player.noWithdrawal = Math.floor(timeDiff / (1000 * 3600 * 24)); // difference in days
+                            }
                         }
 
-                        let consumptionIndexNo = consumptionRecord.findIndex(x => x && x._id && player && player._id && (player._id.toString() === x._id.toString()));
+                        let consumptionIndexNo = lastConsumptionRecord.findIndex(x => x && x.playerId && player && player._id && (player._id.toString() === x.playerId.toString()));
                         if (consumptionIndexNo != -1) {
-                            player.lastConsumptionDate = consumptionRecord[consumptionIndexNo].lastConsumptionDate;
+                            player.lastConsumptionDate = lastConsumptionRecord[consumptionIndexNo].createTime;
+
+                            // count days
+                            if (player && player.lastConsumptionDate) {
+                                let timeDiff = Math.abs(today.getTime() - player.lastConsumptionDate.getTime());
+                                player.noConsumption = Math.floor(timeDiff / (1000 * 3600 * 24)); // difference in days
+                            }
                         }
                         // assign deposit tracking group name
                         let trackingGroupIndexNo = trackingGroupRecord.findIndex(x => x && x.playerId && player && player._id && (player._id.toString() === x.playerId.toString()));
@@ -17006,23 +17000,7 @@ let dbPlayerInfo = {
                         return player;
                     });
 
-                    // count days without action
-                    playerData.forEach(player => {
-                        if (player && player.lastTopUpDate) {
-                            let timeDiff = Math.abs(today.getTime() - player.lastTopUpDate.getTime());
-                            player.noDeposit = Math.floor(timeDiff / (1000 * 3600 * 24)); // difference in days
-                        }
-                        if (player && player.lastBonusDate) {
-                            let timeDiff = Math.abs(today.getTime() - player.lastBonusDate.getTime());
-                            player.noWithdrawal = Math.floor(timeDiff / (1000 * 3600 * 24)); // difference in days
-                        }
-                        if (player && player.lastConsumptionDate) {
-                            let timeDiff = Math.abs(today.getTime() - player.lastConsumptionDate.getTime());
-                            player.noConsumption = Math.floor(timeDiff / (1000 * 3600 * 24)); // difference in days
-                        }
-                    });
-
-                    return {size: result.length, data: playerData, total: resultSum, topUpRecord: topUpRecord};
+                    return {size: result.length, data: playerData, total: resultSum};
                 });
             }
         );

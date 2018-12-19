@@ -495,6 +495,8 @@ const dbPlayerPayment = {
                 proposalData.amount = Number(topupRequest.amount);
                 proposalData.bankCardGroupName = player.bankCardGroup && player.bankCardGroup.name || "";
                 proposalData.merchantGroupName = player.merchantGroup && player.merchantGroup.name || "";
+                proposalData.wechatPayGroupName = player.wechatPayGroup && player.wechatPayGroup.name || "";
+                proposalData.aliPayGroupName = player.alipayGroup && player.alipayGroup.name || "";
                 proposalData.creator = entryType === "ADMIN" ? {
                     type: 'admin',
                     name: adminName,
