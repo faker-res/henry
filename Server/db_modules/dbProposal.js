@@ -966,6 +966,7 @@ var proposal = {
                             updObj.data.merchantNo = callbackData.merchantNo;
                             updObj.data.merchantName = callbackData.merchantTypeName;
                             updObj.data.bankCardNo = callbackData.bankCardNo;
+                            updObj.data.bankCardType = callbackData.bankTypeId;
                             updObj.data.bankTypeId = callbackData.bankTypeId;
                             updObj.data.cardOwner = callbackData.cardOwner;
                             updObj.data.depositTime = callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '';
