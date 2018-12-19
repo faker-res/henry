@@ -990,6 +990,11 @@ var proposal = {
                             updObj.data.alipayAccount = callbackData.alipayAccount;
                             updObj.data.alipayName = callbackData.alipayName;
 
+                            updObj.data.weChatAccount = callbackData.weChatAccount;
+                            updObj.data.weChatQRCode = callbackData.weChatQRCode;
+                            updObj.data.name = callbackData.name;
+                            updObj.data.nickname = callbackData.nickname;
+
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
                                 updObj
