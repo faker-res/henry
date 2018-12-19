@@ -135,9 +135,28 @@ var dbLogger = {
                     && adminActionRecordData.data[3].addList && adminActionRecordData.data[3].addList.length) {
                     return dbconfig.collection_playerCredibilityRemark.find({_id: {$in: adminActionRecordData.data[3].addList}}, {name: 1});
                 }else if((adminActionRecordData.action == 'applyManualTopUpRequest' || adminActionRecordData.action == 'applyAlipayTopUpRequest'
-                    || adminActionRecordData.action == 'applyBonusRequest' || adminActionRecordData.action == 'applyRewardEvent')
-                    && adminActionRecordData.data[1]){
+                    || adminActionRecordData.action == 'applyBonusRequest')
+                    && adminActionRecordData.data[1]) {
                     return dbconfig.collection_players.findOne({playerId: adminActionRecordData.data[1]}, {name: 1});
+                }else if(adminActionRecordData.action == 'applyRewardEvent' && adminActionRecordData.data[1] && adminActionRecordData.data[2]){
+                    let returnedData = {};
+                    return dbconfig.collection_players.findOne({playerId: adminActionRecordData.data[1]}, {name: 1}).then(
+                        playerName => {
+                            if(playerName && playerName.name){
+                                returnedData.playerName = playerName.name;
+                            }
+
+                            return dbconfig.collection_rewardEvent.findOne({code: adminActionRecordData.data[2]}, {name: 1});
+                        }
+                    ).then(
+                        rewardName => {
+                            if(rewardName && rewardName.name){
+                                returnedData.rewardName = rewardName.name;
+                            }
+
+                            return returnedData;
+                        }
+                    );
                 }else if(adminActionRecordData.action == 'applyWechatPayTopUpRequest' && adminActionRecordData.data[2]){
                     return dbconfig.collection_players.findOne({playerId: adminActionRecordData.data[2]}, {name: 1});
                 }else if(adminActionRecordData.action == 'createRewardTaskGroupUnlockedRecord' && adminActionRecordData.data[0] && adminActionRecordData.data[0].playerId){
@@ -697,8 +716,8 @@ var dbLogger = {
                 }else if(logAction == 'applyBonusRequest' && data && data.name){
                     adminActionRecordData.error = '会员帐号： ' + data.name + "; 提案号： " + resultData.proposalId || "";
                     adminActionRecordData.platforms = adminActionRecordData.data[7] ? adminActionRecordData.data[7] : adminActionRecordData.platforms;
-                }else if(logAction == 'applyRewardEvent' && adminActionRecordData.data[2]){
-                    adminActionRecordData.error = '优惠: ' + adminActionRecordData.data[2]+ ' 会员帐号： ' + data.name;
+                }else if(logAction == 'applyRewardEvent'){
+                    adminActionRecordData.error = '优惠: ' + data.rewardName+ ' 会员帐号： ' + data.playerName;
                     adminActionRecordData.platforms = adminActionRecordData.data[6] ? adminActionRecordData.data[6] : adminActionRecordData.platforms;
                 }else if(logAction == 'createPlayerRewardTask' && adminActionRecordData.data[0].playerName && adminActionRecordData.data[0].platformId){
                     adminActionRecordData.error = ' 会员帐号： ' + adminActionRecordData.data[0].playerName + "; 提案号： " + resultData.proposalId || "";
