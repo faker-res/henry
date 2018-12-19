@@ -12834,10 +12834,8 @@ let dbPlayerInfo = {
                 return cpmsAPI.player_getLoginURL(sendData);
             },
             err => {
-                if(isApplyBonusDoubledReward){
-                    return Promise.reject(err);
-                }
-                return Promise.reject({name: "DataError", message: err.message});
+                console.log("LH check getLoginUrl err -----1 ", err);
+                return Promise.reject(err);
             }
         ).then(
             loginData => {
@@ -12850,10 +12848,8 @@ let dbPlayerInfo = {
                 return {gameURL: loginData.gameURL};
             },
             err => {
-                if(isApplyBonusDoubledReward){
-                    return Promise.reject(err);
-                }
-                return Promise.reject({name: "DataError", message: err.message});
+                console.log("LH check getLoginUrl err -----2 ", err);
+                return Promise.reject(err);
             }
         );
     },
@@ -12902,6 +12898,7 @@ let dbPlayerInfo = {
                         clientType: clientType || 1
                     };
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
+                    console.log("LH check getLoginUrl err -----test login ", sendData);
                     return cpmsAPI.player_getTestLoginURL(sendData);
                 } else {
                     return Q.reject({name: "DataError", message: "Cannot find game"})
