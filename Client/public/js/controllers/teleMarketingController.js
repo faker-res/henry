@@ -1287,6 +1287,22 @@ define(['js/app'], function (myApp) {
             });
         }
 
+        vm.cancelTsDistributedPhoneReminder = () => {
+            let sendData = {
+                query: {
+                    tsPhone: vm.tsPhoneReminder.tsPhone,
+                    platform: vm.selectedPlatform.id,
+                    assignee: authService.adminId,
+                },
+                updateData: {
+                    $unset: { remindTime: ""}
+                }
+            };
+            socketService.$socket($scope.AppSocket, 'updateTsPhoneDistributedPhone', sendData, function (data) {
+                vm.autoRefreshTsDistributedPhoneReminder(true);
+            });
+        };
+
         vm.autoRefreshTsDistributedPhoneReminder = function () {
             if (!(window.location.pathname == "/teleMarketing" && vm.selectedTab == "REMINDER_PHONE_LIST")) {
                 return;
