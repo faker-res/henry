@@ -2377,7 +2377,7 @@ define(['js/app'], function (myApp) {
                 proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
                 proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
                 proposalDetail["OnlineTopUpType"] = $translate($scope.merchantTopupTypeJson[vm.selectedProposal.data.topupType]) || vm.selectedProposal.data.topupType || " ";
-                proposalDetail["3rdPartyPlatform"] = vm.getMerchantName(vm.selectedProposal.data.merchantNo, vm.selectedProposal.inputDevice) || " ";
+                proposalDetail["3rdPartyPlatform"] = vm.getMerchantName(vm.selectedProposal.data.merchantNo, vm.selectedProposal.inputDevice) || vm.selectedProposal.data.merchantNo || " ";
                 proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                 proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                 if(vm.selectedProposal.data.hasOwnProperty("rate")){

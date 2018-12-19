@@ -597,9 +597,9 @@ define([], function () {
                                 return getFloat(a) + getFloat(b);
                             })
                         }
-                        pageValue = totalBetTypeConsumption / selectedBetTypeConsumption * 100;
+                        pageValue = selectedBetTypeConsumption / totalBetTypeConsumption * 100;
                         if(!isFinite(pageValue) || isNaN(pageValue)) {
-                            pageValue = "-";
+                            htmlStr = gethtmlStr("-");
                         }else {
                             totalValue = getFloat(totalValue).toFixed(2);
                             pageValue = getFloat(pageValue).toFixed(2);
