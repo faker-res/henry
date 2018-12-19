@@ -4630,6 +4630,8 @@ define(['js/app'], function (myApp) {
                 index: newSearch ? 0 : (vm.depositTrackingQuery.index || 0),
                 limit: vm.depositTrackingQuery.limit || 5000,
                 sortCol: vm.depositTrackingQuery.sortCol || {},
+                loginStartTime: vm.depositTrackingQuery.loginStartTime.data('datetimepicker').getLocalDate(),
+                loginEndTime: vm.depositTrackingQuery.loginEndTime.data('datetimepicker').getLocalDate(),
             };
             console.log('sendQuery', sendQuery);
             socketService.$socket($scope.AppSocket, 'getPlayerDepositTrackingReport', sendQuery, function (data) {
@@ -10463,10 +10465,17 @@ define(['js/app'], function (myApp) {
             } else if (choice === "PLAYER_DEPOSIT_TRACKING_REPORT") {
                 vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded('#playerDepositTrackingReportTablePage', function () {
+                    let yesterday = utilService.setNDaysAgo(new Date(), 1);
+                    let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
+                    let todayEndTime = utilService.getTodayEndTime();
                     vm.playerDepositTracking = {};
                     vm.depositTrackingQuery = {};
                     vm.depositTrackingQuery.sortCol = {};
                     vm.depositTrackingQuery.limit = 5000;
+                    vm.depositTrackingQuery.loginStartTime = utilService.createDatePicker('#depositTrackingReport .loginStartTime');
+                    vm.depositTrackingQuery.loginStartTime.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                    vm.depositTrackingQuery.loginEndTime = utilService.createDatePicker('#depositTrackingReport .loginEndTime');
+                    vm.depositTrackingQuery.loginEndTime.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                     // vm.depositTrackingQuery.pageObj = utilService.createPageForPagingTable("#playerDepositTrackingReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
                     //     vm.commonPageChangeHandler(curP, pageSize, "depositTrackingQuery", vm.searchPlayerDepositTrackingReport);
                     // });
