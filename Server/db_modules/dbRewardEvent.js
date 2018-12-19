@@ -238,6 +238,7 @@ var dbRewardEvent = {
                 switch (rewardEvent.type.name) {
                     case constRewardType.PLAYER_BONUS_DOUBLED_REWARD_GROUP:
                         let todayTime = dbUtil.getTodaySGTime();
+                        let selectedProviderList = rewardEvent.condition && rewardEvent.condition.gameProvider && rewardEvent.condition.gameProvider.length ? rewardEvent.condition.gameProvider : null;
                         let topupInPeriodProm = Promise.resolve();
 
                         if (rewardEvent.condition.interval) {
@@ -265,7 +266,7 @@ var dbRewardEvent = {
 
                         // check how many times does this player has applied
                         let timesHasApplied = dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOne(timesQuery).lean();
-                        let rewardProm = dbPlayerReward.checkRewardParamForBonusDoubledRewardGroup(rewardEvent, playerObj, intervalTime);
+                        let rewardProm = dbPlayerReward.checkRewardParamForBonusDoubledRewardGroup(rewardEvent, playerObj, intervalTime, selectedProviderList);
 
                         if (rewardEvent.condition && rewardEvent.condition.topUpCountType) {
                             topupInPeriodProm = dbconfig.collection_playerTopUpRecord.find(topupQuery).lean();

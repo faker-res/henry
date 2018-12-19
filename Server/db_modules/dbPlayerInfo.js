@@ -21889,7 +21889,8 @@ let dbPlayerInfo = {
 
     completePlayerBonusDoubledReward: function(playerData, eventData){
         let intervalTime = dbRewardUtil.getRewardEventIntervalTime({}, eventData, true);
-        let getPlayerApplyingRecordProm = dbPlayerReward.checkRewardParamForBonusDoubledRewardGroup(eventData, playerData, intervalTime);
+        let selectedProviderList = eventData.condition && eventData.condition.gameProvider && eventData.condition.gameProvider.length ? eventData.condition.gameProvider : null;
+        let getPlayerApplyingRecordProm = dbPlayerReward.checkRewardParamForBonusDoubledRewardGroup(eventData, playerData, intervalTime, selectedProviderList);
         let consumptionQuery = {
             platformId: playerData.platform._id,
             playerId: playerData._id,
@@ -22778,6 +22779,8 @@ function checkToStartNewRound(playerData, eventData, bonusDoubledRecord, interva
     let newEndTime = null;
     let winLoseAmount = 0;
     let isByPassTransferCheck = false;
+    let selectedProviderList = eventData.condition && eventData.condition.gameProvider && eventData.condition.gameProvider.length ? eventData.condition.gameProvider : null;
+
     return dbGameProvider.getPlayerCreditInProvider(playerData.name, playerData.platform.platformId, providerId).then(
         credit => {
             if (credit && credit.gameCredit){
@@ -22785,7 +22788,7 @@ function checkToStartNewRound(playerData, eventData, bonusDoubledRecord, interva
             }
 
             // get the reward param with forceSettled = true
-            getPlayerApplyingRecordProm = dbPlayerReward.checkRewardParamForBonusDoubledRewardGroup(eventData, playerData, intervalTime, true);
+            getPlayerApplyingRecordProm = dbPlayerReward.checkRewardParamForBonusDoubledRewardGroup(eventData, playerData, intervalTime, selectedProviderList, true);
 
             // get the last consumption detail
             let consumptionQuery = {
@@ -22806,7 +22809,7 @@ function checkToStartNewRound(playerData, eventData, bonusDoubledRecord, interva
             newEndTime = retData && retData[0] && retData[0].newEndTime ? retData[0].newEndTime : null;
             lastConsumptionRecord = retData && retData[1] ? retData[1] : null;
 
-            if (gameCredit <= 1){
+            if (gameCredit < 1){
                 isByPassTransferCheck = true;
             }
             return getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewardParam, playerBonusDoubledRecord, lastConsumptionRecord, winLoseAmount, consumptionRecordList, newEndTime, isByPassTransferCheck)
@@ -23171,7 +23174,7 @@ function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, ad
     }
     else if (type && type == 2){
         // get the reward param
-        getPlayerApplyingRecordProm = dbPlayerReward.checkRewardParamForBonusDoubledRewardGroup(eventData, playerData, intervalTime, forceSettled);
+        getPlayerApplyingRecordProm = dbPlayerReward.checkRewardParamForBonusDoubledRewardGroup(eventData, playerData, intervalTime, selectedProviderList, forceSettled);
 
         // get the last consumption detail
         let consumptionQuery = {

@@ -5327,7 +5327,7 @@ let dbPlayerReward = {
         }).exec();
     },
 
-    checkRewardParamForBonusDoubledRewardGroup: (eventData, playerData, intervalTime, forceSettled) => {
+    checkRewardParamForBonusDoubledRewardGroup: (eventData, playerData, intervalTime, selectedProviderList, forceSettled) => {
         let selectedRewardParam;
         let rewardParam;
         let bonusAmount = 0;
@@ -5337,6 +5337,13 @@ let dbPlayerReward = {
         let consumptionRecordList;
         let todayTime = dbUtility.getTodaySGTime();
         let newEndTime = new Date();
+
+        if (!selectedProviderList){
+            return Promise.reject({
+                name: "DataError",
+                message: "game provider is not selected"
+            })
+        }
 
         // Set reward param for player level to use
         if (eventData.condition.isPlayerLevelDiff) {
@@ -5359,12 +5366,14 @@ let dbPlayerReward = {
 
         return dbConfig.collection_playerBonusDoubledRewardGroupRecord.findOne(recordQuery).lean().then(
             recordData => {
+                console.log("checking playerBonusDoubledRewardGroupRecord when settle the reward bonus", recordData)
                 if (recordData && recordData.transferInAmount && recordData.transferInTime && recordData.gameProviderObjId && (recordData.transferOutTime || forceSettled)){
                     playerBonusDoubledRewardGroupRecord = recordData;
                     // get the win-lose amount
                     let matchQuery = {
-                        providerId:recordData.gameProviderObjId,
+                        providerId: {$in: selectedProviderList.map(p => ObjectId(p))},
                         playerId: playerData._id,
+                        platformId: playerData.platform._id,
                         // createTime: {$gte: recordData.transferInTime, $lt: recordData.transferOutTime}
                     };
 
@@ -5380,7 +5389,7 @@ let dbPlayerReward = {
                     return dbConfig.collection_playerConsumptionRecord.aggregate([
                         {$match: matchQuery},
                         {$group: {
-                            _id: "$providerId",
+                            _id: null,
                             bonusAmount: {$sum: "$bonusAmount"},
                             consumptionRecordList: {$addToSet: "$_id"},
                             betAmount: {$sum: "$amount"},
