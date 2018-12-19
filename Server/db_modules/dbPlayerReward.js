@@ -5328,7 +5328,7 @@ let dbPlayerReward = {
     },
 
     checkRewardParamForBonusDoubledRewardGroup: (eventData, playerData, intervalTime, selectedProviderList, forceSettled) => {
-        let selectedRewardParam;
+        let selectedRewardParam = null;
         let rewardParam;
         let bonusAmount = 0;
         let rate = 0;
@@ -5337,6 +5337,7 @@ let dbPlayerReward = {
         let consumptionRecordList;
         let todayTime = dbUtility.getTodaySGTime();
         let newEndTime = new Date();
+        let isAbnormal = false
 
         if (!selectedProviderList){
             return Promise.reject({
@@ -5367,8 +5368,14 @@ let dbPlayerReward = {
         return dbConfig.collection_playerBonusDoubledRewardGroupRecord.findOne(recordQuery).lean().then(
             recordData => {
                 console.log("checking playerBonusDoubledRewardGroupRecord when settle the reward bonus", recordData)
+                playerBonusDoubledRewardGroupRecord = recordData;
+                // special handling for abnormal case where transfer-in record is lost
+                if (recordData && (!recordData.transferInAmount || !recordData.transferInTime && !recordData.gameProviderObjId)){
+                    isAbnormal = true;
+                    return;
+                }
+
                 if (recordData && recordData.transferInAmount && recordData.transferInTime && recordData.gameProviderObjId && (recordData.transferOutTime || forceSettled)){
-                    playerBonusDoubledRewardGroupRecord = recordData;
                     // get the win-lose amount
                     let matchQuery = {
                         providerId: {$in: selectedProviderList.map(p => ObjectId(p))},
@@ -5426,7 +5433,8 @@ let dbPlayerReward = {
                     totalBetAmount: totalBetAmount
                 };
 
-                if (forceSettled){
+                console.log("checking is isAbnormal", isAbnormal)
+                if (forceSettled || isAbnormal){
                     returnList.newEndTime = newEndTime;
                 }
                 return returnList;

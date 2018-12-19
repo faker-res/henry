@@ -22852,10 +22852,8 @@ function getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewa
         gameProviderId = playerBonusDoubledRecord.gameProviderId;
     }
     else{
-        return Promise.reject({
-            name: "DataError",
-            message: "playerBonusDoubledRecord is not found"
-        })
+        // abnormal case - transfer all credit provider out
+        return transferOutFromAllGameProviderForAbnormalCase(playerData, eventData, intervalTime, true, selectedRewardParam, playerBonusDoubledRecord, lastConsumptionRecord, winLoseAmount, consumptionRecordList, newEndTime, isByPassTransferCheck);
     }
 
     return dbGameProvider.getPlayerCreditInProvider(playerData.name, playerData.platform.platformId, gameProviderId).then(
@@ -22899,6 +22897,108 @@ function getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewa
             // }
             // generate proposal
             return dbProposal.createPlayerBonusDoubledRewardGroupProposal(lastTransferOutRecord, selectedRewardParam, playerData, eventData, playerBonusDoubledRecord, lastConsumptionRecord, intervalTime, consumptionRecordList, winLoseAmount, newEndTime);
+        }
+    )
+}
+
+function transferOutFromAllGameProviderForAbnormalCase(playerData, eventData, intervalTime, isAbnormal, selectedRewardParam, playerBonusDoubledRecord, lastConsumptionRecord, winLoseAmount, consumptionRecordList, newEndTime, isByPassTransferCheck) {
+    let playerCreditInGameProvider = [];
+    let transferProviderId = [];
+    let providerIdList = [];
+    let notEnoughToTransferProviderId = [];
+    let checkCreditProm = Promise.resolve();
+
+    let platformQuery = {
+        _id: playerData.platform._id
+    };
+
+    // get all the game providers in the platform
+    return dbconfig.collection_platform.findOne(platformQuery, {gameProviders: 1}).populate({
+        path: "gameProviders",
+        model: dbconfig.collection_gameProvider
+    }).lean().then(
+        platform => {
+            if (!platform) {
+                return Promise.reject({
+                    name: "DataError",
+                    errorMessage: "platform is not found."
+                })
+            }
+
+            if (platform && platform.gameProviders && platform.gameProviders.length) {
+                platform.gameProviders.forEach(
+                    gameProvider => {
+                        if (gameProvider && gameProvider.providerId) {
+                            providerIdList.push(gameProvider.providerId)
+                        }
+                    }
+                )
+
+                return dbGameProvider.checkGameCredit(playerData.platform._id, playerData._id, providerIdList, playerData);
+            }
+        }
+    ).then(
+        creditGameProviderList => {
+            console.log("checking creditGameProviderList", [playerData.playerId, creditGameProviderList])
+            if (creditGameProviderList && creditGameProviderList.length) {
+
+                // check if one of the provider has enough credit to join this activity
+                let index = creditGameProviderList.findIndex(p => p.totalCredit >= 1);
+                console.log("checking index", index)
+                if (index == -1) {
+                    return Promise.reject({
+                        status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                        name: "NumError",
+                        errorMessage: "Player does not have enough credit."
+                    })
+                }
+
+                for (let index in creditGameProviderList) {
+                    if (parseFloat(creditGameProviderList[index].gameCredit) >= 1) {
+                        transferProviderId.push({
+                            providerId: creditGameProviderList[index].providerId,
+                            gameCredit: creditGameProviderList[index].gameCredit
+                        });
+                    }
+                }
+
+                console.log("checking transferProviderId", transferProviderId)
+            }
+            return transferProviderId;
+        }
+    ).then(
+        () => {
+            if (transferProviderId && transferProviderId.length) {
+                let p = Promise.resolve();
+
+                for (let i = 0; i < transferProviderId.length; i++) {
+                    let providerId = transferProviderId[i].providerId;
+                    let platform = playerData.platform._id;
+                    let playerId = playerData.playerId;
+                    let amount = transferProviderId[i].gameCredit;
+
+                    p = p.then(function () {
+                        if (amount) {
+                            // transfer out
+                            return dbPlayerInfo.transferPlayerCreditFromProvider(playerId, platform, providerId, amount, null, null, null, null, isByPassTransferCheck).then(
+                                () => {
+
+                                }
+                                , err => {
+                                    return Promise.reject(err);
+                                    console.log("checking error", err)
+                                }
+                            )
+                        }
+                    })
+                }
+                return p;
+            }
+        }
+    ).then (
+        () => {
+            // generate proposal
+            return dbProposal.createPlayerBonusDoubledRewardGroupProposal(null, null, playerData, eventData, playerBonusDoubledRecord, lastConsumptionRecord, intervalTime, consumptionRecordList, winLoseAmount, newEndTime);
         }
     )
 }
