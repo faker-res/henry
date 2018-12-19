@@ -456,7 +456,7 @@ var dbPlatformGameGroup = {
                         if(game && game._id){
                             let sendQuery = {
                                 platform: ObjectId(query.platform),
-                                game: ObjectId(game.game._id),
+                                game: ObjectId(game._id),
                                 status: {$ne: constGameStatus.DELETED}
                             };
 
