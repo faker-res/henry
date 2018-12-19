@@ -453,7 +453,7 @@ var dbPlatformGameGroup = {
                 gameGroupData = platformGameGroupData;
                 if(platformGameGroupData && platformGameGroupData.games && platformGameGroupData.games.length > 0){
                     platformGameGroupData.games.forEach(game => {
-                        if(game && game._id){
+                        if(game && game.game && game.game._id){
                             let sendQuery = {
                                 platform: ObjectId(query.platform),
                                 game: ObjectId(game.game._id),
