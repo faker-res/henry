@@ -806,35 +806,36 @@ var proposal = {
 
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
             path: 'type', model: dbconfig.collection_proposalType
-        }).then(
+        }).lean().then(
             proposalData => {
-                proposalObj = proposalData;
+                if (proposalData && proposalData.data) {
+                    proposalObj = proposalData;
 
-                // Check passed in amount vs proposal amount
-                if (callbackData && callbackData.amount && proposalData.data.amount && Number(parseFloat(callbackData.amount).toFixed(0)) !== Number(parseFloat(proposalData.data.amount).toFixed(0))) {
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "Invalid top up amount"
-                    });
-                }
+                    // Check passed in amount vs proposal amount
+                    if (callbackData && callbackData.amount && proposalData.data.amount && Math.floor(callbackData.amount) !== Math.floor(proposalData.data.amount)) {
+                        console.log('callbackData.amount', callbackData.amount, Math.floor(callbackData.amount));
+                        console.log('proposalData.data.amount', proposalData.data.amount, Math.floor(proposalData.data.amount));
+                        return Promise.reject({
+                            name: "DataError",
+                            message: "Invalid top up amount"
+                        });
+                    }
 
-                if (proposalData && proposalData.data && (proposalData.data.bankCardType != null || proposalData.data.bankTypeId != null || proposalData.data.bankCardNo != null)) {
-                    type = constPlayerTopUpType.MANUAL;
-                }
-                if (proposalData && proposalData.data && (proposalData.data.alipayAccount != null || proposalData.data.alipayQRCode != null)) {
-                    type = constPlayerTopUpType.ALIPAY;
-                }
-                if (proposalData && proposalData.data && (proposalData.data.weChatAccount != null || proposalData.data.weChatQRCode != null)) {
-                    type = constPlayerTopUpType.WECHAT;
-                }
+                    if (proposalData.data.bankCardType != null || proposalData.data.bankTypeId != null || proposalData.data.bankCardNo != null) {
+                        type = constPlayerTopUpType.MANUAL;
+                    }
+                    if (proposalData.data.alipayAccount != null || proposalData.data.alipayQRCode != null) {
+                        type = constPlayerTopUpType.ALIPAY;
+                    }
+                    if (proposalData.data.weChatAccount != null || proposalData.data.weChatQRCode != null) {
+                        type = constPlayerTopUpType.WECHAT;
+                    }
 
-                if (proposalData.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
-                    type = constPlayerTopUpType.COMMON;
-                }
+                    if (proposalData.type.name === constProposalType.PLAYER_COMMON_TOP_UP) {
+                        type = constPlayerTopUpType.COMMON;
+                    }
 
-                if (proposalData
-                    && proposalData.data
-                    && (proposalData.status == constProposalStatus.PREPENDING
+                    if (proposalData.status == constProposalStatus.PREPENDING
                         || (
                             (
                                 proposalData.status == constProposalStatus.PENDING
@@ -848,32 +849,41 @@ var proposal = {
                         )
                         || proposalData.type.name === constProposalType.PLAYER_COMMON_TOP_UP
                         || proposalData.data.isCommonTopUp
-                    )
-                ) {
-                    return proposalData;
+                    ) {
+                        return proposalData;
+                    }
+                    else {
+                        let errorMessage = "Invalid proposal";
+
+                        if (proposalData.status != constProposalStatus.PENDING) {
+                            errorMessage = "Invalid proposal status:" + proposalData.status;
+                        }
+                        else if (proposalData.data && proposalData.data.requestId != requestId) {
+                            errorMessage = "Invalid requestId";
+                        }
+                        return Promise.reject({
+                            status: proposalData && proposalData.status == constProposalStatus.SUCCESS ?  constServerCode.INVALID_PROPOSAL : constServerCode.INVALID_PARAM,
+                            name: "DataError",
+                            message: errorMessage,
+                            data: {
+                                proposalId: proposalId,
+                                orderStatus: status == constProposalStatus.SUCCESS ? 1 : 2,
+                                depositId: requestId
+                            }
+                        });
+                    }
                 }
                 else {
-                    var errorMessage = "Invalid proposal";
-                    if (!proposalData) {
-                        errorMessage = "Cannot find proposal";
-                    }
-                    else if (proposalData.status != constProposalStatus.PENDING) {
-                        errorMessage = "Invalid proposal status:" + proposalData.status;
-                    }
-                    else if (proposalData.data && proposalData.data.requestId != requestId) {
-                        errorMessage = "Invalid requestId";
-                    }
-                    return Q.reject({
-                        status: proposalData && proposalData.status == constProposalStatus.SUCCESS ?  constServerCode.INVALID_PROPOSAL : constServerCode.INVALID_PARAM,
+                    return Promise.reject({
                         name: "DataError",
-                        message: errorMessage,
+                        message: "Cannot find proposal",
                         data: {
                             proposalId: proposalId,
                             orderStatus: status == constProposalStatus.SUCCESS ? 1 : 2,
                             depositId: requestId,
                             type: type
                         }
-                    });
+                    })
                 }
             }
         ).then(
@@ -917,22 +927,25 @@ var proposal = {
 
                     return propTypeProm.then(
                         propType => {
+                            let updStatus = status || constProposalStatus.PREPENDING;
                             let updObj = {
-                                status: status
+                                status: updStatus
                             };
 
                             if (propType && propType._id) {
                                 updObj.type = propType._id;
                             }
 
+                            updObj.data = Object.assign({}, proposalObj.data);
+
                             // Record sub top up method into proposal
                             if (callbackData && callbackData.depositMethod) {
                                 if (propTypeName === constProposalType.PLAYER_TOP_UP) {
-                                    updObj['data.topupType'] = callbackData.depositMethod;
+                                    updObj.data.topupType = callbackData.depositMethod;
                                 }
 
                                 if (propTypeName === constProposalType.PLAYER_MANUAL_TOP_UP) {
-                                    updObj['data.depositMethod'] = callbackData.depositMethod;
+                                    updObj.data.depositMethod = callbackData.depositMethod;
                                 }
                             }
 
@@ -943,13 +956,44 @@ var proposal = {
                                 && Number(callbackData.amount) !== Number(proposalObj.data.amount)
                                 && Number(callbackData.amount) - Number(proposalObj.data.amount) < 1
                             ) {
-                                updObj['data.amount'] = Number(callbackData.amount);
+                                updObj.data.amount = Number(callbackData.amount);
                             }
 
                             // Mark this proposal as common top up
                             if (isCommonTopUp) {
-                                updObj['data.isCommonTopUp'] = true;
+                                updObj.data.isCommonTopUp = true;
                             }
+
+                            if (callbackData && callbackData.remark) {
+                                updObj.data.remark = callbackData.remark;
+                            }
+
+                            console.log('callbackData', callbackData);
+
+                            // Some extra data
+                            updObj.data.merchantNo = callbackData.merchantNo;
+                            updObj.data.merchantName = callbackData.merchantTypeName;
+                            updObj.data.bankCardNo = callbackData.bankCardNo;
+                            updObj.data.bankCardType = callbackData.bankTypeId;
+                            updObj.data.bankTypeId = callbackData.bankTypeId;
+                            updObj.data.cardOwner = callbackData.cardOwner;
+                            updObj.data.depositTime = callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '';
+                            updObj.data.depositeTime = callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '';
+                            updObj.data.validTime = callbackData.validTime ? new Date(callbackData.validTime.replace('+', ' ')) : '';
+                            updObj.data.cityName = callbackData.cityName;
+                            updObj.data.provinceName = callbackData.provinceName;
+                            updObj.data.orderNo = callbackData.billNo;
+                            updObj.data.requestId = callbackData.requestId;
+                            updObj.data.realName = callbackData.realName;
+
+                            updObj.data.userAlipayName = callbackData.alipayName;
+                            updObj.data.alipayAccount = callbackData.alipayAccount;
+                            updObj.data.alipayName = callbackData.alipayName;
+
+                            updObj.data.weChatAccount = callbackData.weChatAccount;
+                            updObj.data.weChatQRCode = callbackData.weChatQRCode;
+                            updObj.data.name = callbackData.name;
+                            updObj.data.nickname = callbackData.nickname;
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
@@ -969,7 +1013,8 @@ var proposal = {
                 };
             },
             error => {
-                if (!error.data) {
+                errorUtils.reportError(error);
+                if (error && !error.data) {
                     return Promise.reject({
                         status: constServerCode.COMMON_ERROR,
                         name: "DataError",

@@ -2340,8 +2340,8 @@ define(['js/app'], function (myApp) {
                 proposalDetail["RECEIVE_BANK_TYPE"] = vm.allBankTypeList[vm.selectedProposal.data.bankTypeId] || (vm.selectedProposal.data.bankTypeId + " ! " + $translate("not in bank type list"));
                 proposalDetail["RECEIVE_BANK_ACC"] = vm.selectedProposal.data.bankCardNo;
                 proposalDetail["RECEIVE_BANK_ACC_NAME"] = vm.selectedProposal.data.cardOwner;
-                proposalDetail["RECEIVE_BANK_ACC_PROVINCE"] = vm.selectedProposal.data.provinceId;
-                proposalDetail["RECEIVE_BANK_ACC_CITY"] = vm.selectedProposal.data.cityId;
+                proposalDetail["RECEIVE_BANK_ACC_PROVINCE"] = vm.selectedProposal.data.provinceId || vm.selectedProposal.data.provinceName;
+                proposalDetail["RECEIVE_BANK_ACC_CITY"] = vm.selectedProposal.data.cityId || vm.selectedProposal.data.cityName;
                 proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositTime)) : " ";
                 proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
@@ -2376,8 +2376,8 @@ define(['js/app'], function (myApp) {
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
                 proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
                 proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
-                proposalDetail["OnlineTopUpType"] = $translate($scope.merchantTopupTypeJson[vm.selectedProposal.data.topupType]) || " ";
-                proposalDetail["3rdPartyPlatform"] = vm.getMerchantName(vm.selectedProposal.data.merchantNo, vm.selectedProposal.inputDevice) || " ";
+                proposalDetail["OnlineTopUpType"] = $translate($scope.merchantTopupTypeJson[vm.selectedProposal.data.topupType]) || vm.selectedProposal.data.topupType || " ";
+                proposalDetail["3rdPartyPlatform"] = vm.getMerchantName(vm.selectedProposal.data.merchantNo, vm.selectedProposal.inputDevice) || vm.selectedProposal.data.merchantNo || " ";
                 proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                 proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                 if(vm.selectedProposal.data.hasOwnProperty("rate")){
@@ -3076,6 +3076,17 @@ define(['js/app'], function (myApp) {
                 }
 
                 vm.selectedProposalDetailForDisplay = proposalDetail;
+            }
+
+            if (vm.selectedProposal && vm.selectedProposal.data) {
+                delete vm.selectedProposal.data.betAmount;
+                delete vm.selectedProposal.data.betTime;
+                delete vm.selectedProposal.data.winAmount;
+                delete vm.selectedProposal.data.winTimes;
+                delete vm.selectedProposalDetailForDisplay.betAmount;
+                delete vm.selectedProposalDetailForDisplay.betTime;
+                delete vm.selectedProposalDetailForDisplay.winAmount;
+                delete vm.selectedProposalDetailForDisplay.winTimes;
             }
 
             // Remove fields for detail viewing

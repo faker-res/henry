@@ -219,7 +219,7 @@
                                                 button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
                                         tr
                                             td
-                                                text {{"REMARK" | translate}}
+                                                text {{"FEEDBACK_CONTENT" | translate}}
                                             td.textareaDetail
                                                 textarea.form-control(type="textarea", rows='4', ng-model='vm.tsPhoneAddFeedback.content')
                                         tr
@@ -484,7 +484,7 @@
                             span(style="font-weight:bold;font-size:20px;line-height:2em;") {{"B."}}{{"Distribution Name List Details" | translate}}
                             .col-md-12.search-filters-container.well
                                 div(style="width:80%;display:inline-block;margin-right:10px;")
-                                    select.spicker.form-control(ng-options='admin.adminName as admin.adminName for admin in vm.adminList' ng-model='vm.distributionDetailsQuery.adminNames' multiple data-actions-box='true')
+                                    select.spicker.form-control(ng-options='admin.adminName as admin.adminName for admin in vm.tsAssignees' ng-model='vm.distributionDetailsQuery.adminNames' multiple data-actions-box='true')
                                 button#searchDistributionDetails.btn.btn-primary.common-button(style="margin:0;" ng-click="vm.searchDistributionDetails();") {{"SEARCH" | translate}}
                             table.simple-table.display(style='min-width: 100%; width: 100%')
                                 thead

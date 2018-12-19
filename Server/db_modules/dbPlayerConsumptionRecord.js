@@ -682,6 +682,7 @@ var dbPlayerConsumptionRecord = {
     createExternalPlayerConsumptionRecord: function (recordData, resolveError) {
         let verifiedData = null;
         let providerId = recordData.providerId;
+        let providerName;
         let isProviderGroup = false;
         let platformObj;
 
@@ -765,6 +766,7 @@ var dbPlayerConsumptionRecord = {
                     recordData.gameId = data[1]._id;
                     recordData.gameType = data[1].type;
                     recordData.providerId = data[2]._id;
+                    providerName = data[2].name;
                     recordData.winRatio = 0;
                     if(recordData.bonusAmount && recordData.validAmount){
                         recordData.winRatio = recordData.bonusAmount / recordData.validAmount;
@@ -804,10 +806,14 @@ var dbPlayerConsumptionRecord = {
             }
         ).then(
             newRecord => {
+                let providerObjId;
                 if (newRecord && newRecord.toObject) {
                     newRecord = newRecord.toObject();
+                    providerObjId = newRecord.providerId;
                     newRecord.providerId = providerId;
+                    createBaccaratConsumption(providerObjId, providerName, newRecord);
                 }
+
                 return newRecord;
             }
         ).catch(
@@ -850,6 +856,7 @@ var dbPlayerConsumptionRecord = {
     },
 
     updateExternalPlayerConsumptionRecordData: function (oldData, updateData, resolveError) {
+        let providerName;
         var recordData = Object.assign({}, updateData);
         return dbconfig.collection_platform.findOne({platformId: recordData.platformId}).then(
             platformData => {
@@ -881,6 +888,7 @@ var dbPlayerConsumptionRecord = {
                     recordData.gameId = data[1]._id;
                     recordData.gameType = data[1].type;
                     recordData.providerId = data[2]._id;
+                    providerName = data[2].name;
                     recordData.updateTime = new Date();
                     if(recordData.bonusAmount && recordData.validAmount){
                         recordData.winRatio = recordData.bonusAmount / recordData.validAmount;
@@ -903,8 +911,9 @@ var dbPlayerConsumptionRecord = {
                         newRecord => {
                             if (newRecord && newRecord.toObject) {
                                 newRecord = newRecord.toObject();
+                                let providerObjId = newRecord.providerId;
                                 newRecord.providerId = providerId;
-
+                                createBaccaratConsumption(providerObjId, providerName, newRecord, oldData._id);
                                 // update RTG only if consumption record is updated
                                 findRTGToUpdate(oldData, recordData);
                             }
@@ -2448,6 +2457,104 @@ function findRTGToUpdate (oldData, newData) {
                 }
             }
         )
+    }
+}
+
+function createBaccaratConsumption (providerObjId, providerName, consumptionRecord, oldConsumtionObjId) {
+    let regexPattern = new RegExp('百家乐','g');
+    if (consumptionRecord && consumptionRecord.cpGameType && consumptionRecord.result && regexPattern.test(consumptionRecord.cpGameType)) {
+        let baccaratResult;
+        if (consumptionRecord.providerId ==  "18"/*'56'*/) { // EBET
+            baccaratResult = readEBETBaccaratResult(consumptionRecord.result);
+        } else if (consumptionRecord.providerId == '16') { // AG
+            baccaratResult = readAGBaccaratResult(consumptionRecord.result);
+        } else if (consumptionRecord.providerId == '55') { // BYLIVE
+            baccaratResult = readBYBaccaratResult(consumptionRecord.result);
+        }
+
+        if (baccaratResult && baccaratResult.host && baccaratResult.player) {
+            let saveData = {
+                platform: consumptionRecord.platformId,
+                player: consumptionRecord.playerId,
+                roundNo: consumptionRecord.roundNo || "",
+                bonusAmount: consumptionRecord.bonusAmount || 0,
+                provider: providerObjId || consumptionRecord.providerId ,
+                providerName: providerName || "",
+                hostResult: baccaratResult.host,
+                playerResult: baccaratResult.player,
+                betDetails: consumptionRecord.betDetails || [],
+                consumption: consumptionRecord._id
+            };
+            if (oldConsumtionObjId) {
+                delete saveData.consumption;
+                dbconfig.collection_baccaratConsumption.findOneAndUpdate({consumption: oldConsumtionObjId}, saveData).catch(errorUtils.reportError);
+            } else {
+                dbconfig.collection_baccaratConsumption(saveData).save().catch(errorUtils.reportError);
+            }
+        }
+    }
+}
+
+function readAGBaccaratResult (resultStr) {
+    resultStr = resultStr || "";
+    let resultObj = JSON.parse("{" + resultStr + "}");
+
+    if (resultObj.hasOwnProperty("庄") && resultObj.hasOwnProperty("闲")) {
+        return {
+            host: Number(resultObj["庄"]),
+            player: Number(resultObj["闲"])
+        };
+    } else {
+        return false;
+    }
+}
+
+function readBYBaccaratResult (resultStr) {
+    resultStr = resultStr || "";
+
+    let strSplit = resultStr.split(",");
+    if (!strSplit || !strSplit[0] || !strSplit[1]) {
+        return false;
+    }
+
+    return {
+        host: Number(strSplit[0]),
+        player: Number(strSplit[1])
+    };
+}
+
+function readEBETBaccaratResult (resultStr) {
+    let strSplit;
+    resultStr = resultStr || "";
+    strSplit = resultStr.split(")(");
+    let playerStr = "";
+    let hostStr = "";
+    if (!strSplit || !strSplit[0] || !strSplit[1]) {
+        return false;
+    }
+    else if (strSplit[0].includes("闲")) {
+        [playerStr, hostStr] = strSplit;
+    }
+    else if (strSplit[1].includes("闲")) {
+        [hostStr, playerStr] = strSplit;
+    }
+    else {
+        return false;
+    }
+
+    return {
+        host: getBaccaratNumber(hostStr),
+        player: getBaccaratNumber(playerStr)
+    };
+
+    function getBaccaratNumber (str) {
+        let total = 0;
+        total += dbUtility.countOccurrenceInString(str, "Ace");
+        for (let i = 2; i <= 9; i++) {
+            total += dbUtility.countOccurrenceInString(str, String(i)) * i;
+        }
+
+        return total;
     }
 }
 

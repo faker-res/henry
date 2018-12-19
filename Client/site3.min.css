@@ -1250,13 +1250,6 @@ ul.roleList {
     margin-right: 5px !important;
 }
 
-.treeview li:nth-child(even) {
-    background-color: #d5d5cc;
-}
-
-.treeview li:nth-child(odd) {
-    background-color: #e4e4e4;
-}
 
 /* These are standard Bootstrap styles, but we need to make them more specific than the :nth-child selectors above. */
 /* Actually Bootstrap styles on .list-item not li */
@@ -4252,6 +4245,44 @@ table.simple-table-single > thead > tr > th {
     padding: 0px !important;
     line-height: 2em !important;
 }
+
+
+#platformTreeHeader ul.list-group{
+    -webkit-column-count: 2; /* Chrome, Safari, Opera */
+    -moz-column-count: 2; /* Firefox */
+    column-count: 2;
+    -webkit-column-gap: 0px; /* Chrome, Safari, Opera */
+    -moz-column-gap: 0px; /* Firefox */
+    column-gap: 0px;
+    box-shadow:none!important;
+    -webkit-box-shadow:none!important;
+}
+
+#platformTreeHeader li {
+    width: 250px;
+    background-color: white;
+    color:#337ab7;
+    -webkit-column-break-inside: avoid;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+#platformTreeHeader li:first-child {
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+}
+
+#platformTreeHeader li:last-child {
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+
+#platformTreeHeader li:hover {
+    background-color: #337ab7;
+    color:white;
+}
+
 .navbar-right {
     padding-right: 10px !important;
 }

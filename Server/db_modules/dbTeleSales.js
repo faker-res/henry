@@ -872,6 +872,7 @@ let dbTeleSales = {
     },
 
     getDistributionDetails: (platformObjId, tsPhoneListObjId, adminNames) => {
+        let returnData = {};
         let distributionDetails = [];
         let phoneListProm = dbconfig.collection_tsPhoneList.findOne({_id: tsPhoneListObjId});
         let assigneeProm = dbconfig.collection_tsAssignee.find({
@@ -885,6 +886,7 @@ let dbTeleSales = {
         return Promise.all([phoneListProm, assigneeProm]).then(data => {
             let phoneList = data[0];
             let assignees = data[1];
+            let currentHoldingCountProm = [];
 
             if(assignees && assignees.length > 0 && phoneList) {
 
@@ -919,7 +921,20 @@ let dbTeleSales = {
                 let totalUsed = phoneList.totalUsed;
                 let totalSuccess = phoneList.totalSuccess;
                 assignees.forEach(assignee => {
+                    currentHoldingCountProm.push(
+                        dbconfig.collection_tsDistributedPhone.find({
+                            assignee:assignee._id,
+                            tsPhoneList:tsPhoneListObjId,
+                            startTime: {$lt: new Date()},
+                            endTime: {$gt: new Date()},
+                            registered: {$ne: true}
+                        }, {
+                            _id: 1,
+                            assignee: 1
+                        }).lean()
+                    );
                     let assigneeDistributionDetail = {
+                        assigneeObjId: assignee._id,
                         adminName: assignee.adminName,
                         distributedCount: assignee.assignedCount,
                         fulfilledCount: assignee.phoneUsedCount,
@@ -928,18 +943,32 @@ let dbTeleSales = {
                         topUpCount: assignee.singleTopUpCount,
                         multipleTopUpCount: assignee.multipleTopUpCount,
                         validPlayerCount: assignee.effectivePlayerCount,
-                        currentListSize: assignee.holdingCount
+                        currentListSize: 0
                     };
                     distributionDetails.push(assigneeDistributionDetail);
                 });
-                return {
+
+                returnData = {
                     distributionDetails: distributionDetails,
                     totalDistributed: totalDistributed,
                     totalFulfilled: totalUsed,
                     totalSuccess: totalSuccess
                 };
+
+                return Promise.all(currentHoldingCountProm);
             }
             return null;
+        }).then(currentHoldingCount => {
+            currentHoldingCount.forEach(currentHolding => {
+                if(currentHolding && currentHolding.length > 0) {
+                    distributionDetails.forEach(detail => {
+                        if (currentHolding[0].assignee == detail.assigneeObjId) {
+                            detail.currentListSize = currentHolding.length;
+                        }
+                    })
+                }
+            });
+            return returnData;
         });
     },
 
@@ -1250,7 +1279,7 @@ let dbTeleSales = {
     },
   
     getTrashClassification: function (platformObjId) {
-        let noClassificationCountProm = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: {$exists: true}, sourcePlatform: ObjectId(platformObjId), targetPlatform: null}, {_id: 1}).lean();
+        let noClassificationCountProm = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: ObjectId(platformObjId), targetPlatform: null}, {_id: 1}).lean();
         let noFeedbackTopicCountProm = dbconfig.collection_tsPhoneTrade.find({
             sourcePlatform: ObjectId(platformObjId),
             $or: [

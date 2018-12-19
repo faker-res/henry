@@ -5691,9 +5691,9 @@ define(['js/app'], function (myApp) {
                 var datatoDraw = data.data.data.map(item => {
                     item.selectedBetTypeAmt = $noRoundTwoDecimalPlaces(item.selectedBetTypeAmt);
                     item.totalBetAmt = $noRoundTwoDecimalPlaces(item.totalBetAmt);
-                    item.betAmtPercent = $noRoundTwoDecimalPlaces(item.betAmtPercent * 100);
+                    item.betAmtPercent = $noRoundTwoDecimalPlaces(item.selectedBetTypeAmt/item.totalBetAmt * 100);
                     item.bonusAmount = $noRoundTwoDecimalPlaces(item.bonusAmount);
-                    item.betCountPercent = $noRoundTwoDecimalPlaces(item.betCountPercent * 100);
+                    item.betCountPercent = $noRoundTwoDecimalPlaces(item.selectedBetTypeCount/item.totalBetCount * 100);
 
                     item.indexNo$ = dataIndex;
                     dataIndex++;
@@ -5729,11 +5729,30 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PLAYER_NAME'), data: "_id.name", sClass: "sumText", orderable: false},
                     {title: $translate('BET_TYPE_CONSUMPTION'), data: "selectedBetTypeAmt", sClass: 'sumFloat alignRight'},
                     {title: $translate('GAME_TYPE_CONSUMPTION'), data: "totalBetAmt", sClass: 'sumFloat alignRight'},
-                    {title: $translate('BET_TYPE_CONSUMPTION') + "/ <br>" + $translate('GAME_TYPE_CONSUMPTION') + "(%)", data: "betAmtPercent", sClass: 'betAmtPercent alignRight'},
+                    {
+                        title: $translate('BET_TYPE_CONSUMPTION') + "/ <br>" + $translate('GAME_TYPE_CONSUMPTION') + "(%)",
+                        data: "betAmtPercent",
+                        sClass: 'betAmtPercent alignRight',
+                        render: function (data, type, row) {
+                            if(!isFinite(data) || isNaN(data)){
+                                return "-";
+                            }else{
+                                return data + "%";
+                            }
+                     }
+                    },
+
                     {title: $translate('BET_TYPE_BONUS'), data: "bonusAmount", sClass: 'sumFloat alignRight'},
                     {title: $translate('BET_TYPE_COUNT'), data: "selectedBetTypeCount", sClass: 'sumInt alignRight'},
                     {title: $translate('GAME_TYPE_COUNT'), data: "totalBetCount", sClass: 'sumInt alignRight'},
-                    {title: $translate('BET_TYPE_COUNT') + "/ <br>" + $translate('TYPE_TOTAL_COUNT') + "(%)", data: "betCountPercent", sClass: 'betCountPercent alignRight'},
+                    {
+                        title: $translate('BET_TYPE_COUNT') + "/ <br>" + $translate('TYPE_TOTAL_COUNT') + "(%)",
+                        data: "betCountPercent",
+                        sClass: 'betCountPercent alignRight',
+                        render: function (data, type, row) {
+                            return data + "%";
+                        }
+                    },
 
                 ],
                 "bSortClasses": false,
@@ -5753,11 +5772,11 @@ define(['js/app'], function (myApp) {
             var proposalTbl = utilService.createDatatableWithFooter('#consumptionModeTable', tableOptions, {
                 2: $noRoundTwoDecimalPlaces(summary.selectedBetTypeAmt),
                 3: $noRoundTwoDecimalPlaces(summary.totalBetAmt),
-                4: $noRoundTwoDecimalPlaces(summary.betAmtPercent * 100),
+                4: $noRoundTwoDecimalPlaces(summary.selectedBetTypeAmt/summary.totalBetAmt * 100),
                 5: $noRoundTwoDecimalPlaces(summary.bonusAmount),
                 6: summary.selectedBetTypeCount,
                 7: summary.totalBetCount,
-                8: $noRoundTwoDecimalPlaces(summary.betCountPercent * 100)
+                8: $noRoundTwoDecimalPlaces(summary.selectedBetTypeCount/summary.totalBetCount * 100)
             });
 
             vm.consumptionModeQuery.pageObj.init({maxCount: size}, newSearch);
@@ -9169,6 +9188,15 @@ define(['js/app'], function (myApp) {
                     }
 
                     vm.selectedProposal.data = proposalDetail;
+                }
+
+                if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "PlayerConsumptionReturn") {
+                    if(vm.selectedProposal.data) {
+                        delete vm.selectedProposal.data.betAmount;
+                        delete vm.selectedProposal.data.betTime;
+                        delete vm.selectedProposal.data.winAmount;
+                        delete vm.selectedProposal.data.winTimes;
+                    }
                 }
 
                 if (vm.selectedProposal.data.inputData) {

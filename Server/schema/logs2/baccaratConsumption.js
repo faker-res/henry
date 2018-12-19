@@ -5,10 +5,16 @@ let Schema = mongoose.Schema;
 let baccaratConsumptionSchema = new Schema({
     // platform obj id
     platform: {type: Schema.ObjectId, required: true, index: true},
+    // player obj id
+    player: {type: Schema.ObjectId, ref: 'player', required: true, index: true},
     // provider obj id
     provider: {type: Schema.ObjectId, index: true},
     // provider name (e.g. EBET, AG, BYLIVE)
     providerName: {type: String, index: true},
+    // gameRound
+    roundNo: {type: String},
+    //bonus amount
+    bonusAmount: {type: Number, default: 0},
     // host result score
     hostResult: {type: Number, index: true},
     // player result score

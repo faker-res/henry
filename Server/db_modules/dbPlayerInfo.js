@@ -11577,9 +11577,16 @@ let dbPlayerInfo = {
                                     .lean();
                             },
                             err => {
+                                console.log("LH check apply bonus error -----", err);
                                 if(err && err.status && err.status == constServerCode.CONFIRMATION_TO_COMPLETE_ACTIVITY){
                                     return Promise.reject(err);
                                 }
+
+                                //if not certain error, return playerInfo data
+                                return dbconfig.collection_players.findOne({playerId: playerId})
+                                    .populate({path: "platform", model: dbconfig.collection_platform})
+                                    .populate({path: 'playerLevel', model: dbconfig.collection_playerLevel})
+                                    .lean();
                             }
                         ).then(
                             playerData => {
@@ -12827,10 +12834,8 @@ let dbPlayerInfo = {
                 return cpmsAPI.player_getLoginURL(sendData);
             },
             err => {
-                if(isApplyBonusDoubledReward){
-                    return Promise.reject(err);
-                }
-                return Promise.reject({name: "DataError", message: err.message});
+                console.log("LH check getLoginUrl err -----1 ", err);
+                return Promise.reject(err);
             }
         ).then(
             loginData => {
@@ -12843,10 +12848,8 @@ let dbPlayerInfo = {
                 return {gameURL: loginData.gameURL};
             },
             err => {
-                if(isApplyBonusDoubledReward){
-                    return Promise.reject(err);
-                }
-                return Promise.reject({name: "DataError", message: err.message});
+                console.log("LH check getLoginUrl err -----2 ", err);
+                return Promise.reject(err);
             }
         );
     },
@@ -12895,6 +12898,7 @@ let dbPlayerInfo = {
                         clientType: clientType || 1
                     };
                     //var isHttp = providerData.interfaceType == 1 ? true : false;
+                    console.log("LH check getLoginUrl err -----test login ", sendData);
                     return cpmsAPI.player_getTestLoginURL(sendData);
                 } else {
                     return Q.reject({name: "DataError", message: "Cannot find game"})
@@ -16696,13 +16700,8 @@ let dbPlayerInfo = {
             player => {
                 if (player && player.length) {
                     for (let i = 0; i < player.length; i++) {
-                        playerObjArr.push(player[i]._id);
+                        playerObjArr.push(ObjectId(player[i]._id));
                     }
-                }
-
-                // assign ObjectId
-                for (let j = 0; j < playerObjArr.length; j++) {
-                    playerObjArr[j] = ObjectId(playerObjArr[j]);
                 }
 
                 return playerObjArr;
@@ -16966,51 +16965,43 @@ let dbPlayerInfo = {
 
                     // assign last record date
                     playerData.forEach(player => {
-                        topUpRecord.forEach(topUp => {
-                            if (player && topUp && player._id.toString() === topUp._id.toString()) {
-                                player.lastTopUpDate = topUp.lastTopUpDate;
-                            }
-                        });
+                        let topUpIndexNo = topUpRecord.findIndex(x => x && x._id && player && player._id && (player._id.toString() === x._id.toString()));
+                        if (topUpIndexNo != -1) {
+                            player.lastTopUpDate = topUpRecord[topUpIndexNo].lastTopUpDate;
+                        }
 
-                        bonusRecord.forEach(bonus => {
-                            if (player && bonus && player._id.toString() === bonus._id.toString()) {
-                                player.lastBonusDate = bonus.lastBonusDate;
-                            }
-                        });
+                        let bonusIndexNo = bonusRecord.findIndex(x => x && x._id && player && player._id && (player._id.toString() === x._id.toString()));
+                        if (bonusIndexNo != -1) {
+                            player.lastBonusDate = bonusRecord[bonusIndexNo].lastBonusDate;
+                        }
 
-                        consumptionRecord.forEach(consumption => {
-                            if (player && consumption && player._id.toString() === consumption._id.toString()) {
-                                player.lastConsumptionDate = consumption.lastConsumptionDate;
-                            }
-                        });
-
+                        let consumptionIndexNo = consumptionRecord.findIndex(x => x && x._id && player && player._id && (player._id.toString() === x._id.toString()));
+                        if (consumptionIndexNo != -1) {
+                            player.lastConsumptionDate = consumptionRecord[consumptionIndexNo].lastConsumptionDate;
+                        }
                         // assign deposit tracking group name
-                        trackingGroupRecord.forEach(trackingGroup => {
-                            if (player && trackingGroup && player._id.toString() === trackingGroup.playerId.toString()) {
-                                player.depositTrackingGroupName = trackingGroup.depositTrackingGroupName;
-                            }
-                        });
+                        let trackingGroupIndexNo = trackingGroupRecord.findIndex(x => x && x.playerId && player && player._id && (player._id.toString() === x.playerId.toString()));
+                        if (trackingGroupIndexNo != -1) {
+                            player.depositTrackingGroupName = trackingGroupRecord[trackingGroupIndexNo].depositTrackingGroupName;
+                        }
 
-                        promoCodeType11.forEach(promoCode => {
-                            if (player && promoCode && player._id.toString() === promoCode._id.toString()) {
-                                player.promoCodeType1Total = promoCode.sendCount;
-                                player.promoCodeType1Accepted = promoCode.acceptedCount;
-                            }
-                        });
+                        let promoCodeType11IndexNo = promoCodeType11.findIndex(x => x && x._id && player && player._id && (player._id.toString() === x._id.toString()));
+                        if (promoCodeType11IndexNo != -1) {
+                            player.promoCodeType1Total = promoCodeType11[promoCodeType11IndexNo].sendCount;
+                            player.promoCodeType1Accepted = promoCodeType11[promoCodeType11IndexNo].acceptedCount;
+                        }
 
-                        promoCodeType22.forEach(promoCode => {
-                            if (player && promoCode && player._id.toString() === promoCode._id.toString()) {
-                                player.promoCodeType2Total = promoCode.sendCount;
-                                player.promoCodeType2Accepted = promoCode.acceptedCount;
-                            }
-                        });
+                        let promoCodeType22IndexNo = promoCodeType22.findIndex(x => x && x._id && player && player._id && (player._id.toString() === x._id.toString()));
+                        if (promoCodeType22IndexNo != -1) {
+                            player.promoCodeType2Total = promoCodeType22[promoCodeType22IndexNo].sendCount;
+                            player.promoCodeType2Accepted = promoCodeType22[promoCodeType22IndexNo].acceptedCount;
+                        }
 
-                        promoCodeType33.forEach(promoCode => {
-                            if (player && promoCode && player._id.toString() === promoCode._id.toString()) {
-                                player.promoCodeType3Total = promoCode.sendCount;
-                                player.promoCodeType3Accepted = promoCode.acceptedCount;
-                            }
-                        });
+                        let promoCodeType33IndexNo = promoCodeType33.findIndex(x => x && x._id && player && player._id && (player._id.toString() === x._id.toString()));
+                        if (promoCodeType33IndexNo != -1) {
+                            player.promoCodeType3Total = promoCodeType33[promoCodeType33IndexNo].sendCount;
+                            player.promoCodeType3Accepted = promoCodeType33[promoCodeType33IndexNo].acceptedCount;
+                        }
 
                         return player;
                     });
@@ -22832,133 +22823,112 @@ function getBonusDoubledReward(playerData, eventData, intervalTime, selectedRewa
     )
 }
 
-function transferOutFromSelectedGameProvider(selectedProviderList, playerData, eventData, intervalTime){
-    if (selectedProviderList && selectedProviderList.length){
-        let playerCreditInGameProvider = [];
-        let transferProviderId = [];
-        let providerIdList = [];
-        let notEnoughToTransferProviderId = [];
-        let checkCreditProm = Promise.resolve();
-        // let isAllDone = true;
-        let query = {
-            _id: {$in: selectedProviderList}
-        };
+function transferOutFromSelectedGameProvider(selectedProviderList, playerData, eventData, intervalTime) {
+    let playerCreditInGameProvider = [];
+    let transferProviderId = [];
+    let providerIdList = [];
+    let notEnoughToTransferProviderId = [];
+    let checkCreditProm = Promise.resolve();
 
-        return dbGameProvider.getGameProviders(query).then(
-            gameProviderList => {
-                if (gameProviderList && gameProviderList.length){
-                    // get the providerId
-                    gameProviderList.forEach(
-                        gameProvider => {
-                            if (gameProvider && gameProvider.providerId){
-                                providerIdList.push(gameProvider.providerId)
-                            }
+    let platformQuery = {
+        _id: playerData.platform._id
+    };
+
+    // get all the game providers in the platform
+    return dbconfig.collection_platform.findOne(platformQuery, {gameProviders: 1}).populate({
+        path: "gameProviders",
+        model: dbconfig.collection_gameProvider
+    }).lean().then(
+        platform => {
+            if (!platform) {
+                return Promise.reject({
+                    name: "DataError",
+                    errorMessage: "platform is not found."
+                })
+            }
+
+            if (platform && platform.gameProviders && platform.gameProviders.length) {
+                platform.gameProviders.forEach(
+                    gameProvider => {
+                        if (gameProvider && gameProvider.providerId) {
+                            providerIdList.push(gameProvider.providerId)
                         }
-                    )
-                    // check if the last operaton of the game provide is transfer-in, yes -> transfer out; no -> already transfer out so no need to do anything
-                   return dbGameProvider.checkLastOperationTransferIn(playerData.platform._id, playerData._id, providerIdList);
-                }
-                else{
+                    }
+                )
+
+                return dbGameProvider.checkGameCredit(playerData.platform._id, playerData._id, providerIdList, playerData);
+            }
+        }
+    ).then(
+        creditGameProviderList => {
+            console.log("checking creditGameProviderList", [playerData.playerId, creditGameProviderList])
+            if (creditGameProviderList && creditGameProviderList.length) {
+
+                // check if one of the provider has enough credit to join this activity
+                let index = creditGameProviderList.findIndex(p => p.totalCredit >= 1);
+                console.log("checking index", index)
+                if (index == -1) {
                     return Promise.reject({
-                        name: "DataError",
-                        message: "gameProvider is not found"
+                        status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
+                        name: "NumError",
+                        errorMessage: "Player does not have enough credit."
                     })
                 }
-            }
-        ).then(
-            transferInList => {
-                console.log("checking 101 lastTransferInList", transferInList)
-                if (transferInList && transferInList.length) {
-                    // to get the credit of the provider
-                    transferInList.forEach(
-                        gameProvider => {
-                            if (gameProvider && gameProvider.providerId && playerData.name && playerData.platform && playerData.platform.platformId) {
-                                checkCreditProm = checkCreditProm.then(() => {
-                                    return dbGameProvider.getPlayerCreditInProvider(playerData.name, playerData.platform.platformId, gameProvider.providerId)
-                                }).then(
-                                    retResult => {
-                                        return playerCreditInGameProvider.push(retResult)
-                                    }
-                                )
-                            }
-                        }
-                    )
-                    return checkCreditProm;
-                }
-            }
-        ).then(
-            () => {
-                if (playerCreditInGameProvider && playerCreditInGameProvider.length) {
-                    //check the provider if its credit >= 1, transferred out
-                    for (let provider in playerCreditInGameProvider) {
-                        if (parseFloat(playerCreditInGameProvider[provider].gameCredit) >= 1) {
-                            transferProviderId.push({providerId: playerCreditInGameProvider[provider].providerId, gameCredit: playerCreditInGameProvider[provider].gameCredit});
-                        }
-                        else{
-                            notEnoughToTransferProviderId.push(playerCreditInGameProvider[provider].providerId);
-                        }
+
+                for (let index in creditGameProviderList) {
+                    if (parseFloat(creditGameProviderList[index].gameCredit) >= 1) {
+                        transferProviderId.push({
+                            providerId: creditGameProviderList[index].providerId,
+                            gameCredit: creditGameProviderList[index].gameCredit
+                        });
                     }
-
-                    if (notEnoughToTransferProviderId && notEnoughToTransferProviderId.length){
-                        return Promise.reject({
-                            status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
-                            name: "NumError",
-                            errorMessage: "Player does not have enough credit."
-                        })
-                    }
-                   return transferProviderId;
                 }
+
+                console.log("checking transferProviderId", transferProviderId)
             }
+            return transferProviderId;
+        }
+    ).then(
+        () => {
+            if (transferProviderId && transferProviderId.length) {
+                let p = Promise.resolve();
 
-        ).then(
-            () => {
-                if (transferProviderId && transferProviderId.length) {
-                    let p = Promise.resolve();
+                for (let i = 0; i < transferProviderId.length; i++) {
+                    let providerId = transferProviderId[i].providerId;
+                    let platform = playerData.platform._id;
+                    let playerId = playerData.playerId;
+                    let amount = transferProviderId[i].gameCredit;
 
-                    for (let i = 0; i < transferProviderId.length; i++) {
-                        let providerId = transferProviderId[i].providerId;
-                        let platform = playerData.platform._id;
-                        let playerId = playerData.playerId;
-                        let amount = transferProviderId[i].gameCredit;
+                    p = p.then(function () {
+                        if (amount) {
+                            // transfer out
+                            return dbPlayerInfo.transferPlayerCreditFromProvider(playerId, platform, providerId, amount).then(
+                                () => {
 
-                        p = p.then(function () {
-                            if (amount) {
-                                // transfer out
-                                return dbPlayerInfo.transferPlayerCreditFromProvider(playerId, platform, providerId, amount).then(
-                                    () => {
-
-                                    }
-                                    , err => {
-                                        return Promise.reject(err);
-                                        console.log("checking error", err)
-                                        // isAllDone = false;
-                                    }
-                                )
-                            }
-                        })
-                    }
-                    return p;
+                                }
+                                , err => {
+                                    return Promise.reject(err);
+                                    console.log("checking error", err)
+                                }
+                            )
+                        }
+                    })
                 }
+                return p;
             }
-        ).then (
-            () => {
-                // if (!isAllDone){
-                //     // transfer-out is not successful -> show error
-                //     return Promise.reject({
-                //         name: "DataError",
-                //         message: "The transferring-out process is failed"
-                //     })
-                // }
-                return updateOrSaveBonusDoubledRewardGroupRecord(playerData, eventData, selectedProviderList, intervalTime);
-            }
-        )
-    }
-    else{
-        return Promise.reject({
-            name: "DataError",
-            message: "no gameProvider is found"
-        })
-    }
+        }
+    ).then (
+        () => {
+            // if (!isAllDone){
+            //     // transfer-out is not successful -> show error
+            //     return Promise.reject({
+            //         name: "DataError",
+            //         message: "The transferring-out process is failed"
+            //     })
+            // }
+            return updateOrSaveBonusDoubledRewardGroupRecord(playerData, eventData, selectedProviderList, intervalTime);
+        }
+    )
 }
 
 function applyPlayerBonusDoubledRewardGroup(userAgent, playerData, eventData, adminInfo, rewardData, isFrontEnd) {
