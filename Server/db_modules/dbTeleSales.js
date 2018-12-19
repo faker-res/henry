@@ -1551,7 +1551,7 @@ function isStillTradeAble(platformsArr,platformTsPhoneTrade) {
     return Boolean(tradeablePlatformCount >= 2 && isHavePhoneLeft);
 }
 
-function getAllTradeablePhone (platformsArr, recursiveCount) {
+function getAllTradeablePhone (platformsArr, recursiveCount, remainingPhoneTrade) {
     recursiveCount = recursiveCount || 50;
     if (recursiveCount <= 0) {
         return Promise.reject({name: "DataError", message: "getAllTradeablePhone reach max recursive count"});
@@ -1561,10 +1561,32 @@ function getAllTradeablePhone (platformsArr, recursiveCount) {
     let tsPhoneTradeArr = [];
 
     for (let i = 0; i < platformsArr.length; i++) {
+        let limitPhoneTrade = platformsArr[i].phoneWhiteListExportMaxNumber || 1; //for recursive use (second times onwards)
+        let skipPhoneTrade = 0; //for recursive use (second times onwards)
+        if (remainingPhoneTrade) {
+            limitPhoneTrade = 0;
+            if (remainingPhoneTrade[platformsArr[i]._id]) {
+                remainingPhoneTrade[platformsArr[i]._id].forEach(phoneTrade => {
+                    if (phoneTrade.isNotTradeable) {
+                        limitPhoneTrade++;
+                    } else {
+                        tsPhoneTradeArr.push(phoneTrade);
+                    }
+                })
+            }
+            // tsPhoneTradeArr = tsPhoneTradeArr.concat(record.data);
+            if (!limitPhoneTrade) {
+                continue;
+            } else {
+                skipPhoneTrade = platformsArr[i].phoneWhiteListExportMaxNumber;
+            }
+        }
+
         let prom = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: platformsArr[i]._id, targetPlatform: null}, {sourceTsPhone: 1})
             .populate({path: "sourceTsPhone", model: dbconfig.collection_tsPhone, select: "phoneNumber platform"})
             .sort({decomposeTime: 1})
-            .limit(platformsArr[i].phoneWhiteListExportMaxNumber || 1).lean();
+            .skip(skipPhoneTrade)
+            .limit(limitPhoneTrade).lean();
 
         let stream = prom.cursor({batchSize: 100});
         let balancer = new SettlementBalancer();
@@ -1601,7 +1623,7 @@ function getAllTradeablePhone (platformsArr, recursiveCount) {
     ).then(
         (resData) => {
             if (isStillTradeAble() && resData) {
-                getAllTradeablePhone (platformsArr, recursiveCount--);
+                getAllTradeablePhone (platformsArr, recursiveCount--, resData);
             }
         }
     );
@@ -1664,6 +1686,8 @@ function tradePhoneForEachPlatform (platformsArr, tsPhoneTradeArr) {
                             break;
                         }
                     }
+                } else if (j == 0) {
+                    tsPhoneTradeSender.isNotTradeable = true;
                 }
             }
             if (!(platformsArr && platformsArr.length >= 2)) {
@@ -1676,7 +1700,11 @@ function tradePhoneForEachPlatform (platformsArr, tsPhoneTradeArr) {
             break;
         }
     }
-    return Promise.all(promArr);
+    return Promise.all(promArr).then(
+        output => {
+            return platformTsPhoneTrade;
+        }
+    )
 }
 
 function addTsFeedbackCount (feedbackObj, isSucceedBefore = false) {
