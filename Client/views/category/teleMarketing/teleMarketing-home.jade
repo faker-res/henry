@@ -219,7 +219,7 @@
                                                 button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
                                         tr
                                             td
-                                                text {{"REMARK" | translate}}
+                                                text {{"FEEDBACK_CONTENT" | translate}}
                                             td.textareaDetail
                                                 textarea.form-control(type="textarea", rows='4', ng-model='vm.tsPhoneAddFeedback.content')
                                         tr
@@ -329,6 +329,7 @@
             .modal-footer
                 button.btn.btn-primary.common-button(ng-click="vm.updateTsPhoneDistributedPhone()", data-dismiss='modal') {{"CONFIRM" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+                button.btn.btn-primary.common-button(ng-click="vm.cancelTsDistributedPhoneReminder()" data-dismiss='modal') {{"Clear Reminder" | translate}}
 
 #modalCreateTsPlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='max-height: 80vh;overflow-y: auto')

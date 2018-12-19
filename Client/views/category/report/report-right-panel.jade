@@ -468,7 +468,7 @@
                         tr(ng-repeat='playerData in pda.playerData track by $index')
                             td {{$index+1}}
                             td(ng-class='playerData.isDepositTracked ? "yellow-background" : ""')
-                                a(ng-click="vm.addPlayerToDepositTrackingReport(playerData._id)") {{playerData.name}}
+                                a(data-toggle="modal", data-target='#modalPlayerDepositTrackingGroupModifyTable', ng-click="vm.selectedDepositTrackingGroupPlayerId = playerData._id; vm.modifyDepositTrackingGroupResult = ''; vm.addPlayerToDepositTrackingReport(playerData._id)") {{playerData.name}}
                             td {{playerData.realName}}
                             td {{playerData.valueScore}}
                             td {{playerData.credibility$}}
@@ -484,7 +484,7 @@
                 br
 
         div(ng-if='vm.showPageName=="PLAYER_DEPOSIT_TRACKING_REPORT"')
-            .block-query.col-md-12.well
+            #depositTrackingReport.block-query.col-md-12.well
                 div
                     label {{'Player Name' | translate}}
                     input.form-control.span.input-sm(ng-model="vm.depositTrackingQuery.name")
@@ -494,6 +494,12 @@
                 div
                     label(style='min-width:130px') {{"TRACKING_GROUP"|translate}}
                     select.form-control#selectTrackingGroupDepositTracking(multiple="multiple", style='min-width:100px;height:34px;', ng-options='group._id as group.name | translate for group in vm.filterDepositTrackingGroup', ng-model="vm.depositTrackingQuery.depositTrackingGroup")
+                div
+                    label {{"LAST_ACCESS_TIME_START" | translate}}
+                    .loginStartTime
+                div
+                    label {{"LAST_ACCESS_TIME_END" | translate}}
+                    .loginEndTime
                 div
                     label &nbsp;
                     button.btn.btn-success(ng-click='vm.searchPlayerDepositTrackingReport(true)') {{'SEARCH' | translate}}

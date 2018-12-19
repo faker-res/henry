@@ -559,6 +559,7 @@ define(['js/app'], function (myApp) {
                             item.encodedPhoneNumber$ = utilService.encodePhoneNum(item.tsPhone.phoneNumber);
                         }
                         item.startTime$ = utilService.getFormatTime(item.startTime);
+                        item.remindTime$ = utilService.getFormatTime(item.remindTime);
                         let endDate = utilService.setNDaysAgo(new Date(item.endTime), 1); // endTime in DB store end time of day
                         let daysDiff = Math.abs(endDate.getTime() - new Date().getTime());
                         item.reclaimDaysLeft$ = Math.ceil(daysDiff / (1000 * 3600 * 24));
@@ -694,6 +695,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('PHONE_DISTRIBUTED_TIME'), data: "startTime$"},
                     {title: $translate('My feedback times'), data: "feedbackTimes"},
                     {title: $translate('Phone number reclaim in X day'), data: "reclaimDaysLeft$"},
+                    {title: $translate('REMIND_TIME'), data: "remindTime$"},
                     {
                         title: $translate('Function'),
                         render: function (data, type, row) {
@@ -1284,6 +1286,22 @@ define(['js/app'], function (myApp) {
                 vm.searchAdminPhoneList(true);
             });
         }
+
+        vm.cancelTsDistributedPhoneReminder = () => {
+            let sendData = {
+                query: {
+                    tsPhone: vm.tsPhoneReminder.tsPhone,
+                    platform: vm.selectedPlatform.id,
+                    assignee: authService.adminId,
+                },
+                updateData: {
+                    $unset: { remindTime: ""}
+                }
+            };
+            socketService.$socket($scope.AppSocket, 'updateTsPhoneDistributedPhone', sendData, function (data) {
+                vm.autoRefreshTsDistributedPhoneReminder(true);
+            });
+        };
 
         vm.autoRefreshTsDistributedPhoneReminder = function () {
             if (!(window.location.pathname == "/teleMarketing" && vm.selectedTab == "REMINDER_PHONE_LIST")) {

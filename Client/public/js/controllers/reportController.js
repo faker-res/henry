@@ -4630,6 +4630,8 @@ define(['js/app'], function (myApp) {
                 index: newSearch ? 0 : (vm.depositTrackingQuery.index || 0),
                 limit: vm.depositTrackingQuery.limit || 5000,
                 sortCol: vm.depositTrackingQuery.sortCol || {},
+                loginStartTime: vm.depositTrackingQuery.loginStartTime.data('datetimepicker').getLocalDate(),
+                loginEndTime: vm.depositTrackingQuery.loginEndTime.data('datetimepicker').getLocalDate(),
             };
             console.log('sendQuery', sendQuery);
             socketService.$socket($scope.AppSocket, 'getPlayerDepositTrackingReport', sendQuery, function (data) {
@@ -5691,7 +5693,7 @@ define(['js/app'], function (myApp) {
                 var datatoDraw = data.data.data.map(item => {
                     item.selectedBetTypeAmt = $noRoundTwoDecimalPlaces(item.selectedBetTypeAmt);
                     item.totalBetAmt = $noRoundTwoDecimalPlaces(item.totalBetAmt);
-                    item.betAmtPercent = $noRoundTwoDecimalPlaces(item.totalBetAmt/item.selectedBetTypeAmt * 100);
+                    item.betAmtPercent = $noRoundTwoDecimalPlaces(item.selectedBetTypeAmt/item.totalBetAmt * 100);
                     item.bonusAmount = $noRoundTwoDecimalPlaces(item.bonusAmount);
                     item.betCountPercent = $noRoundTwoDecimalPlaces(item.selectedBetTypeCount/item.totalBetCount * 100);
 
@@ -5730,7 +5732,7 @@ define(['js/app'], function (myApp) {
                     {title: $translate('BET_TYPE_CONSUMPTION'), data: "selectedBetTypeAmt", sClass: 'sumFloat alignRight'},
                     {title: $translate('GAME_TYPE_CONSUMPTION'), data: "totalBetAmt", sClass: 'sumFloat alignRight'},
                     {
-                        title: $translate('GAME_TYPE_CONSUMPTION') + "/ <br>" + $translate('BET_TYPE_CONSUMPTION') + "(%)",
+                        title: $translate('BET_TYPE_CONSUMPTION') + "/ <br>" + $translate('GAME_TYPE_CONSUMPTION') + "(%)",
                         data: "betAmtPercent",
                         sClass: 'betAmtPercent alignRight',
                         render: function (data, type, row) {
@@ -5772,7 +5774,7 @@ define(['js/app'], function (myApp) {
             var proposalTbl = utilService.createDatatableWithFooter('#consumptionModeTable', tableOptions, {
                 2: $noRoundTwoDecimalPlaces(summary.selectedBetTypeAmt),
                 3: $noRoundTwoDecimalPlaces(summary.totalBetAmt),
-                4: $noRoundTwoDecimalPlaces(summary.totalBetAmt/summary.selectedBetTypeAmt * 100),
+                4: $noRoundTwoDecimalPlaces(summary.selectedBetTypeAmt/summary.totalBetAmt * 100),
                 5: $noRoundTwoDecimalPlaces(summary.bonusAmount),
                 6: summary.selectedBetTypeCount,
                 7: summary.totalBetCount,
@@ -10463,10 +10465,17 @@ define(['js/app'], function (myApp) {
             } else if (choice === "PLAYER_DEPOSIT_TRACKING_REPORT") {
                 vm.reportSearchTime = 0;
                 utilService.actionAfterLoaded('#playerDepositTrackingReportTablePage', function () {
+                    let yesterday = utilService.setNDaysAgo(new Date(), 1);
+                    let yesterdayDateStartTime = utilService.setThisDayStartTime(new Date(yesterday));
+                    let todayEndTime = utilService.getTodayEndTime();
                     vm.playerDepositTracking = {};
                     vm.depositTrackingQuery = {};
                     vm.depositTrackingQuery.sortCol = {};
                     vm.depositTrackingQuery.limit = 5000;
+                    vm.depositTrackingQuery.loginStartTime = utilService.createDatePicker('#depositTrackingReport .loginStartTime');
+                    vm.depositTrackingQuery.loginStartTime.data('datetimepicker').setLocalDate(new Date(yesterdayDateStartTime));
+                    vm.depositTrackingQuery.loginEndTime = utilService.createDatePicker('#depositTrackingReport .loginEndTime');
+                    vm.depositTrackingQuery.loginEndTime.data('datetimepicker').setLocalDate(new Date(todayEndTime));
                     // vm.depositTrackingQuery.pageObj = utilService.createPageForPagingTable("#playerDepositTrackingReportTablePage", {pageSize: 5000}, $translate, function (curP, pageSize) {
                     //     vm.commonPageChangeHandler(curP, pageSize, "depositTrackingQuery", vm.searchPlayerDepositTrackingReport);
                     // });
