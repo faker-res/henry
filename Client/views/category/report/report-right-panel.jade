@@ -468,7 +468,7 @@
                         tr(ng-repeat='playerData in pda.playerData track by $index')
                             td {{$index+1}}
                             td(ng-class='playerData.isDepositTracked ? "yellow-background" : ""')
-                                a(ng-click="vm.addPlayerToDepositTrackingReport(playerData._id)") {{playerData.name}}
+                                a(data-toggle="modal", data-target='#modalPlayerDepositTrackingGroupModifyTable', ng-click="vm.selectedDepositTrackingGroupPlayerId = playerData._id; vm.modifyDepositTrackingGroupResult = ''; vm.addPlayerToDepositTrackingReport(playerData._id)") {{playerData.name}}
                             td {{playerData.realName}}
                             td {{playerData.valueScore}}
                             td {{playerData.credibility$}}
