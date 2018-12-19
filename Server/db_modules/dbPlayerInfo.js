@@ -21727,6 +21727,8 @@ let dbPlayerInfo = {
     },
 
     checkPlayerBonusDoubledRewardTransferIn: (playerData, playerObjId, platformObjId, providerObjId, platformId, providerShortId, userName, amount, currentDate) => {
+        console.log("LH check player transfer in------------1 ", playerData.name);
+        console.log("LH check player transfer in------------2 ", providerShortId);
         let playerBonusDoubledRewardObj;
         let query = {
             playerObjId: playerObjId,
@@ -21737,11 +21739,14 @@ let dbPlayerInfo = {
         let rewardEventCode;
         let rewardEventName;
 
+        console.log("LH check player transfer in------------3 ", query);
+
         return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOne(query)
             .populate({path: 'gameProviders', model: dbconfig.collection_gameProvider})
             .populate({path: 'rewardEventObjId', model: dbconfig.collection_rewardEvent})
             .then(
                 playerBonusDoubledReward => {
+                    console.log("LH check player transfer in------------4 ", playerBonusDoubledReward);
                     playerBonusDoubledRewardObj = playerBonusDoubledReward;
                     rewardEventCode = playerBonusDoubledReward && playerBonusDoubledReward.rewardEventObjId && playerBonusDoubledReward.rewardEventObjId.code ?
                         playerBonusDoubledReward.rewardEventObjId.code : "";
@@ -21805,6 +21810,8 @@ let dbPlayerInfo = {
     },
 
     checkPlayerBonusDoubledRewardTransferOut: function(playerData, playerObjId, platformObjId, platformId, providerShortId, userName, currentDate){
+        console.log("LH check player transfer out------------1 ", playerData.name);
+        console.log("LH check player transfer out------------2 ", providerShortId);
         let playerBonusDoubledRewardObj;
         let query = {
             playerObjId: playerObjId,
@@ -21816,10 +21823,13 @@ let dbPlayerInfo = {
         let rewardEventCode;
         let rewardEventName;
 
+        console.log("LH check player transfer out------------3 ", query);
+
         return dbconfig.collection_playerBonusDoubledRewardGroupRecord.findOne(query)
             .populate({path: 'rewardEventObjId', model: dbconfig.collection_rewardEvent})
             .then(
                 playerBonusDoubledReward => {
+                    console.log("LH check player transfer out------------4 ", playerBonusDoubledReward);
                     if(playerBonusDoubledReward){
                         rewardEventCode = playerBonusDoubledReward.rewardEventObjId && playerBonusDoubledReward.rewardEventObjId.code ?
                             playerBonusDoubledReward.rewardEventObjId.code : "";
