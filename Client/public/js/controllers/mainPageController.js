@@ -56,7 +56,7 @@ define(['js/app'], function (myApp) {
                             vm.departments = data.data;
                             console.log("getDepartmentTreeByIds:: vm.departments", vm.departments);
                             vm.drawDepartmentTree();
-                            vm.getAllUserData();
+                            //vm.getAllUserData();
                             $scope.$digest();
                             if (typeof(callback) == 'function') {
                                 callback(data.data);
@@ -71,7 +71,7 @@ define(['js/app'], function (myApp) {
                         vm.departments = data.data;
                         console.log("vm.departments", vm.departments);
                         vm.drawDepartmentTree();
-                        vm.getAllUserData();
+                        //vm.getAllUserData();
                         $scope.$digest();
                         if (typeof(callback) == 'function') {
                             callback(data.data);
@@ -434,10 +434,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getDepartmentFullData = function () {
-                if (!vm.SelectedDepartmentNode || vm.SelectedDepartmentNode.id == "root") {
-                    vm.getAllUserData();
-                }
-                else {
+                // if (!vm.SelectedDepartmentNode || vm.SelectedDepartmentNode.id == "root") {
+                //     vm.getAllUserData();
+                // }
+                // else {
                     vm.getDepartmentUsersData();
                     //todo::refactor code here
                     socketService.$socket($scope.AppSocket, 'getDepartment', {_id: vm.SelectedDepartmentNode.id}, function (data) {
@@ -448,7 +448,7 @@ define(['js/app'], function (myApp) {
                             $scope.safeApply();
                         }
                     });
-                }
+                // }
             };
 
             //can the selected department be deleted
