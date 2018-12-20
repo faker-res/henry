@@ -36264,6 +36264,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            /***** Auction System - start *****/
             vm.initAuctionSystem = function() {
 
             };
@@ -36273,6 +36274,19 @@ define(['js/app'], function (myApp) {
 
                 switch (choice) {
                     case 'createProduct':
+                        vm.auctionSystemCreateProductStatus = '';
+                        vm.auctionSystemEditStatus = false;
+                        vm.auctionSystemProduct = {
+                            registerStartTime: null,
+                            registerEndTime: null,
+                            playerType: 'Real Player (all)',
+                            playerLevel: 'all'
+                        };
+
+                        commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerStartTime', '#auctionSystemProductRegisterStartTimePicker',
+                            utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(90)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                        commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerEndTime', '#auctionSystemProductRegisterEndTimePicker',
+                            utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(1)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
 
                         break;
                     case 'monitoringSystem':
@@ -36280,19 +36294,17 @@ define(['js/app'], function (myApp) {
                         break;
                 }
             };
-
-
+            /***** Auction System - end *****/
 
             vm.changeFrameHeight = function() {
                 var ifm = document.getElementById("configIframe");
                 ifm.height = document.documentElement.clientHeight;
 
-            }
+            };
 
-            window.onresize=function(){
+            window.onresize = function() {
                 vm.changeFrameHeight();
-
-            }
+            };
         };
 
         let injectParams = [
