@@ -39,7 +39,7 @@ let dbTeleSales = {
 
         let phoneListProm = Promise.resolve();
         if (query.phoneListName && query.phoneListName.length) {
-            phoneListProm = dbconfig.collection_tsPhoneList.find({name: {$in: query.phoneListName}, assignees: query.admin, platform: query.platform}, {_id: 1}).lean();
+            phoneListProm = dbconfig.collection_tsPhoneList.find({name: {$in: query.phoneListName}, platform: query.platform}, {_id: 1}).lean();
         }
 
         return phoneListProm.then(
@@ -50,12 +50,22 @@ let dbTeleSales = {
                     registered: false
                 }
 
-                if (phoneListData && phoneListData.length && query.phoneListName && query.phoneListName.length) {
-                    phoneListQuery.tsPhoneList = {$in: phoneListData.map(phoneList => phoneList._id)}
+                if (query.phoneListName && query.phoneListName.length) {
+                    if (phoneListData && phoneListData.length) {
+                        phoneListQuery.tsPhoneList = {$in: phoneListData.map(phoneList => phoneList._id)}
+                    } else {
+                        return [0,[]]; // return empty data
+                    }
                 }
 
                 phoneListQuery["$and"] = [{startTime: {$lt: new Date()}}, {endTime: {$gte: new Date()}}];
                 if (query.resultName && query.resultName.length) {
+                    for (let i = 0; i < query.resultName.length; i++) {
+                        if (query.resultName[i] == "") {
+                            query.resultName[i] = null;
+                        }
+                        break;
+                    }
                     phoneListQuery.resultName = {$in: query.resultName};
                 }
 
