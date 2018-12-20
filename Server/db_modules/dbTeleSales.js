@@ -69,6 +69,10 @@ let dbTeleSales = {
                     phoneListQuery.resultName = {$in: query.resultName};
                 }
 
+                if (query.topic && query.topic.length) {
+                    phoneListQuery.topic = {$in: query.topic};
+                }
+
                 if (query.feedbackStart && query.feedbackEnd) {
                     phoneListQuery["$and"].push({lastFeedbackTime: {$gte: query.feedbackStart, $lt: query.feedbackEnd}});
                 }
@@ -282,7 +286,8 @@ let dbTeleSales = {
                     lastFeedbackTime: new Date(),
                     isUsed: true,
                     isSucceedBefore: isSuccessFeedback,
-                    resultName: inputData.resultName
+                    resultName: inputData.resultName,
+                    topic: inputData.topic
                 }, {new: true}).lean();
             }
         ).then(

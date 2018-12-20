@@ -5,12 +5,16 @@ div(ng-show="vm.curPlatformText")
     #adminPhoneListManageTable-search-filter.block-query.col-md-12.well
         div(style='max-width: 200px')
             label.control-label {{'PHONE_LIST' | translate}}
-            select.spicker.form-control#phoneListMangementName(ng-model='vm.queryAdminPhoneList.phoneListName', bsp, multiple, data-actions-box='true', ng-options='v as v for (i,v) in vm.adminPhoneListName')
+            select.spicker.form-control(ng-model='vm.queryAdminPhoneList.phoneListName', bsp, multiple, data-actions-box='true', ng-options='v as v for (i,v) in vm.adminPhoneListName')
         div(style='max-width: 200px')
-            label {{"MY_LAST_FEEDBACK_STATUS"|translate}}
-            select.spicker.form-control#phoneListMangementStatus(ng-model='vm.queryAdminPhoneList.resultName', bsp, multiple, data-actions-box='true')
+            label {{"MY_LAST_FEEDBACK_RESULT"|translate}}
+            select.spicker.form-control(ng-model='vm.queryAdminPhoneList.resultName', bsp, multiple, data-actions-box='true')
                 option(value= '') {{'NO_FEEDBACK' | translate}}
                 option(ng-repeat="(i,v) in vm.allPlayerFeedbackResults", value='{{v.value}}') {{v.value | translate}}
+        div(style='max-width: 200px')
+            label {{"MY_LAST_FEEDBACK_TOPIC"|translate}}
+            select.spicker.form-control(ng-model='vm.queryAdminPhoneList.topic', bsp, multiple, data-actions-box='true')
+                option(ng-repeat="(i,v) in vm.playerFeedbackTopic", value='{{v.value}}') {{v.value | translate}}
         div
             label.control-label {{'My last feedback time (start)' | translate}}
             #adminPhoneListLastFeedbackStart
