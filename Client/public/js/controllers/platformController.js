@@ -36261,6 +36261,7 @@ define(['js/app'], function (myApp) {
                     case 'createProduct':
                         vm.auctionSystemCreateProductStatus = '';
                         vm.auctionSystemEditStatus = false;
+                        vm.selectedAuctionRewardType = null;
                         vm.auctionSystemProduct = {
                             registerStartTime: null,
                             registerEndTime: null,
@@ -36276,6 +36277,43 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'monitoringSystem':
 
+                        break;
+                }
+            };
+
+            vm.resetRewardTypeChanged = function () {
+                vm.auctionSystemProduct = {
+                    promoCode : '',
+                    openPromoCode : '',
+                    productImageUrl : '',
+                    messageTitle : '',
+                    messageContent : '',
+                    gameProviderGroup : '',
+                    unlockAmount : '',
+                    rewardAmount : '',
+                    useConsumption : false,
+                    realPrizeDetails : '',
+                    rewardPointsVariable : '',
+                };
+            };
+
+            vm.auctionRewardTypeChanged = function (choice) {
+                vm.resetRewardTypeChanged();
+                switch (choice) {
+                    case '1':
+                        vm.selectedAuctionRewardType = 'promoCode';
+                        break;
+                    case '2':
+                        vm.selectedAuctionRewardType = 'openPromoCode';
+                        break;
+                    case '3':
+                        vm.selectedAuctionRewardType = 'promotion';
+                        break;
+                    case '4':
+                        vm.selectedAuctionRewardType = 'realPrize';
+                        break;
+                    case '5':
+                        vm.selectedAuctionRewardType = 'rewardPointsChange';
                         break;
                 }
             };
