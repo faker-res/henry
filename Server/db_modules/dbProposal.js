@@ -986,12 +986,14 @@ var proposal = {
                             updObj.data.requestId = callbackData.requestId;
                             updObj.data.realName = callbackData.realName;
 
-                            updObj.data.userAlipayName = callbackData.alipayName;
+                            updObj.data.userAlipayName = callbackData.nickname;
                             updObj.data.alipayAccount = callbackData.alipayAccount;
                             updObj.data.alipayName = callbackData.alipayName;
                             updObj.data.alipayer = callbackData.alipayer;
-                            updObj.data.alipayerAccount = callbackData.alipayerAccount;
-                            updObj.data.alipayerNickName = callbackData.alipayerNickName;
+                            updObj.data.alipayerAccount = callbackData.alipayAccount;
+                            updObj.data.alipayerNickName = callbackData.alipayName;
+                            updObj.data.alipayQRCode = callbackData.alipayQRCode;
+                            updObj.data.qrcodeAddress = callbackData.qrcodeAddress;
 
                             updObj.data.weChatAccount = callbackData.weChatAccount;
                             updObj.data.weChatQRCode = callbackData.weChatQRCode;
