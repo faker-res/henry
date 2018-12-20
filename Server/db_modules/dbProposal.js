@@ -986,7 +986,7 @@ var proposal = {
                             updObj.data.requestId = callbackData.requestId;
                             updObj.data.realName = callbackData.realName;
 
-                            updObj.data.userAlipayName = callbackData.nickname;
+                            updObj.data.userAlipayName = callbackData.userAlipayName;
                             updObj.data.alipayAccount = callbackData.alipayAccount;
                             updObj.data.alipayName = callbackData.alipayName;
                             updObj.data.alipayQRCode = callbackData.alipayQRCode;
