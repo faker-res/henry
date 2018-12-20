@@ -1536,7 +1536,7 @@ define(['js/app'], function (myApp) {
             //create platform node for platform list
             vm.createPlatformNode = function (v) {
                 var obj = {
-                    text: v.platformId + ". " + v.name,
+                    text: v.name,
                     id: v._id,
                     selectable: true,
                     data: v,
@@ -1545,7 +1545,7 @@ define(['js/app'], function (myApp) {
                         width: 30,
                         height: 30,
                     },
-                    platformName: v.name
+                    platformName: v.platformId + ". " + v.name
                 };
                 return obj;
             };
