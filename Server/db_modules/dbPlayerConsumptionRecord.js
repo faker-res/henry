@@ -178,8 +178,7 @@ var dbPlayerConsumptionRecord = {
         sortCol = sortCol || {createTime: -1};
 
         let gameSearch;
-        var matchObj;
-        matchObj = {
+        var matchObj = {
             createTime: {
                 $gte: startTime,
                 $lt: endTime
