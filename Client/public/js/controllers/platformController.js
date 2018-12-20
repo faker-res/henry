@@ -1259,6 +1259,20 @@ define(['js/app'], function (myApp) {
             //build platform list based on platform data from server
             function buildPlatformList (data) {
                 vm.platformList = [];
+                function sortPlatform(a, b) {
+                    if (a.hasOwnProperty("platformId") && b.hasOwnProperty("platformId")) {
+                        let dataA = parseInt(a.platformId);
+                        let dataB = parseInt(b.platformId);
+                        if (!isNaN(dataA) && !isNaN(dataB)) {
+                            return dataA - dataB;
+                        }
+                    }
+                    return 0;
+                }
+                if (data.length) {
+                    data = data.sort(sortPlatform);
+                }
+
                 for (var i = 0; i < data.length; i++) {
                     vm.platformList.push(vm.createPlatformNode(data[i]));
                 }
@@ -1522,7 +1536,7 @@ define(['js/app'], function (myApp) {
             //create platform node for platform list
             vm.createPlatformNode = function (v) {
                 var obj = {
-                    text: v.name,
+                    text: v.platformId + ". " + v.name,
                     id: v._id,
                     selectable: true,
                     data: v,
@@ -1530,7 +1544,8 @@ define(['js/app'], function (myApp) {
                         url: v.icon,
                         width: 30,
                         height: 30,
-                    }
+                    },
+                    platformName: v.name
                 };
                 return obj;
             };
