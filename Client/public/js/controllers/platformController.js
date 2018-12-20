@@ -20909,10 +20909,25 @@ define(['js/app'], function (myApp) {
                         vm.platformRewardIsEnabled = false;
                         vm.rewardMainParamTable = [];
                         let params = vm.showRewardTypeData.params;
+                        vm.baccaratRewardGameProviders = [];
 
                         if (vm.showReward && !vm.showReward.display) {
                             vm.showReward.display = [];
                             vm.showReward.display.push({displayId: "", displayTitle: "", displayTextContent: "", btnOrImageList: []});
+                        }
+
+                        if (vm.showRewardTypeData && vm.showRewardTypeData.name === "BaccaratRewardGroup" && vm.allGameProviders && vm.allGameProviders.length > 0) {
+                            vm.allGameProviders.forEach(provider => {
+                                // only provide 3 providers: ag, ebet, bylive
+                                if (provider && provider.providerId && (provider.providerId == '16' || provider.providerId == '55' || provider.providerId == '56')) {
+                                    vm.baccaratRewardGameProviders.push(provider);
+                                }
+                            });
+
+                            // set default all game providers if above 3 providers not exist
+                            if (vm.baccaratRewardGameProviders && vm.baccaratRewardGameProviders.length == 0) {
+                                vm.baccaratRewardGameProviders = JSON.parse(JSON.stringify(vm.allGameProviders));
+                            }
                         }
 
                         // Set condition value
@@ -36264,6 +36279,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            /***** Auction System - start *****/
             vm.initAuctionSystem = function() {
 
             };
@@ -36273,6 +36289,19 @@ define(['js/app'], function (myApp) {
 
                 switch (choice) {
                     case 'createProduct':
+                        vm.auctionSystemCreateProductStatus = '';
+                        vm.auctionSystemEditStatus = false;
+                        vm.auctionSystemProduct = {
+                            registerStartTime: null,
+                            registerEndTime: null,
+                            playerType: 'Real Player (all)',
+                            playerLevel: 'all'
+                        };
+
+                        commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerStartTime', '#auctionSystemProductRegisterStartTimePicker',
+                            utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(90)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                        commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerEndTime', '#auctionSystemProductRegisterEndTimePicker',
+                            utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(1)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
 
                         break;
                     case 'monitoringSystem':
@@ -36280,19 +36309,17 @@ define(['js/app'], function (myApp) {
                         break;
                 }
             };
-
-
+            /***** Auction System - end *****/
 
             vm.changeFrameHeight = function() {
                 var ifm = document.getElementById("configIframe");
                 ifm.height = document.documentElement.clientHeight;
 
-            }
+            };
 
-            window.onresize=function(){
+            window.onresize = function() {
                 vm.changeFrameHeight();
-
-            }
+            };
         };
 
         let injectParams = [
