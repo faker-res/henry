@@ -98,7 +98,7 @@ var proposalExecutor = {
             || executionType === 'executePlayerWechatTopUp'
             || executionType === 'executeManualPlayerTopUp'
             || executionType === 'executePlayerFKPTopUp'
-            || executionType === 'executePlayerCommonTopUp'
+            // || executionType === 'executePlayerCommonTopUp'
             || executionType === 'executePlayerAssignTopUp'
 
             // Group reward
@@ -286,7 +286,7 @@ var proposalExecutor = {
             this.executions.executePlayerRetentionRewardGroup.des = "Player Retention Reward";
             this.executions.executePlayerBonusDoubledRewardGroup.des = "Player Bonus Doubled Reward";
             this.executions.executePlayerFKPTopUp.des = "Player Fukuaipay Top Up";
-            this.executions.executePlayerCommonTopUp.des = "Player Common PMS Top Up";
+            // this.executions.executePlayerCommonTopUp.des = "Player Common PMS Top Up";
             this.executions.executeManualExportTsPhone.des = "Export Telesales Phone Across Platform";
 
             this.rejections.rejectProposal.des = "Reject proposal";
@@ -368,7 +368,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerRetentionRewardGroup.des = "reject Player Retention Reward";
             this.rejections.rejectPlayerBonusDoubledRewardGroup.des = "reject Player Bonus Doubled Reward";
             this.rejections.rejectPlayerFKPTopUp.des = "reject Player Fukuaipay Top Up";
-            this.rejections.rejectPlayerCommonTopUp.des = "reject Player Common PMS Top Up";
+            // this.rejections.rejectPlayerCommonTopUp.des = "reject Player Common PMS Top Up";
             this.rejections.rejectManualExportTsPhone.des = "reject Export Telesales Phone Across Platform";
         },
 
@@ -1642,22 +1642,22 @@ var proposalExecutor = {
                 }
             },
 
-            executePlayerCommonTopUp: function (proposalData) {
-                //valid data
-                if (proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.amount) {
-                    return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.COMMON, proposalData).then(
-                        () => {
-                            dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.COMMON).catch(errorUtils.reportError);
-                            sendMessageToPlayer(proposalData, constMessageType.COMMON_TOPUP_SUCCESS, {});
-                            return proposalData;
-                        },
-                        error => Promise.reject(error)
-                    )
-                }
-                else {
-                    return Promise.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
-                }
-            },
+            // executePlayerCommonTopUp: function (proposalData) {
+            //     //valid data
+            //     if (proposalData && proposalData.data && proposalData.data.playerId && proposalData.data.amount) {
+            //         return dbPlayerInfo.playerTopUp(proposalData.data.playerObjId, Number(proposalData.data.amount), "", constPlayerTopUpType.COMMON, proposalData).then(
+            //             () => {
+            //                 dbRewardPoints.updateTopupRewardPointProgress(proposalData, constPlayerTopUpType.COMMON).catch(errorUtils.reportError);
+            //                 sendMessageToPlayer(proposalData, constMessageType.COMMON_TOPUP_SUCCESS, {});
+            //                 return proposalData;
+            //             },
+            //             error => Promise.reject(error)
+            //         )
+            //     }
+            //     else {
+            //         return Promise.reject({name: "DataError", message: "Incorrect proposal data", error: Error()});
+            //     }
+            // },
 
             executeManualExportTsPhone: function (proposalData) {
                 if (proposalData && proposalData.data && proposalData.data.exportTargetPlatformObjId) {
@@ -3990,9 +3990,9 @@ var proposalExecutor = {
                 deferred.resolve("Proposal is rejected");
             },
 
-            rejectPlayerCommonTopUp: function (proposalData, deferred) {
-                deferred.resolve("Proposal is rejected");
-            },
+            // rejectPlayerCommonTopUp: function (proposalData, deferred) {
+            //     deferred.resolve("Proposal is rejected");
+            // },
 
             /**
              * reject function for player alipay top up
