@@ -595,6 +595,7 @@ define(['js/app'], function (myApp) {
                 admin: authService.adminId,
                 phoneListName: vm.queryAdminPhoneList.phoneListName,
                 resultName: vm.queryAdminPhoneList.resultName,
+                topic: vm.queryAdminPhoneList.topic,
                 feedbackStart: $('#adminPhoneListLastFeedbackStart').data('datetimepicker').getLocalDate(),
                 feedbackEnd: $('#adminPhoneListLastFeedbackEnd').data('datetimepicker').getLocalDate(),
                 distributeStart: $('#adminPhoneListDistributeStart').data('datetimepicker').getLocalDate(),
