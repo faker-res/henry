@@ -20909,10 +20909,25 @@ define(['js/app'], function (myApp) {
                         vm.platformRewardIsEnabled = false;
                         vm.rewardMainParamTable = [];
                         let params = vm.showRewardTypeData.params;
+                        vm.baccaratRewardGameProviders = [];
 
                         if (vm.showReward && !vm.showReward.display) {
                             vm.showReward.display = [];
                             vm.showReward.display.push({displayId: "", displayTitle: "", displayTextContent: "", btnOrImageList: []});
+                        }
+
+                        if (vm.showRewardTypeData && vm.showRewardTypeData.name === "BaccaratRewardGroup" && vm.allGameProviders && vm.allGameProviders.length > 0) {
+                            vm.allGameProviders.forEach(provider => {
+                                // only provide 3 providers: ag, ebet, bylive
+                                if (provider && provider.providerId && (provider.providerId == '16' || provider.providerId == '55' || provider.providerId == '56')) {
+                                    vm.baccaratRewardGameProviders.push(provider);
+                                }
+                            });
+
+                            // set default all game providers if above 3 providers not exist
+                            if (vm.baccaratRewardGameProviders && vm.baccaratRewardGameProviders.length == 0) {
+                                vm.baccaratRewardGameProviders = JSON.parse(JSON.stringify(vm.allGameProviders));
+                            }
                         }
 
                         // Set condition value
