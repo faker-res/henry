@@ -95,7 +95,7 @@
                     .panel-body
                         .row
                             .col-md-12
-                                .well
+                                .well(style='max-height: 400px; max-height: 50vh; overflow: auto')
                                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%;white-space:normal;')
                                         thead
                                             tr
@@ -152,7 +152,7 @@
                                                             tr
                                                                 th(style="width:50%") {{"PROVINCE" | translate}}
                                                                 th(style="width:50%") {{"CITY" | translate}}
-                                                                th
+                                                                th(ng-if='!vm.analyticsPhoneListEdit')
                                                         tbody
                                                             tr(ng-repeat='(i, v) in vm.tsAnalyticsPhoneList.dangerZoneList')
                                                                 td
@@ -161,8 +161,8 @@
                                                                     select.form-control(ng-model='vm.tsAnalyticsPhoneList.dangerZoneList[i].city', ng-disabled='vm.analyticsPhoneListEdit')
                                                                         option(value='all') {{'All Selected' | translate}}
                                                                         option(ng-repeat='(n,val) in constPhoneArea[vm.tsAnalyticsPhoneList.dangerZoneList[i].province]', value='{{val}}') {{val}}
-                                                                td
-                                                                    i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.tsAnalyticsPhoneList.dangerZoneList, $index)'  ng-disabled='vm.analyticsPhoneListEdit')
+                                                                td(ng-if='!vm.analyticsPhoneListEdit')
+                                                                    i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.tsAnalyticsPhoneList.dangerZoneList, $index)'  ng-show='!vm.analyticsPhoneListEdit')
                                                             tr(ng-show="!vm.analyticsPhoneListEdit")
                                                                 td(colspan=3) {{'ADD' | translate}}
                                                             tr(ng-show="!vm.analyticsPhoneListEdit")
