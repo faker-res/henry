@@ -452,6 +452,7 @@ define(['js/app'], function (myApp) {
                         vm.queryAdminPhoneList.pageObj = utilService.createPageForPagingTable("#adminPhoneListTablePage", {}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "queryAdminPhoneList", vm.searchAdminPhoneList)
                         });
+                        $('.spicker').selectpicker('refresh');
                     })
 
                     vm.autoRefreshTsDistributedPhoneReminder();
@@ -594,6 +595,7 @@ define(['js/app'], function (myApp) {
                 admin: authService.adminId,
                 phoneListName: vm.queryAdminPhoneList.phoneListName,
                 resultName: vm.queryAdminPhoneList.resultName,
+                topic: vm.queryAdminPhoneList.topic,
                 feedbackStart: $('#adminPhoneListLastFeedbackStart').data('datetimepicker').getLocalDate(),
                 feedbackEnd: $('#adminPhoneListLastFeedbackEnd').data('datetimepicker').getLocalDate(),
                 distributeStart: $('#adminPhoneListDistributeStart').data('datetimepicker').getLocalDate(),
@@ -1286,6 +1288,22 @@ define(['js/app'], function (myApp) {
                 vm.searchAdminPhoneList(true);
             });
         }
+
+        vm.cancelTsDistributedPhoneReminder = () => {
+            let sendData = {
+                query: {
+                    tsPhone: vm.tsPhoneReminder.tsPhone,
+                    platform: vm.selectedPlatform.id,
+                    assignee: authService.adminId,
+                },
+                updateData: {
+                    $unset: { remindTime: ""}
+                }
+            };
+            socketService.$socket($scope.AppSocket, 'updateTsPhoneDistributedPhone', sendData, function (data) {
+                vm.autoRefreshTsDistributedPhoneReminder(true);
+            });
+        };
 
         vm.autoRefreshTsDistributedPhoneReminder = function () {
             if (!(window.location.pathname == "/teleMarketing" && vm.selectedTab == "REMINDER_PHONE_LIST")) {

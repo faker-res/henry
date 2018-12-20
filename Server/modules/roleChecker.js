@@ -593,6 +593,7 @@ var roleChecker = {
             },
             "AuctionSystem": {
                 Read: [],
+                Create: [],
                 createProduct: [],
                 monitoringSystem: [],
             },

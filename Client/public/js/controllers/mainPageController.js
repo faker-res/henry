@@ -56,7 +56,7 @@ define(['js/app'], function (myApp) {
                             vm.departments = data.data;
                             console.log("getDepartmentTreeByIds:: vm.departments", vm.departments);
                             vm.drawDepartmentTree();
-                            vm.getAllUserData();
+                            //vm.getAllUserData();
                             $scope.$digest();
                             if (typeof(callback) == 'function') {
                                 callback(data.data);
@@ -71,7 +71,7 @@ define(['js/app'], function (myApp) {
                         vm.departments = data.data;
                         console.log("vm.departments", vm.departments);
                         vm.drawDepartmentTree();
-                        vm.getAllUserData();
+                        //vm.getAllUserData();
                         $scope.$digest();
                         if (typeof(callback) == 'function') {
                             callback(data.data);
@@ -386,11 +386,20 @@ define(['js/app'], function (myApp) {
             };
 
             vm.setDepartViewList = function (){
+                let departMaxViewListArray;
+
                 if(vm.SelectedDepartmentNode.parent){
-                    vm.departMaxViewList = vm.SelectedDepartmentNode.departData && vm.SelectedDepartmentNode.departData.views ? vm.SelectedDepartmentNode.departData.views : {};
+                    departMaxViewListArray = vm.SelectedDepartmentNode.departData && vm.SelectedDepartmentNode.departData.views ? vm.SelectedDepartmentNode.departData.views : {};
                 }else{
-                    vm.departMaxViewList = vm.allView;
+                    departMaxViewListArray = vm.allView;
                 }
+
+                vm.departMaxViewList = {};
+                vm.viewSequence.forEach(
+                    viewSequence => {
+                        vm.departMaxViewList[viewSequence] = departMaxViewListArray[viewSequence];
+                    }
+                );
             };
 
             vm.getFullDepartmentPath = function () {
@@ -425,10 +434,10 @@ define(['js/app'], function (myApp) {
             };
 
             vm.getDepartmentFullData = function () {
-                if (!vm.SelectedDepartmentNode || vm.SelectedDepartmentNode.id == "root") {
-                    vm.getAllUserData();
-                }
-                else {
+                // if (!vm.SelectedDepartmentNode || vm.SelectedDepartmentNode.id == "root") {
+                //     vm.getAllUserData();
+                // }
+                // else {
                     vm.getDepartmentUsersData();
                     //todo::refactor code here
                     socketService.$socket($scope.AppSocket, 'getDepartment', {_id: vm.SelectedDepartmentNode.id}, function (data) {
@@ -439,7 +448,7 @@ define(['js/app'], function (myApp) {
                             $scope.safeApply();
                         }
                     });
-                }
+                // }
             };
 
             //can the selected department be deleted

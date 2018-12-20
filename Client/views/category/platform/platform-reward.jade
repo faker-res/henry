@@ -218,7 +218,7 @@
                                 td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
                                     div(style='width:200px;')
                                         select.form-control(ng-model='entry.sourceProvider', data-container="body" data-width='100%', static-bsp, data-actions-box='true')
-                                            option(ng-repeat='(i,v) in vm.allGameProviders', value='{{v._id}}') {{ v.name }}
+                                            option(ng-repeat='(i,v) in vm.baccaratRewardGameProviders', value='{{v._id}}') {{ v.name }}
                                 td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
                                     div(style='width:280px;')
                                         select.form-control(ng-model='entry.betType', data-container="body" data-width='100%', multiple, static-bsp, data-actions-box='true')
@@ -263,7 +263,7 @@
                                 td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
                                     div(style='width:200px;')
                                         select.form-control(ng-model='entry.sourceProvider', data-container="body" data-width='100%', static-bsp, data-actions-box='true')
-                                            option(ng-repeat='(i,v) in vm.allGameProviders', value='{{v._id}}') {{ v.name }}
+                                            option(ng-repeat='(i,v) in vm.baccaratRewardGameProviders', value='{{v._id}}') {{ v.name }}
                                 td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
                                     div(style='width:280px;')
                                         select.form-control(ng-model='entry.betType', data-container="body" data-width='100%', multiple, static-bsp, data-actions-box='true')
@@ -300,7 +300,7 @@
                                             td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
                                                 div(style='width:200px;')
                                                     select.form-control(ng-model='entry.sourceProvider', data-container="body" data-width='100%', static-bsp, data-actions-box='true')
-                                                        option(ng-repeat='(i,v) in vm.allGameProviders', value='{{v._id}}') {{ v.name }}
+                                                        option(ng-repeat='(i,v) in vm.baccaratRewardGameProviders', value='{{v._id}}') {{ v.name }}
                                             td(ng-if='vm.showRewardTypeData && vm.showRewardTypeData.name ==="BaccaratRewardGroup"')
                                                 div(style='width:280px;')
                                                     select.form-control(ng-model='entry.betType', data-container="body" data-width='100%', multiple, static-bsp, data-actions-box='true')

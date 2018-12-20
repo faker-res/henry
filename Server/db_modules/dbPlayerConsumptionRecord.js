@@ -185,6 +185,16 @@ var dbPlayerConsumptionRecord = {
             },
             isDuplicate: {$ne: true}
         };
+        if(showSumOnly){
+            //function for sync-cpms
+            matchObj = {
+                orderTime: {
+                    $gte: startTime,
+                    $lt: endTime
+                },
+                isDuplicate: {$ne: true}
+            };
+        }
         if (providerObjId) {
             matchObj.providerId = providerObjId;
         }
