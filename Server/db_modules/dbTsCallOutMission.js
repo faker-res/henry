@@ -380,7 +380,7 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
 function getCalleeList (query, sortCol) {
     let phoneListProm = Promise.resolve();
     if (query.phoneListName && query.phoneListName.length) {
-        phoneListProm = dbconfig.collection_tsPhoneList.find({name: {$in: query.phoneListName}, assignees: query.admin, platform: query.platform}, {_id: 1}).lean();
+        phoneListProm = dbconfig.collection_tsPhoneList.find({name: {$in: query.phoneListName}, platform: query.platform}, {_id: 1}).lean();
     }
 
     return phoneListProm.then(
@@ -391,107 +391,13 @@ function getCalleeList (query, sortCol) {
                 registered: false
             }
 
-            if (phoneListData && phoneListData.length && query.phoneListName && query.phoneListName.length) {
-                phoneListQuery.tsPhoneList = {$in: phoneListData.map(phoneList => phoneList._id)}
-            }
-
-            phoneListQuery["$and"] = [{startTime: {$lt: new Date()}}, {endTime: {$gte: new Date()}}];
-            if (query.resultName && query.resultName.length) {
-                phoneListQuery.resultName = {$in: query.resultName};
-            }
-
-            if (query.feedbackStart && query.feedbackEnd) {
-                phoneListQuery["$and"].push({
-                    $or: [{lastFeedbackTime: null}, {
-                        lastFeedbackTime: {
-                            $gte: query.feedbackStart,
-                            $lt: query.feedbackEnd
-                        }
-                    }]
-                });
-            }
-            if (query.distributeStart && query.distributeEnd) {
-                phoneListQuery["$and"].push({startTime: {$gte: query.distributeStart, $lt: query.distributeEnd}})
-            }
-
-
-            if (query.hasOwnProperty("reclaimDays") && query.reclaimDays != null) {
-                let countReclaimDate = dbutility.getNdaylaterFromSpecificStartTime(query.reclaimDays + 1, new Date());
-                let reclaimDate = dbutility.getTargetSGTime(countReclaimDate);
-                switch (query.reclaimDayOperator) {
-                    case '<=':
-                        phoneListQuery["$and"].push({endTime: {$lte: reclaimDate.startTime}});
-                        break;
-                    case '>=':
-                        phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime}});
-                        break;
-                    case '=':
-                        phoneListQuery["$and"].push({endTime: reclaimDate.startTime});
-                        break;
-                    case 'range':
-                        if (query.hasOwnProperty("reclaimDaysTwo") && query.reclaimDaysTwo != null) {
-                            let countReclaimDate2 = dbutility.getNdaylaterFromSpecificStartTime(query.reclaimDaysTwo + 1, new Date());
-                            let reclaimDate2 = dbutility.getTargetSGTime(countReclaimDate2);
-                            phoneListQuery["$and"].push({
-                                endTime: {
-                                    $gte: reclaimDate.startTime,
-                                    $lte: reclaimDate2.startTime
-                                }
-                            });
-                        }
-                        break;
+            if (query.phoneListName && query.phoneListName.length) {
+                if (!(phoneListData && phoneListData.length)) {
+                    return []; // return empty data
                 }
             }
 
-            if (query.hasOwnProperty("feedbackTimes") && query.feedbackTimes != null) {
-                let feedbackTimes = query.feedbackTimes;
-                switch (query.feedbackTimesOperator) {
-                    case '<=':
-                        phoneListQuery.feedbackTimes = {$lte: feedbackTimes};
-                        break;
-                    case '>=':
-                        phoneListQuery.feedbackTimes = {$gte: feedbackTimes};
-                        break;
-                    case '=':
-                        phoneListQuery.feedbackTimes = feedbackTimes;
-                        break;
-                    case 'range':
-                        if (query.hasOwnProperty("feedbackTimesTwo") && query.feedbackTimesTwo != null) {
-                            phoneListQuery.feedbackTimes = {
-                                $gte: feedbackTimes,
-                                $lte: query.feedbackTimesTwo
-                            };
-                        }
-                        break;
-                }
-            }
-
-            if (query.hasOwnProperty("assignTimes") && query.assignTimes != null) {
-                let assignTimes = query.assignTimes;
-                switch (query.assignTimesOperator) {
-                    case '<=':
-                        phoneListQuery.assignTimes = {$lte: assignTimes};
-                        break;
-                    case '>=':
-                        phoneListQuery.assignTimes = {$gte: assignTimes};
-                        break;
-                    case '=':
-                        phoneListQuery.assignTimes = assignTimes;
-                        break;
-                    case 'range':
-                        if (query.hasOwnProperty("assignTimesTwo") && query.assignTimesTwo != null) {
-                            phoneListQuery.assignTimes = {
-                                $gte: assignTimes,
-                                $lte: query.assignTimesTwo
-                            };
-                        }
-                        break;
-                }
-            }
-
-            if (query.isFilterDangerZone) {
-                phoneListQuery.isInDangerZone = false;
-            }
+            dbTeleSales.getAdminPhoneListQuery(query, phoneListQuery, phoneListData);
 
             return dbconfig.collection_tsDistributedPhone.find(phoneListQuery).sort(sortCol)
                 .populate({path: 'tsPhone', model: dbconfig.collection_tsPhone}).lean();

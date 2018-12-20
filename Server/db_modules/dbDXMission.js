@@ -1360,16 +1360,22 @@ let dbDXMission = {
             return;
         }
 
+        let filterStatus = [constTsPhoneListStatus.PERFECTLY_COMPLETED, constTsPhoneListStatus.FORCE_COMPLETED, constTsPhoneListStatus.DECOMPOSED]
         let sendQuery = {
             platform: platform,
-            status: {$nin: [constTsPhoneListStatus.PERFECTLY_COMPLETED, constTsPhoneListStatus.FORCE_COMPLETED, constTsPhoneListStatus.DECOMPOSED]},
+            status: {$nin: filterStatus},
             createTime: {
                 $gte: startTime,
                 $lt: endTime
             },
         };
 
-        if (status) {
+        if (status && status.length) {
+            status = status.filter(
+                stat => {
+                    return !filterStatus.includes(Number(stat));
+                }
+            );
             sendQuery.status = {$in: status};
         }
 

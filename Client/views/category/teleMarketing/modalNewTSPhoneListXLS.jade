@@ -9,7 +9,7 @@
                     .panel-body
                         .row
                             .col-md-12
-                                .well
+                                .well(style='max-height: 400px; max-height: 50vh; overflow: auto')
                                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%;white-space:normal;')
                                         thead
                                             tr
@@ -72,24 +72,28 @@
                                                     table.common-table.playerLvlTable
                                                         thead
                                                             tr
-                                                                th(style="width:50%") {{"CITY" | translate}}
                                                                 th(style="width:50%") {{"PROVINCE" | translate}}
+                                                                th(style="width:50%") {{"CITY" | translate}}
                                                                 th
                                                         tbody
                                                             tr(ng-repeat='(i, v) in vm.tsNewList.dangerZoneList')
                                                                 td
-                                                                    select.form-control(ng-model='vm.tsNewList.dangerZoneList[i].province', ng-options='i as i for (i, v) in constPhoneArea' ng-disabled='vm.disableAll')
+                                                                    select.form-control(ng-model='vm.tsNewList.dangerZoneList[i].province', ng-options='i as i for (i, v) in constPhoneArea' ng-disabled='vm.disableAll', ng-change='vm.tsNewList.dangerZoneList[i].city = "all"')
                                                                 td
-                                                                    select.form-control(ng-model='vm.tsNewList.dangerZoneList[i].city', ng-options='val as val for (n, val) in constPhoneArea[vm.tsNewList.dangerZoneList[i].province]' ng-disabled='vm.disableAll')
+                                                                    select.form-control(ng-model='vm.tsNewList.dangerZoneList[i].city', ng-disabled='vm.disableAll')
+                                                                        option(value='all') {{'All Selected' | translate}}
+                                                                        option(ng-repeat='(n,val) in constPhoneArea[vm.tsNewList.dangerZoneList[i].province]', value='{{val}}') {{val}}
                                                                 td
                                                                     i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.tsNewList.dangerZoneList, $index)'  ng-disabled='vm.disableAll')
                                                             tr
                                                                 td(colspan=3) {{'ADD' | translate}}
                                                             tr
                                                                 td
-                                                                    select.form-control(ng-model='vm.tsProvince',  ng-options='i as i for (i, v) in constPhoneArea' ng-disabled='vm.disableAll')
+                                                                    select.form-control(ng-model='vm.tsProvince',  ng-options='i as i for (i, v) in constPhoneArea' ng-disabled='vm.disableAll', ng-change='vm.tsCity = "all"')
                                                                 td
-                                                                    select.form-control(ng-model='vm.tsCity',  ng-options='val as val for (n, val) in constPhoneArea[vm.tsProvince]' ng-disabled='vm.disableAll')
+                                                                    select.form-control(ng-model='vm.tsCity', ng-disabled='vm.disableAll')
+                                                                        option(value='all') {{'All Selected' | translate}}
+                                                                        option(ng-repeat='(n,val) in constPhoneArea[vm.tsProvince]', value='{{val}}') {{val}}
                                                                 td
                                                                     i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.tsNewList.dangerZoneList, {province: vm.tsProvince, city: vm.tsCity}); vm.resetProvince();' ng-show='vm.tsProvince && vm.tsCity' ng-disabled='vm.disableAll')
 

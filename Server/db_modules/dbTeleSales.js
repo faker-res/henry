@@ -33,13 +33,117 @@ let dbTeleSales = {
         return dbconfig.collection_tsPhoneList.findOne(query).lean();
     },
 
+    getAdminPhoneListQuery: function (query, phoneListQuery, phoneListData) {
+        if (query.phoneListName && query.phoneListName.length) {
+            if (phoneListData && phoneListData.length) {
+                phoneListQuery.tsPhoneList = {$in: phoneListData.map(phoneList => phoneList._id)}
+            }
+        }
+
+        phoneListQuery["$and"] = [{startTime: {$lt: new Date()}}, {endTime: {$gte: new Date()}}];
+        if (query.resultName && query.resultName.length) {
+            for (let i = 0; i < query.resultName.length; i++) {
+                if (query.resultName[i] == "") {
+                    query.resultName[i] = null;
+                }
+                break;
+            }
+            phoneListQuery.resultName = {$in: query.resultName};
+        }
+
+        if (query.topic && query.topic.length) {
+            phoneListQuery.topic = {$in: query.topic};
+        }
+
+        if (query.feedbackStart && query.feedbackEnd) {
+            phoneListQuery["$and"].push({lastFeedbackTime: {$gte: query.feedbackStart, $lt: query.feedbackEnd}});
+        }
+        if (query.distributeStart && query.distributeEnd) {
+            phoneListQuery["$and"].push({startTime: {$gte: query.distributeStart, $lt: query.distributeEnd}})
+        }
+
+
+        if (query.hasOwnProperty("reclaimDays") && query.reclaimDays != null) {
+            let countReclaimDate = dbUtility.getNdaylaterFromSpecificStartTime(query.reclaimDays, new Date());
+            let reclaimDate =dbUtility.getTargetSGTime(countReclaimDate);
+            switch (query.reclaimDayOperator) {
+                case '<=':
+                    phoneListQuery["$and"].push({endTime: {$lte: reclaimDate.startTime}});
+                    break;
+                case '>=':
+                    phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime}});
+                    break;
+                case '=':
+                    phoneListQuery["$and"].push({endTime: reclaimDate.startTime});
+                    break;
+                case 'range':
+                    if (query.hasOwnProperty("reclaimDaysTwo") && query.reclaimDaysTwo != null) {
+                        let countReclaimDate2 = dbUtility.getNdaylaterFromSpecificStartTime(query.reclaimDaysTwo, new Date());
+                        let reclaimDate2 = dbUtility.getTargetSGTime(countReclaimDate2);
+                        phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime, $lte: reclaimDate2.startTime}});
+                    }
+                    break;
+            }
+        }
+
+        if (query.hasOwnProperty("feedbackTimes") && query.feedbackTimes != null) {
+            let feedbackTimes = query.feedbackTimes;
+            switch (query.feedbackTimesOperator) {
+                case '<=':
+                    phoneListQuery.feedbackTimes = {$lte: feedbackTimes};
+                    break;
+                case '>=':
+                    phoneListQuery.feedbackTimes = {$gte: feedbackTimes};
+                    break;
+                case '=':
+                    phoneListQuery.feedbackTimes = feedbackTimes;
+                    break;
+                case 'range':
+                    if (query.hasOwnProperty("feedbackTimesTwo") && query.feedbackTimesTwo != null) {
+                        phoneListQuery.feedbackTimes = {
+                            $gte: feedbackTimes,
+                            $lte: query.feedbackTimesTwo
+                        };
+                    }
+                    break;
+            }
+        }
+
+        if (query.hasOwnProperty("assignTimes") && query.assignTimes != null) {
+            let assignTimes = query.assignTimes;
+            switch (query.assignTimesOperator) {
+                case '<=':
+                    phoneListQuery.assignTimes = {$lte: assignTimes};
+                    break;
+                case '>=':
+                    phoneListQuery.assignTimes = {$gte: assignTimes};
+                    break;
+                case '=':
+                    phoneListQuery.assignTimes = assignTimes;
+                    break;
+                case 'range':
+                    if (query.hasOwnProperty("assignTimesTwo") && query.assignTimesTwo != null) {
+                        phoneListQuery.assignTimes = {
+                            $gte: assignTimes,
+                            $lte: query.assignTimesTwo
+                        };
+                    }
+                    break;
+            }
+        }
+
+        if (query.isFilterDangerZone) {
+            phoneListQuery.isInDangerZone = false;
+        }
+    },
+
     getAdminPhoneList: function (query, index, limit, sortObj) {
         limit = limit ? limit : 10;
         index = index ? index : 0;
 
         let phoneListProm = Promise.resolve();
         if (query.phoneListName && query.phoneListName.length) {
-            phoneListProm = dbconfig.collection_tsPhoneList.find({name: {$in: query.phoneListName}, assignees: query.admin, platform: query.platform}, {_id: 1}).lean();
+            phoneListProm = dbconfig.collection_tsPhoneList.find({name: {$in: query.phoneListName}, platform: query.platform}, {_id: 1}).lean();
         }
 
         return phoneListProm.then(
@@ -50,96 +154,13 @@ let dbTeleSales = {
                     registered: false
                 }
 
-                if (phoneListData && phoneListData.length && query.phoneListName && query.phoneListName.length) {
-                    phoneListQuery.tsPhoneList = {$in: phoneListData.map(phoneList => phoneList._id)}
-                }
-
-                phoneListQuery["$and"] = [{startTime: {$lt: new Date()}}, {endTime: {$gte: new Date()}}];
-                if (query.resultName && query.resultName.length) {
-                    phoneListQuery.resultName = {$in: query.resultName};
-                }
-
-                if (query.feedbackStart && query.feedbackEnd) {
-                    phoneListQuery["$and"].push({lastFeedbackTime: {$gte: query.feedbackStart, $lt: query.feedbackEnd}});
-                }
-                if (query.distributeStart && query.distributeEnd) {
-                    phoneListQuery["$and"].push({startTime: {$gte: query.distributeStart, $lt: query.distributeEnd}})
-                }
-
-
-
-                if (query.hasOwnProperty("reclaimDays") && query.reclaimDays != null) {
-                    let countReclaimDate = dbUtility.getNdaylaterFromSpecificStartTime(query.reclaimDays, new Date());
-                    let reclaimDate =dbUtility.getTargetSGTime(countReclaimDate);
-                    switch (query.reclaimDayOperator) {
-                        case '<=':
-                            phoneListQuery["$and"].push({endTime: {$lte: reclaimDate.startTime}});
-                            break;
-                        case '>=':
-                            phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime}});
-                            break;
-                        case '=':
-                            phoneListQuery["$and"].push({endTime: reclaimDate.startTime});
-                            break;
-                        case 'range':
-                            if (query.hasOwnProperty("reclaimDaysTwo") && query.reclaimDaysTwo != null) {
-                                let countReclaimDate2 = dbUtility.getNdaylaterFromSpecificStartTime(query.reclaimDaysTwo, new Date());
-                                let reclaimDate2 = dbUtility.getTargetSGTime(countReclaimDate2);
-                                phoneListQuery["$and"].push({endTime: {$gte: reclaimDate.startTime, $lte: reclaimDate2.startTime}});
-                            }
-                            break;
+                if (query.phoneListName && query.phoneListName.length) {
+                    if (!(phoneListData && phoneListData.length)) {
+                        return [0,[]]; // return empty data
                     }
                 }
 
-                if (query.hasOwnProperty("feedbackTimes") && query.feedbackTimes != null) {
-                    let feedbackTimes = query.feedbackTimes;
-                    switch (query.feedbackTimesOperator) {
-                        case '<=':
-                            phoneListQuery.feedbackTimes = {$lte: feedbackTimes};
-                            break;
-                        case '>=':
-                            phoneListQuery.feedbackTimes = {$gte: feedbackTimes};
-                            break;
-                        case '=':
-                            phoneListQuery.feedbackTimes = feedbackTimes;
-                            break;
-                        case 'range':
-                            if (query.hasOwnProperty("feedbackTimesTwo") && query.feedbackTimesTwo != null) {
-                                phoneListQuery.feedbackTimes = {
-                                    $gte: feedbackTimes,
-                                    $lte: query.feedbackTimesTwo
-                                };
-                            }
-                            break;
-                    }
-                }
-
-                if (query.hasOwnProperty("assignTimes") && query.assignTimes != null) {
-                    let assignTimes = query.assignTimes;
-                    switch (query.assignTimesOperator) {
-                        case '<=':
-                            phoneListQuery.assignTimes = {$lte: assignTimes};
-                            break;
-                        case '>=':
-                            phoneListQuery.assignTimes = {$gte: assignTimes};
-                            break;
-                        case '=':
-                            phoneListQuery.assignTimes = assignTimes;
-                            break;
-                        case 'range':
-                            if (query.hasOwnProperty("assignTimesTwo") && query.assignTimesTwo != null) {
-                                phoneListQuery.assignTimes = {
-                                    $gte: assignTimes,
-                                    $lte: query.assignTimesTwo
-                                };
-                            }
-                            break;
-                    }
-                }
-
-                if (query.isFilterDangerZone) {
-                    phoneListQuery.isInDangerZone = false;
-                }
+                dbTeleSales.getAdminPhoneListQuery(query, phoneListQuery, phoneListData);
 
                 let tsDistributePhoneCountProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).count();
                 let tsDistributePhoneProm = dbconfig.collection_tsDistributedPhone.find(phoneListQuery).sort(sortObj).skip(index).limit(limit)
@@ -272,7 +293,8 @@ let dbTeleSales = {
                     lastFeedbackTime: new Date(),
                     isUsed: true,
                     isSucceedBefore: isSuccessFeedback,
-                    resultName: inputData.resultName
+                    resultName: inputData.resultName,
+                    topic: inputData.topic
                 }, {new: true}).lean();
             }
         ).then(
@@ -539,7 +561,9 @@ let dbTeleSales = {
                                 totalPhoneAdded++;
                                 tsAssigneeArr[j].updateObj.tsPhone.push({
                                     tsPhoneObjId: tsPhoneData[i]._id,
-                                    assignTimes: tsPhoneData[i].assignTimes
+                                    assignTimes: tsPhoneData[i].assignTimes,
+                                    province: tsPhoneData[i].province,
+                                    city: tsPhoneData[i].city,
                                 });
                                 tsAssigneeArr.sort(sortAssigneePhoneCount);
                                 break;
@@ -565,7 +589,7 @@ let dbTeleSales = {
                                         let isInDangerZone = false;
 
                                         dangerZoneList.map(dangerZone => {
-                                            if (dangerZone.province == tsPhoneUpdate.province && dangerZone.city == tsPhoneUpdate.city) {
+                                            if (dangerZone.province == tsPhoneUpdate.province && (dangerZone.city == tsPhoneUpdate.city || dangerZone.city == "all")) {
                                                 isInDangerZone = true;
                                             }
                                         });
@@ -579,8 +603,8 @@ let dbTeleSales = {
                                             tsPhoneList: inputData.tsListObjId,
                                             tsDistributedPhoneList: distributedPhoneListData._id,
                                             tsPhone: ObjectId(tsPhoneUpdate.tsPhoneObjId),
-                                            province: tsPhoneUpdate.province,
-                                            city: tsPhoneUpdate.city,
+                                            province: tsPhoneUpdate.province || "",
+                                            city: tsPhoneUpdate.city || "",
                                             isInDangerZone: isInDangerZone,
                                             assignTimes: (tsPhoneUpdate.assignTimes + 1) || 1,
                                             assignee: tsAssignee.admin,
@@ -698,9 +722,15 @@ let dbTeleSales = {
                     } else if (!(tsPhoneOldData.dangerZoneList && tsPhoneOldData.dangerZoneList.length) && updateData.dangerZoneList && updateData.dangerZoneList.length) {
                         // add danger zone in tsPhone
                         tsPhoneQuery.$or = [];
-                        for (let i = 0; i < i < updateData.dangerZoneList.length; i++) {
-                            if (updateData.dangerZoneList[i].city && updateData.dangerZoneList[i].province) {
-                                tsPhoneQuery.$or.push({city: updateData.dangerZoneList[i].city, province: updateData.dangerZoneList[i].province})
+                        for (let i = 0; i < updateData.dangerZoneList.length; i++) {
+                            if (updateData.dangerZoneList[i] && updateData.dangerZoneList[i].city && updateData.dangerZoneList[i].province) {
+                                let tempDangerListQuery = {
+                                    province: updateData.dangerZoneList[i].province
+                                };
+                                if (updateData.dangerZoneList[i] && updateData.dangerZoneList[i].city != "all") {
+                                    tempDangerListQuery.city = updateData.dangerZoneList[i].city;
+                                }
+                                tsPhoneQuery.$or.push(tempDangerListQuery)
                             }
                         }
                         if (tsPhoneQuery.$or.length) {
@@ -719,7 +749,13 @@ let dbTeleSales = {
                             compareCity = inputZone.city;
                             compareProvince = inputZone.province;
                             if (compareCity && compareProvince && !tsPhoneOldData.dangerZoneList.find(findDangerZone)){
-                                addedZone.push({city: compareCity, province: compareProvince});
+                                let tempDangerListQuery = {
+                                    province: compareProvince
+                                };
+                                if (compareCity != "all") {
+                                    tempDangerListQuery.city = compareCity;
+                                };
+                                addedZone.push(tempDangerListQuery);
                             }
                         });
 
@@ -730,7 +766,13 @@ let dbTeleSales = {
                             compareCity = oriZone.city;
                             compareProvince = oriZone.province;
                             if (compareCity && compareProvince && !updateData.dangerZoneList.find(findDangerZone)){
-                                deletedZone.push({city: compareCity, province: compareProvince});
+                                let tempDangerListQuery = {
+                                    province: compareProvince
+                                };
+                                if (compareCity != "all") {
+                                    tempDangerListQuery.city = compareCity;
+                                };
+                                deletedZone.push(tempDangerListQuery);
                             }
                         });
 
@@ -1531,7 +1573,7 @@ function isStillTradeAble(platformsArr,platformTsPhoneTrade) {
     return Boolean(tradeablePlatformCount >= 2 && isHavePhoneLeft);
 }
 
-function getAllTradeablePhone (platformsArr, recursiveCount) {
+function getAllTradeablePhone (platformsArr, recursiveCount, remainingPhoneTrade) {
     recursiveCount = recursiveCount || 50;
     if (recursiveCount <= 0) {
         return Promise.reject({name: "DataError", message: "getAllTradeablePhone reach max recursive count"});
@@ -1541,10 +1583,32 @@ function getAllTradeablePhone (platformsArr, recursiveCount) {
     let tsPhoneTradeArr = [];
 
     for (let i = 0; i < platformsArr.length; i++) {
+        let limitPhoneTrade = platformsArr[i].phoneWhiteListExportMaxNumber || 1; //for recursive use (second times onwards)
+        let skipPhoneTrade = 0; //for recursive use (second times onwards)
+        if (remainingPhoneTrade) {
+            limitPhoneTrade = 0;
+            if (remainingPhoneTrade[platformsArr[i]._id]) {
+                remainingPhoneTrade[platformsArr[i]._id].forEach(phoneTrade => {
+                    if (phoneTrade.isNotTradeable) {
+                        limitPhoneTrade++;
+                    } else {
+                        tsPhoneTradeArr.push(phoneTrade);
+                    }
+                })
+            }
+            
+            if (!limitPhoneTrade) {
+                continue;
+            } else {
+                skipPhoneTrade = platformsArr[i].phoneWhiteListExportMaxNumber;
+            }
+        }
+
         let prom = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: platformsArr[i]._id, targetPlatform: null}, {sourceTsPhone: 1})
             .populate({path: "sourceTsPhone", model: dbconfig.collection_tsPhone, select: "phoneNumber platform"})
             .sort({decomposeTime: 1})
-            .limit(platformsArr[i].phoneWhiteListExportMaxNumber || 1).lean();
+            .skip(skipPhoneTrade)
+            .limit(limitPhoneTrade).lean();
 
         let stream = prom.cursor({batchSize: 100});
         let balancer = new SettlementBalancer();
@@ -1581,7 +1645,7 @@ function getAllTradeablePhone (platformsArr, recursiveCount) {
     ).then(
         (resData) => {
             if (isStillTradeAble() && resData) {
-                getAllTradeablePhone (platformsArr, recursiveCount--);
+                getAllTradeablePhone (platformsArr, recursiveCount--, resData);
             }
         }
     );
@@ -1644,6 +1708,8 @@ function tradePhoneForEachPlatform (platformsArr, tsPhoneTradeArr) {
                             break;
                         }
                     }
+                } else if (j == 0) {
+                    tsPhoneTradeSender.isNotTradeable = true;
                 }
             }
             if (!(platformsArr && platformsArr.length >= 2)) {
@@ -1656,7 +1722,11 @@ function tradePhoneForEachPlatform (platformsArr, tsPhoneTradeArr) {
             break;
         }
     }
-    return Promise.all(promArr);
+    return Promise.all(promArr).then(
+        output => {
+            return platformTsPhoneTrade;
+        }
+    )
 }
 
 function addTsFeedbackCount (feedbackObj, isSucceedBefore = false) {

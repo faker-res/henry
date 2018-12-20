@@ -930,7 +930,7 @@ var roleChecker = {
                 queryByTotalValidConsumption: [],
             },
             PHONE_LIST_ANALYSE_AND_MANAGEMENT: {
-                Read: []
+                Read: ['getDepartmentDetailsByPlatformObjId', 'getAdminNameByDepartment']
             },
             MY_PHONE_LIST_OR_REMINDER_PHONE_LIST: {
                 Read: ['getAllPromoteWay']
