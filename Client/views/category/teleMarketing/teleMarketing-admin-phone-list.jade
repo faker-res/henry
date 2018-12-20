@@ -7,8 +7,10 @@ div(ng-show="vm.curPlatformText")
             label.control-label {{'PHONE_LIST' | translate}}
             select.spicker.form-control#phoneListMangementName(ng-model='vm.queryAdminPhoneList.phoneListName', bsp, multiple, data-actions-box='true', ng-options='v as v for (i,v) in vm.adminPhoneListName')
         div(style='max-width: 200px')
-            label {{"SEND_STATUS"|translate}}
-            select.spicker.form-control#phoneListMangementStatus(ng-model='vm.queryAdminPhoneList.resultName', bsp, multiple, data-actions-box='true', ng-options='v.value as v.value for (i,v) in vm.allPlayerFeedbackResults')
+            label {{"MY_LAST_FEEDBACK_STATUS"|translate}}
+            select.spicker.form-control#phoneListMangementStatus(ng-model='vm.queryAdminPhoneList.resultName', bsp, multiple, data-actions-box='true')
+                option(value= '') {{'NO_FEEDBACK' | translate}}
+                option(ng-repeat="(i,v) in vm.allPlayerFeedbackResults", value='{{v.value}}') {{v.value | translate}}
         div
             label.control-label {{'My last feedback time (start)' | translate}}
             #adminPhoneListLastFeedbackStart

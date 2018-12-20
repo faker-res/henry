@@ -452,6 +452,7 @@ define(['js/app'], function (myApp) {
                         vm.queryAdminPhoneList.pageObj = utilService.createPageForPagingTable("#adminPhoneListTablePage", {}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "queryAdminPhoneList", vm.searchAdminPhoneList)
                         });
+                        $('.spicker').selectpicker('refresh');
                     })
 
                     vm.autoRefreshTsDistributedPhoneReminder();
