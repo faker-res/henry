@@ -83,6 +83,37 @@
                         //            .fa.fa-file-text.margin-right-5
                         //            text.span {{"phoneNumFilter" | translate}}
 
+#modalPhoneListCountDetails.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:95%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            b(ng-if="vm.selectedTab === 'PHONE_LIST_ANALYSE_AND_MANAGEMENT'") * {{"REMARKS" | translate}}: A = B+C+D+E
+                            b(ng-if="vm.selectedTab === 'RECYCLE_BIN'") * {{"REMARKS" | translate}}: A = E+F
+                            .col-md-12
+                                table.simple-table
+                                    thead
+                                        tr
+                                            th {{"A. Phone List Total Count" | translate}}
+                                            th(title='{{"Indicates phone numbers that has completed the preset rotation number and is now expired." | translate}}') {{"B. Distribution Completed Count" | translate}}
+                                            th(title='{{"Indicates phone numbers that has been distributed but has not completed the preset rotation amount." | translate}}') {{"C. Distribution Incomplete Count" | translate}}
+                                            th(title='{{"Indicates phone numbers that has completed the preset rotation number and is now expired." | translate}}') {{"D. Admin Current Holdings Count" | translate}}
+                                            th {{"E. Registered Count" | translate}}
+                                            th {{"F. Recycle Bin" | translate}}
+                                    tbody
+                                        tr
+                                            td {{vm.tsPhoneCountDetail.total}}
+                                            td {{vm.tsPhoneCountDetail.completed}}
+                                            td {{vm.tsPhoneCountDetail.incomplete}}
+                                            td {{vm.tsPhoneCountDetail.currentHolding}}
+                                            td {{vm.tsPhoneCountDetail.registered}}
+                                            td {{vm.tsPhoneCountDetail.recycleBin}}
+
 //ModaltsAnalyticsPhoneList
 #modaltsAnalyticsPhoneList.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
