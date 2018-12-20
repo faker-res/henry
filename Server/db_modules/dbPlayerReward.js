@@ -5675,7 +5675,7 @@ let dbPlayerReward = {
                 createTime: {$gte: todayTime.startTime, $lt: todayTime.endTime},
                 //bDirty: false,
                 playerId: playerData._id,
-                isDuplicate: false,
+                isDuplicate: {$ne: true},
             };
 
             if (intervalTime) {
