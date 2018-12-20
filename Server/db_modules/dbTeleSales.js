@@ -711,11 +711,11 @@ let dbTeleSales = {
                         // add danger zone in tsPhone
                         tsPhoneQuery.$or = [];
                         for (let i = 0; i < updateData.dangerZoneList.length; i++) {
-                            if (updateData.dangerZoneList[i].city && updateData.dangerZoneList[i].province) {
+                            if (updateData.dangerZoneList[i] && updateData.dangerZoneList[i].city && updateData.dangerZoneList[i].province) {
                                 let tempDangerListQuery = {
                                     province: updateData.dangerZoneList[i].province
                                 };
-                                if (updateData.dangerZoneList[i].city != "all") {
+                                if (updateData.dangerZoneList[i] && updateData.dangerZoneList[i].city != "all") {
                                     tempDangerListQuery.city = updateData.dangerZoneList[i].city;
                                 }
                                 tsPhoneQuery.$or.push(tempDangerListQuery)
