@@ -380,7 +380,7 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
 function getCalleeList (query, sortCol) {
     let phoneListProm = Promise.resolve();
     if (query.phoneListName && query.phoneListName.length) {
-        phoneListProm = dbconfig.collection_tsPhoneList.find({name: {$in: query.phoneListName}, assignees: query.admin, platform: query.platform}, {_id: 1}).lean();
+        phoneListProm = dbconfig.collection_tsPhoneList.find({name: {$in: query.phoneListName}, platform: query.platform}, {_id: 1}).lean();
     }
 
     return phoneListProm.then(
