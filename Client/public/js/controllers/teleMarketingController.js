@@ -6289,9 +6289,8 @@ define(['js/app'], function (myApp) {
                         }
                     ).then(
                         () => {
-                            console.log("walaohahaha")
                             return vm.updateDecomposedTime(targetTsPhoneListId);
-                        }, (err) => {console.log("walaofail")}
+                        }
                     )
                 }
             } else {
