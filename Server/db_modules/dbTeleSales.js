@@ -749,6 +749,11 @@ let dbTeleSales = {
     updateTsPhoneList: function (query, updateData) {
         return dbconfig.collection_tsPhoneList.findOneAndUpdate(query, updateData).lean().then(
             tsPhoneOldData => {
+                let compareCity;
+                let compareProvince;
+                function findDangerZone (item) {
+                    return item.city == compareCity && item.province == compareProvince;
+                }
                 if (tsPhoneOldData) {
                     let tsPhoneQuery = {
                         tsPhoneList: tsPhoneOldData._id
@@ -778,11 +783,11 @@ let dbTeleSales = {
                     } else if (tsPhoneOldData.dangerZoneList && tsPhoneOldData.dangerZoneList.length && updateData.dangerZoneList && updateData.dangerZoneList.length) {
                         let addedZone = [];
                         let deletedZone = [];
-                        let compareCity;
-                        let compareProvince;
-                        function findDangerZone (item) {
-                            return item.city == compareCity && item.province == compareProvince;
-                        }
+                        // let compareCity;
+                        // let compareProvince;
+                        // function findDangerZone (item) {
+                        //     return item.city == compareCity && item.province == compareProvince;
+                        // }
                         updateData.dangerZoneList.forEach(inputZone => {
                             compareCity = inputZone.city;
                             compareProvince = inputZone.province;
@@ -921,7 +926,7 @@ let dbTeleSales = {
         if (!sourceTsPhoneList) {
             return;
         }
-        dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: sourceTsPhoneList}, {status: constTsPhoneListStatus.DECOMPOSED}).lean().catch(errorUtils.reportError);
+        dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: sourceTsPhoneList}, {status: constTsPhoneListStatus.DECOMPOSED, decomposedTime: new Date(Date.now())}).lean().catch(errorUtils.reportError);
         tsPhones.forEach(
             tsPhone => {
                 let tsPhoneQuery = dbconfig.collection_tsPhoneFeedback.findOne({
