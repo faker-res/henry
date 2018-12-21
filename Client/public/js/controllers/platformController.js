@@ -36312,9 +36312,11 @@ define(['js/app'], function (myApp) {
             /***** Auction System - end *****/
 
             vm.changeFrameHeight = function() {
-                var ifm = document.getElementById("configIframe");
-                ifm.height = document.documentElement.clientHeight;
+                let ifm = document.getElementById("configIframe");
 
+                if (ifm) {
+                    ifm.height = document.documentElement.clientHeight;
+                }
             };
 
             window.onresize = function() {
