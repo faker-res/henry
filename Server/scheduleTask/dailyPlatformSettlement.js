@@ -412,9 +412,7 @@ var dailyPlatformSettlement = {
                         tsPhoneList => {
                             let decomposeProm = dbTeleSales.getTsPhoneListRecyclePhone({platform: platformData._id, tsPhoneList: tsPhoneList._id}).then(
                                 tsPhones => {
-                                    if (tsPhones && tsPhones.length) {
-                                        return dbTeleSales.decomposeTsPhoneList(tsPhoneList.name,tsPhones);
-                                    }
+                                    return dbTeleSales.decomposeTsPhoneList(tsPhoneList.name, tsPhones);
                                 }
                             ).catch(errorUtils.reportError);
                             promArr.push(decomposeProm);
