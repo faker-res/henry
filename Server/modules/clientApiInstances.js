@@ -52,7 +52,8 @@ const apis = {
         real: services.getContentProviderAPIClient,
         mock: mockedContentProviderAPIClientSpec,
         store: serverInstance.setCPAPIClient,
-        disabled: env.disableCPAPI
+        disabled: env.disableCPAPI,
+        game: services.getContentProviderAPIClientForGame,
     },
 
     PaymentAPI: {
@@ -152,12 +153,14 @@ function createAPIConnectionInMode (apiName, mode) {
     // Choose whether to create a real client or a mocked client, or both (for 'compare' mode).
     const realClientProm = (mode === 'real' || mode === 'logged' || mode === 'compare') && apiSpec.real();
     const mockedClient   = (mode === 'mock' || mode === 'compare') && mockedClientCreator.createMockedClient(apiSpec.mock, apiName);
+    const gameClient = mode === 'game' && apiSpec.game();
 
     const finalClientProm =
         mode === 'real' ? realClientProm
             : mode === 'mock' ? Q.resolve(mockedClient)
                 : mode === 'logged' || mode === 'compare' ? realClientProm.then(client => logThisClient(apiName, client, mockedClient))
-                    : throwError("No such mode: " + mode);
+                   : mode === 'game' ?  gameClient
+                        : throwError("No such mode: " + mode);
 
     console.log("Using " + mode + " connection for " + apiName);
 
@@ -180,6 +183,7 @@ const clientApiInstances = {
     createContentProviderAPIMocked: () => createAPIClientInMode('ContentProviderAPI', 'mock'),
     createContentProviderAPILogged: () => createAPIClientInMode('ContentProviderAPI', 'logged'),
     createContentProviderAPICompare: () => createAPIClientInMode('ContentProviderAPI', 'compare'),
+    createContentProviderAPIGame: () => createAPIClientInMode('ContentProviderAPI', 'game'),
 
     createSMSAPI: mode => createAPIClientInMode('SMSAPI', mode),
 
