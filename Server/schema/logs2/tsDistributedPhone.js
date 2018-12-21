@@ -39,7 +39,7 @@ let tsDistributedPhoneSchema = new Schema({
     // is registered
     registered: {type: Boolean, default: false, index: true},
     // been added feedback
-    isUsed: {type: Boolean, default:false, index: true},
+    isUsed: {type: Boolean, default: false, index: true},
     // been added "successful" feedback
     isSucceedBefore: {type: Boolean, default:false, index: true},
 

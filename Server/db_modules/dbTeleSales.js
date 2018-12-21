@@ -350,6 +350,42 @@ let dbTeleSales = {
         return dbconfig.collection_tsPhoneList.distinct("name", query);
     },
 
+    redistributePhoneNumber: function (tsPhoneListObjId, platformObjId) {
+        return dbconfig.collection_tsPhone.find({
+            tsPhoneList: tsPhoneListObjId,
+            isUsed: false
+        }).count().then(
+            tsPhoneUpdateCount => {
+                let tsPhoneListUpdateQ = {
+                    status: constTsPhoneListStatus.DISTRIBUTING
+                };
+
+                if (tsPhoneUpdateCount > 0) {
+                    tsPhoneListUpdateQ.$inc = {totalDistributed: - (tsPhoneUpdateCount)}
+                }
+
+                return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObjId, platform: platformObjId}, tsPhoneListUpdateQ, {new: true}).lean()
+            }
+        ).then(
+            tsPhoneListData => {
+                if (!tsPhoneListData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find tsPhoneList"});
+                }
+
+                let updateQuery = {
+                    tsPhoneList: tsPhoneListData._id,
+                    isUsed: false
+                };
+
+                dbconfig.collection_tsPhone.update(updateQuery, {assignTimes: 0, assignee: [], $unset: {distributedEndTime: ""}}, {multi: true}).catch(errorUtils.reportError);
+
+                dbconfig.collection_tsDistributedPhone.remove(updateQuery).catch(errorUtils.reportError);
+
+                return tsPhoneListData;
+            }
+        )
+    },
+
     getActivePhoneListNameForAdmin: function (platformObjId, adminId) {
         return dbconfig.collection_tsDistributedPhone.distinct("tsPhoneList", {startTime: {$lte: new Date()}, endTime:{$gte: new Date()}, platform: platformObjId, assignee: adminId}).then(
             tsPhoneListObjIds => {
@@ -665,8 +701,10 @@ let dbTeleSales = {
         ).then(
             () => {
                 let updateObj = {
-                    $inc: {totalDistributed: totalDistributed},
-                    status: distributeStatus
+                    $inc: {totalDistributed: totalDistributed}
+                }
+                if (distributeStatus) {
+                    updateObj.status = distributeStatus
                 }
                 if (distributeStatus == constTsPhoneListStatus.HALF_COMPLETE || distributeStatus == constTsPhoneListStatus.PERFECTLY_COMPLETED) {
                     updateObj.recycleTime = new Date();
