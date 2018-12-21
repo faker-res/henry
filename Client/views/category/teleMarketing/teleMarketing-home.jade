@@ -83,6 +83,37 @@
                         //            .fa.fa-file-text.margin-right-5
                         //            text.span {{"phoneNumFilter" | translate}}
 
+#modalPhoneListCountDetails.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:95%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            b(ng-if="vm.selectedTab === 'PHONE_LIST_ANALYSE_AND_MANAGEMENT'") * {{"REMARKS" | translate}}: A = B+C+D+E
+                            b(ng-if="vm.selectedTab === 'RECYCLE_BIN'") * {{"REMARKS" | translate}}: A = E+F
+                            .col-md-12
+                                table.simple-table
+                                    thead
+                                        tr
+                                            th {{"A. Phone List Total Count" | translate}}
+                                            th(title='{{"Indicates phone numbers that has completed the preset rotation number and is now expired." | translate}}') {{"B. Distribution Completed Count" | translate}}
+                                            th(title='{{"Indicates phone numbers that has been distributed but has not completed the preset rotation amount." | translate}}') {{"C. Distribution Incomplete Count" | translate}}
+                                            th(title='{{"Indicates phone numbers that has completed the preset rotation number and is now expired." | translate}}') {{"D. Admin Current Holdings Count" | translate}}
+                                            th {{"E. Registered Count" | translate}}
+                                            th {{"F. Recycle Bin" | translate}}
+                                    tbody
+                                        tr
+                                            td {{vm.tsPhoneCountDetail.total}}
+                                            td {{vm.tsPhoneCountDetail.completed}}
+                                            td {{vm.tsPhoneCountDetail.incomplete}}
+                                            td {{vm.tsPhoneCountDetail.currentHolding}}
+                                            td {{vm.tsPhoneCountDetail.registered}}
+                                            td {{vm.tsPhoneCountDetail.recycleBin}}
+
 //ModaltsAnalyticsPhoneList
 #modaltsAnalyticsPhoneList.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:80%;')
@@ -95,7 +126,7 @@
                     .panel-body
                         .row
                             .col-md-12
-                                .well
+                                .well(style='max-height: 400px; max-height: 50vh; overflow: auto')
                                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%;white-space:normal;')
                                         thead
                                             tr
@@ -150,24 +181,28 @@
                                                     table.common-table.playerLvlTable
                                                         thead
                                                             tr
-                                                                th(style="width:50%") {{"CITY" | translate}}
                                                                 th(style="width:50%") {{"PROVINCE" | translate}}
-                                                                th
+                                                                th(style="width:50%") {{"CITY" | translate}}
+                                                                th(ng-if='!vm.analyticsPhoneListEdit')
                                                         tbody
                                                             tr(ng-repeat='(i, v) in vm.tsAnalyticsPhoneList.dangerZoneList')
                                                                 td
-                                                                    select.form-control(ng-model='vm.tsAnalyticsPhoneList.dangerZoneList[i].province',  ng-options='i as i for (i, v) in constPhoneArea' ng-disabled='vm.analyticsPhoneListEdit')
+                                                                    select.form-control(ng-model='vm.tsAnalyticsPhoneList.dangerZoneList[i].province',  ng-options='i as i for (i, v) in constPhoneArea' ng-disabled='vm.analyticsPhoneListEdit', ng-change='vm.tsAnalyticsPhoneList.dangerZoneList[i].city = "all"')
                                                                 td
-                                                                    select.form-control(ng-model='vm.tsAnalyticsPhoneList.dangerZoneList[i].city',  ng-options='val as val for (n, val) in constPhoneArea[vm.tsAnalyticsPhoneList.dangerZoneList[i].province]' ng-disabled='vm.analyticsPhoneListEdit')
-                                                                td
-                                                                    i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.tsAnalyticsPhoneList.dangerZoneList, $index)'  ng-disabled='vm.analyticsPhoneListEdit')
+                                                                    select.form-control(ng-model='vm.tsAnalyticsPhoneList.dangerZoneList[i].city', ng-disabled='vm.analyticsPhoneListEdit')
+                                                                        option(value='all') {{'All Selected' | translate}}
+                                                                        option(ng-repeat='(n,val) in constPhoneArea[vm.tsAnalyticsPhoneList.dangerZoneList[i].province]', value='{{val}}') {{val}}
+                                                                td(ng-if='!vm.analyticsPhoneListEdit')
+                                                                    i.fa.fa-minus(ng-click='vm.updateCollectionInEdit("remove", vm.tsAnalyticsPhoneList.dangerZoneList, $index)'  ng-show='!vm.analyticsPhoneListEdit')
                                                             tr(ng-show="!vm.analyticsPhoneListEdit")
                                                                 td(colspan=3) {{'ADD' | translate}}
                                                             tr(ng-show="!vm.analyticsPhoneListEdit")
                                                                 td
-                                                                    select.form-control(ng-model='vm.tsAnalyticsProvince',  ng-options='i as i for (i, v) in constPhoneArea' ng-disabled='vm.analyticsPhoneListEdit')
+                                                                    select.form-control(ng-model='vm.tsAnalyticsProvince',  ng-options='i as i for (i, v) in constPhoneArea' ng-disabled='vm.analyticsPhoneListEdit', ng-change='vm.tsAnalyticsCity = "all"')
                                                                 td
-                                                                    select.form-control(ng-model='vm.tsAnalyticsCity',  ng-options='val as val for (n, val) in constPhoneArea[vm.tsAnalyticsProvince]' ng-disabled='vm.analyticsPhoneListEdit')
+                                                                    select.form-control(ng-model='vm.tsAnalyticsCity', ng-disabled='vm.analyticsPhoneListEdit')
+                                                                        option(value='all') {{'All Selected' | translate}}
+                                                                        option(ng-repeat='(n,val) in constPhoneArea[vm.tsAnalyticsProvince]', value='{{val}}') {{val}}
                                                                 td
                                                                     i.fa.fa-plus(ng-click='vm.updateCollectionInEdit("add", vm.tsAnalyticsPhoneList.dangerZoneList, {province: vm.tsAnalyticsProvince, city: vm.tsAnalyticsCity}); vm.resetAnalyticsProvince();' ng-show='vm.tsAnalyticsProvince && vm.tsAnalyticsCity' ng-disabled='vm.analyticsPhoneListEdit')
                                             tr

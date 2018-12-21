@@ -1259,6 +1259,20 @@ define(['js/app'], function (myApp) {
             //build platform list based on platform data from server
             function buildPlatformList (data) {
                 vm.platformList = [];
+                function sortPlatform(a, b) {
+                    if (a.hasOwnProperty("platformId") && b.hasOwnProperty("platformId")) {
+                        let dataA = parseInt(a.platformId);
+                        let dataB = parseInt(b.platformId);
+                        if (!isNaN(dataA) && !isNaN(dataB)) {
+                            return dataA - dataB;
+                        }
+                    }
+                    return 0;
+                }
+                if (data.length) {
+                    data = data.sort(sortPlatform);
+                }
+
                 for (var i = 0; i < data.length; i++) {
                     vm.platformList.push(vm.createPlatformNode(data[i]));
                 }
@@ -1530,7 +1544,8 @@ define(['js/app'], function (myApp) {
                         url: v.icon,
                         width: 30,
                         height: 30,
-                    }
+                    },
+                    platformName: v.platformId + ". " + v.name
                 };
                 return obj;
             };
@@ -20894,10 +20909,25 @@ define(['js/app'], function (myApp) {
                         vm.platformRewardIsEnabled = false;
                         vm.rewardMainParamTable = [];
                         let params = vm.showRewardTypeData.params;
+                        vm.baccaratRewardGameProviders = [];
 
                         if (vm.showReward && !vm.showReward.display) {
                             vm.showReward.display = [];
                             vm.showReward.display.push({displayId: "", displayTitle: "", displayTextContent: "", btnOrImageList: []});
+                        }
+
+                        if (vm.showRewardTypeData && vm.showRewardTypeData.name === "BaccaratRewardGroup" && vm.allGameProviders && vm.allGameProviders.length > 0) {
+                            vm.allGameProviders.forEach(provider => {
+                                // only provide 3 providers: ag, ebet, bylive
+                                if (provider && provider.providerId && (provider.providerId == '16' || provider.providerId == '55' || provider.providerId == '56')) {
+                                    vm.baccaratRewardGameProviders.push(provider);
+                                }
+                            });
+
+                            // set default all game providers if above 3 providers not exist
+                            if (vm.baccaratRewardGameProviders && vm.baccaratRewardGameProviders.length == 0) {
+                                vm.baccaratRewardGameProviders = JSON.parse(JSON.stringify(vm.allGameProviders));
+                            }
                         }
 
                         // Set condition value
@@ -30352,6 +30382,7 @@ define(['js/app'], function (myApp) {
                     platformObjId: vm.selectedPlatform.id,
                     gameProviderGroup: vm.gameProviderGroup.map(e => {
                         let gameProviderGroupData = {
+                            providerGroupObjId: e._id,
                             providerGroupId: e.providerGroupId,
                             name: e.name,
                             providers: e.providers
@@ -30367,6 +30398,16 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'updatePlatformProviderGroup', sendData, function (data) {
                     console.log('updatePlatformProviderGroup', data);
+                    if (data) {
+                        $scope.$evalAsync(() => {
+                            vm.gameProviderGroup = data.data;
+                            vm.gameProviderGroupNames = {};
+                            for (let i = 0; i < vm.gameProviderGroup.length; i++) {
+                                let providerGroup = vm.gameProviderGroup[i];
+                                vm.gameProviderGroupNames[providerGroup._id] = providerGroup.name;
+                            }
+                        });
+                    }
                 });
             }
 
@@ -36249,6 +36290,7 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            /***** Auction System - start *****/
             vm.initAuctionSystem = function() {
 
             };
@@ -36258,6 +36300,20 @@ define(['js/app'], function (myApp) {
 
                 switch (choice) {
                     case 'createProduct':
+                        vm.auctionSystemCreateProductStatus = '';
+                        vm.auctionSystemEditStatus = false;
+                        vm.selectedAuctionRewardType = null;
+                        vm.auctionSystemProduct = {
+                            registerStartTime: null,
+                            registerEndTime: null,
+                            playerType: 'Real Player (all)',
+                            playerLevel: 'all'
+                        };
+
+                        commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerStartTime', '#auctionSystemProductRegisterStartTimePicker',
+                            utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(90)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                        commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerEndTime', '#auctionSystemProductRegisterEndTimePicker',
+                            utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(1)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
 
                         break;
                     case 'monitoringSystem':
@@ -36266,18 +36322,53 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.resetRewardTypeChanged = function () {
+                vm.auctionSystemProduct = {
+                    promoCode : '',
+                    openPromoCode : '',
+                    productImageUrl : '',
+                    messageTitle : '',
+                    messageContent : '',
+                    gameProviderGroup : '',
+                    unlockAmount : '',
+                    rewardAmount : '',
+                    useConsumption : false,
+                    realPrizeDetails : '',
+                    rewardPointsVariable : '',
+                };
+            };
 
+            vm.auctionRewardTypeChanged = function (choice) {
+                vm.resetRewardTypeChanged();
+                switch (choice) {
+                    case '1':
+                        vm.selectedAuctionRewardType = 'promoCode';
+                        break;
+                    case '2':
+                        vm.selectedAuctionRewardType = 'openPromoCode';
+                        break;
+                    case '3':
+                        vm.selectedAuctionRewardType = 'promotion';
+                        break;
+                    case '4':
+                        vm.selectedAuctionRewardType = 'realPrize';
+                        break;
+                    case '5':
+                        vm.selectedAuctionRewardType = 'rewardPointsChange';
+                        break;
+                }
+            };
+            /***** Auction System - end *****/
 
             vm.changeFrameHeight = function() {
                 var ifm = document.getElementById("configIframe");
                 ifm.height = document.documentElement.clientHeight;
 
-            }
+            };
 
-            window.onresize=function(){
+            window.onresize = function() {
                 vm.changeFrameHeight();
-
-            }
+            };
         };
 
         let injectParams = [

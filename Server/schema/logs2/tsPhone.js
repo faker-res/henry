@@ -33,7 +33,7 @@ let tsPhoneSchema = new Schema({
     // registered
     registered: {type: Boolean, default: false, index: true},
     // been added feedback
-    isUsed: {type: Boolean, default:false, index: true},
+    isUsed: {type: Boolean, default: false, index: true},
     // been added "successful" feedback
     isSucceedBefore: {type: Boolean, default:false, index: true},
     // been top up

@@ -24,6 +24,8 @@ let tsDistributedPhoneSchema = new Schema({
     isInDangerZone: {type: Boolean, default: false, index: true},
     // last feedback result name
     resultName: {type: String, index: true},
+    // last feedback result topic
+    topic: {type: String, index: true},
     // phone number's province
     province: {type: String, index: true},
     // phone number's city
@@ -37,7 +39,7 @@ let tsDistributedPhoneSchema = new Schema({
     // is registered
     registered: {type: Boolean, default: false, index: true},
     // been added feedback
-    isUsed: {type: Boolean, default:false, index: true},
+    isUsed: {type: Boolean, default: false, index: true},
     // been added "successful" feedback
     isSucceedBefore: {type: Boolean, default:false, index: true},
 

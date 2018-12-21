@@ -361,7 +361,7 @@
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{'CLOSE' | translate}}
                 i.fa.fa-spin.fa-spinner.text-danger.fa-2x(ng-if='vm.partnerCommissionSettlement.status=="processing"')
 
-#modalReplicatePlatformSetting.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='width:auto')
+#modalReplicatePlatformSetting.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true', style='width:40%; position: absolute; left:30%; right:30%;')
     .modal-dialog
         .modal-content
             .modal-header
@@ -370,7 +370,7 @@
             .modal-body
                 label {{"Please choose a platform to replicate" | translate}}
                 select.form-control(ng-model="vm.platformToReplicate")
-                    option(ng-repeat="(i,v) in vm.platformList" ng-value="v.id" ng-if="v.id !== vm.selectedPlatform.id") {{v.text}}
+                    option(ng-repeat="(i,v) in vm.platformList" ng-value="v.id" ng-if="v.id !== vm.selectedPlatform.id") {{v.platformName}}
             .modal-footer
                 button.btn.btn-primary.common-button(data-dismiss='modal' ng-click="vm.replicatePlatformSetting()") {{'Replicate' | translate}}
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{'CANCEL' | translate}}
