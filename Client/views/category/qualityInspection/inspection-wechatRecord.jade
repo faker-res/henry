@@ -54,21 +54,24 @@ br
                 tbody(ng-repeat="deviceList in vm.deviceList")
                     tr(ng-if="vm.playerDetailsSummary.length == 0" style="border: 1px solid;")
                         td(colspan = 10) {{ 'No data available in table' | translate }}
-                    tr(style="width: 100%; border: 1px solid;")
-                        td(style="") {{deviceList.platformName}}
+                    tr(style="border: 1px solid;")
+                        td(style="word-wrap: break-word;") {{deviceList.platformName}}
                         td(colspan=2)
-                            table
+                            table(style='width:100%')
                                 tbody
                                     tr.lastchild-noborder(ng-repeat="device in deviceList.deviceNickName" style='border-right:1px solid; border-bottom:1px solid;' )
-                                        td(style="width: 433px; vertical-align: top; line-height: 2.5;border-left:1px solid; ")
-                                            a(ng-click="vm.searchWechatConversation(deviceList.platformId, device.deviceNickName);") {{device.deviceNickName}}
+                                        td(style="vertical-align: top; line-height: 2.5;border-left:1px solid;word-wrap: break-word; ")
+                                            div(style="width: 300px;")
+                                                a(ng-click="vm.searchWechatConversation(deviceList.platformId, device.deviceNickName);") {{device.deviceNickName}}
                                         td
-                                        td(style="width: 433px; line-height: 2.5; ")
-                                            table(style="margin: 0 auto;width: 100%;")
-                                                tbody
-                                                    tr(ng-repeat="wechatRemark in device.playerWechatRemark" style='border-bottom: 1px solid')
-                                                        td(style="border-left:1px solid;")
-                                                            a(ng-click="vm.searchWechatConversation(deviceList.platformId, device.deviceNickName, [wechatRemark.playerWechatRemark]);") {{wechatRemark.playerWechatRemark}} {{"("}} {{wechatRemark.encodedPlayerWechatId}} {{")"}}
+                                        td(style="line-height: 2.5;")
+                                            div(style="width: 300px;")
+                                                table(style="margin: 0 auto;width: 100%;")
+                                                    tbody
+                                                        tr.lastchild-noborder(ng-repeat="wechatRemark in device.playerWechatRemark" style='border-bottom: 1px solid')
+                                                            td(style="border-left:1px solid;word-wrap: break-word;")
+                                                                div(style="width: 300px;")
+                                                                    a(ng-click="vm.searchWechatConversation(deviceList.platformId, device.deviceNickName, [wechatRemark.playerWechatRemark]);") {{wechatRemark.playerWechatRemark}} {{"("}} {{wechatRemark.encodedPlayerWechatId}} {{")"}}
                 tfoot
                     tr
                         th
