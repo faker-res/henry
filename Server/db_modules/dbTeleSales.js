@@ -761,11 +761,11 @@ let dbTeleSales = {
                         // add danger zone in tsPhone
                         tsPhoneQuery.$or = [];
                         for (let i = 0; i < updateData.dangerZoneList.length; i++) {
-                            if (updateData.dangerZoneList[i].city && updateData.dangerZoneList[i].province) {
+                            if (updateData.dangerZoneList[i] && updateData.dangerZoneList[i].city && updateData.dangerZoneList[i].province) {
                                 let tempDangerListQuery = {
                                     province: updateData.dangerZoneList[i].province
                                 };
-                                if (updateData.dangerZoneList[i].city != "all") {
+                                if (updateData.dangerZoneList[i] && updateData.dangerZoneList[i].city != "all") {
                                     tempDangerListQuery.city = updateData.dangerZoneList[i].city;
                                 }
                                 tsPhoneQuery.$or.push(tempDangerListQuery)
@@ -1581,6 +1581,55 @@ let dbTeleSales = {
             });
             return phoneArr;
         })
+    },
+
+    getTsPhoneCountDetail: function(tsPhoneListObjId) {
+        let curDate = new Date();
+        return dbconfig.collection_tsPhoneList.findOne({
+            _id: tsPhoneListObjId
+        }).then(tsPhoneList => {
+            let callerCycleCount = tsPhoneList.callerCycleCount;
+            let completedProm = dbconfig.collection_tsPhone.find({
+                tsPhoneList: tsPhoneListObjId,
+                assignTimes: {$gte: callerCycleCount},
+                distributedEndTime: {$lte: curDate},
+                registered: {$ne: true}
+            });
+            let incompleteProm = dbconfig.collection_tsPhone.find({
+                tsPhoneList: tsPhoneListObjId,
+                registered: {$ne: true},
+                $or: [{
+                    $and: [{
+                        assignTimes: {$lt: callerCycleCount},
+                        distributedEndTime: {$lte: curDate}
+                    }]
+                }, {
+                    assignTimes: 0
+                }]
+            });
+            let currentHoldingProm = dbconfig.collection_tsPhone.find({
+                tsPhoneList: tsPhoneListObjId,
+                distributedEndTime: {$gt: curDate},
+                registered: {$ne: true},
+            });
+            let registeredProm = dbconfig.collection_tsPhone.find({
+                tsPhoneList: tsPhoneListObjId,
+                registered: true
+            });
+            let totalProm = dbconfig.collection_tsPhone.find({
+                tsPhoneList: tsPhoneListObjId
+            });
+
+            return Promise.all([completedProm, incompleteProm, currentHoldingProm, registeredProm, totalProm]);
+        }).then(data => {
+            return {
+                completed: data[0] && data[0].length ? data[0].length : 0,
+                incomplete: data[1] && data[1].length ? data[1].length : 0,
+                currentHolding: data[2] && data[2].length ? data[2].length : 0,
+                registered: data[3] && data[3].length ? data[3].length : 0,
+                total: data[4] && data[4].length ? data[4].length : 0
+            };
+        });
     }
 
 };
@@ -1611,7 +1660,7 @@ function isStillTradeAble(platformsArr,platformTsPhoneTrade) {
     return Boolean(tradeablePlatformCount >= 2 && isHavePhoneLeft);
 }
 
-function getAllTradeablePhone (platformsArr, recursiveCount) {
+function getAllTradeablePhone (platformsArr, recursiveCount, remainingPhoneTrade) {
     recursiveCount = recursiveCount || 50;
     if (recursiveCount <= 0) {
         return Promise.reject({name: "DataError", message: "getAllTradeablePhone reach max recursive count"});
@@ -1621,10 +1670,32 @@ function getAllTradeablePhone (platformsArr, recursiveCount) {
     let tsPhoneTradeArr = [];
 
     for (let i = 0; i < platformsArr.length; i++) {
+        let limitPhoneTrade = platformsArr[i].phoneWhiteListExportMaxNumber || 1; //for recursive use (second times onwards)
+        let skipPhoneTrade = 0; //for recursive use (second times onwards)
+        if (remainingPhoneTrade) {
+            limitPhoneTrade = 0;
+            if (remainingPhoneTrade[platformsArr[i]._id]) {
+                remainingPhoneTrade[platformsArr[i]._id].forEach(phoneTrade => {
+                    if (phoneTrade.isNotTradeable) {
+                        limitPhoneTrade++;
+                    } else {
+                        tsPhoneTradeArr.push(phoneTrade);
+                    }
+                })
+            }
+            
+            if (!limitPhoneTrade) {
+                continue;
+            } else {
+                skipPhoneTrade = platformsArr[i].phoneWhiteListExportMaxNumber;
+            }
+        }
+
         let prom = dbconfig.collection_tsPhoneTrade.find({sourcePlatform: platformsArr[i]._id, targetPlatform: null}, {sourceTsPhone: 1})
             .populate({path: "sourceTsPhone", model: dbconfig.collection_tsPhone, select: "phoneNumber platform"})
             .sort({decomposeTime: 1})
-            .limit(platformsArr[i].phoneWhiteListExportMaxNumber || 1).lean();
+            .skip(skipPhoneTrade)
+            .limit(limitPhoneTrade).lean();
 
         let stream = prom.cursor({batchSize: 100});
         let balancer = new SettlementBalancer();
@@ -1661,7 +1732,7 @@ function getAllTradeablePhone (platformsArr, recursiveCount) {
     ).then(
         (resData) => {
             if (isStillTradeAble() && resData) {
-                getAllTradeablePhone (platformsArr, recursiveCount--);
+                getAllTradeablePhone (platformsArr, recursiveCount--, resData);
             }
         }
     );
@@ -1724,6 +1795,8 @@ function tradePhoneForEachPlatform (platformsArr, tsPhoneTradeArr) {
                             break;
                         }
                     }
+                } else if (j == 0) {
+                    tsPhoneTradeSender.isNotTradeable = true;
                 }
             }
             if (!(platformsArr && platformsArr.length >= 2)) {
@@ -1736,7 +1809,11 @@ function tradePhoneForEachPlatform (platformsArr, tsPhoneTradeArr) {
             break;
         }
     }
-    return Promise.all(promArr);
+    return Promise.all(promArr).then(
+        output => {
+            return platformTsPhoneTrade;
+        }
+    )
 }
 
 function addTsFeedbackCount (feedbackObj, isSucceedBefore = false) {

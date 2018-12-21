@@ -15,8 +15,300 @@
                     label.text-danger {{'Please select a type' | translate}}
 
                 // Tab - createProduct
-                div(ng-if='vm.selectedAuctionSystemTab=="createProduct" && checkViewPermission("Platform", "auctionSystem", "createProduct")')
+                div(ng-if='vm.selectedAuctionSystemTab === "createProduct" && checkViewPermission("Platform", "AuctionSystem", "createProduct")')
+                    .panel-body(style='margin:5px;')
+                        .full-width-input-block
+                            label {{"USER_TYPE" | translate}}
+                            select.form-control(style='max-width:300px', ng-model="vm.auctionSystemProduct.playerType")
+                                option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
+                                option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
+                                option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
+                                option(value='Test Player') {{'TEST_PLAYER' | translate}}
+                        .full-width-input-block
+                            label {{"Player Level" | translate}}
+                            select.form-control(ng-model='vm.auctionSystemProduct.playerLevel')
+                                option(value='all') {{'ALL' | translate}}
+                                option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
+                        .full-width-input-block
+                            label.control-label {{'CREDIBILITY' | translate}}
+                            div(style="display:inline-block;")
+                                select.form-control(ng-model='vm.auctionSystemProduct.credibilityRemarks', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', multiple, bsp, data-actions-box='true')
+                        .full-width-input-block
+                            label.control-label {{'CREDIBILITY_FILTER' | translate}}
+                            div(style="display:inline-block;")
+                                select.form-control(ng-model='vm.auctionSystemProduct.filterCredibilityRemarks', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', multiple, bsp, data-actions-box='true')
+                        .full-width-input-block
+                            //上次登入（距今）
+                            label {{"LAST_ACCESS_TILL_NOW" | translate}}
+                            div(style="display:inline-block;")
+                                select.form-control(ng-model="vm.auctionSystemProduct.lastAccessOperator" style="width:105px;display:inline-block")
+                                    option(value='0-7') {{'0-7'}}{{'DAYS' | translate}}
+                                    option(value='8-14') {{'8-14'}}{{'DAYS' | translate}}
+                                    option(value='15-28') {{'15-28'}}{{'DAYS' | translate}}
+                                    option(value='29') {{'29'}}{{'DAYS_AND_ABOVE' | translate}}
+                                    option(value='range') {{'range' | translate}}
+                                div(style="width:8px;display:inline-block")
+                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.lastAccessFormal" style="width:80px;display:inline-block" ng-show="vm.auctionSystemProduct.lastAccessOperator === 'range'")
+                                div.text-center(style="width:15px;display:inline-block" ng-show="vm.auctionSystemProduct.lastAccessOperator === 'range'") -
+                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.lastAccessLatter" style="width:80px;display:inline-block" ng-show="vm.auctionSystemProduct.lastAccessOperator === 'range'")
+                        .full-width-input-block
+                            //过滤回访（天）
+                            label {{"FILTER_FEEDBACK_DAY" | translate}}
+                            div(style="display:inline-block;")
+                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.filterFeedback" style="width:100px;display:inline-block")
+                        .full-width-input-block
+                            label.control-label {{'FILTER_FEEDBACK_TOPIC' | translate}}
+                            div(style="display:inline-block;")
+                                select.form-control(ng-model='vm.auctionSystemProduct.filterFeedbackTopic', ng-options='topic.key as topic.value for topic in vm.playerFeedbackTopic', multiple, bsp, data-actions-box='true')
+                        .full-width-input-block
+                            label {{"DEPOSIT_COUNT" | translate}}
+                            div(style="display:inline-block;")
+                                select.form-control(ng-model="vm.auctionSystemProduct.depositCountOperator" style="width:75px;display:inline-block")
+                                    option(value='>=') {{'>='}}
+                                    option(value='=') {{'='}}
+                                    option(value='<=') {{'<='}}
+                                    option(value='range') {{'range' | translate}}
+                                div(style="width:8px;display:inline-block")
+                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.depositCountFormal" style="width:80px;display:inline-block")
+                                div.text-center(style="width:15px;display:inline-block" ng-if="vm.auctionSystemProduct.depositCountOperator === 'range'") -
+                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.depositCountLatter" style="width:80px;display:inline-block" ng-if="vm.auctionSystemProduct.depositCountOperator === 'range'")
+                        .full-width-input-block
+                            label {{"PLAYER_VALUE" | translate}}
+                            div(style="display:inline-block;")
+                                select.form-control(ng-model="vm.auctionSystemProduct.playerValueOperator" style="width:75px;display:inline-block")
+                                    option(value='>=') {{'>='}}
+                                    option(value='=') {{'='}}
+                                    option(value='<=') {{'<='}}
+                                    option(value='range') {{'range' | translate}}
+                                div(style="width:8px;display:inline-block")
+                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.playerValueFormal" style="width:80px;display:inline-block")
+                                div.text-center(style="width:15px;display:inline-block" ng-if="vm.auctionSystemProduct.playerValueOperator === 'range'") -
+                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.playerValueLatter" style="width:80px;display:inline-block" ng-if="vm.auctionSystemProduct.playerValueOperator === 'range'")
+                        .full-width-input-block
+                            label {{"TOTAL_CONSUMPTION_TIMES" | translate}}
+                            div(style="display:inline-block;")
+                                select.form-control(ng-model="vm.auctionSystemProduct.consumptionTimesOperator" style="width:75px;display:inline-block")
+                                    option(value='>=') {{'>='}}
+                                    option(value='=') {{'='}}
+                                    option(value='<=') {{'<='}}
+                                    option(value='range') {{'range' | translate}}
+                                div(style="width:8px;display:inline-block")
+                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.consumptionTimesFormal" style="width:80px;display:inline-block")
+                                div.text-center(style="width:15px;display:inline-block" ng-if="vm.auctionSystemProduct.consumptionTimesOperator === 'range'") -
+                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.consumptionTimesLatter" style="width:80px;display:inline-block" ng-if="vm.auctionSystemProduct.consumptionTimesOperator === 'range'")
+                        .full-width-input-block
+                            label {{"PLAYER_PROFIT_AMOUNT" | translate}}
+                            div(style="display:inline-block;")
+                                select.form-control(ng-model="vm.auctionSystemProduct.bonusAmountOperator" style="width:75px;display:inline-block")
+                                    option(value='>=') {{'>='}}
+                                    option(value='=') {{'='}}
+                                    option(value='<=') {{'<='}}
+                                    option(value='range') {{'range' | translate}}
+                                div(style="width:8px;display:inline-block")
+                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.bonusAmountFormal" style="width:80px;display:inline-block")
+                                div.text-center(style="width:15px;display:inline-block" ng-if="vm.auctionSystemProduct.bonusAmountOperator === 'range'") -
+                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.bonusAmountLatter" style="width:80px;display:inline-block" ng-if="vm.auctionSystemProduct.bonusAmountOperator === 'range'")
+                        .full-width-input-block
+                            label {{"BonusTime" | translate}}
+                            div(style="display:inline-block;")
+                                select.form-control(ng-model="vm.auctionSystemProduct.withdrawTimesOperator" style="width:75px;display:inline-block")
+                                    option(value='>=') {{'>='}}
+                                    option(value='=') {{'='}}
+                                    option(value='<=') {{'<='}}
+                                    option(value='range') {{'range' | translate}}
+                                div(style="width:8px;display:inline-block")
+                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.withdrawTimesFormal" style="width:80px;display:inline-block")
+                                div.text-center(style="width:15px;display:inline-block" ng-if="vm.auctionSystemProduct.withdrawTimesOperator === 'range'") -
+                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.withdrawTimesLatter" style="width:80px;display:inline-block" ng-if="vm.auctionSystemProduct.withdrawTimesOperator === 'range'")
+                        .full-width-input-block
+                            label {{"TOTAL_TOP_UP" | translate}}
+                            div(style="display:inline-block;")
+                                select.form-control(ng-model="vm.auctionSystemProduct.topUpSumOperator" style="width:75px;display:inline-block")
+                                    option(value='>=') {{'>='}}
+                                    option(value='=') {{'='}}
+                                    option(value='<=') {{'<='}}
+                                    option(value='range') {{'range' | translate}}
+                                div(style="width:8px;display:inline-block")
+                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.topUpSumFormal" style="width:80px;display:inline-block")
+                                div.text-center(style="width:15px;display:inline-block" ng-if="vm.auctionSystemProduct.topUpSumOperator === 'range'") -
+                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.topUpSumLatter" style="width:80px;display:inline-block" ng-if="vm.auctionSystemProduct.topUpSumOperator === 'range'")
+                        .full-width-input-block
+                            label {{"GAME_LOBBY" | translate}}
+                            div(style="display:inline-block;")
+                                select.form-control(ng-model='vm.auctionSystemProduct.gameProviderId', ng-options='provider._id as provider.name for provider in vm.allGameProviders', multiple, bsp, data-actions-box='true')
+                        .full-width-input-block
+                            label.control-label {{'REGISTRATION_TIME_START' | translate}}
+                            #auctionSystemProductRegisterStartTimePicker.datetimepicker(style="display:inline-block;")
+                                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                                span.add-on
+                                    i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                        .full-width-input-block
+                            label.control-label {{'REGISTRATION_TIME_END' | translate}}
+                            #auctionSystemProductRegisterEndTimePicker.datetimepicker(style="display:inline-block;")
+                                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                                span.add-on
+                                    i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                        .full-width-input-block
+                            label {{"REGISTRATION_DEPARTMENT" | translate}}
+                            div(style="display:inline-block;")
+                                select.spicker.form-control(ng-model='vm.auctionSystemProduct.departments', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryRole(vm.auctionSystemProduct)", ng-options='dp._id as dp.departmentName | translate for dp in vm.queryDepartments')
+                        .full-width-input-block
+                            label {{"REGISTRATION_ROLE" | translate}}
+                            div(style="display:inline-block;")
+                                select.spicker.form-control(ng-model='vm.auctionSystemProduct.roles', bsp, multiple, data-actions-box='true' ng-change="vm.setQueryAdmins(vm.auctionSystemProduct)", ng-options='dp._id as dp.roleName | translate for dp in vm.queryRoles')
+                        .full-width-input-block
+                            label {{"REGISTRATION_ADMIN" | translate}}
+                            div(style="display:inline-block;")
+                                select.spicker.form-control(ng-model='vm.auctionSystemProduct.admins', bsp, multiple, data-actions-box='true', ng-options='dp._id as dp.adminName | translate for dp in vm.queryAdmins')
+                        hr
+
+                        // 中间「优惠类型」选择
+                        .full-width-input-block
+                            label {{"REWARD_TYPE" | translate}}
+                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'REWARD_TYPE_DESCRIPTION' | translate}}")
+                            div(style="display:inline-block;")
+                                select.form-control(ng-model='vm.auctionSystemProduct.rewardType' ng-change="vm.auctionRewardTypeChanged(vm.auctionSystemProduct.rewardType)")
+                                    option(value='') {{'all' | translate}}
+                                    option(value='1') {{'Promo Code' | translate}}
+                                    option(value='2') {{'Open Promo Code' | translate}}
+                                    option(value='3') {{'Promotion' | translate}}
+                                    option(value='4') {{'Real Prize' | translate}}
+                                    option(value='5') {{'Reward Points Change' | translate}}
+
+                        div(ng-if="vm.selectedAuctionRewardType === 'promoCode'")
+                            .full-width-input-block
+                                label {{"Binded Promo Code Template" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PROMO_CODE_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    select.spicker.form-control(ng-model='vm.auctionSystemProduct.promoCode', ng-options='promo._id as promo.name | translate for promo in vm.promoCodeTemplateData')
+                            .full-width-input-block
+                                label {{"Product Image URL" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    input.form-control(type="text" ng-model="vm.auctionSystemProduct.productImageUrl")
+                            .full-width-input-block
+                                label {{"Message Title" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageTitle" placeholder="{{'Please enter a title' | translate}}")
+                            .full-width-input-block
+                                label {{"Message_Content" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageContent" placeholder="{{'Please fill in the content' | translate}}")
+
+                        div(ng-if="vm.selectedAuctionRewardType === 'openPromoCode'")
+                            .full-width-input-block
+                                label {{"Binded Promo Code Template" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'OPEN_PROMO_CODE_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    select.spicker.form-control(ng-model='vm.auctionSystemProduct.openPromoCode', ng-options='promo._id as promo.name | translate for promo in vm.openPromoCodeTemplateData')
+                            .full-width-input-block
+                                label {{"Product Image URL" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    input.form-control(type="text" ng-model="vm.auctionSystemProduct.productImageUrl")
+                            .full-width-input-block
+                                label {{"Message Title" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageTitle" placeholder="{{'Please enter a title' | translate}}")
+                            .full-width-input-block
+                                label {{"Message_Content" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageContent" placeholder="{{'Please fill in the content' | translate}}")
+
+                        div(ng-if="vm.selectedAuctionRewardType === 'promotion'")
+                            .full-width-input-block
+                                label {{"Provider group" | translate}}
+                                div(style="display:inline-block;")
+                                    select.spicker.form-control(ng-model='vm.auctionSystemProduct.gameProviderGroup')
+                                        option(value='') {{'LOCAL_CREDIT' | translate}}
+                                        option(ng-repeat='(i,v) in vm.gameProviderGroup', value='{{v._id}}') {{ v.name }}
+                            .full-width-input-block
+                                label {{"UNLOCKAMOUNT" | translate}}
+                                div(style="display:inline-block;")
+                                    input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.unlockAmount")
+                            .full-width-input-block
+                                label {{"rewardAmount" | translate}}
+                                div(style="display:inline-block;")
+                                    input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.rewardAmount")
+                            .full-width-input-block
+                                label {{"useConsumption" | translate}}
+                                div(style="display:inline-block;")
+                                    input.form-control(type="checkbox" ng-model="vm.auctionSystemProduct.useConsumption")
+                            .full-width-input-block
+                                label {{"Product Image URL" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    input.form-control(type="text" ng-model="vm.auctionSystemProduct.productImageUrl")
+                            .full-width-input-block
+                                label {{"Message Title" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageTitle" placeholder="{{'Please enter a title' | translate}}")
+                            .full-width-input-block
+                                label {{"Message_Content" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageContent" placeholder="{{'Please fill in the content' | translate}}")
+
+                        div(ng-if="vm.selectedAuctionRewardType === 'realPrize'")
+                            .full-width-input-block
+                                label {{"Product Image URL" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    input.form-control(type="text" ng-model="vm.auctionSystemProduct.productImageUrl")
+                            .full-width-input-block
+                                label {{"Message Title" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageTitle" placeholder="{{'Please enter a title' | translate}}")
+                            .full-width-input-block
+                                label {{"Message_Content" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageContent" placeholder="{{'Please fill in the content' | translate}}")
+                            .full-width-input-block
+                                label {{"REAL_PRIZE_DETAILS" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'REAL_PRIZE_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    textarea.form-control(type="textarea", rows='4', ng-model="vm.auctionSystemProduct.realPrizeDetails")
+
+                        div(ng-if="vm.selectedAuctionRewardType === 'rewardPointsChange'")
+                            .full-width-input-block
+                                label {{"Reward Point Variable" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'REWARD_POINTS_CHANGE_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.rewardPointsVariable")
+                            .full-width-input-block
+                                label {{"Product Image URL" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    input.form-control(type="text" ng-model="vm.auctionSystemProduct.productImageUrl")
+                            .full-width-input-block
+                                label {{"Message Title" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageTitle" placeholder="{{'Please enter a title' | translate}}")
+                            .full-width-input-block
+                                label {{"Message_Content" | translate}}
+                                    i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
+                                div(style="display:inline-block;")
+                                    input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageContent" placeholder="{{'Please fill in the content' | translate}}")
+
+                        br
+                        .pull-right
+                            .inlineBlk
+                                button.btn.btn-warning(ng-if="checkViewPermission('Platform','AuctionSystem','Create')" ng-click='vm.auctionSystemProductCancel()') {{"CANCEL" | translate}}
+                            .inlineBlk
+                                button.btn.btn-primary(ng-hide="vm.auctionSystemEditStatus" ng-if="checkViewPermission('Platform','AuctionSystem','Create')" ng-click='vm.createAuctionSystemProduct()') {{"Create Product" | translate}}
+                            .inlineBlk
+                                span(style="font-weight:bold" ng-show="vm.auctionSystemCreateProductStatus === 'success' || vm.auctionSystemCreateProductStatus === 'success'") {{"SUCCESS" | translate}}
+                                span(style="font-weight:bold" ng-show="vm.auctionSystemCreateProductStatus === 'fail' || vm.auctionSystemCreateProductStatus === 'fail'") {{"FAIL" | translate}}
 
 
                 // Tab - monitoringSystem
-                div(ng-if='vm.selectedAuctionSystemTab=="monitoringSystem" && checkViewPermission("Platform", "auctionSystem", "monitoringSystem")')
+                div(ng-if='vm.selectedAuctionSystemTab === "monitoringSystem" && checkViewPermission("Platform", "AuctionSystem", "monitoringSystem")')
+

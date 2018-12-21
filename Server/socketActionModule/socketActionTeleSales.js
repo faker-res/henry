@@ -289,6 +289,12 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.filterExistingPhonesForDecomposedPhones, [data.phoneNumbers, data.targetPlatformObjId], actionName, isValidData);
         },
 
+        getTsPhoneCountDetail: function getTsPhoneCountDetail(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.tsPhoneListObjId);
+            socketUtil.emitter(self.socket, dbTeleSales.getTsPhoneCountDetail, [data.tsPhoneListObjId], actionName, isValidData);
+        },
+
     };
     socketActionTeleSales.actions = this.actions;
 }

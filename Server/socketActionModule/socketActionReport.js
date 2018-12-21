@@ -353,10 +353,11 @@ function socketActionReport(socketIO, socket) {
 
         getPlayerDepositTrackingReport: function getPlayerDepositTrackingReport(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.query && data.platformId);
+            let isValidData = Boolean(data && data.query && data.platformId && data.loginStartTime && data.loginEndTime);
             let platformObjId = ObjectId(data.platformId);
-
-            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDepositTrackingReport, [platformObjId, data.query, data.index, data.limit, data.sortCol, data.query.depositTrackingGroup], actionName, isValidData);
+            var loginStartDate = data.loginStartTime ? new Date(data.loginStartTime) : new Date(0);
+            var loginEndDate = data.loginEndTime ? new Date(data.loginEndTime) : new Date();
+            socketUtil.emitter(self.socket, dbPlayerInfo.getPlayerDepositTrackingReport, [platformObjId, data.query, data.index, data.limit, data.sortCol, loginStartDate, loginEndDate], actionName, isValidData);
         },
 
         getDXNewPlayerReport: function getDXNewPlayerReport(data) {
