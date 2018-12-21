@@ -927,32 +927,34 @@ let dbTeleSales = {
             return;
         }
         dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: sourceTsPhoneList}, {status: constTsPhoneListStatus.DECOMPOSED, decomposedTime: new Date(Date.now())}).lean().catch(errorUtils.reportError);
-        tsPhones.forEach(
-            tsPhone => {
-                let tsPhoneQuery = dbconfig.collection_tsPhoneFeedback.findOne({
-                    platform: tsPhone.platform,
-                    tsPhone: tsPhone._id,
-                    isSuccessful: true
-                }).sort({createTime: -1}).lean().then(
-                    tsPhoneFeedbackData => {
-                        let saveObj = {
-                            encodedPhoneNumber: dbUtility.encodePhoneNum(rsaCrypto.decrypt(tsPhone.phoneNumber)),
-                            sourcePlatform: tsPhone.platform,
-                            sourceTsPhone: tsPhone._id,
-                            sourceTsPhoneList: tsPhone.tsPhoneList,
-                            sourceTsPhoneListName: sourceTsPhoneListName
-                        };
+        if (tsPhones && tsPhones.length) {
+            tsPhones.forEach(
+                tsPhone => {
+                    let tsPhoneQuery = dbconfig.collection_tsPhoneFeedback.findOne({
+                        platform: tsPhone.platform,
+                        tsPhone: tsPhone._id,
+                        isSuccessful: true
+                    }).sort({createTime: -1}).lean().then(
+                        tsPhoneFeedbackData => {
+                            let saveObj = {
+                                encodedPhoneNumber: dbUtility.encodePhoneNum(rsaCrypto.decrypt(tsPhone.phoneNumber)),
+                                sourcePlatform: tsPhone.platform,
+                                sourceTsPhone: tsPhone._id,
+                                sourceTsPhoneList: tsPhone.tsPhoneList,
+                                sourceTsPhoneListName: sourceTsPhoneListName
+                            };
 
-                        if (tsPhoneFeedbackData) {
-                            saveObj.lastSuccessfulFeedbackTime = tsPhoneFeedbackData.createTime || "";
-                            saveObj.lastSuccessfulFeedbackTopic = tsPhoneFeedbackData.topic || "";
-                            saveObj.lastSuccessfulFeedbackContent = tsPhoneFeedbackData.content || "";
-                        }
-                        return dbconfig.collection_tsPhoneTrade(saveObj).save()
-                    }).catch(errorUtils.reportError);
-                promArr.push(tsPhoneQuery);
-            }
-        )
+                            if (tsPhoneFeedbackData) {
+                                saveObj.lastSuccessfulFeedbackTime = tsPhoneFeedbackData.createTime || "";
+                                saveObj.lastSuccessfulFeedbackTopic = tsPhoneFeedbackData.topic || "";
+                                saveObj.lastSuccessfulFeedbackContent = tsPhoneFeedbackData.content || "";
+                            }
+                            return dbconfig.collection_tsPhoneTrade(saveObj).save()
+                        }).catch(errorUtils.reportError);
+                    promArr.push(tsPhoneQuery);
+                }
+            )
+        }
         return Promise.all(promArr);
     },
 

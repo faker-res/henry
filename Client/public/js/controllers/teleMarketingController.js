@@ -6250,15 +6250,15 @@ define(['js/app'], function (myApp) {
             let sourceTsPhoneListName = vm.selectedTsPhoneList.name;
             return vm.getTsPhoneListRecyclePhone().then(
                 data => {
-                    if (data.data && data.data.length) {
-                        let sendQuery = {
-                            sourceTsPhoneListName: sourceTsPhoneListName,
-                            tsPhones: data.data
-                        };
-                        socketService.$socket($scope.AppSocket, 'decomposeTsPhoneList', sendQuery, function (data) {
-                            vm.filterRecycleBinPhoneList(true);
-                        })
-                    }
+                    // if (data.data && data.data.length) {
+                    let sendQuery = {
+                        sourceTsPhoneListName: sourceTsPhoneListName,
+                        tsPhones: data && data.data || []
+                    };
+                    socketService.$socket($scope.AppSocket, 'decomposeTsPhoneList', sendQuery, function (data) {
+                        vm.filterRecycleBinPhoneList(true);
+                    })
+                    // }
                 }
             )
         };
