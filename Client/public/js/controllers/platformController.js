@@ -30382,6 +30382,7 @@ define(['js/app'], function (myApp) {
                     platformObjId: vm.selectedPlatform.id,
                     gameProviderGroup: vm.gameProviderGroup.map(e => {
                         let gameProviderGroupData = {
+                            providerGroupObjId: e._id,
                             providerGroupId: e.providerGroupId,
                             name: e.name,
                             providers: e.providers
@@ -30397,6 +30398,16 @@ define(['js/app'], function (myApp) {
 
                 socketService.$socket($scope.AppSocket, 'updatePlatformProviderGroup', sendData, function (data) {
                     console.log('updatePlatformProviderGroup', data);
+                    if (data) {
+                        $scope.$evalAsync(() => {
+                            vm.gameProviderGroup = data.data;
+                            vm.gameProviderGroupNames = {};
+                            for (let i = 0; i < vm.gameProviderGroup.length; i++) {
+                                let providerGroup = vm.gameProviderGroup[i];
+                                vm.gameProviderGroupNames[providerGroup._id] = providerGroup.name;
+                            }
+                        });
+                    }
                 });
             }
 

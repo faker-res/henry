@@ -437,12 +437,18 @@ var dbGameProvider = {
         let promArr = [];
 
         gameProviderGroup.map(e => {
-            promArr.push(
-                dbconfig.collection_gameProviderGroup.findOneAndUpdate({
-                    platform: platformObjId,
-                    name: e.name
-                }, e, {upsert: true})
-            )
+            if (e.providerGroupObjId) {
+                promArr.push(
+                    dbconfig.collection_gameProviderGroup.findOneAndUpdate({
+                        platform: platformObjId,
+                        _id: e.providerGroupObjId
+                    }, e, {upsert: true, new: true})
+                )
+            } else {
+                delete e.providerGroupObjId
+                e.platform = ObjectId(platformObjId);
+                promArr.push(new dbconfig.collection_gameProviderGroup(e).save())
+            }
         });
 
         return Promise.all(promArr).then(
