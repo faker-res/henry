@@ -458,7 +458,7 @@ define(['js/app'], function (myApp) {
                     vm.autoRefreshTsDistributedPhoneReminder();
                     break;
                 case 'WORKLOAD REPORT':
-                    commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#workloadStartTimePicker', utilService.getNdayagoStartTime(30));
+                    commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'startTime', '#workloadStartTimePicker', utilService.getNdayagoStartTime(1));
                     commonService.commonInitTime(utilService, vm, 'phoneListSearch', 'endTime', '#workloadEndTimePicker', utilService.getTodayEndTime());
                     utilService.actionAfterLoaded('#searchWorkloadReport', function () {
                         $('.spicker').selectpicker('refresh');
