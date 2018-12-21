@@ -19,7 +19,7 @@
                     .panel-body(style='margin:5px;')
                         .full-width-input-block
                             label {{"USER_TYPE" | translate}}
-                            select.form-control(style='max-width:300px', ng-model="vm.auctionSystemProduct.playerType")
+                            select.form-control(ng-model="vm.auctionSystemProduct.playerType")
                                 option(value='Real Player (all)') {{'REAL_PLAYER_ALL' | translate}}
                                 option(value='Real Player (Individual)') {{'REAL_PLAYER_INDIVIDUAL' | translate}}
                                 option(value='Real Player (Under Partner)') {{'REAL_PLAYER_UNDER_PARTNER' | translate}}
@@ -41,21 +41,21 @@
                             //上次登入（距今）
                             label {{"LAST_ACCESS_TILL_NOW" | translate}}
                             div(style="display:inline-block;")
-                                select.form-control(ng-model="vm.auctionSystemProduct.lastAccessOperator" style="width:105px;display:inline-block")
+                                select.form-control(ng-model="vm.auctionSystemProduct.lastAccessOperator" style="display:inline-block")
                                     option(value='0-7') {{'0-7'}}{{'DAYS' | translate}}
                                     option(value='8-14') {{'8-14'}}{{'DAYS' | translate}}
                                     option(value='15-28') {{'15-28'}}{{'DAYS' | translate}}
                                     option(value='29') {{'29'}}{{'DAYS_AND_ABOVE' | translate}}
                                     option(value='range') {{'range' | translate}}
                                 div(style="width:8px;display:inline-block")
-                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.lastAccessFormal" style="width:80px;display:inline-block" ng-show="vm.auctionSystemProduct.lastAccessOperator === 'range'")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.lastAccessFormal" style="width:80px;display:inline-block" ng-show="vm.auctionSystemProduct.lastAccessOperator === 'range'")
                                 div.text-center(style="width:15px;display:inline-block" ng-show="vm.auctionSystemProduct.lastAccessOperator === 'range'") -
-                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.lastAccessLatter" style="width:80px;display:inline-block" ng-show="vm.auctionSystemProduct.lastAccessOperator === 'range'")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.lastAccessLatter" style="width:80px;display:inline-block" ng-show="vm.auctionSystemProduct.lastAccessOperator === 'range'")
                         .full-width-input-block
                             //过滤回访（天）
                             label {{"FILTER_FEEDBACK_DAY" | translate}}
                             div(style="display:inline-block;")
-                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.filterFeedback" style="width:100px;display:inline-block")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.filterFeedback" style="display:inline-block")
                         .full-width-input-block
                             label.control-label {{'FILTER_FEEDBACK_TOPIC' | translate}}
                             div(style="display:inline-block;")
@@ -63,75 +63,75 @@
                         .full-width-input-block
                             label {{"DEPOSIT_COUNT" | translate}}
                             div(style="display:inline-block;")
-                                select.form-control(ng-model="vm.auctionSystemProduct.depositCountOperator" style="width:75px;display:inline-block")
+                                select.form-control(ng-model="vm.auctionSystemProduct.depositCountOperator" style="width:100px;display:inline-block")
                                     option(value='>=') {{'>='}}
                                     option(value='=') {{'='}}
                                     option(value='<=') {{'<='}}
                                     option(value='range') {{'range' | translate}}
                                 div(style="width:8px;display:inline-block")
-                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.depositCountFormal" style="width:80px;display:inline-block")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.depositCountFormal" style="width:80px;display:inline-block")
                                 div.text-center(style="width:15px;display:inline-block" ng-if="vm.auctionSystemProduct.depositCountOperator === 'range'") -
-                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.depositCountLatter" style="width:80px;display:inline-block" ng-if="vm.auctionSystemProduct.depositCountOperator === 'range'")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.depositCountLatter" style="width:80px;display:inline-block" ng-if="vm.auctionSystemProduct.depositCountOperator === 'range'")
                         .full-width-input-block
                             label {{"PLAYER_VALUE" | translate}}
                             div(style="display:inline-block;")
-                                select.form-control(ng-model="vm.auctionSystemProduct.playerValueOperator" style="width:75px;display:inline-block")
+                                select.form-control(ng-model="vm.auctionSystemProduct.playerValueOperator" style="width:100px;display:inline-block")
                                     option(value='>=') {{'>='}}
                                     option(value='=') {{'='}}
                                     option(value='<=') {{'<='}}
                                     option(value='range') {{'range' | translate}}
                                 div(style="width:8px;display:inline-block")
-                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.playerValueFormal" style="width:80px;display:inline-block")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.playerValueFormal" style="width:80px;display:inline-block")
                                 div.text-center(style="width:15px;display:inline-block" ng-if="vm.auctionSystemProduct.playerValueOperator === 'range'") -
-                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.playerValueLatter" style="width:80px;display:inline-block" ng-if="vm.auctionSystemProduct.playerValueOperator === 'range'")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.playerValueLatter" style="width:80px;display:inline-block" ng-if="vm.auctionSystemProduct.playerValueOperator === 'range'")
                         .full-width-input-block
                             label {{"TOTAL_CONSUMPTION_TIMES" | translate}}
                             div(style="display:inline-block;")
-                                select.form-control(ng-model="vm.auctionSystemProduct.consumptionTimesOperator" style="width:75px;display:inline-block")
+                                select.form-control(ng-model="vm.auctionSystemProduct.consumptionTimesOperator" style="width:100px;display:inline-block")
                                     option(value='>=') {{'>='}}
                                     option(value='=') {{'='}}
                                     option(value='<=') {{'<='}}
                                     option(value='range') {{'range' | translate}}
                                 div(style="width:8px;display:inline-block")
-                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.consumptionTimesFormal" style="width:80px;display:inline-block")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.consumptionTimesFormal" style="width:80px;display:inline-block")
                                 div.text-center(style="width:15px;display:inline-block" ng-if="vm.auctionSystemProduct.consumptionTimesOperator === 'range'") -
-                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.consumptionTimesLatter" style="width:80px;display:inline-block" ng-if="vm.auctionSystemProduct.consumptionTimesOperator === 'range'")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.consumptionTimesLatter" style="width:80px;display:inline-block" ng-if="vm.auctionSystemProduct.consumptionTimesOperator === 'range'")
                         .full-width-input-block
                             label {{"PLAYER_PROFIT_AMOUNT" | translate}}
                             div(style="display:inline-block;")
-                                select.form-control(ng-model="vm.auctionSystemProduct.bonusAmountOperator" style="width:75px;display:inline-block")
+                                select.form-control(ng-model="vm.auctionSystemProduct.bonusAmountOperator" style="width:100px;display:inline-block")
                                     option(value='>=') {{'>='}}
                                     option(value='=') {{'='}}
                                     option(value='<=') {{'<='}}
                                     option(value='range') {{'range' | translate}}
                                 div(style="width:8px;display:inline-block")
-                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.bonusAmountFormal" style="width:80px;display:inline-block")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.bonusAmountFormal" style="width:80px;display:inline-block")
                                 div.text-center(style="width:15px;display:inline-block" ng-if="vm.auctionSystemProduct.bonusAmountOperator === 'range'") -
-                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.bonusAmountLatter" style="width:80px;display:inline-block" ng-if="vm.auctionSystemProduct.bonusAmountOperator === 'range'")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.bonusAmountLatter" style="width:80px;display:inline-block" ng-if="vm.auctionSystemProduct.bonusAmountOperator === 'range'")
                         .full-width-input-block
                             label {{"BonusTime" | translate}}
                             div(style="display:inline-block;")
-                                select.form-control(ng-model="vm.auctionSystemProduct.withdrawTimesOperator" style="width:75px;display:inline-block")
+                                select.form-control(ng-model="vm.auctionSystemProduct.withdrawTimesOperator" style="width:100px;display:inline-block")
                                     option(value='>=') {{'>='}}
                                     option(value='=') {{'='}}
                                     option(value='<=') {{'<='}}
                                     option(value='range') {{'range' | translate}}
                                 div(style="width:8px;display:inline-block")
-                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.withdrawTimesFormal" style="width:80px;display:inline-block")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.withdrawTimesFormal" style="width:80px;display:inline-block")
                                 div.text-center(style="width:15px;display:inline-block" ng-if="vm.auctionSystemProduct.withdrawTimesOperator === 'range'") -
-                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.withdrawTimesLatter" style="width:80px;display:inline-block" ng-if="vm.auctionSystemProduct.withdrawTimesOperator === 'range'")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.withdrawTimesLatter" style="width:80px;display:inline-block" ng-if="vm.auctionSystemProduct.withdrawTimesOperator === 'range'")
                         .full-width-input-block
                             label {{"TOTAL_TOP_UP" | translate}}
                             div(style="display:inline-block;")
-                                select.form-control(ng-model="vm.auctionSystemProduct.topUpSumOperator" style="width:75px;display:inline-block")
+                                select.form-control(ng-model="vm.auctionSystemProduct.topUpSumOperator" style="width:100px;display:inline-block")
                                     option(value='>=') {{'>='}}
                                     option(value='=') {{'='}}
                                     option(value='<=') {{'<='}}
                                     option(value='range') {{'range' | translate}}
                                 div(style="width:8px;display:inline-block")
-                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.topUpSumFormal" style="width:80px;display:inline-block")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.topUpSumFormal" style="width:80px;display:inline-block")
                                 div.text-center(style="width:15px;display:inline-block" ng-if="vm.auctionSystemProduct.topUpSumOperator === 'range'") -
-                                input.form-control(type="number" ng-model="vm.auctionSystemProduct.topUpSumLatter" style="width:80px;display:inline-block" ng-if="vm.auctionSystemProduct.topUpSumOperator === 'range'")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.topUpSumLatter" style="width:80px;display:inline-block" ng-if="vm.auctionSystemProduct.topUpSumOperator === 'range'")
                         .full-width-input-block
                             label {{"GAME_LOBBY" | translate}}
                             div(style="display:inline-block;")
@@ -297,6 +297,79 @@
                                     i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
                                 div(style="display:inline-block;")
                                     input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageContent" placeholder="{{'Please fill in the content' | translate}}")
+                        hr
+
+                        // 中下半部「商品定义」选择
+                        .full-width-input-block
+                            label {{"Product Image" | translate}}
+                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_IMAGE_DESCRIPTION' | translate}}")
+                            div(style="display:inline-block;")
+                                input.form-control(type="text" ng-model="vm.auctionSystemProduct.productImage")
+                        .full-width-input-block
+                            label {{"Product Name" | translate}}
+                            div(style="display:inline-block;")
+                                input.form-control(type="text" ng-model="vm.auctionSystemProduct.productName")
+                        .full-width-input-block
+                            label {{"Seller" | translate}}
+                            div(style="display:inline-block;")
+                                input.form-control(type="text" ng-model="vm.auctionSystemProduct.seller")
+                        .full-width-input-block
+                            label {{"Reserve Price" | translate}}
+                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'RESERVE_PRICE_DESCRIPTION' | translate}}")
+                            div(style="display:inline-block;")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.reservePrice")
+                        .full-width-input-block
+                            label {{"Starting Price" | translate}}
+                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'STARTING_PRICE_DESCRIPTION' | translate}}")
+                            div(style="display:inline-block;")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.startingPrice")
+                        .full-width-input-block
+                            label {{"Price Increment" | translate}}
+                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRICE_INCREMENT_DESCRIPTION' | translate}}")
+                            div(style="display:inline-block;")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.priceIncrement")
+                        .full-width-input-block
+                            label {{"Direct Purchase Price" | translate}}
+                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'DIRECT_PURCHASE_PRICE_DESCRIPTION' | translate}}")
+                            div(style="display:inline-block;")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.directPurchasePrice")
+                        .full-width-input-block
+                            label {{"Is It Exclusive" | translate}}
+                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_EXCLUSIVE_DESCRIPTION' | translate}}")
+                            div(style="display:inline-block;")
+                                input.form-control(type="checkbox" ng-model="vm.auctionSystemProduct.isExclusive")
+                        hr
+
+                        // 下半部「时间相关」选择
+                        .full-width-input-block
+                            label.control-label {{'Reward start time' | translate}}
+                            #auctionSystemProductRewardStartTimePicker.datetimepicker(style="display:inline-block;")
+                                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                                span.add-on
+                                    i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                        .full-width-input-block
+                            label.control-label {{'Reward end time' | translate}}
+                            #auctionSystemProductRewardEndTimePicker.datetimepicker(style="display:inline-block;")
+                                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                                span.add-on
+                                    i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
+                        .full-width-input-block
+                            label {{"Reward interval" | translate}}
+                            div(style="display:inline-block;")
+                                select.form-control(ng-model="vm.auctionSystemProduct.rewardInterval" style="display:inline-block")
+                                    option(value='weekly') {{'Weekly' | translate}}
+                                    option(value='monthly') {{'Monthly' | translate}}
+                        .full-width-input-block
+                            label {{"Product Start Time (minute)" | translate}}
+                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_START_TIME_DESCRIPTION' | translate}}")
+                            div(style="display:inline-block;")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.productStartTime")
+                        .full-width-input-block
+                            label {{"Product End Time (minute)" | translate}}
+                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_END_TIME_DESCRIPTION' | translate}}")
+                            div(style="display:inline-block;")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.productEndTime")
+
 
                         br
                         .pull-right

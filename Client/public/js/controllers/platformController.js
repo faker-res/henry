@@ -36306,14 +36306,20 @@ define(['js/app'], function (myApp) {
                         vm.auctionSystemProduct = {
                             registerStartTime: null,
                             registerEndTime: null,
+                            rewardStartTime: null,
+                            rewardEndTime: null,
                             playerType: 'Real Player (all)',
-                            playerLevel: 'all'
+                            playerLevel: 'all',
                         };
 
                         commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerStartTime', '#auctionSystemProductRegisterStartTimePicker',
                             utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(90)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
                         commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerEndTime', '#auctionSystemProductRegisterEndTimePicker',
                             utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(1)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                        commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'rewardStartTime', '#auctionSystemProductRewardStartTimePicker',
+                            utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(0)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                        commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'rewardEndTime', '#auctionSystemProductRewardEndTimePicker',
+                            utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(30)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
 
                         break;
                     case 'monitoringSystem':
