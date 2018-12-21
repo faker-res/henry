@@ -3219,3 +3219,8 @@ table.simple-table-single > thead > tr > th {
     background-color: #337ab7;
     color:white;
 }
+
+.questionTooltip {
+    margin-left: 0.3em;
+    color: #A9A9A9
+}
