@@ -42,7 +42,6 @@ function socketActionAuction(socketIO, socket) {
          * @param {json} data - Auctions data. It has to contain correct data format
          */
         listAuctionItems: function listAuctionItems(data) {
-            console.log('hi')
             var actionName = arguments.callee.name;
             var isValidData = true;
             socketUtil.emitter(self.socket, dbAuction.listAuctionItems, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
