@@ -6944,6 +6944,7 @@ define(['js/app'], function (myApp) {
                         title: $translate('SEND_STATUS'), data: "status",
                         render: function (data, type, row, index) {
                             let link = $('<a>', {
+                                'class': (data && data == vm.constTsPhoneListStatus.HALF_COMPLETE? "text-danger" : "text-primary"),
                                 'ng-click': 'vm.showAssignmentStatusDetail("'+row._id+'", '+ row.status +');',
                             }).text($translate(vm.constTsPhoneListStatusStr[data]));
                             return link.prop('outerHTML');
@@ -6985,10 +6986,17 @@ define(['js/app'], function (myApp) {
                         title: $translate('TOTAL_UNUSED'),
                         render: function(data, type, row, index){
                             let totalUnused = (row.totalPhone - row.totalUsed) || 0;
-                            let divWithToolTip = $('<div>', {
+                            let renderObj = {
+                                'ng-click': 'vm.selectedRedistributePhoneList =' + JSON.stringify(row._id) + ' ;',
+                                'class': (row.status && row.status == vm.constTsPhoneListStatus.HALF_COMPLETE? "text-danger" : "text-primary"),
                                 'title': "名单总数当中，尚未添加回访的电话量",
                                 'text': totalUnused
-                            });
+                            };
+                            if (row.status && row.status == vm.constTsPhoneListStatus.HALF_COMPLETE) {
+                                renderObj['data-toggle'] = 'modal';
+                                renderObj['data-target'] = '#modalRedistributePhoneNumber';
+                            }
+                            let divWithToolTip = $('<div>', renderObj);
 
                             return divWithToolTip.prop('outerHTML');
                         }
@@ -6996,7 +7004,7 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_SUCCESS'),
                         render: function(data, type, row, index){
-                            let divWithToolTip = $('<div>', {
+                            let divWithToolTip = $('<a>', {
                                 'title': "基础数据中，定义何谓成功接听（选择回访状态）的设定（同一电话 2 电销员都有接听，接听人＝1）",
                                 'text': row.totalSuccess || 0
                             });
@@ -7184,6 +7192,13 @@ define(['js/app'], function (myApp) {
             })
         }
 
+        vm.redistributePhoneNumber = function () {
+            if (vm.selectedRedistributePhoneList) {
+                socketService.$socket($scope.AppSocket, 'redistributePhoneNumber', {_id: vm.selectedRedistributePhoneList, platform: vm.selectedPlatform.id}, function (data) {
+                    vm.filterPhoneListManagement(true);
+                })
+            }
+        }
 
         vm.bindHover = function (placeholder, callback) {
             $(placeholder).bind("plothover", function (event, pos, obj) {

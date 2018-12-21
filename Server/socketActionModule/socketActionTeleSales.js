@@ -64,6 +64,12 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.getTSPhoneListName, [data], actionName, isValidData);
         },
 
+        redistributePhoneNumber:  function redistributePhoneNumber(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform && data._id);
+            socketUtil.emitter(self.socket, dbTeleSales.redistributePhoneNumber, [data._id, data.platform], actionName, isValidData);
+        },
+
         getRecycleBinTsPhoneList: function getRecycleBinTsPhoneList(data){
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platform && data.startTime && data.endTime);
