@@ -19199,7 +19199,11 @@ let dbPlayerInfo = {
             () => {
                 recalculateTsPhoneListPhoneNumber(tsPhoneList.platform, tsPhoneList._id).catch(errorUtils.reportError);
                 if (targetTsPhoneListId) {
-                    dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: targetTsPhoneListId}, {status: constTsPhoneListStatus.DECOMPOSED}).lean().catch(errorUtils.reportError);
+                    return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: targetTsPhoneListId}, {status: constTsPhoneListStatus.DECOMPOSED}).lean().then(
+                        () => {
+                            return true;
+                        }
+                    );
                 }
                 return true;
             }

@@ -350,6 +350,42 @@ let dbTeleSales = {
         return dbconfig.collection_tsPhoneList.distinct("name", query);
     },
 
+    redistributePhoneNumber: function (tsPhoneListObjId, platformObjId) {
+        return dbconfig.collection_tsPhone.find({
+            tsPhoneList: tsPhoneListObjId,
+            isUsed: false
+        }).count().then(
+            tsPhoneUpdateCount => {
+                let tsPhoneListUpdateQ = {
+                    status: constTsPhoneListStatus.DISTRIBUTING
+                };
+
+                if (tsPhoneUpdateCount > 0) {
+                    tsPhoneListUpdateQ.$inc = {totalDistributed: - (tsPhoneUpdateCount)}
+                }
+
+                return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObjId, platform: platformObjId}, tsPhoneListUpdateQ, {new: true}).lean()
+            }
+        ).then(
+            tsPhoneListData => {
+                if (!tsPhoneListData) {
+                    return Promise.reject({name: "DataError", message: "Cannot find tsPhoneList"});
+                }
+
+                let updateQuery = {
+                    tsPhoneList: tsPhoneListData._id,
+                    isUsed: false
+                };
+
+                dbconfig.collection_tsPhone.update(updateQuery, {assignTimes: 0, assignee: [], $unset: {distributedEndTime: ""}}, {multi: true}).catch(errorUtils.reportError);
+
+                dbconfig.collection_tsDistributedPhone.remove(updateQuery).catch(errorUtils.reportError);
+
+                return tsPhoneListData;
+            }
+        )
+    },
+
     getActivePhoneListNameForAdmin: function (platformObjId, adminId) {
         return dbconfig.collection_tsDistributedPhone.distinct("tsPhoneList", {startTime: {$lte: new Date()}, endTime:{$gte: new Date()}, platform: platformObjId, assignee: adminId}).then(
             tsPhoneListObjIds => {
@@ -665,8 +701,10 @@ let dbTeleSales = {
         ).then(
             () => {
                 let updateObj = {
-                    $inc: {totalDistributed: totalDistributed},
-                    status: distributeStatus
+                    $inc: {totalDistributed: totalDistributed}
+                }
+                if (distributeStatus) {
+                    updateObj.status = distributeStatus
                 }
                 if (distributeStatus == constTsPhoneListStatus.HALF_COMPLETE || distributeStatus == constTsPhoneListStatus.PERFECTLY_COMPLETED) {
                     updateObj.recycleTime = new Date();
@@ -711,6 +749,11 @@ let dbTeleSales = {
     updateTsPhoneList: function (query, updateData) {
         return dbconfig.collection_tsPhoneList.findOneAndUpdate(query, updateData).lean().then(
             tsPhoneOldData => {
+                let compareCity;
+                let compareProvince;
+                function findDangerZone (item) {
+                    return item.city == compareCity && item.province == compareProvince;
+                }
                 if (tsPhoneOldData) {
                     let tsPhoneQuery = {
                         tsPhoneList: tsPhoneOldData._id
@@ -740,11 +783,11 @@ let dbTeleSales = {
                     } else if (tsPhoneOldData.dangerZoneList && tsPhoneOldData.dangerZoneList.length && updateData.dangerZoneList && updateData.dangerZoneList.length) {
                         let addedZone = [];
                         let deletedZone = [];
-                        let compareCity;
-                        let compareProvince;
-                        function findDangerZone (item) {
-                            return item.city == compareCity && item.province == compareProvince;
-                        }
+                        // let compareCity;
+                        // let compareProvince;
+                        // function findDangerZone (item) {
+                        //     return item.city == compareCity && item.province == compareProvince;
+                        // }
                         updateData.dangerZoneList.forEach(inputZone => {
                             compareCity = inputZone.city;
                             compareProvince = inputZone.province;
@@ -883,7 +926,7 @@ let dbTeleSales = {
         if (!sourceTsPhoneList) {
             return;
         }
-        dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: sourceTsPhoneList}, {status: constTsPhoneListStatus.DECOMPOSED}).lean().catch(errorUtils.reportError);
+        dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: sourceTsPhoneList}, {status: constTsPhoneListStatus.DECOMPOSED, decomposedTime: new Date(Date.now())}).lean().catch(errorUtils.reportError);
         tsPhones.forEach(
             tsPhone => {
                 let tsPhoneQuery = dbconfig.collection_tsPhoneFeedback.findOne({
@@ -1543,6 +1586,55 @@ let dbTeleSales = {
             });
             return phoneArr;
         })
+    },
+
+    getTsPhoneCountDetail: function(tsPhoneListObjId) {
+        let curDate = new Date();
+        return dbconfig.collection_tsPhoneList.findOne({
+            _id: tsPhoneListObjId
+        }).then(tsPhoneList => {
+            let callerCycleCount = tsPhoneList.callerCycleCount;
+            let completedProm = dbconfig.collection_tsPhone.find({
+                tsPhoneList: tsPhoneListObjId,
+                assignTimes: {$gte: callerCycleCount},
+                distributedEndTime: {$lte: curDate},
+                registered: {$ne: true}
+            });
+            let incompleteProm = dbconfig.collection_tsPhone.find({
+                tsPhoneList: tsPhoneListObjId,
+                registered: {$ne: true},
+                $or: [{
+                    $and: [{
+                        assignTimes: {$lt: callerCycleCount},
+                        distributedEndTime: {$lte: curDate}
+                    }]
+                }, {
+                    assignTimes: 0
+                }]
+            });
+            let currentHoldingProm = dbconfig.collection_tsPhone.find({
+                tsPhoneList: tsPhoneListObjId,
+                distributedEndTime: {$gt: curDate},
+                registered: {$ne: true},
+            });
+            let registeredProm = dbconfig.collection_tsPhone.find({
+                tsPhoneList: tsPhoneListObjId,
+                registered: true
+            });
+            let totalProm = dbconfig.collection_tsPhone.find({
+                tsPhoneList: tsPhoneListObjId
+            });
+
+            return Promise.all([completedProm, incompleteProm, currentHoldingProm, registeredProm, totalProm]);
+        }).then(data => {
+            return {
+                completed: data[0] && data[0].length ? data[0].length : 0,
+                incomplete: data[1] && data[1].length ? data[1].length : 0,
+                currentHolding: data[2] && data[2].length ? data[2].length : 0,
+                registered: data[3] && data[3].length ? data[3].length : 0,
+                total: data[4] && data[4].length ? data[4].length : 0
+            };
+        });
     }
 
 };

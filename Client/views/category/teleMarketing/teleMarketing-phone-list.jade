@@ -29,6 +29,23 @@
             button.common-button.btn.btn-success(ng-disabled='!vm.selectedTsPhoneList || vm.disableManualPauseTsPhoneList', ng-click="vm.manualPauseTsPhoneList()") {{"Manual pause/ continue task" | translate}}
             button.common-button.btn.btn-danger(ng-disabled='!vm.selectedTsPhoneList', ng-click="vm.forceCompleteTsPhoneList()") {{"FORCE_COMPLETED" | translate}}
 
+#modalRedistributePhoneNumber.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style='width:50%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"ATTENTION !" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .row
+                            .col-md-12
+                                .well
+                                    text {{"At the end of the distribution, there are still unused phone numbers, which can be cleared from the original dispatch and re-entered the mission." | translate}}
+            .modal-footer
+                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal' ng-click="vm.redistributePhoneNumber()") {{"Redistribution" | translate}}
+                button.btn-sm.margin-right-5.btn.btn-danger.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
+
 #modalTsPlayerRetentionAnalysis.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:90%;')
         .modal-content

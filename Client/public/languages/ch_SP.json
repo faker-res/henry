@@ -103,6 +103,9 @@
   "updateLockedAmount": "更新锁定额度",
   "BALCKLIST": "黑名单",
   "ATTENTION": "关注",
+  "ATTENTION !": "提示！",
+  "Redistribution": "重新派发",
+  "At the end of the distribution, there are still unused phone numbers, which can be cleared from the original dispatch and re-entered the mission.": "派发行程结束但仍有未被使用的电话号码，可将此类电话清除原派发记录，重新进入任务。",
   "Player free amount is less than required top up amount": "玩家可用自由额度小于要求存款金额",
   "CONSUMPTION_INTERVAL": "投注历史分析",
   "ConsumptionInterval": "投注历史分析",
@@ -5156,5 +5159,14 @@
   "EditForAllTab": "编辑（所有TAB共用）",
   "IMPORT_XLS_TS": "导入电销系统",
   "Banker Result is required": "必须填上开奖结果（庄）",
-  "Player Result is required": "必须填上开奖结果（闲）"
+  "Player Result is required": "必须填上开奖结果（闲）",
+  "A. Phone List Total Count": "A.名单总数",
+  "B. Distribution Completed Count": "B.名单池中『已完成派发』数量（？）",
+  "C. Distribution Incomplete Count": "C.名单池中『未完成派发』数量（？）",
+  "D. Admin Current Holdings Count": "D.电销现在握有名单总数（？）",
+  "E. Registered Count": "E.成功开户量",
+  "F. Recycle Bin": "F.回收桶",
+  "Indicates phone numbers that has completed the preset rotation number and is now expired.": "已完成任务表示该电话已经成功派发至满足设定的 N 名电销员，并且『到期』回锅至名单池中。",
+  "Indicates phone numbers that has been distributed but has not completed the preset rotation amount.": "未完成任务表示该电话虽然已派发，但仍未满设定的 N 名电销员，目前在池中等待下次发放。",
+  "Indicates phone numbers that has been distributed and are currently active pending admin action.": "该名单中，掌握在所有电销员手中的电话数量。"
 }
