@@ -2,23 +2,11 @@
  * Created by mark on 21/12/18.
  */
 var encrypt = require('./../modules/encrypt');
-var dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 var dbAuction = require('./../db_modules/dbAuction');
 var dbPlatform = require('./../db_modules/dbPlatform');
-let dbPlayerRewardPoints = require('../db_modules/dbPlayerRewardPoints');
-let dbApiLog = require('./../db_modules/dbApiLog');
-var socketUtil = require('./../modules/socketutility');
-var utility = require('./../modules/encrypt');
-var constPlayerStatus = require('./../const/constPlayerStatus');
-var constPlayerPermission = require('./../const/constPlayerPermissions');
-var constPlayerRegistrationInterface = require('./../const/constPlayerRegistrationInterface');
-var constSystemParam = require('../const/constSystemParam');
 var constDepositMethod = require('../const/constDepositMethod');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
-var dbUtil = require('./../modules/dbutility');
-var smsAPI = require('../externalAPI/smsAPI');
-
 
 function socketActionAuction(socketIO, socket) {
 
