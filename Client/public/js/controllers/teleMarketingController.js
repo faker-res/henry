@@ -6716,11 +6716,13 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_NAME_LIST'),
                         render: function(data, type, row, index){
-                            let divWithToolTip = $('<div>', {
+                            let link = $('<a>', {
+                                'ng-click': 'vm.showTsPhoneCountDetail("'+row._id+'");',
+                                'data-toggle': 'modal',
+                                'data-target': '#modalPhoneListCountDetails',
                                 'text': row.totalPhone || 0
                             });
-
-                            return divWithToolTip.prop('outerHTML');
+                            return link.prop('outerHTML');
                         }
                     },
                     {
@@ -6968,11 +6970,13 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate('TOTAL_NAME_LIST'),
                         render: function(data, type, row, index){
-                            let divWithToolTip = $('<div>', {
+                            let link = $('<a>', {
+                                'ng-click': 'vm.showTsPhoneCountDetail("'+row._id+'");',
+                                'data-toggle': 'modal',
+                                'data-target': '#modalPhoneListCountDetails',
                                 'text': row.totalPhone || 0
                             });
-
-                            return divWithToolTip.prop('outerHTML');
+                            return link.prop('outerHTML');
                         }
                     },
                     {
@@ -7587,6 +7591,32 @@ define(['js/app'], function (myApp) {
         vm.closeModalTSNewListNameRepeat = function () {
             $('#modalTSNewListNameRepeat').hide();
             $('#nameInput').focus();
+        };
+
+        vm.showTsPhoneCountDetail = function(tsPhoneListObjId) {
+            socketService.$socket($scope.AppSocket, 'getTsPhoneCountDetail', {tsPhoneListObjId: tsPhoneListObjId}, function (data) {
+                console.log('getTsPhoneCountDetail retdata', data);
+                let counts = data.data;
+                let path = vm.selectedTab.toUpperCase();
+                $scope.$evalAsync(()=>{
+                    switch (path) {
+                        case 'PHONE_LIST_ANALYSE_AND_MANAGEMENT':
+                            vm.tsPhoneCountDetail = counts;
+                            vm.tsPhoneCountDetail.recycleBin = 0;
+                            break;
+
+                        case 'RECYCLE_BIN':
+                            vm.tsPhoneCountDetail = {};
+                            vm.tsPhoneCountDetail.total = counts.total;
+                            vm.tsPhoneCountDetail.completed = 0;
+                            vm.tsPhoneCountDetail.incomplete = 0;
+                            vm.tsPhoneCountDetail.currentHolding = 0;
+                            vm.tsPhoneCountDetail.registered = counts.registered;
+                            vm.tsPhoneCountDetail.recycleBin = counts.total - counts.registered;
+                            break;
+                    }
+                });
+            });
         };
 
         vm.getCtiData = (newSearch) => {

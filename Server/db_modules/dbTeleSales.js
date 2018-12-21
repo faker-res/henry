@@ -1543,6 +1543,55 @@ let dbTeleSales = {
             });
             return phoneArr;
         })
+    },
+
+    getTsPhoneCountDetail: function(tsPhoneListObjId) {
+        let curDate = new Date();
+        return dbconfig.collection_tsPhoneList.findOne({
+            _id: tsPhoneListObjId
+        }).then(tsPhoneList => {
+            let callerCycleCount = tsPhoneList.callerCycleCount;
+            let completedProm = dbconfig.collection_tsPhone.find({
+                tsPhoneList: tsPhoneListObjId,
+                assignTimes: {$gte: callerCycleCount},
+                distributedEndTime: {$lte: curDate},
+                registered: {$ne: true}
+            });
+            let incompleteProm = dbconfig.collection_tsPhone.find({
+                tsPhoneList: tsPhoneListObjId,
+                registered: {$ne: true},
+                $or: [{
+                    $and: [{
+                        assignTimes: {$lt: callerCycleCount},
+                        distributedEndTime: {$lte: curDate}
+                    }]
+                }, {
+                    assignTimes: 0
+                }]
+            });
+            let currentHoldingProm = dbconfig.collection_tsPhone.find({
+                tsPhoneList: tsPhoneListObjId,
+                distributedEndTime: {$gt: curDate},
+                registered: {$ne: true},
+            });
+            let registeredProm = dbconfig.collection_tsPhone.find({
+                tsPhoneList: tsPhoneListObjId,
+                registered: true
+            });
+            let totalProm = dbconfig.collection_tsPhone.find({
+                tsPhoneList: tsPhoneListObjId
+            });
+
+            return Promise.all([completedProm, incompleteProm, currentHoldingProm, registeredProm, totalProm]);
+        }).then(data => {
+            return {
+                completed: data[0] && data[0].length ? data[0].length : 0,
+                incomplete: data[1] && data[1].length ? data[1].length : 0,
+                currentHolding: data[2] && data[2].length ? data[2].length : 0,
+                registered: data[3] && data[3].length ? data[3].length : 0,
+                total: data[4] && data[4].length ? data[4].length : 0
+            };
+        });
     }
 
 };
