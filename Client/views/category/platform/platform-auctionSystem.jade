@@ -302,42 +302,40 @@
                         // 中下半部「商品定义」选择
                         .full-width-input-block
                             label {{"Product Image" | translate}}
-                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
+                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_IMAGE_DESCRIPTION' | translate}}")
                             div(style="display:inline-block;")
                                 input.form-control(type="text" ng-model="vm.auctionSystemProduct.productImage")
                         .full-width-input-block
                             label {{"Product Name" | translate}}
-                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
                             div(style="display:inline-block;")
                                 input.form-control(type="text" ng-model="vm.auctionSystemProduct.productName")
                         .full-width-input-block
                             label {{"Seller" | translate}}
-                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
                             div(style="display:inline-block;")
                                 input.form-control(type="text" ng-model="vm.auctionSystemProduct.seller")
                         .full-width-input-block
                             label {{"Reserve Price" | translate}}
-                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
+                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'RESERVE_PRICE_DESCRIPTION' | translate}}")
                             div(style="display:inline-block;")
                                 input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.reservePrice")
                         .full-width-input-block
                             label {{"Starting Price" | translate}}
-                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
+                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'STARTING_PRICE_DESCRIPTION' | translate}}")
                             div(style="display:inline-block;")
                                 input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.startingPrice")
                         .full-width-input-block
                             label {{"Price Increment" | translate}}
-                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
+                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRICE_INCREMENT_DESCRIPTION' | translate}}")
                             div(style="display:inline-block;")
                                 input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.priceIncrement")
                         .full-width-input-block
-                            label {{"Final Price" | translate}}
-                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
+                            label {{"Direct Purchase Price" | translate}}
+                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'DIRECT_PURCHASE_PRICE_DESCRIPTION' | translate}}")
                             div(style="display:inline-block;")
-                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.finalPrice")
+                                input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.directPurchasePrice")
                         .full-width-input-block
                             label {{"Is It Exclusive" | translate}}
-                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
+                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_EXCLUSIVE_DESCRIPTION' | translate}}")
                             div(style="display:inline-block;")
                                 input.form-control(type="checkbox" ng-model="vm.auctionSystemProduct.isExclusive")
                         hr
@@ -363,12 +361,12 @@
                                     option(value='monthly') {{'Monthly' | translate}}
                         .full-width-input-block
                             label {{"Product Start Time (minute)" | translate}}
-                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
+                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_START_TIME_DESCRIPTION' | translate}}")
                             div(style="display:inline-block;")
                                 input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.productStartTime")
                         .full-width-input-block
                             label {{"Product End Time (minute)" | translate}}
-                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
+                                i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_END_TIME_DESCRIPTION' | translate}}")
                             div(style="display:inline-block;")
                                 input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.productEndTime")
 
