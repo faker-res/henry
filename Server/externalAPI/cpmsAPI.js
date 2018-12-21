@@ -84,7 +84,7 @@ function callCPMSAPIWithFileData(service, functionName, data, fileData) {
             });
         }
     }, 60 * 1000);
-    return clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI").then(
+    return clientAPIInstance.createAPIConnectionInMode("ContentProviderAPI", "game").then(
         wsClient => {
             bOpen = true;
             return wsClient.callAPIOnceWithFileData(service, functionName, data, fileData).then(

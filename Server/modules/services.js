@@ -158,6 +158,14 @@ function getContentProviderAPIClient (options) {
     return connectToServer(env.cpAPIUrl, allServicesIn(cpmsServices), null, options);
 }
 
+function getContentProviderAPIClientForGame (options) {
+    if (env.disableCPAPI) {
+        throw Error("You may not create this client: CPAPI is disabled.");
+    }
+    //var loginData = { userName: 'admin', password: 'cpmsmon' };
+    return connectToServer(env.cpAPIUrlForGame, allServicesIn(cpmsServices), null, options);
+}
+
 function getPaymentManagementClient (options) {
     if (env.disablePaymentAPI) {
         throw Error("You may not create this client: PaymentAPI is disabled.");
@@ -181,6 +189,7 @@ module.exports = {
     getClientClient: getClientClient,
     getPaymentManagementClient: getPaymentManagementClient,
     getContentProviderAPIClient: getContentProviderAPIClient,
+    getContentProviderAPIClientForGame: getContentProviderAPIClientForGame,
     getSMSAPIClient: getSMSAPIClient,
     callAPI: serviceUtils.callAPI
 };
