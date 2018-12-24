@@ -8,11 +8,15 @@
     .col-md-6(ng-if="vm.selectedAuctionSystemTab=='createProduct'")
         div
           .inlineBlk
-              button.btn.btn-primary( ng-click='vm.auctionSystemTabClicked("createProduct")') {{"ATTACH" | translate}}
+              button.btn.btn-primary(  ng-if="vm.numExcludeAuction==0", ng-click='vm.auctionSystemTabClicked("createProduct")') {{"ATTACH" | translate}}
+          .inlineBlk
+              button.btn.btn-primary(  ng-if="vm.numExcludeAuction!=0", ng-click='vm.auctionSystemTabClicked("createProduct")', DISABLED) {{"ATTACH" | translate}}
           .inlineBlk
               button.btn.btn-primary( ng-click='vm.moveToNotAvailable()') {{"MOVE" | translate}}
           .inlineBlk
-              button.btn.btn-primary( ng-click='vm.loadAuctionItem()') {{"Edit" | translate}}
+              button.btn.btn-primary( ng-if="vm.numExcludeAuction==1", ng-click='vm.loadAuctionItem()') {{"Edit" | translate}}
+          .inlineBlk
+              button.btn.btn-primary( ng-if="vm.numExcludeAuction!=1", ng-click='vm.loadAuctionItem()', DISABLED) {{"Edit" | translate}}
           .inlineBlk
               button.btn.btn-danger( ng-click='vm.removeAuctionItem()') {{"Delete" | translate}}
         table#auctionPublishTable.display.table-condensed(style="min-width:100%;")
@@ -21,11 +25,15 @@
 
         div
           .inlineBlk
-              button.btn.btn-primary( ng-click='vm.auctionSystemTabClicked("createProduct")') {{"ATTACH" | translate}}
+              button.btn.btn-primary(  ng-if="vm.numNotAvailableAuction==0", ng-click='vm.auctionSystemTabClicked("createProduct")') {{"ATTACH" | translate}}
+          .inlineBlk
+              button.btn.btn-primary(  ng-if="vm.numNotAvailableAuction!=0", ng-click='vm.auctionSystemTabClicked("createProduct")', DISABLED) {{"ATTACH" | translate}}
           .inlineBlk
               button.btn.btn-primary( ng-click='vm.moveToExclusive()') {{"MOVE" | translate}}
           .inlineBlk
-              button.btn.btn-primary( ng-click='vm.loadAuctionItem()') {{"Edit" | translate}}
+              button.btn.btn-primary( ng-if="vm.numNotAvailableAuction==1", ng-click='vm.loadAuctionItem()') {{"Edit" | translate}}
+          .inlineBlk
+              button.btn.btn-primary( ng-if="vm.numNotAvailableAuction!=1", ng-click='vm.loadAuctionItem()', DISABLED) {{"Edit" | translate}}
           .inlineBlk
               button.btn.btn-danger( ng-click='vm.removeAuctionItem()') {{"Delete" | translate}}
         table#auctionNotAvailableTable.display.table-condensed(style="min-width:100%;")

@@ -36409,13 +36409,16 @@ define(['js/app'], function (myApp) {
                             title: $translate('ACTION_BUTTON'),
                             data: "name",
                             render: function(data, type, row) {
-                                let result = '<input type="checkbox" name="excludeAuctionItem[]" value="' + data + '">';
+                                let result = '<input type="checkbox" ng-click="vm.countAuction()" name="excludeAuctionItem[]" value="' + data + '">';
                                 return result;
                             }
                         }
 
                     ],
-                    "paging": false
+                    "paging": false,
+                    fnInitComplete: function(settings){
+                        $compile(angular.element('#' + settings.sTableId).contents())($scope);
+                    }
                 };
                 tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
                 vm.auctionPublishTable = $('#auctionPublishTable').DataTable(tableOptions);
@@ -36423,7 +36426,10 @@ define(['js/app'], function (myApp) {
 
                 $('#auctionPublishTable').resize();
             };
-
+            vm.countAuction = function(){
+                vm.numExcludeAuction= vm.getAuctionCheckedItem('excludeAuctionItem[]') ? vm.getAuctionCheckedItem('excludeAuctionItem[]').length : 0;
+                vm.numNotAvailableAuction = vm.getAuctionCheckedItem('notAvailableAuctionItem[]') ? vm.getAuctionCheckedItem('notAvailableAuctionItem[]').length : 0;
+            }
             vm.drawAuctionNotAvailableTable = function (data, newSearch) {
                 let index = 0;
                 data = data || [];
@@ -36454,13 +36460,16 @@ define(['js/app'], function (myApp) {
                             title: $translate('ACTION_BUTTON'),
                             data: "name",
                             render: function(data, type, row) {
-                                let result = '<input type="checkbox" name="notAvailableAuctionItem[]" value="' + data + '">';
+                                let result = '<input type="checkbox"  ng-click="vm.countAuction()" name="notAvailableAuctionItem[]" value="' + data + '">';
                                 return result;
                             }
                         }
 
                     ],
-                    "paging": false
+                    "paging": false,
+                    fnInitComplete: function(settings){
+                        $compile(angular.element('#' + settings.sTableId).contents())($scope);
+                    }
                 };
                 tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
                 vm.auctionNotAvailableTable = $('#auctionNotAvailableTable').DataTable(tableOptions);
@@ -36477,7 +36486,6 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                      //Type, Product Name, Sell From, Starting Price, Direct Purchase Price, Exclusive
                         {
                             title: $translate('Type'),
                             render: function(data, type, row) {
@@ -36495,7 +36503,10 @@ define(['js/app'], function (myApp) {
                         },
                         {title: $translate('Starting Price'), data: "startPrice"}
                     ],
-                    "paging": false
+                    "paging": false,
+                    fnInitComplete: function(settings){
+                        $compile(angular.element('#' + settings.sTableId).contents())($scope);
+                    }
                 };
                 tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
                 vm.auctionMonitorTable = $('#auctionMonitorTable').DataTable(tableOptions);
