@@ -2208,7 +2208,8 @@ const dbRewardTask = {
         );
     },
 
-    getConsumptionReturnPeriodTime: (period) => dbRewardUtil.getConsumptionReturnPeriodTime(period)
+    getConsumptionReturnPeriodTime: (period) => dbRewardUtil.getConsumptionReturnPeriodTime(period),
+    getConsumptionReturnCurrentPeriodTime: (period) => dbRewardUtil.getConsumptionReturnCurrentPeriodTime(period),
 
 };
 

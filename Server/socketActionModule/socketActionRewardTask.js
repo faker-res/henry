@@ -139,6 +139,12 @@ function socketActionRewardTask(socketIO, socket) {
             socketUtil.emitter(self.socket, dbRewardTask.getConsumptionReturnPeriodTime, [data.period], actionName, isValidData);
         },
 
+        getConsumptionReturnCurrentPeriodTime: function getConsumptionReturnCurrentPeriodTime(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.period);
+            socketUtil.emitter(self.socket, dbRewardTask.getConsumptionReturnCurrentPeriodTime, [data.period], actionName, isValidData);
+        },
+
         getPrevious10PlayerRTG: function getPrevious10PlayerRTG(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data);
