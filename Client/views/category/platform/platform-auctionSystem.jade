@@ -409,3 +409,6 @@
 
                 // Tab - monitoringSystem
                 div(ng-if='vm.selectedAuctionSystemTab === "monitoringSystem" && checkViewPermission("Platform", "AuctionSystem", "monitoringSystem")')
+                    .col-md-12(ng-if="vm.selectedAuctionSystemTab=='monitoringSystem'")
+                        table#auctionMonitorTable.display.table-condensed(style="min-width:100%;")
+                        #auctionMonitorTablePage

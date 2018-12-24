@@ -36298,12 +36298,17 @@ define(['js/app'], function (myApp) {
             vm.listAuctionItem = function() {
                 let sendQuery = {};
                 socketService.$socket($scope.AppSocket, 'listAuctionItems', sendQuery, function (data) {
-                    console.log(data);
                     vm.drawAuctionPublishTable(data.data);
                     vm.drawAuctionNotAvailableTable(data.data);
                 });
             };
 
+            vm.listAuctionMonitor = function(){
+                let sendQuery = {};
+                socketService.$socket($scope.AppSocket, 'listAuctionItems', sendQuery, function (data) {
+                    vm.drawAuctionMonitorTable(data.data);
+                });
+            }
             vm.auctionSystemTabClicked = function (choice) {
                 vm.selectedAuctionSystemTab = choice;
                 vm.listAuctionItem();
@@ -36332,7 +36337,7 @@ define(['js/app'], function (myApp) {
 
                         break;
                     case 'monitoringSystem':
-
+                        vm.listAuctionMonitor();
                         break;
                 }
             };
@@ -36375,7 +36380,6 @@ define(['js/app'], function (myApp) {
             };
 
             vm.drawAuctionPublishTable = function (data, newSearch) {
-                console.log('data', data);
                 let index = 0;
                 data = data || [];
                 let tableOptions = {
@@ -36384,7 +36388,6 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                      //Type, Product Name, Sell From, Starting Price, Direct Purchase Price, Exclusive
                         {
                             title: $translate('Type'),
                             render: function(data, type, row) {
@@ -36416,15 +36419,12 @@ define(['js/app'], function (myApp) {
                 };
                 tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
                 vm.auctionPublishTable = $('#auctionPublishTable').DataTable(tableOptions);
-
-                // vm.autoFeedbackMissionSearch.pageObj.init({maxCount: vm.autoFeedbackSearchResultTotal}, newSearch);
                 utilService.setDataTablePageInput('auctionPublishTable', vm.auctionPublishTable, $translate);
 
                 $('#auctionPublishTable').resize();
             };
 
             vm.drawAuctionNotAvailableTable = function (data, newSearch) {
-                console.log('data', data);
                 let index = 0;
                 data = data || [];
                 let tableOptions = {
@@ -36433,7 +36433,6 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                      //Type, Product Name, Sell From, Starting Price, Direct Purchase Price, Exclusive
                         {
                             title: $translate('Type'),
                             render: function(data, type, row) {
@@ -36465,12 +36464,45 @@ define(['js/app'], function (myApp) {
                 };
                 tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
                 vm.auctionNotAvailableTable = $('#auctionNotAvailableTable').DataTable(tableOptions);
-
-                // vm.autoFeedbackMissionSearch.pageObj.init({maxCount: vm.autoFeedbackSearchResultTotal}, newSearch);
                 utilService.setDataTablePageInput('auctionNotAvailableTable', vm.auctionNotAvailableTable, $translate);
-
                 $('#auctionNotAvailableTable').resize();
             };
+
+            vm.drawAuctionMonitorTable = function(data, newSearch){
+                let index = 0;
+                data = data || [];
+                let tableOptions = {
+                    data: data,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                      //Type, Product Name, Sell From, Starting Price, Direct Purchase Price, Exclusive
+                        {
+                            title: $translate('Type'),
+                            render: function(data, type, row) {
+                                let result = '';
+                                return result;
+                            }
+                        },
+                        {title: $translate('Product Name'), data: "name"},
+                        {
+                            title: $translate('Sell From'),
+                            render: function(data, type, row) {
+                                let result = '';
+                                return result;
+                            }
+                        },
+                        {title: $translate('Starting Price'), data: "startPrice"}
+                    ],
+                    "paging": false
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                vm.auctionMonitorTable = $('#auctionMonitorTable').DataTable(tableOptions);
+                utilService.setDataTablePageInput('auctionMonitorTable', vm.auctionMonitorTable, $translate);
+                $('#auctionMonitorTable').resize();
+
+            }
 
             vm.moveToNotAvailable = function(){
                 let auctionItems = vm.getAuctionCheckedItem('excludeAuctionItem[]');
@@ -36518,7 +36550,6 @@ define(['js/app'], function (myApp) {
                 $('input[name="'+el+'"]').each(function () {
                     if($(this).is(':checked')){
                         let result = $(this).val();
-                        console.log(result);
                         auctionItems.push(result);
                     }
                 });
