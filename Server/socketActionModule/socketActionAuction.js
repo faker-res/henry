@@ -58,6 +58,11 @@ function socketActionAuction(socketIO, socket) {
             var isValidData = true;
             data.direction = 'removeNotAvailableAuction';
             socketUtil.emitter(self.socket, dbAuction.moveTo, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
+        },
+        isQualify: function isQualify(data){
+          var actionName = arguments.callee.name;
+          var isValidData = true;
+          socketUtil.emitter(self.socket, dbAuction.isQualify, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
         }
     };
     socketActionAuction.actions = this.actions;

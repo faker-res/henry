@@ -46,6 +46,13 @@ var dbAuction = {
                 return data;
             }
         )
+    },
+    isQualify: (data) => {
+        return [];
+        // return dbconfig.collection_auctions.find();
+    },
+    applyAuction: (data) =>{
+        return [];
     }
 }
 module.exports = dbAuction;
