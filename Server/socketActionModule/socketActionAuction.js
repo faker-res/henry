@@ -7,6 +7,7 @@ var dbPlatform = require('./../db_modules/dbPlatform');
 var constDepositMethod = require('../const/constDepositMethod');
 var mongoose = require('mongoose');
 var ObjectId = mongoose.Types.ObjectId;
+let socketUtil = require('./../modules/socketutility');
 
 function socketActionAuction(socketIO, socket) {
 
