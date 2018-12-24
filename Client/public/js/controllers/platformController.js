@@ -36291,15 +36291,12 @@ define(['js/app'], function (myApp) {
             };
 
             /***** Auction System - start *****/
-            vm.initAuctionSystem = function() {
-
-            };
-
             vm.auctionSystemTabClicked = function (choice) {
                 vm.selectedAuctionSystemTab = choice;
 
                 switch (choice) {
                     case 'createProduct':
+                        vm.initCreateProduct = false;
                         vm.auctionSystemCreateProductStatus = '';
                         vm.auctionSystemEditStatus = false;
                         vm.selectedAuctionRewardType = null;
@@ -36311,21 +36308,22 @@ define(['js/app'], function (myApp) {
                             playerType: 'Real Player (all)',
                             playerLevel: 'all',
                         };
-
-                        commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerStartTime', '#auctionSystemProductRegisterStartTimePicker',
-                            utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(90)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
-                        commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerEndTime', '#auctionSystemProductRegisterEndTimePicker',
-                            utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(1)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
-                        commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'rewardStartTime', '#auctionSystemProductRewardStartTimePicker',
-                            utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(0)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
-                        commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'rewardEndTime', '#auctionSystemProductRewardEndTimePicker',
-                            utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(30)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
-
                         break;
                     case 'monitoringSystem':
 
                         break;
                 }
+            };
+
+            vm.initAuctionSystemCreateProduct = function () {
+                commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerStartTime', '#auctionSystemProductRegisterStartTimePicker',
+                    utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(90)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerEndTime', '#auctionSystemProductRegisterEndTimePicker',
+                    utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(1)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'rewardStartTime', '#auctionSystemProductRewardStartTimePicker',
+                    utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(0)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'rewardEndTime', '#auctionSystemProductRewardEndTimePicker',
+                    utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(30)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
             };
 
             vm.resetRewardTypeChanged = function () {
@@ -36348,18 +36346,23 @@ define(['js/app'], function (myApp) {
                 vm.resetRewardTypeChanged();
                 switch (choice) {
                     case '1':
+                        vm.auctionSystemProduct.rewardType = '1';
                         vm.selectedAuctionRewardType = 'promoCode';
                         break;
                     case '2':
+                        vm.auctionSystemProduct.rewardType = '2';
                         vm.selectedAuctionRewardType = 'openPromoCode';
                         break;
                     case '3':
+                        vm.auctionSystemProduct.rewardType = '3';
                         vm.selectedAuctionRewardType = 'promotion';
                         break;
                     case '4':
+                        vm.auctionSystemProduct.rewardType = '4';
                         vm.selectedAuctionRewardType = 'realPrize';
                         break;
                     case '5':
+                        vm.auctionSystemProduct.rewardType = '5';
                         vm.selectedAuctionRewardType = 'rewardPointsChange';
                         break;
                 }
