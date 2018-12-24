@@ -34,6 +34,30 @@ function socketActionAuction(socketIO, socket) {
             var actionName = arguments.callee.name;
             var isValidData = true;
             socketUtil.emitter(self.socket, dbAuction.listAuctionItems, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
+        },
+        moveToNotAvailableItem: function moveToNotAvailableItem(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = true;
+            data.direction = 'notAvailableItem';
+            socketUtil.emitter(self.socket, dbAuction.moveTo, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
+        },
+        moveToExclusiveItem: function moveToExclusiveItem(data){
+            var actionName = arguments.callee.name;
+            var isValidData = true;
+            data.direction = 'exclusiveItem';
+            socketUtil.emitter(self.socket, dbAuction.moveTo, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
+        },
+        removeExclusiveAuction: function removeExclusiveAuction(data){
+            var actionName = arguments.callee.name;
+            var isValidData = true;
+            data.direction = 'removeExclusiveAuction';
+            socketUtil.emitter(self.socket, dbAuction.moveTo, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
+        },
+        removeNotAvailableAuction: function removeNotAvailableAuction(data){
+            var actionName = arguments.callee.name;
+            var isValidData = true;
+            data.direction = 'removeNotAvailableAuction';
+            socketUtil.emitter(self.socket, dbAuction.moveTo, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
         }
     };
     socketActionAuction.actions = this.actions;

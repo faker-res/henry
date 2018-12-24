@@ -5,7 +5,32 @@
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedAuctionSystemTab === "monitoringSystem"}', ng-click='vm.auctionSystemTabClicked("monitoringSystem")')
             span {{"MONITORING_SYSTEM" | translate}}
 
-    .col-md-12
+    .col-md-6(ng-if="vm.selectedAuctionSystemTab=='createProduct'")
+        div
+          .inlineBlk
+              button.btn.btn-primary( ng-click='vm.auctionSystemTabClicked("createProduct")') {{"ATTACH" | translate}}
+          .inlineBlk
+              button.btn.btn-primary( ng-click='vm.moveToNotAvailable()') {{"MOVE" | translate}}
+          .inlineBlk
+              button.btn.btn-primary( ng-click='vm.loadAuctionItem()') {{"Edit" | translate}}
+          .inlineBlk
+              button.btn.btn-danger( ng-click='vm.removeAuctionItem()') {{"Delete" | translate}}
+        table#auctionPublishTable.display.table-condensed(style="min-width:100%;")
+        #auctionPublishTablePage
+        br
+
+        div
+          .inlineBlk
+              button.btn.btn-primary( ng-click='vm.auctionSystemTabClicked("createProduct")') {{"ATTACH" | translate}}
+          .inlineBlk
+              button.btn.btn-primary( ng-click='vm.moveToExclusive()') {{"MOVE" | translate}}
+          .inlineBlk
+              button.btn.btn-primary( ng-click='vm.loadAuctionItem()') {{"Edit" | translate}}
+          .inlineBlk
+              button.btn.btn-danger( ng-click='vm.removeAuctionItem()') {{"Delete" | translate}}
+        table#auctionNotAvailableTable.display.table-condensed(style="min-width:100%;")
+        #auctionNotAvailableTablePage
+    .col-md-6
         .panel.panel-primary
             .panel-heading.panel-heading-sm
                 label {{"auctionSystem" | translate}}
@@ -384,4 +409,3 @@
 
                 // Tab - monitoringSystem
                 div(ng-if='vm.selectedAuctionSystemTab === "monitoringSystem" && checkViewPermission("Platform", "AuctionSystem", "monitoringSystem")')
-

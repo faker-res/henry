@@ -36297,7 +36297,11 @@ define(['js/app'], function (myApp) {
 
             vm.listAuctionItem = function() {
                 let sendQuery = {};
-                socketService.$socket($scope.AppSocket, 'listAuctionItems', sendQuery, function (data) {});
+                socketService.$socket($scope.AppSocket, 'listAuctionItems', sendQuery, function (data) {
+                    console.log(data);
+                    vm.drawAuctionPublishTable(data.data);
+                    vm.drawAuctionNotAvailableTable(data.data);
+                });
             };
 
             vm.auctionSystemTabClicked = function (choice) {
@@ -36369,6 +36373,157 @@ define(['js/app'], function (myApp) {
                         break;
                 }
             };
+
+            vm.drawAuctionPublishTable = function (data, newSearch) {
+                console.log('data', data);
+                let index = 0;
+                data = data || [];
+                let tableOptions = {
+                    data: data,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                      //Type, Product Name, Sell From, Starting Price, Direct Purchase Price, Exclusive
+                        {
+                            title: $translate('Type'),
+                            render: function(data, type, row) {
+                                let result = '';
+                                return result;
+                            }
+                        },
+                        {title: $translate('Product Name'), data: "name"},
+                        {
+                            title: $translate('Sell From'),
+                            render: function(data, type, row) {
+                                let result = '';
+                                return result;
+                            }
+                        },
+                        {title: $translate('Starting Price'), data: "startPrice"},
+                        {title: $translate('Direct Purchase Price'), data: "directPrice"},
+                        {
+                            title: $translate('ACTION_BUTTON'),
+                            data: "name",
+                            render: function(data, type, row) {
+                                let result = '<input type="checkbox" name="excludeAuctionItem[]" value="' + data + '">';
+                                return result;
+                            }
+                        }
+
+                    ],
+                    "paging": false
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                vm.auctionPublishTable = $('#auctionPublishTable').DataTable(tableOptions);
+
+                // vm.autoFeedbackMissionSearch.pageObj.init({maxCount: vm.autoFeedbackSearchResultTotal}, newSearch);
+                utilService.setDataTablePageInput('auctionPublishTable', vm.auctionPublishTable, $translate);
+
+                $('#auctionPublishTable').resize();
+            };
+
+            vm.drawAuctionNotAvailableTable = function (data, newSearch) {
+                console.log('data', data);
+                let index = 0;
+                data = data || [];
+                let tableOptions = {
+                    data: data,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                      //Type, Product Name, Sell From, Starting Price, Direct Purchase Price, Exclusive
+                        {
+                            title: $translate('Type'),
+                            render: function(data, type, row) {
+                                let result = '';
+                                return result;
+                            }
+                        },
+                        {title: $translate('Product Name'), data: "name"},
+                        {
+                            title: $translate('Sell From'),
+                            render: function(data, type, row) {
+                                let result = '';
+                                return result;
+                            }
+                        },
+                        {title: $translate('Starting Price'), data: "startPrice"},
+                        {title: $translate('Direct Purchase Price'), data: "directPrice"},
+                        {
+                            title: $translate('ACTION_BUTTON'),
+                            data: "name",
+                            render: function(data, type, row) {
+                                let result = '<input type="checkbox" name="notAvailableAuctionItem[]" value="' + data + '">';
+                                return result;
+                            }
+                        }
+
+                    ],
+                    "paging": false
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                vm.auctionNotAvailableTable = $('#auctionNotAvailableTable').DataTable(tableOptions);
+
+                // vm.autoFeedbackMissionSearch.pageObj.init({maxCount: vm.autoFeedbackSearchResultTotal}, newSearch);
+                utilService.setDataTablePageInput('auctionNotAvailableTable', vm.auctionNotAvailableTable, $translate);
+
+                $('#auctionNotAvailableTable').resize();
+            };
+
+            vm.moveToNotAvailable = function(){
+                let auctionItems = vm.getAuctionCheckedItem('excludeAuctionItem[]');
+                let sendQuery = {
+                    platformId:vm.selectedPlatform.id,
+                    auctionItems:auctionItems
+                };
+                socketService.$socket($scope.AppSocket, 'moveToNotAvailableItem', sendQuery, function (data) {
+                    vm.listAuctionItem();
+                });
+            }
+            vm.moveToExclusive = function(){
+                let auctionItems = vm.getAuctionCheckedItem('notAvailableAuctionItem[]');
+                let sendQuery = {
+                    platformId:vm.selectedPlatform.id,
+                    auctionItems:auctionItems
+                };
+                socketService.$socket($scope.AppSocket, 'moveToExclusiveItem', sendQuery, function (data) {
+                    vm.listAuctionItem();
+                });
+            }
+            vm.removeExclusiveAuction = function(){
+                let auctionItems = vm.getAuctionCheckedItem('excludeAuctionItem[]');
+                let sendQuery = {
+                    platformId:vm.selectedPlatform.id,
+                    auctionItems:auctionItems
+                };
+                socketService.$socket($scope.AppSocket, 'removeExclusiveAuction', sendQuery, function (data) {
+                    vm.listAuctionItem();
+                });
+            }
+
+            vm.removeNotAvailableAuction = function(){
+                let auctionItems = vm.getAuctionCheckedItem('notAvailableAuctionItem[]');
+                let sendQuery = {
+                    platformId:vm.selectedPlatform.id,
+                    auctionItems:auctionItems
+                };
+                socketService.$socket($scope.AppSocket, 'removeNotAvailableAuction', sendQuery, function (data) {
+                    vm.listAuctionItem();
+                });
+            }
+            vm.getAuctionCheckedItem = function(el){
+                let auctionItems = [];
+                $('input[name="'+el+'"]').each(function () {
+                    if($(this).is(':checked')){
+                        let result = $(this).val();
+                        console.log(result);
+                        auctionItems.push(result);
+                    }
+                });
+                return auctionItems;
+            }
             /***** Auction System - end *****/
 
             vm.changeFrameHeight = function() {
