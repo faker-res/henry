@@ -249,6 +249,9 @@ let idcIpModel = db_admin.model('idcIp', idcIpSchema, 'idcIp');
 let platformBlacklistIpConfigSchema = require('./../schema/platformBlacklistIpConfig');
 let platformBlacklistIpConfigModel = db_admin.model('platformBlacklistIpConfig', platformBlacklistIpConfigSchema, 'platformBlacklistIpConfig');
 
+let auctionSystemSchema = require('./../schema/auctionSystem');
+let auctionSystemModel = db_admin.model('auctionSystem', auctionSystemSchema, 'auctionSystem');
+
 let platformBlackWhiteListingSchema = require('./../schema/platformBlackWhiteListing');
 let platformBlackWhiteListingModel = db_admin.model('platformBlackWhiteListing', platformBlackWhiteListingSchema, 'platformBlackWhiteListing');
 
@@ -643,6 +646,8 @@ var dbProperties = {
     collection_promoCodeTemplate: promoCodeTemplateModel,
     collection_depositGroup: depositGroupModel,
     collection_wcDevice: wcDeviceModel,
+
+    collection_auctionSystem: auctionSystemModel,
 
     //logs
     collection_playerMail: playerMailModel,

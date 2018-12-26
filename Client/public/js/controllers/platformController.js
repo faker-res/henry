@@ -36305,6 +36305,10 @@ define(['js/app'], function (myApp) {
             };
 
             /***** Auction System - start *****/
+            vm.initAuctionSystem = function() {
+
+            };
+
             vm.listAuctionItem = function() {
                 vm.excludeAuctionItem = [];
                 vm.notAvailableAuctionItem = [];
@@ -36341,6 +36345,8 @@ define(['js/app'], function (myApp) {
                 vm.listAuctionItem();
                 switch (choice) {
                     case 'createProduct':
+                        vm.numExcludeAuction = 0;
+                        vm.numNotAvailableAuction = 0;
                         vm.initCreateProduct = false;
                         vm.auctionSystemCreateProductStatus = '';
                         vm.auctionSystemEditStatus = false;
@@ -36352,6 +36358,9 @@ define(['js/app'], function (myApp) {
                             rewardEndTime: null,
                             playerType: 'Real Player (all)',
                             playerLevel: 'all',
+                        };
+                        vm.auctionProductReward = {
+                            rewardType: ''
                         };
                         break;
                     case 'monitoringSystem':
@@ -36372,45 +36381,60 @@ define(['js/app'], function (myApp) {
             };
 
             vm.resetRewardTypeChanged = function () {
-                vm.auctionSystemProduct = {
-                    promoCode : '',
-                    openPromoCode : '',
-                    productImageUrl : '',
-                    messageTitle : '',
-                    messageContent : '',
-                    gameProviderGroup : '',
-                    unlockAmount : '',
-                    rewardAmount : '',
-                    useConsumption : false,
-                    realPrizeDetails : '',
-                    rewardPointsVariable : '',
-                };
+                vm.auctionProductReward.promoCode = '';
+                vm.auctionProductReward.openPromoCode = '';
+                vm.auctionProductReward.productImageUrl = '';
+                vm.auctionProductReward.messageTitle = '';
+                vm.auctionProductReward.messageContent = '';
+                vm.auctionProductReward.gameProviderGroup = '';
+                vm.auctionProductReward.unlockAmount = '';
+                vm.auctionProductReward.rewardAmount = '';
+                vm.auctionProductReward.useConsumption = false;
+                vm.auctionProductReward.realPrizeDetails = '';
+                vm.auctionProductReward.rewardPointsVariable = '';
             };
 
             vm.auctionRewardTypeChanged = function (choice) {
                 vm.resetRewardTypeChanged();
                 switch (choice) {
-                    case '1':
-                        vm.auctionSystemProduct.rewardType = '1';
+                    case 'promoCode':
                         vm.selectedAuctionRewardType = 'promoCode';
                         break;
-                    case '2':
-                        vm.auctionSystemProduct.rewardType = '2';
+                    case 'openPromoCode':
                         vm.selectedAuctionRewardType = 'openPromoCode';
                         break;
-                    case '3':
-                        vm.auctionSystemProduct.rewardType = '3';
+                    case 'promotion':
                         vm.selectedAuctionRewardType = 'promotion';
                         break;
-                    case '4':
-                        vm.auctionSystemProduct.rewardType = '4';
+                    case 'realPrize':
                         vm.selectedAuctionRewardType = 'realPrize';
                         break;
-                    case '5':
-                        vm.auctionSystemProduct.rewardType = '5';
+                    case 'rewardPointsChange':
                         vm.selectedAuctionRewardType = 'rewardPointsChange';
                         break;
                 }
+            };
+
+            vm.createAuctionProduct = function () {
+                vm.auctionSystemProduct.platformObjId = vm.selectedPlatform.id;
+                vm.auctionSystemProduct.registerStartTime = $('#auctionSystemProductRegisterStartTimePicker').data('datetimepicker').getDate();
+                vm.auctionSystemProduct.registerEndTime = $('#auctionSystemProductRegisterEndTimePicker').data('datetimepicker').getDate();
+                vm.auctionSystemProduct.rewardStartTime = $('#auctionSystemProductRewardStartTimePicker').data('datetimepicker').getDate();
+                vm.auctionSystemProduct.rewardEndTime = $('#auctionSystemProductRewardEndTimePicker').data('datetimepicker').getDate();
+                vm.auctionSystemProduct.rewardData = vm.auctionProductReward;
+
+                socketService.$socket($scope.AppSocket, 'createAuctionProduct', vm.auctionSystemProduct, function (data) {
+                    console.log("createAuctionProduct", data);
+                    if (data.success) {
+                        $scope.$evalAsync(() => {
+                            vm.auctionSystemCreateProductStatus = 'success';
+                        });
+                    } else {
+                        $scope.$evalAsync(() => {
+                            vm.auctionSystemCreateProductStatus = 'fail';
+                        });
+                    }
+                });
             };
 
             vm.drawAuctionPublishTable = function (data, newSearch) {

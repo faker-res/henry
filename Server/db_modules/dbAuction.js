@@ -56,6 +56,20 @@ var dbAuction = {
     },
     applyAuction: (data) =>{
         return [];
-    }
-}
+    },
+
+    createAuctionProduct: function (auctionProduct) {
+        return dbconfig.collection_auctionSystem(auctionProduct).save().then(
+            data => {
+                if (data) {
+                    return JSON.parse(JSON.stringify(data));
+                }
+            },
+            error => {
+                return Promise.reject({name: "DBError", message: "Error creating auction product.", error: error});
+            }
+        );
+    },
+};
+
 module.exports = dbAuction;
