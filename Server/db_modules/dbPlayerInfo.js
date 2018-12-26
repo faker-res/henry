@@ -1920,19 +1920,20 @@ let dbPlayerInfo = {
                     }
 
                     if (playerData.domain) {
+                        console.log("checking domain name when register from DX", [playerData.name, playerData.domain])
                         delete playerData.referral;
-                        let filteredDomain = dbUtility.getDomainName(playerData.domain);
-                        while (filteredDomain.indexOf("/") !== -1) {
-                            filteredDomain = filteredDomain.replace("/", "");
-                        }
-
-                        if (filteredDomain.indexOf("?") !== -1) {
-                            filteredDomain = filteredDomain.split("?")[0];
-                        }
-
-                        if (filteredDomain.indexOf("#") !== -1) {
-                            filteredDomain = filteredDomain.split("#")[0];
-                        }
+                        let filteredDomain = dbUtility.filterDomainName(playerData.domain);
+                        // while (filteredDomain.indexOf("/") !== -1) {
+                        //     filteredDomain = filteredDomain.replace("/", "");
+                        // }
+                        //
+                        // if (filteredDomain.indexOf("?") !== -1) {
+                        //     filteredDomain = filteredDomain.split("?")[0];
+                        // }
+                        //
+                        // if (filteredDomain.indexOf("#") !== -1) {
+                        //     filteredDomain = filteredDomain.split("#")[0];
+                        // }
 
                         playerData.domain = filteredDomain;
 
@@ -1974,6 +1975,7 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+                console.log("checking if there is a binding promote way when register from DX", [promoteWay, csOfficer])
                 // Add source url from ip
                 if (playerData.lastLoginIp && !promoteWay && !playerData.partner) {
                     let todayTime = dbUtility.getTodaySGTime();
@@ -1998,6 +2000,7 @@ let dbPlayerInfo = {
                         }
                     ).then(
                         urlData => {
+                            console.log("checking url from ipDomainLog", [playerData.name, urlData])
                             if (urlData && urlData.admin && urlData.way) {
                                 csOfficer = urlData.admin;
                                 promoteWay = urlData.way;

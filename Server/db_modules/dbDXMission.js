@@ -1561,21 +1561,22 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
             }
 
             if (domain) {
-                filteredDomain = dbUtility.getDomainName(domain);
+                filteredDomain = dbUtility.filterDomainName(domain);
 
-                while (filteredDomain.indexOf("/") !== -1) {
-                    filteredDomain = filteredDomain.replace("/", "");
-                }
+                // while (filteredDomain.indexOf("/") !== -1) {
+                //     filteredDomain = filteredDomain.replace("/", "");
+                // }
 
-                if (filteredDomain.indexOf("?") !== -1) {
-                    filteredDomain = filteredDomain.split("?")[0];
-                }
-
-                if (filteredDomain.indexOf("#") !== -1) {
-                    filteredDomain = filteredDomain.split("#")[0];
-                }
+                // if (filteredDomain.indexOf("?") !== -1) {
+                //     filteredDomain = filteredDomain.split("?")[0];
+                // }
+                //
+                // if (filteredDomain.indexOf("#") !== -1) {
+                //     filteredDomain = filteredDomain.split("#")[0];
+                // }
 
                 playerData.domain = filteredDomain;
+                console.log("checking register DX new account", [playerData.name, playerData.domain])
             }
 
             return dbPlayerInfo.createPlayerInfo(playerData,null, null, null, null, true);
