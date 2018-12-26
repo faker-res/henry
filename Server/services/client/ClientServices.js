@@ -508,6 +508,25 @@
         rootObj.WCGroupControlService = WCGroupControlService;
     };
 
+    var defineAuctionService = function (sinonet) {
+        var AuctionService = function (connection) {
+            sinonet.WebSocketService.call(this, "auction", connection);
+
+            //define functions
+            var functionNames = [
+                "listAuctionItems",
+                "applyAuction",
+                "isQualify"
+            ];
+            addServiceFunctions(sinonet, this, functionNames);
+        };
+
+        AuctionService.prototype = Object.create(sinonet.WebSocketService.prototype);
+        AuctionService.prototype.constructor = AuctionService;
+
+        rootObj.AuctionService = AuctionService;
+    };
+
     // Individual services should be declared above, and called in here
     var defineServices = function (sinonet) {
         defineConnectionService(sinonet);
@@ -524,6 +543,7 @@
         definePartnerService(sinonet);
         defineDXMissionService(sinonet);
         defineWCGroupControlService(sinonet);
+        defineAuctionService(sinonet);
     };
 
     if (isNode) {

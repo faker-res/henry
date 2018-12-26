@@ -105,6 +105,7 @@ var proposalExecutor = {
             || executionType === 'executePlayerLoseReturnRewardGroup'
             || executionType === 'executePlayerRetentionRewardGroup'
             || executionType === 'executePlayerBonusDoubledRewardGroup'
+            || executionType === 'executeBaccaratRewardGroup'
 
         if (isNewFunc) {
             return proposalExecutor.approveOrRejectProposal2(executionType, rejectionType, bApprove, proposalData, rejectIfMissing);
@@ -288,6 +289,7 @@ var proposalExecutor = {
             this.executions.executePlayerFKPTopUp.des = "Player Fukuaipay Top Up";
             // this.executions.executePlayerCommonTopUp.des = "Player Common PMS Top Up";
             this.executions.executeManualExportTsPhone.des = "Export Telesales Phone Across Platform";
+            this.executions.executeBaccaratRewardGroup.des = "Player Baccarat Reward";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -370,6 +372,7 @@ var proposalExecutor = {
             this.rejections.rejectPlayerFKPTopUp.des = "reject Player Fukuaipay Top Up";
             // this.rejections.rejectPlayerCommonTopUp.des = "reject Player Common PMS Top Up";
             this.rejections.rejectManualExportTsPhone.des = "reject Export Telesales Phone Across Platform";
+            this.rejections.rejectBaccaratRewardGroup.des = "reject Player Baccarat Reward";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -3413,6 +3416,57 @@ var proposalExecutor = {
                 }
             },
 
+            executeBaccaratRewardGroup: function (proposalData) {
+                if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                    let rtgData;
+                    let taskData = {
+                        playerId: proposalData.data.playerObjId,
+                        type: constRewardType.BACCARAT_REWARD_GROUP,
+                        rewardType: constRewardType.BACCARAT_REWARD_GROUP,
+                        platformId: proposalData.data.platformId,
+                        requiredUnlockAmount: proposalData.data.spendingAmount,
+                        currentAmount: proposalData.data.rewardAmount,
+                        initAmount: proposalData.data.rewardAmount,
+                        useConsumption: Boolean(proposalData.data.useConsumption),
+                        eventId: proposalData.data.eventId,
+                        providerGroup: proposalData.data.providerGroup
+                    };
+
+                    return createRTGForProposal(proposalData, taskData, constRewardType.BACCARAT_REWARD_GROUP, proposalData).then(
+                        data => {
+                            let updateData = {$set: {}};
+                            rtgData = data;
+
+                            if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
+                                updateData.$set["permission.applyBonus"] = false;
+                            }
+
+                            return dbconfig.collection_players.findOneAndUpdate(
+                                {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
+                                updateData
+                            );
+                        }
+                    ).then(
+                        playerData => {
+                            if(proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply){
+                                let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
+                                let newPermissionObj = {applyBonus: false};
+                                let remark = "优惠提案：" + proposalData.proposalId +  "(领取优惠后禁用提款)";
+                                dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj).catch(
+                                    err => {
+                                        console.log("Fail to update player permission for reward pid:", proposalData.proposalId, err);
+                                    }
+                                );
+                            }
+                            return rtgData;
+                        }
+                    );
+                }
+                else {
+                    return Promise.reject({name: "DataError", message: "Incorrect player free trial reward group proposal data"});
+                }
+            },
+
             executePlayerAddRewardPoints: function (proposalData, deferred) {
                 if(proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.platformObjId && Number.isInteger(proposalData.data.updateAmount) && proposalData.data.category) {
                     let playerObjId = proposalData.data.playerObjId;
@@ -4478,6 +4532,24 @@ var proposalExecutor = {
 
             rejectPlayerFreeTrialRewardGroup: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
+            },
+
+            rejectBaccaratRewardGroup: function (proposalData, deferred) {
+                if (proposalData && proposalData.data && proposalData.data.baccaratRewardList && proposalData.data.baccaratRewardList.length) {
+                    for (let i = 0; i < proposalData.data.baccaratRewardList.length; i++) {
+                        baccaratConsumption = baccaratRewardList[i];
+                        dbconfig.collection_baccaratConsumption.findOneAndUpdate({_id: baccaratConsumption.bConsumption}, {bUsed: false}, {new: true, projection: "_id"}).lean().then(
+                            data => {
+                                if (!data) {
+                                    return Promise.reject({message: "fail to update bConsumption bUsed to false"});
+                                }
+                            }
+                        ).catch(err => {
+                            console.log('fail to update bConsumption bUsed to false', err, baccaratConsumption);
+                        });
+                    }
+                }
+                deferred.resolve("Proposal is rejected")
             },
 
             rejectPlayerAddRewardPoints: function (proposalData, deferred) {
