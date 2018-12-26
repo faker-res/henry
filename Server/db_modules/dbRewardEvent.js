@@ -2078,8 +2078,9 @@ var dbRewardEvent = {
 
                         // Set reward param step to use
                         if (eventData.param.isMultiStepReward) {
+                            let lowestRequirementParam = selectedRewardParam.sort((a, b) => a.minConsumptionAmount - b.minConsumptionAmount)[0];
                             selectedRewardParam = selectedRewardParam.filter(e => e.minConsumptionAmount <= totalConsumption).sort((a, b) => b.minConsumptionAmount - a.minConsumptionAmount);
-                            selectedRewardParam = selectedRewardParam[0];
+                            selectedRewardParam = selectedRewardParam[0] || lowestRequirementParam;
                         } else {
                             selectedRewardParam = selectedRewardParam[0];
                         }
@@ -2093,11 +2094,14 @@ var dbRewardEvent = {
                             returnData.condition.bet.alreadyBet = totalConsumption;
                         }
 
-                        rewardAmount = selectedRewardParam.rewardAmount;
-                        spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimes;
-                        returnData.result.rewardAmount = rewardAmount;
-                        returnData.result.betAmount = selectedRewardParam.minConsumptionAmount;
-                        returnData.result.betTimes = selectedRewardParam.spendingTimes;
+                        if (selectedRewardParam) {
+                            rewardAmount = selectedRewardParam.rewardAmount;
+                            spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimes;
+                            returnData.result.rewardAmount = rewardAmount;
+                            returnData.result.betAmount = selectedRewardParam.minConsumptionAmount;
+                            returnData.result.betTimes = selectedRewardParam.spendingTimes;
+                        }
+
                         // return returnData;
                         break;
 

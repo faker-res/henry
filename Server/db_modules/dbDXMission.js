@@ -1525,6 +1525,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
     let isNew = false;
     let newData = {};
     let filteredDomain = null;
+    let phoneLocation = null;
 
     if (!dxPhone.dxMission) {
         dxPhone.dxMission = {
@@ -1577,6 +1578,15 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
 
                 playerData.domain = filteredDomain;
                 console.log("checking register DX new account", [playerData.name, playerData.domain])
+            }
+
+            if (dxPhone.phoneNumber) {
+                phoneLocation = queryPhoneLocation(dxPhone.phoneNumber);
+                if (phoneLocation) {
+                    playerData.phoneProvince = phoneLocation.province;
+                    playerData.phoneCity = phoneLocation.city;
+                    playerData.phoneType = phoneLocation.type;
+                }
             }
 
             return dbPlayerInfo.createPlayerInfo(playerData,null, null, null, null, true);
@@ -1635,13 +1645,10 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 newData.registrationTime = newPlayerData.registrationTime;
             }
 
-            if (dxPhone.phoneNumber) {
-                let queryRes = queryPhoneLocation(dxPhone.phoneNumber);
-                if (queryRes) {
-                    newData.phoneProvince = queryRes.province;
-                    newData.phoneCity = queryRes.city;
-                    newData.phoneType = queryRes.type;
-                }
+            if (phoneLocation) {
+                newData.phoneProvince = phoneLocation.province;
+                newData.phoneCity = phoneLocation.city;
+                newData.phoneType = phoneLocation.type;
             }
 
             let playerLevelProm = dbconfig.collection_playerLevel.findOne({_id: newPlayerData.playerLevel}, {name: 1}).lean();
