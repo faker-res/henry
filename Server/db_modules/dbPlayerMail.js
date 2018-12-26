@@ -1332,7 +1332,7 @@ function smsLogCheckLimit (inputTime, queryData, countData, limit, telNum, ipAdd
             tel: telNum ? telNum : "",
             isPlayer: true,
             isPartner: false,
-            channel: {$nin: 1},
+            channel: {$ne: 1},
         };
 
         // to find partner sms log based on tel number
@@ -1352,7 +1352,7 @@ function smsLogCheckLimit (inputTime, queryData, countData, limit, telNum, ipAdd
             ipAddress: ipAddress ? ipAddress : "",
             isPlayer: true,
             isPartner: false,
-            channel: {$nin: 1},
+            channel: {$ne: 1},
         };
 
         // to find partner sms log based on ipAddress
