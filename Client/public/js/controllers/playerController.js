@@ -3208,7 +3208,15 @@ define(['js/app'], function (myApp) {
                     {
                         title: $translate("STATUS"),
                         render: function (data, type, row) {
-                            return $translate($scope.constPlayerCreditTransferStatus[row.status]);
+                            let title = null;
+                            let status$ = $scope.constPlayerCreditTransferStatus[row.status];
+                            if(status$ === "FAIL" && row.apiRes && row.apiRes.message) {
+                                title = row.apiRes.message;
+                            }
+                            let span = $('<span>', {
+                                'title': title
+                            }).text($translate(status$));
+                            return span.prop('outerHTML');
                         }
                     }
                 ],

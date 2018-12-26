@@ -2094,11 +2094,14 @@ var dbRewardEvent = {
                             returnData.condition.bet.alreadyBet = totalConsumption;
                         }
 
-                        rewardAmount = selectedRewardParam.rewardAmount;
-                        spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimes;
-                        returnData.result.rewardAmount = rewardAmount;
-                        returnData.result.betAmount = selectedRewardParam.minConsumptionAmount;
-                        returnData.result.betTimes = selectedRewardParam.spendingTimes;
+                        if (selectedRewardParam) {
+                            rewardAmount = selectedRewardParam.rewardAmount;
+                            spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimes;
+                            returnData.result.rewardAmount = rewardAmount;
+                            returnData.result.betAmount = selectedRewardParam.minConsumptionAmount;
+                            returnData.result.betTimes = selectedRewardParam.spendingTimes;
+                        }
+
                         // return returnData;
                         break;
 
