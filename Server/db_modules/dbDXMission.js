@@ -1525,6 +1525,7 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
     let isNew = false;
     let newData = {};
     let filteredDomain = null;
+    let phoneAreaQuery = null;
 
     if (!dxPhone.dxMission) {
         dxPhone.dxMission = {
@@ -1576,6 +1577,15 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 }
 
                 playerData.domain = filteredDomain;
+            }
+
+            if (dxPhone.phoneNumber) {
+                phoneAreaQuery = queryPhoneLocation(dxPhone.phoneNumber);
+                if (phoneAreaQuery) {
+                    playerData.phoneProvince = phoneAreaQuery.province;
+                    playerData.phoneCity = phoneAreaQuery.city;
+                    playerData.phoneType = phoneAreaQuery.type;
+                }
             }
 
             return dbPlayerInfo.createPlayerInfo(playerData,null, null, null, null, true);
@@ -1634,13 +1644,10 @@ function createPlayer (dxPhone, deviceData, domain, loginDetails, conn, wsFunc) 
                 newData.registrationTime = newPlayerData.registrationTime;
             }
 
-            if (dxPhone.phoneNumber) {
-                let queryRes = queryPhoneLocation(dxPhone.phoneNumber);
-                if (queryRes) {
-                    newData.phoneProvince = queryRes.province;
-                    newData.phoneCity = queryRes.city;
-                    newData.phoneType = queryRes.type;
-                }
+            if (phoneAreaQuery) {
+                newData.phoneProvince = phoneAreaQuery.province;
+                newData.phoneCity = phoneAreaQuery.city;
+                newData.phoneType = phoneAreaQuery.type;
             }
 
             let playerLevelProm = dbconfig.collection_playerLevel.findOne({_id: newPlayerData.playerLevel}, {name: 1}).lean();
