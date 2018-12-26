@@ -36305,6 +36305,10 @@ define(['js/app'], function (myApp) {
             };
 
             /***** Auction System - start *****/
+            vm.initAuctionSystem = function() {
+
+            };
+
             vm.listAuctionItem = function() {
                 let sendQuery = {};
                 socketService.$socket($scope.AppSocket, 'listAuctionItems', sendQuery, function (data) {
@@ -36324,6 +36328,8 @@ define(['js/app'], function (myApp) {
                 vm.listAuctionItem();
                 switch (choice) {
                     case 'createProduct':
+                        vm.numExcludeAuction = 0;
+                        vm.numNotAvailableAuction = 0;
                         vm.initCreateProduct = false;
                         vm.auctionSystemCreateProductStatus = '';
                         vm.auctionSystemEditStatus = false;

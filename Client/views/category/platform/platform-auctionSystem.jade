@@ -1,23 +1,20 @@
 .row
-
-.row
-    .col-md-12(ng-if='!vm.selectedAuctionSystemTab')
-        .text-center
-            label.text-danger {{'Please select a type' | translate}}
-
     .col-md-12
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedAuctionSystemTab === "createProduct"}', ng-click='vm.auctionSystemTabClicked("createProduct")')
             span {{"Create Product" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedAuctionSystemTab === "monitoringSystem"}', ng-click='vm.auctionSystemTabClicked("monitoringSystem")')
             span {{"Monitoring System" | translate}}
 
+    .col-md-12(ng-if='!vm.selectedAuctionSystemTab')
+        .text-center
+            label.text-danger {{'Please select a type' | translate}}
 
     .col-md-6(ng-if="vm.selectedAuctionSystemTab=='createProduct'")
         div
           .inlineBlk
-              button.btn.btn-primary(  ng-if="vm.numExcludeAuction==0", ng-click='vm.auctionSystemTabClicked("createProduct")') {{"ATTACH" | translate}}
+              button.btn.btn-primary( ng-if="vm.numExcludeAuction==0", ng-click='vm.initCreateProduct=true;vm.initAuctionSystemCreateProduct();') {{"ADD" | translate}}
           .inlineBlk
-              button.btn.btn-primary(  ng-if="vm.numExcludeAuction!=0", ng-click='vm.auctionSystemTabClicked("createProduct")', DISABLED) {{"ATTACH" | translate}}
+              button.btn.btn-primary( ng-if="vm.numExcludeAuction!=0", DISABLED) {{"ADD" | translate}}
           .inlineBlk
               button.btn.btn-primary( ng-click='vm.moveToNotAvailable()') {{"MOVE" | translate}}
           .inlineBlk
@@ -32,9 +29,9 @@
 
         div
           .inlineBlk
-              button.btn.btn-primary(  ng-if="vm.numNotAvailableAuction==0", ng-click='vm.auctionSystemTabClicked("createProduct")') {{"ATTACH" | translate}}
+              button.btn.btn-primary( ng-if="vm.numNotAvailableAuction==0", ng-click='vm.initCreateProduct=true;vm.initAuctionSystemCreateProduct();') {{"ADD" | translate}}
           .inlineBlk
-              button.btn.btn-primary(  ng-if="vm.numNotAvailableAuction!=0", ng-click='vm.auctionSystemTabClicked("createProduct")', DISABLED) {{"ATTACH" | translate}}
+              button.btn.btn-primary( ng-if="vm.numNotAvailableAuction!=0", DISABLED) {{"ADD" | translate}}
           .inlineBlk
               button.btn.btn-primary( ng-click='vm.moveToExclusive()') {{"MOVE" | translate}}
           .inlineBlk
@@ -45,23 +42,6 @@
               button.btn.btn-danger( ng-click='vm.removeAuctionItem()') {{"Delete" | translate}}
         table#auctionNotAvailableTable.display.table-condensed(style="min-width:100%;")
         #auctionNotAvailableTablePage
-    .col-md-6
-        .panel.panel-primary
-            .panel-heading.panel-heading-sm
-                label {{"Product List" | translate}}
-            .panel-body
-                button.btn.btn-primary.common-button(ng-click="vm.initCreateProduct = true; vm.initAuctionSystemCreateProduct()")
-                    text {{"Create" | translate}}
-                    img.img-create
-                button.btn.btn-primary.common-button
-                    text {{"Move" | translate}}
-                    img.img-move
-                button.btn.btn-primary.common-button
-                    text {{"Edit" | translate}}
-                    img.img-edit
-                button.btn.btn-primary.common-button
-                    text {{"Delete" | translate}}
-                    img.img-delete
 
     .col-md-6(ng-if='vm.selectedAuctionSystemTab === "createProduct" && checkViewPermission("Platform", "AuctionSystem", "createProduct") && vm.initCreateProduct')
         .panel.panel-primary
