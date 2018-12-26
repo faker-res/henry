@@ -4658,7 +4658,7 @@ function changePlayerCredit(playerObjId, platformId, updateAmount, reasonType, d
  * @param [resolveValue] - Optional.  Without this, resolves with the newly created reward task.
  */
 function createRewardTaskForProposal(proposalData, taskData, deferred, rewardType, resolveValue) {
-    console.log('createRewardTaskForProposal', createRewardTaskForProposal);
+    console.log('createRewardTaskForProposal');
     let rewardTask, platform, gameProviderGroup, playerRecord;
     //check if player object id is in the proposal data
     if (!(proposalData && proposalData.data && proposalData.data.playerObjId)) {
@@ -4719,10 +4719,11 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                                     rtg.totalCredit = playerRecord && playerRecord.validCredit ? playerRecord.validCredit : 0;
                                     let calCreditProm = getProviderCredit(platform.gameProviders, playerRecord.name, platform.platformId).then(
                                         credit => {
+                                            console.log("createRewardTaskForProposal Promise.all.then getProviderCredit .then credit",credit);
                                             if(credit){
                                                 rtg.totalCredit += credit;
                                             }
-
+                                            console.log("createRewardTaskForProposal Promise.all.then getProviderCredit .then rtg",rtg);
                                             return rtg;
                                         }
                                     );
@@ -5680,7 +5681,10 @@ function getProviderCredit(providers, playerName, platformId) {
                         providerId: provider.providerId
                     }
                 ).then(
-                    data => data,
+                    data => {
+                        console.log("proposalExecutor.js getProviderCredit()", data);
+                        return data;
+                    },
                     error => {
                         console.log("error when getting provider credit", error);
                         return {credit: 0};
