@@ -5619,6 +5619,11 @@ let dbPlayerReward = {
             promArr.push(playerRewardDetailProm);
         }
 
+        if (eventData.type.name === constRewardType.BACCARAT_REWARD_GROUP) {
+            let playerRewardDetailProm = dbPlayerReward.getPlayerBaccaratRewardDetail(null, playerData.playerId, eventData.code, true, rewardData.applyTargetDate);
+            promArr.push(playerRewardDetailProm);
+        }
+
         if (eventData.type.name === constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP) {
             // set the settlement date for eventQuery and topupMatchQuery based on intervalTime
             if(intervalTime){
@@ -6996,6 +7001,56 @@ let dbPlayerReward = {
 
                         break;
 
+                    // case 7
+                    // baccarat reward
+                    case constRewardType.BACCARAT_REWARD_GROUP:
+                        applyAmount = 0;
+
+                        if (!rewardSpecificData || !rewardSpecificData[0]) {
+                            return Q.reject({
+                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
+                                name: "DataError",
+                                message: "Not Valid for the reward."
+                            });
+                        }
+
+                        let baccaratRewardList = rewardSpecificData[0].list;
+                        let baccaratRewardAppliedAmount = rewardSpecificData[0].totalAppliedBefore;
+
+                        rewardAmount = 0;
+                        spendingAmount = 0;
+                        let forbidWithdrawAfterApply = rewardSpecificData[0].forbidWithdrawAfterApply;
+                        let forbidWithdrawIfBalanceAfterUnlock = rewardSpecificData[0].forbidWithdrawIfBalanceAfterUnlock;
+                        let remark;
+                        let maxApply = eventData && eventData.condition && eventData.condition.intervalMaxRewardAmount || 0;
+
+                        for (let i = 0; i < baccaratRewardList.length; i++) {
+                            let consumptionApplication = baccaratRewardList[i];
+                            if (!remark) {
+                                remark = consumptionApplication.remark;
+                            }
+
+                            if (maxApply && rewardAmount + consumptionApplication.rewardAmount >= maxApply) {
+                                let currentBRewardAmount = maxApply - rewardAmount;
+                                let currentBSpendingAmount = consumptionApplication.spendingAmount * (currentBRewardAmount/consumptionApplication.rewardAmount);
+                                rewardAmount = maxApply;
+                                spendingAmount += currentBSpendingAmount;
+                                break;
+                            }
+
+                            rewardAmount += consumptionApplication.rewardAmount;
+                            spendingAmount += consumptionApplication.spendingAmount;
+                        }
+                        selectedRewardParam = {
+                            baccaratRewardList,
+                            forbidWithdrawAfterApply,
+                            forbidWithdrawIfBalanceAfterUnlock,
+                            baccaratRewardAppliedAmount,
+                            maxApply,
+                            remark
+                        };
+                        break;
+
                     default:
                         return Q.reject({
                             status: constServerCode.INVALID_DATA,
@@ -7302,8 +7357,7 @@ let dbPlayerReward = {
                             proposalData.data.actualAmount = actualAmount;
                         }
 
-                        // PLAYER_LOSE_RETURN_REWARD_GROUP does not require this field
-                        if (rewardData.applyTargetDate /*&& eventData.type.name != constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP*/) {
+                        if (rewardData.applyTargetDate) {
                             proposalData.data.applyTargetDate = new Date(rewardData.applyTargetDate);
                         }
 
@@ -7373,6 +7427,16 @@ let dbPlayerReward = {
                             proposalData.data.betType = lastConsumptionRecord.betType;
                             proposalData.data.winAmount = lastConsumptionRecord.bonusAmount;
                             proposalData.data.winTimes = lastConsumptionRecord.winRatio;
+                        }
+
+                        if (eventData.type.name === constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
+                            proposalData.data.baccaratRewardList = selectedRewardParam.baccaratRewardList;
+                            proposalData.data.eventStartTime = intervalTime.startTime;
+                            proposalData.data.eventEndTime = intervalTime.endTime;
+                            proposalData.data.intervalType = eventData.condition && eventData.condition.interval;
+                            proposalData.data.playerLevel = playerData.playerLevel;
+                            proposalData.data.intervalRewardAmount = selectedRewardParam.baccaratRewardAppliedAmount;
+                            proposalData.data.intervalMaxRewardAmount = selectedRewardParam.maxApply;
                         }
 
                         return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
@@ -8241,6 +8305,316 @@ let dbPlayerReward = {
             }
         )
     },
+
+    getPlayerBaccaratRewardDetail: (platformId, playerId, eventCode, isApply, applyTargetTime) => {
+        let player, platform, event, isSharedWithXIMA, intervalTime, rewardCriteria;
+        let currentTime = applyTargetTime || new Date();
+        let totalApplied, intervalMaxRewardAmount = 0;
+        let outputList = [];
+        let forbidWithdrawAfterApply = false;
+        let forbidWithdrawIfBalanceAfterUnlock = 0;
+        let applicableBConsumption = [];
+
+        return getPlatformAndPlayerFromId(platformId, playerId).then(
+            data => {
+                ([platform, player] = data);
+
+                return dbRewardEvent.getPlatformRewardEventWithTypeName(platform._id, constRewardType.BACCARAT_REWARD_GROUP, eventCode);
+            }
+        ).then(
+            eventData => {
+                event = eventData;
+
+                isSharedWithXIMA = Boolean(event && event.condition && event.condition.isSharedWithXIMA);
+
+                if (event.validStartTime && event.validStartTime > currentTime || event.validEndTime && event.validEndTime < currentTime) {
+                    return Q.reject({
+                        status: constServerCode.REWARD_EVENT_INVALID,
+                        name: "DataError",
+                        message: "This reward event is not valid anymore"
+                    });
+                }
+
+                intervalTime = getIntervalPeriodFromEvent(event, applyTargetTime);
+
+                let similarRewardProposalProm = Promise.resolve([]);
+
+                if (!player) {
+                    return similarRewardProposalProm;
+                }
+
+                let rewardProposalQuery = {
+                    "data.platformObjId": player.platform,
+                    "data.playerObjId": player._id,
+                    "data.eventId": event._id,
+                    status: {$in: [constProposalStatus.PENDING, constProposalStatus.APPROVED, constProposalStatus.SUCCESS]},
+                };
+
+                if (intervalTime) {
+                    rewardProposalQuery["data.applyTargetTime"] = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
+                }
+                similarRewardProposalProm = dbConfig.collection_proposal.find(rewardProposalQuery).sort({"data.consecutiveNumber": -1, createTime: -1}).lean();
+
+                if (player.playerLevel && player.playerLevel._id && event && event.param && event.param.rewardParam && event.param.rewardParam.length > 0) {
+                    event.param.rewardParam.forEach(param => {
+                        if (param && param.levelId == player.playerLevel._id && param.value && param.value.length > 0) {
+                            forbidWithdrawIfBalanceAfterUnlock = param.value[0].forbidWithdrawIfBalanceAfterUnlock || 0;
+                        }
+                    });
+                }
+
+                return similarRewardProposalProm;
+            }
+        ).then(
+            rewardProposalData => {
+                rewardProposalData.map(proposal => {
+                    if (proposal && proposal.data && proposal.data.rewardAmount) {
+                        totalApplied += Number(proposal.data.rewardAmount);
+                    }
+                });
+
+                if (event && event.condition && event.condition.intervalMaxRewardAmount) {
+                    intervalMaxRewardAmount = event.condition.intervalMaxRewardAmount;
+                    if (totalApplied >= intervalMaxRewardAmount) {
+                        // update error message later if necessary
+                        return Promise.reject({status: constServerCode.INTERVAL_REWARD_CAPPED, message: "You already reach the cap of this reward application per interval, please come back tomorrow."});
+                    }
+                }
+
+                rewardCriteria = event.param.rewardParam[0].value;
+
+                if (event.condition.isPlayerLevelDiff && player) {
+                    let rewardParam = event.param.rewardParam.filter(e => e.levelId == String(player.playerLevel._id));
+                    if (rewardParam && rewardParam[0] && rewardParam[0].value) {
+                        rewardCriteria = rewardParam[0].value;
+                    }
+                }
+
+                let proms = [];
+
+                for (let i = 0; i < rewardCriteria.length; i++) {
+                    let criteria = rewardCriteria[i];
+                    if (!criteria) {
+                        continue;
+                    }
+
+                    let betType = criteria.betType = handlingBaccaratBetTypeList(criteria.betType);
+
+                    let consumptionMetQuery = {
+                        player: player._id,
+                        createTime: {
+                            $gte: intervalTime.startTime,
+                            $lt: intervalTime.endTime,
+                        },
+                        bUsed: {$ne: true},
+                        provider: criteria.sourceProvider,
+                        hostResult: Number(criteria.hostResult),
+                        playerResult: Number(criteria.playerResult),
+                        betDetails: {
+                            $elemMatch: {
+                                separatedBetType: {$in: betType},
+                                separatedBetAmount: {$gte: criteria.minBetAmount}
+                            }
+                        }
+                    };
+                    let consumptionMetProm = dbConfig.collection_baccaratConsumption.find(consumptionMetQuery).lean().then(
+                        bConsumptions => {
+                            if (!bConsumptions || !bConsumptions.length) {
+                                return false;
+                            }
+
+                            return {bConsumptions, criteria}
+                        }
+                    );
+
+                    proms.push(consumptionMetProm);
+                }
+
+                return Promise.all(proms);
+            }
+        ).then(
+            consumptionMet => {
+                for (let i = 0; i < consumptionMet.length; i++) {
+                    let isApplicable = consumptionMet[i];
+                    if (!isApplicable) {
+                        continue;
+                    }
+
+                    // rewardApplicable = true;
+                    let bConsumptions = isApplicable.bConsumptions;
+                    let criteria = isApplicable.criteria;
+                    for (let i = 0; i < bConsumptions.length; i++) {
+                        insertOutputList(bConsumptions[i], criteria);
+                    }
+                }
+
+                if (Boolean(outputList.length)) {
+                    return handleApplicationOutput(totalApplied, outputList);
+                }
+
+                if (!isApply) {
+                    return {
+                        forbidWithdrawAfterApply,
+                        forbidWithdrawIfBalanceAfterUnlock,
+                        totalAppliedBefore: totalApplied,
+                        list: outputList
+                    }
+                }
+
+                return applyFailedError(rewardCriteria[0]);
+            }
+        );
+
+        function insertOutputList (bConsumption, criteria) {
+            if (!bConsumption.betDetails) {
+                return;
+            }
+            forbidWithdrawAfterApply = forbidWithdrawAfterApply || criteria.forbidWithdrawAfterApply;
+            forbidWithdrawIfBalanceAfterUnlock = Number(criteria.forbidWithdrawIfBalanceAfterUnlock) && Number(criteria.forbidWithdrawIfBalanceAfterUnlock) < forbidWithdrawIfBalanceAfterUnlock ? Number(criteria.forbidWithdrawIfBalanceAfterUnlock) : forbidWithdrawIfBalanceAfterUnlock;
+
+            let applyDetail = {
+                bConsumption: String(bConsumption._id),
+                roundNo: bConsumption.roundNo,
+                consumptionTime: bConsumption.createTime,
+                providerObjId: criteria.sourceProvider,
+                remark: criteria.remark
+            };
+
+            let betType;
+            let betAmount = 0;
+
+            for (let i = 0; i < bConsumption.betDetails.length; i++) {
+                let detail = bConsumption.betDetails[i];
+                if (!detail) {
+                    continue;
+                }
+
+                if (criteria && criteria.betTypes && !(criteria.betTypes.includes(detail.separatedBetType))) {
+                    continue;
+                }
+
+                if (detail.separatedBetAmount <= betAmount) {
+                    continue;
+                }
+
+                betType = detail.separatedBetType;
+                betAmount = detail.separatedBetAmount;
+            }
+
+            applyDetail.betType = betType;
+            applyDetail.betAmount = betAmount;
+            applyDetail.rewardAmount = betAmount * criteria.rewardAmount;
+            applyDetail.spendingAmount = applyDetail.rewardAmount * criteria.spendingTimes;
+
+            let existedApplyIndex = outputList.findIndex((val) => {return val == String(bConsumption._id)});
+            if (existedApplyIndex != -1) {
+                let existedApply = outputList[existedApplyIndex];
+                if (existedApply.rewardAmount >= applyDetail.rewardAmount) {
+                    return; // keep the older if the older is higher amount
+                }
+
+                outputList.splice(existedApplyIndex, 1);
+            }
+            else {
+                applicableBConsumption.push(String(bConsumption._id));
+            }
+
+            outputList.push(applyDetail);
+        }
+
+        function handleApplicationOutput (totalAppliedBefore, list) {
+            let updateUsedPromiseChain = Promise.resolve();
+            let updatedBConsumption = [];
+
+            for (let i = 0; i < applicableBConsumption.length; i++) {
+                let bConsumption = applicableBConsumption[i];
+
+                updateUsedPromiseChain = updateUsedPromiseChain.then(() => {
+                    return dbConfig.collection_baccaratConsumption.findOneAndUpdate({_id: bConsumption, bUsed:false}, {bUsed: true}, {new: true, projection: {_id: 1}}).lean();
+                }).then(
+                    data => {
+                        if (!data) {
+                            for (let j = 0; j < updatedBConsumption.length; j++) {
+                                dbConfig.collection_baccaratConsumption.update({_id: updatedBConsumption[i]}, {bUsed: false}).catch(err => {
+                                    console.log("fail to turn baccarat consumption back to bUsed false", updatedBConsumption[i], err);
+                                });
+                            }
+
+                            return Promise.reject({status: constServerCode.CONCURRENT_DETECTED, message: "Concurrent issue detected."});
+                        }
+
+                        updatedBConsumption.push(bConsumption);
+                    }
+                );
+            }
+
+            return updateUsedPromiseChain.then(
+                () => {
+                    return {totalAppliedBefore, list, forbidWithdrawAfterApply, forbidWithdrawIfBalanceAfterUnlock};
+                }
+            );
+        }
+
+        function applyFailedError (criteria) {
+            let provider;
+            let query = {
+                player: player._id,
+                createTime: {
+                    $gte: intervalTime.startTime,
+                    $lt: intervalTime.endTime,
+                },
+                bUsed: {$ne: true},
+                provider: criteria.sourceProvider
+            };
+
+            return dbConfig.collection_gameProvider.findOne({_id: criteria.sourceProvider}, {name: 1}).lean().then(
+                providerData => {
+                    if (!providerData) {
+                        return Promise.reject({message: "Provider not found"});
+                    }
+                    provider = providerData;
+
+                    return dbConfig.collection_baccaratConsumption.findOne(query, {_id:1}).lean();
+                }
+            ).then(
+                record => {
+                    if (!record) {
+                        return Promise.reject({status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD, message: `查询您今日暂无${provider.name}百家乐投注记录，请先投注`});
+                    }
+                    query.betDetails = {
+                        $elemMatch: {
+                            separatedBetType: {$in: criteria.betType},
+                        }
+                    };
+
+                    return dbConfig.collection_baccaratConsumption.findOne(query, {_id:1}).lean();
+                }
+            ).then(
+                record => {
+                    if (!record) {
+                        let betTypeString = criteria.betType && criteria.betType.join && criteria.betType.join() || "指定";
+                        return Promise.reject({status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD, message: `查询您今日暂无下注'${betTypeString}'项目记录，请先投注`});
+                    }
+                    query.betDetails = {
+                        $elemMatch: {
+                            separatedBetType: {$in: criteria.betType},
+                            separatedBetAmount: {$gte: criteria.minBetAmount}
+                        }
+                    };
+
+                    return dbConfig.collection_baccaratConsumption.findOne(query, {_id:1}).lean();
+                }
+            ).then(
+                record => {
+                    if (!record) {
+                        return Promise.reject({status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD, message: `查询您单局下注金额不满足条件（最低${criteria.minBetAmount}元）请调整下注金额再进行投注`});
+                    }
+
+                    return Promise.reject({status: constServerCode.PLAYER_NOT_VALID_FOR_REWARD, message: "Bet result does not satisfy the reward criteria. Please continue to test your luck."})
+                }
+            );
+        }
+    },
 };
 
 function checkTopupRecordIsDirtyForReward(eventData, rewardData) {
@@ -8639,6 +9013,68 @@ function getLastRewardDetail(query) {
     );
 }
 
+function getPlatformAndPlayerFromId(platformId, playerId) {
+    let player;
+    if (playerId) {
+        return dbConfig.collection_players.findOne({playerId}).populate({path: "playerLevel", model: dbConfig.collection_playerLevel}).lean().then(
+            playerData => {
+                if (!playerData) {
+                    return Promise.reject({name: "DataError", message: "Player is not found"});
+                }
+
+                player = playerData;
+
+                return dbConfig.collection_platform.findOne({_id: player.platform}).lean();
+            }
+        ).then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Platform does not exist"});
+                }
+
+                return [platformData, player];
+            }
+        );
+    }
+    else {
+        return dbConfig.collection_platform({platformId}).lean().then(
+            platformData => {
+                if (!platformData) {
+                    return Promise.reject({name: "DataError", message: "Platform does not exist"});
+                }
+
+                return [platformData];
+            }
+        );
+    }
+}
+
+function handlingBaccaratBetTypeList (betType) {
+    for (let i = 0; i < betType.length; i++) {
+        if (betType[i] == "庄免佣、庄(免佣)") {
+            betType.push("庄免佣");
+            betType.push("庄(免佣)");
+        }
+
+        if (betType[i] == "超级六、幸運六、超级六(免佣)") {
+            betType.push("超级六");
+            betType.push("幸運六");
+            betType.push("超级六(免佣)");
+        }
+    }
+
+    let deleteIndex = betType.indexOf("庄免佣、庄(免佣)");
+    if (deleteIndex > -1) {
+        betType.splice(deleteIndex, 1);
+    }
+
+    deleteIndex = betType.indexOf("超级六、幸運六、超级六(免佣)");
+    if (deleteIndex > -1) {
+        betType.splice(deleteIndex, 1);
+    }
+
+    return betType;
+}
 
 var proto = dbPlayerRewardFunc.prototype;
 proto = Object.assign(proto, dbPlayerReward);

@@ -506,6 +506,7 @@ var simplifiedChinese = {
     "First time bound to the bank info": "首次绑定银行",
     "allTopUp": "所有存款",
     "Username should be alphanumeric": "用户名只能包含数字和字母",
+    "Bet result does not satisfy the reward criteria. Please continue to test your luck.": "查询您注单的开奖结果记录不满足条件，请去游戏厅再试试手气吧",
 
     //todo::add missing messages here
 

@@ -30,7 +30,9 @@ let baccaratConsumptionSchema = new Schema({
     // record insert time
     insertTime: {type: Date, default: Date.now},
     // consumption obj id
-    consumption: {type: Schema.ObjectId, index: true}
+    consumption: {type: Schema.ObjectId, index: true},
+    // used
+    bUsed: {type: Boolean, default: false, index: true},
 });
 
 module.exports = baccaratConsumptionSchema;
