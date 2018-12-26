@@ -7030,8 +7030,8 @@ let dbPlayerReward = {
                                 remark = consumptionApplication.remark;
                             }
 
-                            if (maxApply && rewardAmount + consumptionApplication.rewardAmount >= maxApply) {
-                                let currentBRewardAmount = maxApply - rewardAmount;
+                            if (maxApply && rewardAmount + consumptionApplication.rewardAmount + baccaratRewardAppliedAmount >= maxApply) {
+                                let currentBRewardAmount = maxApply - rewardAmount - baccaratRewardAppliedAmount;
                                 let currentBSpendingAmount = consumptionApplication.spendingAmount * (currentBRewardAmount/consumptionApplication.rewardAmount);
                                 rewardAmount = maxApply;
                                 spendingAmount += currentBSpendingAmount;
@@ -8309,7 +8309,7 @@ let dbPlayerReward = {
     getPlayerBaccaratRewardDetail: (platformId, playerId, eventCode, isApply, applyTargetTime) => {
         let player, platform, event, isSharedWithXIMA, intervalTime, rewardCriteria;
         let currentTime = applyTargetTime || new Date();
-        let totalApplied, intervalMaxRewardAmount = 0;
+        let totalApplied = 0, intervalMaxRewardAmount = 0;
         let outputList = [];
         let forbidWithdrawAfterApply = false;
         let forbidWithdrawIfBalanceAfterUnlock = 0;
