@@ -407,7 +407,7 @@
                     .inlineBlk
                         button.btn.btn-warning(ng-if="checkViewPermission('Platform','AuctionSystem','Create')" ng-click='vm.auctionSystemProductCancel()') {{"CANCEL" | translate}}
                     .inlineBlk
-                        button.btn.btn-primary(ng-hide="vm.auctionSystemEditStatus" ng-if="checkViewPermission('Platform','AuctionSystem','Create')" ng-click='vm.createAuctionSystemProduct()') {{"Create Product" | translate}}
+                        button.btn.btn-primary(ng-hide="vm.auctionSystemEditStatus" ng-if="checkViewPermission('Platform','AuctionSystem','Create')" ng-click='vm.createAuctionProduct()') {{"Create Product" | translate}}
                     .inlineBlk
                         span(style="font-weight:bold" ng-show="vm.auctionSystemCreateProductStatus === 'success' || vm.auctionSystemCreateProductStatus === 'success'") {{"SUCCESS" | translate}}
                         span(style="font-weight:bold" ng-show="vm.auctionSystemCreateProductStatus === 'fail' || vm.auctionSystemCreateProductStatus === 'fail'") {{"FAIL" | translate}}
