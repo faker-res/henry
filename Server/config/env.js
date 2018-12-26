@@ -26,7 +26,7 @@ var localConfig = {
     disableCPAPI: false,
     disablePaymentAPI: false,
     disableSMSAPI: false,
-    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/pc/",
+    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/",
     internalRESTUrl: "http://localhost:7100",
 };
 
@@ -51,7 +51,7 @@ var devConfig = {
     paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
     smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login",
-    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/pc/",
+    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/",
     internalRESTUrl: "http://localhost:7100",
 };
 
@@ -76,7 +76,7 @@ var settleConfig = {
     paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
     smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login",
-    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/pc/",
+    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/",
     internalRESTUrl: "http://localhost:7100",
 };
 
@@ -102,7 +102,7 @@ var qaConfig = {
     paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
     smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login",
-    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/pc/",
+    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/",
     internalRESTUrl: "http://localhost:7100",
 };
 
@@ -127,7 +127,7 @@ var testAPIConfig = {
     paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
     smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
     cpHttpUrl: "http://gameapi-server.neweb.me/httpget/login",
-    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/pc/",
+    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/",
     internalRESTUrl: "http://localhost:7100",
 };
 
@@ -197,7 +197,7 @@ var prodConfig = {
     paymentAPIUrl: "ws://10.168.11.128:8330/acc",
     //smsAPIUrl: "ws://203.192.151.12:8560/sms"
     smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
-    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/pc/",
+    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/",
     internalRESTUrl: "http://devtest.wsweb.me:7100",
 };
 
@@ -221,7 +221,7 @@ var botConfig = {
     cpAPIUrlForGame : "ws://gameapi-server.neweb.me/game",
     paymentAPIUrl: "ws://papi99.pms8.me:8330/acc",
     smsAPIUrl: "ws://smsapiserver99.pms8.me/sms",
-    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/pc/",
+    paymentHTTPAPIUrl: "http://pms-pay-cstest.neweb.me/",
     internalRESTUrl: "http://devtest.wsweb.me:7100",
 };
 

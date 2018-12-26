@@ -1823,6 +1823,8 @@
   "SET_MAINTENANCE_TIME": "设定维护时间",
   "Maintenance Hour": "维护时",
   "Maintenance Minute": "维护分",
+  "Sell From":"出售者",
+  "Exclusive":"专属",
   "updatePartner": "编辑代理资料",
   "createUpdatePartnerBankInfoProposal": "创建更新代理银行资料提案",
   "updatePartnerLevelConfig": "更新代理等级配置",
