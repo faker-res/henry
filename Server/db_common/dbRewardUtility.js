@@ -103,6 +103,30 @@ const dbRewardUtility = {
 
         return intervalTime;
     },
+    getConsumptionReturnCurrentPeriodTime: (period) => {
+        let intervalTime;
+        if (period) {
+            switch (period) {
+                case "1":
+                    intervalTime = dbUtil.getTodayConsumptionReturnSGTime();
+                    break;
+                case "2":
+                    intervalTime = dbUtil.getCurrentWeekConsumptionReturnSGTime();
+                    break;
+                case "3":
+                    intervalTime = dbUtil.getCurrentBiWeekConsumptionReturnSGTime();
+                    break;
+                case "4":
+                    intervalTime = dbUtil.getCurrentMonthConsumptionReturnSGTime();
+                    break;
+                default:
+                    // No interval time. Will return undefined
+                    break;
+            }
+        }
+
+        return intervalTime;
+    },
 
     // endregion
 

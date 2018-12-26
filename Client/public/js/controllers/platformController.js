@@ -2083,14 +2083,28 @@ define(['js/app'], function (myApp) {
                     });
             };
 
-            function getConsumptionReturnPeriodTime(event) {
-                return $scope.$socketPromise('getConsumptionReturnPeriodTime', {period: event.settlementPeriod}).then(res => {
-                    $scope.$evalAsync(() => {
-                        event.settlementStartTime = vm.dateReformat(res.data.startTime);
-                        event.settlementEndTime = vm.dateReformat(res.data.endTime);
-                        vm.compareAllConsumptionReturn(event.settlementStartTime, event.settlementEndTime);
+            function getConsumptionReturnPeriodTime(event, currentPeriod) {
+                if(currentPeriod === true) {
+                    return $scope.$socketPromise('getConsumptionReturnPeriodTime', {period: event.settlementPeriod}).then(res => {
+                        $scope.$evalAsync(() => {
+                            event.settlementStartTime = vm.dateReformat(res.data.startTime);
+                            event.settlementEndTime = vm.dateReformat(res.data.endTime);
+                            vm.compareAllConsumptionReturn(event.settlementStartTime, event.settlementEndTime);
+                        })
                     })
-                })
+                } else {
+                    return $scope.$socketPromise('getConsumptionReturnCurrentPeriodTime', {period: event.settlementPeriod}).then(res => {
+                        $scope.$evalAsync(() => {
+                            event.settlementStartTime = vm.dateReformat(res.data.startTime);
+                            event.settlementEndTime = vm.dateReformat(res.data.endTime);
+                            vm.compareAllConsumptionReturn(event.settlementStartTime, event.settlementEndTime);
+                        })
+                    })
+                }
+            };
+
+            vm.getCurrentPeriodConsumptionReturn = function(event) {
+                getConsumptionReturnPeriodTime(event, true);
             };
 
             vm.startPlatformPlayerConsumptionReturnSettlement = function ($event) {

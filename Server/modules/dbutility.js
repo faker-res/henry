@@ -130,6 +130,20 @@ var dbUtility = {
 
     },
 
+    getCurrentBiWeekConsumptionReturnSGTime: function (inputData) {
+        let currentBiWeekTime = dbUtility.getCurrentBiWeekSGTime();
+        let startTime = currentBiWeekTime.startTime;
+        let endTime = currentBiWeekTime.endTime;
+        startTime = new Date(startTime.getTime() + 12 * 60 * 60 * 1000);
+        endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+
+    },
+
     getBiWeekSGTIme: function (inputDate) {
         let startTime = moment(inputDate).tz('Asia/Singapore').startOf('month').toDate();
         let endTime = moment(startTime).add(14, 'days').toDate();
@@ -400,6 +414,25 @@ var dbUtility = {
         };
     },
 
+    getCurrentBiWeekSGTime: function () {
+        let startTime, endTime;
+        let todayDay = moment().tz('Asia/Singapore').date();
+
+        if (todayDay < 15) {
+            startTime = moment().tz('Asia/Singapore').startOf('month').toDate();
+            endTime = moment(startTime).add(14, 'days').toDate();
+        } else {
+            let currentMonthTime = moment().tz('Asia/Singapore').startOf('month').toDate();
+            startTime = moment(currentMonthTime.startTime).add(14, 'days').toDate();
+            endTime = currentMonthTime.endTime;
+        }
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
     getLastMonthSGTime: function () {
         var startTime = moment().tz('Asia/Singapore').subtract(1, 'months').startOf('month').toDate();
         let endTime = moment(startTime).add(1, 'months').toDate();
@@ -467,6 +500,17 @@ var dbUtility = {
         let endTime = moment().tz('Asia/Singapore').startOf('month').toDate();
         endTime = new Date(endTime.getTime() + 12 * 60 * 60 * 1000);
         let startTime = moment(endTime).subtract(1, 'month').toDate();
+
+        return {
+            startTime: startTime,
+            endTime: endTime
+        };
+    },
+
+    getCurrentMonthConsumptionReturnSGTime: function () {
+        let startTime = moment().tz('Asia/Singapore').startOf('month').toDate();
+        startTime = new Date(startTime.getTime() + 12 * 60 * 60 * 1000);
+        let endTime = moment(startTime).add(1, 'month').toDate();
 
         return {
             startTime: startTime,
