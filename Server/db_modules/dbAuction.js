@@ -9,11 +9,14 @@ var dbAuction = {
      * List All Auction Items
      */
     listAuctionItems: (data) => {
-        return dbconfig.collection_players.find().limit(10).exec();
+        return dbconfig.collection_auctionSystem.find(data).exec();
     },
     addAuctionItem: (data) => {
         return [];
     },
+    loadAuctionItem: (id) => {
+        return dbconfig.collection_auctionSystem.findOne({_id: ObjectId(id)}).exec();
+    }
     updateAuctionItem: (data) => {
         return [];
     },
@@ -37,7 +40,7 @@ var dbAuction = {
                   '_id':item
               }
               let prom = [];
-               //dbconfig.collection_auctions.findOneAndUpdate(matchObj, updateData);
+               //dbconfig.collection_auctionSystem.findOneAndUpdate(matchObj, updateData);
               proms.push(prom);
             })
         };

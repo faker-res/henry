@@ -36306,7 +36306,9 @@ define(['js/app'], function (myApp) {
 
             /***** Auction System - start *****/
             vm.listAuctionItem = function() {
-                let sendQuery = {};
+                vm.excludeAuctionItem = [];
+                vm.notAvailableAuctionItem = [];
+                let sendQuery = { isExclusive : true };
                 socketService.$socket($scope.AppSocket, 'listAuctionItems', sendQuery, function (data) {
                     vm.drawAuctionPublishTable(data.data);
                     vm.drawAuctionNotAvailableTable(data.data);
@@ -36314,9 +36316,24 @@ define(['js/app'], function (myApp) {
             };
 
             vm.listAuctionMonitor = function(){
-                let sendQuery = {};
+                let sendQuery = { isExclusive : false };
                 socketService.$socket($scope.AppSocket, 'listAuctionItems', sendQuery, function (data) {
                     vm.drawAuctionMonitorTable(data.data);
+                });
+            }
+            vm.loadAuctionItem = function(type){
+                vm.selectedAuction = [];
+                let id = null;
+                if(type == 'excludeAuctionItem'){
+                    let excludeAuctionItem = vm.getAuctionCheckedItem('excludeAuctionItem[]');
+                    id = (excludeAuctionItem && excludeAuctionItem.length == 1) ? excludeAuctionItem[0] : [];
+                }
+                if(type == 'notAvailableAuctionItem'){
+                    let notAvailableItem = vm.getAuctionCheckedItem('notAvailableAuctionItem[]');
+                    id = (notAvailableItem && notAvailableItem.length == 1) ? notAvailableItem[0] : [];
+                }
+                vm.sendData = { _id: id };
+                socketService.$socket($scope.AppSocket, 'loadAuctionItem', sendData, function (data) {
                 });
             }
             vm.auctionSystemTabClicked = function (choice) {
@@ -36575,10 +36592,18 @@ define(['js/app'], function (myApp) {
             }
             vm.getAuctionCheckedItem = function(el){
                 let auctionItems = [];
+                vm.excludeAuctionItem = [];
+                vm.notAvailableAuctionItem = [];
                 $('input[name="'+el+'"]').each(function () {
                     if($(this).is(':checked')){
                         let result = $(this).val();
                         auctionItems.push(result);
+
+                        if(el == 'excludeAuctionItem[]'){
+                            vm.excludeAuctionItem.push(result);
+                        }else if(el == 'notAvailableAuctionItem[]'){
+                            vm.notAvailableAuctionItem.push(result);
+                        }
                     }
                 });
                 return auctionItems;

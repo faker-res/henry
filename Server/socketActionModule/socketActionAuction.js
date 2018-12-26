@@ -35,6 +35,11 @@ function socketActionAuction(socketIO, socket) {
             var isValidData = true;
             socketUtil.emitter(self.socket, dbAuction.listAuctionItems, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
         },
+        loadAuctionItem: function loadAuctionItem(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = true;
+            socketUtil.emitter(self.socket, dbAuction.loadAuctionItem, [data._id, true, getAdminName(), getAdminId()], actionName, isValidData);
+        },
         moveToNotAvailableItem: function moveToNotAvailableItem(data) {
             var actionName = arguments.callee.name;
             var isValidData = true;
