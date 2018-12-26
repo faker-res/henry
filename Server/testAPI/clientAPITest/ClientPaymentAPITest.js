@@ -341,6 +341,12 @@
         this._service.requestBankTypeByUserName.once(callback);
     };
 
+    proto.getMinMaxCommonTopupAmount = function (callback, requestData) {
+        let data = requestData || {};
+        this._service.getMinMaxCommonTopupAmount.request(data);
+        this._service.getMinMaxCommonTopupAmount.once(callback);
+    };
+
     proto.createCommonTopupProposal = function (callback, requestData) {
         let data = requestData || {};
         this._service.createCommonTopupProposal.request(data);

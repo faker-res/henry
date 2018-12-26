@@ -417,6 +417,19 @@ var PaymentServiceImplement = function () {
     /**
      * PMS通用支付产品专用
      */
+    this.getMinMaxCommonTopupAmount.expectsData = 'amount: Number';
+    this.getMinMaxCommonTopupAmount.onRequest = function (wsFunc, conn, data) {
+        if (data) {
+            let userAgentConn = conn['upgradeReq']['headers']['user-agent'];
+            data.userAgent = uaParser(userAgentConn);
+            data.clientType = data.clientType || '1';
+        }
+
+        let lastLoginIp = dbUtility.getIpAddress(conn);
+        let isValidData = Boolean(data && data.clientType);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerPayment.getMinMaxCommonTopupAmount, [conn.playerId, data.clientType, lastLoginIp], isValidData);
+    };
+
     this.createCommonTopupProposal.expectsData = 'amount: Number';
     this.createCommonTopupProposal.onRequest = function (wsFunc, conn, data) {
         if (data) {
