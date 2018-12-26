@@ -2078,8 +2078,9 @@ var dbRewardEvent = {
 
                         // Set reward param step to use
                         if (eventData.param.isMultiStepReward) {
+                            let lowestRequirementParam = selectedRewardParam.sort((a, b) => a.minConsumptionAmount - b.minConsumptionAmount)[0];
                             selectedRewardParam = selectedRewardParam.filter(e => e.minConsumptionAmount <= totalConsumption).sort((a, b) => b.minConsumptionAmount - a.minConsumptionAmount);
-                            selectedRewardParam = selectedRewardParam[0];
+                            selectedRewardParam = selectedRewardParam[0] || lowestRequirementParam;
                         } else {
                             selectedRewardParam = selectedRewardParam[0];
                         }
