@@ -1253,9 +1253,7 @@
   "auctionSystem": "Auction System",
   "AuctionSystem": "Auction System",
   "createProduct": "Create Product",
-  "CREATE_PRODUCT": "Create Product",
   "monitoringSystem": "Monitoring System",
-  "MONITORING_SYSTEM": "Monitoring System",
   "Message_Content": "Message Content",
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
@@ -1734,5 +1732,12 @@
   "FrontendConfiguration": "Frontend Configuration",
   "FINANCIAL_REPORT": "Financial Report (Deposit(s), Withdrawal(s), Platform Fee(s))",
   "DELETE_DEPOSIT_GROUP": "Delete Deposit Group",
-  "IMPORT_XLS_TS": "Import TeleMarketing"
+  "IMPORT_XLS_TS": "Import TeleMarketing",
+  "WeChatMonitor": "WeChat Monitor",
+  "WeChatGroupControlMonitor": "WeChat Group Control Monitor",
+  "CONSUMPTION_RECORD_MONITOR": "Consumption Record Monitor",
+  "ATTEMPT_CREATE_MONITOR": "Attempt Create Monitor",
+  "PAYMENT_MONITOR_TOTAL": "Payment Monitor(Total)",
+  "Admin_Locked": "Admin Locked",
+  "Followup_Content": "Follow Up Content"
 }

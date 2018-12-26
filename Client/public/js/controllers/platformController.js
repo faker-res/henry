@@ -36305,20 +36305,26 @@ define(['js/app'], function (myApp) {
             };
 
             /***** Auction System - start *****/
-            vm.initAuctionSystem = function() {
-
-            };
-
             vm.listAuctionItem = function() {
                 let sendQuery = {};
-                socketService.$socket($scope.AppSocket, 'listAuctionItems', sendQuery, function (data) {});
+                socketService.$socket($scope.AppSocket, 'listAuctionItems', sendQuery, function (data) {
+                    vm.drawAuctionPublishTable(data.data);
+                    vm.drawAuctionNotAvailableTable(data.data);
+                });
             };
 
+            vm.listAuctionMonitor = function(){
+                let sendQuery = {};
+                socketService.$socket($scope.AppSocket, 'listAuctionItems', sendQuery, function (data) {
+                    vm.drawAuctionMonitorTable(data.data);
+                });
+            }
             vm.auctionSystemTabClicked = function (choice) {
                 vm.selectedAuctionSystemTab = choice;
                 vm.listAuctionItem();
                 switch (choice) {
                     case 'createProduct':
+                        vm.initCreateProduct = false;
                         vm.auctionSystemCreateProductStatus = '';
                         vm.auctionSystemEditStatus = false;
                         vm.selectedAuctionRewardType = null;
@@ -36330,21 +36336,22 @@ define(['js/app'], function (myApp) {
                             playerType: 'Real Player (all)',
                             playerLevel: 'all',
                         };
-
-                        commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerStartTime', '#auctionSystemProductRegisterStartTimePicker',
-                            utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(90)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
-                        commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerEndTime', '#auctionSystemProductRegisterEndTimePicker',
-                            utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(1)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
-                        commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'rewardStartTime', '#auctionSystemProductRewardStartTimePicker',
-                            utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(0)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
-                        commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'rewardEndTime', '#auctionSystemProductRewardEndTimePicker',
-                            utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(30)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
-
                         break;
                     case 'monitoringSystem':
-
+                        vm.listAuctionMonitor();
                         break;
                 }
+            };
+
+            vm.initAuctionSystemCreateProduct = function () {
+                commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerStartTime', '#auctionSystemProductRegisterStartTimePicker',
+                    utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(90)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerEndTime', '#auctionSystemProductRegisterEndTimePicker',
+                    utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(1)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'rewardStartTime', '#auctionSystemProductRewardStartTimePicker',
+                    utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(0)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'rewardEndTime', '#auctionSystemProductRewardEndTimePicker',
+                    utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(30)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
             };
 
             vm.resetRewardTypeChanged = function () {
@@ -36367,22 +36374,215 @@ define(['js/app'], function (myApp) {
                 vm.resetRewardTypeChanged();
                 switch (choice) {
                     case '1':
+                        vm.auctionSystemProduct.rewardType = '1';
                         vm.selectedAuctionRewardType = 'promoCode';
                         break;
                     case '2':
+                        vm.auctionSystemProduct.rewardType = '2';
                         vm.selectedAuctionRewardType = 'openPromoCode';
                         break;
                     case '3':
+                        vm.auctionSystemProduct.rewardType = '3';
                         vm.selectedAuctionRewardType = 'promotion';
                         break;
                     case '4':
+                        vm.auctionSystemProduct.rewardType = '4';
                         vm.selectedAuctionRewardType = 'realPrize';
                         break;
                     case '5':
+                        vm.auctionSystemProduct.rewardType = '5';
                         vm.selectedAuctionRewardType = 'rewardPointsChange';
                         break;
                 }
             };
+
+            vm.drawAuctionPublishTable = function (data, newSearch) {
+                let index = 0;
+                data = data || [];
+                let tableOptions = {
+                    data: data,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('Type'),
+                            render: function(data, type, row) {
+                                let result = '';
+                                return result;
+                            }
+                        },
+                        {title: $translate('Product Name'), data: "name"},
+                        {
+                            title: $translate('Sell From'),
+                            render: function(data, type, row) {
+                                let result = '';
+                                return result;
+                            }
+                        },
+                        {title: $translate('Starting Price'), data: "startPrice"},
+                        {title: $translate('Direct Purchase Price'), data: "directPrice"},
+                        {
+                            title: $translate('ACTION_BUTTON'),
+                            data: "name",
+                            render: function(data, type, row) {
+                                let result = '<input type="checkbox" ng-click="vm.countAuction()" name="excludeAuctionItem[]" value="' + data + '">';
+                                return result;
+                            }
+                        }
+
+                    ],
+                    "paging": false,
+                    fnInitComplete: function(settings){
+                        $compile(angular.element('#' + settings.sTableId).contents())($scope);
+                    }
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                vm.auctionPublishTable = $('#auctionPublishTable').DataTable(tableOptions);
+                utilService.setDataTablePageInput('auctionPublishTable', vm.auctionPublishTable, $translate);
+
+                $('#auctionPublishTable').resize();
+            };
+            vm.countAuction = function(){
+                vm.numExcludeAuction= vm.getAuctionCheckedItem('excludeAuctionItem[]') ? vm.getAuctionCheckedItem('excludeAuctionItem[]').length : 0;
+                vm.numNotAvailableAuction = vm.getAuctionCheckedItem('notAvailableAuctionItem[]') ? vm.getAuctionCheckedItem('notAvailableAuctionItem[]').length : 0;
+            }
+            vm.drawAuctionNotAvailableTable = function (data, newSearch) {
+                let index = 0;
+                data = data || [];
+                let tableOptions = {
+                    data: data,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('Type'),
+                            render: function(data, type, row) {
+                                let result = '';
+                                return result;
+                            }
+                        },
+                        {title: $translate('Product Name'), data: "name"},
+                        {
+                            title: $translate('Sell From'),
+                            render: function(data, type, row) {
+                                let result = '';
+                                return result;
+                            }
+                        },
+                        {title: $translate('Starting Price'), data: "startPrice"},
+                        {title: $translate('Direct Purchase Price'), data: "directPrice"},
+                        {
+                            title: $translate('ACTION_BUTTON'),
+                            data: "name",
+                            render: function(data, type, row) {
+                                let result = '<input type="checkbox"  ng-click="vm.countAuction()" name="notAvailableAuctionItem[]" value="' + data + '">';
+                                return result;
+                            }
+                        }
+
+                    ],
+                    "paging": false,
+                    fnInitComplete: function(settings){
+                        $compile(angular.element('#' + settings.sTableId).contents())($scope);
+                    }
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                vm.auctionNotAvailableTable = $('#auctionNotAvailableTable').DataTable(tableOptions);
+                utilService.setDataTablePageInput('auctionNotAvailableTable', vm.auctionNotAvailableTable, $translate);
+                $('#auctionNotAvailableTable').resize();
+            };
+
+            vm.drawAuctionMonitorTable = function(data, newSearch){
+                let index = 0;
+                data = data || [];
+                let tableOptions = {
+                    data: data,
+                    aoColumnDefs: [
+                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                    ],
+                    columns: [
+                        {
+                            title: $translate('Type'),
+                            render: function(data, type, row) {
+                                let result = '';
+                                return result;
+                            }
+                        },
+                        {title: $translate('Product Name'), data: "name"},
+                        {
+                            title: $translate('Sell From'),
+                            render: function(data, type, row) {
+                                let result = '';
+                                return result;
+                            }
+                        },
+                        {title: $translate('Starting Price'), data: "startPrice"}
+                    ],
+                    "paging": false,
+                    fnInitComplete: function(settings){
+                        $compile(angular.element('#' + settings.sTableId).contents())($scope);
+                    }
+                };
+                tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
+                vm.auctionMonitorTable = $('#auctionMonitorTable').DataTable(tableOptions);
+                utilService.setDataTablePageInput('auctionMonitorTable', vm.auctionMonitorTable, $translate);
+                $('#auctionMonitorTable').resize();
+
+            }
+
+            vm.moveToNotAvailable = function(){
+                let auctionItems = vm.getAuctionCheckedItem('excludeAuctionItem[]');
+                let sendQuery = {
+                    platformId:vm.selectedPlatform.id,
+                    auctionItems:auctionItems
+                };
+                socketService.$socket($scope.AppSocket, 'moveToNotAvailableItem', sendQuery, function (data) {
+                    vm.listAuctionItem();
+                });
+            }
+            vm.moveToExclusive = function(){
+                let auctionItems = vm.getAuctionCheckedItem('notAvailableAuctionItem[]');
+                let sendQuery = {
+                    platformId:vm.selectedPlatform.id,
+                    auctionItems:auctionItems
+                };
+                socketService.$socket($scope.AppSocket, 'moveToExclusiveItem', sendQuery, function (data) {
+                    vm.listAuctionItem();
+                });
+            }
+            vm.removeExclusiveAuction = function(){
+                let auctionItems = vm.getAuctionCheckedItem('excludeAuctionItem[]');
+                let sendQuery = {
+                    platformId:vm.selectedPlatform.id,
+                    auctionItems:auctionItems
+                };
+                socketService.$socket($scope.AppSocket, 'removeExclusiveAuction', sendQuery, function (data) {
+                    vm.listAuctionItem();
+                });
+            }
+
+            vm.removeNotAvailableAuction = function(){
+                let auctionItems = vm.getAuctionCheckedItem('notAvailableAuctionItem[]');
+                let sendQuery = {
+                    platformId:vm.selectedPlatform.id,
+                    auctionItems:auctionItems
+                };
+                socketService.$socket($scope.AppSocket, 'removeNotAvailableAuction', sendQuery, function (data) {
+                    vm.listAuctionItem();
+                });
+            }
+            vm.getAuctionCheckedItem = function(el){
+                let auctionItems = [];
+                $('input[name="'+el+'"]').each(function () {
+                    if($(this).is(':checked')){
+                        let result = $(this).val();
+                        auctionItems.push(result);
+                    }
+                });
+                return auctionItems;
+            }
             /***** Auction System - end *****/
 
             vm.changeFrameHeight = function() {
