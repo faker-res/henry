@@ -7429,7 +7429,7 @@ let dbPlayerReward = {
                             proposalData.data.winTimes = lastConsumptionRecord.winRatio;
                         }
 
-                        if (eventData.type.name === constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP) {
+                        if (eventData.type.name === constRewardType.BACCARAT_REWARD_GROUP) {
                             proposalData.data.baccaratRewardList = selectedRewardParam.baccaratRewardList;
                             proposalData.data.eventStartTime = intervalTime.startTime;
                             proposalData.data.eventEndTime = intervalTime.endTime;
