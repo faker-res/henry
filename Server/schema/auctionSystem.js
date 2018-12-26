@@ -1,0 +1,58 @@
+let mongoose = require('mongoose');
+let Schema = mongoose.Schema;
+
+let auctionSystemSchema = new Schema({
+    //platform object id
+    platformObjId: {type: Schema.ObjectId, ref: 'platform', required: true, index: true},
+    playerType: {type: String},
+    playerLevel: {type: String},
+    credibilityRemarks: [{type: String}],
+    filterCredibilityRemarks: [{type: String}],
+    lastAccessOperator: {type: String},
+    lastAccessFormal: {type: Number},
+    lastAccessLatter: {type: Number},
+    filterFeedback: {type: Number},
+    filterFeedbackTopic: [{type: String}],
+    depositCountOperator: {type: String},
+    depositCountFormal: {type: Number},
+    depositCountLatter: {type: Number},
+    playerValueOperator: {type: String},
+    playerValueFormal: {type: Number},
+    playerValueLatter: {type: Number},
+    consumptionTimesOperator: {type: String},
+    consumptionTimesFormal: {type: Number},
+    consumptionTimesLatter: {type: Number},
+    bonusAmountOperator: {type: String},
+    bonusAmountFormal: {type: Number},
+    bonusAmountLatter: {type: Number},
+    withdrawTimesOperator: {type: String},
+    withdrawTimesFormal: {type: Number},
+    withdrawTimesLatter: {type: Number},
+    topUpSumOperator: {type: String},
+    topUpSumFormal: {type: Number},
+    topUpSumLatter: {type: Number},
+    gameProviderId: [{type: String}],
+    registerStartTime: {type: Date, required: true},
+    registerEndTime: {type: Date, required: true},
+    departments: [{type: String}],
+    roles: [{type: String}],
+    admins: [{type: String}],
+    // reward data
+    rewardData: {type: JSON, default: {}},
+    productImage: {type: String},
+    productName: {type: String},
+    seller: {type: String},
+    reservePrice: {type: Number},
+    startingPrice: {type: Number},
+    priceIncrement: {type: Number},
+    directPurchasePrice: {type: Number},
+    isExclusive: {type: Boolean, default: false},
+    rewardStartTime: {type: Date, required: true},
+    rewardEndTime: {type: Date, required: true},
+    rewardInterval: {type: String},
+    productStartTime: {type: Number},
+    productEndTime: {type: Number},
+    createTime: {type: Date, default: Date.now}
+});
+
+module.exports = auctionSystemSchema;
