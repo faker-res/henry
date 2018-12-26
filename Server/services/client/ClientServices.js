@@ -215,6 +215,7 @@
                 "isFirstTopUp",
                 "getPlayerAliPayStatus",
                 "requestBankTypeByUserName",
+                "getMinMaxCommonTopupAmount",
                 "createCommonTopupProposal",
                 "createFKPTopupProposal",
                 "applyFKPWithdraw"

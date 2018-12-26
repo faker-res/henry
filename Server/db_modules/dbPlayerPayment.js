@@ -1,4 +1,5 @@
 const Q = require("q");
+const rp = require('request-promise');
 const errorUtils = require('./../modules/errorUtils');
 const ObjectId = require('mongoose').Types.ObjectId;
 
@@ -393,6 +394,41 @@ const dbPlayerPayment = {
     },
 
     // region Common payment
+    getMinMaxCommonTopupAmount: (playerId, clientType, loginIp) => {
+        let url = "";
+
+        return dbconfig.collection_players.findOne({
+            playerId: playerId
+        }).populate({
+            path: "platform", model: dbconfig.collection_platform
+        }).lean().then(
+            playerData => {
+                if (playerData) {
+                    url =
+                        env.paymentHTTPAPIUrl
+                        + "foundation/payMinAndMax.do?"
+                        + "platformId=" + playerData.platform.platformId + "&"
+                        + "username=" + playerData.name + "&"
+                        + "ip=" + loginIp + "&"
+                        + "clientType=" + clientType;
+
+                    return rp(url);
+                }
+            }
+        ).then(
+            ret => {
+                if (ret) {
+                    ret = JSON.parse(ret);
+
+                    return {
+                        minDepositAmount: ret.min || 0,
+                        maxDepositAmount: ret.max || 0
+                    }
+                }
+            }
+        )
+    },
+
     createCommonTopupProposal: (playerId, topupRequest, ipAddress, entryType, adminId, adminName) => {
         let player, rewardEvent;
 
