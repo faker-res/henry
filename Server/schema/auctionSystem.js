@@ -52,6 +52,8 @@ let auctionSystemSchema = new Schema({
     rewardInterval: {type: String},
     productStartTime: {type: Number},
     productEndTime: {type: Number},
+    // status - 0: 「组外」, 1: 「组内」  //只有「组内」的商品才能在前端显示
+    status: {type: Number, default: 0},
     createTime: {type: Date, default: Date.now}
 });
 
