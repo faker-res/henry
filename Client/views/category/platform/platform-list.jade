@@ -248,7 +248,7 @@
                     text {{"Player Consumption Incentive Settlement" | translate}}
                 button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement' && checkViewPermission('Platform','SystemSettlement','PartnerCommissionSettlement')", ng-click="vm.startPlatformPartnerCommissionSettlement($event);vm.setPlatformFooter(null)")
                     text {{"Partner Commission Settlement" | translate}}
-                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement' && checkViewPermission('Platform','SystemSettlement','PlayerConsumptionReturnSettlement')", ng-click="vm.startPlatformPlayerConsumptionReturnSettlement($event);vm.setPlatformFooter(null)")
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="vm.selectedPlatformDetailTab == 'system-settlement' && checkViewPermission('Platform','SystemSettlement','PlayerConsumptionReturnSettlement')", ng-click="vm.startPlatformPlayerConsumptionReturnSettlement($event);vm.setPlatformFooter(null);")
                     text {{"Player Consumption Return Settlement" | translate}}
                 div(ng-if="vm.selectedPlatformDetailTab == 'system-settlement'" ng-repeat="event in vm.settlementRewardGroupEvent")
                     button.btn.btn-primary.common-button(data-dismiss='modal', ng-show="checkViewPermission('Platform', 'SystemSettlement', 'SystemRewardGroupSettlement')", ng-click="vm.startPlatformRTGEventSettlement(event);vm.setPlatformFooter(null)")
@@ -438,7 +438,7 @@
                             th
                             th {{"Name" | translate}}
                             th {{"Settlement Period" | translate}}
-                            th {{"Action" | translate}}
+                            th(colspan=2) {{"Action" | translate}}
                         tbody(ng-repeat='(i, event) in vm.allRewardEvent | filter: {type:{name:"PlayerConsumptionReturn"}}')
                             tr
                                 td
@@ -446,7 +446,9 @@
                                 td {{event.name}}
                                 td {{event.settlementStartTime}} -> {{event.settlementEndTime}}
                                 td
-                                  button.btn.btn-primary(ng-click="vm.compareAllConsumptionReturn(event.settlementStartTime, event.settlementEndTime)") {{"Refresh" | translate}}
+                                  button.btn.btn-primary(ng-click="vm.getCurrentPeriodConsumptionReturn(event);vm.showCurrentPeriodConsumptionReturn=true;") {{"CURRENT_PERIOD" | translate}}
+                                td
+                                  button.btn.btn-primary(ng-click="vm.compareAllConsumptionReturn(event.settlementStartTime, event.settlementEndTime);vm.showCurrentPeriodConsumptionReturn=false;") {{"Refresh" | translate}}
 
                 div
                     table#consumptionRecoverTbl.table
@@ -459,7 +461,7 @@
                             th {{'CPMS Qty' | translate}}
                             th {{'FPMS Qty' | translate}}
                             th {{'Subtract (CPMS-FPMS)' | translate}}
-                            th {{'ACTION_BUTTON' | translate}}
+                            th(ng-hide="vm.showCurrentPeriodConsumptionReturn") {{'ACTION_BUTTON' | translate}}
 
 
                         tbody(ng-repeat='providerId in vm.providerLists')
@@ -498,7 +500,7 @@
                                     div(ng-if="vm.providerDiffConsumption[providerId].consumptionDiff !== null && vm.providerDiffConsumption[providerId].status=='3'") {{vm.providerDiffConsumption[providerId].consumptionDiff}}
                                         span(style="color:red") ↓
 
-                                td
+                                td(ng-hide="vm.showCurrentPeriodConsumptionReturn")
                                     div(ng-if="vm.providerDiffConsumption[providerId].status==1")
                                         div(class="btn btn-primary disabled") {{'Recover Bets' | translate}}
                                     div(ng-if="vm.providerDiffConsumption[providerId].status==2")

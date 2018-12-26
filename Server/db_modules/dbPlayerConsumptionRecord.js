@@ -188,11 +188,10 @@ var dbPlayerConsumptionRecord = {
         if(showSumOnly){
             //function for sync-cpms
             matchObj = {
-                orderTime: {
+                createTime: {
                     $gte: startTime,
                     $lt: endTime
-                },
-                isDuplicate: {$ne: true}
+                }
             };
         }
         if (providerObjId) {
@@ -2474,7 +2473,7 @@ function createBaccaratConsumption (providerObjId, providerName, consumptionReco
     let regexPattern = new RegExp('百家乐','g');
     if (consumptionRecord && consumptionRecord.cpGameType && consumptionRecord.result && regexPattern.test(consumptionRecord.cpGameType)) {
         let baccaratResult;
-        if (consumptionRecord.providerId ==  "18"/*'56'*/) { // EBET
+        if (consumptionRecord.providerId ==  '56'/*"18"*/) { // EBET // todo :: change back to 56 for live
             baccaratResult = readEBETBaccaratResult(consumptionRecord.result);
         } else if (consumptionRecord.providerId == '16') { // AG
             baccaratResult = readAGBaccaratResult(consumptionRecord.result);
@@ -2493,6 +2492,7 @@ function createBaccaratConsumption (providerObjId, providerName, consumptionReco
                 hostResult: baccaratResult.host,
                 playerResult: baccaratResult.player,
                 betDetails: consumptionRecord.betDetails || [],
+                bUsed: false,
                 consumption: consumptionRecord._id
             };
             if (oldConsumtionObjId) {
@@ -2561,8 +2561,10 @@ function readEBETBaccaratResult (resultStr) {
         let total = 0;
         total += dbUtility.countOccurrenceInString(str, "Ace");
         for (let i = 2; i <= 9; i++) {
-            total += dbUtility.countOccurrenceInString(str, String(i)) * i;
+            total += (dbUtility.countOccurrenceInString(str, String(i)) * i);
         }
+
+        total %= 10;
 
         return total;
     }

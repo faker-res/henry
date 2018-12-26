@@ -1912,7 +1912,7 @@
                             tr
                                 td {{'Definition of Answered Phone Call(Choose from feedback status/ multi selection)' | translate}}
                                 td
-                                    select.form-control.spicker#configSelectFeedBackTopic(ng-model="vm.bulkCallBasic.definitionOfAnsweredPhone" ng-options="a.value as a.value for (i,a) in vm.playerAllFeedBackResult" ng-disabled="!vm.configTableEdit" multiple)
+                                    select.form-control.spicker#configSelectFeedBackTopic(ng-model="vm.bulkCallBasic.definitionOfAnsweredPhone" ng-options="a.key as a.value for (i,a) in vm.playerAllFeedBackResult" ng-disabled="!vm.configTableEdit" multiple)
                             tr
                                 td {{'Decompose after N days(Start to deal with other departments)' | translate}}
                                 td
