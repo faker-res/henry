@@ -493,7 +493,7 @@ var proposal = {
                         proposalData.status = constProposalStatus.CSPENDING;
                     }
 
-                    if(proposalData.data && data[2]){
+                    if(proposalData.data && data[2] && (proposalTypeData.name == constProposalType.UPDATE_PLAYER_REAL_NAME || proposalTypeData.name == constProposalType.UPDATE_PARTNER_REAL_NAME)){
                         proposalData.data.realNameBeforeEdit = data[2].realName;
                         proposalData.data.realNameAfterEdit = proposalData.data.realName;
 
