@@ -105,6 +105,7 @@ var proposalExecutor = {
             || executionType === 'executePlayerLoseReturnRewardGroup'
             || executionType === 'executePlayerRetentionRewardGroup'
             || executionType === 'executePlayerBonusDoubledRewardGroup'
+            || executionType === 'executeBaccaratRewardGroup'
 
         if (isNewFunc) {
             return proposalExecutor.approveOrRejectProposal2(executionType, rejectionType, bApprove, proposalData, rejectIfMissing);
@@ -3415,8 +3416,9 @@ var proposalExecutor = {
                 }
             },
 
-            executeBaccaratRewardGroup: function (proposalData, deferred) {
+            executeBaccaratRewardGroup: function (proposalData) {
                 if (proposalData && proposalData.data && proposalData.data.playerObjId && proposalData.data.rewardAmount) {
+                    let rtgData;
                     let taskData = {
                         playerId: proposalData.data.playerObjId,
                         type: constRewardType.BACCARAT_REWARD_GROUP,
@@ -3430,41 +3432,38 @@ var proposalExecutor = {
                         providerGroup: proposalData.data.providerGroup
                     };
 
-                    let deferred1 = Q.defer();
-                    createRewardTaskForProposal(proposalData, taskData, deferred1, constRewardType.BACCARAT_REWARD_GROUP, proposalData);
-                    deferred1.promise.then(
+                    return createRTGForProposal(proposalData, taskData, constRewardType.BACCARAT_REWARD_GROUP, proposalData).then(
                         data => {
                             let updateData = {$set: {}};
+                            rtgData = data;
 
                             if (proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply) {
                                 updateData.$set["permission.applyBonus"] = false;
                             }
 
-                            dbconfig.collection_players.findOneAndUpdate(
+                            return dbconfig.collection_players.findOneAndUpdate(
                                 {_id: proposalData.data.playerObjId, platform: proposalData.data.platformId},
                                 updateData
-                            ).then(
-                                playerData => {
-                                    if(proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply){
-                                        let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
-                                        let newPermissionObj = {applyBonus: false};
-                                        let remark = "优惠提案：" + proposalData.proposalId +  "(领取优惠后禁用提款)";
-                                        dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj);
-                                    }
-                                    return playerData;
-                                }
-                            ).then(
-                                () => {
-                                    deferred.resolve(data);
-                                },
-                                deferred.reject
                             );
-                        },
-                        deferred.reject
+                        }
+                    ).then(
+                        playerData => {
+                            if(proposalData.data.hasOwnProperty('forbidWithdrawAfterApply') && proposalData.data.forbidWithdrawAfterApply){
+                                let oldPermissionObj = {applyBonus: playerData.permission.applyBonus};
+                                let newPermissionObj = {applyBonus: false};
+                                let remark = "优惠提案：" + proposalData.proposalId +  "(领取优惠后禁用提款)";
+                                dbPlayerUtil.addPlayerPermissionLog(null, proposalData.data.platformId, proposalData.data.playerObjId, remark, oldPermissionObj, newPermissionObj).catch(
+                                    err => {
+                                        console.log("Fail to update player permission for reward pid:", proposalData.proposalId, err);
+                                    }
+                                );
+                            }
+                            return rtgData;
+                        }
                     );
                 }
                 else {
-                    deferred.reject({name: "DataError", message: "Incorrect player free trial reward group proposal data"});
+                    return Promise.reject({name: "DataError", message: "Incorrect player free trial reward group proposal data"});
                 }
             },
 

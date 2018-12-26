@@ -2492,6 +2492,7 @@ function createBaccaratConsumption (providerObjId, providerName, consumptionReco
                 hostResult: baccaratResult.host,
                 playerResult: baccaratResult.player,
                 betDetails: consumptionRecord.betDetails || [],
+                bUsed: false,
                 consumption: consumptionRecord._id
             };
             if (oldConsumtionObjId) {

@@ -35,7 +35,6 @@ const dbPlayerConsumptionRecord = require('../db_modules/dbPlayerConsumptionReco
 const dbPlayerFeedback = require('./../db_modules/dbPlayerFeedback');
 const dbRewardTask = require('./../db_modules/dbRewardTask');
 const dbPropUtil = require('./../db_common/dbProposalUtility');
-const dbBaccaratReward = require('./../db_modules/dbBaccaratReward');
 
 const dbConfig = require('./../modules/dbproperties');
 const dbUtility = require('./../modules/dbutility');
@@ -8564,6 +8563,7 @@ let dbPlayerReward = {
                     $gte: intervalTime.startTime,
                     $lt: intervalTime.endTime,
                 },
+                bUsed: {$ne: true},
                 provider: criteria.sourceProvider
             };
 
