@@ -60,10 +60,16 @@ function socketActionAuction(socketIO, socket) {
             socketUtil.emitter(self.socket, dbAuction.moveTo, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
         },
         isQualify: function isQualify(data){
-          var actionName = arguments.callee.name;
-          var isValidData = true;
-          socketUtil.emitter(self.socket, dbAuction.isQualify, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
-        }
+            var actionName = arguments.callee.name;
+            var isValidData = true;
+            socketUtil.emitter(self.socket, dbAuction.isQualify, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
+        },
+
+        createAuctionProduct: function createAuctionProduct(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbAuction.createAuctionProduct, [data], actionName, isValidData);
+        },
     };
     socketActionAuction.actions = this.actions;
 }
