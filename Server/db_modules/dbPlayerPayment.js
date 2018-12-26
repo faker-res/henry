@@ -588,7 +588,14 @@ function getBankTypeNameArr (bankCardFilterList, maxDeposit) {
 function generatePMSHTTPUrl (playerData, proposalData, domain, clientType, ipAddress, amount) {
     let delimiter = "**";
     let url = domain;
-    url += "?"
+
+    if ([1].includes(Number(clientType))) {
+        url += 'pc/';
+    } else if ([2, 4].includes(Number(clientType))) {
+        url += 'phone/';
+    }
+
+    url += "?";
     url += playerData.platform.platformId + delimiter;
     url += playerData.name + delimiter;
     url += playerData.realName + delimiter;

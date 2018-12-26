@@ -196,7 +196,7 @@ define(['js/app'], function (myApp) {
             if(window.location.pathname == "/monitor/payment"){
                 vm.preparePaymentMonitorPage();
             }
-            else{
+            else if (window.location.pathname != '/monitor/consumptionRecord' && window.location.pathname != '/monitor/attemptCreate'){
                 vm.preparePaymentMonitorTotalPage();
             }
         };
@@ -4008,6 +4008,7 @@ define(['js/app'], function (myApp) {
 
 
         vm.resetTopUpMonitorQuery = function () {
+            vm.paymentMonitorQuery = {};
             vm.paymentMonitorQuery.mainTopupType = "";
             vm.paymentMonitorQuery.topupType = "";
             vm.paymentMonitorQuery.merchantGroup = "";
