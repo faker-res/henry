@@ -1,23 +1,20 @@
 .row
-
-.row
-    .col-md-12(ng-if='!vm.selectedAuctionSystemTab')
-        .text-center
-            label.text-danger {{'Please select a type' | translate}}
-
     .col-md-12
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedAuctionSystemTab === "createProduct"}', ng-click='vm.auctionSystemTabClicked("createProduct")')
             span {{"Create Product" | translate}}
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedAuctionSystemTab === "monitoringSystem"}', ng-click='vm.auctionSystemTabClicked("monitoringSystem")')
             span {{"Monitoring System" | translate}}
 
+    .col-md-12(ng-if='!vm.selectedAuctionSystemTab')
+        .text-center
+            label.text-danger {{'Please select a type' | translate}}
 
     .col-md-6(ng-if="vm.selectedAuctionSystemTab=='createProduct'")
         div
           .inlineBlk
-              button.btn.btn-primary(  ng-if="vm.numExcludeAuction==0", ng-click='vm.auctionSystemTabClicked("createProduct")') {{"ATTACH" | translate}}
+              button.btn.btn-primary( ng-if="vm.numExcludeAuction==0", ng-click='vm.initCreateProduct=true;vm.initAuctionSystemCreateProduct();') {{"ADD" | translate}}
           .inlineBlk
-              button.btn.btn-primary(  ng-if="vm.numExcludeAuction!=0", ng-click='vm.auctionSystemTabClicked("createProduct")', DISABLED) {{"ATTACH" | translate}}
+              button.btn.btn-primary( ng-if="vm.numExcludeAuction!=0", DISABLED) {{"ADD" | translate}}
           .inlineBlk
               button.btn.btn-primary( ng-click='vm.moveToNotAvailable()') {{"MOVE" | translate}}
           .inlineBlk
@@ -32,9 +29,9 @@
 
         div
           .inlineBlk
-              button.btn.btn-primary(  ng-if="vm.numNotAvailableAuction==0", ng-click='vm.auctionSystemTabClicked("createProduct")') {{"ATTACH" | translate}}
+              button.btn.btn-primary( ng-if="vm.numNotAvailableAuction==0", ng-click='vm.initCreateProduct=true;vm.initAuctionSystemCreateProduct();') {{"ADD" | translate}}
           .inlineBlk
-              button.btn.btn-primary(  ng-if="vm.numNotAvailableAuction!=0", ng-click='vm.auctionSystemTabClicked("createProduct")', DISABLED) {{"ATTACH" | translate}}
+              button.btn.btn-primary( ng-if="vm.numNotAvailableAuction!=0", DISABLED) {{"ADD" | translate}}
           .inlineBlk
               button.btn.btn-primary( ng-click='vm.moveToExclusive()') {{"MOVE" | translate}}
           .inlineBlk
@@ -45,23 +42,6 @@
               button.btn.btn-danger( ng-click='vm.removeAuctionItem()') {{"Delete" | translate}}
         table#auctionNotAvailableTable.display.table-condensed(style="min-width:100%;")
         #auctionNotAvailableTablePage
-    .col-md-6
-        .panel.panel-primary
-            .panel-heading.panel-heading-sm
-                label {{"Product List" | translate}}
-            .panel-body
-                button.btn.btn-primary.common-button(ng-click="vm.initCreateProduct = true; vm.initAuctionSystemCreateProduct()")
-                    text {{"Create" | translate}}
-                    img.img-create
-                button.btn.btn-primary.common-button
-                    text {{"Move" | translate}}
-                    img.img-move
-                button.btn.btn-primary.common-button
-                    text {{"Edit" | translate}}
-                    img.img-edit
-                button.btn.btn-primary.common-button
-                    text {{"Delete" | translate}}
-                    img.img-delete
 
     .col-md-6(ng-if='vm.selectedAuctionSystemTab === "createProduct" && checkViewPermission("Platform", "AuctionSystem", "createProduct") && vm.initCreateProduct')
         .panel.panel-primary
@@ -218,136 +198,136 @@
                     label {{"REWARD_TYPE" | translate}}
                         i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'REWARD_TYPE_DESCRIPTION' | translate}}")
                     div(style="display:inline-block;")
-                        select.form-control(ng-model='vm.auctionSystemProduct.rewardType' ng-change="vm.auctionRewardTypeChanged(vm.auctionSystemProduct.rewardType)")
+                        select.form-control(ng-model='vm.auctionProductReward.rewardType' ng-change="vm.auctionRewardTypeChanged(vm.auctionProductReward.rewardType)")
                             option(value='') {{'all' | translate}}
-                            option(value='1') {{'Promo Code' | translate}}
-                            option(value='2') {{'Open Promo Code' | translate}}
-                            option(value='3') {{'Promotion' | translate}}
-                            option(value='4') {{'Real Prize' | translate}}
-                            option(value='5') {{'Reward Points Change' | translate}}
+                            option(value='promoCode') {{'Promo Code' | translate}}
+                            option(value='openPromoCode') {{'Open Promo Code' | translate}}
+                            option(value='promotion') {{'Promotion' | translate}}
+                            option(value='realPrize') {{'Real Prize' | translate}}
+                            option(value='rewardPointsChange') {{'Reward Points Change' | translate}}
 
                 div(ng-if="vm.selectedAuctionRewardType === 'promoCode'")
                     .full-width-input-block
                         label {{"Binded Promo Code Template" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PROMO_CODE_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            select.spicker.form-control(ng-model='vm.auctionSystemProduct.promoCode', ng-options='promo._id as promo.name | translate for promo in vm.promoCodeTemplateData')
+                            select.spicker.form-control(ng-model='vm.auctionProductReward.promoCode', ng-options='promo._id as promo.name | translate for promo in vm.promoCodeTemplateData')
                     .full-width-input-block
                         label {{"Product Image URL" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="text" ng-model="vm.auctionSystemProduct.productImageUrl")
+                            input.form-control(type="text" ng-model="vm.auctionProductReward.productImageUrl")
                     .full-width-input-block
                         label {{"Message Title" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageTitle" placeholder="{{'Please enter a title' | translate}}")
+                            input.form-control(type="text" ng-model="vm.auctionProductReward.messageTitle" placeholder="{{'Please enter a title' | translate}}")
                     .full-width-input-block
                         label {{"Message_Content" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageContent" placeholder="{{'Please fill in the content' | translate}}")
+                            input.form-control(type="text" ng-model="vm.auctionProductReward.messageContent" placeholder="{{'Please fill in the content' | translate}}")
 
                 div(ng-if="vm.selectedAuctionRewardType === 'openPromoCode'")
                     .full-width-input-block
                         label {{"Binded Promo Code Template" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'OPEN_PROMO_CODE_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            select.spicker.form-control(ng-model='vm.auctionSystemProduct.openPromoCode', ng-options='promo._id as promo.name | translate for promo in vm.openPromoCodeTemplateData')
+                            select.spicker.form-control(ng-model='vm.auctionProductReward.openPromoCode', ng-options='promo._id as promo.name | translate for promo in vm.openPromoCodeTemplateData')
                     .full-width-input-block
                         label {{"Product Image URL" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="text" ng-model="vm.auctionSystemProduct.productImageUrl")
+                            input.form-control(type="text" ng-model="vm.auctionProductReward.productImageUrl")
                     .full-width-input-block
                         label {{"Message Title" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageTitle" placeholder="{{'Please enter a title' | translate}}")
+                            input.form-control(type="text" ng-model="vm.auctionProductReward.messageTitle" placeholder="{{'Please enter a title' | translate}}")
                     .full-width-input-block
                         label {{"Message_Content" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageContent" placeholder="{{'Please fill in the content' | translate}}")
+                            input.form-control(type="text" ng-model="vm.auctionProductReward.messageContent" placeholder="{{'Please fill in the content' | translate}}")
 
                 div(ng-if="vm.selectedAuctionRewardType === 'promotion'")
                     .full-width-input-block
                         label {{"Provider group" | translate}}
                         div(style="display:inline-block;")
-                            select.spicker.form-control(ng-model='vm.auctionSystemProduct.gameProviderGroup')
+                            select.spicker.form-control(ng-model='vm.auctionProductReward.gameProviderGroup')
                                 option(value='') {{'LOCAL_CREDIT' | translate}}
                                 option(ng-repeat='(i,v) in vm.gameProviderGroup', value='{{v._id}}') {{ v.name }}
                     .full-width-input-block
                         label {{"UNLOCKAMOUNT" | translate}}
                         div(style="display:inline-block;")
-                            input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.unlockAmount")
+                            input.form-control(type="number", min=0, ng-model="vm.auctionProductReward.unlockAmount")
                     .full-width-input-block
                         label {{"rewardAmount" | translate}}
                         div(style="display:inline-block;")
-                            input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.rewardAmount")
+                            input.form-control(type="number", min=0, ng-model="vm.auctionProductReward.rewardAmount")
                     .full-width-input-block
                         label {{"useConsumption" | translate}}
                         div(style="display:inline-block;")
-                            input.form-control(type="checkbox" ng-model="vm.auctionSystemProduct.useConsumption")
+                            input.form-control(type="checkbox" ng-model="vm.auctionProductReward.useConsumption")
                     .full-width-input-block
                         label {{"Product Image URL" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="text" ng-model="vm.auctionSystemProduct.productImageUrl")
+                            input.form-control(type="text" ng-model="vm.auctionProductReward.productImageUrl")
                     .full-width-input-block
                         label {{"Message Title" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageTitle" placeholder="{{'Please enter a title' | translate}}")
+                            input.form-control(type="text" ng-model="vm.auctionProductReward.messageTitle" placeholder="{{'Please enter a title' | translate}}")
                     .full-width-input-block
                         label {{"Message_Content" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageContent" placeholder="{{'Please fill in the content' | translate}}")
+                            input.form-control(type="text" ng-model="vm.auctionProductReward.messageContent" placeholder="{{'Please fill in the content' | translate}}")
 
                 div(ng-if="vm.selectedAuctionRewardType === 'realPrize'")
                     .full-width-input-block
                         label {{"Product Image URL" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="text" ng-model="vm.auctionSystemProduct.productImageUrl")
+                            input.form-control(type="text" ng-model="vm.auctionProductReward.productImageUrl")
                     .full-width-input-block
                         label {{"Message Title" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageTitle" placeholder="{{'Please enter a title' | translate}}")
+                            input.form-control(type="text" ng-model="vm.auctionProductReward.messageTitle" placeholder="{{'Please enter a title' | translate}}")
                     .full-width-input-block
                         label {{"Message_Content" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageContent" placeholder="{{'Please fill in the content' | translate}}")
+                            input.form-control(type="text" ng-model="vm.auctionProductReward.messageContent" placeholder="{{'Please fill in the content' | translate}}")
                     .full-width-input-block
-                        label {{"REAL_PRIZE_DETAILS" | translate}}
+                        label {{"Real Prize Details" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'REAL_PRIZE_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            textarea.form-control(type="textarea", rows='4', ng-model="vm.auctionSystemProduct.realPrizeDetails")
+                            textarea.form-control(type="textarea", rows='4', ng-model="vm.auctionProductReward.realPrizeDetails")
 
                 div(ng-if="vm.selectedAuctionRewardType === 'rewardPointsChange'")
                     .full-width-input-block
                         label {{"Reward Point Variable" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'REWARD_POINTS_CHANGE_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.rewardPointsVariable")
+                            input.form-control(type="number", min=0, ng-model="vm.auctionProductReward.rewardPointsVariable")
                     .full-width-input-block
                         label {{"Product Image URL" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="text" ng-model="vm.auctionSystemProduct.productImageUrl")
+                            input.form-control(type="text" ng-model="vm.auctionProductReward.productImageUrl")
                     .full-width-input-block
                         label {{"Message Title" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageTitle" placeholder="{{'Please enter a title' | translate}}")
+                            input.form-control(type="text" ng-model="vm.auctionProductReward.messageTitle" placeholder="{{'Please enter a title' | translate}}")
                     .full-width-input-block
                         label {{"Message_Content" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'MESSAGE_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="text" ng-model="vm.auctionSystemProduct.messageContent" placeholder="{{'Please fill in the content' | translate}}")
+                            input.form-control(type="text" ng-model="vm.auctionProductReward.messageContent" placeholder="{{'Please fill in the content' | translate}}")
                 hr
 
                 // 中下半部「商品定义」选择
