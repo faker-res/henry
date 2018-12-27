@@ -8472,7 +8472,8 @@ define(['js/app'], function (myApp) {
                 });
             } else {
                 socketService.$socket($scope.AppSocket, 'createPlayer', vm.newPlayer, function (data) {
-                    vm.createPlayerRegistrationIntentRecord(data);
+                    let receiveSMS = vm.newPlayer && vm.newPlayer.receiveSMS ? true : false;
+                    vm.createPlayerRegistrationIntentRecord(data, receiveSMS);
                     vm.playerCreateResult = data;
                     vm.getPlatformPlayersData();
                     vm.displayPhoneError(data.status);
@@ -8493,7 +8494,7 @@ define(['js/app'], function (myApp) {
                 vm.existPhone = false;
             }
         }
-        vm.createPlayerRegistrationIntentRecord = function (data) {
+        vm.createPlayerRegistrationIntentRecord = function (data, isReceiveSMS = true) {
 
             var intentData = {
                 adminInfo: {
@@ -8521,7 +8522,8 @@ define(['js/app'], function (myApp) {
                 playerId: data.data.playerId,
                 remarks: data.data.partnerName ? $translate("PARTNER") + ": " + data.data.partnerName : "",
                 status: vm.constProposalStatus.MANUAL,
-                platform: data.data.platform
+                platform: data.data.platform,
+                isReceiveSMS: isReceiveSMS
             };
 
             socketService.$socket($scope.AppSocket, 'createPlayerRegistrationIntentRecord', intentData, function (data) {
