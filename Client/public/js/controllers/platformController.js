@@ -36398,6 +36398,28 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.createAuctionProduct = function () {
+                vm.auctionSystemProduct.platformObjId = vm.selectedPlatform.id;
+                vm.auctionSystemProduct.registerStartTime = $('#auctionSystemProductRegisterStartTimePicker').data('datetimepicker').getDate();
+                vm.auctionSystemProduct.registerEndTime = $('#auctionSystemProductRegisterEndTimePicker').data('datetimepicker').getDate();
+                vm.auctionSystemProduct.rewardStartTime = $('#auctionSystemProductRewardStartTimePicker').data('datetimepicker').getDate();
+                vm.auctionSystemProduct.rewardEndTime = $('#auctionSystemProductRewardEndTimePicker').data('datetimepicker').getDate();
+                vm.auctionSystemProduct.rewardData = vm.auctionProductReward;
+
+                socketService.$socket($scope.AppSocket, 'createAuctionProduct', vm.auctionSystemProduct, function (data) {
+                    console.log("createAuctionProduct", data);
+                    if (data.success) {
+                        $scope.$evalAsync(() => {
+                            vm.auctionSystemCreateProductStatus = 'success';
+                        });
+                    } else {
+                        $scope.$evalAsync(() => {
+                            vm.auctionSystemCreateProductStatus = 'fail';
+                        });
+                    }
+                });
+            };
+
             vm.drawAuctionPublishTable = function (data, newSearch) {
                 let index = 0;
                 data = data || [];

@@ -661,41 +661,6 @@ const dbPlayerMail = {
         ).then(
             () => {
                 if (telNum) {
-                    /*
-                    if (purpose && purpose == constSMSPurpose.REGISTRATION) {
-                        let letterNumber = /^[0-9a-zA-Z]+$/;
-                        // let prefixLength = platform.prefix ?　platform.prefix.length : 0;
-
-                        if(!playerName.match(letterNumber)){
-                            return Q.reject({
-                                status: constServerCode.DATA_INVALID,
-                                name: "DBError",
-                                message: "Username must be alphanumeric"
-                            });
-                        }
-
-                        if(platform.playerNameMinLength > 0){
-                            if(playerName && playerName.length < platform.playerNameMinLength){
-                                return Q.reject({
-                                    status: constServerCode.DATA_INVALID,
-                                    name: "DBError",
-                                    message: localization.localization.translate("Username must be at least") + " " + platform.playerNameMinLength + " " + localization.localization.translate("characters")
-                                });
-                            }
-
-                        }
-
-                        if(platform.playerNameMaxLength > 0){
-                            if(playerName && playerName.length > platform.playerNameMaxLength){
-                                return Q.reject({
-                                    status: constServerCode.DATA_INVALID,
-                                    name: "DBError",
-                                    message: localization.localization.translate("Username must be less than") + " " + platform.playerNameMaxLength + " " + localization.localization.translate("characters")
-                                });
-                            }
-                        }
-                    }
-                    */
                     if (inputData && inputData.oldPhoneNumber) {
                         if (savedNumber.toString() !== inputData.oldPhoneNumber.toString()) {
                             return Promise.reject({
@@ -1332,6 +1297,7 @@ function smsLogCheckLimit (inputTime, queryData, countData, limit, telNum, ipAdd
             tel: telNum ? telNum : "",
             isPlayer: true,
             isPartner: false,
+            channel: {$ne: 1},
         };
 
         // to find partner sms log based on tel number
@@ -1351,6 +1317,7 @@ function smsLogCheckLimit (inputTime, queryData, countData, limit, telNum, ipAdd
             ipAddress: ipAddress ? ipAddress : "",
             isPlayer: true,
             isPartner: false,
+            channel: {$ne: 1},
         };
 
         // to find partner sms log based on ipAddress

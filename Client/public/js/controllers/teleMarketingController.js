@@ -7747,7 +7747,7 @@ define(['js/app'], function (myApp) {
                     $('#adminPhoneListTableSpin').hide();
                     $scope.$evalAsync();
 
-                    vm.ctiLoop = setTimeout(vm.getCtiData, 15000);
+                    vm.ctiLoop = setTimeout(vm.getCtiData, 7000);
 
                 },
                 err => {
