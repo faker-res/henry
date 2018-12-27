@@ -8472,7 +8472,7 @@ define(['js/app'], function (myApp) {
                 });
             } else {
                 socketService.$socket($scope.AppSocket, 'createPlayer', vm.newPlayer, function (data) {
-                    let receiveSMS = vm.newPlayer && vm.newPlayer.receiveSMS ? true : false;
+                    let receiveSMS = Boolean(vm.newPlayer && vm.newPlayer.receiveSMS);
                     vm.createPlayerRegistrationIntentRecord(data, receiveSMS);
                     vm.playerCreateResult = data;
                     vm.getPlatformPlayersData();
