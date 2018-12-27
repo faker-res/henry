@@ -409,7 +409,6 @@ const dbPlayerPayment = {
                         + "foundation/payMinAndMax.do?"
                         + "platformId=" + playerData.platform.platformId + "&"
                         + "username=" + playerData.name + "&"
-                        + "ip=" + loginIp + "&"
                         + "clientType=" + clientType;
 
                     return rp(url);
