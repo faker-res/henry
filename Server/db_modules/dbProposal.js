@@ -503,7 +503,7 @@ var proposal = {
                         }
                     }
 
-                    proposalData.data.realNameBeforeEdit = data[2].realName  || "";
+                    proposalData.data.realNameBeforeEdit = data[2] && data[2].realName ? data[2].realName : "";
 
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
                         pendingProposal => {
