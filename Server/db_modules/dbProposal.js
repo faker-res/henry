@@ -494,7 +494,6 @@ var proposal = {
                     }
 
                     if(proposalData.data && data[2] && (proposalTypeData.name == constProposalType.UPDATE_PLAYER_REAL_NAME || proposalTypeData.name == constProposalType.UPDATE_PARTNER_REAL_NAME)){
-                        proposalData.data.realNameBeforeEdit = data[2].realName;
                         proposalData.data.realNameAfterEdit = proposalData.data.realName;
 
                         if(proposalTypeData.name == constProposalType.UPDATE_PLAYER_REAL_NAME){
@@ -503,6 +502,8 @@ var proposal = {
                             proposalData.data.partnerId = data[2].partnerId;
                         }
                     }
+
+                    proposalData.data.realNameBeforeEdit = data[2] && data[2].realName ? data[2].realName : "";
 
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
                         pendingProposal => {
