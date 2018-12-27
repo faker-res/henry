@@ -1133,7 +1133,7 @@ define(['js/app'], function (myApp) {
             var tableData = [];
             $.each(data, function (i, v) {
                 if (v) {
-                    if (v.mainType == 'Reward' && !(v.data && v.type && v.type.name && v.type.name == "PlayerBonusDoubledRewardGroup")) {
+                    if (v.mainType == 'Reward' && !(v.data && v.type && v.type.name && (v.type.name == "PlayerBonusDoubledRewardGroup" || v.type.name == "BaccaratRewardGroup"))) {
                         v.type.name = v.data && v.data.eventName ? v.data.eventName : v.type.name;
                     }
                     if (v.mainType == 'Others')
@@ -3078,6 +3078,66 @@ define(['js/app'], function (myApp) {
                 vm.selectedProposalDetailForDisplay = proposalDetail;
             }
 
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "BaccaratRewardGroup") {
+                let proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+
+                let providerGroupName;
+                let rewardDetail = '';
+                let originalRewardTotal = 0;
+
+                if (vm.selectedProposal.data && vm.selectedProposal.data.providerGroup) {
+                    providerGroupName = vm.getProviderGroupNameById(vm.selectedProposal.data.providerGroup);
+                } else {
+                    providerGroupName = $translate("LOCAL_CREDIT");
+                }
+
+                if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.baccaratRewardList && vm.selectedProposal.data.baccaratRewardList.length > 0) {
+                    vm.selectedProposal.data.baccaratRewardList.forEach(detail => {
+                        if (detail && detail.roundNo) {
+                            rewardDetail += detail.roundNo + '，' + $translate('BET_AMOUNT') + detail.betAmount + $translate('YEN') + '，'
+                                + $translate('REWARD_AMOUNT') + '：' + detail.rewardAmount + $translate('YEN') + '，' + $translate('remark') + '：' + detail.remark + '<br>';
+                        }
+
+                        if (detail.rewardAmount) {
+                            originalRewardTotal += detail.rewardAmount;
+                        }
+                    });
+                }
+
+                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realName || " ";
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.proposalPlayerLevel;
+                proposalDetail["spendingAmount"] = vm.selectedProposal.data.spendingAmount;
+                proposalDetail["eventName"] = vm.selectedProposal.data.eventName;
+                proposalDetail["eventCode"] = vm.selectedProposal.data.eventCode;
+                proposalDetail["REWARD_AMOUNT"] = vm.selectedProposal.data.rewardAmount + $translate('YEN') + ' (' + $translate('ORIGINAL_REWARD_TOTAL') + originalRewardTotal + ')';
+                proposalDetail["REWARD_APPLIED"] = vm.selectedProposal.data.intervalRewardAmount + vm.selectedProposal.data.rewardAmount + $translate('YEN');
+                proposalDetail["MAX_REWARD"] = vm.selectedProposal.data.intervalMaxRewardAmount + $translate('YEN');
+                proposalDetail["ORDER_NO_REWARD_AMOUNT"] = rewardDetail;
+                if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.isIgnoreAudit) {
+                    proposalDetail["isIgnoreAudit"] = vm.selectedProposal.data.isIgnoreAudit.toString() === 'true' ? $translate('Yes') : $translate('No');
+                }
+                if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.forbidWithdrawAfterApply) {
+                    proposalDetail["forbidWithdrawAfterApply"] = vm.selectedProposal.data.forbidWithdrawAfterApply.toString() === 'true' ? $translate('Yes') : $translate('No');
+                }
+                proposalDetail["forbidWithdrawIfBalanceAfterUnlock"] = vm.selectedProposal.data.forbidWithdrawIfBalanceAfterUnlock;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
+                if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.isSharedWithXIMA) {
+                    proposalDetail["isSharedWithXIMA"] = vm.selectedProposal.data.isSharedWithXIMA.toString() === 'true' ? $translate('Yes') : $translate('No');
+                }
+                proposalDetail["Provider group"] = providerGroupName;
+                proposalDetail["rewardStartTime"] = vm.selectedProposal.data.eventStartTime;
+                proposalDetail["rewardEndTime"] = vm.selectedProposal.data.eventEndTime;
+                proposalDetail["rewardInterval"] = vm.selectedProposal.data.intervalType;
+
+                vm.selectedProposalDetailForDisplay = proposalDetail;
+            }
+
             if (vm.selectedProposal && vm.selectedProposal.data) {
                 delete vm.selectedProposal.data.betAmount;
                 delete vm.selectedProposal.data.betTime;
@@ -3099,8 +3159,10 @@ define(['js/app'], function (myApp) {
             delete vm.selectedProposalDetailForDisplay.devCheckMsg;
             delete vm.selectedProposalDetailForDisplay.useLockedCredit;
             // delete vm.selectedProposalDetailForDisplay.remark;
-            delete vm.selectedProposalDetailForDisplay.isIgnoreAudit;
-            delete vm.selectedProposalDetailForDisplay.forbidWithdrawAfterApply;
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name !== "BaccaratRewardGroup") {
+                delete vm.selectedProposalDetailForDisplay.isIgnoreAudit;
+                delete vm.selectedProposalDetailForDisplay.forbidWithdrawAfterApply;
+            }
 
             if (vm.selectedProposalDetailForDisplay.isProviderGroup$){
                 delete vm.selectedProposalDetailForDisplay.isProviderGroup$

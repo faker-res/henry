@@ -5178,5 +5178,11 @@
   "F. Recycle Bin": "F.回收桶",
   "Indicates phone numbers that has completed the preset rotation number and is now expired.": "已完成任务表示该电话已经成功派发至满足设定的 N 名电销员，并且『到期』回锅至名单池中。",
   "Indicates phone numbers that has been distributed but has not completed the preset rotation amount.": "未完成任务表示该电话虽然已派发，但仍未满设定的 N 名电销员，目前在池中等待下次发放。",
-  "Indicates phone numbers that has been distributed and are currently active pending admin action.": "该名单中，掌握在所有电销员手中的电话数量。"
+  "Indicates phone numbers that has been distributed and are currently active pending admin action.": "该名单中，掌握在所有电销员手中的电话数量。",
+  "ORIGINAL_REWARD_TOTAL": "本次超出上限，原优惠总计：",
+  "REWARD_APPLIED": "周期内已领金额（含此笔）",
+  "MAX_REWARD": "周期内优惠上限",
+  "isSharedWithXIMA": "优惠产生流水可同时享受洗码",
+  "ORDER_NO_REWARD_AMOUNT": "申请局号及优惠金额",
+  "BET_AMOUNT": "下注"
 }
