@@ -18,6 +18,8 @@ const dbConfig = require('./../modules/dbproperties');
 const dbLogger = require("./../modules/dbLogger");
 const errorUtils = require("./../modules/errorUtils");
 const ObjectId = mongoose.Types.ObjectId;
+const localization = require("../modules/localization");
+const translate = localization.localization.translate;
 
 let dbPlayerCreditTransfer = {
     // separate out api calls so it can be test easily
