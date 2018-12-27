@@ -377,6 +377,7 @@ var dbRewardEvent = {
                     case constRewardType.PLAYER_LOSE_RETURN_REWARD_GROUP:
                     case constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP:
                     case constRewardType.PLAYER_RETENTION_REWARD_GROUP:
+                    case constRewardType.BACCARAT_REWARD_GROUP:
                         if (rewardEvent.type.name === constRewardType.PLAYER_RETENTION_REWARD_GROUP && rewardEvent.condition && !rewardEvent.condition.hasOwnProperty('definePlayerLoginMode')){
                             return Promise.reject({
                                 name: "DataError",
@@ -1549,6 +1550,11 @@ var dbRewardEvent = {
             promArr.push(checkForbidRewardProm);
         }
 
+        if (eventData.type.name === constRewardType.BACCARAT_REWARD_GROUP) {
+            let prom  = dbPlayerReward.getPlayerBaccaratRewardDetail(null, playerData.playerId, eventData.code, false, rewardData.applyTargetDate);
+            promArr.push(prom);
+        }
+
         return Promise.all([topupInPeriodProm, eventInPeriodProm, Promise.all(promArr)]).then(
             data => {
                 let topupInPeriodData = data[0];
@@ -2244,6 +2250,56 @@ var dbRewardEvent = {
                             });
                         }
 
+                        break;
+                    // type 7
+                    case constRewardType.BACCARAT_REWARD_GROUP:
+                        // available resources: playerData, eventData
+                        // thing to update: returnData
+                        let baccaratRewardDetail = rewardSpecificData[0];
+                        console.log('baccaratRewardDetail', baccaratRewardDetail)
+
+                        returnData.condition.bet = {
+                            status: baccaratRewardDetail && baccaratRewardDetail.list && baccaratRewardDetail.list.length ? 1 : 2,
+                            list: []
+                        };
+
+                        let appliedAmount = returnData.result.alreadyAppliedAmount = baccaratRewardDetail.totalAppliedBefore;
+                        let maxAmount = returnData.result.upperLimitAmount = eventData && eventData.condition && eventData.condition.intervalMaxRewardAmount || 0;
+                        returnData.result.canApplyAmount = 0;
+                        returnData.result.betAmount = 0;
+
+                        if (returnData.condition.bet.status === 1) {
+                            returnData.condition.bet.list = baccaratRewardDetail.list.map(bConsumption => {
+                                let winAmount = bConsumption.rewardAmount;
+                                let betAmount = bConsumption.spendingAmount;
+
+                                if (maxAmount) {
+                                    if (appliedAmount + winAmount >= maxAmount) {
+                                        winAmount = maxAmount - appliedAmount;
+                                        appliedAmount = maxAmount;
+                                        betAmount = bConsumption.spendingAmount * (winAmount/bConsumption.rewardAmount);
+                                    }
+                                    else {
+                                        appliedAmount += winAmount;
+                                    }
+                                }
+                                returnData.result.canApplyAmount += winAmount;
+                                returnData.result.betAmount += betAmount;
+
+                                return {
+                                    roundNo: bConsumption.roundNo,
+                                    time: bConsumption.consumptionTime,
+                                    betAmount: bConsumption.betAmount,
+                                    betType: bConsumption.betType,
+                                    winAmount: winAmount, // todo :: update this to actual win amount
+                                    rewardAmount: bConsumption.rewardAmount,
+                                    winResult: bConsumption.winResult,
+                                    spendingTimes: bConsumption.spendingTimes
+                                }
+                            });
+                        }
+                        returnData.status = returnData.condition.bet.status === 1 && returnData.condition.deposit && returnData.condition.deposit.status === 1 ? 1 : 2;
+                        returnData.result.rewardAmount = returnData.result.canApplyAmount;
                         break;
 
                     default:
