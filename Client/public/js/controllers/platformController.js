@@ -2085,7 +2085,7 @@ define(['js/app'], function (myApp) {
 
             function getConsumptionReturnPeriodTime(event, currentPeriod) {
                 if(currentPeriod === true) {
-                    return $scope.$socketPromise('getConsumptionReturnPeriodTime', {period: event.settlementPeriod}).then(res => {
+                    return $scope.$socketPromise('getConsumptionReturnCurrentPeriodTime', {period: event.settlementPeriod}).then(res => {
                         $scope.$evalAsync(() => {
                             event.settlementStartTime = vm.dateReformat(res.data.startTime);
                             event.settlementEndTime = vm.dateReformat(res.data.endTime);
@@ -2093,7 +2093,7 @@ define(['js/app'], function (myApp) {
                         })
                     })
                 } else {
-                    return $scope.$socketPromise('getConsumptionReturnCurrentPeriodTime', {period: event.settlementPeriod}).then(res => {
+                    return $scope.$socketPromise('getConsumptionReturnPeriodTime', {period: event.settlementPeriod}).then(res => {
                         $scope.$evalAsync(() => {
                             event.settlementStartTime = vm.dateReformat(res.data.startTime);
                             event.settlementEndTime = vm.dateReformat(res.data.endTime);
