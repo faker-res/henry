@@ -1022,10 +1022,6 @@ let PlayerServiceImplement = function () {
         // wsFunc.response(conn, {status: constServerCode.SUCCESS, data: randomCode}, data);
         data.lastLoginIp = dbUtility.getIpAddress(conn);
         data.ipAddress = data.lastLoginIp;
-
-        // Spam check temporary log
-        console.log('getSMSCode IP: ', data.lastLoginIp);
-
         data.loginIps = [data.lastLoginIp];
         data.ipArea = {'province':'', 'city':''};
         if (conn.isAuth && conn.playerId && !data.name) {
