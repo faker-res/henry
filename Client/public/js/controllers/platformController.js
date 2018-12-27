@@ -24275,8 +24275,12 @@ define(['js/app'], function (myApp) {
 
                         vm.openPromoCodeTemplateData.forEach(entry => {
                             if (entry) {
-                                if (entry.isProviderGroup) {
-                                    entry.allowedProviders = (entry.allowedProviders && entry.allowedProviders.length > 0)? entry.allowedProviders[0] :  '' ;
+                                if (entry.isProviderGroup && entry.allowedProviders && entry.allowedProviders.length > 0) {
+                                    if(typeof entry.allowedProviders == 'object'){
+                                        entry.allowedProviders = entry.allowedProviders[0];
+                                    }
+                                }else{
+                                    entry.allowedProviders = '';
                                 }
 
                                 if (entry.type == 1) {
