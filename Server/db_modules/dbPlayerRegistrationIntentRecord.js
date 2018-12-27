@@ -67,7 +67,7 @@ var dbPlayerRegistrationIntentRecord = {
         }
     },
 
-    createPlayerRegistrationIntentRecord: function (data, status, inputDevice) {
+    createPlayerRegistrationIntentRecord: function (data, status, inputDevice, isReceiveSMS) {
         if(data){
             let proposalData = {
                 creator: data.adminInfo || {
@@ -99,7 +99,7 @@ var dbPlayerRegistrationIntentRecord = {
                     data.phoneType = queryRes.type;
                 }
             }
-            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(data.platform, newProposal, status);
+            dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(data.platform, newProposal, status, isReceiveSMS);
 
             if (typeof(data.platform) != 'object') {
                 data.platform = ObjectId(data.platform);
@@ -140,7 +140,7 @@ var dbPlayerRegistrationIntentRecord = {
         }
     },
 
-    createPlayerRegistrationIntentionProposal: (platform, data, status) => {
+    createPlayerRegistrationIntentionProposal: (platform, data, status, isReceiveSMS = true) => {
         var deferred = Q.defer();
         dbconfig.collection_proposalType.findOne({platformId:platform, name: constProposalType.PLAYER_REGISTRATION_INTENTION}).lean().then(
             typeData => {
@@ -153,7 +153,7 @@ var dbPlayerRegistrationIntentRecord = {
                                     createTime: newProposal.createTime
                                 }, {status: status}).then(
                                     function (data) {
-                                        if(status === constProposalStatus.APPROVED ||status === constProposalStatus.MANUAL ) {
+                                        if(status === constProposalStatus.APPROVED ||status === constProposalStatus.MANUAL && isReceiveSMS) {
                                             SMSSender.sendByPlayerObjId(data.data.playerObjId, constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS, data);
                                             // if require on outside, messageDispatcher will be empty object, probably because of circular dependency, so require inside function
                                             require("./../modules/messageDispatcher").dispatchMessagesForPlayerProposal(data, constMessageType.PLAYER_REGISTER_INTENTION_SUCCESS, {}).catch(err=>{console.error(err)});
