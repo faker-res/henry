@@ -21509,8 +21509,7 @@ let dbPlayerInfo = {
                 applyXIMAFrontEnd: false,
                 ApplyPromoCode: false,
                 updatePassword: false,
-                applyRewardPoint: false,
-                lastApplyLevelUp: false,
+                applyRewardPoint: false
             }
         })
     },
