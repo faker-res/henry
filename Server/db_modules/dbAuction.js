@@ -26,9 +26,9 @@ var dbAuction = {
         let proms = [];
         let updateData = {};
         if(data.direction == 'notAvailableItem'){
-            updateData.isExclusive = false; // let auction item inactive
+            updateData.publish = false; // let auction item inactive
         }else if(data.direction == 'exclusiveItem'){
-            updateData.isExclusive = true; // let auction item active
+            updateData.publish = true; // let auction item active
         }else if(data.direction == 'removeExclusiveAuction' || data.direction == 'removeNotAvailableAuction'){
             updateData.status = 0; // remove auction data
         }
