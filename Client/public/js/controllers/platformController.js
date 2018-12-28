@@ -36314,7 +36314,7 @@ define(['js/app'], function (myApp) {
                 vm.excludeAuctionItem = [];
                 vm.notAvailableAuctionItem = [];
 
-                let exclusiveQuery = {isExclusive:true, status:1};
+                let exclusiveQuery = {publish:true, status:1};
                 let prom1 = new Promise((resolve, reject)=>{
                   socketService.$socket($scope.AppSocket, 'listAuctionItems', exclusiveQuery, function (data) {
                       vm.drawAuctionPublishTable(data.data);
@@ -36322,18 +36322,16 @@ define(['js/app'], function (myApp) {
                   });
                 })
 
-                let notAvailableQuery = {isExclusive:false, status:1};
+                let notAvailableQuery = {publish:false, status:1};
                 prom1.then(()=>{
                     socketService.$socket($scope.AppSocket, 'listAuctionItems', notAvailableQuery, function (data) {
                         vm.drawAuctionNotAvailableTable(data.data);
                     });
                 })
-
-
             };
 
             vm.listAuctionMonitor = function(){
-                let sendQuery = { isExclusive : false };
+                let sendQuery = { publish : false };
                 socketService.$socket($scope.AppSocket, 'listAuctionItems', sendQuery, function (data) {
                     vm.drawAuctionMonitorTable(data.data);
                 });
