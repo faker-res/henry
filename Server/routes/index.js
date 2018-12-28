@@ -75,7 +75,26 @@ router.post('/login', function (req, res, next) {
                             //roles: doc.roles
                         };
                         if( doc.departments && doc.departments.length > 0 ){
-                            profile.platforms = doc.departments[0].platforms;
+                            let platformList = [];
+
+                            doc.departments.forEach(
+                                department => {
+                                    if(department && department.platforms && department.platforms.length > 0){
+                                        department.platforms.forEach(
+                                            platform => {
+                                                if(platform){
+                                                    let indexOfPlatform = platformList.findIndex(p => p.toString() == platform.toString());
+
+                                                    if(indexOfPlatform == -1){
+                                                        platformList.push(platform);
+                                                    }
+                                                }
+                                            }
+                                        );
+                                    }
+                            });
+
+                            profile.platforms = platformList;
                             if( doc.departments[0].departmentName == "admin" ){
                                 profile.platforms = "admin";
                             }
