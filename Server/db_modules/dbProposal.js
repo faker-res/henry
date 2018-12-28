@@ -3416,6 +3416,7 @@ var proposal = {
                     }
                 );
 
+                console.log("LH check proposal query ----1", searchQuery);
                 c = dbconfig.collection_proposalType.find(searchQuery).then(
                     proposalType => {
                         delete reqData.platformId;
@@ -3505,6 +3506,7 @@ var proposal = {
                 b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                     .populate({path: "type", model: dbconfig.collection_proposalType})
                     .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean();
+                console.log("LH check proposal query ----2", reqData);
                 c = dbconfig.collection_proposal.aggregate([
                     {
                         $match: reqData
@@ -3575,6 +3577,7 @@ var proposal = {
                     totalSize = data[0];
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
+                    console.log("LH check proposal query ----3", summary);
 
                     if(resultArray && resultArray.length > 0 && isSuccess){
                         resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
