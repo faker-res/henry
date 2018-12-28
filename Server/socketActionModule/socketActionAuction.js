@@ -75,6 +75,11 @@ function socketActionAuction(socketIO, socket) {
             let isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbAuction.createAuctionProduct, [data], actionName, isValidData);
         },
+        updateAuctionProduct: function updateAuctionProduct(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id);
+            socketUtil.emitter(self.socket, dbAuction.updateAuctionProduct, [data._id, data.updateData], actionName, isValidData);
+        },
     };
     socketActionAuction.actions = this.actions;
 }
