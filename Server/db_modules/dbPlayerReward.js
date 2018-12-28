@@ -6265,9 +6265,10 @@ let dbPlayerReward = {
                 let eventInPeriodCount = eventInPeriodData.length;
                 let rewardAmountInPeriod = eventInPeriodData.reduce((a, b) => a + b.data.rewardAmount, 0);
 
-                console.log('eventQuery', eventQuery);
+                console.log('eventQuery.$or', eventQuery.$or);
                 console.log('eventInPeriodData', eventInPeriodData);
                 console.log('eventInPeriodCount', eventInPeriodCount);
+                console.log('intervalTime', intervalTime);
 
                 // Check reward apply limit in period
                 if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval <= eventInPeriodCount) {
