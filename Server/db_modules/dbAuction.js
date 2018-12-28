@@ -18,8 +18,9 @@ var dbAuction = {
     loadAuctionItem: (id) => {
         return dbconfig.collection_auctionSystem.findOne({_id: ObjectId(id)}).exec();
     },
-    updateAuctionItem: (data) => {
-        return [];
+    updateAuctionProduct: (id, updateData) => {
+        let matchObj = { _id : id};
+        return dbconfig.collection_auctionSystem.findOneAndUpdate(matchObj, updateData,{ new : true}).exec();
     },
     moveTo: (data) => {
 
