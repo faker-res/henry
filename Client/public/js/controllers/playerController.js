@@ -7944,7 +7944,8 @@ define(['js/app'], function (myApp) {
                             $(".topupGroupRecordTablePage").show();
 
                             utilService.createDatatableWithFooter('.topupGroupRecordTable', tableOptions, {});
-                            vm.playerTopUpGroupQuery.pageObj.init({maxCount: size}, false);
+                            cvm.playerTopUpGroupQuery.pageObj.init({maxCount: size}, false);
+                            $scope.$evalAsync();
                         },
                         checkAdminNameValidity: function (adminName, form) {
                             vm.checkAdminNameValidity(adminName, form);
