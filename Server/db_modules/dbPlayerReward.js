@@ -19,6 +19,7 @@ const constRewardApplyType = require("./../const/constRewardApplyType");
 const constRewardPeriod = require("./../const/constRewardPeriod");
 const constRewardType = require("./../const/constRewardType");
 const constServerCode = require('../const/constServerCode');
+const constPromoCodeTemplateGenre = require("./../const/constPromoCodeTemplateGenre");
 
 const dbPlayerUtil = require('../db_common/dbPlayerUtility');
 const dbProposalUtil = require('../db_common/dbProposalUtility');
@@ -3050,7 +3051,11 @@ let dbPlayerReward = {
 
     getPromoCodeTemplate: (platformObjId, isProviderGroup) => dbConfig.collection_promoCodeTemplate.find({
         platformObjId: ObjectId(platformObjId),
-        isProviderGroup: Boolean(isProviderGroup)
+        isProviderGroup: Boolean(isProviderGroup),
+        $or: [
+            {genre: {$exists: false}},
+            {genre: constPromoCodeTemplateGenre.GENERAL}
+        ],
     }).lean(),
 
     getOpenPromoCodeTemplate: (platformObjId, isProviderGroup, deleteFlag) => {
@@ -7859,7 +7864,6 @@ let dbPlayerReward = {
     },
 
     checkConsumptionSlipRewardGroup: function (playerData, consumptionRecord) {
-
         // check zor the consumptionSlipRewardEvent
         return dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP}).then(
             rewardType => {
@@ -7874,8 +7878,6 @@ let dbPlayerReward = {
             }
         ).then(
             rewardEvent => {
-
-                console.log("yH checking---rewardEvent.length", rewardEvent.length)
                 // check if more than one of the rewardEvent with the same type
                 if(rewardEvent && rewardEvent.length){
                     rewardEvent.forEach(
@@ -7942,7 +7944,6 @@ let dbPlayerReward = {
 
         // function to check if the consumption record is valid for the application
         function checkAvailableConsumptionRecord(rewardEvent, consumptionRecord, playerData) {
-
             let newRecordProm = [];
             let paramOfLevel = null;
 
@@ -7957,14 +7958,11 @@ let dbPlayerReward = {
                 paramOfLevel = rewardEvent.param.rewardParam[0].value.reverse();
             }
 
-            console.log("yH checking--- paramOfLevel", paramOfLevel)
             //2nd, fit the consumption record into each rewardParamLevel, if match the condition -> save into the recordDB
-            if (paramOfLevel && paramOfLevel.length){
-
+            if (paramOfLevel && paramOfLevel.length) {
                 let conditionList = [];
                 for (let i=0; i < paramOfLevel.length; i ++){
                     let eachLevel = paramOfLevel[i];
-                    console.log("yH checking---eachLevel", eachLevel)
                     let bonusRatio = eachLevel && eachLevel.hasOwnProperty('bonusRatio') ? eachLevel.bonusRatio : null;
                     let consumptionSlipEndingDigit = eachLevel && eachLevel.hasOwnProperty('consumptionSlipEndingDigit') ? eachLevel.consumptionSlipEndingDigit : null;
                     if (eachLevel.consumptionSlipEndingDigit == ""){
@@ -8002,8 +8000,7 @@ let dbPlayerReward = {
                     }
                 }
 
-                if (conditionList && conditionList.length){
-
+                if (conditionList && conditionList.length) {
                     let record = {
                             rewardEventObjId: rewardEvent._id,
                             platformObjId: playerData.platform,

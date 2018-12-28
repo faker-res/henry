@@ -36332,21 +36332,49 @@ define(['js/app'], function (myApp) {
 
             /***** Auction System - start *****/
             vm.initAuctionSystem = function() {
-
+              vm.excludeAuctionItem = [];
+              vm.notAvailableAuctionItem = [];
             };
 
             vm.listAuctionItem = function() {
-                let sendQuery = {};
-                socketService.$socket($scope.AppSocket, 'listAuctionItems', sendQuery, function (data) {
-                    vm.drawAuctionPublishTable(data.data);
-                    vm.drawAuctionNotAvailableTable(data.data);
-                });
+                vm.excludeAuctionItem = [];
+                vm.notAvailableAuctionItem = [];
+
+                let exclusiveQuery = {publish:true, status:1};
+                let prom1 = new Promise((resolve, reject)=>{
+                  socketService.$socket($scope.AppSocket, 'listAuctionItems', exclusiveQuery, function (data) {
+                      vm.drawAuctionPublishTable(data.data);
+                      resolve();
+                  });
+                })
+
+                let notAvailableQuery = {publish:false, status:1};
+                prom1.then(()=>{
+                    socketService.$socket($scope.AppSocket, 'listAuctionItems', notAvailableQuery, function (data) {
+                        vm.drawAuctionNotAvailableTable(data.data);
+                    });
+                })
             };
 
             vm.listAuctionMonitor = function(){
-                let sendQuery = {};
+                let sendQuery = { publish : false };
                 socketService.$socket($scope.AppSocket, 'listAuctionItems', sendQuery, function (data) {
                     vm.drawAuctionMonitorTable(data.data);
+                });
+            }
+            vm.loadAuctionItem = function(type){
+                vm.selectedAuction = [];
+                let id = null;
+                if(type == 'excludeAuctionItem'){
+                    let excludeAuctionItem = vm.getAuctionCheckedItem('excludeAuctionItem[]');
+                    id = (excludeAuctionItem && excludeAuctionItem.length == 1) ? excludeAuctionItem[0] : [];
+                }
+                if(type == 'notAvailableAuctionItem'){
+                    let notAvailableItem = vm.getAuctionCheckedItem('notAvailableAuctionItem[]');
+                    id = (notAvailableItem && notAvailableItem.length == 1) ? notAvailableItem[0] : [];
+                }
+                vm.sendData = { _id: id };
+                socketService.$socket($scope.AppSocket, 'loadAuctionItem', sendData, function (data) {
                 });
             }
             vm.auctionSystemTabClicked = function (choice) {
@@ -36367,9 +36395,17 @@ define(['js/app'], function (myApp) {
                             rewardEndTime: null,
                             playerType: 'Real Player (all)',
                             playerLevel: 'all',
+                            rewardAppearPeriod: [
+                                {
+                                    startDate: '',
+                                    startTime: '',
+                                    endDate: '',
+                                    endTime: '',
+                                }
+                            ],
                         };
                         vm.auctionProductReward = {
-                            rewardType: ''
+                            rewardType: 'promoCode'
                         };
                         break;
                     case 'monitoringSystem':
@@ -36424,6 +36460,16 @@ define(['js/app'], function (myApp) {
                 }
             };
 
+            vm.rewardAppearPeriodNewRow = (rewardAppearPeriod) => {
+                rewardAppearPeriod.push({startDate: "", startTime: "", endDate: "", endTime: ""});
+                console.log(vm.auctionSystemProduct.rewardAppearPeriod);
+            };
+
+            vm.rewardAppearPeriodDeleteRow = (index, rewardAppearPeriod) => {
+                rewardAppearPeriod.splice(index, 1);
+                console.log(vm.auctionSystemProduct.rewardAppearPeriod);
+            };
+
             vm.createAuctionProduct = function () {
                 vm.auctionSystemProduct.platformObjId = vm.selectedPlatform.id;
                 vm.auctionSystemProduct.registerStartTime = $('#auctionSystemProductRegisterStartTimePicker').data('datetimepicker').getDate();
@@ -36436,6 +36482,7 @@ define(['js/app'], function (myApp) {
                     console.log("createAuctionProduct", data);
                     if (data.success) {
                         $scope.$evalAsync(() => {
+                            vm.listAuctionItem();
                             vm.auctionSystemCreateProductStatus = 'success';
                         });
                     } else {
@@ -36457,24 +36504,18 @@ define(['js/app'], function (myApp) {
                     columns: [
                         {
                             title: $translate('Type'),
+                            data: 'rewardData.rewardType',
                             render: function(data, type, row) {
-                                let result = '';
-                                return result;
+                                return $translate(data);
                             }
                         },
-                        {title: $translate('Product Name'), data: "name"},
-                        {
-                            title: $translate('Sell From'),
-                            render: function(data, type, row) {
-                                let result = '';
-                                return result;
-                            }
-                        },
-                        {title: $translate('Starting Price'), data: "startPrice"},
-                        {title: $translate('Direct Purchase Price'), data: "directPrice"},
+                        {title: $translate('Product Name'), data: "productName"},
+                        {title: $translate('Sell From'), data: "seller"},
+                        {title: $translate('Starting Price'), data: "startingPrice"},
+                        {title: $translate('Direct Purchase Price'), data: "directPurchasePrice"},
                         {
                             title: $translate('ACTION_BUTTON'),
-                            data: "name",
+                            data: "_id",
                             render: function(data, type, row) {
                                 let result = '<input type="checkbox" ng-click="vm.countAuction()" name="excludeAuctionItem[]" value="' + data + '">';
                                 return result;
@@ -36508,24 +36549,18 @@ define(['js/app'], function (myApp) {
                     columns: [
                         {
                             title: $translate('Type'),
+                            data: 'rewardData.rewardType',
                             render: function(data, type, row) {
-                                let result = '';
-                                return result;
+                                return $translate(data);
                             }
                         },
-                        {title: $translate('Product Name'), data: "name"},
-                        {
-                            title: $translate('Sell From'),
-                            render: function(data, type, row) {
-                                let result = '';
-                                return result;
-                            }
-                        },
-                        {title: $translate('Starting Price'), data: "startPrice"},
-                        {title: $translate('Direct Purchase Price'), data: "directPrice"},
+                        {title: $translate('Product Name'), data: "productName"},
+                        {title: $translate('Sell From'), data: "seller"},
+                        {title: $translate('Starting Price'), data: "startingPrice"},
+                        {title: $translate('Direct Purchase Price'), data: "directPurchasePrice"},
                         {
                             title: $translate('ACTION_BUTTON'),
-                            data: "name",
+                            data: "_id",
                             render: function(data, type, row) {
                                 let result = '<input type="checkbox"  ng-click="vm.countAuction()" name="notAvailableAuctionItem[]" value="' + data + '">';
                                 return result;
@@ -36625,10 +36660,17 @@ define(['js/app'], function (myApp) {
             }
             vm.getAuctionCheckedItem = function(el){
                 let auctionItems = [];
+
                 $('input[name="'+el+'"]').each(function () {
                     if($(this).is(':checked')){
                         let result = $(this).val();
                         auctionItems.push(result);
+
+                        if(el == 'excludeAuctionItem[]'){
+                            vm.excludeAuctionItem.push(result);
+                        }else if(el == 'notAvailableAuctionItem[]'){
+                            vm.notAvailableAuctionItem.push(result);
+                        }
                     }
                 });
                 return auctionItems;

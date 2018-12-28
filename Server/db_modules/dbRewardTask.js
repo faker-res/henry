@@ -577,7 +577,6 @@ const dbRewardTask = {
         });
 
         return Promise.all(proposalProm).then( (a) => {
-            if (a){console.log("checking proposalData --- yH", a)}
             if (usedTopUp.length > 0) {
                 rewards = rewards.filter(rewardItem => {
 
@@ -2280,7 +2279,6 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
                         if (updatedRTG) {
                             // update the locked reward tasks
                             rewardTaskUnlockedProgress = dbRewardTask.unlockRewardTaskInRewardTaskGroup(updatedRTG, updatedRTG.playerId).then( rewards => {
-                                console.log("checking rewards---yH", rewards || "could not find the rewards data")
                                 if (rewards){
 
                                     return dbRewardTask.getRewardTasksRecord(rewards, updatedRTG);

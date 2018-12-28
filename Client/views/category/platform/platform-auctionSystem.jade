@@ -18,11 +18,11 @@
           .inlineBlk
               button.btn.btn-primary( ng-click='vm.moveToNotAvailable()') {{"MOVE" | translate}}
           .inlineBlk
-              button.btn.btn-primary( ng-if="vm.numExcludeAuction==1", ng-click='vm.loadAuctionItem()') {{"Edit" | translate}}
+              button.btn.btn-primary( ng-if="vm.numExcludeAuction==1", ng-click='vm.loadAuctionItem("excludeAuctionItem")') {{"Edit" | translate}}
           .inlineBlk
-              button.btn.btn-primary( ng-if="vm.numExcludeAuction!=1", ng-click='vm.loadAuctionItem()', DISABLED) {{"Edit" | translate}}
+              button.btn.btn-primary( ng-if="vm.numExcludeAuction!=1", ng-click='vm.loadAuctionItem("excludeAuctionItem")', DISABLED) {{"Edit" | translate}}
           .inlineBlk
-              button.btn.btn-danger( ng-click='vm.removeAuctionItem()') {{"Delete" | translate}}
+              button.btn.btn-danger( ng-click='vm.removeExclusiveAuction()') {{"Delete" | translate}}
         table#auctionPublishTable.display.table-condensed(style="min-width:100%;")
         #auctionPublishTablePage
         br
@@ -35,11 +35,11 @@
           .inlineBlk
               button.btn.btn-primary( ng-click='vm.moveToExclusive()') {{"MOVE" | translate}}
           .inlineBlk
-              button.btn.btn-primary( ng-if="vm.numNotAvailableAuction==1", ng-click='vm.loadAuctionItem()') {{"Edit" | translate}}
+              button.btn.btn-primary( ng-if="vm.numNotAvailableAuction==1", ng-click='vm.loadAuctionItem("notAvailableAuctionItem")') {{"Edit" | translate}}
           .inlineBlk
-              button.btn.btn-primary( ng-if="vm.numNotAvailableAuction!=1", ng-click='vm.loadAuctionItem()', DISABLED) {{"Edit" | translate}}
+              button.btn.btn-primary( ng-if="vm.numNotAvailableAuction!=1", ng-click='vm.loadAuctionItem("notAvailableAuctionItem")', DISABLED) {{"Edit" | translate}}
           .inlineBlk
-              button.btn.btn-danger( ng-click='vm.removeAuctionItem()') {{"Delete" | translate}}
+              button.btn.btn-danger( ng-click='vm.removeNotAvailableAuction()') {{"Delete" | translate}}
         table#auctionNotAvailableTable.display.table-condensed(style="min-width:100%;")
         #auctionNotAvailableTablePage
 
@@ -497,6 +497,33 @@
                         select.form-control(ng-model="vm.auctionSystemProduct.rewardInterval" style="display:inline-block")
                             option(value='weekly') {{'Weekly' | translate}}
                             option(value='monthly') {{'Monthly' | translate}}
+                .full-width-input-block
+                    label {{"Period show reward" | translate}}
+                    div(style="display:inline-block;")
+                        table(id="rewardAppearPeriod" style="display:inline-table;width:100%")
+                            thead
+                                tr
+                                    th {{'from' | translate}}
+                                    th {{'from' | translate}}
+                                    th {{'-' | translate}}
+                                    th {{'to' | translate}}
+                                    th {{'to' | translate}}
+                                    th
+                            tbody
+                                tr(ng-repeat='(index,val) in vm.auctionSystemProduct.rewardAppearPeriod')
+                                    td
+                                        select.form-control(ng-model='val.startDate' ng-options='i as v | translate for (i,v) in weekDay')
+                                    td
+                                        select.form-control(ng-model='val.startTime' ng-options='i as v for (i,v) in dayTime')
+                                    td
+                                        -
+                                    td
+                                        select.form-control(ng-model='val.endDate' ng-options='i as v | translate for (i,v) in weekDay')
+                                    td
+                                        select.form-control(ng-model='val.endTime' ng-options='i as v for (i,v) in dayTime')
+                                    td
+                                        i.fa.fa-minus(ng-click='vm.rewardAppearPeriodDeleteRow(index,vm.auctionSystemProduct.rewardAppearPeriod)' ng-show='index!=0')
+                                        i.fa.fa-plus(ng-click='vm.rewardAppearPeriodNewRow(vm.auctionSystemProduct.rewardAppearPeriod)' ng-show='index==0')
                 .full-width-input-block
                     label {{"Product Start Time (minute)" | translate}}
                         i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_START_TIME_DESCRIPTION' | translate}}")
