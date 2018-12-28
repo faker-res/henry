@@ -498,6 +498,33 @@
                             option(value='weekly') {{'Weekly' | translate}}
                             option(value='monthly') {{'Monthly' | translate}}
                 .full-width-input-block
+                    label {{"Period show reward" | translate}}
+                    div(style="display:inline-block;")
+                        table(id="rewardAppearPeriod" style="display:inline-table;width:100%")
+                            thead
+                                tr
+                                    th {{'from' | translate}}
+                                    th {{'from' | translate}}
+                                    th {{'-' | translate}}
+                                    th {{'to' | translate}}
+                                    th {{'to' | translate}}
+                                    th
+                            tbody
+                                tr(ng-repeat='(index,val) in vm.auctionSystemProduct.rewardAppearPeriod')
+                                    td
+                                        select.form-control(ng-model='val.startDate' ng-options='i as v | translate for (i,v) in weekDay')
+                                    td
+                                        select.form-control(ng-model='val.startTime' ng-options='i as v for (i,v) in dayTime')
+                                    td
+                                        -
+                                    td
+                                        select.form-control(ng-model='val.endDate' ng-options='i as v | translate for (i,v) in weekDay')
+                                    td
+                                        select.form-control(ng-model='val.endTime' ng-options='i as v for (i,v) in dayTime')
+                                    td
+                                        i.fa.fa-minus(ng-click='vm.rewardAppearPeriodDeleteRow(index,vm.auctionSystemProduct.rewardAppearPeriod)' ng-show='index!=0')
+                                        i.fa.fa-plus(ng-click='vm.rewardAppearPeriodNewRow(vm.auctionSystemProduct.rewardAppearPeriod)' ng-show='index==0')
+                .full-width-input-block
                     label {{"Product Start Time (minute)" | translate}}
                         i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_START_TIME_DESCRIPTION' | translate}}")
                     div(style="display:inline-block;")
