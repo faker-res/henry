@@ -240,6 +240,11 @@ define([], function () {
             Object.assign(document.createElement('a'), { target: '_blank', href: url}).click();
         };
 
+        this.openInNewWindow = function (url) {
+            let strWindowFeatures = "location=yes,scrollbars=yes,status=yes";
+            window.open(url, "_blank", strWindowFeatures);
+        };
+
         this.getLocalTime = function (date) {
             if (!date) return null;
             return new Date(date.getTime() - new Date().getTimezoneOffset() * 60 * 1000);
