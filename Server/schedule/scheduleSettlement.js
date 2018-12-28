@@ -169,29 +169,29 @@ var minuteJob = new CronJob('0 * * * * *', function () {
         }
     );
 
-        var processTsPhone = () => {
-            // phone trade
-            let curTime = new Date();
-            let task1 = null;
+    var processTsPhone = () => {
+        // phone trade
+        let curTime = new Date();
+        let task1 = null;
 
-            // hard code check at 04:00 everyday
-            if (curTime.getHours() == 4 && curTime.getMinutes() == 0) {
-                task1 = () => dbTeleSales.dailyTradeTsPhone().then(
-                    data => {
-                        if (data) {
-                            console.log(new Date().toString() + "Daily Phone Trade Done", data)
-                        }
+        // hard code check at 04:00 everyday
+        if (curTime.getHours() == 4 && curTime.getMinutes() == 0) {
+            task1 = () => dbTeleSales.dailyTradeTsPhone().then(
+                data => {
+                    if (data) {
+                        console.log(new Date().toString() + "Daily Phone Trade Done", data)
                     }
-                ).catch(
-                    function (error) {
-                        console.log("Daily Phone Trade error doing");
-                        errorUtils.reportError(error);
-                    }
-                );
-            }
-
-            return promiseUtils.each([task1], task => task && task() );
+                }
+            ).catch(
+                function (error) {
+                    console.log("Daily Phone Trade error doing");
+                    errorUtils.reportError(error);
+                }
+            );
         }
+
+        return promiseUtils.each([task1], task => task && task() );
+    }
 
     return processProviders().then(() => {
         processTsPhone().catch(errorUtils.reportError);
