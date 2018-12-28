@@ -22,7 +22,7 @@
           .inlineBlk
               button.btn.btn-primary( ng-if="vm.numExcludeAuction!=1", ng-click='vm.loadAuctionItem("excludeAuctionItem")', DISABLED) {{"Edit" | translate}}
           .inlineBlk
-              button.btn.btn-danger( ng-click='vm.removeAuctionItem()') {{"Delete" | translate}}
+              button.btn.btn-danger( ng-click='vm.removeExclusiveAuction()') {{"Delete" | translate}}
         table#auctionPublishTable.display.table-condensed(style="min-width:100%;")
         #auctionPublishTablePage
         br
@@ -39,7 +39,7 @@
           .inlineBlk
               button.btn.btn-primary( ng-if="vm.numNotAvailableAuction!=1", ng-click='vm.loadAuctionItem("notAvailableAuctionItem")', DISABLED) {{"Edit" | translate}}
           .inlineBlk
-              button.btn.btn-danger( ng-click='vm.removeAuctionItem()') {{"Delete" | translate}}
+              button.btn.btn-danger( ng-click='vm.removeNotAvailableAuction()') {{"Delete" | translate}}
         table#auctionNotAvailableTable.display.table-condensed(style="min-width:100%;")
         #auctionNotAvailableTablePage
 
