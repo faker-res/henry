@@ -972,6 +972,10 @@ var dbPlayerTopUpRecord = {
                     proposalData.lastLoginIp = lastLoginIp;
                 }
 
+                if(typeof proposalData.amount != "undefined"){
+                    proposalData.amount = parseFloat(proposalData.amount);
+                }
+
                 newProposal = {
                     creator: proposalData.creator,
                     data: proposalData,
