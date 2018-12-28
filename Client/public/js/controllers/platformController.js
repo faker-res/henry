@@ -36482,6 +36482,7 @@ define(['js/app'], function (myApp) {
                     console.log("createAuctionProduct", data);
                     if (data.success) {
                         $scope.$evalAsync(() => {
+                            vm.listAuctionItem();
                             vm.auctionSystemCreateProductStatus = 'success';
                         });
                     } else {
