@@ -57,8 +57,6 @@
 
             client.addEventListener("open", function () {
                 var AuctionService = client.getService("auction");
-                console.log('ClientAuctionAPITest', ClientAuctionAPITest)
-                console.log('ClientPlayerAPITest', ClientPlayerAPITest)
                 var clientAuctionAPITest = new ClientAuctionAPITest(AuctionService);
 
                 var connectionService = client.getService("connection");
