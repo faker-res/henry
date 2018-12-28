@@ -6799,6 +6799,7 @@ let dbPartner = {
 
                     let rawCommission = calculateRawCommission(totalConsumption, commissionRates[groupRate.groupName].commissionRate);
 
+                    console.log("partnerCommissionRateConfig",partnerCommissionRateConfig);
                     console.log("platformFeeRate",platformFeeRate);
                     console.log("totalBonusAmount",totalBonusAmount);
                     let platformFee =  platformFeeRate * totalBonusAmount / 100;
