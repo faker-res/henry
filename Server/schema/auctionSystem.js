@@ -68,6 +68,12 @@ let auctionSystemSchema = new Schema({
     rewardStartTime: {type: Date, required: true},
     rewardEndTime: {type: Date, required: true},
     rewardInterval: {type: String},
+    rewardAppearPeriod: [{
+        startDate: {type: String},
+        startTime: {type: String},
+        endDate: {type: String},
+        endTime: {type: String}
+    }],
     productStartTime: {type: Number},
     productEndTime: {type: Number},
 

@@ -36367,6 +36367,14 @@ define(['js/app'], function (myApp) {
                             rewardEndTime: null,
                             playerType: 'Real Player (all)',
                             playerLevel: 'all',
+                            rewardAppearPeriod: [
+                                {
+                                    startDate: '',
+                                    startTime: '',
+                                    endDate: '',
+                                    endTime: '',
+                                }
+                            ],
                         };
                         vm.auctionProductReward = {
                             rewardType: ''
@@ -36422,6 +36430,16 @@ define(['js/app'], function (myApp) {
                         vm.selectedAuctionRewardType = 'rewardPointsChange';
                         break;
                 }
+            };
+
+            vm.rewardAppearPeriodNewRow = (rewardAppearPeriod) => {
+                rewardAppearPeriod.push({startDate: "", startTime: "", endDate: "", endTime: ""});
+                console.log(vm.auctionSystemProduct.rewardAppearPeriod);
+            };
+
+            vm.rewardAppearPeriodDeleteRow = (index, rewardAppearPeriod) => {
+                rewardAppearPeriod.splice(index, 1);
+                console.log(vm.auctionSystemProduct.rewardAppearPeriod);
             };
 
             vm.createAuctionProduct = function () {
