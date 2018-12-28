@@ -36377,7 +36377,7 @@ define(['js/app'], function (myApp) {
                             ],
                         };
                         vm.auctionProductReward = {
-                            rewardType: ''
+                            rewardType: 'promoCode'
                         };
                         break;
                     case 'monitoringSystem':
