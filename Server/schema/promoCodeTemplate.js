@@ -49,7 +49,9 @@ let promoCodeTemplateSchema = new Schema({
     // Promo Code Active Flag
     isActive: {type: Boolean, default: false, index: true},
     // remark
-    remark: {type: String}
+    remark: {type: String},
+    // category: 1: general; 2: for auction system
+    genre: {type: Number}
 
 });
 

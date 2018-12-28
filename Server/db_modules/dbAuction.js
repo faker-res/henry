@@ -3,6 +3,7 @@ var mongoose = require('mongoose');
 const dbProposal = require('./../db_modules/dbProposal');
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const ObjectId = mongoose.Types.ObjectId;
+const constPromoCodeTemplateGenre = require("./../const/constPromoCodeTemplateGenre");
 
 var dbAuction = {
     /**
@@ -50,7 +51,20 @@ var dbAuction = {
     },
 
     createAuctionProduct: function (auctionProduct) {
-        return dbconfig.collection_auctionSystem(auctionProduct).save().then(
+        let templateProm = Promise.resolve(true);
+        // only promoCodeTemplate needs to be generated first
+        if (auctionProduct && auctionProduct.rewardData && auctionProduct.rewardData.rewardType && auctionProduct.rewardData.rewardType == "promoCode"){
+            templateProm = generatePromoCodeTemplate(auctionProduct.rewardData, auctionProduct.platformObjId, auctionProduct.productName);
+        }
+
+        return templateProm.then(
+            template => {
+                if (template && template._id && auctionProduct && auctionProduct.rewardData){
+                    auctionProduct.rewardData.templateObjId = template._id;
+                }
+                return dbconfig.collection_auctionSystem(auctionProduct).save();
+            }
+        ).then(
             data => {
                 if (data) {
                     return JSON.parse(JSON.stringify(data));
@@ -60,6 +74,42 @@ var dbAuction = {
                 return Promise.reject({name: "DBError", message: "Error creating auction product.", error: error});
             }
         );
+
+        // to generate promoCodeTemplate for auction system
+        function generatePromoCodeTemplate(rewardData, platformObjId, productName) {
+
+            let allowedProviderList = [];
+            if (rewardData.allowedProvider){
+                allowedProviderList.push(ObjectId(rewardData.allowedProvider));
+            }
+            let obj = {
+                platformObjId: platformObjId,
+                allowedProviders: allowedProviderList,
+                name: productName,
+                isSharedWithXIMA: rewardData.isSharedWithXima,
+                isProviderGroup: true,
+                genre: constPromoCodeTemplateGenre.AUCTION,
+                expiredInDay: rewardData.dueDateInDay,
+                disableWithdraw: rewardData.isForbidWithdrawal,
+                minTopUpAmount: rewardData.minimumTopUpAmount,
+                createTime: new Date ()
+            }
+
+            if (rewardData.isDynamicRewardAmount){
+                obj.amount = rewardData.rewardPercentage*100;
+                obj.maxRewardAmount = rewardData.maximumRewardAmount;
+                obj.requiredConsumption = rewardData.spendingTimes;
+                obj.type = 3; // dynamic case
+            }
+            else{
+                obj.amount = rewardData.rewardAmount;
+                obj.requiredConsumption = rewardData.spendingAmount;
+                obj.type = 1; // with top up requirement + fixed reward amount
+            }
+
+            let record = new dbconfig.collection_promoCodeTemplate(obj);
+            return record.save();
+        }
     },
 };
 
