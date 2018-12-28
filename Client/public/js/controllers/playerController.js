@@ -7916,7 +7916,10 @@ define(['js/app'], function (myApp) {
                                     {
                                         title: $translate('Topup Group'),
                                         data: "topUpGroupNames$",
-                                        sClass: "realNameCell wordWrap"
+                                        sClass: "realNameCell wordWrap",
+                                        render: function (data, type, row) {
+                                            return $translate(data);
+                                        }
                                     },
                                     {title: $translate('TIME'), data: "createTime"},
                                     {title: $translate("OPERATOR_ACTION"), data: "topUpGroupChanges"},
