@@ -8,11 +8,14 @@ var dbAuction = {
     /**
      * List All Auction Items
      */
-    listAuctionItems: (data) => {
-        return dbconfig.collection_players.find().limit(10).exec();
+    listAuctionItems: (query) => {
+        return dbconfig.collection_auctionSystem.find(query).exec();
     },
     addAuctionItem: (data) => {
         return [];
+    },
+    loadAuctionItem: (id) => {
+        return dbconfig.collection_auctionSystem.findOne({_id: ObjectId(id)}).exec();
     },
     updateAuctionItem: (data) => {
         return [];
@@ -23,29 +26,20 @@ var dbAuction = {
         let proms = [];
         let updateData = {};
         if(data.direction == 'notAvailableItem'){
-            updateData.isActive = 0; // let auction item inactive
+            updateData.isExclusive = false; // let auction item inactive
         }else if(data.direction == 'exclusiveItem'){
-            updateData.isActive = 1; // let auction item active
+            updateData.isExclusive = true; // let auction item active
         }else if(data.direction == 'removeExclusiveAuction' || data.direction == 'removeNotAvailableAuction'){
             updateData.status = 0; // remove auction data
         }
 
         if(data.auctionItems && data.auctionItems.length > 0){
-            data.auctionItems.forEach(item=>{
-              let matchObj = {
-                  'platformObjId':data.platformObjId,
-                  '_id':item
-              }
-              let prom = [];
-               //dbconfig.collection_auctions.findOneAndUpdate(matchObj, updateData);
-              proms.push(prom);
-            })
-        };
-        return Promise.all([proms]).then(
-            data=>{
-                return data;
+            let matchObj = {
+                'platformObjId':ObjectId(data.platformId),
+                '_id':{ $in: data.auctionItems }
             }
-        )
+            return dbconfig.collection_auctionSystem.update(matchObj, updateData, {multi:true, new: true});
+        };
     },
     isQualify: (data) => {
         return [];
