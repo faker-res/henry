@@ -78,8 +78,8 @@ let auctionSystemSchema = new Schema({
     productEndTime: {type: Number},
 
     // publish - 0: 「组外」, 1: 「组内」  //只有「组内」的商品才能在前端显示
-    publish: {type: Boolean, default: false},
-    status: {type: Number, default: 1},
+    publish: {type: Boolean, default: false, index: true},
+    status: {type: Number, default: 1, index: true},
     createTime: {type: Date, default: Date.now}
 });
 
