@@ -36502,7 +36502,13 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                        {title: $translate('Type'), data:"rewardData.rewardType"},
+                        {
+                            title: $translate('Type'),
+                            data: 'rewardData.rewardType',
+                            render: function(data, type, row) {
+                                return $translate(data);
+                            }
+                        },
                         {title: $translate('Product Name'), data: "productName"},
                         {title: $translate('Sell From'), data: "seller"},
                         {title: $translate('Starting Price'), data: "startingPrice"},
@@ -36541,7 +36547,13 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                        {title: $translate('Type'), data:"rewardData.rewardType"},
+                        {
+                            title: $translate('Type'),
+                            data: 'rewardData.rewardType',
+                            render: function(data, type, row) {
+                                return $translate(data);
+                            }
+                        },
                         {title: $translate('Product Name'), data: "productName"},
                         {title: $translate('Sell From'), data: "seller"},
                         {title: $translate('Starting Price'), data: "startingPrice"},
