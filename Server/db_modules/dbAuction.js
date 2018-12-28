@@ -77,7 +77,6 @@ var dbAuction = {
 
         // to generate promoCodeTemplate for auction system
         function generatePromoCodeTemplate(rewardData, platformObjId, productName) {
-
             let allowedProviderList = [];
             if (rewardData.allowedProvider){
                 allowedProviderList.push(ObjectId(rewardData.allowedProvider));
