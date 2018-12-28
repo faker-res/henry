@@ -249,9 +249,6 @@ let idcIpModel = db_admin.model('idcIp', idcIpSchema, 'idcIp');
 let platformBlacklistIpConfigSchema = require('./../schema/platformBlacklistIpConfig');
 let platformBlacklistIpConfigModel = db_admin.model('platformBlacklistIpConfig', platformBlacklistIpConfigSchema, 'platformBlacklistIpConfig');
 
-let auctionSystemSchema = require('./../schema/auctionSystem');
-let auctionSystemModel = db_admin.model('auctionSystem', auctionSystemSchema, 'auctionSystem');
-
 let platformBlackWhiteListingSchema = require('./../schema/platformBlackWhiteListing');
 let platformBlackWhiteListingModel = db_admin.model('platformBlackWhiteListing', platformBlackWhiteListingSchema, 'platformBlackWhiteListing');
 
@@ -466,6 +463,9 @@ let actionLogModel = dbLogs2.model('actionLog', actionLogSchema, 'actionLog');
 
 let callBackToUserLogSchema = require('./../schema/logs2/callBackToUserLog');
 let callBackToUserLogModel = dbLogs2.model('callBackToUserLog', callBackToUserLogSchema, 'callBackToUserLog');
+
+let auctionSystemSchema = require('./../schema/auctionSystem');
+let auctionSystemModel = dbLogs2.model('auctionSystem', auctionSystemSchema, 'auctionSystem');
 
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
