@@ -12,7 +12,7 @@
     .col-md-6(ng-if="vm.selectedAuctionSystemTab=='createProduct'")
         div
           .inlineBlk
-              button.btn.btn-primary( ng-if="vm.numExcludeAuction==0", ng-click='vm.initCreateProduct=true;vm.initAuctionSystemCreateProduct();') {{"ADD" | translate}}
+              button.btn.btn-primary( ng-if="vm.numExcludeAuction==0", ng-click='vm.initCreateProduct=true;vm.auctionSystemEditStatus=false;vm.initAuctionSystemCreateProduct();') {{"ADD" | translate}}
           .inlineBlk
               button.btn.btn-primary( ng-if="vm.numExcludeAuction!=0", DISABLED) {{"ADD" | translate}}
           .inlineBlk
@@ -29,7 +29,7 @@
 
         div
           .inlineBlk
-              button.btn.btn-primary( ng-if="vm.numNotAvailableAuction==0", ng-click='vm.initCreateProduct=true;vm.initAuctionSystemCreateProduct();') {{"ADD" | translate}}
+              button.btn.btn-primary( ng-if="vm.numNotAvailableAuction==0", ng-click='vm.initCreateProduct=true;vm.auctionSystemEditStatus=false;vm.initAuctionSystemCreateProduct();') {{"ADD" | translate}}
           .inlineBlk
               button.btn.btn-primary( ng-if="vm.numNotAvailableAuction!=0", DISABLED) {{"ADD" | translate}}
           .inlineBlk
@@ -407,11 +407,13 @@
                     .inlineBlk
                         button.btn.btn-warning(ng-if="checkViewPermission('Platform','AuctionSystem','Create')" ng-click='vm.auctionSystemProductCancel()') {{"CANCEL" | translate}}
                     .inlineBlk
-                        button.btn.btn-primary(ng-hide="vm.auctionSystemEditStatus" ng-if="checkViewPermission('Platform','AuctionSystem','Create')" ng-click='vm.createAuctionProduct()') {{"Create Product" | translate}}
+                        button.btn.btn-primary(ng-if="checkViewPermission('Platform','AuctionSystem','Create') && !vm.auctionSystemEditStatus" ng-click='vm.createAuctionProduct()') {{"Create Product" | translate}}
+                        button.btn.btn-primary(ng-if="checkViewPermission('Platform','AuctionSystem','Create') && vm.auctionSystemEditStatus" ng-click='vm.updateAuctionProduct()') {{"Edit Product" | translate}}
                     .inlineBlk
                         span(style="font-weight:bold" ng-show="vm.auctionSystemCreateProductStatus === 'success' || vm.auctionSystemCreateProductStatus === 'success'") {{"SUCCESS" | translate}}
                         span(style="font-weight:bold" ng-show="vm.auctionSystemCreateProductStatus === 'fail' || vm.auctionSystemCreateProductStatus === 'fail'") {{"FAIL" | translate}}
-
+                        span(style="font-weight:bold" ng-show="vm.auctionSystemUpdateProductStatus === 'success' || vm.auctionSystemUpdateProductStatus === 'success'") {{"SUCCESS" | translate}}
+                        span(style="font-weight:bold" ng-show="vm.auctionSystemUpdateProductStatus === 'fail' || vm.auctionSystemUpdateProductStatus === 'fail'") {{"FAIL" | translate}}
                 // Tab - monitoringSystem
                 div.col-md-12(ng-if='vm.selectedAuctionSystemTab === "monitoringSystem" && checkViewPermission("Platform", "AuctionSystem", "monitoringSystem")')
                     .col-md-12(ng-if="vm.selectedAuctionSystemTab=='monitoringSystem'")
