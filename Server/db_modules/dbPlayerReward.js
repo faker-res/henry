@@ -8440,7 +8440,7 @@ let dbPlayerReward = {
                     }
                 }
 
-                if (Boolean(outputList.length)) {
+                if (Boolean(outputList.length) && isApply) {
                     return handleApplicationOutput(totalApplied, outputList);
                 }
 
@@ -8469,6 +8469,7 @@ let dbPlayerReward = {
                 roundNo: bConsumption.roundNo,
                 consumptionTime: bConsumption.createTime,
                 providerObjId: criteria.sourceProvider,
+                winResult: [bConsumption.hostResult, bConsumption.playerResult],
                 remark: criteria.remark
             };
 
@@ -8496,6 +8497,7 @@ let dbPlayerReward = {
             applyDetail.betType = betType;
             applyDetail.betAmount = betAmount;
             applyDetail.rewardAmount = betAmount * criteria.rewardAmount;
+            applyDetail.spendingTimes = criteria.spendingTimes;
             applyDetail.spendingAmount = applyDetail.rewardAmount * criteria.spendingTimes;
 
             let existedApplyIndex = outputList.findIndex((val) => {return val == String(bConsumption._id)});

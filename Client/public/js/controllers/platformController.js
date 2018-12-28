@@ -2085,7 +2085,7 @@ define(['js/app'], function (myApp) {
 
             function getConsumptionReturnPeriodTime(event, currentPeriod) {
                 if(currentPeriod === true) {
-                    return $scope.$socketPromise('getConsumptionReturnPeriodTime', {period: event.settlementPeriod}).then(res => {
+                    return $scope.$socketPromise('getConsumptionReturnCurrentPeriodTime', {period: event.settlementPeriod}).then(res => {
                         $scope.$evalAsync(() => {
                             event.settlementStartTime = vm.dateReformat(res.data.startTime);
                             event.settlementEndTime = vm.dateReformat(res.data.endTime);
@@ -2093,7 +2093,7 @@ define(['js/app'], function (myApp) {
                         })
                     })
                 } else {
-                    return $scope.$socketPromise('getConsumptionReturnCurrentPeriodTime', {period: event.settlementPeriod}).then(res => {
+                    return $scope.$socketPromise('getConsumptionReturnPeriodTime', {period: event.settlementPeriod}).then(res => {
                         $scope.$evalAsync(() => {
                             event.settlementStartTime = vm.dateReformat(res.data.startTime);
                             event.settlementEndTime = vm.dateReformat(res.data.endTime);
@@ -24275,8 +24275,12 @@ define(['js/app'], function (myApp) {
 
                         vm.openPromoCodeTemplateData.forEach(entry => {
                             if (entry) {
-                                if (entry.isProviderGroup) {
-                                    entry.allowedProviders = (entry.allowedProviders && entry.allowedProviders.length > 0)? entry.allowedProviders[0] :  '' ;
+                                if (entry.isProviderGroup && entry.allowedProviders && entry.allowedProviders.length > 0) {
+                                    if(typeof entry.allowedProviders == 'object'){
+                                        entry.allowedProviders = entry.allowedProviders[0];
+                                    }
+                                }else{
+                                    entry.allowedProviders = '';
                                 }
 
                                 if (entry.type == 1) {
@@ -28478,8 +28482,30 @@ define(['js/app'], function (myApp) {
 
                 vm.getAllPlayerLevels().done(
                     function (data) {
-                        if (vm.selectedPlatform.data.bonusSetting) {
-                            vm.bonusSetting = vm.selectedPlatform.data.bonusSetting;
+                        if (vm.selectedPlatform && vm.selectedPlatform.data && vm.selectedPlatform.data.bonusSetting) {
+                            let filterBonusSetting = [];
+
+                            Object.keys(vm.selectedPlatform.data.bonusSetting).forEach(key => {
+                                let setting = vm.selectedPlatform.data.bonusSetting[key];
+
+                                if (setting && setting.platform && vm.selectedPlatform.id && (setting.platform.toString() == vm.selectedPlatform.id.toString())) {
+                                    filterBonusSetting.push(setting);
+                                }
+                            });
+
+                            if (filterBonusSetting && filterBonusSetting.length > 0) {
+                                let tempSettingObj = {};
+
+                                filterBonusSetting.forEach((setting, key) => {
+                                    tempSettingObj[key] = {};
+                                    tempSettingObj[key] = setting;
+                                });
+
+                                vm.bonusSetting = tempSettingObj;
+                            } else {
+                                vm.bonusSetting = {};
+                            }
+
                         } else {
                             vm.bonusSetting = {};
                         }

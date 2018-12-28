@@ -1027,7 +1027,7 @@ var dbPlatform = {
                                             .populate({path: "qiDepartment", model: dbconfig.collection_department}).exec());
                                     }
                                 }
-                            )
+                            );
 
                             return Promise.all(platformProm).then(
                                 departmentData => {
@@ -1051,11 +1051,34 @@ var dbPlatform = {
                                     return platformList;
                                 }
                             );
-                        }else{
+                        } else {
                             return dbconfig.collection_platform.find().populate({
                                 path: "csDepartment",
                                 model: dbconfig.collection_department
-                            }).populate({path: "qiDepartment", model: dbconfig.collection_department}).exec();
+                            }).populate({
+                                path: "qiDepartment",
+                                model: dbconfig.collection_department
+                            }).populate({
+                                path: "gameProviders",
+                                model: dbconfig.collection_gameProvider
+                            }).exec().then(
+                                platformData => {
+                                    if (platformData && platformData.length > 0) {
+                                        platformData.forEach(platform => {
+                                            if (platform && platform.gameProviders.length > 0) {
+                                                let gameProviderIdList = [];
+                                                platform.gameProviders.map(provider => {
+                                                    gameProviderIdList.push(provider._id)
+                                                });
+
+                                                // only populate providers' ObjectId
+                                                platform.gameProviders = gameProviderIdList;
+                                            }
+                                        })
+                                    }
+                                    return platformData;
+                                }
+                            );
                         }
                     }
                 },

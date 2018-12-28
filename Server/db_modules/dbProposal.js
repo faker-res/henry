@@ -494,7 +494,6 @@ var proposal = {
                     }
 
                     if(proposalData.data && data[2] && (proposalTypeData.name == constProposalType.UPDATE_PLAYER_REAL_NAME || proposalTypeData.name == constProposalType.UPDATE_PARTNER_REAL_NAME)){
-                        proposalData.data.realNameBeforeEdit = data[2].realName;
                         proposalData.data.realNameAfterEdit = proposalData.data.realName;
 
                         if(proposalTypeData.name == constProposalType.UPDATE_PLAYER_REAL_NAME){
@@ -503,6 +502,8 @@ var proposal = {
                             proposalData.data.partnerId = data[2].partnerId;
                         }
                     }
+
+                    proposalData.data.realNameBeforeEdit = data[2] && data[2].realName ? data[2].realName : "";
 
                     return dbconfig.collection_proposal.findOne(queryObj).lean().then(
                         pendingProposal => {
@@ -3415,6 +3416,7 @@ var proposal = {
                     }
                 );
 
+                console.log("LH check proposal query ----1", searchQuery);
                 c = dbconfig.collection_proposalType.find(searchQuery).then(
                     proposalType => {
                         delete reqData.platformId;
@@ -3504,6 +3506,7 @@ var proposal = {
                 b = dbconfig.collection_proposal.find(reqData).sort(sortObj).skip(index).limit(count)
                     .populate({path: "type", model: dbconfig.collection_proposalType})
                     .populate({path: "process", model: dbconfig.collection_proposalProcess}).lean();
+                console.log("LH check proposal query ----2", reqData);
                 c = dbconfig.collection_proposal.aggregate([
                     {
                         $match: reqData
@@ -3574,6 +3577,7 @@ var proposal = {
                     totalSize = data[0];
                     resultArray = Object.assign([], data[1]);
                     summary = data[2];
+                    console.log("LH check proposal query ----3", summary);
 
                     if(resultArray && resultArray.length > 0 && isSuccess){
                         resultArray = resultArray.filter(r => !((r.type.name == "PlayerBonus" || r.type.name == "PartnerBonus" || r.type.name == "BulkExportPlayerData") && r.status == "Approved"));
