@@ -453,20 +453,16 @@ let PlayerServiceImplement = function () {
     //player login api handler
     this.login.expectsData = 'name: String, password: String, platformId: String';
     this.login.onRequest = function (wsFunc, conn, data) {
-        var isValidData = Boolean(data && data.name && data.password && data.platformId);
-        data.lastLoginIp = conn.upgradeReq.connection.remoteAddress || '';
-        var forwardedIp = (conn.upgradeReq.headers['x-forwarded-for'] + "").split(',');
-        if (forwardedIp.length > 0 && forwardedIp[0].length > 0) {
-            if(forwardedIp[0].trim() != "undefined"){
-                data.lastLoginIp = forwardedIp[0].trim();
-            }
-        }
-        var uaString = conn.upgradeReq.headers['user-agent'];
-        var ua = uaParser(uaString);
-        var md = new mobileDetect(uaString);
+        let isValidData = Boolean(data && data.name && data.password && data.platformId);
+        let uaString = conn.upgradeReq.headers['user-agent'];
+        let ua = uaParser(uaString);
+        let md = new mobileDetect(uaString);
         let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+
+        data.lastLoginIp = dbUtility.getIpAddress(conn);
+
         WebSocketUtil.responsePromise(conn, wsFunc, data, dbPlayerInfo.playerLogin, [data, ua, inputDevice, md], isValidData, true, true, true).then(
-            function (playerData) {
+            playerData => {
                 if (conn.noOfAttempt >= constSystemParam.NO_OF_LOGIN_ATTEMPT || playerData.platform.requireLogInCaptcha) {
                     if ((conn.captchaCode && (conn.captchaCode == data.captcha)) || data.captcha == 'testCaptcha') {
                         conn.isAuth = true;
@@ -521,7 +517,8 @@ let PlayerServiceImplement = function () {
                     data: playerData,
                     token: token,
                 }, data);
-            }, function (error) {
+            },
+            error => {
                 if (error != "INVALID_DATA") {
                     if (error.code && error.code == constServerCode.PLAYER_IS_FORBIDDEN) {
                         conn.noOfAttempt++;
