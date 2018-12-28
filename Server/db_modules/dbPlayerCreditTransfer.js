@@ -18,6 +18,8 @@ const dbConfig = require('./../modules/dbproperties');
 const dbLogger = require("./../modules/dbLogger");
 const errorUtils = require("./../modules/errorUtils");
 const ObjectId = mongoose.Types.ObjectId;
+const localization = require("../modules/localization");
+const translate = localization.localization.translate;
 
 let dbPlayerCreditTransfer = {
     // separate out api calls so it can be test easily
@@ -1093,7 +1095,7 @@ let dbPlayerCreditTransfer = {
                     if (providerPlayerObj.gameCredit < 1 || amount == 0 || providerPlayerObj.gameCredit < amount) {
                         if (bResolve) {
                             checkBResolve = true;
-                            return Promise.reject({message: "Insufficient amount to transfer out", insufficientAmount: true});
+                            return Promise.reject({message: translate("Insufficient amount to transfer out"), insufficientAmount: true});
                         }
                         else {
                             return Promise.resolve(
@@ -1900,7 +1902,7 @@ let dbPlayerCreditTransfer = {
                     if (providerPlayerObj.gameCredit < 1 || amount == 0 || providerPlayerObj.gameCredit < amount) {
                         if (bResolve) {
                             checkBResolve = true;
-                            return Promise.reject({message: "Insufficient amount to transfer out", insufficientAmount: true});
+                            return Promise.reject({message: translate("Insufficient amount to transfer out"), insufficientAmount: true});
                         }
                         else {
                             return Promise.resolve(

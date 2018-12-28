@@ -409,7 +409,6 @@ const dbPlayerPayment = {
                         + "foundation/payMinAndMax.do?"
                         + "platformId=" + playerData.platform.platformId + "&"
                         + "username=" + playerData.name + "&"
-                        + "ip=" + loginIp + "&"
                         + "clientType=" + clientType;
 
                     return rp(url);
@@ -421,8 +420,8 @@ const dbPlayerPayment = {
                     ret = JSON.parse(ret);
 
                     return {
-                        minDepositAmount: ret.min || 0,
-                        maxDepositAmount: ret.max || 0
+                        minDepositAmount: Number(ret.min) || 0,
+                        maxDepositAmount: Number(ret.max) || 0
                     }
                 }
             }

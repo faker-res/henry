@@ -6799,9 +6799,13 @@ let dbPartner = {
 
                     let rawCommission = calculateRawCommission(totalConsumption, commissionRates[groupRate.groupName].commissionRate);
 
+                    console.log("platformFeeRate",platformFeeRate);
+                    console.log("totalBonusAmount",totalBonusAmount);
                     let platformFee =  platformFeeRate * totalBonusAmount / 100;
                     // platformFee = platformFee >= 0 ? platformFee : 0;
                     totalPlatformFee += platformFee;
+                    console.log("platformFee",platformFee);
+                    console.log("totalPlatformFee",totalPlatformFee);
 
                     rawCommissions.push({
                         crewProfit: providerGroupConsumptionData[groupRate.groupName].bonusAmount,
@@ -6831,6 +6835,12 @@ let dbPartner = {
                 totalWithdrawalFee = totalWithdrawal * partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal / 100;
 
                 nettCommission = grossCommission - totalPlatformFee - totalTopUpFee - totalWithdrawalFee - totalRewardFee;
+                console.log("nettCommission",nettCommission);
+                console.log("grossCommission",grossCommission);
+                console.log("totalPlatformFee",totalPlatformFee);
+                console.log("totalTopUpFee",totalTopUpFee);
+                console.log("totalWithdrawalFee",totalWithdrawalFee);
+                console.log("totalRewardFee",totalRewardFee);
 
                 if (partner && partner.parent && Object.keys(partner.parent) && Object.keys(partner.parent).length > 0) {
                     parentPartnerCommissionDetail = {};

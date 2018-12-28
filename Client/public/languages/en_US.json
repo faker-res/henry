@@ -1255,6 +1255,10 @@
   "createProduct": "Create Product",
   "monitoringSystem": "Monitoring System",
   "Message_Content": "Message Content",
+  "openPromoCode": "Open Promo Code",
+  "promotion": "Promotion",
+  "realPrize": "Real Prize",
+  "rewardPointsChange": "Reward Points Change",
   "PARTNER_COMMISSION_SETTLEMENT_MODE":"Partner Commission Settlement Mode",
   "AUTO_SETTLEMENT": "Auto Settlement",
   "SMS_VERIFICATION": "SMS Verification",
@@ -1739,5 +1743,10 @@
   "ATTEMPT_CREATE_MONITOR": "Attempt Create Monitor",
   "PAYMENT_MONITOR_TOTAL": "Payment Monitor(Total)",
   "Admin_Locked": "Admin Locked",
-  "Followup_Content": "Follow Up Content"
+  "Followup_Content": "Follow Up Content",
+  "REWARD_APPLIED": "Reward applied in the period (including current reward)",
+  "MAX_REWARD": "Apply Max Reward Amount in interval",
+  "ORDER_NO_REWARD_AMOUNT": "Order No & Reward Amount",
+  "BET_AMOUNT": "Bet",
+  "ORIGINAL_REWARD_TOTAL": "This reward exceeds the limit, original reward total："
 }
