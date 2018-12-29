@@ -6265,15 +6265,9 @@ let dbPlayerReward = {
                 let eventInPeriodCount = eventInPeriodData.length;
                 let rewardAmountInPeriod = eventInPeriodData.reduce((a, b) => a + b.data.rewardAmount, 0);
 
-                console.log('eventQuery.$or', eventQuery.$or);
-                console.log('eventInPeriodData', eventInPeriodData);
-                console.log('eventInPeriodCount', eventInPeriodCount);
-                console.log('intervalTime', intervalTime);
-
                 // Check reward apply limit in period
                 if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval <= eventInPeriodCount) {
-                    console.log('eventData.param.countInRewardInterval', eventData.param.countInRewardInterval);
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
                         message: "Player has applied for max reward times in event period"
