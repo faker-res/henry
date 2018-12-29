@@ -804,6 +804,7 @@ var proposal = {
     updateTopupProposal: function (proposalId, status, requestId, orderStatus, remark, callbackData) {
         let proposalObj = null;
         let type = constPlayerTopUpType.ONLINE;
+        let updObj;
 
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
             path: 'type', model: dbconfig.collection_proposalType
@@ -929,7 +930,7 @@ var proposal = {
                     return propTypeProm.then(
                         propType => {
                             let updStatus = status || constProposalStatus.PREPENDING;
-                            let updObj = {
+                            updObj = {
                                 status: updStatus
                             };
 
@@ -966,32 +967,32 @@ var proposal = {
                             }
 
                             // Some extra data
-                            updObj.data = addDetailToProp(updObj.data, 'remark', callbackData.remark);
-                            updObj.data = addDetailToProp(updObj.data, 'merchantNo', callbackData.merchantNo);
-                            updObj.data = addDetailToProp(updObj.data, 'merchantName', callbackData.merchantTypeName);
-                            updObj.data = addDetailToProp(updObj.data, 'bankCardNo', callbackData.bankCardNo);
-                            updObj.data = addDetailToProp(updObj.data, 'bankCardType', callbackData.bankTypeId);
-                            updObj.data = addDetailToProp(updObj.data, 'bankTypeId', callbackData.bankTypeId);
-                            updObj.data = addDetailToProp(updObj.data, 'cardOwner', callbackData.cardOwner);
-                            updObj.data = addDetailToProp(updObj.data, 'depositTime', callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '');
-                            updObj.data = addDetailToProp(updObj.data, 'depositeTime', callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '');
-                            updObj.data = addDetailToProp(updObj.data, 'validTime', callbackData.validTime ? new Date(callbackData.validTime.replace('+', ' ')) : '');
-                            updObj.data = addDetailToProp(updObj.data, 'cityName', callbackData.cityName);
-                            updObj.data = addDetailToProp(updObj.data, 'provinceName', callbackData.provinceName);
-                            updObj.data = addDetailToProp(updObj.data, 'orderNo', callbackData.billNo);
-                            updObj.data = addDetailToProp(updObj.data, 'requestId', callbackData.requestId);
-                            updObj.data = addDetailToProp(updObj.data, 'realName', callbackData.realName);
+                            addDetailToProp(updObj.data, 'remark', callbackData.remark);
+                            addDetailToProp(updObj.data, 'merchantNo', callbackData.merchantNo);
+                            addDetailToProp(updObj.data, 'merchantName', callbackData.merchantTypeName);
+                            addDetailToProp(updObj.data, 'bankCardNo', callbackData.bankCardNo);
+                            addDetailToProp(updObj.data, 'bankCardType', callbackData.bankTypeId);
+                            addDetailToProp(updObj.data, 'bankTypeId', callbackData.bankTypeId);
+                            addDetailToProp(updObj.data, 'cardOwner', callbackData.cardOwner);
+                            addDetailToProp(updObj.data, 'depositTime', callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '');
+                            addDetailToProp(updObj.data, 'depositeTime', callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '');
+                            addDetailToProp(updObj.data, 'validTime', callbackData.validTime ? new Date(callbackData.validTime.replace('+', ' ')) : '');
+                            addDetailToProp(updObj.data, 'cityName', callbackData.cityName);
+                            addDetailToProp(updObj.data, 'provinceName', callbackData.provinceName);
+                            addDetailToProp(updObj.data, 'orderNo', callbackData.billNo);
+                            addDetailToProp(updObj.data, 'requestId', callbackData.requestId);
+                            addDetailToProp(updObj.data, 'realName', callbackData.realName);
 
-                            updObj.data = addDetailToProp(updObj.data, 'userAlipayName', callbackData.userAlipayName);
-                            updObj.data = addDetailToProp(updObj.data, 'alipayAccount', callbackData.alipayAccount);
-                            updObj.data = addDetailToProp(updObj.data, 'alipayName', callbackData.alipayName);
-                            updObj.data = addDetailToProp(updObj.data, 'alipayQRCode', callbackData.alipayQRCode);
-                            updObj.data = addDetailToProp(updObj.data, 'qrcodeAddress', callbackData.qrcodeAddress);
+                            addDetailToProp(updObj.data, 'userAlipayName', callbackData.userAlipayName);
+                            addDetailToProp(updObj.data, 'alipayAccount', callbackData.alipayAccount);
+                            addDetailToProp(updObj.data, 'alipayName', callbackData.alipayName);
+                            addDetailToProp(updObj.data, 'alipayQRCode', callbackData.alipayQRCode);
+                            addDetailToProp(updObj.data, 'qrcodeAddress', callbackData.qrcodeAddress);
 
-                            updObj.data = addDetailToProp(updObj.data, 'weChatAccount', callbackData.weChatAccount);
-                            updObj.data = addDetailToProp(updObj.data, 'weChatQRCode', callbackData.weChatQRCode);
-                            updObj.data = addDetailToProp(updObj.data, 'name', callbackData.name);
-                            updObj.data = addDetailToProp(updObj.data, 'nickname', callbackData.nickname);
+                            addDetailToProp(updObj.data, 'weChatAccount', callbackData.weChatAccount);
+                            addDetailToProp(updObj.data, 'weChatQRCode', callbackData.weChatQRCode);
+                            addDetailToProp(updObj.data, 'name', callbackData.name);
+                            addDetailToProp(updObj.data, 'nickname', callbackData.nickname);
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
@@ -1033,10 +1034,8 @@ var proposal = {
 
         function addDetailToProp (updObj, updField, data) {
             if (data !== undefined || data !== null) {
-                return updObj[updField] = data
+                updObj[updField] = data
             }
-
-            return updObj;
         }
     },
 
