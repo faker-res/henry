@@ -994,6 +994,12 @@ var proposal = {
                             addDetailToProp(updObj.data, 'name', callbackData.name);
                             addDetailToProp(updObj.data, 'nickname', callbackData.nickname);
 
+                            // Add playername if cancelled
+                            if (status === constProposalStatus.CANCEL) {
+                                addDetailToProp(updObj.data, 'cancelBy', "玩家：" + callbackData.username);
+                                addDetailToProp(updObj, 'settleTime', new Date());
+                            }
+
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
                                 updObj
