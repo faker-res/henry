@@ -965,38 +965,33 @@ var proposal = {
                                 updObj.data.isCommonTopUp = true;
                             }
 
-                            if (callbackData && callbackData.remark) {
-                                updObj.data.remark = callbackData.remark;
-                            }
-
-                            console.log('callbackData', callbackData);
-
                             // Some extra data
-                            updObj.data.merchantNo = callbackData.merchantNo;
-                            updObj.data.merchantName = callbackData.merchantTypeName;
-                            updObj.data.bankCardNo = callbackData.bankCardNo;
-                            updObj.data.bankCardType = callbackData.bankTypeId;
-                            updObj.data.bankTypeId = callbackData.bankTypeId;
-                            updObj.data.cardOwner = callbackData.cardOwner;
-                            updObj.data.depositTime = callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '';
-                            updObj.data.depositeTime = callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '';
-                            updObj.data.validTime = callbackData.validTime ? new Date(callbackData.validTime.replace('+', ' ')) : '';
-                            updObj.data.cityName = callbackData.cityName;
-                            updObj.data.provinceName = callbackData.provinceName;
-                            updObj.data.orderNo = callbackData.billNo;
-                            updObj.data.requestId = callbackData.requestId;
-                            updObj.data.realName = callbackData.realName;
+                            updObj.data = addDetailToProp(updObj.data, 'remark', callbackData.remark);
+                            updObj.data = addDetailToProp(updObj.data, 'merchantNo', callbackData.merchantNo);
+                            updObj.data = addDetailToProp(updObj.data, 'merchantName', callbackData.merchantTypeName);
+                            updObj.data = addDetailToProp(updObj.data, 'bankCardNo', callbackData.bankCardNo);
+                            updObj.data = addDetailToProp(updObj.data, 'bankCardType', callbackData.bankTypeId);
+                            updObj.data = addDetailToProp(updObj.data, 'bankTypeId', callbackData.bankTypeId);
+                            updObj.data = addDetailToProp(updObj.data, 'cardOwner', callbackData.cardOwner);
+                            updObj.data = addDetailToProp(updObj.data, 'depositTime', callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '');
+                            updObj.data = addDetailToProp(updObj.data, 'depositeTime', callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '');
+                            updObj.data = addDetailToProp(updObj.data, 'validTime', callbackData.validTime ? new Date(callbackData.validTime.replace('+', ' ')) : '');
+                            updObj.data = addDetailToProp(updObj.data, 'cityName', callbackData.cityName);
+                            updObj.data = addDetailToProp(updObj.data, 'provinceName', callbackData.provinceName);
+                            updObj.data = addDetailToProp(updObj.data, 'orderNo', callbackData.billNo);
+                            updObj.data = addDetailToProp(updObj.data, 'requestId', callbackData.requestId);
+                            updObj.data = addDetailToProp(updObj.data, 'realName', callbackData.realName);
 
-                            updObj.data.userAlipayName = callbackData.userAlipayName;
-                            updObj.data.alipayAccount = callbackData.alipayAccount;
-                            updObj.data.alipayName = callbackData.alipayName;
-                            updObj.data.alipayQRCode = callbackData.alipayQRCode;
-                            updObj.data.qrcodeAddress = callbackData.qrcodeAddress;
+                            updObj.data = addDetailToProp(updObj.data, 'userAlipayName', callbackData.userAlipayName);
+                            updObj.data = addDetailToProp(updObj.data, 'alipayAccount', callbackData.alipayAccount);
+                            updObj.data = addDetailToProp(updObj.data, 'alipayName', callbackData.alipayName);
+                            updObj.data = addDetailToProp(updObj.data, 'alipayQRCode', callbackData.alipayQRCode);
+                            updObj.data = addDetailToProp(updObj.data, 'qrcodeAddress', callbackData.qrcodeAddress);
 
-                            updObj.data.weChatAccount = callbackData.weChatAccount;
-                            updObj.data.weChatQRCode = callbackData.weChatQRCode;
-                            updObj.data.name = callbackData.name;
-                            updObj.data.nickname = callbackData.nickname;
+                            updObj.data = addDetailToProp(updObj.data, 'weChatAccount', callbackData.weChatAccount);
+                            updObj.data = addDetailToProp(updObj.data, 'weChatQRCode', callbackData.weChatQRCode);
+                            updObj.data = addDetailToProp(updObj.data, 'name', callbackData.name);
+                            updObj.data = addDetailToProp(updObj.data, 'nickname', callbackData.nickname);
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
@@ -1035,6 +1030,14 @@ var proposal = {
                 }
             }
         );
+
+        function addDetailToProp (updObj, updField, data) {
+            if (data !== undefined || data !== null) {
+                return updObj[updField] = data
+            }
+
+            return updObj;
+        }
     },
 
     updateBonusProposal: function (proposalId, status, bonusId, remark) {
