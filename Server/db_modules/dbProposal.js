@@ -1033,7 +1033,7 @@ var proposal = {
         );
 
         function addDetailToProp (updObj, updField, data) {
-            if (data !== undefined || data !== null) {
+            if (typeof data !== "undefined" && data !== null) {
                 updObj[updField] = data
             }
         }
