@@ -36399,6 +36399,7 @@ define(['js/app'], function (myApp) {
                 vm.listAuctionItem();
                 switch (choice) {
                     case 'createProduct':
+                        vm.auctionProductReward = {};
                         vm.numExcludeAuction = 0;
                         vm.numNotAvailableAuction = 0;
                         vm.initCreateProduct = false;
@@ -36422,9 +36423,9 @@ define(['js/app'], function (myApp) {
                                 }
                             ],
                         };
-                        vm.auctionProductReward = {
-                            rewardType: 'promoCode'
-                        };
+                        // vm.auctionProductReward = {
+                        //     rewardType: 'promoCode'
+                        // };
                         break;
                     case 'monitoringSystem':
                         vm.listAuctionMonitor();
@@ -36462,9 +36463,13 @@ define(['js/app'], function (myApp) {
                 switch (choice) {
                     case 'promoCode':
                         vm.selectedAuctionRewardType = 'promoCode';
+                        vm.auctionProductReward.isSharedWithXima = true;
+                        vm.auctionProductReward.isForbidWithdrawal = false;
                         break;
                     case 'openPromoCode':
                         vm.selectedAuctionRewardType = 'openPromoCode';
+                        vm.auctionProductReward.isSharedWithXima = true;
+                        vm.auctionProductReward.isForbidWithdrawal = false;
                         break;
                     case 'promotion':
                         vm.selectedAuctionRewardType = 'promotion';
