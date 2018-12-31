@@ -6272,7 +6272,7 @@ let dbPlayerReward = {
 
                 // Check reward apply limit in period
                 if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval <= eventInPeriodCount) {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
                         message: "Player has applied for max reward times in event period"

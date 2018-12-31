@@ -9178,7 +9178,10 @@ define(['js/app'], function (myApp) {
                                         {
                                             title: $translate('Topup Group'),
                                             data: "topUpGroupNames$",
-                                            sClass: "realNameCell wordWrap"
+                                            sClass: "realNameCell wordWrap",
+                                            render: function (data, type, row) {
+                                                return $translate(data);
+                                            }
                                         },
                                         {title: $translate('TIME'), data: "createTime"},
                                         {title: $translate("OPERATOR_ACTION"), data: "topUpGroupChanges"},
@@ -9203,8 +9206,8 @@ define(['js/app'], function (myApp) {
                                 $(".topupGroupRecordTablePage").show();
 
                                 utilService.createDatatableWithFooter('.topupGroupRecordTable', tableOptions, {});
-                                vm.playerTopUpGroupQuery.pageObj.init({maxCount: size}, false);
-                                $scope.safeApply()
+                                cvm.playerTopUpGroupQuery.pageObj.init({maxCount: size}, false);
+                                $scope.$evalAsync();
                             },
                             checkAdminNameValidity: function (adminName, form) {
                                 vm.checkAdminNameValidity(adminName, form);
@@ -36362,19 +36365,33 @@ define(['js/app'], function (myApp) {
                     vm.drawAuctionMonitorTable(data.data);
                 });
             }
-            vm.loadAuctionItem = function(type){
-                vm.selectedAuction = [];
-                let id = null;
-                if(type == 'excludeAuctionItem'){
-                    let excludeAuctionItem = vm.getAuctionCheckedItem('excludeAuctionItem[]');
-                    id = (excludeAuctionItem && excludeAuctionItem.length == 1) ? excludeAuctionItem[0] : [];
-                }
-                if(type == 'notAvailableAuctionItem'){
-                    let notAvailableItem = vm.getAuctionCheckedItem('notAvailableAuctionItem[]');
-                    id = (notAvailableItem && notAvailableItem.length == 1) ? notAvailableItem[0] : [];
-                }
-                vm.sendData = { _id: id };
+            vm.loadAuctionItem = function(id){
+                let sendData = { _id: id };
                 socketService.$socket($scope.AppSocket, 'loadAuctionItem', sendData, function (data) {
+                    $scope.$evalAsync(()=>{
+                        vm.initCreateProduct = true;
+                        vm.auctionSystemEditStatus = (data && data.data) ? true: false;
+                        vm.auctionSystemProduct = (data && data.data) ? data.data: {};
+                    });
+                });
+            }
+
+            vm.updateAuctionProduct = function(id){
+                let sendData = {
+                     _id: vm.auctionSystemProduct._id ,
+                     updateData: vm.auctionSystemProduct
+                 };
+                socketService.$socket($scope.AppSocket, 'updateAuctionProduct', sendData, function (data) {
+                    console.log("updateAuctionProduct", data);
+                    if (data.success) {
+                        $scope.$evalAsync(() => {
+                            vm.auctionSystemUpdateProductStatus = 'success';
+                        });
+                    } else {
+                        $scope.$evalAsync(() => {
+                            vm.auctionSystemUpdateProductStatus = 'fail';
+                        });
+                    }
                 });
             }
             vm.auctionSystemTabClicked = function (choice) {
@@ -36387,6 +36404,7 @@ define(['js/app'], function (myApp) {
                         vm.numNotAvailableAuction = 0;
                         vm.initCreateProduct = false;
                         vm.auctionSystemCreateProductStatus = '';
+                        vm.auctionSystemUpdateProductStatus = '';
                         vm.auctionSystemEditStatus = false;
                         vm.selectedAuctionRewardType = null;
                         vm.auctionSystemProduct = {
@@ -36507,14 +36525,13 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                        {
-                            title: $translate('Type'),
-                            data: 'rewardData.rewardType',
-                            render: function(data, type, row) {
-                                return $translate(data);
+                        {title: $translate('Type'), data:"rewardData.rewardType"},
+                        {title: $translate('Product Name'), data: "productName",
+                            render: function(data, type, row){
+                                let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
+                                return result;
                             }
                         },
-                        {title: $translate('Product Name'), data: "productName"},
                         {title: $translate('Sell From'), data: "seller"},
                         {title: $translate('Starting Price'), data: "startingPrice"},
                         {title: $translate('Direct Purchase Price'), data: "directPurchasePrice"},
@@ -36552,14 +36569,13 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                        {
-                            title: $translate('Type'),
-                            data: 'rewardData.rewardType',
-                            render: function(data, type, row) {
-                                return $translate(data);
+                        {title: $translate('Type'), data:"rewardData.rewardType"},
+                        {title: $translate('Product Name'), data: "productName",
+                            render: function(data, type, row){
+                                let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
+                                return result;
                             }
                         },
-                        {title: $translate('Product Name'), data: "productName"},
                         {title: $translate('Sell From'), data: "seller"},
                         {title: $translate('Starting Price'), data: "startingPrice"},
                         {title: $translate('Direct Purchase Price'), data: "directPurchasePrice"},

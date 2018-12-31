@@ -12,7 +12,7 @@ form(name='form_auctionSystem').row
     .col-md-6(ng-if="vm.selectedAuctionSystemTab=='createProduct'")
         div
           .inlineBlk
-              button.btn.btn-primary( ng-if="vm.numExcludeAuction==0", ng-click='vm.initCreateProduct=true;vm.initAuctionSystemCreateProduct();') {{"ADD" | translate}}
+              button.btn.btn-primary( ng-if="vm.numExcludeAuction==0", ng-click='vm.initCreateProduct=true;vm.auctionSystemEditStatus=false;vm.initAuctionSystemCreateProduct();') {{"ADD" | translate}}
           .inlineBlk
               button.btn.btn-primary( ng-if="vm.numExcludeAuction!=0", DISABLED) {{"ADD" | translate}}
           .inlineBlk
@@ -29,7 +29,7 @@ form(name='form_auctionSystem').row
 
         div
           .inlineBlk
-              button.btn.btn-primary( ng-if="vm.numNotAvailableAuction==0", ng-click='vm.initCreateProduct=true;vm.initAuctionSystemCreateProduct();') {{"ADD" | translate}}
+              button.btn.btn-primary( ng-if="vm.numNotAvailableAuction==0", ng-click='vm.initCreateProduct=true;vm.auctionSystemEditStatus=false;vm.initAuctionSystemCreateProduct();') {{"ADD" | translate}}
           .inlineBlk
               button.btn.btn-primary( ng-if="vm.numNotAvailableAuction!=0", DISABLED) {{"ADD" | translate}}
           .inlineBlk
@@ -63,11 +63,11 @@ form(name='form_auctionSystem').row
                 .full-width-input-block
                     label.control-label {{'CREDIBILITY' | translate}}
                     div(style="display:inline-block;")
-                        select.form-control(ng-model='vm.auctionSystemProduct.credibilityRemarks', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', multiple, bsp, data-actions-box='true')
+                        select.spicker.form-control(ng-model='vm.auctionSystemProduct.credibilityRemarks', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', multiple, static-bsp, bsp, data-actions-box='true')
                 .full-width-input-block
                     label.control-label {{'CREDIBILITY_FILTER' | translate}}
                     div(style="display:inline-block;")
-                        select.form-control(ng-model='vm.auctionSystemProduct.filterCredibilityRemarks', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', multiple, bsp, data-actions-box='true')
+                        select.spicker.form-control(ng-model='vm.auctionSystemProduct.filterCredibilityRemarks', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', multiple, static-bsp, bsp, data-actions-box='true')
                 .full-width-input-block
                     //上次登入（距今）
                     label {{"LAST_ACCESS_TILL_NOW" | translate}}
@@ -541,11 +541,13 @@ form(name='form_auctionSystem').row
                     .inlineBlk
                         button.btn.btn-warning(ng-if="checkViewPermission('Platform','AuctionSystem','Create')" ng-click='vm.auctionSystemProductCancel()') {{"CANCEL" | translate}}
                     .inlineBlk
-                        button.btn.btn-primary(ng-hide="vm.auctionSystemEditStatus" ng-if="checkViewPermission('Platform','AuctionSystem','Create')" ng-disabled='form_auctionSystem.$invalid || form_auctionSystem.$pristine' ng-click='vm.createAuctionProduct()') {{"Create Product" | translate}}
+                        button.btn.btn-primary(ng-if="checkViewPermission('Platform','AuctionSystem','Create') && !vm.auctionSystemEditStatus" ng-disabled='form_auctionSystem.$invalid || form_auctionSystem.$pristine' ng-click='vm.createAuctionProduct()') {{"Create Product" | translate}}
+                        button.btn.btn-primary(ng-if="checkViewPermission('Platform','AuctionSystem','Create') && vm.auctionSystemEditStatus" ng-click='vm.updateAuctionProduct()') {{"Edit Product" | translate}}
                     .inlineBlk
                         span(style="font-weight:bold" ng-show="vm.auctionSystemCreateProductStatus === 'success' || vm.auctionSystemCreateProductStatus === 'success'") {{"SUCCESS" | translate}}
                         span(style="font-weight:bold" ng-show="vm.auctionSystemCreateProductStatus === 'fail' || vm.auctionSystemCreateProductStatus === 'fail'") {{"FAIL" | translate}}
-
+                        span(style="font-weight:bold" ng-show="vm.auctionSystemUpdateProductStatus === 'success' || vm.auctionSystemUpdateProductStatus === 'success'") {{"SUCCESS" | translate}}
+                        span(style="font-weight:bold" ng-show="vm.auctionSystemUpdateProductStatus === 'fail' || vm.auctionSystemUpdateProductStatus === 'fail'") {{"FAIL" | translate}}
                 // Tab - monitoringSystem
                 div.col-md-12(ng-if='vm.selectedAuctionSystemTab === "monitoringSystem" && checkViewPermission("Platform", "AuctionSystem", "monitoringSystem")')
                     .col-md-12(ng-if="vm.selectedAuctionSystemTab=='monitoringSystem'")

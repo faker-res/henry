@@ -6794,7 +6794,7 @@ let dbPartner = {
                         }
                     }
 
-                    let platformFeeRate = Number(platformFeeRateData.rate);
+                    let platformFeeRate = platformFeeRateData.rate ? Number(platformFeeRateData.rate) : 0;
                     let isCustomPlatformFeeRate = platformFeeRateData.isCustom;
 
                     let rawCommission = calculateRawCommission(totalConsumption, commissionRates[groupRate.groupName].commissionRate);
