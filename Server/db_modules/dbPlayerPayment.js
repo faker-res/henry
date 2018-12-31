@@ -515,9 +515,9 @@ const dbPlayerPayment = {
                     });
                 }
 
-                if (topupRequest.userAgent) {
-                    topupRequest.userAgent = dbUtil.retrieveAgent(topupRequest.userAgent);
-                }
+                // if (topupRequest.userAgent) {
+                //     topupRequest.userAgent = dbUtil.retrieveAgent(topupRequest.userAgent);
+                // }
 
                 let proposalData = Object.assign({}, topupRequest);
                 proposalData.playerId = playerId;
