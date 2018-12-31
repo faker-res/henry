@@ -36372,6 +36372,10 @@ define(['js/app'], function (myApp) {
                         vm.initCreateProduct = true;
                         vm.auctionSystemEditStatus = (data && data.data) ? true: false;
                         vm.auctionSystemProduct = (data && data.data) ? data.data: {};
+                        vm.auctionProductReward = data && data.data.rewardData ? data.data.rewardData : {};
+                        if (vm.auctionProductReward && vm.auctionProductReward.rewardType){
+                            vm.selectedAuctionRewardType = vm.auctionProductReward.rewardType;
+                        }
                     });
                 });
             }
