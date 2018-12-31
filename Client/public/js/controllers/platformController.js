@@ -17883,33 +17883,7 @@ define(['js/app'], function (myApp) {
                         });
                         vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {};
                         vm.getPartnersByAdvanceQueryDebounced();
-
-                        var sendQuery = {
-                            query: {
-                                platform: vm.selectedPlatform.id,
-                                partner: {$in: partnersObjId}
-                            }
-                        };
-
-                        socketService.$socket($scope.AppSocket, 'getCustomizeCommissionConfigPartner', sendQuery, function (customCommissionConfig) {
-                            if (customCommissionConfig && customCommissionConfig.data && customCommissionConfig.data.length > 0) {
-                                vm.customCommissionConfig = customCommissionConfig.data;
-                                customCommissionConfig.data.forEach(customSetting => {
-                                    if (data && data.data && data.data.data) {
-                                        data.data.data.map(data => {
-                                            if(data._id
-                                                && customSetting.partner
-                                                && (data._id.toString() == customSetting.partner.toString())) {
-                                                data.isCustomizeSettingExist = true;
-                                            }
-                                        });
-                                    }
-                                });
-                            } else {
-                                vm.customCommissionConfig = [];
-                            }
-                            vm.drawPartnerTable(data.data);
-                        });
+                        vm.drawPartnerTable(data.data);
                     });
 
                     $('#partnerRefreshIcon').removeClass('fa-spin');
