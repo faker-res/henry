@@ -36334,8 +36334,8 @@ define(['js/app'], function (myApp) {
             };
 
             vm.listAuctionMonitor = function(){
-                let sendQuery = { publish : false };
-                socketService.$socket($scope.AppSocket, 'listAuctionItems', sendQuery, function (data) {
+                let sendQuery = { publish : true};
+                socketService.$socket($scope.AppSocket, 'listAuctionMonitor', sendQuery, function (data) {
                     vm.drawAuctionMonitorTable(data.data);
                 });
             }
@@ -36587,22 +36587,22 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                        {
-                            title: $translate('Type'),
-                            render: function(data, type, row) {
-                                let result = '';
+                        {title: $translate('Type'), data:"rewardData.rewardType"},
+                        {title: $translate('Product Name'), data: "productName",
+                            render: function(data, type, row){
+                                let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
                                 return result;
                             }
                         },
-                        {title: $translate('Product Name'), data: "name"},
-                        {
-                            title: $translate('Sell From'),
-                            render: function(data, type, row) {
-                                let result = '';
-                                return result;
-                            }
-                        },
-                        {title: $translate('Starting Price'), data: "startPrice"}
+                        {title: $translate('Sell From'), data: "seller"},
+                        {title: $translate('Starting Price'), data: "startingPrice"},
+                        {title: $translate('Direct Purchase Price'), data: "directPurchasePrice"},
+                        {title: $translate('Exclusive'), data: "isExclusive"},
+                        {title: $translate('Current Bid'), data: "currentBid"},
+                        {title: $translate('Bid Times'), data: "bidTimes"},
+                        {title: $translate('Time Left'), data: "timeLeft"},
+                        {title: $translate('Deal at'), data: "dealAt"},
+                        {title: $translate('Leading Bidder'), data: "leadingBidder"}
                     ],
                     "paging": false,
                     fnInitComplete: function(settings){

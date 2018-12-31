@@ -549,11 +549,11 @@ form(name='form_auctionSystem').row
                         span(style="font-weight:bold" ng-show="vm.auctionSystemUpdateProductStatus === 'success' || vm.auctionSystemUpdateProductStatus === 'success'") {{"SUCCESS" | translate}}
                         span(style="font-weight:bold" ng-show="vm.auctionSystemUpdateProductStatus === 'fail' || vm.auctionSystemUpdateProductStatus === 'fail'") {{"FAIL" | translate}}
                 // Tab - monitoringSystem
-                div.col-md-12(ng-if='vm.selectedAuctionSystemTab === "monitoringSystem" && checkViewPermission("Platform", "AuctionSystem", "monitoringSystem")')
-                    .col-md-12(ng-if="vm.selectedAuctionSystemTab=='monitoringSystem'")
-                        .panel.panel-primary
-                            .panel-heading.panel-heading-sm
-                                label {{"Monitoring System" | translate}}
-                            .panel-body
-                                table#auctionMonitorTable.display.table-condensed(style="min-width:100%;")
-                                #auctionMonitorTablePage
+    div.col-md-12(ng-if='vm.selectedAuctionSystemTab === "monitoringSystem" && checkViewPermission("Platform", "AuctionSystem", "monitoringSystem")')
+        .col-md-12(ng-if="vm.selectedAuctionSystemTab=='monitoringSystem'")
+            .panel.panel-primary
+                .panel-heading.panel-heading-sm
+                    label {{"Monitoring System" | translate}}
+                .panel-body
+                    table#auctionMonitorTable.display.table-condensed(style="min-width:100%;")
+                    #auctionMonitorTablePage
