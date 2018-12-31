@@ -573,8 +573,6 @@ const dbPlayerPayment = {
                     userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                 };
 
-                console.log('topupRequest.userAgent', topupRequest.userAgent);
-
                 newProposal.inputDevice = dbUtil.getInputDevice(topupRequest.userAgent, false);
                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_COMMON_TOP_UP, newProposal);
             }
