@@ -63,11 +63,11 @@
                 .full-width-input-block
                     label.control-label {{'CREDIBILITY' | translate}}
                     div(style="display:inline-block;")
-                        select.form-control(ng-model='vm.auctionSystemProduct.credibilityRemarks', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', multiple, bsp, data-actions-box='true')
+                        select.spicker.form-control(ng-model='vm.auctionSystemProduct.credibilityRemarks', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', multiple, static-bsp, bsp, data-actions-box='true')
                 .full-width-input-block
                     label.control-label {{'CREDIBILITY_FILTER' | translate}}
                     div(style="display:inline-block;")
-                        select.form-control(ng-model='vm.auctionSystemProduct.filterCredibilityRemarks', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', multiple, bsp, data-actions-box='true')
+                        select.spicker.form-control(ng-model='vm.auctionSystemProduct.filterCredibilityRemarks', ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', multiple, static-bsp, bsp, data-actions-box='true')
                 .full-width-input-block
                     //上次登入（距今）
                     label {{"LAST_ACCESS_TILL_NOW" | translate}}

@@ -36367,9 +36367,9 @@ define(['js/app'], function (myApp) {
             }
             vm.loadAuctionItem = function(id){
                 let sendData = { _id: id };
-                vm.initCreateProduct = true;
                 socketService.$socket($scope.AppSocket, 'loadAuctionItem', sendData, function (data) {
                     $scope.$evalAsync(()=>{
+                        vm.initCreateProduct = true;
                         vm.auctionSystemEditStatus = (data && data.data) ? true: false;
                         vm.auctionSystemProduct = (data && data.data) ? data.data: {};
                     });
