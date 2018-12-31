@@ -5027,31 +5027,7 @@ define(['js/app'], function (myApp) {
                         });
                         vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {};
                         vm.getPartnersByAdvanceQueryDebounced();
-
-                        var sendQuery = {
-                            query: {
-                                platform: vm.selectedPlatform.id,
-                                partner: {$in: partnersObjId}
-                            }
-                        };
-
-                        socketService.$socket($scope.AppSocket, 'getCustomizeCommissionConfigPartner', sendQuery, function (customCommissionConfig) {
-                            console.log('customCommissionConfig by getPlatformPartnersData', customCommissionConfig);
-                            if (customCommissionConfig && customCommissionConfig.data && customCommissionConfig.data.length > 0) {
-                                customCommissionConfig.data.forEach(customSetting => {
-                                    if (data && data.data && data.data.data) {
-                                        data.data.data.map(data => {
-                                            if(data._id
-                                                && customSetting.partner
-                                                && (data._id.toString() == customSetting.partner.toString())) {
-                                                data.isCustomizeSettingExist = true;
-                                            }
-                                        });
-                                    }
-                                });
-                            }
-                            vm.drawPartnerTable(data.data);
-                        });
+                        vm.drawPartnerTable(data.data);
                     });
 
                     $('#partnerRefreshIcon').removeClass('fa-spin');
@@ -5089,44 +5065,7 @@ define(['js/app'], function (myApp) {
                         // setPartnerTableData(reply.data.data);
                         // vm.partners = reply.data.data;
                         if (reply && reply.data && reply.data.data && reply.data.data.length) {
-                            let partnersObjId = [];
-
-                            for (let i = 0, len = reply.data.data.length; i < len; i++) {
-                                let partner = reply.data.data[i];
-
-                                if (partner && partner._id) {
-                                    partnersObjId.push(partner._id);
-                                }
-                            }
-
-                            if (partnersObjId && partnersObjId.length > 0) {
-                                let sendData = {
-                                    query: {
-                                        platform: vm.selectedPlatform.id,
-                                        partner: {$in: partnersObjId}
-                                    }
-                                };
-
-                                socketService.$socket($scope.AppSocket, 'getCustomizeCommissionConfigPartner', sendData, function (customCommissionConfig) {
-                                    console.log('customCommissionConfig by getPartnersByAdvanceQueryDebounced', customCommissionConfig);
-                                    if (customCommissionConfig && customCommissionConfig.data && customCommissionConfig.data.length > 0) {
-                                        customCommissionConfig.data.forEach(customSetting => {
-                                            if (reply && reply.data && reply.data.data) {
-                                                reply.data.data.map(data => {
-                                                    if(data._id
-                                                        && customSetting.partner
-                                                        && (data._id.toString() == customSetting.partner.toString())) {
-                                                        data.isCustomizeSettingExist = true;
-                                                    }
-                                                });
-                                            }
-                                        });
-                                    }
-                                    vm.drawPartnerTable(reply.data);
-                                });
-                            } else {
-                                vm.drawPartnerTable(reply.data);
-                            }
+                            vm.drawPartnerTable(reply.data);
                         } else {
                             setPartnerTableData([])
                         }

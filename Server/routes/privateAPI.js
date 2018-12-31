@@ -11,7 +11,6 @@ router.get('/notifyPayment', (req, res, next) => {
 });
 
 router.post('/notifyPayment', function(req, res, next) {
-    console.log(`notifyPayment ${req.method} ${req.url}`);
     // LOG
     let inputData = [];
 

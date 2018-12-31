@@ -7916,7 +7916,10 @@ define(['js/app'], function (myApp) {
                                     {
                                         title: $translate('Topup Group'),
                                         data: "topUpGroupNames$",
-                                        sClass: "realNameCell wordWrap"
+                                        sClass: "realNameCell wordWrap",
+                                        render: function (data, type, row) {
+                                            return $translate(data);
+                                        }
                                     },
                                     {title: $translate('TIME'), data: "createTime"},
                                     {title: $translate("OPERATOR_ACTION"), data: "topUpGroupChanges"},
@@ -7941,7 +7944,8 @@ define(['js/app'], function (myApp) {
                             $(".topupGroupRecordTablePage").show();
 
                             utilService.createDatatableWithFooter('.topupGroupRecordTable', tableOptions, {});
-                            vm.playerTopUpGroupQuery.pageObj.init({maxCount: size}, false);
+                            cvm.playerTopUpGroupQuery.pageObj.init({maxCount: size}, false);
+                            $scope.$evalAsync();
                         },
                         checkAdminNameValidity: function (adminName, form) {
                             vm.checkAdminNameValidity(adminName, form);
