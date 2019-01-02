@@ -7540,7 +7540,7 @@ define(['js/app'], function (myApp) {
                         quickPayGroup: vm.selectedSinglePlayer.quickPayGroup,
                         trustLevel: vm.selectedSinglePlayer.trustLevel,
                         photoUrl: vm.selectedSinglePlayer.photoUrl,
-                        playerLevel: vm.selectedSinglePlayer.playerLevel._id,
+                        playerLevel: vm.selectedSinglePlayer.playerLevel ? vm.selectedSinglePlayer.playerLevel._id : null,
                         referral: vm.selectedSinglePlayer.referral,
                         smsSetting: vm.selectedSinglePlayer.smsSetting,
                         gender: vm.selectedSinglePlayer.gender,
