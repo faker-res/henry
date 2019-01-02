@@ -1017,14 +1017,33 @@ var dbPlatform = {
                         //if root department, show all the platforms
                         //else only show department platform
                         let rootDepartIndex = data.departments.findIndex(d => !d.parent || (d.parent && (d.parent == "" || d.parent == null)));
-                        if(rootDepartIndex == -1){
+                        if (rootDepartIndex == -1) {
                             let platformProm = [];
                             data.departments.forEach(
                                 department => {
-                                    if(department && department.platforms && department.platforms.length > 0){
+                                    if (department && department.platforms && department.platforms.length > 0) {
                                         platformProm.push(dbconfig.collection_platform.find({_id: {$in: department.platforms}})
                                             .populate({path: "csDepartment", model: dbconfig.collection_department})
-                                            .populate({path: "qiDepartment", model: dbconfig.collection_department}).exec());
+                                            .populate({path: "qiDepartment", model: dbconfig.collection_department})
+                                            .populate({path: "gameProviders", model: dbconfig.collection_gameProvider}).exec().then(
+                                                platformData => {
+                                                    if (platformData && platformData.length > 0) {
+                                                        platformData.forEach(platform => {
+                                                            if (platform && platform.gameProviders.length > 0) {
+                                                                let gameProviderIdList = [];
+                                                                platform.gameProviders.map(provider => {
+                                                                    gameProviderIdList.push(provider._id)
+                                                                });
+
+                                                                // only populate providers' ObjectId
+                                                                platform.gameProviders = gameProviderIdList;
+                                                            }
+                                                        })
+                                                    }
+                                                    return platformData;
+                                                }
+                                            )
+                                        );
                                     }
                                 }
                             );

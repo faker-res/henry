@@ -903,6 +903,7 @@ var proposal = {
                     let propTypeProm = Promise.resolve();
                     let propTypeName = constProposalType.PLAYER_COMMON_TOP_UP;
                     let isCommonTopUp = false;
+                    let merchantProm = Promise.resolve(false);
 
                     if (type === constPlayerTopUpType.COMMON && proposalObj.data.platformId && callbackData.topUpType) {
                         switch (Number(callbackData.topUpType)) {
@@ -911,6 +912,13 @@ var proposal = {
                                 break;
                             case 2:
                                 propTypeName = constProposalType.PLAYER_TOP_UP;
+
+                                if (callbackData.merchantNo && proposalObj.data.platform) {
+                                    merchantProm = dbconfig.collection_platformMerchantList.findOne({
+                                        platformId: proposalObj.data.platform,
+                                        merchantNo: callbackData.merchantNo
+                                    }, 'customizeRate').lean();
+                                };
                                 break;
                             case 3:
                                 propTypeName = constProposalType.PLAYER_ALIPAY_TOP_UP;
@@ -927,8 +935,8 @@ var proposal = {
                         isCommonTopUp = true;
                     }
 
-                    return propTypeProm.then(
-                        propType => {
+                    return Promise.all([propTypeProm, merchantProm]).then(
+                        ([propType, merchantRate]) => {
                             let updStatus = status || constProposalStatus.PREPENDING;
                             updObj = {
                                 status: updStatus
@@ -1000,6 +1008,16 @@ var proposal = {
                                 addDetailToProp(updObj, 'settleTime', new Date());
                             }
 
+                            // Add merchant rate and actualReceivedAmount
+                            addDetailToProp(updObj.data, 'rate', merchantRate ? merchantRate : 0);
+                            addDetailToProp(
+                                updObj.data,
+                                'actualAmountReceived',
+                                merchantRate ?
+                                    (Number(proposalObj.data.amount) * Number(merchantRate)).toFixed(2)
+                                    : proposalObj.data.amount
+                            );
+
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
                                 updObj
@@ -1009,13 +1027,20 @@ var proposal = {
                 }
             }
         ).then(
-            data => {
-                return {
+            propData => {
+                let retObj = {
                     proposalId: proposalId,
                     orderStatus: orderStatus,
                     depositId: requestId,
-                    type: type
+                    type: type,
                 };
+
+                if (propData) {
+                    retObj.rate = propData.data.rate;
+                    retObj.actualAmountReceived = propData.data.actualAmountReceived;
+                }
+
+                return retObj;
             },
             error => {
                 errorUtils.reportError(error);

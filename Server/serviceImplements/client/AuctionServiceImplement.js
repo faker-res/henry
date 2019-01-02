@@ -24,10 +24,8 @@ var AuctionServiceImplement = function(){
 
     this.isQualify.expectsData = 'playerId: String';
     this.isQualify.onRequest = function(wsFunc, conn, data){
-        var isValidData = Boolean(conn.playerId);
-        WebSocketUtil.performAction(
-            conn, wsFunc, data, dbAuction.isQualify, [data], isValidData
-        );
+        var isValidData = Boolean(conn.playerObjId);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbAuction.isQualify, [conn.playerObjId], isValidData);
     };
 
     // isQualify

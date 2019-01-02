@@ -185,15 +185,6 @@ var dbPlayerConsumptionRecord = {
             },
             isDuplicate: {$ne: true}
         };
-        if(showSumOnly){
-            //function for sync-cpms
-            matchObj = {
-                createTime: {
-                    $gte: startTime,
-                    $lt: endTime
-                }
-            };
-        }
         if (providerObjId) {
             matchObj.providerId = providerObjId;
         }
@@ -2481,7 +2472,7 @@ function createBaccaratConsumption (providerObjId, providerName, consumptionReco
             baccaratResult = readBYBaccaratResult(consumptionRecord.result);
         }
 
-        if (baccaratResult && baccaratResult.host && baccaratResult.player) {
+        if (baccaratResult && baccaratResult.hasOwnProperty("host") && baccaratResult.hasOwnProperty("player")) {
             let saveData = {
                 platform: consumptionRecord.platformId,
                 player: consumptionRecord.playerId,
@@ -2489,8 +2480,8 @@ function createBaccaratConsumption (providerObjId, providerName, consumptionReco
                 bonusAmount: consumptionRecord.bonusAmount || 0,
                 provider: providerObjId || consumptionRecord.providerId ,
                 providerName: providerName || "",
-                hostResult: baccaratResult.host,
-                playerResult: baccaratResult.player,
+                hostResult: baccaratResult.host || 0,
+                playerResult: baccaratResult.player || 0,
                 betDetails: consumptionRecord.betDetails || [],
                 bUsed: false,
                 consumption: consumptionRecord._id

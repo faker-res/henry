@@ -5,51 +5,51 @@ let auctionSystemSchema = new Schema({
 
     /** player section **/
     platformObjId: {type: Schema.ObjectId, ref: 'platform', required: true, index: true},
-    playerType: {type: String},
-    playerLevel: {type: String},
+    playerType: {type: String, index: true},
+    playerLevel: {type: Schema.ObjectId, ref: 'playerLevel', index: true},
     // player credibility remarks
-    credibilityRemarks: [{type: String}],
-    filterCredibilityRemarks: [{type: String}],
+    credibilityRemarks: [{type: Schema.ObjectId, ref: 'playerCredibilityRemark', index: true}],
+    filterCredibilityRemarks: [{type: Schema.ObjectId, ref: 'playerCredibilityRemark', index: true}],
     // player last access time
-    lastAccessOperator: {type: String},
-    lastAccessFormal: {type: Number},
-    lastAccessLatter: {type: Number},
+    lastAccessOperator: {type: String, index: true},
+    lastAccessFormal: {type: Number, index: true},
+    lastAccessLatter: {type: Number, index: true},
     // player feedback
-    filterFeedback: {type: Number},
-    filterFeedbackTopic: [{type: String}],
+    filterFeedback: {type: Number, index: true},
+    filterFeedbackTopic: [{type: String, index: true}],
     // player deposit count
-    depositCountOperator: {type: String},
-    depositCountFormal: {type: Number},
-    depositCountLatter: {type: Number},
+    depositCountOperator: {type: String, index: true},
+    depositCountFormal: {type: Number, index: true},
+    depositCountLatter: {type: Number, index: true},
     // player value score
-    playerValueOperator: {type: String},
-    playerValueFormal: {type: Number},
-    playerValueLatter: {type: Number},
+    playerValueOperator: {type: String, index: true},
+    playerValueFormal: {type: Number, index: true},
+    playerValueLatter: {type: Number, index: true},
     // player consumption count
-    consumptionTimesOperator: {type: String},
-    consumptionTimesFormal: {type: Number},
-    consumptionTimesLatter: {type: Number},
+    consumptionTimesOperator: {type: String, index: true},
+    consumptionTimesFormal: {type: Number, index: true},
+    consumptionTimesLatter: {type: Number, index: true},
     // player profit amount
-    bonusAmountOperator: {type: String},
-    bonusAmountFormal: {type: Number},
-    bonusAmountLatter: {type: Number},
+    bonusAmountOperator: {type: String, index: true},
+    bonusAmountFormal: {type: Number, index: true},
+    bonusAmountLatter: {type: Number, index: true},
     // player withdrawal count
-    withdrawTimesOperator: {type: String},
-    withdrawTimesFormal: {type: Number},
-    withdrawTimesLatter: {type: Number},
+    withdrawTimesOperator: {type: String, index: true},
+    withdrawTimesFormal: {type: Number, index: true},
+    withdrawTimesLatter: {type: Number, index: true},
     // player top up sum
-    topUpSumOperator: {type: String},
-    topUpSumFormal: {type: Number},
-    topUpSumLatter: {type: Number},
+    topUpSumOperator: {type: String, index: true},
+    topUpSumFormal: {type: Number, index: true},
+    topUpSumLatter: {type: Number, index: true},
     // game provider
-    gameProviderId: [{type: String}],
+    gameProviderId: [{type: Schema.ObjectId, ref: 'gameProvider', index: true}],
     // player registration time
-    registerStartTime: {type: Date, required: true},
-    registerEndTime: {type: Date, required: true},
+    registerStartTime: {type: Date, required: true, index: true},
+    registerEndTime: {type: Date, required: true, index: true},
     // player department
-    departments: [{type: String}],
-    roles: [{type: String}],
-    admins: [{type: String}],
+    departments: [{type: Schema.ObjectId, ref: 'department', required: true, index: true}],
+    roles: [{type: Schema.ObjectId, ref: 'role', required: true, index: true}],
+    admins: [{type: Schema.ObjectId, ref: 'adminInfo', required: true, index: true}],
 
     /** reward section **/
     rewardData: {type: JSON, default: {}},
