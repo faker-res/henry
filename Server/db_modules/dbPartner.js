@@ -9062,7 +9062,6 @@ let dbPartner = {
     },
 
     findPartnerCommissionLog: (query, isOne) => {
-console.log('findPartnerCommissionLog query JY:', query);
         let request = dbconfig.collection_partnerCommissionLog.find(query);
         if (isOne) {
             request = request.limit(1);
@@ -9071,7 +9070,6 @@ console.log('findPartnerCommissionLog query JY:', query);
 
         return request.then(
             partnerCommissionLogs => {
-console.log('partnerCommissionLogs JY:', partnerCommissionLogs);
                 let proms = [];
                 partnerCommissionLogs.map(partnerCommissionLog => {
                     let prom = Promise.resolve(partnerCommissionLog);
@@ -9090,7 +9088,6 @@ console.log('partnerCommissionLogs JY:', partnerCommissionLogs);
             }
         ).then(
             partnerCommissionLogs => {
-console.log('partnerCommissionLogs1 JY:', partnerCommissionLogs);
                 if (isOne) {
                     return partnerCommissionLogs[0];
                 }
