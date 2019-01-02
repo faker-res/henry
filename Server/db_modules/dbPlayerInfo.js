@@ -5557,8 +5557,6 @@ let dbPlayerInfo = {
         let bUpdateIp = false;
         let geoInfo = {};
 
-        console.log('RT - playerData', playerData);
-
         return dbconfig.collection_platform.findOne({platformId: playerData.platformId}).then(
             platformData => {
                 if (platformData) {
@@ -5581,8 +5579,6 @@ let dbPlayerInfo = {
                         ]
                     };
 
-                    console.log('RT - playerQuery', playerQuery);
-
                     if (playerData.name && playerData.name[0] === "f") {
                         playerQuery.$or.push({
                             name: playerData.name,
@@ -5602,9 +5598,12 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                console.log('RT - data', data);
+                console.log('RT - data');
                 if (data) {
                     playerObj = data;
+
+                    console.log('RT - playerObj', playerObj);
+
                     if (platformObj.onlyNewCanLogin && !playerObj.isNewSystem) {
                         return Promise.reject({
                             name: "DataError",
@@ -5613,6 +5612,9 @@ let dbPlayerInfo = {
                         });
                     }
                     db_password = String(data.password); // hashedPassword from db
+
+                    console.log('RT - dbUtility.isMd5(db_password)', dbUtility.isMd5(db_password));
+
                     if (dbUtility.isMd5(db_password)) {
                         if (md5(playerData.password) == db_password) {
                             return Promise.resolve(true);
@@ -5637,6 +5639,7 @@ let dbPlayerInfo = {
                     }
                 }
                 else {
+                    console.log('playerLogin - error 0');
                     return Promise.reject({
                         name: "DataError",
                         message: "Cannot find player",
@@ -5646,6 +5649,7 @@ let dbPlayerInfo = {
             }
         ).then(
             isMatch => {
+                console.log('RT - isMatch', isMatch);
                 if (!isMatch) {
                     return Promise.reject({
                         name: "DataError",
@@ -5814,8 +5818,12 @@ let dbPlayerInfo = {
             res => {
                 res.name = res.name.replace(platformPrefix, "");
                 retObj = res;
-                retObj.userCurrentPoint = retObj.rewardPointsObjId.points ? retObj.rewardPointsObjId.points : 0;
-                retObj.rewardPointsObjId = retObj.rewardPointsObjId._id;
+
+                if (retObj.rewardPointsObjId) {
+                    retObj.userCurrentPoint = retObj.rewardPointsObjId.points ? retObj.rewardPointsObjId.points : 0;
+                    retObj.rewardPointsObjId = retObj.rewardPointsObjId._id;
+                }
+
                 let a = retObj.bankAccountProvince ?
                     pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
                 let b = retObj.bankAccountCity ?
