@@ -458,6 +458,14 @@ const dbPlayerPayment = {
                 if (playerdata) {
                     player = playerdata;
 
+                    if (player && !player.permission || !player.permission.allTopUp) {
+                        return Promise.reject({
+                            status: constServerCode.PLAYER_NO_PERMISSION,
+                            name: "DataError",
+                            errorMessage: "Player does not have common topup permission"
+                        });
+                    }
+
                     if (player && player._id) {
                         if (!topupRequest.topUpReturnCode) {
                             return Promise.resolve();
@@ -515,9 +523,9 @@ const dbPlayerPayment = {
                     });
                 }
 
-                if (topupRequest.userAgent) {
-                    topupRequest.userAgent = dbUtil.retrieveAgent(topupRequest.userAgent);
-                }
+                // if (topupRequest.userAgent) {
+                //     topupRequest.userAgent = dbUtil.retrieveAgent(topupRequest.userAgent);
+                // }
 
                 let proposalData = Object.assign({}, topupRequest);
                 proposalData.playerId = playerId;
@@ -572,6 +580,9 @@ const dbPlayerPayment = {
                     //createTime: createTime ? new Date(createTime) : new Date(),
                     userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                 };
+
+                console.log('topupRequest.userAgent', topupRequest.userAgent);
+
                 newProposal.inputDevice = dbUtil.getInputDevice(topupRequest.userAgent, false);
                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_COMMON_TOP_UP, newProposal);
             }

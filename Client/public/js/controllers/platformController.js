@@ -17883,33 +17883,7 @@ define(['js/app'], function (myApp) {
                         });
                         vm.advancedPartnerQueryObj = vm.advancedPartnerQueryObj || {};
                         vm.getPartnersByAdvanceQueryDebounced();
-
-                        var sendQuery = {
-                            query: {
-                                platform: vm.selectedPlatform.id,
-                                partner: {$in: partnersObjId}
-                            }
-                        };
-
-                        socketService.$socket($scope.AppSocket, 'getCustomizeCommissionConfigPartner', sendQuery, function (customCommissionConfig) {
-                            if (customCommissionConfig && customCommissionConfig.data && customCommissionConfig.data.length > 0) {
-                                vm.customCommissionConfig = customCommissionConfig.data;
-                                customCommissionConfig.data.forEach(customSetting => {
-                                    if (data && data.data && data.data.data) {
-                                        data.data.data.map(data => {
-                                            if(data._id
-                                                && customSetting.partner
-                                                && (data._id.toString() == customSetting.partner.toString())) {
-                                                data.isCustomizeSettingExist = true;
-                                            }
-                                        });
-                                    }
-                                });
-                            } else {
-                                vm.customCommissionConfig = [];
-                            }
-                            vm.drawPartnerTable(data.data);
-                        });
+                        vm.drawPartnerTable(data.data);
                     });
 
                     $('#partnerRefreshIcon').removeClass('fa-spin');
@@ -36360,18 +36334,22 @@ define(['js/app'], function (myApp) {
             };
 
             vm.listAuctionMonitor = function(){
-                let sendQuery = { publish : false };
-                socketService.$socket($scope.AppSocket, 'listAuctionItems', sendQuery, function (data) {
+                let sendQuery = { publish : true};
+                socketService.$socket($scope.AppSocket, 'listAuctionMonitor', sendQuery, function (data) {
                     vm.drawAuctionMonitorTable(data.data);
                 });
             }
             vm.loadAuctionItem = function(id){
                 let sendData = { _id: id };
-                vm.initCreateProduct = true;
                 socketService.$socket($scope.AppSocket, 'loadAuctionItem', sendData, function (data) {
                     $scope.$evalAsync(()=>{
+                        vm.initCreateProduct = true;
                         vm.auctionSystemEditStatus = (data && data.data) ? true: false;
                         vm.auctionSystemProduct = (data && data.data) ? data.data: {};
+                        vm.auctionProductReward = data && data.data.rewardData ? data.data.rewardData : {};
+                        if (vm.auctionProductReward && vm.auctionProductReward.rewardType){
+                            vm.selectedAuctionRewardType = vm.auctionProductReward.rewardType;
+                        }
                     });
                 });
             }
@@ -36399,6 +36377,7 @@ define(['js/app'], function (myApp) {
                 vm.listAuctionItem();
                 switch (choice) {
                     case 'createProduct':
+                        vm.auctionProductReward = {};
                         vm.numExcludeAuction = 0;
                         vm.numNotAvailableAuction = 0;
                         vm.initCreateProduct = false;
@@ -36422,9 +36401,9 @@ define(['js/app'], function (myApp) {
                                 }
                             ],
                         };
-                        vm.auctionProductReward = {
-                            rewardType: 'promoCode'
-                        };
+                        // vm.auctionProductReward = {
+                        //     rewardType: 'promoCode'
+                        // };
                         break;
                     case 'monitoringSystem':
                         vm.listAuctionMonitor();
@@ -36462,9 +36441,13 @@ define(['js/app'], function (myApp) {
                 switch (choice) {
                     case 'promoCode':
                         vm.selectedAuctionRewardType = 'promoCode';
+                        vm.auctionProductReward.isSharedWithXima = true;
+                        vm.auctionProductReward.isForbidWithdrawal = false;
                         break;
                     case 'openPromoCode':
                         vm.selectedAuctionRewardType = 'openPromoCode';
+                        vm.auctionProductReward.isSharedWithXima = true;
+                        vm.auctionProductReward.isForbidWithdrawal = false;
                         break;
                     case 'promotion':
                         vm.selectedAuctionRewardType = 'promotion';
@@ -36604,22 +36587,22 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                        {
-                            title: $translate('Type'),
-                            render: function(data, type, row) {
-                                let result = '';
+                        {title: $translate('Type'), data:"rewardData.rewardType"},
+                        {title: $translate('Product Name'), data: "productName",
+                            render: function(data, type, row){
+                                let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
                                 return result;
                             }
                         },
-                        {title: $translate('Product Name'), data: "name"},
-                        {
-                            title: $translate('Sell From'),
-                            render: function(data, type, row) {
-                                let result = '';
-                                return result;
-                            }
-                        },
-                        {title: $translate('Starting Price'), data: "startPrice"}
+                        {title: $translate('Sell From'), data: "seller"},
+                        {title: $translate('Starting Price'), data: "startingPrice"},
+                        {title: $translate('Direct Purchase Price'), data: "directPurchasePrice"},
+                        {title: $translate('Exclusive'), data: "isExclusive"},
+                        {title: $translate('Current Bid'), data: "currentBid"},
+                        {title: $translate('Bid Times'), data: "bidTimes"},
+                        {title: $translate('Time Left'), data: "timeLeft"},
+                        {title: $translate('Deal at'), data: "dealAt"},
+                        {title: $translate('Leading Bidder'), data: "leadingBidder"}
                     ],
                     "paging": false,
                     fnInitComplete: function(settings){
