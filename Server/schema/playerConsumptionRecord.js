@@ -27,7 +27,7 @@ var playerConsumptionRecordSchema = new Schema({
     //total amount for statistics
     validAmount: {type: Number, required: true, default: 0, index: true},
     //order time
-    orderTime: {type: Date, index:true},
+    orderTime: {type: Date},
     //order id
     orderNo: {type: String, index: true, unique: true},
     //bonus amount
