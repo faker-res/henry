@@ -1174,9 +1174,6 @@ var dbUtility = {
             return true;
         }
 
-        console.log('userAgentInput', userAgentInput);
-        console.log('isPartnerProposal', isPartnerProposal);
-
         if (userAgentInput && userAgentInput[0] && inputUserAgent) {
             let userAgent = userAgentInput[0];
             if (userAgent.browser.indexOf("WebKit") !== -1 || userAgent.browser.indexOf("WebView") !== -1) {
