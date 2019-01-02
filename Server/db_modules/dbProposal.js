@@ -1010,12 +1010,16 @@ var proposal = {
                             }
 
                             // Add merchant rate and actualReceivedAmount
-                            addDetailToProp(updObj.data, 'rate', merchantRate ? merchantRate : 0);
+                            addDetailToProp(
+                                updObj.data,
+                                'rate',
+                                merchantRate && merchantRate.customizeRate ? merchantRate.customizeRate : 0
+                            );
                             addDetailToProp(
                                 updObj.data,
                                 'actualAmountReceived',
-                                merchantRate ?
-                                    (Number(proposalObj.data.amount) * Number(merchantRate)).toFixed(2)
+                                merchantRate && merchantRate.customizeRate ?
+                                    (Number(proposalObj.data.amount) * Number(merchantRate.customizeRate)).toFixed(2)
                                     : proposalObj.data.amount
                             );
 
