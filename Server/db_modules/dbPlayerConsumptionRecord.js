@@ -185,15 +185,6 @@ var dbPlayerConsumptionRecord = {
             },
             isDuplicate: {$ne: true}
         };
-        if(showSumOnly){
-            //function for sync-cpms
-            matchObj = {
-                createTime: {
-                    $gte: startTime,
-                    $lt: endTime
-                }
-            };
-        }
         if (providerObjId) {
             matchObj.providerId = providerObjId;
         }
