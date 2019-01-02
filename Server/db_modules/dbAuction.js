@@ -247,6 +247,7 @@ var dbAuction = {
                 if (playerData.csOfficer && playerData.csOfficer.departments && playerData.csOfficer.departments.length
                     && playerData.csOfficer.roles && playerData.csOfficer.roles.length) {
                     let orQuery = [];
+                    orQuery.push({departments: [], roles: [], admins: []});
                     orQuery.push({admins: [], departments: {$in: playerData.csOfficer.departments}, roles: []});
                     orQuery.push({admins: [], departments: {$in: playerData.csOfficer.departments}, roles: {$in: playerData.csOfficer.roles}});
                     orQuery.push({admins: playerData.csOfficer._id, departments: {$in: playerData.csOfficer.departments}, roles: {$in: playerData.csOfficer.roles}});
