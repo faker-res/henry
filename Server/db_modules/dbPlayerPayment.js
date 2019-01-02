@@ -458,7 +458,9 @@ const dbPlayerPayment = {
                 if (playerdata) {
                     player = playerdata;
 
-                    if (player && !player.permission || !player.permission.allTopUp) {
+                    console.log('player.permission', player.permission);
+
+                    if (player && player.permission && player.permission.allTopUp === false) {
                         return Promise.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
                             name: "DataError",
