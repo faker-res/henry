@@ -36,7 +36,7 @@ var ClientAPIServer = serviceUtils.buildWSServer(
         TopUpIntentionServiceImplement, PlayerLevelServiceImplement, ConnectionServiceImplement,
         RewardServiceImplement, RewardPointsServiceImplement, GameServiceImplement,
         ConsumptionServiceImplement, PaymentServiceImplement, PartnerServiceImplement,
-        DxMissionServiceImplement, WCGroupControlServiceImplement//, AuctionServiceImplement
+        DxMissionServiceImplement, WCGroupControlServiceImplement, AuctionServiceImplement
     ],
     process.env.USE_SSL
 );

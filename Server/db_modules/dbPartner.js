@@ -878,12 +878,9 @@ let dbPartner = {
                 return Q.all(retData);
             }).then(
                 partners => {
-                    for (let i = 0; i < partners.length; i++) {
-                        if (partners[i].phoneNumber) {
-                            partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
-                        }
-                    }
-                    return partners;
+                    let partnerList = partners ? JSON.parse(JSON.stringify(partners)) : [];
+
+                    return rearrangePartnerDetail(partnerList, data.platformId);
                 },
                 error => {
                     Q.reject({name: "DBError", message: "Error finding partners.", error: error});
@@ -906,12 +903,9 @@ let dbPartner = {
                 return Q.all(retData);
             }).then(
                 partners => {
-                    for (let i = 0; i < partners.length; i++) {
-                        if (partners[i].phoneNumber) {
-                            partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
-                        }
-                    }
-                    return partners;
+                    let partnerList = partners ? JSON.parse(JSON.stringify(partners)) : [];
+
+                    return rearrangePartnerDetail(partnerList, data.platformId);
                 },
                 error => {
                     Q.reject({name: "DBError", message: "Error finding partners.", error: error});
@@ -995,12 +989,9 @@ let dbPartner = {
                         return Q.all(retData);
                     }).then(
                     partners => {
-                        for (let i = 0; i < partners.length; i++) {
-                            if (partners[i].phoneNumber) {
-                                partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
-                            }
-                        }
-                        return partners;
+                        let partnerList = partners ? JSON.parse(JSON.stringify(partners)) : [];
+
+                        return rearrangePartnerDetail(partnerList, platformId);
                     },
                     error => {
                         Q.reject({name: "DBError", message: "Error finding partners.", error: error});
@@ -1032,13 +1023,9 @@ let dbPartner = {
                         return Q.all(retData);
                     }).then(
                     partners => {
-                        for (let i = 0; i < partners.length; i++) {
-                            if (partners[i].phoneNumber) {
-                                partners[i].phoneNumber = dbutility.encodePhoneNum(partners[i].phoneNumber);
-                            }
-                        }
+                        let partnerList = partners ? JSON.parse(JSON.stringify(partners)) : [];
 
-                        return partners;
+                        return rearrangePartnerDetail(partnerList, platformId);
                     },
                     error => {
                         Q.reject({name: "DBError", message: "Error finding partners.", error: error});
@@ -3768,22 +3755,6 @@ let dbPartner = {
 
     getPartnerCommissionConfigWithGameProviderGroup: function (query) {
         return dbconfig.collection_partnerCommissionConfig.find(query);
-    },
-
-    getCustomizeCommissionConfigPartner: function (query) {
-        let commissionConfigProm = dbconfig.collection_partnerCommissionConfig.find(query, {_id:0, partner:1}).lean();
-        let commissionRateConfigProm = dbconfig.collection_partnerCommissionRateConfig.find(query, {_id:0, partner:1}).lean();
-
-        return Promise.all([commissionConfigProm, commissionRateConfigProm]).then(
-            data => {
-                if (!data || data[0] || data [1]) {
-                    let commissionConfigPartner = data[0], commissionRateConfigPartner = data[1];
-                    return commissionConfigPartner.concat(commissionRateConfigPartner.filter(function (item) {
-                        return commissionConfigPartner.indexOf(item) < 0;
-                    }));
-                }
-            }
-        );
     },
 
     createUpdatePartnerCommissionConfigWithGameProviderGroup: function  (query, data, clearCustomize) {
@@ -6794,7 +6765,7 @@ let dbPartner = {
                         }
                     }
 
-                    let platformFeeRate = Number(platformFeeRateData.rate);
+                    let platformFeeRate = platformFeeRateData.rate ? Number(platformFeeRateData.rate) : 0;
                     let isCustomPlatformFeeRate = platformFeeRateData.isCustom;
 
                     let rawCommission = calculateRawCommission(totalConsumption, commissionRates[groupRate.groupName].commissionRate);
@@ -11758,7 +11729,65 @@ function getCrewTopUpDetail (playerObjId, startTime, endTime) {
     ]).read("secondaryPreferred")
 }
 
+function getCustomizeRatePartner(query) {
+    let commissionConfigProm = dbconfig.collection_partnerCommissionConfig.find(query, {_id:0, partner:1}).lean();
+    let commissionRateConfigProm = dbconfig.collection_partnerCommissionRateConfig.find(query, {_id:0, partner:1}).lean();
 
+    return Promise.all([commissionConfigProm, commissionRateConfigProm]).then(
+        data => {
+            if (!data || data[0] || data [1]) {
+                let commissionConfigPartner = data[0], commissionRateConfigPartner = data[1];
+                return commissionConfigPartner.concat(commissionRateConfigPartner.filter(function (item) {
+                    return commissionConfigPartner.indexOf(item) < 0;
+                }));
+            }
+        }
+    );
+}
+
+function rearrangePartnerDetail(partnerList, platformId) {
+    let partnerObjIds = [];
+
+    for (let i = 0; i < partnerList.length; i++) {
+        if (partnerList[i].phoneNumber) {
+            partnerList[i].phoneNumber = dbutility.encodePhoneNum(partnerList[i].phoneNumber);
+        }
+
+        if (partnerList[i] && partnerList[i]._id) {
+            partnerObjIds.push(ObjectId(partnerList[i]._id));
+        }
+    }
+
+    if (platformId && partnerObjIds && partnerObjIds.length > 0) {
+        let query = {
+            platform: ObjectId(platformId),
+            partner: {$in: partnerObjIds}
+        }
+
+        let customizeRatePartnerProm = getCustomizeRatePartner(query);
+
+        return Promise.all([customizeRatePartnerProm]).then(
+            customizeRatePartner => {
+                if (customizeRatePartner && customizeRatePartner[0] && customizeRatePartner[0].length > 0) {
+                    customizeRatePartner[0].forEach(data => {
+                        let indexNo = partnerList.findIndex(x => x && x._id && data.partner && (x._id.toString() == data.partner.toString()));
+
+                        if(indexNo != -1) {
+                            partnerList[indexNo].isCustomizeSettingExist = true;
+                        }
+                    });
+
+                    return partnerList;
+                } else {
+                    return partnerList;
+                }
+
+            }
+        )
+    }
+
+    return partnerList;
+}
 
 var proto = dbPartnerFunc.prototype;
 proto = Object.assign(proto, dbPartner);

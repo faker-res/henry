@@ -458,6 +458,14 @@ const dbPlayerPayment = {
                 if (playerdata) {
                     player = playerdata;
 
+                    if (player && !player.permission || !player.permission.allTopUp) {
+                        return Promise.reject({
+                            status: constServerCode.PLAYER_NO_PERMISSION,
+                            name: "DataError",
+                            errorMessage: "Player does not have common topup permission"
+                        });
+                    }
+
                     if (player && player._id) {
                         if (!topupRequest.topUpReturnCode) {
                             return Promise.resolve();

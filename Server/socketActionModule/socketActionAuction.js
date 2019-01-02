@@ -35,6 +35,11 @@ function socketActionAuction(socketIO, socket) {
             var isValidData = true;
             socketUtil.emitter(self.socket, dbAuction.listAuctionItems, [data, true, getAdminName(), getAdminId()], actionName, isValidData);
         },
+        loadAuctionItem: function loadAuctionItem(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = true;
+            socketUtil.emitter(self.socket, dbAuction.loadAuctionItem, [data._id, true, getAdminName(), getAdminId()], actionName, isValidData);
+        },
         moveToNotAvailableItem: function moveToNotAvailableItem(data) {
             var actionName = arguments.callee.name;
             var isValidData = true;
@@ -69,6 +74,16 @@ function socketActionAuction(socketIO, socket) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbAuction.createAuctionProduct, [data], actionName, isValidData);
+        },
+        updateAuctionProduct: function updateAuctionProduct(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data._id);
+            socketUtil.emitter(self.socket, dbAuction.updateAuctionProduct, [data._id, data.updateData], actionName, isValidData);
+        },
+        listAuctionMonitor: function listAuctionMonitor(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = true;
+            socketUtil.emitter(self.socket, dbAuction.listAuctionMonitor, [data._id, data.updateData], actionName, isValidData);
         },
     };
     socketActionAuction.actions = this.actions;

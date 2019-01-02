@@ -19,6 +19,7 @@ const constRewardApplyType = require("./../const/constRewardApplyType");
 const constRewardPeriod = require("./../const/constRewardPeriod");
 const constRewardType = require("./../const/constRewardType");
 const constServerCode = require('../const/constServerCode');
+const constPromoCodeTemplateGenre = require("./../const/constPromoCodeTemplateGenre");
 
 const dbPlayerUtil = require('../db_common/dbPlayerUtility');
 const dbProposalUtil = require('../db_common/dbProposalUtility');
@@ -3050,7 +3051,11 @@ let dbPlayerReward = {
 
     getPromoCodeTemplate: (platformObjId, isProviderGroup) => dbConfig.collection_promoCodeTemplate.find({
         platformObjId: ObjectId(platformObjId),
-        isProviderGroup: Boolean(isProviderGroup)
+        isProviderGroup: Boolean(isProviderGroup),
+        $or: [
+            {genre: {$exists: false}},
+            {genre: constPromoCodeTemplateGenre.GENERAL}
+        ],
     }).lean(),
 
     getOpenPromoCodeTemplate: (platformObjId, isProviderGroup, deleteFlag) => {
