@@ -4,6 +4,7 @@ const dbProposal = require('./../db_modules/dbProposal');
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const ObjectId = mongoose.Types.ObjectId;
 const constPromoCodeTemplateGenre = require("./../const/constPromoCodeTemplateGenre");
+const dbPlayerReward = require('./../db_modules/dbPlayerReward');
 
 var dbAuction = {
     /**
@@ -276,15 +277,25 @@ var dbAuction = {
     },
     createAuctionProduct: function (auctionProduct) {
         let templateProm = Promise.resolve(true);
+        let adminName = auctionProduct && auctionProduct.adminName ? auctionProduct.adminName : "";
+        let adminId = auctionProduct && auctionProduct.adminId ? auctionProduct.adminId : "";
+
         // only promoCodeTemplate needs to be generated first
         if (auctionProduct && auctionProduct.rewardData && auctionProduct.rewardData.rewardType && auctionProduct.rewardData.rewardType == "promoCode"){
             templateProm = generatePromoCodeTemplate(auctionProduct.rewardData, auctionProduct.platformObjId, auctionProduct.productName);
+        }
+        else if (auctionProduct && auctionProduct.rewardData && auctionProduct.rewardData.rewardType && auctionProduct.rewardData.rewardType == "openPromoCode"){
+            templateProm = generateOpenPromoCodeTemplate(auctionProduct.rewardData, auctionProduct.platformObjId, auctionProduct.productName, adminName, adminId);
         }
 
         return templateProm.then(
             template => {
                 if (template && template._id && auctionProduct && auctionProduct.rewardData){
                     auctionProduct.rewardData.templateObjId = template._id;
+                }
+
+                if (template && template.code && auctionProduct && auctionProduct.rewardData){
+                    auctionProduct.rewardData.promoCode = template.code;
                 }
                 return dbconfig.collection_auctionSystem(auctionProduct).save();
             }
@@ -298,6 +309,44 @@ var dbAuction = {
                 return Promise.reject({name: "DBError", message: "Error creating auction product.", error: error});
             }
         );
+
+        // to generate openPromoCodeTemplate for auction system
+        function generateOpenPromoCodeTemplate(rewardData, platformObjId, productName, adminName, adminId){
+            let allowedProviderList = [];
+            if (rewardData.allowedProvider){
+                allowedProviderList.push(ObjectId(rewardData.allowedProvider));
+            }
+            let obj = {
+                platformObjId: platformObjId,
+                allowedProviders: allowedProviderList,
+                name: productName,
+                isSharedWithXIMA: rewardData.isSharedWithXima,
+                isProviderGroup: true,
+                genre: constPromoCodeTemplateGenre.AUCTION,
+                expiredInDay: rewardData.dueDateInDay,
+                disableWithdraw: rewardData.isForbidWithdrawal,
+                minTopUpAmount: rewardData.minimumTopUpAmount,
+                applyLimitPerPlayer: rewardData.upperLimitPerPlayer,
+                totalApplyLimit: rewardData.totalQuantityLimit,
+                ipLimit: rewardData.LimitPerSameIp,
+                expiredInDay: rewardData.dueDateInDay,
+                createTime: new Date ()
+            }
+
+            if (rewardData.isDynamicRewardAmount){
+                obj.amount = rewardData.rewardPercentage*100;
+                obj.maxRewardAmount = rewardData.maximumRewardAmount;
+                obj.requiredConsumption = rewardData.spendingTimes;
+                obj.type = 3; // dynamic case
+            }
+            else{
+                obj.amount = rewardData.rewardAmount;
+                obj.requiredConsumption = rewardData.spendingAmount;
+                obj.type = 1; // with top up requirement + fixed reward amount
+            }
+
+            return dbPlayerReward.generateOpenPromoCode(platformObjId, obj, adminId, adminName);
+        }
 
         // to generate promoCodeTemplate for auction system
         function generatePromoCodeTemplate(rewardData, platformObjId, productName) {
