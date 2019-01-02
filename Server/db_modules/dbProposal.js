@@ -916,7 +916,8 @@ var proposal = {
                                 if (callbackData.merchantNo && proposalObj.data.platform) {
                                     merchantProm = dbconfig.collection_platformMerchantList.findOne({
                                         platformId: proposalObj.data.platform,
-                                        merchantNo: callbackData.merchantNo
+                                        merchantNo: callbackData.merchantNo,
+                                        customizeRate: {$exists: true}
                                     }, 'customizeRate').lean();
                                 };
                                 break;
