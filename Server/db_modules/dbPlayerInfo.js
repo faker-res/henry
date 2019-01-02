@@ -5557,6 +5557,8 @@ let dbPlayerInfo = {
         let bUpdateIp = false;
         let geoInfo = {};
 
+        console.log('RT - playerData', playerData);
+
         return dbconfig.collection_platform.findOne({platformId: playerData.platformId}).then(
             platformData => {
                 if (platformData) {
@@ -5579,6 +5581,8 @@ let dbPlayerInfo = {
                         ]
                     };
 
+                    console.log('RT - playerQuery', playerQuery);
+
                     if (playerData.name && playerData.name[0] === "f") {
                         playerQuery.$or.push({
                             name: playerData.name,
@@ -5598,6 +5602,7 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
+                console.log('RT - data', data);
                 if (data) {
                     playerObj = data;
                     if (platformObj.onlyNewCanLogin && !playerObj.isNewSystem) {
