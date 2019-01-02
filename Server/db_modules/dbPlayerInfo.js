@@ -5598,11 +5598,8 @@ let dbPlayerInfo = {
             }
         ).then(
             data => {
-                console.log('RT - data');
                 if (data) {
                     playerObj = data;
-
-                    console.log('RT - playerObj', playerObj);
 
                     if (platformObj.onlyNewCanLogin && !playerObj.isNewSystem) {
                         return Promise.reject({
@@ -5612,9 +5609,6 @@ let dbPlayerInfo = {
                         });
                     }
                     db_password = String(data.password); // hashedPassword from db
-
-                    console.log('RT - dbUtility.isMd5(db_password)', dbUtility.isMd5(db_password));
-
                     if (dbUtility.isMd5(db_password)) {
                         if (md5(playerData.password) == db_password) {
                             return Promise.resolve(true);
@@ -5639,7 +5633,6 @@ let dbPlayerInfo = {
                     }
                 }
                 else {
-                    console.log('playerLogin - error 0');
                     return Promise.reject({
                         name: "DataError",
                         message: "Cannot find player",
@@ -5649,7 +5642,6 @@ let dbPlayerInfo = {
             }
         ).then(
             isMatch => {
-                console.log('RT - isMatch', isMatch);
                 if (!isMatch) {
                     return Promise.reject({
                         name: "DataError",
@@ -5744,7 +5736,6 @@ let dbPlayerInfo = {
                 })
             },
             error => {
-                console.log('playerLogin - error 1');
                 return Promise.reject({name: "DBError", message: "Error in getting player data", error: error});
             }
         ).then(
