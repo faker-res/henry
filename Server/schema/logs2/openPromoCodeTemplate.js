@@ -24,7 +24,7 @@ let openPromoCodeTemplateSchema = new Schema({
     isProviderGroup: {type: Boolean},
     // Promo Code
     code: {type: Number, required: true},
-    // SMS Content
+    // the time when the template is created
     createTime: {type: Date, default: Date.now, index: true},
     // Promo Code Accept Time
     acceptedTime: {type: Date},
@@ -49,7 +49,11 @@ let openPromoCodeTemplateSchema = new Schema({
     // the total available quantity for application
     totalApplyLimit: {type: Number},
     // the requeting limit for the same IP
-    ipLimit: {type: Number}
+    ipLimit: {type: Number},
+    // the time when the openPromoCode is sent to player (special for auction system)
+    sendTime: {type: Date, index: true},
+    // expired after the number of days the open promo code is sent (special for auction system)
+    expiredInDay: {type: Number, index: true}
 
 });
 

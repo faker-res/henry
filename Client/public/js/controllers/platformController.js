@@ -36478,6 +36478,15 @@ define(['js/app'], function (myApp) {
                 vm.auctionSystemProduct.rewardStartTime = $('#auctionSystemProductRewardStartTimePicker').data('datetimepicker').getDate();
                 vm.auctionSystemProduct.rewardEndTime = $('#auctionSystemProductRewardEndTimePicker').data('datetimepicker').getDate();
                 vm.auctionSystemProduct.rewardData = vm.auctionProductReward;
+                vm.auctionSystemProduct.adminName = authService.adminName;
+                vm.auctionSystemProduct.adminId = authService.adminId;
+
+                if (vm.auctionSystemProduct && vm.auctionSystemProduct.productName && vm.auctionProductReward && vm.auctionProductReward.rewardType &&
+                    (vm.auctionProductReward.rewardType == 'promoCode' || vm.auctionProductReward.rewardType == 'openPromoCode')){
+                    if (vm.isPromoNameExist(vm.auctionSystemProduct.productName)) {
+                        return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                    }
+                }
 
                 socketService.$socket($scope.AppSocket, 'createAuctionProduct', vm.auctionSystemProduct, function (data) {
                     console.log("createAuctionProduct", data);
