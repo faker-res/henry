@@ -50,7 +50,14 @@ var dbAuction = {
     applyAuction: (data) =>{
         return [];
     },
-
+    listAuctionMonitor: function(query){
+        return dbconfig.collection_auctionSystem.find(query).then(
+            data=>{
+                console.log(data);
+                return data;
+            }
+        )
+    },
     createAuctionProduct: function (auctionProduct) {
         let templateProm = Promise.resolve(true);
         // only promoCodeTemplate needs to be generated first

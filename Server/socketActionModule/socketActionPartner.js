@@ -393,12 +393,6 @@ function socketActionPartner(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPartner.getPartnerCommissionConfig, [data.query], actionName, isValidData);
         },
 
-        getCustomizeCommissionConfigPartner: function getCustomizeCommissionConfigPartner(data) {
-            var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.query);
-            socketUtil.emitter(self.socket, dbPartner.getCustomizeCommissionConfigPartner, [data.query], actionName, isValidData);
-        },
-
         getPartnerCommissionReport: function getPartnerCommissionReport(data) {
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformId);

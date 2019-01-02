@@ -19422,6 +19422,11 @@ define(['js/app'], function (myApp) {
                     if (!vm.selectedProposal.data) {
                         vm.selectedProposal.data = {};
                     }
+
+                    if(vm.selectedProposal && vm.selectedProposal.status && vm.selectedProposal.status == "Approved"){
+                        vm.selectedProposal.status = "approved";
+                    }
+
                     proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realNameBeforeEdit;
                     proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
                     proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
