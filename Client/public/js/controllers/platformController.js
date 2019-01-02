@@ -36391,7 +36391,6 @@ define(['js/app'], function (myApp) {
                             rewardStartTime: null,
                             rewardEndTime: null,
                             playerType: 'Real Player (all)',
-                            playerLevel: 'all',
                             rewardAppearPeriod: [
                                 {
                                     startDate: '',

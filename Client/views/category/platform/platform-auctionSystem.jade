@@ -58,7 +58,7 @@ form(name='form_auctionSystem').row
                 .full-width-input-block
                     label {{"Player Level" | translate}}
                     select.form-control(ng-model='vm.auctionSystemProduct.playerLevel')
-                        option(value='all') {{'ALL' | translate}}
+                        option(value='') {{'ALL' | translate}}
                         option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
                 .full-width-input-block
                     label.control-label {{'CREDIBILITY' | translate}}
