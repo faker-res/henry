@@ -156,6 +156,7 @@ let dailyProviderSettlement = {
     },
 
     manualDailyProviderSettlement: function (providerId, settlementDay, platformId) {
+        console.log("Provider report1")
         let startTime = dbutility.getDayStartTime(settlementDay);
         let endTime = dbutility.getDayEndTime(settlementDay);
         let providerObj = null;
@@ -172,19 +173,23 @@ let dailyProviderSettlement = {
         ).then(
             data => {
                 if( providerObj ){
+                    console.log("Provider report2")
                     return removeDuplicatedConsumptionRecords(startTime, endTime, providerObj._id);
                 }
             }
         ).then(
             data => {
+                console.log("Provider report3")
                 return dbGameProviderPlayerDaySummary.calculateProviderPlayerDaySummaryForTimeFrame(startTime, endTime, providerId, platformId);
             }
         ).then(
             data => {
+                console.log("Provider report4")
                 return dbGameProviderDaySummary.calculateProviderDaySummaryForTimeFrame(startTime, endTime, providerId, platformId);
             }
         ).then(
             data => {
+                console.log("Provider report5")
                 return dbGameProvider.updateGameProvider(
                     {_id: providerId},
                     {settlementStatus: constSettlementStatus.READY}
@@ -200,6 +205,7 @@ let dailyProviderSettlement = {
             }
         ).then(
             data => {
+                console.log("Provider report6")
                 if (data) {
                     dbLogger.createSettlementLog("provider", "daily", providerId, startTime, true, data);
                     return data;
