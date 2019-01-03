@@ -482,7 +482,7 @@ function socketActionPartner(socketIO, socket) {
         getPartnerCommissionLog: function getPartnerCommissionLog (data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platformObjId && data.commissionType && data.startTime && data.endTime);
-            socketUtil.emitter(self.socket, dbPartner.getPartnerCommissionLog, [data.platformObjId, data.commissionType, data.startTime, data.endTime], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPartner.getPartnerCommissionLog, [ObjectId(data.platformObjId), data.commissionType, data.startTime, data.endTime], actionName, isValidData);
         },
 
         bulkApplyPartnerCommission: function bulkApplyPartnerCommission (data) {

@@ -8839,7 +8839,7 @@ define(['js/app'], function (myApp) {
                         quickPayGroup: vm.selectedSinglePlayer.quickPayGroup,
                         trustLevel: vm.selectedSinglePlayer.trustLevel,
                         photoUrl: vm.selectedSinglePlayer.photoUrl,
-                        playerLevel: vm.selectedSinglePlayer.playerLevel._id,
+                        playerLevel: vm.selectedSinglePlayer.playerLevel ? vm.selectedSinglePlayer.playerLevel._id : null,
                         referral: vm.selectedSinglePlayer.referral,
                         smsSetting: vm.selectedSinglePlayer.smsSetting,
                         gender: vm.selectedSinglePlayer.gender,
@@ -22467,14 +22467,14 @@ define(['js/app'], function (myApp) {
 
                 if (vm.showRewardTypeData.isGrouped === true && vm.showRewardTypeData.name === 'BaccaratRewardGroup') {
                     if (vm.rewardParams && vm.rewardParams.rewardParam && vm.rewardParams.rewardParam.length > 0) {
-                        vm.rewardParams.rewardParam.forEach(x => {console.log('x', x)
+                        vm.rewardParams.rewardParam.forEach(x => {
                             if (x && x.value && x.value.length > 0) {
-                                x.value.forEach(el => { console.log('el', el)
+                                x.value.forEach(el => {
                                     if (el && Object.keys(el).length > 0) {
-                                        if (!el.hostResult) {
+                                        if (el.hostResult === null || el.hostResult === 'undefined') {
                                             isValid = false;
                                             isHostResult = false;
-                                        } else if (!el.playerResult) {
+                                        } else if (el.playerResult === null || el.playerResult === 'undefined') {
                                             isValid = false;
                                             isPlayerResult = false;
                                         }
@@ -22651,10 +22651,10 @@ define(['js/app'], function (myApp) {
                             if (x && x.value && x.value.length > 0) {
                                 x.value.forEach(el => {
                                     if (el && Object.keys(el).length > 0) {
-                                        if (!el.hostResult) {
+                                        if (el.hostResult === null || el.hostResult === 'undefined') {
                                             isValid = false;
                                             isHostResult = false;
-                                        } else if (!el.playerResult) {
+                                        } else if (el.playerResult === null || el.playerResult === 'undefined') {
                                             isValid = false;
                                             isPlayerResult = false;
                                         }
@@ -36391,7 +36391,6 @@ define(['js/app'], function (myApp) {
                             rewardStartTime: null,
                             rewardEndTime: null,
                             playerType: 'Real Player (all)',
-                            playerLevel: 'all',
                             rewardAppearPeriod: [
                                 {
                                     startDate: '',
@@ -36478,6 +36477,15 @@ define(['js/app'], function (myApp) {
                 vm.auctionSystemProduct.rewardStartTime = $('#auctionSystemProductRewardStartTimePicker').data('datetimepicker').getDate();
                 vm.auctionSystemProduct.rewardEndTime = $('#auctionSystemProductRewardEndTimePicker').data('datetimepicker').getDate();
                 vm.auctionSystemProduct.rewardData = vm.auctionProductReward;
+                vm.auctionSystemProduct.adminName = authService.adminName;
+                vm.auctionSystemProduct.adminId = authService.adminId;
+
+                if (vm.auctionSystemProduct && vm.auctionSystemProduct.productName && vm.auctionProductReward && vm.auctionProductReward.rewardType &&
+                    (vm.auctionProductReward.rewardType == 'promoCode' || vm.auctionProductReward.rewardType == 'openPromoCode')){
+                    if (vm.isPromoNameExist(vm.auctionSystemProduct.productName)) {
+                        return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                    }
+                }
 
                 socketService.$socket($scope.AppSocket, 'createAuctionProduct', vm.auctionSystemProduct, function (data) {
                     console.log("createAuctionProduct", data);

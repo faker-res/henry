@@ -38,6 +38,25 @@ var dbPlayerTopUpDaySummary = {
         );
     },
 
+    upsertByTopUpType: function(data){
+        var upsertData = JSON.parse(JSON.stringify(data));
+        delete upsertData.playerId;
+        delete upsertData.platformId;
+        delete upsertData.date;
+        delete upsertData.topUpType;
+        return dbutility.upsertForShard(
+            dbconfig.collection_playerTopUpDaySummaryByTopUpType,
+            {
+                playerId: data.playerId,
+                platformId: data.platformId,
+                date: data.date,
+                topUpType: data.topUpType
+            },
+            upsertData,
+            constShardKeys.collection_playerTopUpDaySummaryByTopUpType
+        );
+    },
+
     /**
      * Calculate player top up day summary for time frame
      * @param {Date} startTime - It has to be at 00:00 for a specific date
@@ -103,10 +122,40 @@ var dbPlayerTopUpDaySummary = {
             }
         ).then(
             function (data) {
-                deferred.resolve(data);
+                //update playerTopUpDaySummayByTopUpType
+                return dbPlayerTopUpRecord.getPlayersTotalTopUpByTopUpTypeForTimeFrame(startTime, endTime, platformId, playerObjIds);
             },
             function (error) {
                 deferred.reject({name: "DBError", message: "Update player top up day summary failed!", error: error});
+            }
+        ).then(
+            function (data){
+                if (data) {
+                    var proms = data.map(
+                        sum => {
+                            var summary = {
+                                playerId: sum._id.playerId,
+                                platformId: sum._id.platformId,
+                                date: startTime,
+                                amount: sum.amount,
+                                times: sum.times,
+                                topUpType: sum._id.topUpType
+                            };
+                            return dbPlayerTopUpDaySummary.upsertByTopUpType(summary);
+                        }
+                    );
+                    return Q.all(proms);
+                }
+            },
+            function (error){
+                deferred.reject({name: "DBError", message: "Get player top up by topup type failed!", error: error});
+            }
+        ).then(
+            function (data) {
+                deferred.resolve(data);
+            },
+            function (error) {
+                deferred.reject({name: "DBError", message: "Update player top up day summary by topup type failed!", error: error});
             }
         );
         return deferred.promise;

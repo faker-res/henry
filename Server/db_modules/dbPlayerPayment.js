@@ -458,8 +458,6 @@ const dbPlayerPayment = {
                 if (playerdata) {
                     player = playerdata;
 
-                    console.log('player.permission', player.permission);
-
                     if (player && player.permission && player.permission.allTopUp === false) {
                         return Promise.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
