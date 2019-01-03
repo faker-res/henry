@@ -12,7 +12,6 @@ var dbAuction = {
      * List All Auction Items
      */
     listAuctionItems: (query) => {
-        console.log(query);
         return dbconfig.collection_auctionSystem.find(query).exec();
     },
     addAuctionItem: (data) => {
@@ -70,26 +69,23 @@ var dbAuction = {
             }
         ).then(auctionItems=>{
             result = auctionItems;
-            if(auctionItems.length <= 0 ){ return }
+            // if(auctionItems.length <= 0 ){ return }
             auctionItems.forEach(item=>{
-                console.log(item);
                 let prom = dbconfig.collection_proposal.find({
                     type: proposalType._id,
                     status: constProposalStatus.APPROVED
-                },{ proposalId:1, status:1, 'data.playerName':1, createTime:1 }).sort('-createTime')
+                },{ 'proposalId':1, 'status':1, 'data.playerName':1, 'createTime':1 }).limit(10).sort('-createTime')
                 .then(proposal=>{
-                    console.log(proposal);
                     item.proposal = proposal;
                     return item;
                 });
                 proms.push(prom);
             })
-            // return result
+
             return Promise.all(proms).then(
-              data=>{
-                console.log(data);
-                return result
-              }
+                data=>{
+                    return result
+                }
             )
         })
     },

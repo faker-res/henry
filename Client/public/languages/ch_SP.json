@@ -3771,6 +3771,8 @@
   "afterChangeRewardPoint": "变化后积分",
   "dailyMaxRewardPoint": "单日积分上限",
   "Reward Point ID": "积分ID",
+  "Reward Point Offer": "出价积分",
+  "Offer At": "出价时间",
   "Proposal Creator": "提案人",
   "Registration Agent": "开户人员",
   "createTime": "加入时间",

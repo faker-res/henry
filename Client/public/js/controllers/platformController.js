@@ -536,7 +536,8 @@ define(['js/app'], function (myApp) {
             //specific proposal template
             vm.proposalTemplate = {
                 1: '#modalProposal',
-                2: '#newPlayerModal'
+                2: '#newPlayerModal',
+                3: '#auctionItemModal'
             };
 
             vm.createInnerTable = function (id) {
@@ -25081,6 +25082,24 @@ define(['js/app'], function (myApp) {
                 return false;
             }
 
+            vm.showAuctionModal = function(id, templateNo){
+                templateNo = 3;
+                vm.selectedAuction = vm.auctionItemBidList.filter(item=>{
+                    return item._id == id;
+                })
+                vm.selectedAuction = vm.selectedAuction[0] ? vm.selectedAuction[0]:vm.selectedAuction;
+                let tmpt = vm.proposalTemplate[templateNo];
+                $(tmpt).modal('show');
+                if (templateNo == 1) {
+                    $(tmpt).css('z-Index', 1051).modal();
+                }
+
+                $(tmpt).on('shown.bs.modal', function (e) {
+                    $scope.$evalAsync();
+                })
+
+            }
+
             vm.showProposalModal = function (proposalId, templateNo) {
                 socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
                     platformId: vm.selectedPlatform.id,
@@ -36633,13 +36652,19 @@ define(['js/app'], function (myApp) {
             vm.drawAuctionMonitorTable = function(data, newSearch){
                 let index = 0;
                 data = data || [];
+                vm.auctionItemBidList = data;
                 let tableOptions = {
                     data: data,
                     aoColumnDefs: [
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                        {title: $translate('Type'), data:"rewardData.rewardType"},
+                        {title: $translate('Type'), data:"rewardData.rewardType",
+                            render: function(data, type, row){
+                                let result = $translate(data);
+                                return result;
+                            }
+                        },
                         {title: $translate('Product Name'), data: "productName",
                             render: function(data, type, row){
                                 let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
@@ -36657,7 +36682,12 @@ define(['js/app'], function (myApp) {
                             }
                         },
                         {title: $translate('Current Bid'), data: "lastProposal.amount"},
-                        {title: $translate('Bid Times'), data: "bidTimes"},
+                        {title: $translate('Bid Times'), data: "bidTimes",
+                            render: function(data, type, row){
+                                let result = '<div ng-click="vm.showAuctionModal(\''+row._id+'\')">' + data + '</div>';
+                                return result;
+                            }
+                        },
                         {title: $translate('Time Left'), data: "timeLeft"},
                         {title: $translate('Deal at'), data: "dealAt"},
                         {title: $translate('Leading Bidder'), data: "lastProposal.data.playerName"}
