@@ -804,7 +804,7 @@ var proposal = {
     updateTopupProposal: function (proposalId, status, requestId, orderStatus, remark, callbackData) {
         let proposalObj = null;
         let type = constPlayerTopUpType.ONLINE;
-        let updObj;
+        let updObj, topupRate, topupActualAmt;
 
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
             path: 'type', model: dbconfig.collection_proposalType
@@ -1010,18 +1010,13 @@ var proposal = {
                             }
 
                             // Add merchant rate and actualReceivedAmount
-                            addDetailToProp(
-                                updObj.data,
-                                'rate',
-                                merchantRate && merchantRate.customizeRate ? merchantRate.customizeRate : 0
-                            );
-                            addDetailToProp(
-                                updObj.data,
-                                'actualAmountReceived',
-                                merchantRate && merchantRate.customizeRate ?
-                                    (Number(proposalObj.data.amount) * Number(merchantRate.customizeRate)).toFixed(2)
-                                    : proposalObj.data.amount
-                            );
+                            topupRate = merchantRate && merchantRate.customizeRate ? merchantRate.customizeRate : 0;
+                            topupActualAmt = merchantRate && merchantRate.customizeRate ?
+                                (Number(proposalObj.data.amount) - Number(proposalObj.data.amount) * Number(merchantRate.customizeRate)).toFixed(2)
+                                : proposalObj.data.amount;
+
+                            addDetailToProp(updObj.data, 'rate', topupRate);
+                            addDetailToProp(updObj.data, 'actualAmountReceived', topupActualAmt);
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
@@ -1038,12 +1033,9 @@ var proposal = {
                     orderStatus: orderStatus,
                     depositId: requestId,
                     type: type,
+                    rate: topupRate,
+                    actualAmountReceived: topupActualAmt
                 };
-
-                if (propData) {
-                    retObj.rate = propData.data.rate;
-                    retObj.actualAmountReceived = propData.data.actualAmountReceived;
-                }
 
                 return retObj;
             },
@@ -7439,7 +7431,7 @@ var proposal = {
         )
     },
 
-    getProfitDisplayDetailByPlatform: (platformId, startDate, endDate, playerBonusType, topUpType) => {
+    getProfitDisplayDetailByPlatform: (platformId, startDate, endDate, playerBonusType, topUpType, partnerBonusType) => {
 
         let playerBonusProm = dbconfig.collection_proposalType.findOne({
             platformId: ObjectId(platformId),
@@ -7463,9 +7455,33 @@ var proposal = {
                         }
                     }
                 ]).read("secondaryPreferred")
-
             }
-        )
+        );
+
+        let partnerBonusProm = dbconfig.collection_proposalType.findOne({
+            platformId: ObjectId(platformId),
+            name: partnerBonusType
+        }).read("secondaryPreferred").lean().then(
+            (detail) => {
+                if (!detail) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
+
+                let matchObj = {
+                    createTime: {$gte: startDate, $lt: endDate},
+                    type: detail._id,
+                    status: {$in: ['Success', 'Approved']}
+                };
+
+                return dbconfig.collection_proposal.aggregate([
+                    {$match: matchObj},
+                    {
+                        $group: {
+                            _id: "$data.platformId",
+                            amount: {$sum: "$data.amount"}
+                        }
+                    }
+                ]).read("secondaryPreferred")
+            }
+        );
 
         let topUpProm = dbconfig.collection_proposalType.find({
             platformId: ObjectId(platformId),
@@ -7490,11 +7506,10 @@ var proposal = {
                         }
                     }
                 ]).read("secondaryPreferred")
-
             }
         )
 
-        return Q.all([playerBonusProm,topUpProm])
+        return Q.all([playerBonusProm, topUpProm, partnerBonusProm])
     },
 
     lockProposalByAdmin: (proposalId, adminId, adminName) => {

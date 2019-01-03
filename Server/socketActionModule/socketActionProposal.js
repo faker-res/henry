@@ -672,7 +672,7 @@ function socketActionProposal(socketIO, socket) {
             var isValidData = Boolean(data && data.platformId && data.startDate && data.endDate && data.playerBonusType && data.topUpType );
             var startTime = data.startDate ? new Date(data.startDate) : new Date(0);
             var endTime = data.endDate ? new Date(data.endDate) : new Date();
-            socketUtil.emitter(self.socket, dbProposal.getProfitDisplayDetailByPlatform, [ObjectId(data.platformId), startTime, endTime, data.playerBonusType, data.topUpType], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbProposal.getProfitDisplayDetailByPlatform, [ObjectId(data.platformId), startTime, endTime, data.playerBonusType, data.topUpType, data.partnerBonusType], actionName, isValidData);
         },
         lockProposalByAdmin: function lockProposalByAdmin(data) {
             var actionName = arguments.callee.name;
