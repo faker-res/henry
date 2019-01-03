@@ -154,6 +154,18 @@
             <input name="playDetail">
         </label>
     </div>
+    <div>
+        <label>Bet Detail
+            <input type="number" id="separatedBetAmount" placeholder="separatedBetAmount"/>
+            <input type="text" id="separatedBetType" placeholder="separatedBetType"/>
+        </label>
+        <button onclick="addBetDetails()">add bet</button>
+        <button onclick="resetBetDetails()">reset bet</button>
+        <input name="betDetails" id="betDetails" hidden>
+    </div>
+    <div>
+        <ul id="betTypeList"/>
+    </div>
     <message>(Blank entries only work if you first add a new game and a new provider.)</message>
     <p>
         <button data-api-name="addConsumption">Add Player Consumption</button>
@@ -413,6 +425,40 @@
                 });
             }
     );
+
+    let list = [];
+    let listHTML= ""
+    function addBetDetails(){
+        let betDetails = document.getElementById("betDetails");
+        let separatedBetType = document.getElementById("separatedBetType");
+        let separatedBetAmount = document.getElementById("separatedBetAmount");
+
+        if (separatedBetType.value && separatedBetAmount.value) {
+            list.push({'separatedBetType': separatedBetType.value, 'separatedBetAmount': separatedBetAmount.value});
+        }
+
+        if (list && list.length > 0) {
+            betDetails.value = JSON.stringify(list);
+
+            document.getElementById("betTypeList").innerHTML = "";
+            for (let i = 0; i < list.length; i++)
+            {
+                listHTML = "<li>" + "separatedBetType: " + list[i].separatedBetType + ", " + "separatedBetAmount: " + list[i].separatedBetAmount + "</li>";
+                document.getElementById("betTypeList").innerHTML += listHTML;
+            }
+        }
+
+        document.getElementById("separatedBetType").innerHTML = "";
+        document.getElementById("separatedBetAmount").innerHTML = "";
+    }
+
+    function resetBetDetails(){
+        document.getElementById("betDetails").value = null;
+        document.getElementById("separatedBetType").value = null;
+        document.getElementById("separatedBetAmount").value = null;
+        document.getElementById("betTypeList").innerHTML = "";
+        list = [];
+    }
 </script>
 </body>
 </html>
