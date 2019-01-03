@@ -633,7 +633,7 @@ define([], () => {
                     proposalDetail["ActualReceivedAmount"] = vm.selectedProposal.data.actualAmountReceived;
                 }
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                proposalDetail["SUBMIT_DEVICE"] = $scope.constPlayerRegistrationInterface[vm.selectedProposal.data.clientType] || $translate("BACKSTAGE");
+                proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.data.clientType]) || $translate("BACKSTAGE");
                 proposalDetail["MerchantGroup"] = vm.selectedProposal.data.merchantGroupName || " ";
                 proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                 proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
