@@ -93,17 +93,9 @@ define(['js/app'], function (myApp) {
             PARTNER_BONUS: 6,
             FINANCIAL_POINTS_ADD_SYSTEM: 7,
             FINANCIAL_POINTS_DEDUCT_SYSTEM: 8
-        }
-
-        vm.playerInputDevice = {
-            "0": "Backstage",
-            "1": "Web Player",
-            "2": "Web Agent",
-            "3": "HTML5 Player",
-            "4": "HTML5 Agent",
-            "5": "APP Player",
-            "6": "APP Agent"
         };
+
+        vm.playerInputDevice = $scope.constPlayerRegistrationInterface;
 
         vm.claimStatus = {
             valid: "STILL VALID",
