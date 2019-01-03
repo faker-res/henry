@@ -36406,9 +36406,9 @@ define(['js/app'], function (myApp) {
                                 item.auctionStatus = 2;//white-刊登时间前
                             }else if( afterAuction && (currentTime > rewardEndTime) && (currentTime < afterAuction)){
                                 item.auctionStatus = 2;//white-刊登时间后
-                            }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && (item.lastProposal.status != vm.constProposalStatus.APPROVED && item.lastProposal.status != vm.constProposalStatus.SUCCESS) ){
+                            }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && item.lastProposal && (item.lastProposal.status != vm.constProposalStatus.APPROVED && item.lastProposal.status != vm.constProposalStatus.SUCCESS) ){
                                 item.auctionStatus = 3;//yellow-竞标中
-                            }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && (item.lastProposal.status == vm.constProposalStatus.APPROVED || item.lastProposal.status == vm.constProposalStatus.SUCCESS) ){
+                            }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && item.lastProposal && (item.lastProposal.status == vm.constProposalStatus.APPROVED || item.lastProposal.status == vm.constProposalStatus.SUCCESS) ){
                                 item.auctionStatus = 4;//red-場次結束
                             }else{
                                 item.auctionStatus = 5;//none;

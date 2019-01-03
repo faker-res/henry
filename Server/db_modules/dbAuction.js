@@ -6,6 +6,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const constProposalType = require('./../const/constProposalType');
 const constProposalStatus = require("../const/constProposalStatus");
 const constPromoCodeTemplateGenre = require("./../const/constPromoCodeTemplateGenre");
+const dbutility = require('./../modules/dbutility');
 
 var dbAuction = {
     /**
@@ -56,6 +57,7 @@ var dbAuction = {
         let proms = [];
         let proposalType;
         let result = [];
+
         return dbconfig.collection_proposalType.findOne({
             platformId: query.platformObjId,
             name: constProposalType.PLAYER_TOP_UP
@@ -71,9 +73,14 @@ var dbAuction = {
             result = auctionItems;
             // if(auctionItems.length <= 0 ){ return }
             auctionItems.forEach(item=>{
+                let period = dbAuction.getPeriodTime(item);
                 let prom = dbconfig.collection_proposal.find({
                     type: proposalType._id,
-                    status: constProposalStatus.APPROVED
+                    $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}],
+                    createTime:{
+                        '$gte':period.startTime,
+                        '$lte':period.endTime
+                    }
                 },{ 'proposalId':1, 'status':1, 'data.playerName':1, 'createTime':1 }).limit(10).sort('-createTime')
                 .then(proposal=>{
                     item.proposal = proposal;
@@ -88,6 +95,22 @@ var dbAuction = {
                 }
             )
         })
+    },
+    getPeriodTime: function(auctionItem){
+        let period;
+        if(auctionItem.rewardInterval){
+            if(auctionItem.rewardInterval == 'weekly'){
+                period = dbutility.getCurrentWeekSGTime();
+            }else if(auctionItem.rewardInterval == 'monthly'){
+                period = dbutility.getCurrentMonthSGTIme();
+            }else if(auctionItem.rewardInterval == 'monthly'){
+                period = {
+                    startTime: auctionItem.rewardStartTime,
+                    endTime: auctionItem.rewardEndTime
+                }
+            }
+        }
+        return period;
     },
     createAuctionProduct: function (auctionProduct) {
         let templateProm = Promise.resolve(true);
