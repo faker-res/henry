@@ -3225,6 +3225,18 @@ table.simple-table-single > thead > tr > th {
     color: #A9A9A9
 }
 
-.grayAuction{
-    background-color:#5cb85c !important;
+.beforeAuction{
+    background-color:#BDC0BA !important;
+}
+
+.startingAuction{
+    background-color:#FCFAF2 !important;
+}
+
+.notInPublishAuction{
+    background-color:#E9CD4C !important;
+}
+
+.overAuction{
+    background-color:#F17C67 !important;
 }

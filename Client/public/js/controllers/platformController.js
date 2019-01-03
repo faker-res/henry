@@ -367,6 +367,12 @@ define(['js/app'], function (myApp) {
                 MANUAL: 5,
             };
 
+            vm.auctionColor = {
+                '1':'beforeAuction',
+                '2':'startingAuction',
+                '3':'notInPublishAuction',
+                '4':'overAuction'
+            }
 
             // player advertisement
             vm.currentImageButtonNo = 2;
@@ -36365,17 +36371,26 @@ define(['js/app'], function (myApp) {
                             item.bidTimes = item.proposal.length;
                             item.lastProposal = item.proposal[item.bidTimes-1];
                             item.timeLeft = new Date(item.rewardEndTime).getTime() - new Date().getTime();
+
+                            let beforeAuction = new Date(item.rewardStartTime).getTime() - (item.productStartTime*60*1000);
+                            let afterAuction = new Date(item.rewardEndTime).getTime() + (item.productEndTime*60*1000);
+
                             if(item.lastProposal && (item.lastProposal.status == vm.constProposalStatus.APPROVED|| item.lastProposal.status == vm.constProposalStatus.SUCCESS)){
                                 item.dealAt = item.lastProposal.createTime;
                             }
-                            let rewardStartTime = new Date(item.rewardStartTime);
-                            let rewardEndTime =  new Date(item.rewardEndTime);
+                            let rewardStartTime = new Date(item.rewardStartTime).getTime();
+                            let rewardEndTime =  new Date(item.rewardEndTime).getTime();
+
                             if((currentTime < rewardStartTime) && (currentTime > rewardEndTime)){
-                                item.auctionStatus = 1;//gray
+                                item.auctionStatus = 1;//gray-非刊登时间
+                            }else if( beforeAuction && (currentTime > beforeAuction) && (currentTime < rewardStartTime)){
+                                item.auctionStatus = 2;//white-刊登时间前
+                            }else if( afterAuction && (currentTime > rewardEndTime) && (currentTime < afterAuction)){
+                                item.auctionStatus = 2;//white-刊登时间后
                             }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && (item.lastProposal.status != vm.constProposalStatus.APPROVED && item.lastProposal.status != vm.constProposalStatus.SUCCESS) ){
-                                item.auctionStatus = 3;//yellow
+                                item.auctionStatus = 3;//yellow-竞标中
                             }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && (item.lastProposal.status == vm.constProposalStatus.APPROVED || item.lastProposal.status == vm.constProposalStatus.SUCCESS) ){
-                                item.auctionStatus = 4;//red
+                                item.auctionStatus = 4;//red-場次結束
                             }else{
                                 item.auctionStatus = 5;//none;
                             }
@@ -36631,17 +36646,16 @@ define(['js/app'], function (myApp) {
                                 return result;
                             }
                         },
-                        // {title: $translate('Product Name'), data: "auctionStatus",
-                        //     render: function(data, type, row){
-                        //         let result = '<div ng-class="{\'4\':\'modal-content\' }['+row.auctionStatus+']">' + row.auctionStatus + '</div>';
-                        //         return result;
-                        //     }
-                        // },
-
                         {title: $translate('Sell From'), data: "seller"},
                         {title: $translate('Starting Price'), data: "startingPrice"},
                         {title: $translate('Direct Purchase Price'), data: "directPurchasePrice"},
-                        {title: $translate('Exclusive'), data: "isExclusive"},
+                        {title: $translate('Exclusive'), data: "isExclusive",
+                            render: function(data, type, row){
+                                let isChecked = data ? 'CHECKED':'';
+                                let result = '<input type="checkbox" DISABLED '+isChecked+'>';
+                                return result;
+                            }
+                        },
                         {title: $translate('Current Bid'), data: "lastProposal.amount"},
                         {title: $translate('Bid Times'), data: "bidTimes"},
                         {title: $translate('Time Left'), data: "timeLeft"},
@@ -36650,7 +36664,8 @@ define(['js/app'], function (myApp) {
                     ],
                     "paging": false,
                     "createdRow": function(row, data, dataIndex){
-                        $(row).addClass('grayAuction')
+                        let colorClass = vm.auctionColor[data.auctionStatus];
+                        $(row).addClass(colorClass)
                     },
                     fnInitComplete: function(settings){
                         $compile(angular.element('#' + settings.sTableId).contents())($scope);
