@@ -93,13 +93,9 @@ define(['js/app'], function (myApp) {
             PARTNER_BONUS: 6,
             FINANCIAL_POINTS_ADD_SYSTEM: 7,
             FINANCIAL_POINTS_DEDUCT_SYSTEM: 8
-        }
-
-        vm.playerInputDevice = {
-            1: "WEB_PLAYER",
-            3: "H5_PLAYER",
-            5: "APP_PLAYER"
         };
+
+        vm.playerInputDevice = $scope.constPlayerRegistrationInterface;
 
         vm.claimStatus = {
             valid: "STILL VALID",
@@ -1756,9 +1752,9 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
-                        title: $translate('DEVICE'), data: "data.userAgent",
+                        title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            var text = $translate(data ? $scope.userAgentType[data] : $scope.userAgentType['0']);
+                            var text = $translate(data ? vm.playerInputDevice[data] : vm.playerInputDevice['0']);
                             return "<div>" + text + "</div>";
                         }
                     },
