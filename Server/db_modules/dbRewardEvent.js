@@ -506,9 +506,10 @@ var dbRewardEvent = {
                                             if (checkRewardData.condition.bet.status == 0) {
                                                 delete checkRewardData.condition.bet;
                                             }
-                                            if (checkRewardData.status == 2 || checkRewardData.status == 3) {
-                                                delete checkRewardData.result;
-                                            }
+                                            // reynold said in no scenario that result should be hidden
+                                            // if (checkRewardData.status == 2 || checkRewardData.status == 3) {
+                                            //     delete checkRewardData.result;
+                                            // }
 
                                             if (rewardEvent.code){
                                                 checkRewardData.code = rewardEvent.code;
