@@ -804,7 +804,7 @@ var proposal = {
     updateTopupProposal: function (proposalId, status, requestId, orderStatus, remark, callbackData) {
         let proposalObj = null;
         let type = constPlayerTopUpType.ONLINE;
-        let updObj;
+        let updObj, topupRate, topupActualAmt;
 
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
             path: 'type', model: dbconfig.collection_proposalType
@@ -1010,18 +1010,13 @@ var proposal = {
                             }
 
                             // Add merchant rate and actualReceivedAmount
-                            addDetailToProp(
-                                updObj.data,
-                                'rate',
-                                merchantRate && merchantRate.customizeRate ? merchantRate.customizeRate : 0
-                            );
-                            addDetailToProp(
-                                updObj.data,
-                                'actualAmountReceived',
-                                merchantRate && merchantRate.customizeRate ?
-                                    (Number(proposalObj.data.amount) * Number(merchantRate.customizeRate)).toFixed(2)
-                                    : proposalObj.data.amount
-                            );
+                            topupRate = merchantRate && merchantRate.customizeRate ? merchantRate.customizeRate : 0;
+                            topupActualAmt = merchantRate && merchantRate.customizeRate ?
+                                (Number(proposalObj.data.amount) * Number(merchantRate.customizeRate)).toFixed(2)
+                                : proposalObj.data.amount;
+
+                            addDetailToProp(updObj.data, 'rate', topupRate);
+                            addDetailToProp(updObj.data, 'actualAmountReceived', topupActualAmt);
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
@@ -1033,17 +1028,15 @@ var proposal = {
             }
         ).then(
             propData => {
+                console.log('propData', propData);
                 let retObj = {
                     proposalId: proposalId,
                     orderStatus: orderStatus,
                     depositId: requestId,
                     type: type,
+                    rate: topupRate,
+                    actualAmountReceived: topupActualAmt
                 };
-
-                if (propData) {
-                    retObj.rate = propData.data.rate;
-                    retObj.actualAmountReceived = propData.data.actualAmountReceived;
-                }
 
                 return retObj;
             },
