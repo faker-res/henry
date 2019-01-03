@@ -8912,7 +8912,7 @@ define(['js/app'], function (myApp) {
 
                     if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.baccaratRewardList && vm.selectedProposal.data.baccaratRewardList.length > 0) {
                         vm.selectedProposal.data.baccaratRewardList.forEach(detail => {
-                            if (detail && detail.roundNo) {
+                            if (detail) {
                                 rewardDetail += detail.roundNo + '，' + $translate('BET_AMOUNT') + detail.betAmount + $translate('YEN') + '，'
                                     + $translate('REWARD_AMOUNT') + '：' + detail.rewardAmount + $translate('YEN') + '，' + $translate('remark') + '：' + detail.remark + '<br>';
                             }
