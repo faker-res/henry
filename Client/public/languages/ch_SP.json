@@ -887,6 +887,8 @@
   "Reward amount": "优惠额",
   "OFFER_AMOUNT": "促销额度",
   "Reward number": "优惠数",
+  "Product name must be unique": "品名不能重复",
+  "Product name has collided with the Promo code name": "品名不能与优惠代码名称相同",
   "Minimum spending amount for reward task": "优惠最低投注额",
   "Minimum daily top up amount": "每日最低充值额",
   "Minimum daily consumption amount": "每日最低投注额",
