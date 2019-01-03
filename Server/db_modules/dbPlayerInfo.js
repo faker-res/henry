@@ -5600,6 +5600,7 @@ let dbPlayerInfo = {
             data => {
                 if (data) {
                     playerObj = data;
+
                     if (platformObj.onlyNewCanLogin && !playerObj.isNewSystem) {
                         return Promise.reject({
                             name: "DataError",
@@ -5735,7 +5736,6 @@ let dbPlayerInfo = {
                 })
             },
             error => {
-                console.log('playerLogin - error 1');
                 return Promise.reject({name: "DBError", message: "Error in getting player data", error: error});
             }
         ).then(
@@ -5809,8 +5809,12 @@ let dbPlayerInfo = {
             res => {
                 res.name = res.name.replace(platformPrefix, "");
                 retObj = res;
-                retObj.userCurrentPoint = retObj.rewardPointsObjId.points ? retObj.rewardPointsObjId.points : 0;
-                retObj.rewardPointsObjId = retObj.rewardPointsObjId._id;
+
+                if (retObj.rewardPointsObjId) {
+                    retObj.userCurrentPoint = retObj.rewardPointsObjId.points ? retObj.rewardPointsObjId.points : 0;
+                    retObj.rewardPointsObjId = retObj.rewardPointsObjId._id;
+                }
+
                 let a = retObj.bankAccountProvince ?
                     pmsAPI.foundation_getProvince({provinceId: retObj.bankAccountProvince}).catch(() => {}) : true;
                 let b = retObj.bankAccountCity ?

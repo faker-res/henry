@@ -1,0 +1,19 @@
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
+
+var playerTopUpDaySummaryByTopUpTypeSchema = new Schema({
+    //player id
+    playerId: {type: Schema.ObjectId, required: true, index: true},
+    // platform ID
+    platformId: {type: Schema.ObjectId, required: true, index: true},
+    // payment time
+    date: {type: Date, required: true, index: true},
+    //numerical value of the amount top-upped
+    amount: {type: Number, required: true, default: 0},
+    //top up times
+    times: {type: Number, default: 0},
+    //paid through Visa. mastercard, paypal etc..
+    topUpType: {type: String},
+});
+
+module.exports = playerTopUpDaySummaryByTopUpTypeSchema;
