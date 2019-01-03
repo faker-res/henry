@@ -332,7 +332,7 @@ var dbPlayerTopUpRecord = {
                 queryObj.type = {$in: typeIds};
 
                 // console.log('queryObj', JSON.stringify(queryObj, null, 4));
-                var a = dbconfig.collection_proposal.find(queryObj).count();
+                var a = dbconfig.collection_proposal.find(queryObj,{_id:1}).length();
                 var b = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
                     .populate({path: 'type', model: dbconfig.collection_proposalType})
                     .populate({path: "data.playerObjId", model: dbconfig.collection_players})

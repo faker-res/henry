@@ -96,9 +96,13 @@ define(['js/app'], function (myApp) {
         }
 
         vm.playerInputDevice = {
-            1: "WEB_PLAYER",
-            3: "H5_PLAYER",
-            5: "APP_PLAYER"
+            "0": "Backstage",
+            "1": "Web Player",
+            "2": "Web Agent",
+            "3": "HTML5 Player",
+            "4": "HTML5 Agent",
+            "5": "APP Player",
+            "6": "APP Agent"
         };
 
         vm.claimStatus = {
@@ -1895,9 +1899,9 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
-                        title: $translate('DEVICE'), data: "data.userAgent",
+                        title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            var text = $translate(data ? $scope.userAgentType[data] : $scope.userAgentType['0']);
+                            var text = $translate(data ? vm.playerInputDevice[data] : vm.playerInputDevice['0']);
                             return "<div>" + text + "</div>";
                         }
                     },
