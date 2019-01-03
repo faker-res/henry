@@ -242,7 +242,7 @@ ul.roleList {
 }
 
 .padding-all-20 {
-     padding: 20px !important;
+ padding: 20px !important;
 }
 
 .padding-left-right-1 {
@@ -3223,4 +3223,8 @@ table.simple-table-single > thead > tr > th {
 .questionTooltip {
     margin-left: 0.3em;
     color: #A9A9A9
+}
+
+.grayAuction{
+    background-color:#5cb85c !important;
 }

@@ -36340,7 +36340,7 @@ define(['js/app'], function (myApp) {
                 vm.excludeAuctionItem = [];
                 vm.notAvailableAuctionItem = [];
 
-                let exclusiveQuery = {publish:true, status:1};
+                let exclusiveQuery = {platformObjId : vm.selectedPlatform.id, publish:true, status:1};
                 let prom1 = new Promise((resolve, reject)=>{
                   socketService.$socket($scope.AppSocket, 'listAuctionItems', exclusiveQuery, function (data) {
                       vm.drawAuctionPublishTable(data.data);
@@ -36348,7 +36348,7 @@ define(['js/app'], function (myApp) {
                   });
                 })
 
-                let notAvailableQuery = {publish:false, status:1};
+                let notAvailableQuery = {platformObjId : vm.selectedPlatform.id, publish:false, status:1};
                 prom1.then(()=>{
                     socketService.$socket($scope.AppSocket, 'listAuctionItems', notAvailableQuery, function (data) {
                         vm.drawAuctionNotAvailableTable(data.data);
@@ -36357,8 +36357,31 @@ define(['js/app'], function (myApp) {
             };
 
             vm.listAuctionMonitor = function(){
-                let sendQuery = { publish : true};
+                let sendQuery = { publish : true, platformObjId : vm.selectedPlatform.id};
+                let currentTime = new Date().getTime();
                 socketService.$socket($scope.AppSocket, 'listAuctionMonitor', sendQuery, function (data) {
+                    if(data.data.length > 0){
+                        data.data.forEach(item=>{
+                            item.bidTimes = item.proposal.length;
+                            item.lastProposal = item.proposal[item.bidTimes-1];
+                            item.timeLeft = new Date(item.rewardEndTime).getTime() - new Date().getTime();
+                            if(item.lastProposal && (item.lastProposal.status == vm.constProposalStatus.APPROVED|| item.lastProposal.status == vm.constProposalStatus.SUCCESS)){
+                                item.dealAt = item.lastProposal.createTime;
+                            }
+                            let rewardStartTime = new Date(item.rewardStartTime);
+                            let rewardEndTime =  new Date(item.rewardEndTime);
+                            if((currentTime < rewardStartTime) && (currentTime > rewardEndTime)){
+                                item.auctionStatus = 1;//gray
+                            }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && (item.lastProposal.status != vm.constProposalStatus.APPROVED && item.lastProposal.status != vm.constProposalStatus.SUCCESS) ){
+                                item.auctionStatus = 3;//yellow
+                            }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && (item.lastProposal.status == vm.constProposalStatus.APPROVED || item.lastProposal.status == vm.constProposalStatus.SUCCESS) ){
+                                item.auctionStatus = 4;//red
+                            }else{
+                                item.auctionStatus = 5;//none;
+                            }
+                            return item;
+                        })
+                    }
                     vm.drawAuctionMonitorTable(data.data);
                 });
             }
@@ -36608,17 +36631,27 @@ define(['js/app'], function (myApp) {
                                 return result;
                             }
                         },
+                        // {title: $translate('Product Name'), data: "auctionStatus",
+                        //     render: function(data, type, row){
+                        //         let result = '<div ng-class="{\'4\':\'modal-content\' }['+row.auctionStatus+']">' + row.auctionStatus + '</div>';
+                        //         return result;
+                        //     }
+                        // },
+
                         {title: $translate('Sell From'), data: "seller"},
                         {title: $translate('Starting Price'), data: "startingPrice"},
                         {title: $translate('Direct Purchase Price'), data: "directPurchasePrice"},
                         {title: $translate('Exclusive'), data: "isExclusive"},
-                        {title: $translate('Current Bid'), data: "currentBid"},
+                        {title: $translate('Current Bid'), data: "lastProposal.amount"},
                         {title: $translate('Bid Times'), data: "bidTimes"},
                         {title: $translate('Time Left'), data: "timeLeft"},
                         {title: $translate('Deal at'), data: "dealAt"},
-                        {title: $translate('Leading Bidder'), data: "leadingBidder"}
+                        {title: $translate('Leading Bidder'), data: "lastProposal.data.playerName"}
                     ],
                     "paging": false,
+                    "createdRow": function(row, data, dataIndex){
+                        $(row).addClass('grayAuction')
+                    },
                     fnInitComplete: function(settings){
                         $compile(angular.element('#' + settings.sTableId).contents())($scope);
                     }

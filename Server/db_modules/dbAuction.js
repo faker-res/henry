@@ -3,6 +3,8 @@ var mongoose = require('mongoose');
 const dbProposal = require('./../db_modules/dbProposal');
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const ObjectId = mongoose.Types.ObjectId;
+const constProposalType = require('./../const/constProposalType');
+const constProposalStatus = require("../const/constProposalStatus");
 const constPromoCodeTemplateGenre = require("./../const/constPromoCodeTemplateGenre");
 
 var dbAuction = {
@@ -10,6 +12,7 @@ var dbAuction = {
      * List All Auction Items
      */
     listAuctionItems: (query) => {
+        console.log(query);
         return dbconfig.collection_auctionSystem.find(query).exec();
     },
     addAuctionItem: (data) => {
@@ -51,12 +54,44 @@ var dbAuction = {
         return [];
     },
     listAuctionMonitor: function(query){
-        return dbconfig.collection_auctionSystem.find(query).then(
-            data=>{
-                console.log(data);
-                return data;
+        let proms = [];
+        let proposalType;
+        let result = [];
+        return dbconfig.collection_proposalType.findOne({
+            platformId: query.platformObjId,
+            name: constProposalType.PLAYER_TOP_UP
+        }).lean()
+        .then(
+            proposalTypeData => {
+                if (proposalTypeData) {
+                    proposalType = proposalTypeData;
+                }
+                return dbconfig.collection_auctionSystem.find(query).lean()
             }
-        )
+        ).then(auctionItems=>{
+            result = auctionItems;
+            if(auctionItems.length <= 0 ){ return }
+            auctionItems.forEach(item=>{
+                console.log(item);
+                let prom = dbconfig.collection_proposal.find({
+                    type: proposalType._id,
+                    status: constProposalStatus.APPROVED
+                },{ proposalId:1, status:1, 'data.playerName':1, createTime:1 }).sort('-createTime')
+                .then(proposal=>{
+                    console.log(proposal);
+                    item.proposal = proposal;
+                    return item;
+                });
+                proms.push(prom);
+            })
+            // return result
+            return Promise.all(proms).then(
+              data=>{
+                console.log(data);
+                return result
+              }
+            )
+        })
     },
     createAuctionProduct: function (auctionProduct) {
         let templateProm = Promise.resolve(true);
