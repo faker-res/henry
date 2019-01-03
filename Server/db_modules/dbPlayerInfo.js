@@ -4021,8 +4021,6 @@ let dbPlayerInfo = {
      * @param {String} paymentChannelName
      */
     playerTopUp: function (playerId, amount, paymentChannelName, topUpType, proposalData, oriAmount) {
-        console.log('playerTopUp', playerId, amount);
-
         function topupUpdateRTG(playerData, platformData, amount) {
             player = playerData;
             platform = platformData;
@@ -4220,8 +4218,9 @@ let dbPlayerInfo = {
                         }
                         logData = proposalData.data;
                         recordData.proposalId = proposalData.proposalId;
-                        recordData.userAgent = proposalData.data.userAgent;
+                        recordData.userAgent = proposalData.data.clientType;
                     }
+
                     let newRecord = new dbconfig.collection_playerTopUpRecord(recordData);
                     let recordProm = newRecord.save();
                     let type = "";
