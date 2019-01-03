@@ -4021,6 +4021,8 @@ let dbPlayerInfo = {
      * @param {String} paymentChannelName
      */
     playerTopUp: function (playerId, amount, paymentChannelName, topUpType, proposalData, oriAmount) {
+        console.log('playerTopUp', playerId, amount);
+
         function topupUpdateRTG(playerData, platformData, amount) {
             player = playerData;
             platform = platformData;
