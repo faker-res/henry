@@ -1796,6 +1796,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         Object.assign(sendData1, sendData);
         sendData1.topUpType = ['PlayerTopUp', 'ManualPlayerTopUp', 'PlayerAlipayTopUp', 'PlayerWechatTopUp'];
         sendData1.playerBonusType = 'PlayerBonus';
+        sendData1.partnerBonusType = 'PartnerBonus';
 
         socketService.$socket($scope.AppSocket, 'getProfitDisplayDetailByPlatform', sendData1, function (data) {
 
@@ -1804,11 +1805,12 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 $scope.profitDetailBonusAmount =  0;
                 $scope.profitDetailTopUpAmount = 0;
 
-                let bonusAmount = data.data[0][0] != undefined ? data.data[0][0].amount : 0;
-                let topUpAmount = data.data[1][0] != undefined ? data.data[1][0].amount : 0;
+                let playerBonusAmount = data.data[0][0] !== undefined ? data.data[0][0].amount : 0;
+                let topUpAmount = data.data[1][0] !== undefined ? data.data[1][0].amount : 0;
+                let partnerBonusAmount = data.data[2][0] !== undefined ? data.data[2][0].amount : 0;
 
-                $scope.profitDetailIncome = noDecimalPlacesString(topUpAmount - bonusAmount);
-                $scope.profitDetailBonusAmount =  noDecimalPlacesString(bonusAmount);
+                $scope.profitDetailIncome = noDecimalPlacesString(topUpAmount - playerBonusAmount - partnerBonusAmount);
+                $scope.profitDetailBonusAmount =  noDecimalPlacesString(playerBonusAmount + partnerBonusAmount);
                 $scope.profitDetailTopUpAmount = noDecimalPlacesString(topUpAmount);
 
                 let sendData3 = {
@@ -1816,7 +1818,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     startDate: utilService.getThisMonthStartTime(),
                     endDate: utilService.getThisMonthEndTime(),
                     topUpType: ['PlayerTopUp', 'ManualPlayerTopUp', 'PlayerAlipayTopUp', 'PlayerWechatTopUp'],
-                    playerBonusType: 'PlayerBonus'
+                    playerBonusType: 'PlayerBonus',
+                    partnerBonusType: 'PartnerBonus',
                 };
 
                 socketService.$socket($scope.AppSocket, 'getProfitDisplayDetailByPlatform', sendData3, function (totalAmount) {
@@ -1824,10 +1827,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     $scope.$evalAsync(() => {
                         $scope.netProfitDetailIncome = 0;
 
-                        let totalBonusAmount = totalAmount.data[0][0] != undefined ? totalAmount.data[0][0].amount : 0;
-                        let totalTopUpAmount = totalAmount.data[1][0] != undefined ? totalAmount.data[1][0].amount : 0;
+                        let totalPlayerBonusAmount = totalAmount.data[0][0] !== undefined ? totalAmount.data[0][0].amount : 0;
+                        let totalTopUpAmount = totalAmount.data[1][0] !== undefined ? totalAmount.data[1][0].amount : 0;
+                        let totalPartnerBonusAmount = totalAmount.data[2][0] !== undefined ? totalAmount.data[2][0].amount : 0;
 
-                        $scope.netProfitDetailIncome = noDecimalPlacesString(totalTopUpAmount - totalBonusAmount);
+                        $scope.netProfitDetailIncome = noDecimalPlacesString(totalTopUpAmount - totalPlayerBonusAmount - totalPartnerBonusAmount);
 
                         queryDone[3] = true;
                     })

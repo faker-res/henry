@@ -4218,8 +4218,9 @@ let dbPlayerInfo = {
                         }
                         logData = proposalData.data;
                         recordData.proposalId = proposalData.proposalId;
-                        recordData.userAgent = proposalData.data.userAgent;
+                        recordData.userAgent = proposalData.data.clientType;
                     }
+
                     let newRecord = new dbconfig.collection_playerTopUpRecord(recordData);
                     let recordProm = newRecord.save();
                     let type = "";

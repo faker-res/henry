@@ -52,6 +52,7 @@ router.post('/notifyPayment', function(req, res, next) {
 
             dbProposal.updateTopupProposal(msgBody.proposalId, statusText, msgBody.billNo, msgBody.status, msgBody.remark, msgBody).then(
                 data => {
+                    console.log('updateTopupProposal data', data);
                     let returnMsg = encodeURIComponent(JSON.stringify({
                         code: constServerCode.SUCCESS,
                         msg: "succ",

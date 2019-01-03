@@ -24,11 +24,7 @@
                         option(ng-repeat='(i,v) in vm.topUpTypeList', value='{{v}}') {{i | translate}}
                 div(style='max-width:125px')
                     label {{'DEVICE' | translate}}
-                    select.form-control.merchantNoList(ng-change='vm.filterMerchant()',ng-model='vm.queryTopup.userAgent', required, multiple, static-bsp, data-actions-box='true')
-                        option(value='1') WEB
-                        option(value='2') APP
-                        option(value='3') H5
-                        option(value='') {{"Backstage" | translate}}
+                    select.form-control.merchantNoList(ng-options='i as v|translate for (i,v) in vm.playerInputDevice' ng-change='vm.filterMerchant()',ng-model='vm.queryTopup.userAgent', required, multiple, static-bsp, data-actions-box='true')
 
                 div(style='max-width:180px')
                     label {{'Online Topup Type' | translate}}

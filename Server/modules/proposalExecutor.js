@@ -4680,11 +4680,8 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
             .populate({path: "providers", model: dbconfig.collection_gameProvider}).lean();
     }
 
-    console.log('createRewardTaskForProposal', taskData);
-
     Promise.all([gameProviderGroupProm, platformProm, playerProm]).then(
         res => {
-            console.log("createRewardTaskForProposal Promise.all res", res);
             gameProviderGroup = res[0];
             platform = res[1];
             playerRecord = res[2];
@@ -4733,19 +4730,13 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
                             }
                         });
 
-                        return Promise.all(calCreditArr).then(data=>{
-                            console.log("createRewardTaskForProposal Promise.all.then.innerPromise.all success",data);
-                            return data;
-                        },err=>{
-                            console.log("createRewardTaskForProposal Promise.all.then.innerPromise.all error",err)
-                            return err;
-                        });
+                        return Promise.all(calCreditArr);
                     }
-                });
+                }
+            );
         }
     ).then(
         rewardTaskGroup => {
-            console.log("createRewardTaskForProposal Promise.all.then.then rewardTaskGroup", rewardTaskGroup);
             if(rewardTaskGroup){
                 let rtgArr = [];
 
@@ -4769,7 +4760,7 @@ function createRewardTaskForProposal(proposalData, taskData, deferred, rewardTyp
 
                         }
                     }
-                )
+                );
 
                 return Promise.all(rtgArr).catch(err => {
                     // without current catch, the then chain might be broken
