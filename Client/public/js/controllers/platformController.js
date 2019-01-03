@@ -8839,7 +8839,7 @@ define(['js/app'], function (myApp) {
                         quickPayGroup: vm.selectedSinglePlayer.quickPayGroup,
                         trustLevel: vm.selectedSinglePlayer.trustLevel,
                         photoUrl: vm.selectedSinglePlayer.photoUrl,
-                        playerLevel: vm.selectedSinglePlayer.playerLevel._id,
+                        playerLevel: vm.selectedSinglePlayer.playerLevel ? vm.selectedSinglePlayer.playerLevel._id : null,
                         referral: vm.selectedSinglePlayer.referral,
                         smsSetting: vm.selectedSinglePlayer.smsSetting,
                         gender: vm.selectedSinglePlayer.gender,
@@ -22467,14 +22467,14 @@ define(['js/app'], function (myApp) {
 
                 if (vm.showRewardTypeData.isGrouped === true && vm.showRewardTypeData.name === 'BaccaratRewardGroup') {
                     if (vm.rewardParams && vm.rewardParams.rewardParam && vm.rewardParams.rewardParam.length > 0) {
-                        vm.rewardParams.rewardParam.forEach(x => {console.log('x', x)
+                        vm.rewardParams.rewardParam.forEach(x => {
                             if (x && x.value && x.value.length > 0) {
-                                x.value.forEach(el => { console.log('el', el)
+                                x.value.forEach(el => {
                                     if (el && Object.keys(el).length > 0) {
-                                        if (!el.hostResult) {
+                                        if (el.hostResult === null || el.hostResult === 'undefined') {
                                             isValid = false;
                                             isHostResult = false;
-                                        } else if (!el.playerResult) {
+                                        } else if (el.playerResult === null || el.playerResult === 'undefined') {
                                             isValid = false;
                                             isPlayerResult = false;
                                         }
@@ -22651,10 +22651,10 @@ define(['js/app'], function (myApp) {
                             if (x && x.value && x.value.length > 0) {
                                 x.value.forEach(el => {
                                     if (el && Object.keys(el).length > 0) {
-                                        if (!el.hostResult) {
+                                        if (el.hostResult === null || el.hostResult === 'undefined') {
                                             isValid = false;
                                             isHostResult = false;
-                                        } else if (!el.playerResult) {
+                                        } else if (el.playerResult === null || el.playerResult === 'undefined') {
                                             isValid = false;
                                             isPlayerResult = false;
                                         }
@@ -36343,6 +36343,35 @@ define(['js/app'], function (myApp) {
                 let sendData = { _id: id };
                 socketService.$socket($scope.AppSocket, 'loadAuctionItem', sendData, function (data) {
                     $scope.$evalAsync(()=>{
+                        vm.auctionSystemCreateProductStatus = null;
+                        vm.auctionSystemUpdateProductStatus = null;
+                        let rewardStartTime = data && data.data && data.data.rewardStartTime ? utilService.getLocalTime(new Date(data.data.rewardStartTime)) : utilService.getNdayagoStartTime(0);
+                        let rewardEndTime = data && data.data && data.data.rewardEndTime ? utilService.getLocalTime(new Date(data.data.rewardEndTime)) : utilService.getNdaylaterStartTime(30);
+                        let registerStartTime = data && data.data && data.data.registerStartTime ? utilService.getLocalTime(new Date(data.data.registerStartTime)) : utilService.getNdayagoStartTime(90);
+                        let registerEndTime = data && data.data && data.data.registerEndTime ? utilService.getLocalTime(new Date(data.data.registerEndTime)) : utilService.getNdaylaterStartTime(1);
+
+                        utilService.actionAfterLoaded("#auctionProductDetailTable", function () {
+                            commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerStartTime', '#auctionSystemProductRegisterStartTimePicker',
+                                registerStartTime, true, {
+                                    language: 'en',
+                                    format: 'yyyy/MM/dd hh:mm:ss'
+                                });
+                            commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerEndTime', '#auctionSystemProductRegisterEndTimePicker',
+                                registerEndTime, true, {
+                                    language: 'en',
+                                    format: 'yyyy/MM/dd hh:mm:ss'
+                                });
+                            commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'rewardStartTime', '#auctionSystemProductRewardStartTimePicker',
+                                rewardStartTime, true, {
+                                    language: 'en',
+                                    format: 'yyyy/MM/dd hh:mm:ss'
+                                });
+                            commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'rewardEndTime', '#auctionSystemProductRewardEndTimePicker',
+                                rewardEndTime, true, {
+                                    language: 'en',
+                                    format: 'yyyy/MM/dd hh:mm:ss'
+                                });
+                        })
                         vm.initCreateProduct = true;
                         vm.auctionSystemEditStatus = (data && data.data) ? true: false;
                         vm.auctionSystemProduct = (data && data.data) ? data.data: {};
@@ -36355,6 +36384,10 @@ define(['js/app'], function (myApp) {
             }
 
             vm.updateAuctionProduct = function(id){
+                vm.auctionSystemProduct.registerStartTime = $('#auctionSystemProductRegisterStartTimePicker').data('datetimepicker').getLocalDate();
+                vm.auctionSystemProduct.registerEndTime = $('#auctionSystemProductRegisterEndTimePicker').data('datetimepicker').getLocalDate();
+                vm.auctionSystemProduct.rewardStartTime = $('#auctionSystemProductRewardStartTimePicker').data('datetimepicker').getLocalDate();
+                vm.auctionSystemProduct.rewardEndTime = $('#auctionSystemProductRewardEndTimePicker').data('datetimepicker').getLocalDate();
                 let sendData = {
                      _id: vm.auctionSystemProduct._id ,
                      updateData: vm.auctionSystemProduct
@@ -36411,14 +36444,49 @@ define(['js/app'], function (myApp) {
             };
 
             vm.initAuctionSystemCreateProduct = function () {
-                commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerStartTime', '#auctionSystemProductRegisterStartTimePicker',
-                    utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(90)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
-                commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerEndTime', '#auctionSystemProductRegisterEndTimePicker',
-                    utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(1)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
-                commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'rewardStartTime', '#auctionSystemProductRewardStartTimePicker',
-                    utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(0)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
-                commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'rewardEndTime', '#auctionSystemProductRewardEndTimePicker',
-                    utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(30)), true, {language: 'en', format: 'yyyy/MM/dd hh:mm:ss'});
+                // reset the param when create a new product
+                vm.auctionSystemCreateProductStatus = null;
+                vm.auctionSystemUpdateProductStatus = null;
+                vm.auctionProductReward = {};
+                vm.auctionSystemProduct = {
+                    registerStartTime: null,
+                    registerEndTime: null,
+                    rewardStartTime: null,
+                    rewardEndTime: null,
+                    playerType: 'Real Player (all)',
+                    rewardAppearPeriod: [
+                        {
+                            startDate: '',
+                            startTime: '',
+                            endDate: '',
+                            endTime: '',
+                        }
+                    ],
+                };
+                vm.resetRewardTypeChanged();
+
+                utilService.actionAfterLoaded("#auctionProductDetailTable", function () {
+                    commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerStartTime', '#auctionSystemProductRegisterStartTimePicker',
+                        utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(90)), true, {
+                            language: 'en',
+                            format: 'yyyy/MM/dd hh:mm:ss'
+                        });
+                    commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'registerEndTime', '#auctionSystemProductRegisterEndTimePicker',
+                        utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(1)), true, {
+                            language: 'en',
+                            format: 'yyyy/MM/dd hh:mm:ss'
+                        });
+                    commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'rewardStartTime', '#auctionSystemProductRewardStartTimePicker',
+                        utilService.setLocalDayStartTime(utilService.getNdayagoStartTime(0)), true, {
+                            language: 'en',
+                            format: 'yyyy/MM/dd hh:mm:ss'
+                        });
+                    commonService.commonInitTime(utilService, vm, 'auctionSystemProduct', 'rewardEndTime', '#auctionSystemProductRewardEndTimePicker',
+                        utilService.setLocalDayStartTime(utilService.getNdaylaterStartTime(30)), true, {
+                            language: 'en',
+                            format: 'yyyy/MM/dd hh:mm:ss'
+                        });
+                })
             };
 
             vm.resetRewardTypeChanged = function () {
@@ -36472,10 +36540,10 @@ define(['js/app'], function (myApp) {
 
             vm.createAuctionProduct = function () {
                 vm.auctionSystemProduct.platformObjId = vm.selectedPlatform.id;
-                vm.auctionSystemProduct.registerStartTime = $('#auctionSystemProductRegisterStartTimePicker').data('datetimepicker').getDate();
-                vm.auctionSystemProduct.registerEndTime = $('#auctionSystemProductRegisterEndTimePicker').data('datetimepicker').getDate();
-                vm.auctionSystemProduct.rewardStartTime = $('#auctionSystemProductRewardStartTimePicker').data('datetimepicker').getDate();
-                vm.auctionSystemProduct.rewardEndTime = $('#auctionSystemProductRewardEndTimePicker').data('datetimepicker').getDate();
+                vm.auctionSystemProduct.registerStartTime = $('#auctionSystemProductRegisterStartTimePicker').data('datetimepicker').getLocalDate();
+                vm.auctionSystemProduct.registerEndTime = $('#auctionSystemProductRegisterEndTimePicker').data('datetimepicker').getLocalDate();
+                vm.auctionSystemProduct.rewardStartTime = $('#auctionSystemProductRewardStartTimePicker').data('datetimepicker').getLocalDate();
+                vm.auctionSystemProduct.rewardEndTime = $('#auctionSystemProductRewardEndTimePicker').data('datetimepicker').getLocalDate();
                 vm.auctionSystemProduct.rewardData = vm.auctionProductReward;
                 vm.auctionSystemProduct.adminName = authService.adminName;
                 vm.auctionSystemProduct.adminId = authService.adminId;
