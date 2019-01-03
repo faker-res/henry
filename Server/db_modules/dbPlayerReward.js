@@ -7042,7 +7042,7 @@ let dbPlayerReward = {
                             if (maxApply && rewardAmount + consumptionApplication.rewardAmount + baccaratRewardAppliedAmount >= maxApply) {
                                 let currentBRewardAmount = maxApply - rewardAmount - baccaratRewardAppliedAmount;
                                 let currentBSpendingAmount = consumptionApplication.spendingAmount * (currentBRewardAmount/consumptionApplication.rewardAmount);
-                                rewardAmount = currentBRewardAmount;
+                                rewardAmount = maxApply - baccaratRewardAppliedAmount;
                                 spendingAmount += currentBSpendingAmount;
                                 break;
                             }
