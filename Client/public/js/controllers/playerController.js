@@ -19354,7 +19354,8 @@ define(['js/app'], function (myApp) {
                     proposalDetail["spendingAmount"] = vm.selectedProposal.data.spendingAmount;
                     proposalDetail["eventName"] = vm.selectedProposal.data.eventName;
                     proposalDetail["eventCode"] = vm.selectedProposal.data.eventCode;
-                    proposalDetail["REWARD_AMOUNT"] = vm.selectedProposal.data.rewardAmount + $translate('YEN') + ' (' + $translate('ORIGINAL_REWARD_TOTAL') + originalRewardTotal + ')';
+                    proposalDetail["REWARD_AMOUNT"] = vm.selectedProposal.data.rewardAmount < originalRewardTotal ?
+                        vm.selectedProposal.data.rewardAmount + $translate('YEN') + ' (' + $translate('ORIGINAL_REWARD_TOTAL') + originalRewardTotal + ')' : vm.selectedProposal.data.rewardAmount + $translate('YEN');
                     proposalDetail["REWARD_APPLIED"] = vm.selectedProposal.data.intervalRewardAmount + vm.selectedProposal.data.rewardAmount + $translate('YEN');
                     proposalDetail["MAX_REWARD"] = vm.selectedProposal.data.intervalMaxRewardAmount + $translate('YEN');
                     proposalDetail["ORDER_NO_REWARD_AMOUNT"] = rewardDetail;
