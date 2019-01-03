@@ -99,6 +99,30 @@ var dbPlayerTopUpRecord = {
         ).allowDiskUse(true).exec();
     },
 
+    getPlayersTotalTopUpByTopUpTypeForTimeFrame: function (startTime, endTime, platformId, playerIds) {
+        return dbconfig.collection_playerTopUpRecord.aggregate(
+            [
+                {
+                    $match: {
+                        platformId: platformId,
+                        createTime: {
+                            $gte: startTime,
+                            $lt: endTime
+                        },
+                        playerId: {$in: playerIds}
+                    }
+                },
+                {
+                    $group: {
+                        _id: {playerId: "$playerId", platformId: "$platformId", topUpType: "$topUpType"},
+                        amount: {$sum: "$amount"},
+                        times: {$sum: 1},
+                    }
+                }
+            ]
+        ).read("secondaryPreferred").allowDiskUse(true).exec();
+    },
+
     assignTopUpRecordUsedEvent: function (platformObjId, playerObjId, eventObjId, spendingAmount, startTime, endTime, byPassedEvent, usedProposal, rewardType, isNoLimit) {
         // if spendingAmount (i.e., the requiredTopUpAmount) is 0, ignore it as no top up record has to be used up
         if (spendingAmount) {

@@ -467,6 +467,9 @@ let callBackToUserLogModel = dbLogs2.model('callBackToUserLog', callBackToUserLo
 let auctionSystemSchema = require('./../schema/auctionSystem');
 let auctionSystemModel = dbLogs2.model('auctionSystem', auctionSystemSchema, 'auctionSystem');
 
+let playerTopUpDaySummaryByTopUpTypeSchema = require('./../schema/playerTopUpDaySummaryByTopUpType');
+let playerTopUpDaySummaryByTopUpTypeModel = dbLogs2.model('playerTopUpDaySummaryByTopUpType', playerTopUpDaySummaryByTopUpTypeSchema, 'playerTopUpDaySummaryByTopUpType');
+
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
 
@@ -648,6 +651,7 @@ var dbProperties = {
     collection_wcDevice: wcDeviceModel,
 
     collection_auctionSystem: auctionSystemModel,
+    collection_playerTopUpDaySummaryByTopUpType: playerTopUpDaySummaryByTopUpTypeModel,
 
     //logs
     collection_playerMail: playerMailModel,

@@ -495,7 +495,7 @@ let dbPlayerRewardPoints = {
                                 balancer.processStream(
                                     {
                                         stream: stream,
-                                        batchSize: constSystemParam.BATCH_SIZE,
+                                        batchSize: 100,
                                         makeRequest: function (rewardPoints, request) {
                                             request("player", "autoConvertPlayerRewardPoints", {
                                                 playerObjIds: rewardPoints.map(rewardPoint => {
@@ -541,6 +541,11 @@ let dbPlayerRewardPoints = {
                 playerObjId => {
                     let playerInfo = {}, platformData, playerLvlRewardPointsConfig, playerRewardPoints, rewardPointsProposalType,
                         isRewardPointsConfigSet = true;
+
+                    if (!playerObjId || String(playerObjId).length !== 24) {
+                        return;
+                    }
+
                     proms.push(
                         dbConfig.collection_players.findOne({
                             _id: playerObjId

@@ -36,14 +36,21 @@ const constProposalType = {
     DX_REWARD: "DxReward",
     PLAYER_LIMITED_OFFER_INTENTION: "PlayerLimitedOfferIntention",
     PLAYER_LIMITED_OFFER_REWARD: "PlayerLimitedOfferReward",
-    PLAYER_ADD_REWARD_POINTS: "PlayerAddRewardPoints",
-    PLAYER_MINUS_REWARD_POINTS: "PlayerMinusRewardPoints",
-    PLAYER_CONVERT_REWARD_POINTS: "PlayerConvertRewardPoints",
-    PLAYER_AUTO_CONVERT_REWARD_POINTS: "PlayerAutoConvertRewardPoints",
     BULK_EXPORT_PLAYERS_DATA: "BulkExportPlayerData",
 
     FINANCIAL_POINTS_ADD: "FinancialPointsAdd",
     FINANCIAL_POINTS_DEDUCT: "FinancialPointsDeduct",
+
+    // Reward points
+    PLAYER_ADD_REWARD_POINTS: "PlayerAddRewardPoints",
+    PLAYER_MINUS_REWARD_POINTS: "PlayerMinusRewardPoints",
+    PLAYER_CONVERT_REWARD_POINTS: "PlayerConvertRewardPoints",
+    PLAYER_AUTO_CONVERT_REWARD_POINTS: "PlayerAutoConvertRewardPoints",
+    AUCTION_PROMO_CODE: "AuctionPromoCode",
+    AUCTION_OPEN_PROMO_CODE: "AuctionOpenPromoCode",
+    AUCTION_REWARD_PROMOTION: "AuctionRewardPromotion",
+    AUCTION_REAL_PRIZE: "AuctionRealPrize",
+    AUCTION_REWARD_POINT_CHANGE: "AuctionRewardPointChange",
 
     // Group reward
     PLAYER_CONSECUTIVE_REWARD_GROUP: "PlayerConsecutiveRewardGroup",

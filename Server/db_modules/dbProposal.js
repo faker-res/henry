@@ -804,6 +804,7 @@ var proposal = {
     updateTopupProposal: function (proposalId, status, requestId, orderStatus, remark, callbackData) {
         let proposalObj = null;
         let type = constPlayerTopUpType.ONLINE;
+        let updObj, topupRate, topupActualAmt;
 
         return dbconfig.collection_proposal.findOne({proposalId: proposalId}).populate({
             path: 'type', model: dbconfig.collection_proposalType
@@ -902,6 +903,7 @@ var proposal = {
                     let propTypeProm = Promise.resolve();
                     let propTypeName = constProposalType.PLAYER_COMMON_TOP_UP;
                     let isCommonTopUp = false;
+                    let merchantProm = Promise.resolve(false);
 
                     if (type === constPlayerTopUpType.COMMON && proposalObj.data.platformId && callbackData.topUpType) {
                         switch (Number(callbackData.topUpType)) {
@@ -910,6 +912,14 @@ var proposal = {
                                 break;
                             case 2:
                                 propTypeName = constProposalType.PLAYER_TOP_UP;
+
+                                if (callbackData.merchantNo && proposalObj.data.platform) {
+                                    merchantProm = dbconfig.collection_platformMerchantList.findOne({
+                                        platformId: proposalObj.data.platform,
+                                        merchantNo: callbackData.merchantNo,
+                                        customizeRate: {$exists: true}
+                                    }, 'customizeRate').lean();
+                                };
                                 break;
                             case 3:
                                 propTypeName = constProposalType.PLAYER_ALIPAY_TOP_UP;
@@ -926,10 +936,10 @@ var proposal = {
                         isCommonTopUp = true;
                     }
 
-                    return propTypeProm.then(
-                        propType => {
+                    return Promise.all([propTypeProm, merchantProm]).then(
+                        ([propType, merchantRate]) => {
                             let updStatus = status || constProposalStatus.PREPENDING;
-                            let updObj = {
+                            updObj = {
                                 status: updStatus
                             };
 
@@ -965,38 +975,48 @@ var proposal = {
                                 updObj.data.isCommonTopUp = true;
                             }
 
-                            if (callbackData && callbackData.remark) {
-                                updObj.data.remark = callbackData.remark;
+                            // Some extra data
+                            addDetailToProp(updObj.data, 'remark', callbackData.remark);
+                            addDetailToProp(updObj.data, 'merchantNo', callbackData.merchantNo);
+                            addDetailToProp(updObj.data, 'merchantName', callbackData.merchantTypeName);
+                            addDetailToProp(updObj.data, 'bankCardNo', callbackData.bankCardNo);
+                            addDetailToProp(updObj.data, 'bankCardType', callbackData.bankTypeId);
+                            addDetailToProp(updObj.data, 'bankTypeId', callbackData.bankTypeId);
+                            addDetailToProp(updObj.data, 'cardOwner', callbackData.cardOwner);
+                            addDetailToProp(updObj.data, 'depositTime', callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '');
+                            addDetailToProp(updObj.data, 'depositeTime', callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '');
+                            addDetailToProp(updObj.data, 'validTime', callbackData.validTime ? new Date(callbackData.validTime.replace('+', ' ')) : '');
+                            addDetailToProp(updObj.data, 'cityName', callbackData.cityName);
+                            addDetailToProp(updObj.data, 'provinceName', callbackData.provinceName);
+                            addDetailToProp(updObj.data, 'orderNo', callbackData.billNo);
+                            addDetailToProp(updObj.data, 'requestId', callbackData.requestId);
+                            addDetailToProp(updObj.data, 'realName', callbackData.realName);
+
+                            addDetailToProp(updObj.data, 'userAlipayName', callbackData.userAlipayName);
+                            addDetailToProp(updObj.data, 'alipayAccount', callbackData.alipayAccount);
+                            addDetailToProp(updObj.data, 'alipayName', callbackData.alipayName);
+                            addDetailToProp(updObj.data, 'alipayQRCode', callbackData.alipayQRCode);
+                            addDetailToProp(updObj.data, 'qrcodeAddress', callbackData.qrcodeAddress);
+
+                            addDetailToProp(updObj.data, 'weChatAccount', callbackData.weChatAccount);
+                            addDetailToProp(updObj.data, 'weChatQRCode', callbackData.weChatQRCode);
+                            addDetailToProp(updObj.data, 'name', callbackData.name);
+                            addDetailToProp(updObj.data, 'nickname', callbackData.nickname);
+
+                            // Add playername if cancelled
+                            if (status === constProposalStatus.CANCEL) {
+                                addDetailToProp(updObj.data, 'cancelBy', "玩家：" + callbackData.username);
+                                addDetailToProp(updObj, 'settleTime', new Date());
                             }
 
-                            console.log('callbackData', callbackData);
+                            // Add merchant rate and actualReceivedAmount
+                            topupRate = merchantRate && merchantRate.customizeRate ? merchantRate.customizeRate : 0;
+                            topupActualAmt = merchantRate && merchantRate.customizeRate ?
+                                (Number(proposalObj.data.amount) - Number(proposalObj.data.amount) * Number(merchantRate.customizeRate)).toFixed(2)
+                                : proposalObj.data.amount;
 
-                            // Some extra data
-                            updObj.data.merchantNo = callbackData.merchantNo;
-                            updObj.data.merchantName = callbackData.merchantTypeName;
-                            updObj.data.bankCardNo = callbackData.bankCardNo;
-                            updObj.data.bankCardType = callbackData.bankTypeId;
-                            updObj.data.bankTypeId = callbackData.bankTypeId;
-                            updObj.data.cardOwner = callbackData.cardOwner;
-                            updObj.data.depositTime = callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '';
-                            updObj.data.depositeTime = callbackData.createTime ? new Date(callbackData.createTime.replace('+', ' ')) : '';
-                            updObj.data.validTime = callbackData.validTime ? new Date(callbackData.validTime.replace('+', ' ')) : '';
-                            updObj.data.cityName = callbackData.cityName;
-                            updObj.data.provinceName = callbackData.provinceName;
-                            updObj.data.orderNo = callbackData.billNo;
-                            updObj.data.requestId = callbackData.requestId;
-                            updObj.data.realName = callbackData.realName;
-
-                            updObj.data.userAlipayName = callbackData.userAlipayName;
-                            updObj.data.alipayAccount = callbackData.alipayAccount;
-                            updObj.data.alipayName = callbackData.alipayName;
-                            updObj.data.alipayQRCode = callbackData.alipayQRCode;
-                            updObj.data.qrcodeAddress = callbackData.qrcodeAddress;
-
-                            updObj.data.weChatAccount = callbackData.weChatAccount;
-                            updObj.data.weChatQRCode = callbackData.weChatQRCode;
-                            updObj.data.name = callbackData.name;
-                            updObj.data.nickname = callbackData.nickname;
+                            addDetailToProp(updObj.data, 'rate', topupRate);
+                            addDetailToProp(updObj.data, 'actualAmountReceived', topupActualAmt);
 
                             return dbconfig.collection_proposal.findOneAndUpdate(
                                 {_id: proposalObj._id, createTime: proposalObj.createTime},
@@ -1007,13 +1027,17 @@ var proposal = {
                 }
             }
         ).then(
-            data => {
-                return {
+            propData => {
+                let retObj = {
                     proposalId: proposalId,
                     orderStatus: orderStatus,
                     depositId: requestId,
-                    type: type
+                    type: type,
+                    rate: topupRate,
+                    actualAmountReceived: topupActualAmt
                 };
+
+                return retObj;
             },
             error => {
                 errorUtils.reportError(error);
@@ -1035,6 +1059,12 @@ var proposal = {
                 }
             }
         );
+
+        function addDetailToProp (updObj, updField, data) {
+            if (typeof data !== "undefined" && data !== null) {
+                updObj[updField] = data
+            }
+        }
     },
 
     updateBonusProposal: function (proposalId, status, bonusId, remark) {
@@ -7401,7 +7431,7 @@ var proposal = {
         )
     },
 
-    getProfitDisplayDetailByPlatform: (platformId, startDate, endDate, playerBonusType, topUpType) => {
+    getProfitDisplayDetailByPlatform: (platformId, startDate, endDate, playerBonusType, topUpType, partnerBonusType) => {
 
         let playerBonusProm = dbconfig.collection_proposalType.findOne({
             platformId: ObjectId(platformId),
@@ -7425,9 +7455,33 @@ var proposal = {
                         }
                     }
                 ]).read("secondaryPreferred")
-
             }
-        )
+        );
+
+        let partnerBonusProm = dbconfig.collection_proposalType.findOne({
+            platformId: ObjectId(platformId),
+            name: partnerBonusType
+        }).read("secondaryPreferred").lean().then(
+            (detail) => {
+                if (!detail) return Q.reject({name: 'DataError', message: 'Can not find proposal type'});
+
+                let matchObj = {
+                    createTime: {$gte: startDate, $lt: endDate},
+                    type: detail._id,
+                    status: {$in: ['Success', 'Approved']}
+                };
+
+                return dbconfig.collection_proposal.aggregate([
+                    {$match: matchObj},
+                    {
+                        $group: {
+                            _id: "$data.platformId",
+                            amount: {$sum: "$data.amount"}
+                        }
+                    }
+                ]).read("secondaryPreferred")
+            }
+        );
 
         let topUpProm = dbconfig.collection_proposalType.find({
             platformId: ObjectId(platformId),
@@ -7452,11 +7506,10 @@ var proposal = {
                         }
                     }
                 ]).read("secondaryPreferred")
-
             }
         )
 
-        return Q.all([playerBonusProm,topUpProm])
+        return Q.all([playerBonusProm, topUpProm, partnerBonusProm])
     },
 
     lockProposalByAdmin: (proposalId, adminId, adminName) => {

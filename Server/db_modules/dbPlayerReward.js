@@ -3062,7 +3062,11 @@ let dbPlayerReward = {
         return dbConfig.collection_openPromoCodeTemplate.find({
             platformObjId: ObjectId(platformObjId),
             isProviderGroup: Boolean(isProviderGroup),
-            isDeleted: Boolean(deleteFlag)
+            isDeleted: Boolean(deleteFlag),
+            $or: [
+                {genre: {$exists: false}},
+                {genre: constPromoCodeTemplateGenre.GENERAL}
+            ],
         }).lean().then(
             template => {
                 if (template && template.length > 0) {
@@ -6272,7 +6276,7 @@ let dbPlayerReward = {
 
                 // Check reward apply limit in period
                 if (eventData.param.countInRewardInterval && eventData.param.countInRewardInterval <= eventInPeriodCount) {
-                    return Q.reject({
+                    return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
                         message: "Player has applied for max reward times in event period"
@@ -7038,7 +7042,7 @@ let dbPlayerReward = {
                             if (maxApply && rewardAmount + consumptionApplication.rewardAmount + baccaratRewardAppliedAmount >= maxApply) {
                                 let currentBRewardAmount = maxApply - rewardAmount - baccaratRewardAppliedAmount;
                                 let currentBSpendingAmount = consumptionApplication.spendingAmount * (currentBRewardAmount/consumptionApplication.rewardAmount);
-                                rewardAmount = maxApply;
+                                rewardAmount = currentBRewardAmount;
                                 spendingAmount += currentBSpendingAmount;
                                 break;
                             }
@@ -8348,9 +8352,9 @@ let dbPlayerReward = {
                 };
 
                 if (intervalTime) {
-                    rewardProposalQuery["data.applyTargetTime"] = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
+                    rewardProposalQuery["data.applyTargetDate"] = {$gte: intervalTime.startTime, $lt: intervalTime.endTime};
                 }
-                similarRewardProposalProm = dbConfig.collection_proposal.find(rewardProposalQuery).sort({"data.consecutiveNumber": -1, createTime: -1}).lean();
+                similarRewardProposalProm = dbConfig.collection_proposal.find(rewardProposalQuery).lean();
 
                 if (player.playerLevel && player.playerLevel._id && event && event.param && event.param.rewardParam && event.param.rewardParam.length > 0) {
                     event.param.rewardParam.forEach(param => {

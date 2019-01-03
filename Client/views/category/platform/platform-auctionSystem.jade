@@ -1,4 +1,4 @@
-.row
+form(name='form_auctionSystem').row
     .col-md-12
         button.btn.btn-primary.common-button(ng-class='{active: vm.selectedAuctionSystemTab === "createProduct"}', ng-click='vm.auctionSystemTabClicked("createProduct")')
             span {{"Create Product" | translate}}
@@ -44,7 +44,7 @@
         #auctionNotAvailableTablePage
 
     .col-md-6(ng-if='vm.selectedAuctionSystemTab === "createProduct" && checkViewPermission("Platform", "AuctionSystem", "createProduct") && vm.initCreateProduct')
-        .panel.panel-primary
+        #auctionProductDetailTable.panel.panel-primary
             .panel-heading.panel-heading-sm
                 label {{"Create Product" | translate}}
             .panel-body(style='margin:5px;height:660px;overflow-y:auto;')
@@ -58,7 +58,7 @@
                 .full-width-input-block
                     label {{"Player Level" | translate}}
                     select.form-control(ng-model='vm.auctionSystemProduct.playerLevel')
-                        option(value='all') {{'ALL' | translate}}
+                        option(value='') {{'ALL' | translate}}
                         option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
                 .full-width-input-block
                     label.control-label {{'CREDIBILITY' | translate}}
@@ -195,10 +195,10 @@
 
                 // 中间「优惠类型」选择
                 .full-width-input-block
-                    label {{"REWARD_TYPE" | translate}}
+                    label *{{"REWARD_TYPE" | translate}}
                         i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'REWARD_TYPE_DESCRIPTION' | translate}}")
                     div(style="display:inline-block;")
-                        select.form-control(ng-model='vm.auctionProductReward.rewardType' ng-change="vm.auctionRewardTypeChanged(vm.auctionProductReward.rewardType)")
+                        select.form-control(ng-model='vm.auctionProductReward.rewardType' ng-change="vm.auctionRewardTypeChanged(vm.auctionProductReward.rewardType)", required)
                             //option(value='') {{'all' | translate}}
                             option(value='promoCode') {{'Promo Code' | translate}}
                             option(value='openPromoCode') {{'Open Promo Code' | translate}}
@@ -213,35 +213,35 @@
                         div(style="display:inline-block;")
                             input.form-control(type="checkbox", ng-model='vm.auctionProductReward.isDynamicRewardAmount')
                     .full-width-input-block(ng-if="vm.auctionProductReward.isDynamicRewardAmount")
-                        label {{"REWARD" | translate}} %
+                        label *{{"REWARD" | translate}} %
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'This only appears when reward amount is dynamic' | translate}}")
                         div(style="display:inline-block;")
                             span.percentage
-                                input.form-control(type='number', min='0', percentage, style="display: inline-block", ng-model='vm.auctionProductReward.rewardPercentage')
+                                input.form-control(type='number', min='0', percentage, style="display: inline-block", ng-model='vm.auctionProductReward.rewardPercentage' required)
                     .full-width-input-block
-                        label {{"The Minimum Top-up Amount" | translate}}
+                        label *{{"The Minimum Top-up Amount" | translate}}
                         div(style="display:inline-block;")
-                            input.form-control(type="number" ng-model="vm.auctionProductReward.minimumTopUpAmount")
+                            input.form-control(type="number" ng-model="vm.auctionProductReward.minimumTopUpAmount" required)
                     .full-width-input-block(ng-if="vm.auctionProductReward.isDynamicRewardAmount")
-                        label {{"The Maximum Reward Amount" | translate}}
+                        label *{{"The Maximum Reward Amount" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'This only appears when reward amount is dynamic' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="number", ng-model="vm.auctionProductReward.maximumRewardAmount")
+                            input.form-control(type="number", ng-model="vm.auctionProductReward.maximumRewardAmount" required)
                     .full-width-input-block(ng-if="vm.auctionProductReward.isDynamicRewardAmount")
-                        label {{"Spending times" | translate}}
+                        label *{{"Spending times" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'This only appears when reward amount is dynamic' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="number", ng-model="vm.auctionProductReward.spendingTimes")
+                            input.form-control(type="number", ng-model="vm.auctionProductReward.spendingTimes" required)
                     .full-width-input-block(ng-if="!vm.auctionProductReward.isDynamicRewardAmount")
-                        label {{"REWARD_AMOUNT" | translate}}
+                        label *{{"REWARD_AMOUNT" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'This only appears when reward amount is not dynamic' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="number", ng-model="vm.auctionProductReward.rewardAmount")
+                            input.form-control(type="number", ng-model="vm.auctionProductReward.rewardAmount" required)
                     .full-width-input-block(ng-if="!vm.auctionProductReward.isDynamicRewardAmount")
-                        label {{"Spending Amount" | translate}}
+                        label *{{"Spending Amount" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'This only appears when reward amount is not dynamic' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="number", ng-model="vm.auctionProductReward.spendingAmount")
+                            input.form-control(type="number", ng-model="vm.auctionProductReward.spendingAmount" required)
                     .full-width-input-block
                         label {{"SHARE_WITH_XIMA" | translate}}
                         div(style="display:inline-block;")
@@ -278,35 +278,35 @@
                         div(style="display:inline-block;")
                             input.form-control(type="checkbox", ng-model='vm.auctionProductReward.isDynamicRewardAmount')
                     .full-width-input-block(ng-if="vm.auctionProductReward.isDynamicRewardAmount")
-                        label {{"REWARD" | translate}} %
+                        label *{{"REWARD" | translate}} %
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'This only appears when reward amount is dynamic' | translate}}")
                         div(style="display:inline-block;")
                             span.percentage
-                                input.form-control(type='number', min='0', percentage, style="display: inline-block", ng-model='vm.auctionProductReward.rewardPercentage')
+                                input.form-control(type='number', min='0', percentage, style="display: inline-block", ng-model='vm.auctionProductReward.rewardPercentage' required)
                     .full-width-input-block
-                        label {{"The Minimum Top-up Amount" | translate}}
+                        label *{{"The Minimum Top-up Amount" | translate}}
                         div(style="display:inline-block;")
-                            input.form-control(type="number" ng-model="vm.auctionProductReward.minimumTopUpAmount")
+                            input.form-control(type="number" ng-model="vm.auctionProductReward.minimumTopUpAmount" required)
                     .full-width-input-block(ng-if="vm.auctionProductReward.isDynamicRewardAmount")
-                        label {{"The Maximum Reward Amount" | translate}}
+                        label *{{"The Maximum Reward Amount" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'This only appears when reward amount is dynamic' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="number", ng-model="vm.auctionProductReward.maximumRewardAmount")
+                            input.form-control(type="number", ng-model="vm.auctionProductReward.maximumRewardAmount" required)
                     .full-width-input-block(ng-if="vm.auctionProductReward.isDynamicRewardAmount")
-                        label {{"Spending times" | translate}}
+                        label *{{"Spending times" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'This only appears when reward amount is dynamic' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="number", ng-model="vm.auctionProductReward.spendingTimes")
+                            input.form-control(type="number", ng-model="vm.auctionProductReward.spendingTimes" required)
                     .full-width-input-block(ng-if="!vm.auctionProductReward.isDynamicRewardAmount")
-                        label {{"REWARD_AMOUNT" | translate}}
+                        label *{{"REWARD_AMOUNT" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'This only appears when reward amount is not dynamic' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="number", ng-model="vm.auctionProductReward.rewardAmount")
+                            input.form-control(type="number", ng-model="vm.auctionProductReward.rewardAmount" required)
                     .full-width-input-block(ng-if="!vm.auctionProductReward.isDynamicRewardAmount")
-                        label {{"Spending Amount" | translate}}
+                        label *{{"Spending Amount" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'This only appears when reward amount is not dynamic' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="number", ng-model="vm.auctionProductReward.spendingAmount")
+                            input.form-control(type="number", ng-model="vm.auctionProductReward.spendingAmount" required)
                     .full-width-input-block
                         label {{"SHARE_WITH_XIMA" | translate}}
                         div(style="display:inline-block;")
@@ -345,7 +345,7 @@
                     .full-width-input-block
                         label {{"RECEIVED_QUANTITY" | translate}}
                         div(style="display:inline-block;")
-                            input.form-control(type="number" ng-model="vm.auctionProductReward.receivedQuantity" )
+                            input.form-control(type="number" ng-model="vm.auctionProductReward.receivedQuantity", ng-disabled="true")
                     .full-width-input-block
                         label {{"Product Image URL" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_DESCRIPTION' | translate}}")
@@ -365,13 +365,13 @@
                                 option(value='') {{'LOCAL_CREDIT' | translate}}
                                 option(ng-repeat='(i,v) in vm.gameProviderGroup', value='{{v._id}}') {{ v.name }}
                     .full-width-input-block
-                        label {{"UNLOCKAMOUNT" | translate}}
+                        label *{{"UNLOCKAMOUNT" | translate}}
                         div(style="display:inline-block;")
-                            input.form-control(type="number", min=0, ng-model="vm.auctionProductReward.unlockAmount")
+                            input.form-control(type="number", min=0, ng-model="vm.auctionProductReward.unlockAmount" required)
                     .full-width-input-block
-                        label {{"rewardAmount" | translate}}
+                        label *{{"rewardAmount" | translate}}
                         div(style="display:inline-block;")
-                            input.form-control(type="number", min=0, ng-model="vm.auctionProductReward.rewardAmount")
+                            input.form-control(type="number", min=0, ng-model="vm.auctionProductReward.rewardAmount" required)
                     .full-width-input-block
                         label {{"useConsumption" | translate}}
                         div(style="display:inline-block;")
@@ -444,26 +444,26 @@
                     div(style="display:inline-block;")
                         input.form-control(type="text" ng-model="vm.auctionSystemProduct.productImage")
                 .full-width-input-block
-                    label {{"Product Name" | translate}}
+                    label *{{"Product Name" | translate}}
                     div(style="display:inline-block;")
-                        input.form-control(type="text" ng-model="vm.auctionSystemProduct.productName")
+                        input.form-control(type="text" ng-model="vm.auctionSystemProduct.productName" required)
                 .full-width-input-block
                     label {{"Seller" | translate}}
                     div(style="display:inline-block;")
                         input.form-control(type="text" ng-model="vm.auctionSystemProduct.seller")
                 .full-width-input-block
-                    label {{"Reserve Price" | translate}}
-                        i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'RESERVE_PRICE_DESCRIPTION' | translate}}")
+                    label *{{"Reserve Price" | translate}}
+                        i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'RESERVE_PRICE_DESCRIPTION' | translate}}" required)
                     div(style="display:inline-block;")
                         input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.reservePrice")
                 .full-width-input-block
-                    label {{"Starting Price" | translate}}
-                        i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'STARTING_PRICE_DESCRIPTION' | translate}}")
+                    label *{{"Starting Price" | translate}}
+                        i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'STARTING_PRICE_DESCRIPTION' | translate}}" required)
                     div(style="display:inline-block;")
                         input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.startingPrice")
                 .full-width-input-block
-                    label {{"Price Increment" | translate}}
-                        i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRICE_INCREMENT_DESCRIPTION' | translate}}")
+                    label *{{"Price Increment" | translate}}
+                        i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRICE_INCREMENT_DESCRIPTION' | translate}}" required)
                     div(style="display:inline-block;")
                         input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.priceIncrement")
                 .full-width-input-block
@@ -492,9 +492,9 @@
                         span.add-on
                             i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
                 .full-width-input-block
-                    label {{"Reward interval" | translate}}
+                    label *{{"Reward interval" | translate}}
                     div(style="display:inline-block;")
-                        select.form-control(ng-model="vm.auctionSystemProduct.rewardInterval" style="display:inline-block")
+                        select.form-control(ng-model="vm.auctionSystemProduct.rewardInterval" style="display:inline-block" required)
                             option(value='weekly') {{'Weekly' | translate}}
                             option(value='monthly') {{'Monthly' | translate}}
                 .full-width-input-block
@@ -525,15 +525,15 @@
                                         i.fa.fa-minus(ng-click='vm.rewardAppearPeriodDeleteRow(index,vm.auctionSystemProduct.rewardAppearPeriod)' ng-show='index!=0')
                                         i.fa.fa-plus(ng-click='vm.rewardAppearPeriodNewRow(vm.auctionSystemProduct.rewardAppearPeriod)' ng-show='index==0')
                 .full-width-input-block
-                    label {{"Product Start Time (minute)" | translate}}
+                    label *{{"Product Start Time (minute)" | translate}}
                         i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_START_TIME_DESCRIPTION' | translate}}")
                     div(style="display:inline-block;")
-                        input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.productStartTime")
+                        input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.productStartTime" required)
                 .full-width-input-block
-                    label {{"Product End Time (minute)" | translate}}
+                    label *{{"Product End Time (minute)" | translate}}
                         i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_END_TIME_DESCRIPTION' | translate}}")
                     div(style="display:inline-block;")
-                        input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.productEndTime")
+                        input.form-control(type="number", min=0, ng-model="vm.auctionSystemProduct.productEndTime" required)
 
 
                 hr
@@ -541,13 +541,11 @@
                     .inlineBlk
                         button.btn.btn-warning(ng-if="checkViewPermission('Platform','AuctionSystem','Create')" ng-click='vm.auctionSystemProductCancel()') {{"CANCEL" | translate}}
                     .inlineBlk
-                        button.btn.btn-primary(ng-if="checkViewPermission('Platform','AuctionSystem','Create') && !vm.auctionSystemEditStatus" ng-click='vm.createAuctionProduct()') {{"Create Product" | translate}}
+                        button.btn.btn-primary(ng-if="checkViewPermission('Platform','AuctionSystem','Create') && !vm.auctionSystemEditStatus" ng-disabled='form_auctionSystem.$invalid || form_auctionSystem.$pristine' ng-click='vm.createAuctionProduct()') {{"Create Product" | translate}}
                         button.btn.btn-primary(ng-if="checkViewPermission('Platform','AuctionSystem','Create') && vm.auctionSystemEditStatus" ng-click='vm.updateAuctionProduct()') {{"Edit Product" | translate}}
                     .inlineBlk
-                        span(style="font-weight:bold" ng-show="vm.auctionSystemCreateProductStatus === 'success' || vm.auctionSystemCreateProductStatus === 'success'") {{"SUCCESS" | translate}}
-                        span(style="font-weight:bold" ng-show="vm.auctionSystemCreateProductStatus === 'fail' || vm.auctionSystemCreateProductStatus === 'fail'") {{"FAIL" | translate}}
-                        span(style="font-weight:bold" ng-show="vm.auctionSystemUpdateProductStatus === 'success' || vm.auctionSystemUpdateProductStatus === 'success'") {{"SUCCESS" | translate}}
-                        span(style="font-weight:bold" ng-show="vm.auctionSystemUpdateProductStatus === 'fail' || vm.auctionSystemUpdateProductStatus === 'fail'") {{"FAIL" | translate}}
+                        span(style="font-weight:bold" ng-show="vm.auctionSystemCreateProductStatus === 'success' || vm.auctionSystemUpdateProductStatus === 'success'") {{"SUCCESS" | translate}}
+                        span(style="font-weight:bold" ng-show="vm.auctionSystemCreateProductStatus === 'fail' || vm.auctionSystemUpdateProductStatus === 'fail'") {{"FAIL" | translate}}
                 // Tab - monitoringSystem
     div.col-md-12(ng-if='vm.selectedAuctionSystemTab === "monitoringSystem" && checkViewPermission("Platform", "AuctionSystem", "monitoringSystem")')
         .col-md-12(ng-if="vm.selectedAuctionSystemTab=='monitoringSystem'")

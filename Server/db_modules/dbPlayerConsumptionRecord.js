@@ -2472,7 +2472,7 @@ function createBaccaratConsumption (providerObjId, providerName, consumptionReco
             baccaratResult = readBYBaccaratResult(consumptionRecord.result);
         }
 
-        if (baccaratResult && baccaratResult.host && baccaratResult.player) {
+        if (baccaratResult && baccaratResult.hasOwnProperty("host") && baccaratResult.hasOwnProperty("player")) {
             let saveData = {
                 platform: consumptionRecord.platformId,
                 player: consumptionRecord.playerId,
@@ -2480,8 +2480,8 @@ function createBaccaratConsumption (providerObjId, providerName, consumptionReco
                 bonusAmount: consumptionRecord.bonusAmount || 0,
                 provider: providerObjId || consumptionRecord.providerId ,
                 providerName: providerName || "",
-                hostResult: baccaratResult.host,
-                playerResult: baccaratResult.player,
+                hostResult: baccaratResult.host || 0,
+                playerResult: baccaratResult.player || 0,
                 betDetails: consumptionRecord.betDetails || [],
                 bUsed: false,
                 consumption: consumptionRecord._id
@@ -2497,16 +2497,36 @@ function createBaccaratConsumption (providerObjId, providerName, consumptionReco
 }
 
 function readAGBaccaratResult (resultStr) {
+    let strSplit;
     resultStr = resultStr || "";
-    let resultObj = JSON.parse("{" + resultStr + "}");
-
-    if (resultObj.hasOwnProperty("庄") && resultObj.hasOwnProperty("闲")) {
-        return {
-            host: Number(resultObj["庄"]),
-            player: Number(resultObj["闲"])
-        };
-    } else {
+    strSplit = resultStr.split(",");
+    let playerStr = "";
+    let hostStr = "";
+    if (!strSplit || !strSplit[0] || !strSplit[1]) {
         return false;
+    }
+    else if (strSplit[0].includes("闲")) {
+        [playerStr, hostStr] = strSplit;
+    }
+    else if (strSplit[1].includes("闲")) {
+        [hostStr, playerStr] = strSplit;
+    }
+    else {
+        return false;
+    }
+
+    return {
+        host: getBaccaratNumber(hostStr),
+        player: getBaccaratNumber(playerStr)
+    };
+
+    function getBaccaratNumber (str) {
+        let total = 0;
+        for (let i = 0; i <= 9; i++) {
+            total += (dbUtility.countOccurrenceInString(str, String(i)) * i);
+        }
+
+        return total;
     }
 }
 
