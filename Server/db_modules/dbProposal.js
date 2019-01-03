@@ -1012,7 +1012,7 @@ var proposal = {
                             // Add merchant rate and actualReceivedAmount
                             topupRate = merchantRate && merchantRate.customizeRate ? merchantRate.customizeRate : 0;
                             topupActualAmt = merchantRate && merchantRate.customizeRate ?
-                                (Number(proposalObj.data.amount) * Number(merchantRate.customizeRate)).toFixed(2)
+                                (Number(proposalObj.data.amount) - Number(proposalObj.data.amount) * Number(merchantRate.customizeRate)).toFixed(2)
                                 : proposalObj.data.amount;
 
                             addDetailToProp(updObj.data, 'rate', topupRate);
@@ -1028,7 +1028,6 @@ var proposal = {
             }
         ).then(
             propData => {
-                console.log('propData', propData);
                 let retObj = {
                     proposalId: proposalId,
                     orderStatus: orderStatus,
