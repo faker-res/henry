@@ -2311,6 +2311,11 @@ function updateRTG (RTG, incBonusAmt, validAmtToAdd, oldData) {
         new: true
     }).then(
         updatedRTG => {
+            // Debug negative RTG curConsumption
+            if (updatedRTG && updatedRTG.curConsumption && updatedRTG.curConsumption < 0 && oldData) {
+                console.log('updateRTG has negative!', validAmtToAdd, RTG._id)
+            }
+
             // Update consumption summary
             let summAdjustXIMAAmt = 0, summAdjustNonXIMAAmt = 0;
 

@@ -2220,6 +2220,11 @@ function findAndUpdateRTG (consumptionRecord, createTime, platform, retryCount) 
         return false;
     }
 
+    // Debug negative RTG curConsumption
+    if (consumptionRecord && consumptionRecord.validAmount && consumptionRecord.validAmount < 0) {
+        console.log('findAndUpdateRTG has negative!', consumptionRecord.validAmount, consumptionRecord._id)
+    }
+
     let consumptionAmt = consumptionRecord.validAmount, bonusAmt = consumptionRecord.bonusAmount;
     let remainBonusAmt = 0, remainingCurConsumption = 0, XIMAAmt = 0;
 
