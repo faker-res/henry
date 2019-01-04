@@ -1085,6 +1085,18 @@ define([], function () {
             });
             return resultName;
         };
+
+        this.createMerGroupList = function (nameObj, listObj) {
+            if (!nameObj || !listObj) return [];
+            let obj = [];
+            $.each(listObj, (name, arr) => {
+                obj.push({
+                    name: nameObj[name],
+                    list: arr.list
+                });
+            });
+            return obj;
+        }
     };
 
 

@@ -24,6 +24,8 @@ define([], () => {
             }
         }
 
+        // region General get functions
+
         self.getRewardList = ($scope, platformObjId) => {
             return $scope.$socketPromise('getRewardEventsForPlatform', {platform: platformObjId})
                 .then(data => data.data)
@@ -348,6 +350,8 @@ define([], () => {
             return line2Acc;
         };
 
+        // endregion
+
 
         this.updatePageTile = ($translate, pageName, tabName) => {
             window.document.title = $translate(pageName) + "->" + $translate(tabName);
@@ -617,13 +621,14 @@ define([], () => {
                 if (!vm.selectedProposal.data) {
                     vm.selectedProposal.data = {};
                 }
+
                 proposalDetail["MAIN_TYPE"] = $translate("PlayerTopUp");
                 proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
                 proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
                 proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
                 proposalDetail["OnlineTopUpType"] = $translate($scope.merchantTopupTypeJson[vm.selectedProposal.data.topupType]) || vm.selectedProposal.data.topupType || " ";
-                proposalDetail["3rdPartyPlatform"] = this.getMerchantName(vm.selectedProposal.data.merchantNo, vm.merchantNoList, vm.merchantTypes, vm.selectedProposal.inputDevice) || vm.selectedProposal.data.merchantNo || " ";
+                proposalDetail["3rdPartyPlatform"] = this.getMerchantName(vm.selectedProposal.data.merchantNo, $scope.merchantNoList, $scope.merchantTypes, vm.selectedProposal.inputDevice) || vm.selectedProposal.data.merchantNo || " ";
                 proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                 proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                 if(vm.selectedProposal.data.hasOwnProperty("rate")){
