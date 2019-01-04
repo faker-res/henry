@@ -2464,7 +2464,7 @@ function createBaccaratConsumption (providerObjId, providerName, consumptionReco
     let regexPattern = new RegExp('百家乐','g');
     if (consumptionRecord && consumptionRecord.cpGameType && consumptionRecord.result && regexPattern.test(consumptionRecord.cpGameType)) {
         let baccaratResult;
-        if (consumptionRecord.providerId ==  '18'/*"18"*/) { // EBET // todo :: change back to 56 for live
+        if (consumptionRecord.providerId ==  '56'/*"18"*/) { // EBET // todo :: change back to 56 for live
             baccaratResult = readEBETBaccaratResult(consumptionRecord.result);
         } else if (consumptionRecord.providerId == '16') { // AG
             baccaratResult = readAGBaccaratResult(consumptionRecord.result);
