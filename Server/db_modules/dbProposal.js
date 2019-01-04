@@ -4993,7 +4993,6 @@ var proposal = {
         let playerResult = [];
         let playerInfoResult = [];
 
-        console.log("getRewardProposalByType proposalTypeName ", proposalTypeName);
         var proposalQuery = proposalTypeName ? {
             $and: [{
                 platformId: platformId,
@@ -5007,7 +5006,6 @@ var proposal = {
 
         return dbconfig.collection_proposalType.findOne(proposalQuery).then(
             function (proposalType) {
-                console.log("getRewardProposalByType proposalType ", proposalType);
                 matchObj = proposalTypeName ? {
                     createTime: {
                         $gte: new Date(startTime),
@@ -5031,12 +5029,8 @@ var proposal = {
                     matchObj["data.playerName"] = data.playerName;
                 }
 
-                console.log("getRewardProposalByType matchObj ", matchObj);
-
                 return dbconfig.collection_proposal.distinct('data.playerObjId', matchObj).then(
                     player => {
-                        console.log("getRewardProposalByType player ", player);
-
                         if (player && player.length > 0){
 
                             matchObj["data.playerObjId"] = {$in: player.map(p => ObjectId(p))};
@@ -5064,7 +5058,6 @@ var proposal = {
                                 $limit: limit
                             }
                         ]).read("secondaryPreferred").then( playerRecord => {
-                            console.log("getRewardProposalByType playerRecord ", playerRecord);
                             if (playerRecord && playerRecord.length > 0){
 
                                 playerResult = playerRecord;
@@ -5187,7 +5180,6 @@ var proposal = {
                                     // get the withdrawal amount
                                     bonusProm = dbconfig.collection_proposalType.findOne({platformId: platformId, name: constProposalType.PLAYER_BONUS}).then(
                                         proposalType => {
-                                            console.log("getRewardProposalByType proposalType ", proposalType);
                                             if (proposalType){
                                                 return dbconfig.collection_proposal.aggregate([
                                                     {
@@ -5235,8 +5227,6 @@ var proposal = {
                                 }
                             }
                         }).then( retResult => {
-                            console.log("getRewardProposalByType retResult ", retResult);
-
                             if(retResult && retResult.length == 4){
 
                                 consumptionResult = retResult[2];

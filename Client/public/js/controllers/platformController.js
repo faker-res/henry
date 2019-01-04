@@ -367,6 +367,12 @@ define(['js/app'], function (myApp) {
                 MANUAL: 5,
             };
 
+            vm.auctionColor = {
+                '1':'beforeAuction',
+                '2':'startingAuction',
+                '3':'notInPublishAuction',
+                '4':'overAuction'
+            }
 
             // player advertisement
             vm.currentImageButtonNo = 2;
@@ -530,7 +536,8 @@ define(['js/app'], function (myApp) {
             //specific proposal template
             vm.proposalTemplate = {
                 1: '#modalProposal',
-                2: '#newPlayerModal'
+                2: '#newPlayerModal',
+                3: '#auctionItemModal'
             };
 
             vm.createInnerTable = function (id) {
@@ -24786,106 +24793,6 @@ define(['js/app'], function (myApp) {
                     vm.selectedProposal = data.data;
                     vm.proposalDetailStyle = {};
 
-                    if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "SettlePartnerCommission") {
-                        let proposalDetail = {};
-                        if (!vm.selectedProposal.data) {
-                            vm.selectedProposal.data = {};
-                        }
-                        let grossCommission = 0;
-                        let totalPlatformFee = 0;
-
-                        let customizedStyle = {
-                            'font-weight': 'bold',
-                            'color': 'red'
-                        };
-                        let isCustomized = false;
-
-                        let consumptionUsed = vm.selectedProposal.data.commissionType == 5 ? "CONSUMPTION" : "SITE_LOSE_WIN";
-
-                        proposalDetail["MAIN_TYPE"] = $translate("SettlePartnerCommission");
-                        proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
-                        proposalDetail["CREATION_TIME"] = $scope.timeReformat(vm.selectedProposal.createTime);
-                        proposalDetail["COMMISSION_PERIOD"] = $scope.dateReformat(vm.selectedProposal.data.startTime) + " - " + $scope.dateReformat(vm.selectedProposal.data.endTime);
-                        proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
-                        proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
-                        proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
-                        proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
-
-                        vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
-                        vm.selectedProposal.data.rawCommissions.map(rawCommission => {
-                            grossCommission += rawCommission.amount;
-                            let str = rawCommission.amount + $translate("YEN") + " "
-                                + "(" + $translate(consumptionUsed) + ": " + (-rawCommission.totalConsumption) + "/"
-                                + $translate("RATIO") + ": " + (rawCommission.commissionRate * 100) + "%)";
-
-                            proposalDetail[rawCommission.groupName + " " + $translate("Commission")] =  str;
-
-                            if (rawCommission.isCustomCommissionRate) {
-                                vm.proposalDetailStyle[rawCommission.groupName + " " + $translate("Commission")] = customizedStyle;
-                                isCustomized = true;
-                            }
-                        });
-
-                        proposalDetail["REQUIRED_PROMO_DEDUCTION"] = vm.selectedProposal.data.totalRewardFee + $translate("YEN")
-                            + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalReward + "/"
-                            + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebatePromo) + "%)";
-
-                        if (vm.selectedProposal.data.rateAfterRebatePromoIsCustom) {
-                            vm.proposalDetailStyle["REQUIRED_PROMO_DEDUCTION"] = customizedStyle;
-                            isCustomized = true;
-                        }
-
-                        proposalDetail["REQUIRED_PLATFORM_FEES_DEDUCTION"] = "";
-                        vm.selectedProposal.data.rawCommissions.map(rawCommission => {
-                            totalPlatformFee += rawCommission.platformFee;
-                            let str = rawCommission.platformFee + $translate("YEN") + " "
-                                + "(" + $translate("SITE_LOSE_WIN") + ": " + rawCommission.siteBonusAmount + "/"
-                                + $translate("RATIO") + ": " + (rawCommission.platformFeeRate) + "%)";
-                            let forcedZeroStr = rawCommission.isForcePlatformFeeToZero ? rawCommission.platformFee + $translate("YEN") + " "
-                                + "(" + $translate("Forced 0") + "/" + rawCommission.forcePlatformFeeToZeroBy.name + ")" : "";
-
-                            if (rawCommission && rawCommission.isForcePlatformFeeToZero) {
-                                proposalDetail["- " + rawCommission.groupName] =  forcedZeroStr;
-                            } else {
-                                proposalDetail["- " + rawCommission.groupName] =  str;
-
-                                if (rawCommission.isCustomPlatformFeeRate) {
-                                    vm.proposalDetailStyle["- " + rawCommission.groupName] = customizedStyle;
-                                    isCustomized = true;
-                                }
-                            }
-                        });
-
-                        proposalDetail["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = vm.selectedProposal.data.totalTopUpFee + $translate("YEN")
-                            + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalTopUp + "/"
-                            + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalDeposit) + "%)";
-
-                        if (vm.selectedProposal.data.rateAfterRebateTotalDepositIsCustom) {
-                            vm.proposalDetailStyle["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = customizedStyle;
-                            isCustomized = true;
-                        }
-
-                        proposalDetail["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = vm.selectedProposal.data.totalWithdrawalFee + $translate("YEN")
-                            + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalWithdrawal + "/"
-                            + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal) + "%)";
-
-                        if (vm.selectedProposal.data.rateAfterRebateTotalWithdrawalIsCustom) {
-                            vm.proposalDetailStyle["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = customizedStyle;
-                            isCustomized = true;
-                        }
-
-                        if (isCustomized) {
-                            vm.proposalDetailStyle["COMMISSION_TYPE"] = customizedStyle;
-                        }
-
-                        let totalFee = Number(vm.selectedProposal.data.totalRewardFee) + Number(totalPlatformFee) + Number(vm.selectedProposal.data.totalTopUpFee) + Number(vm.selectedProposal.data.totalWithdrawalFee);
-
-                        proposalDetail["COMMISSION_TOTAL"] = vm.selectedProposal.data.amount + " "
-                            + "(" + grossCommission + "-" + totalFee + ")";
-
-                        vm.selectedProposal.data = proposalDetail;
-                    }
-
                     proposalDetail = commonService.setFixedPropDetail($scope, $translate, $noRoundTwoDecimalPlaces, vm);
 
                     if (vm.selectedProposal.data.inputData) {
@@ -24937,6 +24844,24 @@ define(['js/app'], function (myApp) {
                 return false;
             }
 
+            vm.showAuctionModal = function(id, templateNo){
+                templateNo = 3;
+                vm.selectedAuction = vm.auctionItemBidList.filter(item=>{
+                    return item._id == id;
+                })
+                vm.selectedAuction = vm.selectedAuction[0] ? vm.selectedAuction[0]:vm.selectedAuction;
+                let tmpt = vm.proposalTemplate[templateNo];
+                $(tmpt).modal('show');
+                if (templateNo == 1) {
+                    $(tmpt).css('z-Index', 1051).modal();
+                }
+
+                $(tmpt).on('shown.bs.modal', function (e) {
+                    $scope.$evalAsync();
+                })
+
+            }
+
             vm.showProposalModal = function (proposalId, templateNo) {
                 socketService.$socket($scope.AppSocket, 'getPlatformProposal', {
                     platformId: vm.selectedPlatform.id,
@@ -24945,121 +24870,7 @@ define(['js/app'], function (myApp) {
                     vm.selectedProposal = data.data;
                     vm.proposalDetailStyle = {};
 
-                    if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "SettlePartnerCommission") {
-                        let proposalDetail = {};
-                        if (!vm.selectedProposal.data) {
-                            vm.selectedProposal.data = {};
-                        }
-                        let grossCommission = 0;
-                        let totalPlatformFee = 0;
-
-                        let customizedStyle = {
-                            'font-weight': 'bold',
-                            'color': 'red'
-                        };
-                        let isCustomized = false;
-
-                        let consumptionUsed = vm.selectedProposal.data.commissionType == 5 ? "CONSUMPTION" : "SITE_LOSE_WIN";
-
-                        proposalDetail["MAIN_TYPE"] = $translate("SettlePartnerCommission");
-                        proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
-                        proposalDetail["CREATION_TIME"] = $scope.timeReformat(vm.selectedProposal.createTime);
-                        proposalDetail["COMMISSION_PERIOD"] = $scope.dateReformat(vm.selectedProposal.data.startTime) + " - " + $scope.dateReformat(vm.selectedProposal.data.endTime);
-                        proposalDetail["PARTNER_NAME"] = vm.selectedProposal.data.partnerName;
-                        proposalDetail["PARTNER_ID"] = vm.selectedProposal.data.partnerId;
-                        proposalDetail["Proposal Status"] = $translate(vm.selectedProposal.data.status);
-                        proposalDetail["COMMISSION_TYPE"] = $translate($scope.commissionTypeList[vm.selectedProposal.data.commissionType]);
-
-                        vm.selectedProposal.data.rawCommissions = vm.selectedProposal.data.rawCommissions || [];
-                        vm.selectedProposal.data.rawCommissions.map(rawCommission => {
-                            grossCommission += rawCommission.amount;
-                            let str = rawCommission.amount + $translate("YEN") + " "
-                                + "(" + $translate(consumptionUsed) + ": " + (-rawCommission.totalConsumption) + "/"
-                                + $translate("RATIO") + ": " + (rawCommission.commissionRate * 100) + "%)";
-
-                            proposalDetail[rawCommission.groupName + " " + $translate("Commission")] =  str;
-
-                            if (rawCommission.isCustomCommissionRate) {
-                                vm.proposalDetailStyle[rawCommission.groupName + " " + $translate("Commission")] = customizedStyle;
-                                isCustomized = true;
-                            }
-                        });
-
-                        proposalDetail["REQUIRED_PROMO_DEDUCTION"] = vm.selectedProposal.data.totalRewardFee + $translate("YEN")
-                            + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalReward + "/"
-                            + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebatePromo) + "%)";
-
-                        if (vm.selectedProposal.data.rateAfterRebatePromoIsCustom) {
-                            vm.proposalDetailStyle["REQUIRED_PROMO_DEDUCTION"] = customizedStyle;
-                            isCustomized = true;
-                        }
-
-                        proposalDetail["REQUIRED_PLATFORM_FEES_DEDUCTION"] = "";
-                        vm.selectedProposal.data.rawCommissions.map(rawCommission => {
-                            totalPlatformFee += rawCommission.platformFee;
-                            let str = rawCommission.platformFee + $translate("YEN") + " "
-                                + "(" + $translate("SITE_LOSE_WIN") + ": " + rawCommission.siteBonusAmount + "/"
-                                + $translate("RATIO") + ": " + (rawCommission.platformFeeRate) + "%)";
-                            let forcedZeroStr = rawCommission.isForcePlatformFeeToZero ? rawCommission.platformFee + $translate("YEN") + " "
-                                + "(" + $translate("Forced 0") + "/" + rawCommission.forcePlatformFeeToZeroBy.name + ")" : "";
-
-                            if (rawCommission && rawCommission.isForcePlatformFeeToZero) {
-                                proposalDetail["- " + rawCommission.groupName] =  forcedZeroStr;
-                            } else {
-                                proposalDetail["- " + rawCommission.groupName] =  str;
-
-                                if (rawCommission.isCustomPlatformFeeRate) {
-                                    vm.proposalDetailStyle["- " + rawCommission.groupName] = customizedStyle;
-                                    isCustomized = true;
-                                }
-                            }
-                        });
-
-                        proposalDetail["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = vm.selectedProposal.data.totalTopUpFee + $translate("YEN")
-                            + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalTopUp + "/"
-                            + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalDeposit) + "%)";
-
-                        if (vm.selectedProposal.data.rateAfterRebateTotalDepositIsCustom) {
-                            vm.proposalDetailStyle["REQUIRED_DEPOSIT_FEES_DEDUCTION"] = customizedStyle;
-                            isCustomized = true;
-                        }
-
-                        proposalDetail["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = vm.selectedProposal.data.totalWithdrawalFee + $translate("YEN")
-                            + "(" + $translate("Total") + ": " + vm.selectedProposal.data.totalWithdrawal + "/"
-                            + $translate("RATIO") + ": " + (vm.selectedProposal.data.partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal) + "%)";
-
-                        if (vm.selectedProposal.data.rateAfterRebateTotalWithdrawalIsCustom) {
-                            vm.proposalDetailStyle["REQUIRED_WITHDRAWAL_FEES_DEDUCTION"] = customizedStyle;
-                            isCustomized = true;
-                        }
-
-                        if (isCustomized) {
-                            vm.proposalDetailStyle["COMMISSION_TYPE"] = customizedStyle;
-                        }
-
-                        let totalFee = Number(vm.selectedProposal.data.totalRewardFee) + Number(totalPlatformFee) + Number(vm.selectedProposal.data.totalTopUpFee) + Number(vm.selectedProposal.data.totalWithdrawalFee);
-
-                        proposalDetail["COMMISSION_TOTAL"] = vm.selectedProposal.data.amount + " "
-                            + "(" + grossCommission + "-" + totalFee + ")";
-
-                        vm.selectedProposal.data = proposalDetail;
-                    }
-
                     vm.selectedProposal.data = commonService.setFixedPropDetail($scope, $translate, $noRoundTwoDecimalPlaces, vm);
-
-                    if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name && vm.selectedProposal.type.name == 'PlayerLoseReturnRewardGroup') {
-                        let proposalDetail = vm.selectedProposal.data;
-                        let checkForHexRegExp = new RegExp("^[0-9a-fA-F]{24}$");
-                        for (let i in proposalDetail) {
-                            if (checkForHexRegExp.test(proposalDetail[i]) || i == 'playerLevelName') {
-                                delete proposalDetail[i];
-                            }
-                        }
-                        proposalDetail.defineLoseValue = $translate($scope.loseValueType[vm.selectedProposal.data.defineLoseValue]);
-                        if (vm.selectedProposal.data.rewardPercent) {
-                            proposalDetail.rewardPercent = vm.selectedProposal.data.rewardPercent + "%";
-                        }
-                    }
 
                     if (vm.selectedProposal.data.inputData) {
                         if (vm.selectedProposal.data.inputData.provinceId) {
@@ -36063,7 +35874,7 @@ define(['js/app'], function (myApp) {
                 vm.excludeAuctionItem = [];
                 vm.notAvailableAuctionItem = [];
 
-                let exclusiveQuery = {publish:true, status:1};
+                let exclusiveQuery = {platformObjId : vm.selectedPlatform.id, publish:true, status:1};
                 let prom1 = new Promise((resolve, reject)=>{
                   socketService.$socket($scope.AppSocket, 'listAuctionItems', exclusiveQuery, function (data) {
                       if (data && data.data) {
@@ -36074,7 +35885,7 @@ define(['js/app'], function (myApp) {
                   });
                 })
 
-                let notAvailableQuery = {publish:false, status:1};
+                let notAvailableQuery = {platformObjId : vm.selectedPlatform.id, publish:false, status:1};
                 prom1.then(()=>{
                     socketService.$socket($scope.AppSocket, 'listAuctionItems', notAvailableQuery, function (data) {
                         if (data && data.data) {
@@ -36086,11 +35897,44 @@ define(['js/app'], function (myApp) {
             };
 
             vm.listAuctionMonitor = function(){
-                let sendQuery = { publish : true};
+                let sendQuery = { publish : true, platformObjId : vm.selectedPlatform.id};
+                let currentTime = new Date().getTime();
                 socketService.$socket($scope.AppSocket, 'listAuctionMonitor', sendQuery, function (data) {
+                    if(data.data.length > 0){
+                        data.data.forEach(item=>{
+                            item.bidTimes = item.proposal.length;
+                            item.lastProposal = item.proposal[0] ? item.proposal[0]:{};
+                            item.timeLeft = utilService.getLeftTime(item.rewardEndTime).text;
+
+                            let beforeAuction = new Date(item.rewardStartTime).getTime() - (item.productStartTime*60*1000);
+                            let afterAuction = new Date(item.rewardEndTime).getTime() + (item.productEndTime*60*1000);
+
+                            if(item.lastProposal && (item.lastProposal.status == vm.constProposalStatus.APPROVED|| item.lastProposal.status == vm.constProposalStatus.SUCCESS)){
+                                item.dealAt = vm.dateReformat(item.lastProposal.createTime);
+                            }
+                            let rewardStartTime = new Date(item.rewardStartTime).getTime();
+                            let rewardEndTime =  new Date(item.rewardEndTime).getTime();
+
+                            if((currentTime < rewardStartTime) && (currentTime > rewardEndTime)){
+                                item.auctionStatus = 1;//gray-非刊登时间
+                            }else if( beforeAuction && (currentTime > beforeAuction) && (currentTime < rewardStartTime)){
+                                item.auctionStatus = 2;//white-刊登时间前
+                            }else if( afterAuction && (currentTime > rewardEndTime) && (currentTime < afterAuction)){
+                                item.auctionStatus = 2;//white-刊登时间后
+                            }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && item.lastProposal && (item.lastProposal.status != vm.constProposalStatus.APPROVED && item.lastProposal.status != vm.constProposalStatus.SUCCESS) ){
+                                item.auctionStatus = 3;//yellow-竞标中
+                            }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && item.lastProposal && (item.lastProposal.status == vm.constProposalStatus.APPROVED || item.lastProposal.status == vm.constProposalStatus.SUCCESS) ){
+                                item.auctionStatus = 4;//red-場次結束
+                            }else{
+                                item.auctionStatus = 5;//none;
+                            }
+                            return item;
+                        })
+                    }
                     vm.drawAuctionMonitorTable(data.data);
                 });
             }
+
             vm.loadAuctionItem = function(id){
                 let sendData = { _id: id };
                 socketService.$socket($scope.AppSocket, 'loadAuctionItem', sendData, function (data) {
@@ -36433,13 +36277,19 @@ define(['js/app'], function (myApp) {
             vm.drawAuctionMonitorTable = function(data, newSearch){
                 let index = 0;
                 data = data || [];
+                vm.auctionItemBidList = data;
                 let tableOptions = {
                     data: data,
                     aoColumnDefs: [
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                        {title: $translate('Type'), data:"rewardData.rewardType"},
+                        {title: $translate('Type'), data:"rewardData.rewardType",
+                            render: function(data, type, row){
+                                let result = $translate(data);
+                                return result;
+                            }
+                        },
                         {title: $translate('Product Name'), data: "productName",
                             render: function(data, type, row){
                                 let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
@@ -36449,14 +36299,29 @@ define(['js/app'], function (myApp) {
                         {title: $translate('Sell From'), data: "seller"},
                         {title: $translate('Starting Price'), data: "startingPrice"},
                         {title: $translate('Direct Purchase Price'), data: "directPurchasePrice"},
-                        {title: $translate('Exclusive'), data: "isExclusive"},
-                        {title: $translate('Current Bid'), data: "currentBid"},
-                        {title: $translate('Bid Times'), data: "bidTimes"},
+                        {title: $translate('Exclusive'), data: "isExclusive",
+                            render: function(data, type, row){
+                                let isChecked = data ? 'CHECKED':'';
+                                let result = '<input type="checkbox" DISABLED '+isChecked+'>';
+                                return result;
+                            }
+                        },
+                        {title: $translate('Current Bid'), data: "lastProposal.amount"},
+                        {title: $translate('Bid Times'), data: "bidTimes",
+                            render: function(data, type, row){
+                                let result = '<div ng-click="vm.showAuctionModal(\''+row._id+'\')">' + data + '</div>';
+                                return result;
+                            }
+                        },
                         {title: $translate('Time Left'), data: "timeLeft"},
                         {title: $translate('Deal at'), data: "dealAt"},
-                        {title: $translate('Leading Bidder'), data: "leadingBidder"}
+                        {title: $translate('Leading Bidder'), data: "lastProposal.data.playerName"}
                     ],
                     "paging": false,
+                    "createdRow": function(row, data, dataIndex){
+                        let colorClass = vm.auctionColor[data.auctionStatus];
+                        $(row).addClass(colorClass)
+                    },
                     fnInitComplete: function(settings){
                         $compile(angular.element('#' + settings.sTableId).contents())($scope);
                     }

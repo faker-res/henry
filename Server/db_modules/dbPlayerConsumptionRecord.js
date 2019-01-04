@@ -2478,12 +2478,15 @@ function createBaccaratConsumption (providerObjId, providerName, consumptionReco
                 player: consumptionRecord.playerId,
                 roundNo: consumptionRecord.roundNo || "",
                 bonusAmount: consumptionRecord.bonusAmount || 0,
+                validAmount: consumptionRecord.validAmount || 0,
                 provider: providerObjId || consumptionRecord.providerId ,
                 providerName: providerName || "",
                 hostResult: baccaratResult.host || 0,
                 playerResult: baccaratResult.player || 0,
                 betDetails: consumptionRecord.betDetails || [],
                 bUsed: false,
+                insertTime: consumptionRecord.insertTime,
+                createTime: consumptionRecord.createTime,
                 consumption: consumptionRecord._id
             };
             if (oldConsumtionObjId) {
