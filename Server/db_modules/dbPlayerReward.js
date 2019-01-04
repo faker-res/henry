@@ -8378,7 +8378,7 @@ let dbPlayerReward = {
                     intervalMaxRewardAmount = event.condition.intervalMaxRewardAmount;
                     if (totalApplied >= intervalMaxRewardAmount && isApply) {
                         // update error message later if necessary
-                        return Promise.reject({status: constServerCode.INTERVAL_REWARD_CAPPED, message: "You already reach the cap of this reward application per interval, please come back tomorrow."});
+                        return Promise.reject({status: constServerCode.INTERVAL_REWARD_CAPPED, message: `您本日申请额度已达红利上限(${intervalMaxRewardAmount}元），请明天再来唷！`});
                     }
                 }
 
