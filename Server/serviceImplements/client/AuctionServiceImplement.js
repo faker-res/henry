@@ -2,6 +2,7 @@ var WebSocketUtil = require("./../../server_common/WebSocketUtil");
 var AuctionService = require("./../../services/client/ClientServices").AuctionService;
 var dbAuction = require('./../../db_modules/dbAuction');
 var constSystemParam = require('../../const/constSystemParam');
+const dbUtility = require('./../../modules/dbutility');
 
 var AuctionServiceImplement = function(){
     AuctionService.call(this);
@@ -26,6 +27,13 @@ var AuctionServiceImplement = function(){
     this.isQualify.onRequest = function(wsFunc, conn, data){
         var isValidData = Boolean(conn.playerObjId);
         WebSocketUtil.performAction(conn, wsFunc, data, dbAuction.isQualify, [conn.playerObjId], isValidData);
+    };
+
+    this.bidAuctionItem.expectsData = 'platformId: String, productName: String, bidAmount: String, rewardType: String';
+    this.bidAuctionItem.onRequest = function(wsFunc, conn, data){
+        let isValidData = Boolean(data && data.productName && data.rewardType);
+        let inputDevice = dbUtility.getInputDevice(conn.upgradeReq.headers['user-agent']);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbAuction.bidAuctionItem, [data, data.platformId, data.productName, data.rewardType, conn.playerObjId, inputDevice], isValidData);
     };
 
     // isQualify
