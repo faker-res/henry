@@ -9339,8 +9339,14 @@ define(['js/app'], function (myApp) {
         function drawReportQuery (choice) {
             vm.merchantNoNameObj = {};
             vm.merchantGroupObj = [];
-            let merGroupName = {};
-            let merGroupList = {};
+
+            vm.merchantTypes = $scope.merchantTypes;
+            vm.merchantGroupObj = $scope.merchantGroupObj;
+            vm.merchantLists = $scope.merchantLists;
+            vm.merchantNoList = $scope.merchantNoList;
+            vm.merchantCloneList = $scope.merchantCloneList;
+            vm.merchantGroupObj = $scope.merchantGroupObj;
+            vm.merchantGroupCloneList = $scope.merchantGroupCloneList;
 
             socketService.$socket($scope.AppSocket, 'getBankTypeList', {}, function (data) {
                 $scope.$evalAsync(() => {
@@ -9353,61 +9359,6 @@ define(['js/app'], function (myApp) {
                         })
                     }
                 })
-            });
-
-            socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
-                $scope.$evalAsync(() => {
-                    data.data.merchantTypes.forEach(mer => {
-                        merGroupName[mer.merchantTypeId] = mer.name;
-                    })
-                    vm.merchantTypes = data.data.merchantTypes;
-                    vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
-                })
-            }, function (data) {
-                console.log("merchantList", data);
-            });
-
-            socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
-                $scope.$evalAsync(() => {
-                    if (data.data && data.data.merchants) {
-                        vm.merchantLists = data.data.merchants;
-                        vm.merchantNoList = data.data.merchants.filter(mer => {
-                            vm.merchantNoNameObj[mer.merchantNo] = mer.name;
-                            return mer.status != 'DISABLED';
-                        });
-                        // this purpose -> add a virtual alipay account to represent a process of auto-assign card in pms
-                        let line2Acc = commonService.getAlipayLine2Acc($translate);
-                        vm.merchantNoList.push(line2Acc);
-                        vm.merchantNoList.forEach(item => {
-                            merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
-                            merGroupList[item.merchantTypeId].list.push(item.merchantNo);
-                        }) || [];
-
-                        Object.keys(vm.merchantNoList).forEach(item => {
-                            let merchantTypeId = vm.merchantNoList[item].merchantTypeId;
-                            if (merchantTypeId == "9999") {
-                                vm.merchantNoList[item].merchantTypeName = $translate('BankCardNo');
-                            } else if (merchantTypeId == "9998") {
-                                vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
-                            } else if (merchantTypeId == "9997") {
-                                vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_ALIPAY_GROUP');
-                            } else if (merchantTypeId != "9997" && merchantTypeId != "9998" && merchantTypeId != "9999") {
-                                let merchantInfo = vm.merchantTypes.filter(mitem => {
-                                    return mitem.merchantTypeId == merchantTypeId;
-                                })
-                                vm.merchantNoList[item].merchantTypeName = merchantInfo[0] ? merchantInfo[0].name : "";
-                            } else {
-                                vm.merchantNoList[item].merchantTypeName = '';
-                            }
-                        });
-                        vm.merchantCloneList = angular.copy(vm.merchantNoList);
-                        vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
-                        // vm.merchantGroupCloneList = angular.copy(vm.merchantGroupObj);
-                        vm.merchantGroupCloneList = vm.merchantGroupObj;
-                    }
-                });
-            }, function (data) {
-                console.log("merchantList", data);
             });
 
             switch (choice) {
