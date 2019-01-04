@@ -15,6 +15,8 @@ let baccaratConsumptionSchema = new Schema({
     roundNo: {type: String},
     //bonus amount
     bonusAmount: {type: Number, default: 0},
+    //total amount for statistics
+    validAmount: {type: Number, required: true, default: 0, index: true},
     // host result score
     hostResult: {type: Number, index: true},
     // player result score
