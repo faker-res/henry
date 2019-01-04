@@ -3,7 +3,11 @@ var mongoose = require('mongoose');
 const dbProposal = require('./../db_modules/dbProposal');
 const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const ObjectId = mongoose.Types.ObjectId;
+const constProposalType = require('./../const/constProposalType');
+const constProposalStatus = require("../const/constProposalStatus");
 const constPromoCodeTemplateGenre = require("./../const/constPromoCodeTemplateGenre");
+
+const dbutility = require('./../modules/dbutility');
 const dbPlayerReward = require('./../db_modules/dbPlayerReward');
 const errorUtils = require("./../modules/errorUtils");
 
@@ -45,7 +49,6 @@ var dbAuction = {
             return dbconfig.collection_auctionSystem.update(matchObj, updateData, {multi:true, new: true});
         };
     },
-
     isQualify: (playerObjId) => {
         return dbconfig.collection_players.findOne({_id: playerObjId})
             .populate({
@@ -264,17 +267,67 @@ var dbAuction = {
             }
         )
     },
-
     applyAuction: (data) =>{
         return [];
     },
     listAuctionMonitor: function(query){
-        return dbconfig.collection_auctionSystem.find(query).then(
-            data=>{
-                console.log(data);
-                return data;
+        let proms = [];
+        let proposalType;
+        let result = [];
+
+        return dbconfig.collection_proposalType.findOne({
+            platformId: query.platformObjId,
+            name: constProposalType.PLAYER_TOP_UP
+        }).lean()
+        .then(
+            proposalTypeData => {
+                if (proposalTypeData) {
+                    proposalType = proposalTypeData;
+                }
+                return dbconfig.collection_auctionSystem.find(query).lean()
             }
-        )
+        ).then(auctionItems=>{
+            result = auctionItems;
+            // if(auctionItems.length <= 0 ){ return }
+            auctionItems.forEach(item=>{
+                let period = dbAuction.getPeriodTime(item);
+                let prom = dbconfig.collection_proposal.find({
+                    type: proposalType._id,
+                    $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}],
+                    createTime:{
+                        '$gte':period.startTime,
+                        '$lte':period.endTime
+                    }
+                },{ 'proposalId':1, 'status':1, 'data.playerName':1, 'createTime':1 }).limit(10).sort('-createTime')
+                .then(proposal=>{
+                    item.proposal = proposal;
+                    return item;
+                });
+                proms.push(prom);
+            })
+
+            return Promise.all(proms).then(
+                data=>{
+                    return result
+                }
+            )
+        })
+    },
+    getPeriodTime: function(auctionItem){
+        let period;
+        if(auctionItem.rewardInterval){
+            if(auctionItem.rewardInterval == 'weekly'){
+                period = dbutility.getCurrentWeekSGTime();
+            }else if(auctionItem.rewardInterval == 'monthly'){
+                period = dbutility.getCurrentMonthSGTIme();
+            }
+        }else{
+            period = {
+                startTime: auctionItem.rewardStartTime,
+                endTime: auctionItem.rewardEndTime
+            }
+        }
+        return period;
     },
     createAuctionProduct: function (auctionProduct) {
         let templateProm = Promise.resolve(true);
