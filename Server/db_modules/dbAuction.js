@@ -413,6 +413,16 @@ var dbAuction = {
         let remark = '';
         let platform = null;
         let platformObjId = null;
+        let playerObjId = null;
+        let playerName = null;
+        let auctionProductPublishStartTime = null;
+        let auctionProductPublishEndTime = null;
+        let auctionProductDirectPurchasePrice = null;
+        let playerBidPrice = null;
+        let playerData = null;
+        let auctionData = null;
+        let proposalData = null;
+        let timeNow = new Date().getTime();
 
         switch (rewardType) {
             case 'promoCode':
@@ -490,13 +500,12 @@ var dbAuction = {
 
                 return Promise.all([playerProm, auctionProm, proposalProm]).then(data => {
                     if (data) {
-                        let playerData = data[0];
-                        let auctionData = data[1];
-                        let proposalData = data[2];
-                        let timeNow = new Date().getTime();
+                        playerData = data[0];
+                        auctionData = data[1];
+                        proposalData = data[2];
 
-                        let playerObjId = playerData && playerData._id ? playerData._id : null;
-                        let playerName = playerData && playerData.name ? playerData.name : null;
+                        playerObjId = playerData && playerData._id ? playerData._id : null;
+                        playerName = playerData && playerData.name ? playerData.name : null;
                         let playerRewardPoints = playerData && playerData.rewardPointsObjId && playerData.rewardPointsObjId.points ? playerData.rewardPointsObjId.points : 0;
                         let auctionProductIsPublish = auctionData && auctionData.publish ? auctionData.publish : false;
                         /** time **/
@@ -504,17 +513,16 @@ var dbAuction = {
                         let auctionProductRewardEndTime = auctionData && auctionData.rewardEndTime ? auctionData.rewardEndTime : null;
                         let auctionProductProductStartTime = auctionData && auctionData.productStartTime ? auctionData.productStartTime : null; // in minutes
                         let auctionProductProductEndTime = auctionData && auctionData.productEndTime ? auctionData.productEndTime : null; // in minutes
-                        let auctionProductPublishStartTime = auctionProductRewardStartTime && auctionProductProductStartTime ? auctionProductRewardStartTime.getTime() - (auctionProductProductStartTime * 60 * 1000) : null; // before reward time
-                        let auctionProductPublishEndTime = auctionProductRewardEndTime && auctionProductProductEndTime ? auctionProductRewardEndTime.getTime() + (auctionProductProductEndTime * 60 * 1000) : null; // after reward time
+                        auctionProductPublishStartTime = auctionProductRewardStartTime && auctionProductProductStartTime ? auctionProductRewardStartTime.getTime() - (auctionProductProductStartTime * 60 * 1000) : null; // before reward time
+                        auctionProductPublishEndTime = auctionProductRewardEndTime && auctionProductProductEndTime ? auctionProductRewardEndTime.getTime() + (auctionProductProductEndTime * 60 * 1000) : null; // after reward time
                         /** price **/
                         let auctionProductStartingPrice = auctionData && auctionData.startingPrice ? auctionData.startingPrice : null;
                         let auctionProductPriceIncrement = auctionData && auctionData.priceIncrement ? auctionData.priceIncrement : null;
-                        let auctionProductDirectPurchasePrice = auctionData && auctionData.directPurchasePrice ? auctionData.directPurchasePrice : null;
+                        auctionProductDirectPurchasePrice = auctionData && auctionData.directPurchasePrice ? auctionData.directPurchasePrice : null;
                         let auctionProposalCurrentBidPrice = proposalData && proposalData.data && proposalData.data.currentBidPrice ? proposalData.data.currentBidPrice : null;
-                        let playerBidPrice = null;
 
                         if (!bidAmount) {
-                            playerBidPrice = auctionProposalCurrentBidPrice && auctionProductPriceIncrement ? auctionProposalCurrentBidPrice + auctionProductPriceIncrement : null;
+                            playerBidPrice = auctionProposalCurrentBidPrice && auctionProductPriceIncrement ? parseInt(auctionProposalCurrentBidPrice) + parseInt(auctionProductPriceIncrement) : null;
                         } else {
                             playerBidPrice = bidAmount;
                         }
@@ -534,6 +542,11 @@ var dbAuction = {
                             return Promise.reject({name: "DBError", message: "Your bid price is equal or lower than current highest bid price, please bid higher"});
                         }
 
+                        // deduct reward points from current bidder, if not enough reward points, will return error
+                        return dbPlayerInfo.updatePlayerRewardPointsRecord(playerObjId, platformObjId, -playerBidPrice, 'bid auction item', null, null, playerData.name, inputDevice);
+                    }
+                }).then(
+                    () => {
                         // find bid proposal in pending status
                         return dbconfig.collection_proposal.findOne(
                             {
@@ -545,74 +558,69 @@ var dbAuction = {
                                     $gte: new Date(auctionProductPublishStartTime),
                                     $lt: new Date(auctionProductPublishEndTime)
                                 }
-                            },
-                        ).then(
-                            proposalData => {
-                                if (!proposalData) return false; // skip reject proposal
-
-                                // previous bid proposal will be rejected and return their reward points
-                                return dbconfig.collection_proposal.findOneAndUpdate(
-                                    {
-                                        _id: proposalData._id,
-                                        createTime: proposalData.createTime,
-                                        type: proposalData.type,
-                                    },
-                                    {
-                                        $set: {
-                                            status: constProposalStatus.REJECTED
-                                        }
-                                    },
-                                    {new: true}
-                                ).exec();
-                            }
-                        ).then(
-                            proposalData => {
-                                if (!proposalData) return true; // skip refund reward points
-
-                                // return reward points to rejected bid proposal
-                                dbPlayerInfo.updatePlayerRewardPointsRecord(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.currentBidPrice, 'refund bid', null, null, playerData.name, inputDevice);
-                            }
-                        ).then(
-                            () => {
-                                // deduct reward points from current bidder
-                                dbPlayerInfo.updatePlayerRewardPointsRecord(playerObjId, platformObjId, -playerBidPrice, 'bid auction item', null, null, playerData.name, inputDevice);
-                            }
-                        ).then(
-                            () => {
-                                let proposalStatus = constProposalStatus.PENDING;
-
-                                // if player bid equal or higher than direct purchase price, proposal become Success
-                                if (playerBidPrice >= auctionProductDirectPurchasePrice) {
-                                    proposalStatus = constProposalStatus.SUCCESS;
-                                }
-
-                                let newProposal = {
-                                    data: {
-                                        playerObjId: playerObjId,
-                                        platformId: platformObjId,
-                                        productName: productName,
-                                        currentBidPrice: playerBidPrice,
-                                        remark: remark,
-                                    },
-                                    creator: {
-                                        name: playerName ? playerName : ''
-                                    },
-                                    status: proposalStatus,
-                                    type: proposalTypeId
-                                };
-                                if (inputDevice) {
-                                    newProposal.inputDevice = inputDevice;
-                                }
-
-                                return dbProposal.createProposalWithTypeId(proposalTypeId, newProposal).then(
-                                    data => {
-                                        return data;
-                                    }
-                                );
                             }
                         );
                     }
-                });
+                ).then(
+                    proposalData => {
+                        if (!proposalData) return false; // skip reject proposal
+
+                        // previous bid proposal will be rejected and return their reward points
+                        return dbconfig.collection_proposal.findOneAndUpdate(
+                            {
+                                _id: proposalData._id,
+                                createTime: proposalData.createTime,
+                                type: proposalData.type,
+                            },
+                            {
+                                $set: {
+                                    status: constProposalStatus.REJECTED
+                                }
+                            },
+                            {new: true}
+                        ).exec();
+                    }
+                ).then(
+                    proposalData => {
+                        if (!proposalData) return true; // skip refund reward points
+
+                        // return reward points to rejected bidder
+                        return dbPlayerInfo.updatePlayerRewardPointsRecord(proposalData.data.playerObjId, proposalData.data.platformId, proposalData.data.currentBidPrice, 'refund bid', null, null, playerData.name, inputDevice);
+                    }
+                ).then(
+                    () => {
+                        let proposalStatus = constProposalStatus.PENDING;
+
+                        // if player bid equal or higher than direct purchase price, proposal become Success
+                        if (playerBidPrice >= auctionProductDirectPurchasePrice) {
+                            proposalStatus = constProposalStatus.SUCCESS;
+                        }
+
+                        let newProposal = {
+                            data: {
+                                playerObjId: playerObjId,
+                                platformId: platformObjId,
+                                productName: productName,
+                                currentBidPrice: playerBidPrice,
+                                remark: remark,
+                            },
+                            creator: {
+                                name: playerName ? playerName : ''
+                            },
+                            status: proposalStatus,
+                            type: proposalTypeId
+                        };
+                        if (inputDevice) {
+                            newProposal.inputDevice = inputDevice;
+                        }
+
+                        return dbProposal.createProposalWithTypeId(proposalTypeId, newProposal).then(
+                            data => {
+                                return data;
+                            }
+                        );
+                    }
+                );
             }
         );
     },
