@@ -24,6 +24,8 @@ define([], () => {
             }
         }
 
+        // region General get functions
+
         self.getRewardList = ($scope, platformObjId) => {
             return $scope.$socketPromise('getRewardEventsForPlatform', {platform: platformObjId})
                 .then(data => data.data)
@@ -348,6 +350,8 @@ define([], () => {
             return line2Acc;
         };
 
+        // endregion
+
 
         this.updatePageTile = ($translate, pageName, tabName) => {
             window.document.title = $translate(pageName) + "->" + $translate(tabName);
@@ -617,13 +621,14 @@ define([], () => {
                 if (!vm.selectedProposal.data) {
                     vm.selectedProposal.data = {};
                 }
+
                 proposalDetail["MAIN_TYPE"] = $translate("PlayerTopUp");
                 proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
                 proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
                 proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.playerLevelName;
                 proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.playerRealName || " ";
                 proposalDetail["OnlineTopUpType"] = $translate($scope.merchantTopupTypeJson[vm.selectedProposal.data.topupType]) || vm.selectedProposal.data.topupType || " ";
-                proposalDetail["3rdPartyPlatform"] = this.getMerchantName(vm.selectedProposal.data.merchantNo, vm.merchantNoList, vm.merchantTypes, vm.selectedProposal.inputDevice) || vm.selectedProposal.data.merchantNo || " ";
+                proposalDetail["3rdPartyPlatform"] = this.getMerchantName(vm.selectedProposal.data.merchantNo, $scope.merchantNoList, $scope.merchantTypes, vm.selectedProposal.inputDevice) || vm.selectedProposal.data.merchantNo || " ";
                 proposalDetail["merchantNo"] = vm.selectedProposal.data.merchantNo || " ";
                 proposalDetail["TopupAmount"] = vm.selectedProposal.data.amount;
                 if(vm.selectedProposal.data.hasOwnProperty("rate")){
@@ -733,6 +738,67 @@ define([], () => {
                 }
             }
             // endregion
+
+            // region Baccarat Reward Group Proposal
+            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "BaccaratRewardGroup") {
+                proposalDetail = {};
+                if (!vm.selectedProposal.data) {
+                    vm.selectedProposal.data = {};
+                }
+
+                let providerGroupName;
+                let rewardDetail = '';
+                let originalRewardTotal = 0;
+
+                if (vm.selectedProposal.data && vm.selectedProposal.data.providerGroup) {
+                    providerGroupName = vm.getProviderGroupNameById(vm.selectedProposal.data.providerGroup);
+                } else {
+                    providerGroupName = $translate("LOCAL_CREDIT");
+                }
+
+                if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.baccaratRewardList && vm.selectedProposal.data.baccaratRewardList.length > 0) {
+                    vm.selectedProposal.data.baccaratRewardList.forEach(detail => {
+                        if (detail) {
+                            rewardDetail += detail.roundNo + '，' + $translate('BET_AMOUNT') + detail.betAmount + $translate('YEN') + '，'
+                                + $translate('REWARD_AMOUNT') + '：' + detail.rewardAmount + $translate('YEN') + '，' + $translate('remark') + '：' + detail.remark + '<br>';
+                        }
+
+                        if (detail.rewardAmount) {
+                            originalRewardTotal += detail.rewardAmount;
+                        }
+                    });
+                }
+
+                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
+                proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
+                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
+                proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realName || " ";
+                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.proposalPlayerLevel;
+                proposalDetail["spendingAmount"] = vm.selectedProposal.data.spendingAmount;
+                proposalDetail["eventName"] = vm.selectedProposal.data.eventName;
+                proposalDetail["eventCode"] = vm.selectedProposal.data.eventCode;
+                proposalDetail["REWARD_AMOUNT"] = vm.selectedProposal.data.rewardAmount < originalRewardTotal ?
+                    vm.selectedProposal.data.rewardAmount + $translate('YEN') + ' (' + $translate('ORIGINAL_REWARD_TOTAL') + originalRewardTotal + ')' : vm.selectedProposal.data.rewardAmount + $translate('YEN');
+                proposalDetail["REWARD_APPLIED"] = vm.selectedProposal.data.intervalRewardAmount + vm.selectedProposal.data.rewardAmount + $translate('YEN');
+                proposalDetail["MAX_REWARD"] = vm.selectedProposal.data.intervalMaxRewardAmount + $translate('YEN');
+                proposalDetail["ORDER_NO_REWARD_AMOUNT"] = rewardDetail;
+                if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.isIgnoreAudit) {
+                    proposalDetail["isIgnoreAudit"] = vm.selectedProposal.data.isIgnoreAudit.toString() === 'true' ? $translate('Yes') : $translate('No');
+                }
+                if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.forbidWithdrawAfterApply) {
+                    proposalDetail["forbidWithdrawAfterApply"] = vm.selectedProposal.data.forbidWithdrawAfterApply.toString() === 'true' ? $translate('Yes') : $translate('No');
+                }
+                proposalDetail["forbidWithdrawIfBalanceAfterUnlock"] = vm.selectedProposal.data.forbidWithdrawIfBalanceAfterUnlock;
+                proposalDetail["remark"] = vm.selectedProposal.data.remark;
+                if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.isSharedWithXIMA) {
+                    proposalDetail["isSharedWithXIMA"] = vm.selectedProposal.data.isSharedWithXIMA.toString() === 'true' ? $translate('Yes') : $translate('No');
+                }
+                proposalDetail["Provider group"] = providerGroupName;
+                proposalDetail["rewardStartTime"] = vm.selectedProposal.data.eventStartTime;
+                proposalDetail["rewardEndTime"] = vm.selectedProposal.data.eventEndTime;
+                proposalDetail["rewardInterval"] = vm.selectedProposal.data.intervalType;
+            }
+            // end region
 
             return proposalDetail;
         }

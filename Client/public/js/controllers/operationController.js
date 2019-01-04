@@ -232,61 +232,15 @@ define(['js/app'], function (myApp) {
 
             vm.merchantNoNameObj = {};
             vm.merchantGroupObj = [];
-            let merGroupName = {};
-            let merGroupList = {};
 
-            socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
-                $scope.$evalAsync(() => {
-                    data.data.merchantTypes.forEach(mer => {
-                        merGroupName[mer.merchantTypeId] = mer.name;
-                    })
-                    vm.merchantTypes = data.data.merchantTypes;
-                    vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
-                })
-            }, function (data) {
-                console.log("merchantList", data);
-            });
+            vm.merchantTypes = $scope.merchantTypes;
+            vm.merchantGroupObj = $scope.merchantGroupObj;
+            vm.merchantLists = $scope.merchantLists;
+            vm.merchantNoList = $scope.merchantNoList;
+            vm.merchantCloneList = $scope.merchantCloneList;
+            vm.merchantGroupObj = $scope.merchantGroupObj;
+            vm.merchantGroupCloneList = $scope.merchantGroupCloneList;
 
-            socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
-                $scope.$evalAsync(() => {
-                    if (data.data && data.data.merchants) {
-                        vm.merchantLists = data.data.merchants;
-                        vm.merchantNoList = data.data.merchants.filter(mer => {
-                            vm.merchantNoNameObj[mer.merchantNo] = mer.name;
-                            return mer.status != 'DISABLED';
-                        });
-                        vm.merchantNoList.forEach(item => {
-                            merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
-                            merGroupList[item.merchantTypeId].list.push(item.merchantNo);
-                        }) || [];
-
-                        Object.keys(vm.merchantNoList).forEach(item => {
-                            let merchantTypeId = vm.merchantNoList[item].merchantTypeId;
-                            if (merchantTypeId == "9999") {
-                                vm.merchantNoList[item].merchantTypeName = $translate('BankCardNo');
-                            } else if (merchantTypeId == "9998") {
-                                vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
-                            } else if (merchantTypeId == "9997") {
-                                vm.merchantNoList[item].merchantTypeName = $translate('PERSONAL_ALIPAY_GROUP');
-                            } else if (merchantTypeId != "9997" && merchantTypeId != "9998" && merchantTypeId != "9999") {
-                                let merchantInfo = vm.merchantTypes.filter(mitem => {
-                                    return mitem.merchantTypeId == merchantTypeId;
-                                })
-                                vm.merchantNoList[item].merchantTypeName = merchantInfo[0] ? merchantInfo[0].name : "";
-                            } else {
-                                vm.merchantNoList[item].merchantTypeName = '';
-                            }
-                        });
-                        vm.merchantCloneList = angular.copy(vm.merchantNoList);
-                        vm.merchantGroupObj = createMerGroupList(merGroupName, merGroupList);
-                        vm.merchantGroupCloneList = vm.merchantGroupObj;
-                    }
-                });
-            }, function (data) {
-                console.log("merchantList", data);
-            });
-
-            //vm.highlightProposalListSelection[i];
             vm.highlightProposalListSelection = {};
             console.log(i, v);
             if (typeof(i) == 'string') {
@@ -2917,66 +2871,6 @@ define(['js/app'], function (myApp) {
                 if (vm.selectedProposal.data.maxReward){
                     proposalDetail["maxReward"] = vm.selectedProposal.data.maxReward;
                 }
-
-                vm.selectedProposalDetailForDisplay = proposalDetail;
-            }
-
-            if (vm.selectedProposal && vm.selectedProposal.type && vm.selectedProposal.type.name === "BaccaratRewardGroup") {
-                let proposalDetail = {};
-                if (!vm.selectedProposal.data) {
-                    vm.selectedProposal.data = {};
-                }
-
-                let providerGroupName;
-                let rewardDetail = '';
-                let originalRewardTotal = 0;
-
-                if (vm.selectedProposal.data && vm.selectedProposal.data.providerGroup) {
-                    providerGroupName = vm.getProviderGroupNameById(vm.selectedProposal.data.providerGroup);
-                } else {
-                    providerGroupName = $translate("LOCAL_CREDIT");
-                }
-
-                if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.baccaratRewardList && vm.selectedProposal.data.baccaratRewardList.length > 0) {
-                    vm.selectedProposal.data.baccaratRewardList.forEach(detail => {
-                        if (detail && detail.roundNo) {
-                            rewardDetail += detail.roundNo + '，' + $translate('BET_AMOUNT') + detail.betAmount + $translate('YEN') + '，'
-                                + $translate('REWARD_AMOUNT') + '：' + detail.rewardAmount + $translate('YEN') + '，' + $translate('remark') + '：' + detail.remark + '<br>';
-                        }
-
-                        if (detail.rewardAmount) {
-                            originalRewardTotal += detail.rewardAmount;
-                        }
-                    });
-                }
-
-                proposalDetail["PROPOSAL_NO"] = vm.selectedProposal.proposalId;
-                proposalDetail["playerId"] = vm.selectedProposal.data.playerId;
-                proposalDetail["playerName"] = vm.selectedProposal.data.playerName;
-                proposalDetail["PLAYER_REAL_NAME"] = vm.selectedProposal.data.realName || " ";
-                proposalDetail["PLAYER_LEVEL"] = vm.selectedProposal.data.proposalPlayerLevel;
-                proposalDetail["spendingAmount"] = vm.selectedProposal.data.spendingAmount;
-                proposalDetail["eventName"] = vm.selectedProposal.data.eventName;
-                proposalDetail["eventCode"] = vm.selectedProposal.data.eventCode;
-                proposalDetail["REWARD_AMOUNT"] = vm.selectedProposal.data.rewardAmount + $translate('YEN') + ' (' + $translate('ORIGINAL_REWARD_TOTAL') + originalRewardTotal + ')';
-                proposalDetail["REWARD_APPLIED"] = vm.selectedProposal.data.intervalRewardAmount + vm.selectedProposal.data.rewardAmount + $translate('YEN');
-                proposalDetail["MAX_REWARD"] = vm.selectedProposal.data.intervalMaxRewardAmount + $translate('YEN');
-                proposalDetail["ORDER_NO_REWARD_AMOUNT"] = rewardDetail;
-                if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.isIgnoreAudit) {
-                    proposalDetail["isIgnoreAudit"] = vm.selectedProposal.data.isIgnoreAudit.toString() === 'true' ? $translate('Yes') : $translate('No');
-                }
-                if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.forbidWithdrawAfterApply) {
-                    proposalDetail["forbidWithdrawAfterApply"] = vm.selectedProposal.data.forbidWithdrawAfterApply.toString() === 'true' ? $translate('Yes') : $translate('No');
-                }
-                proposalDetail["forbidWithdrawIfBalanceAfterUnlock"] = vm.selectedProposal.data.forbidWithdrawIfBalanceAfterUnlock;
-                proposalDetail["remark"] = vm.selectedProposal.data.remark;
-                if (vm.selectedProposal && vm.selectedProposal.data && vm.selectedProposal.data.isSharedWithXIMA) {
-                    proposalDetail["isSharedWithXIMA"] = vm.selectedProposal.data.isSharedWithXIMA.toString() === 'true' ? $translate('Yes') : $translate('No');
-                }
-                proposalDetail["Provider group"] = providerGroupName;
-                proposalDetail["rewardStartTime"] = vm.selectedProposal.data.eventStartTime;
-                proposalDetail["rewardEndTime"] = vm.selectedProposal.data.eventEndTime;
-                proposalDetail["rewardInterval"] = vm.selectedProposal.data.intervalType;
 
                 vm.selectedProposalDetailForDisplay = proposalDetail;
             }

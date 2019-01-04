@@ -2,7 +2,7 @@
 
 /* Controllers */
 
-angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporter', 'ui.grid.resizeColumns', 'ui.grid.moveColumns', 'ngSanitize', 'ngCsv']).controller('AppCtrl', function ($scope, $state, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter, $timeout) {
+angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporter', 'ui.grid.resizeColumns', 'ui.grid.moveColumns', 'ngSanitize', 'ngCsv']).controller('AppCtrl', function ($scope, $state, $window, $http, $location, $cookies, localStorageService, AppService, authService, socketService, utilService, CONFIG, $translate, $filter, $timeout, commonService) {
     //todo::disable console log for production
     // if(CONFIG.NODE_ENV != "local"){
     //     window.console = { log: function(){}, warn: function(){}, error: function(){}, info: function(){} };
@@ -422,7 +422,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 width: 30,
                 height: 30,
             },
-            platformName: v.name
+            platformName: v.name,
+            platformId: v.platformId
         };
 
         return obj;
@@ -446,6 +447,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.selectPlatformNode = function (node, option) {
         $scope.selectedPlatform = node;
         $scope.curPlatformText = node.text;
+        $scope.curPlatformId = node.platformId;
         authService.updatePlatform($cookies, node.platformName);
         console.log("$scope.selectedPlatform", node.platformName);
         $cookies.put("platform", node.platformName);
@@ -454,6 +456,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             return;
         }
         loadProfitDetail();
+        loadPlatformInfo();
         $scope.$broadcast('switchPlatform');
         $scope.fontSizeAdaptive(document.getElementById('selectedPlatformNodeTitle'));
     };
@@ -1784,7 +1787,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     function loadProfitDetail() {
         clearTimeout(callBackTimeOut);
         clearTimeout(profileDetailTimeOut);
-        console.log("Update the ProfitDisplayingTable")
+
         let queryDone = [false, false, false, false, false];
         let sendData = {
             platformId: $scope.selectedPlatform.id,
@@ -1799,7 +1802,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         sendData1.partnerBonusType = 'PartnerBonus';
 
         socketService.$socket($scope.AppSocket, 'getProfitDisplayDetailByPlatform', sendData1, function (data) {
-
             $scope.$evalAsync(() => {
                 $scope.profitDetailIncome = 0;
                 $scope.profitDetailBonusAmount =  0;
@@ -1823,7 +1825,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 };
 
                 socketService.$socket($scope.AppSocket, 'getProfitDisplayDetailByPlatform', sendData3, function (totalAmount) {
-
                     $scope.$evalAsync(() => {
                         $scope.netProfitDetailIncome = 0;
 
@@ -1844,7 +1845,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
         socketService.$socket($scope.AppSocket, 'getPlayerConsumptionDetailByPlatform', sendData, function success(data) {
             $scope.$evalAsync(() => {
-
                 let consumptionAmount = data.data[0] != undefined ? data.data[0].totalAmount : 0;
                 $scope.profitDetailConsumptionAmount = noDecimalPlacesString(consumptionAmount);
                 $scope.profitDetailConsumptionPlayer = data.data[0] != undefined ? data.data[0].userIds.length.toLocaleString() : 0;
@@ -1860,7 +1860,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
 
         socketService.$socket($scope.AppSocket, 'countNewPlayers', sendData2, function success(data) {
             $scope.$evalAsync(() => {
-
                 $scope.profitDetailNewPlayer = data.data[0] != undefined ? data.data[0].number.toLocaleString() : 0;
 
                 queryDone[2] = true;
@@ -1899,8 +1898,68 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                 return callBackTimeOut;
             }
         }
+    }
 
+    function loadPlatformInfo() {
+        // Clear some variable before load
+        $scope.merchantNoNameObj = {};
+        $scope.merchantGroupObj = [];
 
+        // Load merchantTypes, merchantGroupObj
+        socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
+            $scope.$evalAsync(() => {
+                let merGroupName = {};
+                let merGroupList = {};
+
+                data.data.merchantTypes.forEach(mer => {
+                    merGroupName[mer.merchantTypeId] = mer.name;
+                });
+
+                $scope.merchantTypes = data.data.merchantTypes;
+                $scope.merchantGroupObj = utilService.createMerGroupList(merGroupName, merGroupList);
+            })
+        });
+
+        // Load merchantLists, merchantNoList, merchantCloneList, merchantGroupObj
+        socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: $scope.curPlatformId}, function (data) {
+            $scope.$evalAsync(() => {
+                if (data.data && data.data.merchants) {
+                    let merGroupName = {};
+                    let merGroupList = {};
+
+                    $scope.merchantLists = data.data.merchants;
+                    $scope.merchantNoList = data.data.merchants.filter(mer => {
+                        $scope.merchantNoNameObj[mer.merchantNo] = mer.name;
+                        return mer.status !== 'DISABLED';
+                    });
+                    let line2Acc = commonService.getAlipayLine2Acc($translate);
+                    $scope.merchantNoList.push(line2Acc);
+                    $scope.merchantNoList.forEach(item => {
+                        merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
+                        merGroupList[item.merchantTypeId].list.push(item.merchantNo);
+                    });
+
+                    Object.keys($scope.merchantNoList).forEach(item => {
+                        let merchantTypeId = $scope.merchantNoList[item].merchantTypeId;
+                        if (String(merchantTypeId) === "9999") {
+                            $scope.merchantNoList[item].merchantTypeName = $translate('BankCardNo');
+                        } else if (String(merchantTypeId) === "9998") {
+                            $scope.merchantNoList[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
+                        } else if (String(merchantTypeId) === "9997") {
+                            $scope.merchantNoList[item].merchantTypeName = $translate('PERSONAL_ALIPAY_GROUP');
+                        } else if (String(merchantTypeId) !== "9997" && String(merchantTypeId) !== "9998" && String(merchantTypeId) !== "9999") {
+                            let merchantInfo = $scope.merchantTypes.filter(mitem => String(mitem.merchantTypeId) === String(merchantTypeId));
+                            $scope.merchantNoList[item].merchantTypeName = merchantInfo[0] ? merchantInfo[0].name : "";
+                        } else {
+                            $scope.merchantNoList[item].merchantTypeName = '';
+                        }
+                    });
+                    $scope.merchantCloneList = angular.copy($scope.merchantNoList);
+                    $scope.merchantGroupObj = utilService.createMerGroupList(merGroupName, merGroupList);
+                    $scope.merchantGroupCloneList = $scope.merchantGroupObj;
+                }
+            });
+        });
     }
 
 });
