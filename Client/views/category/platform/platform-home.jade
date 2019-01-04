@@ -411,6 +411,28 @@
                     label.inlineBlk {{'remark' | translate}}
                     input.inlineBlk.proposalRemark.form-control(style='width:400px;')
 
+
+#auctionItemModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .tab-content
+                            table.common-table.display(style='min-width:100%')
+                                thead
+                                    th {{'Member Account' | translate}}
+                                    th {{'Reward Point Offer' | translate}}
+                                    th {{'Offer At' | translate}}
+                                tr(ng-repeat="v in vm.selectedAuction.proposal")
+                                    td {{v.data.playerName}}
+                                    td {{v.amount}}
+                                    td {{v.createTime | date : 'yyyy-MM-dd HH:mm:ss'}}
+            .modal-footer
+
+
 #rewardLockModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
         .modal-content
