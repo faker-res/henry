@@ -6,12 +6,9 @@ const ObjectId = mongoose.Types.ObjectId;
 const constProposalType = require('./../const/constProposalType');
 const constProposalStatus = require("../const/constProposalStatus");
 const constPromoCodeTemplateGenre = require("./../const/constPromoCodeTemplateGenre");
-
 const dbutility = require('./../modules/dbutility');
 const dbPlayerReward = require('./../db_modules/dbPlayerReward');
 const errorUtils = require("./../modules/errorUtils");
-const constProposalStatus = require('./../const/constProposalStatus');
-const constProposalType = require('./../const/constProposalType');
 
 var dbAuction = {
     /**
