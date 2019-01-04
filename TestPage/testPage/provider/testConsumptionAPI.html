@@ -434,7 +434,7 @@
         let separatedBetAmount = document.getElementById("separatedBetAmount");
 
         if (separatedBetType.value && separatedBetAmount.value) {
-            list.push({'separatedBetType': separatedBetType.value, 'separatedBetAmount': separatedBetAmount.value});
+            list.push({'separatedBetType': separatedBetType.value, 'separatedBetAmount': parseFloat(separatedBetAmount.value)});
         }
 
         if (list && list.length > 0) {
