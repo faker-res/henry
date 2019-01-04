@@ -5031,6 +5031,8 @@ var proposal = {
                     matchObj["data.playerName"] = data.playerName;
                 }
 
+                console.log("getRewardProposalByType matchObj ", matchObj);
+
                 return dbconfig.collection_proposal.distinct('data.playerObjId', matchObj).then(
                     player => {
                         console.log("getRewardProposalByType player ", player);
