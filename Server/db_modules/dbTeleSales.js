@@ -922,7 +922,7 @@ let dbTeleSales = {
 
     decomposeTsPhoneList: (sourceTsPhoneListName, tsPhones) => {
         let promArr = [];
-        let sourceTsPhoneList = tsPhones[0].tsPhoneList;
+        let sourceTsPhoneList = tsPhones && tsPhones[0] && tsPhones[0].tsPhoneList? tsPhones[0].tsPhoneList: null;
         if (!sourceTsPhoneList) {
             return;
         }
@@ -1341,7 +1341,7 @@ let dbTeleSales = {
             targetPlatform: null
         };
         if(phoneLists && phoneLists.length > 0) {
-            query.sourceTsPhoneListName = {$in: phoneLists};
+            query.sourceTsPhoneList = {$in: phoneLists};
         }
         if(topic == "noFeedbackTopic") {
             query['$or'] = [

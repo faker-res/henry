@@ -7042,7 +7042,7 @@ let dbPlayerReward = {
                             if (maxApply && rewardAmount + consumptionApplication.rewardAmount + baccaratRewardAppliedAmount >= maxApply) {
                                 let currentBRewardAmount = maxApply - rewardAmount - baccaratRewardAppliedAmount;
                                 let currentBSpendingAmount = consumptionApplication.spendingAmount * (currentBRewardAmount/consumptionApplication.rewardAmount);
-                                rewardAmount = currentBRewardAmount;
+                                rewardAmount = maxApply - baccaratRewardAppliedAmount;
                                 spendingAmount += currentBSpendingAmount;
                                 break;
                             }
@@ -8376,7 +8376,7 @@ let dbPlayerReward = {
 
                 if (event && event.condition && event.condition.intervalMaxRewardAmount) {
                     intervalMaxRewardAmount = event.condition.intervalMaxRewardAmount;
-                    if (totalApplied >= intervalMaxRewardAmount) {
+                    if (totalApplied >= intervalMaxRewardAmount && isApply) {
                         // update error message later if necessary
                         return Promise.reject({status: constServerCode.INTERVAL_REWARD_CAPPED, message: "You already reach the cap of this reward application per interval, please come back tomorrow."});
                     }
@@ -8407,7 +8407,6 @@ let dbPlayerReward = {
                             $gte: intervalTime.startTime,
                             $lt: intervalTime.endTime,
                         },
-                        bUsed: {$ne: true},
                         provider: criteria.sourceProvider,
                         hostResult: Number(criteria.hostResult),
                         playerResult: Number(criteria.playerResult),
@@ -8418,6 +8417,11 @@ let dbPlayerReward = {
                             }
                         }
                     };
+
+                    if (isApply) {
+                        consumptionMetQuery.bUsed = {$ne: true};
+                    }
+
                     let consumptionMetProm = dbConfig.collection_baccaratConsumption.find(consumptionMetQuery).lean().then(
                         bConsumptions => {
                             if (!bConsumptions || !bConsumptions.length) {
@@ -8508,6 +8512,10 @@ let dbPlayerReward = {
             applyDetail.rewardAmount = betAmount * criteria.rewardAmount;
             applyDetail.spendingTimes = criteria.spendingTimes;
             applyDetail.spendingAmount = applyDetail.rewardAmount * criteria.spendingTimes;
+
+            if (!isApply) {
+                applyDetail.isValid = !bConsumption.bUsed;
+            }
 
             let existedApplyIndex = outputList.findIndex((val) => {return val == String(bConsumption._id)});
             if (existedApplyIndex != -1) {

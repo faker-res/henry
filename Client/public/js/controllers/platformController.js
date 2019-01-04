@@ -1237,6 +1237,7 @@ define(['js/app'], function (myApp) {
                             vm.promoCodeTabClicked();
                             vm.phoneNumFilterClicked();
                             vm.rewardPointsTabClicked();
+                            vm.initAuctionSystem();
                             loadPromoCodeTemplate();
                             vm.onGoingLoadPlatformData = false;
                         })
@@ -24183,6 +24184,19 @@ define(['js/app'], function (myApp) {
                 vm.openPromoCodeTemplateData.map(promoCode => {
                     allNames.push(promoCode.name);
                 });
+                if(vm.excludeAuctionItem && vm.excludeAuctionItem.length){
+                    let InPromoCodeProduct = vm.excludeAuctionItem.filter(p => p.rewardData && p.rewardData.hasOwnProperty("templateObjId"));
+                    InPromoCodeProduct.map(auctionItem => {
+                        allNames.push(auctionItem.productName);
+                    });
+                }
+
+                if(vm.notAvailableAuctionItem && vm.notAvailableAuctionItem.length){
+                    let outPromoCodeProduct = vm.notAvailableAuctionItem.filter(p => p.rewardData && p.rewardData.hasOwnProperty("templateObjId"));
+                    outPromoCodeProduct.map(auctionItem => {
+                        allNames.push(auctionItem.productName);
+                    });
+                }
 
                 return allNames.includes(name);
             };
@@ -36052,8 +36066,22 @@ define(['js/app'], function (myApp) {
 
             /***** Auction System - start *****/
             vm.initAuctionSystem = function() {
-              vm.excludeAuctionItem = [];
-              vm.notAvailableAuctionItem = [];
+                vm.excludeAuctionItem = [];
+                vm.notAvailableAuctionItem = [];
+                let exclusiveQuery = {publish:true, status:1};
+                let notAvailableQuery = {publish:false, status:1};
+
+                socketService.$socket($scope.AppSocket, 'listAuctionItems', exclusiveQuery, function (data) {
+                    if (data && data.data){
+                        vm.excludeAuctionItem = data.data;
+                    }
+
+                    socketService.$socket($scope.AppSocket, 'listAuctionItems', notAvailableQuery, function (data) {
+                        if (data && data.data){
+                            vm.notAvailableAuctionItem = data.data;
+                        }
+                    });
+                });
             };
 
             vm.listAuctionItem = function() {
@@ -36063,15 +36091,21 @@ define(['js/app'], function (myApp) {
                 let exclusiveQuery = {platformObjId : vm.selectedPlatform.id, publish:true, status:1};
                 let prom1 = new Promise((resolve, reject)=>{
                   socketService.$socket($scope.AppSocket, 'listAuctionItems', exclusiveQuery, function (data) {
-                      vm.drawAuctionPublishTable(data.data);
-                      resolve();
+                      if (data && data.data) {
+                          vm.drawAuctionPublishTable(data.data);
+                          vm.excludeAuctionItem = data.data;
+                          resolve();
+                      }
                   });
                 })
 
                 let notAvailableQuery = {platformObjId : vm.selectedPlatform.id, publish:false, status:1};
                 prom1.then(()=>{
                     socketService.$socket($scope.AppSocket, 'listAuctionItems', notAvailableQuery, function (data) {
-                        vm.drawAuctionNotAvailableTable(data.data);
+                        if (data && data.data) {
+                            vm.drawAuctionNotAvailableTable(data.data);
+                            vm.notAvailableAuctionItem = data.data;
+                        }
                     });
                 })
             };
@@ -36121,6 +36155,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(()=>{
                         vm.auctionSystemCreateProductStatus = null;
                         vm.auctionSystemUpdateProductStatus = null;
+                        vm.selectedAuctionRewardType = null;
                         let rewardStartTime = data && data.data && data.data.rewardStartTime ? utilService.getLocalTime(new Date(data.data.rewardStartTime)) : utilService.getNdayagoStartTime(0);
                         let rewardEndTime = data && data.data && data.data.rewardEndTime ? utilService.getLocalTime(new Date(data.data.rewardEndTime)) : utilService.getNdaylaterStartTime(30);
                         let registerStartTime = data && data.data && data.data.registerStartTime ? utilService.getLocalTime(new Date(data.data.registerStartTime)) : utilService.getNdayagoStartTime(90);
@@ -36314,6 +36349,22 @@ define(['js/app'], function (myApp) {
                 console.log(vm.auctionSystemProduct.rewardAppearPeriod);
             };
 
+            vm.isProductNameExist = function (name) {
+                let allNames = [];
+                if(vm.excludeAuctionItem && vm.excludeAuctionItem.length){
+                    vm.excludeAuctionItem .map(auctionItem => {
+                        allNames.push(auctionItem.productName);
+                    });
+                }
+
+                if(vm.notAvailableAuctionItem && vm.notAvailableAuctionItem.length){
+                    vm.notAvailableAuctionItem.map(auctionItem => {
+                        allNames.push(auctionItem.productName);
+                    });
+                }
+                return allNames.includes(name);
+            };
+
             vm.createAuctionProduct = function () {
                 vm.auctionSystemProduct.platformObjId = vm.selectedPlatform.id;
                 vm.auctionSystemProduct.registerStartTime = $('#auctionSystemProductRegisterStartTimePicker').data('datetimepicker').getLocalDate();
@@ -36324,10 +36375,15 @@ define(['js/app'], function (myApp) {
                 vm.auctionSystemProduct.adminName = authService.adminName;
                 vm.auctionSystemProduct.adminId = authService.adminId;
 
-                if (vm.auctionSystemProduct && vm.auctionSystemProduct.productName && vm.auctionProductReward && vm.auctionProductReward.rewardType &&
-                    (vm.auctionProductReward.rewardType == 'promoCode' || vm.auctionProductReward.rewardType == 'openPromoCode')){
-                    if (vm.isPromoNameExist(vm.auctionSystemProduct.productName)) {
-                        return socketService.showErrorMessage($translate('Promo code name must be unique'));
+                if (vm.auctionSystemProduct && vm.auctionSystemProduct.productName) {
+                    if (vm.isProductNameExist(vm.auctionSystemProduct.productName)){
+                        return socketService.showErrorMessage($translate('Product name must be unique'));
+                    }
+                    if (vm.auctionProductReward && vm.auctionProductReward.rewardType &&
+                        (vm.auctionProductReward.rewardType == 'promoCode' || vm.auctionProductReward.rewardType == 'openPromoCode')){
+                        if (vm.isPromoNameExist(vm.auctionSystemProduct.productName)) {
+                            return socketService.showErrorMessage($translate('Product name has collided with the Promo code name'));
+                        }
                     }
                 }
 
@@ -36376,6 +36432,7 @@ define(['js/app'], function (myApp) {
 
                     ],
                     "paging": false,
+                    scrollY: 360,
                     fnInitComplete: function(settings){
                         $compile(angular.element('#' + settings.sTableId).contents())($scope);
                     }
@@ -36420,6 +36477,7 @@ define(['js/app'], function (myApp) {
 
                     ],
                     "paging": false,
+                    scrollY: 360,
                     fnInitComplete: function(settings){
                         $compile(angular.element('#' + settings.sTableId).contents())($scope);
                     }
