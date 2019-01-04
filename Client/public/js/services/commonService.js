@@ -272,30 +272,6 @@ define([], () => {
                 .then(data => data.data.data);
         };
 
-        self.displayTime = function(endTime){
-            // convert the timestamp to actual time left
-            var endTime = new Date(endTime);
-            var now = new Date();
-            var sec_num = (endTime - now) / 1000;
-            var days    = Math.floor(sec_num / (3600 * 24));
-            var hours   = Math.floor((sec_num - (days * (3600 * 24)))/3600);
-            var minutes = Math.floor((sec_num - (days * (3600 * 24)) - (hours * 3600)) / 60);
-            var seconds = Math.floor(sec_num - (days * (3600 * 24)) - (hours * 3600) - (minutes * 60));
-
-            if (hours   < 10) {hours   = "0"+hours;}
-            if (minutes < 10) {minutes = "0"+minutes;}
-            if (seconds < 10) {seconds = "0"+seconds;}
-
-            var result =  {
-                text:days+'天 '+ hours+':'+minutes+':'+seconds,
-                days: days,
-                hours: hours,
-                minutes: minutes,
-                seconds: seconds
-            }
-            return result;
-        }
-
         self.getPMSDevices = function(num){
             // PMS definition of device type
             // Web: 1, H5: 2, Both: 3, App:4

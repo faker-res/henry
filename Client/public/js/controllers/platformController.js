@@ -36118,7 +36118,7 @@ define(['js/app'], function (myApp) {
                         data.data.forEach(item=>{
                             item.bidTimes = item.proposal.length;
                             item.lastProposal = item.proposal[0] ? item.proposal[0]:{};
-                            item.timeLeft = commonService.displayTime(item.rewardEndTime).text;
+                            item.timeLeft = utilService.getLeftTime(item.rewardEndTime).text;
 
                             let beforeAuction = new Date(item.rewardStartTime).getTime() - (item.productStartTime*60*1000);
                             let afterAuction = new Date(item.rewardEndTime).getTime() + (item.productEndTime*60*1000);
