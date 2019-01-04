@@ -317,11 +317,11 @@ var dbAuction = {
                 period = dbutility.getCurrentWeekSGTime();
             }else if(auctionItem.rewardInterval == 'monthly'){
                 period = dbutility.getCurrentMonthSGTIme();
-            }else if(auctionItem.rewardInterval == 'monthly'){
-                period = {
-                    startTime: auctionItem.rewardStartTime,
-                    endTime: auctionItem.rewardEndTime
-                }
+            }
+        }else{
+            period = {
+                startTime: auctionItem.rewardStartTime,
+                endTime: auctionItem.rewardEndTime
             }
         }
         return period;

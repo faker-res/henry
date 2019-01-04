@@ -36090,7 +36090,7 @@ define(['js/app'], function (myApp) {
                             let afterAuction = new Date(item.rewardEndTime).getTime() + (item.productEndTime*60*1000);
 
                             if(item.lastProposal && (item.lastProposal.status == vm.constProposalStatus.APPROVED|| item.lastProposal.status == vm.constProposalStatus.SUCCESS)){
-                                item.dealAt = item.lastProposal.createTime;
+                                item.dealAt = vm.dateReformat(item.lastProposal.createTime);
                             }
                             let rewardStartTime = new Date(item.rewardStartTime).getTime();
                             let rewardEndTime =  new Date(item.rewardEndTime).getTime();
