@@ -36083,8 +36083,8 @@ define(['js/app'], function (myApp) {
                     if(data.data.length > 0){
                         data.data.forEach(item=>{
                             item.bidTimes = item.proposal.length;
-                            item.lastProposal = item.proposal[item.bidTimes-1];
-                            item.timeLeft = new Date(item.rewardEndTime).getTime() - new Date().getTime();
+                            item.lastProposal = item.proposal[0] ? item.proposal[0]:{};
+                            item.timeLeft = commonService.displayTime(item.rewardEndTime).text;
 
                             let beforeAuction = new Date(item.rewardStartTime).getTime() - (item.productStartTime*60*1000);
                             let afterAuction = new Date(item.rewardEndTime).getTime() + (item.productEndTime*60*1000);
@@ -36114,6 +36114,7 @@ define(['js/app'], function (myApp) {
                     vm.drawAuctionMonitorTable(data.data);
                 });
             }
+
             vm.loadAuctionItem = function(id){
                 let sendData = { _id: id };
                 socketService.$socket($scope.AppSocket, 'loadAuctionItem', sendData, function (data) {
