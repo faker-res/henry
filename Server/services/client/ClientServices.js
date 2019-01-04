@@ -517,7 +517,8 @@
             var functionNames = [
                 "listAuctionItems",
                 "applyAuction",
-                "isQualify"
+                "isQualify",
+                "bidAuctionItem",
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
