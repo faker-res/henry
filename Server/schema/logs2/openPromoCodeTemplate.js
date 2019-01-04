@@ -53,7 +53,9 @@ let openPromoCodeTemplateSchema = new Schema({
     // the time when the openPromoCode is sent to player (special for auction system)
     sendTime: {type: Date, index: true},
     // expired after the number of days the open promo code is sent (special for auction system)
-    expiredInDay: {type: Number, index: true}
+    expiredInDay: {type: Number, index: true},
+    // category: 1: general; 2: for auction system
+    genre: {type: Number, index: true}
 
 });
 
