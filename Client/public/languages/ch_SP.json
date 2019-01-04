@@ -4471,6 +4471,8 @@
   "TELEMARKETING_TASK": "电销任务",
   "TELEMARKETING_TASK_OVERVIEW": "电销任务总览",
   "CREATE_TELEMARKETING_TASK": "创建电销任务",
+  "SMS_TASK_OVERVIEW": "短信任务总览",
+  "CREATE_SMS_TASK": "创建短信任务",
   "TASK_NAME": "任务名称",
   "TOTAL_IMPORTED_LIST": "导入名单总数",
   "TOTAL_PLAYER_REGISTRATION": "总开户数",
