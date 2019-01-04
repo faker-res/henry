@@ -47,7 +47,7 @@ form(name='form_auctionSystem').row
         #auctionProductDetailTable.panel.panel-primary
             .panel-heading.panel-heading-sm
                 label {{"Create Product" | translate}}
-            .panel-body(style='margin:5px;height:660px;overflow-y:auto;')
+            .panel-body(style='margin: 5px; height: 880px; overflow-y: auto;')
                 .full-width-input-block
                     label {{"USER_TYPE" | translate}}
                     select.form-control(ng-model="vm.auctionSystemProduct.playerType")
@@ -541,7 +541,7 @@ form(name='form_auctionSystem').row
                     .inlineBlk
                         button.btn.btn-warning(ng-if="checkViewPermission('Platform','AuctionSystem','Create')" ng-click='vm.auctionSystemProductCancel()') {{"CANCEL" | translate}}
                     .inlineBlk
-                        button.btn.btn-primary(ng-if="checkViewPermission('Platform','AuctionSystem','Create') && !vm.auctionSystemEditStatus" ng-disabled='form_auctionSystem.$invalid || form_auctionSystem.$pristine' ng-click='vm.createAuctionProduct()') {{"Create Product" | translate}}
+                        button.btn.btn-primary(ng-if="checkViewPermission('Platform','AuctionSystem','Create') && !vm.auctionSystemEditStatus" ng-disabled='form_auctionSystem.$invalid || form_auctionSystem.$pristine || vm.auctionSystemCreateProductStatus === "success"', ng-click='vm.createAuctionProduct()') {{"Create Product" | translate}}
                         button.btn.btn-primary(ng-if="checkViewPermission('Platform','AuctionSystem','Create') && vm.auctionSystemEditStatus" ng-click='vm.updateAuctionProduct()') {{"Edit Product" | translate}}
                     .inlineBlk
                         span(style="font-weight:bold" ng-show="vm.auctionSystemCreateProductStatus === 'success' || vm.auctionSystemUpdateProductStatus === 'success'") {{"SUCCESS" | translate}}

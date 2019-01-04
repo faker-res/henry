@@ -5,6 +5,7 @@ const dbPlayerInfo = require('./../db_modules/dbPlayerInfo');
 const ObjectId = mongoose.Types.ObjectId;
 const constPromoCodeTemplateGenre = require("./../const/constPromoCodeTemplateGenre");
 const dbPlayerReward = require('./../db_modules/dbPlayerReward');
+const errorUtils = require("./../modules/errorUtils");
 const constProposalStatus = require('./../const/constProposalStatus');
 const constProposalType = require('./../const/constProposalType');
 
@@ -281,6 +282,7 @@ var dbAuction = {
         let templateProm = Promise.resolve(true);
         let adminName = auctionProduct && auctionProduct.adminName ? auctionProduct.adminName : "";
         let adminId = auctionProduct && auctionProduct.adminId ? auctionProduct.adminId : "";
+        let templateObjId = null;
 
         // only promoCodeTemplate needs to be generated first
         if (auctionProduct && auctionProduct.rewardData && auctionProduct.rewardData.rewardType && auctionProduct.rewardData.rewardType == "promoCode"){
@@ -292,6 +294,7 @@ var dbAuction = {
 
         return templateProm.then(
             template => {
+                templateObjId =  template && template._id ? ObjectId(template._id): null;
                 if (template && template._id && auctionProduct && auctionProduct.rewardData){
                     auctionProduct.rewardData.templateObjId = template._id;
                 }
@@ -308,7 +311,21 @@ var dbAuction = {
                 }
             },
             error => {
-                return Promise.reject({name: "DBError", message: "Error creating auction product.", error: error});
+                let deleteProm = Promise.resolve(true);
+                // delete the created template if the product cannot be created successfully
+                if (templateObjId){
+                    if (auctionProduct && auctionProduct.rewardData && auctionProduct.rewardData.rewardType && auctionProduct.rewardData.rewardType == "promoCode"){
+                        deleteProm = dbconfig.collection_promoCodeTemplate.remove({_id: templateObjId});
+                    }
+                    else if (auctionProduct && auctionProduct.rewardData && auctionProduct.rewardData.rewardType && auctionProduct.rewardData.rewardType == "openPromoCode"){
+                        deleteProm = dbconfig.collection_openPromoCodeTemplate.remove({_id: templateObjId});
+                    }
+                }
+                return deleteProm.then(
+                    () => {
+                        return Promise.reject({name: "DBError", message: "Error creating auction product.", error: error});
+                    }
+                )
             }
         );
 

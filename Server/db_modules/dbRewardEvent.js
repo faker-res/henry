@@ -506,9 +506,10 @@ var dbRewardEvent = {
                                             if (checkRewardData.condition.bet.status == 0) {
                                                 delete checkRewardData.condition.bet;
                                             }
-                                            if (checkRewardData.status == 2 || checkRewardData.status == 3) {
-                                                delete checkRewardData.result;
-                                            }
+                                            // reynold said in no scenario that result should be hidden
+                                            // if (checkRewardData.status == 2 || checkRewardData.status == 3) {
+                                            //     delete checkRewardData.result;
+                                            // }
 
                                             if (rewardEvent.code){
                                                 checkRewardData.code = rewardEvent.code;
@@ -2256,10 +2257,8 @@ var dbRewardEvent = {
                         // available resources: playerData, eventData
                         // thing to update: returnData
                         let baccaratRewardDetail = rewardSpecificData[0];
-                        console.log('baccaratRewardDetail', baccaratRewardDetail)
 
                         returnData.condition.bet = {
-                            status: baccaratRewardDetail && baccaratRewardDetail.list && baccaratRewardDetail.list.length ? 1 : 2,
                             list: []
                         };
 
@@ -2268,27 +2267,30 @@ var dbRewardEvent = {
                         returnData.result.canApplyAmount = 0;
                         returnData.result.betAmount = 0;
 
-                        if (returnData.condition.bet.status === 1) {
+                        if (baccaratRewardDetail && baccaratRewardDetail.list && baccaratRewardDetail.list.length) {
                             returnData.condition.bet.list = baccaratRewardDetail.list.map(bConsumption => {
                                 let winAmount = bConsumption.rewardAmount;
                                 let betAmount = bConsumption.spendingAmount;
 
-                                if (maxAmount) {
-                                    if (appliedAmount + winAmount >= maxAmount) {
-                                        winAmount = maxAmount - appliedAmount;
-                                        appliedAmount = maxAmount;
-                                        betAmount = bConsumption.spendingAmount * (winAmount/bConsumption.rewardAmount);
+                                if (bConsumption.isValid) {
+                                    if (maxAmount) {
+                                        if (appliedAmount + winAmount >= maxAmount) {
+                                            winAmount = maxAmount - appliedAmount;
+                                            appliedAmount = maxAmount;
+                                            betAmount = bConsumption.spendingAmount * (winAmount / bConsumption.rewardAmount);
+                                        }
+                                        else {
+                                            appliedAmount += winAmount;
+                                        }
                                     }
-                                    else {
-                                        appliedAmount += winAmount;
-                                    }
+                                    returnData.result.canApplyAmount += winAmount;
+                                    returnData.result.betAmount += betAmount;
                                 }
-                                returnData.result.canApplyAmount += winAmount;
-                                returnData.result.betAmount += betAmount;
 
                                 return {
                                     roundNo: bConsumption.roundNo,
                                     time: bConsumption.consumptionTime,
+                                    status: bConsumption.isValid ? 1 : 2,
                                     betAmount: bConsumption.betAmount,
                                     betType: bConsumption.betType,
                                     winAmount: winAmount, // todo :: update this to actual win amount
@@ -2298,6 +2300,7 @@ var dbRewardEvent = {
                                 }
                             });
                         }
+                        returnData.condition.bet.status = returnData.result.canApplyAmount ? 1 : 2;
                         returnData.status = returnData.condition.bet.status === 1 && returnData.condition.deposit && returnData.condition.deposit.status === 1 ? 1 : 2;
                         returnData.result.rewardAmount = returnData.result.canApplyAmount;
                         break;
