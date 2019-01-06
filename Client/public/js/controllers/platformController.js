@@ -36411,7 +36411,12 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                        {title: $translate('Type'), data:"rewardData.rewardType"},
+                        {title: $translate('Type'), data:"rewardData.rewardType",
+                            render: function(data, type, row){
+                                let result = $translate(data);
+                                return result;
+                            }
+                        },
                         {title: $translate('Product Name'), data: "productName",
                             render: function(data, type, row){
                                 let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
@@ -36456,7 +36461,12 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                        {title: $translate('Type'), data:"rewardData.rewardType"},
+                        {title: $translate('Type'), data:"rewardData.rewardType",
+                            render: function(data, type, row){
+                                let result = $translate(data);
+                                return result;
+                            }
+                        },
                         {title: $translate('Product Name'), data: "productName",
                             render: function(data, type, row){
                                 let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
