@@ -13,6 +13,7 @@ define(['js/app'], function (myApp) {
 
         // declare constant
 
+        vm.playerInputDevice = $scope.constPlayerRegistrationInterface;
         vm.proposalStatusList = { // removed APPROVED and REJECTED
             PREPENDING: "PrePending",
             PENDING: "Pending",
@@ -4084,9 +4085,9 @@ define(['js/app'], function (myApp) {
                         }
                     },
                     {
-                        title: $translate('DEVICE'), data: "data.userAgent",
+                        title: $translate('DEVICE'), data: "inputDevice",
                         render: function (data, type, row) {
-                            var text = $translate(data ? $scope.userAgentType[data] : "");
+                            var text = $translate(data ? vm.playerInputDevice[data] : vm.playerInputDevice[0]);
                             return "<div>" + text + "</div>";
                         }
                     },
