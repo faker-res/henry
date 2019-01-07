@@ -419,6 +419,13 @@ const dbPlayerPayment = {
                 if (ret) {
                     ret = JSON.parse(ret);
 
+                    if (ret.code && Number(ret.code) === 1) {
+                        return Promise.reject({
+                            status: constServerCode.PAYMENT_NOT_AVAILABLE,
+                            message: "Payment is not available",
+                        });
+                    }
+
                     return {
                         minDepositAmount: Number(ret.min) || 0,
                         maxDepositAmount: Number(ret.max) || 0
