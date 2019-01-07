@@ -23,6 +23,7 @@ const dbPlayerMail = require("../db_modules/dbPlayerMail");
 const dbProposal = require("../db_modules/dbProposal");
 const smsAPI = require('../externalAPI/smsAPI');
 const dbLogger = require('./../modules/dbLogger');
+const constPlayerRegistrationInterface = require('../const/constPlayerRegistrationInterface');
 
 let dbTeleSales = {
     getAllTSPhoneList: function (platformObjId) {
@@ -1183,8 +1184,8 @@ let dbTeleSales = {
                     data: proposalData,
                     entryType: constProposalEntryType.ADMIN,
                     userType: constProposalUserType.SYSTEM_USERS,
+                    inputDevice: constPlayerRegistrationInterface.BACKSTAGE,
                 };
-                newProposal.inputDevice = dbUtility.getInputDevice(userAgent, false, adminInfo);
 
                 return dbProposal.createProposalWithTypeName(ObjectId(sourcePlatform), constProposalType.MANUAL_EXPORT_TS_PHONE, newProposal);
             }
