@@ -423,7 +423,6 @@ const dbPlayerPayment = {
                         return Promise.reject({
                             status: constServerCode.PAYMENT_NOT_AVAILABLE,
                             message: "Payment is not available",
-                            error: error
                         });
                     }
 
