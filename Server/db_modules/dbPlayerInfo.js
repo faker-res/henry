@@ -16851,7 +16851,7 @@ let dbPlayerInfo = {
                         ]
                     }, {playerId: 1, createTime: 1}).sort({createTime: -1}));
 
-                    trackingGroupProm.push(dbconfig.collection_players.findOne({_id: player._id})
+                    trackingGroupProm.push(dbconfig.collection_players.findOne({_id: player._id}, {_id: 1, depositTrackingGroup: 1})
                         .populate({path: 'depositTrackingGroup', model: dbconfig.collection_playerDepositTrackingGroup})
                         .read("secondaryPreferred").lean().then(
                             depositTrackingGroup => {
@@ -16867,6 +16867,7 @@ let dbPlayerInfo = {
                     promoCodeType1Prom.push(dbconfig.collection_promoCode.aggregate([
                         {
                             $match: {
+                                platformObjId: ObjectId(platformObjId),
                                 playerObjId: ObjectId(player._id),
                                 promoCodeTypeObjId: {$in: promoCodeType1ObjIds}
                             }
@@ -16889,6 +16890,7 @@ let dbPlayerInfo = {
                     promoCodeType2Prom.push(dbconfig.collection_promoCode.aggregate([
                         {
                             $match: {
+                                platformObjId: ObjectId(platformObjId),
                                 playerObjId: ObjectId(player._id),
                                 promoCodeTypeObjId: {$in: promoCodeType2ObjIds}
                             }
@@ -16911,6 +16913,7 @@ let dbPlayerInfo = {
                     promoCodeType3Prom.push(dbconfig.collection_promoCode.aggregate([
                         {
                             $match: {
+                                platformObjId: ObjectId(platformObjId),
                                 playerObjId: ObjectId(player._id),
                                 promoCodeTypeObjId: {$in: promoCodeType3ObjIds}
                             }
