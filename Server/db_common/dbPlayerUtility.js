@@ -192,7 +192,7 @@ const dbPlayerUtility = {
      */
     tryToDeductCreditFromPlayer: (playerObjId, platformObjId, updateAmount, reasonType, data) => {
         let playerCreditBeforeDeduct = 0;
-
+        updateAmount = Number(updateAmount);
         return Q.resolve().then(
             () => {
                 if (updateAmount && updateAmount < 0) {
