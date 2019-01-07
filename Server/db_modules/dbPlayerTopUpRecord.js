@@ -898,7 +898,11 @@ var dbPlayerTopUpRecord = {
                         errorMessage: "Top up amount is not enough"
                     });
                 }
-                if (!player.permission || !player.permission.topupOnline) {
+
+                console.log("LH Check online topup permission 1 ------- ", player.name);
+                console.log("LH Check online topup permission 2 ------- ", player.permission && typeof player.permission.topupOnline != "undefined"  ? player.permission.topupOnline : "not exists");
+                if (!player.permission || !player.permission.topupOnline || player.permission.topupOnline === "false") {
+                    console.log("LH Check online topup permission 3 ------- ", player.name);
                     return Promise.reject({
                         status: constServerCode.PLAYER_NO_PERMISSION,
                         name: "DataError",
