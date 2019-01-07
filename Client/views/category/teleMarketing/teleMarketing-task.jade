@@ -12,11 +12,11 @@ div(ng-if="vm.curPlatformText", style='padding-left:0')
                     li.active(ng-show="checkViewPermission('TeleMarketing', 'Overview', 'Read')" style="margin-left: 20px;")
                         a.common-tab(data-toggle="tab", ng-click="vm.teleMarketingTaskTab ='TELEMARKETING_TASK_OVERVIEW'; vm.initTeleMarketingOverview();" )
                             .fa.fa-wrench.margin-right-5
-                            text.span {{"TELEMARKETING_TASK_OVERVIEW" | translate}}
+                            text.span {{"SMS_TASK_OVERVIEW" | translate}}
                     li(ng-show="checkViewPermission('TeleMarketing', 'TeleMarketing', 'Create')")
                         a.common-tab(data-toggle="tab", ng-click="vm.teleMarketingTaskTab ='CREATE_TELEMARKETING_TASK';")
                             .fa.fa-file-text.margin-right-5
-                            text.span {{"CREATE_TELEMARKETING_TASK" | translate}}
+                            text.span {{"CREATE_SMS_TASK" | translate}}
 
                     //button.btn.btn-primary.common-button(ng-class='{active: vm.teleMarketingTaskTab ="TELEMARKETING_TASK_OVERVIEW"}', ng-click="vm.teleMarketingTaskTab ='TELEMARKETING_TASK_OVERVIEW'; vm.initTeleMarketingOverview();")
                     //    span {{"TELEMARKETING_TASK_OVERVIEW" | translate}}

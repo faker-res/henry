@@ -43,6 +43,15 @@
         });
     };
 
+    proto.bidAuctionItem = function (callback, requestData) {
+        this._service.bidAuctionItem.request(requestData);
+        this._service.bidAuctionItem.once(function (data) {
+            if (callback && typeof callback === "function") {
+                callback(data);
+            }
+        });
+    };
+
 
     if (isNode) {
         module.exports = ClientAuctionAPITest;

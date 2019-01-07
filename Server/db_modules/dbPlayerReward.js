@@ -5490,6 +5490,7 @@ let dbPlayerReward = {
         let showRewardPeriod = {};
         let intervalRewardSum = 0, intervalConsumptionSum = 0, intervalTopupSum = 0, intervalBonusSum = 0, playerCreditLogSum = 0;
         let lastConsumptionRecord;
+        let baccaratConsumptionRecord;
         let lastConsumptionProm;
 
         let ignoreTopUpBdirtyEvent = eventData.condition.ignoreAllTopUpDirtyCheckForReward;
@@ -7022,6 +7023,8 @@ let dbPlayerReward = {
                                 message: "Not Valid for the reward."
                             });
                         }
+                        // lastConsumptionRecord
+                        baccaratConsumptionRecord = rewardSpecificData[0].lastBConsumption;
 
                         let baccaratRewardList = rewardSpecificData[0].list;
                         let baccaratRewardAppliedAmount = rewardSpecificData[0].totalAppliedBefore;
@@ -7446,6 +7449,12 @@ let dbPlayerReward = {
                             proposalData.data.playerLevel = playerData.playerLevel;
                             proposalData.data.intervalRewardAmount = selectedRewardParam.baccaratRewardAppliedAmount;
                             proposalData.data.intervalMaxRewardAmount = selectedRewardParam.maxApply;
+                            if (baccaratConsumptionRecord && Object.keys(baccaratConsumptionRecord).length > 0) {
+                                proposalData.data.betTime = baccaratConsumptionRecord.createTime;
+                                proposalData.data.betAmount = baccaratConsumptionRecord.validAmount;
+                                proposalData.data.winAmount = baccaratConsumptionRecord.bonusAmount;
+                                proposalData.data.winResult = [baccaratConsumptionRecord.hostResult, baccaratConsumptionRecord.playerResult];
+                            }
                         }
 
                         return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then(
@@ -8315,6 +8324,7 @@ let dbPlayerReward = {
         let forbidWithdrawAfterApply = false;
         let forbidWithdrawIfBalanceAfterUnlock = 0;
         let applicableBConsumption = [];
+        let lastBConsumption;
 
         return getPlatformAndPlayerFromId(platformId, playerId).then(
             data => {
@@ -8422,7 +8432,7 @@ let dbPlayerReward = {
                         consumptionMetQuery.bUsed = {$ne: true};
                     }
 
-                    let consumptionMetProm = dbConfig.collection_baccaratConsumption.find(consumptionMetQuery).lean().then(
+                    let consumptionMetProm = dbConfig.collection_baccaratConsumption.find(consumptionMetQuery).sort({createTime: -1}).lean().then(
                         bConsumptions => {
                             if (!bConsumptions || !bConsumptions.length) {
                                 return false;
@@ -8448,6 +8458,16 @@ let dbPlayerReward = {
                     // rewardApplicable = true;
                     let bConsumptions = isApplicable.bConsumptions;
                     let criteria = isApplicable.criteria;
+                    if (isApplicable.bConsumptions && isApplicable.bConsumptions.length) {
+                        if (lastBConsumption) {
+                            if (lastBConsumption.createTime && isApplicable.bConsumptions[0].createTime
+                                && new Date(lastBConsumption.createTime).getTime() < new Date(isApplicable.bConsumptions[0].createTime).getTime()) {
+                                lastBConsumption = isApplicable.bConsumptions[0];
+                            }
+                        } else {
+                            lastBConsumption = isApplicable.bConsumptions[0];
+                        }
+                    };
                     for (let i = 0; i < bConsumptions.length; i++) {
                         insertOutputList(bConsumptions[i], criteria);
                     }
@@ -8561,7 +8581,7 @@ let dbPlayerReward = {
 
             return updateUsedPromiseChain.then(
                 () => {
-                    return {totalAppliedBefore, list, forbidWithdrawAfterApply, forbidWithdrawIfBalanceAfterUnlock};
+                    return {totalAppliedBefore, list, forbidWithdrawAfterApply, forbidWithdrawIfBalanceAfterUnlock, lastBConsumption};
                 }
             );
         }
@@ -9018,6 +9038,7 @@ function getLastRewardDetail(query) {
                 result.betAmount = lastProposalData.data.betAmount;
                 result.winAmount = lastProposalData.data.winAmount;
                 result.winTimes = lastProposalData.data.winTimes;
+                result.winResult = lastProposalData.data.winResult;
             }
             return result;
         }
