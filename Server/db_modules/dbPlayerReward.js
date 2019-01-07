@@ -3744,7 +3744,7 @@ let dbPlayerReward = {
                     }
 
                     if(typeof topUpProp.data.actualAmountReceived != "undefined"){
-                        topUpAmount = topUpProp.data.actualAmountReceived;
+                        topUpAmount = Number(topUpProp.data.actualAmountReceived);
                     }else{
                         topUpAmount = topUpProp.data.amount;
                     }
@@ -4083,7 +4083,7 @@ let dbPlayerReward = {
                     }
 
                     if(typeof topUpProp.data.actualAmountReceived != "undefined"){
-                        topUpAmount = topUpProp.data.actualAmountReceived;
+                        topUpAmount = Number(topUpProp.data.actualAmountReceived);
                     }else{
                         topUpAmount = topUpProp.data.amount;
                     }

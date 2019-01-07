@@ -906,7 +906,6 @@ var dbPlayerConsumptionRecord = {
                         recordData.betDetails = recordData.LIST;
                         delete recordData.LIST;
                     }
-
                     return dbconfig.collection_playerConsumptionRecord.findOneAndUpdate(consumptionRecordQuery, recordData, {new: true}).then(
                         newRecord => {
                             if (newRecord && newRecord.toObject) {
