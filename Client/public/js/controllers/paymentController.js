@@ -1981,8 +1981,8 @@ define(['js/app'], function (myApp) {
 
                     socketService.$socket($scope.AppSocket, 'updateCustomizeRatePlatformMerchantList', sendData, function (data) {
                         console.log(data.data);
-                        vm.SelectedMerchantGroupNode = null;
-                        vm.loadMerchantGroupData();
+                        let selectedMerchantGroupId = vm.SelectedMerchantGroupNode._id;
+                        vm.loadMerchantGroupData(true, selectedMerchantGroupId);
                         $scope.$evalAsync();
                     })
                 } else {
