@@ -915,14 +915,6 @@ var dbPlayerConsumptionRecord = {
                                 createBaccaratConsumption(providerObjId, providerName, newRecord, oldData._id);
                                 // update RTG only if consumption record is updated
                                 findRTGToUpdate(oldData, recordData);
-                            }else{
-                                let code = constServerCode.DOCUMENT_NOT_FOUND;
-                                return resolveError ? Q.resolve(false) : Q.reject({
-                                    code: code,
-                                    name: "DataError",
-                                    message: "Could not find documents matching: ",
-                                    data: updateData
-                                });
                             }
                             return newRecord;
                         }
