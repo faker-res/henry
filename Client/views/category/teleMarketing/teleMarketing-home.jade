@@ -547,7 +547,7 @@
                                         td {{v.validPlayerCount}}
                                         td {{v.currentListSize}}
                                         td 
-                                            a(ng-click="") {{"EXECUTION" | translate}}
+                                            a(ng-show="v.currentListSize" data-toggle="modal", data-target="#modalReclaimTsPhone" ng-click="vm.selectedReclaimAssignee = v.assigneeObjId") {{"EXECUTION" | translate}}
                                     tr(ng-show="vm.distributionDetails.data")
                                         td(style="font-weight:bold;")
                                             span {{"Total Count" | translate}}
@@ -564,6 +564,20 @@
                                         td
             .modal-footer
 
+#modalReclaimTsPhone.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{"提前回收名单（尚未开户的电话）" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        .well
+                            text {{"All unregister phone number will be reclaim. Are you sure to execute?" | translate}}
+            .modal-footer
+                button.btn.btn-primary.common-button(data-dismiss='modal', ng-click="vm.reclaimTsPhone()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalDeleteDXMission.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
