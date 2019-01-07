@@ -290,6 +290,11 @@ var proposalExecutor = {
             // this.executions.executePlayerCommonTopUp.des = "Player Common PMS Top Up";
             this.executions.executeManualExportTsPhone.des = "Export Telesales Phone Across Platform";
             this.executions.executeBaccaratRewardGroup.des = "Player Baccarat Reward";
+            this.executions.executeAuctionPromoCode.des = "Auction Promo Code";
+            this.executions.executeAuctionOpenPromoCode.des = "Auction Open Promo Code";
+            this.executions.executeAuctionRewardPromotion.des = "Auction Reward Promotion";
+            this.executions.executeAuctionRealPrize.des = "Auction Real Prize";
+            this.executions.executeAuctionRewardPointChange.des = "Auction Reward Point Change";
 
             this.rejections.rejectProposal.des = "Reject proposal";
             this.rejections.rejectUpdatePlayerInfo.des = "Reject player top up proposal";
@@ -373,6 +378,11 @@ var proposalExecutor = {
             // this.rejections.rejectPlayerCommonTopUp.des = "reject Player Common PMS Top Up";
             this.rejections.rejectManualExportTsPhone.des = "reject Export Telesales Phone Across Platform";
             this.rejections.rejectBaccaratRewardGroup.des = "reject Player Baccarat Reward";
+            this.rejections.rejectAuctionPromoCode.des = "Reject Auction Promo Code";
+            this.rejections.rejectAuctionOpenPromoCode.des = "Reject Auction Open Promo Code";
+            this.rejections.rejectAuctionRewardPromotion.des = "Reject Auction Reward Promotion";
+            this.rejections.rejectAuctionRealPrize.des = "Reject Auction Real Prize";
+            this.rejections.rejectAuctionRewardPointChange.des = "Reject Auction Reward Point Change";
         },
 
         refundPlayer: function (proposalData, refundAmount, reason) {
@@ -3671,6 +3681,41 @@ var proposalExecutor = {
                 }
             },
 
+            executeAuctionPromoCode: function (proposalData, deferred) {
+                if (proposalData && proposalData.data) {
+                    // do nothing
+                    deferred.resolve(proposalData);
+                }
+            },
+
+            executeAuctionOpenPromoCode: function (proposalData, deferred) {
+                if (proposalData && proposalData.data) {
+                    // do nothing
+                    deferred.resolve(proposalData);
+                }
+            },
+
+            executeAuctionRewardPromotion: function (proposalData, deferred) {
+                if (proposalData && proposalData.data) {
+                    // do nothing
+                    deferred.resolve(proposalData);
+                }
+            },
+
+            executeAuctionRealPrize: function (proposalData, deferred) {
+                if (proposalData && proposalData.data) {
+                    // do nothing
+                    deferred.resolve(proposalData);
+                }
+            },
+
+            executeAuctionRewardPointChange: function (proposalData, deferred) {
+                if (proposalData && proposalData.data) {
+                    // do nothing
+                    deferred.resolve(proposalData);
+                }
+            },
+
         },
 
         /**
@@ -4637,6 +4682,26 @@ var proposalExecutor = {
             },
 
             rejectBulkExportPlayerData: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectAuctionPromoCode: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectAuctionOpenPromoCode: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectAuctionRewardPromotion: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectAuctionRealPrize: function (proposalData, deferred) {
+                deferred.resolve("Proposal is rejected");
+            },
+
+            rejectAuctionRewardPointChange: function (proposalData, deferred) {
                 deferred.resolve("Proposal is rejected");
             },
         }
