@@ -917,6 +917,7 @@ var proposal = {
                                     merchantProm = dbconfig.collection_platformMerchantList.findOne({
                                         platformId: proposalObj.data.platform,
                                         merchantNo: callbackData.merchantNo,
+                                        topupType: callbackData.depositMethod,
                                         customizeRate: {$exists: true}
                                     }, 'customizeRate').lean();
                                 };
