@@ -22545,6 +22545,7 @@ function createProposal(playerObj, levels, levelUpObjArr, levelUpObj, checkLevel
                     return Promise.resolve();
                 }
 
+                console.log("checking Player Level Up", [playerObj.name, index, levelUpObjArr[index]])
                 if (levelUpObjArr[index] && levelUpObjArr[index].reward && levelUpObjArr[index].reward.bonusCredit) {
                     proposal.rewardAmount = levelUpObjArr[index].reward.bonusCredit;
                     proposal.isRewardTask = levelUpObjArr[index].reward.isRewardTask;
