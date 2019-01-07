@@ -1034,7 +1034,7 @@ var proposal = {
                     orderStatus: orderStatus,
                     depositId: requestId,
                     type: type,
-                    rate: topupRate,
+                    rate: (Number(proposalObj.data.amount) * Number(topupRate)).toFixed(2),
                     actualAmountReceived: topupActualAmt
                 };
 
