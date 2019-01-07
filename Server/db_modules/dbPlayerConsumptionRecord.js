@@ -915,6 +915,14 @@ var dbPlayerConsumptionRecord = {
                                 createBaccaratConsumption(providerObjId, providerName, newRecord, oldData._id);
                                 // update RTG only if consumption record is updated
                                 findRTGToUpdate(oldData, recordData);
+                            }else{
+                                let code = constServerCode.CONSUMPTION_UPDATE_NOT_SUCCESS;
+                                return resolveError ? Q.resolve(false) : Q.reject({
+                                    code: code,
+                                    name: "DataError",
+                                    message: "Consumption update not success: ",
+                                    data: updateData
+                                });
                             }
                             return newRecord;
                         }
