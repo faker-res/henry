@@ -6645,9 +6645,21 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.reclaimTsPhone = () => {
+           let sendData = {
+               platformObjId: vm.selectedPlatform.id,
+               tsPhoneListObjId: vm.currentPhoneListObjId,
+               assignee: vm.selectedReclaimAssignee,
+           }
+            socketService.$socket($scope.AppSocket, 'reclaimTsPhone', sendData, function (data) {
+                vm.searchDistributionDetails();
+            })
+        };
+
         vm.searchDistributionDetails = () => {
             let platformObjId = vm.selectedPlatform.id;
             let adminNames = vm.distributionDetailsQuery.adminNames;
+            vm.selectedReclaimAssignee = '';
 
             let sendData = {
                 platformObjId: platformObjId,
