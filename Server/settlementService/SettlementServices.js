@@ -64,7 +64,8 @@
                 "getConsumptionActivePlayerAfterTopupQueryMatch",
                 "findPartnersForCommissionReport",
                 "generatePromoCodes",
-                "tsPhoneCheckIsExistsAllPlatform"
+                "tsPhoneCheckIsExistsAllPlatform",
+                "topupRecordInsertRepeatCount"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
