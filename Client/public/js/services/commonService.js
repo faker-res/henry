@@ -1218,6 +1218,9 @@ define([], () => {
                         proposalDetail["pmsOperator"] = pmsRemark.substring(indexOfDivider + 1, pmsRemark.length);
                     }
                 }
+                if(vm.selectedProposal.data.lastSettleTime) {
+                    proposalDetail["lastSettleTime"] = vm.selectedProposal.data.lastSettleTime;
+                }
             }
             //end region
 
