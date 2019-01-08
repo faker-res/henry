@@ -90,6 +90,7 @@ var proposalExecutor = {
             executionType === 'executeFixPlayerCreditTransfer'
             || executionType === 'executeUpdatePlayerCredit'
             || executionType === 'executePlayerConsumptionReturn'
+            || executionType === 'executeManualExportTsPhone'
 
             // Top up
             || executionType === 'executePlayerTopUp'
@@ -1674,7 +1675,8 @@ var proposalExecutor = {
 
             executeManualExportTsPhone: function (proposalData) {
                 if (proposalData && proposalData.data && proposalData.data.exportTargetPlatformObjId) {
-                    return dbconfig.collection_tsPhoneTrade.find({proposalId: proposalData.proposalId}).lean().then(
+                    let proposalId = proposalData && proposalData.data && proposalData.data.phoneTradeProposalId? proposalData.data.phoneTradeProposalId: proposalData.proposalId;
+                    return dbconfig.collection_tsPhoneTrade.find({proposalId: proposalId}).lean().then(
                         tsPhoneTrades => {
                             let objIds = tsPhoneTrades.map(trade => trade._id);
 
@@ -3969,7 +3971,8 @@ var proposalExecutor = {
              * reject function for manual export ts phone
              */
             rejectManualExportTsPhone: function (proposalData, deferred) {
-                dbconfig.collection_tsPhoneTrade.find({proposalId: proposalData.proposalId}).lean().then(
+                let proposalId = proposalData && proposalData.data && proposalData.data.phoneTradeProposalId? proposalData.data.phoneTradeProposalId: proposalData.proposalId;
+                dbconfig.collection_tsPhoneTrade.find({proposalId: proposalId}).lean().then(
                     tsPhoneTrades => {
                         let objIds = tsPhoneTrades.map(trade => trade._id);
 

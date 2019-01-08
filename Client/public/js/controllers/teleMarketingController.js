@@ -8142,6 +8142,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'exportDecomposedPhone', sendData, function (data) {
                     console.log('exportDecomposedPhone ret', data);
                     $scope.$evalAsync(() => {
+                        vm.getTrashClassificationList();
                     });
                 });
             });
