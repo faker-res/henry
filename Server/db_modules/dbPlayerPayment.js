@@ -496,7 +496,7 @@ const dbPlayerPayment = {
                         let bonusCodeCheckProm;
                         let isOpenPromoCode = topupRequest.bonusCode.toString().trim().length === 3;
                         if (isOpenPromoCode) {
-                            bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount, lastLoginIp);
+                            bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount, ipAddress);
                         }
                         else {
                             bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount);
