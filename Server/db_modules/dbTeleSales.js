@@ -1187,6 +1187,8 @@ let dbTeleSales = {
         }
 
         let platform;
+        let phoneTradeProposalId = String(new ObjectId());
+
         return dbconfig.collection_platform.findOne({_id: targetPlatform}).lean().then(
             platformData => {
                 if (!platformData) {
@@ -1196,12 +1198,21 @@ let dbTeleSales = {
 
                 // export to other platform, proposal required
 
+                return dbTeleSales.setTradeProposalId(phoneTradeObjIdArr, phoneTradeProposalId, exportCount);
+            }
+        ).then(
+            phoneTradeData => {
+                if (!phoneTradeData) {
+                    return Promise.reject({message: "Operation failed"});
+                }
+
                 let proposalData = {
                     exportTargetDepartmentId: platform.platformId,
                     exportTargetDepartmentName: platform.name,
                     exportWhiteListCount: exportCount,
                     sourceTsPhoneType: sourceTopicName,
                     exportTargetPlatformObjId: platform._id,
+                    phoneTradeProposalId: phoneTradeProposalId
                 };
 
                 let newProposal = {
@@ -1213,15 +1224,6 @@ let dbTeleSales = {
                 };
 
                 return dbProposal.createProposalWithTypeName(ObjectId(sourcePlatform), constProposalType.MANUAL_EXPORT_TS_PHONE, newProposal);
-            }
-        ).then(
-            proposalData => {
-                if (!proposalData || !proposalData.proposalId) {
-                    return Promise.reject({message: "Operation failed"});
-                }
-
-                let proposalId = proposalData.proposalId;
-                return dbTeleSales.setTradeProposalId(phoneTradeObjIdArr, proposalId, exportCount);
             }
         );
     },
@@ -1364,6 +1366,7 @@ let dbTeleSales = {
                 $gte: startTime,
                 $lte: endTime
             },
+            proposalId: null,
             targetPlatform: null
         };
         if(phoneLists && phoneLists.length > 0) {
@@ -1377,9 +1380,7 @@ let dbTeleSales = {
         } else if(topic && topic != 'noClassification') {
             query.lastSuccessfulFeedbackTopic = topic;
         }
-        console.log("query", query);
-        console.log("index", index);
-        console.log("limit", limit);
+
         let dataProm = dbconfig.collection_tsPhoneTrade.find(query).skip(index).limit(limit).sort({decomposeTime: -1}).lean();
         let sizeProm = dbconfig.collection_tsPhoneTrade.count(query).lean();
         return Promise.all([dataProm, sizeProm]).then(data => {
