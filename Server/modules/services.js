@@ -163,6 +163,8 @@ function getContentProviderAPIClientForGame (options) {
         throw Error("You may not create this client: CPAPI is disabled.");
     }
     //var loginData = { userName: 'admin', password: 'cpmsmon' };
+    console.log("LH check updateImageUrl ------------1", env);
+    console.log("LH check updateImageUrl ------------2", env.cpAPIUrlForGame);
     return connectToServer(env.cpAPIUrlForGame, allServicesIn(cpmsServices), null, options);
 }
 
