@@ -32,7 +32,7 @@ var PlatformServiceImplement = function () {
     this.syncProviders.expectsData = 'platformProviders: []+';
     this.syncProviders.onRequest = function(wsFunc, conn, data){
         var isValidData = Boolean (data && data.platformProviders && data.platformProviders.length > 0);
-        WebSocketUtil.performAction(conn, wsFunc, data,dbPlatform.syncProviders, [data.platformProviders], isValidData);
+        WebSocketUtil.performAction(conn, wsFunc, data,dbPlatform.syncProviders, [data.platformProviders, data.isRemoveProvider], isValidData);
     };
 
     this.isUserExist.expectsData = 'platformId, username: String';
