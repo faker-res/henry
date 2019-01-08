@@ -1505,6 +1505,8 @@ var dbQualityInspection = {
                                                             },
                                                             companyId: {$in: p.live800CompanyId}
                                                         }
+
+                                                        console.log("LH check QI C -----------------", queryToGetQIRecord);
                                                         
                                                         let calculatedData = dbconfig.collection_qualityInspection.find(queryToGetQIRecord).count().then(
                                                             qualityInspectionCount => {
@@ -1877,6 +1879,8 @@ var dbQualityInspection = {
     },
     getAllProgressReportStatusByOperator: function (startTime,endTime){
 
+        console.log("LH check QI A ---------------", new Date(startTime));
+        console.log("LH check QI B ---------------", new Date(endTime));
         return dbconfig.collection_qualityInspection.aggregate([
             {
                 $match: {

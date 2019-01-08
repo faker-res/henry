@@ -1055,7 +1055,7 @@ let dbPartner = {
      * @param {String}  query - The query string
      * @param {string} updateData - The update data string
      */
-    resetPartnerPassword: function (partnerObjId, newPassword, platformId) {
+    resetPartnerPassword: function (partnerObjId, newPassword, platformId, creator) {
         var deferred = Q.defer();
 
         bcrypt.genSalt(constSystemParam.SALT_WORK_FACTOR, function (err, salt) {
@@ -1075,7 +1075,37 @@ let dbPartner = {
                     constShardKeys.collection_partner
                 ).then(
                     function (data) {
-                        deferred.resolve(newPassword);
+                        partnerObj = data;
+
+                        let proposalData = {
+                            isPartner: true,
+                            creator: creator ? creator :
+                                {
+                                    type: 'partner',
+                                    name: partnerObj.partnerName,
+                                    id: partnerObj._id
+                                },
+                            data: {
+                                partnerObjId: partnerObj._id,
+                                partnerId: partnerObj.partnerId,
+                                platformId: partnerObj.platform,
+                                isIgnoreAudit: true,
+                                updatePassword: true,
+                                remark: '修改密码',
+                                updateData: {
+                                    password: hash,
+                                    ownDomain: partnerObj.ownDomain
+                                },
+                            },
+                            entryType: creator ? constProposalEntryType.ADMIN : constProposalEntryType.CLIENT,
+                            userType: constProposalUserType.PARTNERS,
+                        };
+
+                        dbProposal.createProposalWithTypeName(partnerObj.platform, constProposalType.UPDATE_PARTNER_INFO, proposalData).then(
+                            () => {
+                                return deferred.resolve(newPassword);
+                            }
+                        )
                     },
                     function (error) {
                         deferred.reject({name: "DBError", message: "Error resetting partner password.", error: error});
@@ -6904,8 +6934,8 @@ let dbPartner = {
         return dbPartner.findPartnerCommissionLog({
             "platform": platformObjId,
             commissionType: commissionType,
-            startTime: startTime,
-            endTime: endTime
+            startTime: new Date(startTime),
+            endTime: new Date(endTime)
         });
     },
 

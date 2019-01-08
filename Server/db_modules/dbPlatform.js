@@ -925,7 +925,7 @@ var dbPlatform = {
      * @param providerIds
      * @param sameLineProviders
      */
-    syncPlatformProvider: function (platformId, providerIds, sameLineProviders) {
+    syncPlatformProvider: function (platformId, providerIds, sameLineProviders, isRemoveProvider) {
         return dbconfig.collection_platform.findOne({platformId}).populate(
             {path: "gameProviders", model: dbconfig.collection_gameProvider}
         ).then(
@@ -946,14 +946,16 @@ var dbPlatform = {
                         }
                     );
 
-                    //find delete one
-                    curProviders.forEach(
-                        curProvider => {
-                            if (providerIds.indexOf(curProvider) < 0) {
-                                proms.push(dbPlatform.removeProviderFromPlatform(platformId, curProvider));
+                    if (isRemoveProvider) {
+                        //find delete one
+                        curProviders.forEach(
+                            curProvider => {
+                                if (providerIds.indexOf(curProvider) < 0) {
+                                    proms.push(dbPlatform.removeProviderFromPlatform(platformId, curProvider));
+                                }
                             }
-                        }
-                    );
+                        );
+                    }
 
                     // Update same line providers
                     if (sameLineProviders && sameLineProviders.length) {
@@ -990,12 +992,12 @@ var dbPlatform = {
      * Sync all platform providers data
      * @param platformProviders
      */
-    syncProviders: function (platformProviders) {
+    syncProviders: function (platformProviders, isRemoveProvider) {
         var proms = [];
         platformProviders.forEach(
             row => {
                 if (row.platformId && row.providers && Array.isArray(row.providers)) {
-                    proms.push(dbPlatform.syncPlatformProvider(row.platformId, row.providers, row.sameLineProviders));
+                    proms.push(dbPlatform.syncPlatformProvider(row.platformId, row.providers, row.sameLineProviders, isRemoveProvider));
                 }
             }
         );

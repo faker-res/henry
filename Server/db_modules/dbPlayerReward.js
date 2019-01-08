@@ -2594,9 +2594,9 @@ let dbPlayerReward = {
                 playerRecord => {
                     // get the  ExtraBonusInfor state of the player: enable or disable the msg showing
                     if (playerRecord && playerRecord._id) {
-                        if (playerRecord.permission && playerRecord.permission.banReward) {
-                            return Q.reject({name: "DataError", message: "Player does not have this permission"});
-                        }
+                        // if (playerRecord.permission && playerRecord.permission.banReward) {
+                        //     return Q.reject({name: "DataError", message: "Player does not have this permission"});
+                        // }
 
                         let showInfoState;
                         let oneMonthAgoDate = moment(new Date()).subtract(1, 'months').toDate();

@@ -830,7 +830,8 @@ var dbPlayerConsumptionRecord = {
      * @param {Boolean} resolveError
      */
     updateExternalPlayerConsumptionRecord: function (recordData, resolveError) {
-        return dbconfig.collection_playerConsumptionRecord.findOne({orderNo: recordData.orderNo}).lean().then(
+        let createTime = dbUtility.getNDaysAgoFromSpecificStartTime(new Date(), 7); // record must not older than 7 days
+        return dbconfig.collection_playerConsumptionRecord.findOne({orderNo: recordData.orderNo, createTime: {$gte: createTime}}).lean().then(
             data => {
                 if (data) {
                       if (data.validAmount != recordData.validAmount) {
@@ -915,6 +916,14 @@ var dbPlayerConsumptionRecord = {
                                 createBaccaratConsumption(providerObjId, providerName, newRecord, oldData._id);
                                 // update RTG only if consumption record is updated
                                 findRTGToUpdate(oldData, recordData);
+                            }else{
+                                let code = constServerCode.CONSUMPTION_UPDATE_NOT_SUCCESS;
+                                return resolveError ? Q.resolve(false) : Q.reject({
+                                    code: code,
+                                    name: "DataError",
+                                    message: "Consumption update not success: ",
+                                    data: updateData
+                                });
                             }
                             return newRecord;
                         }

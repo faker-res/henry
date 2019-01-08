@@ -257,7 +257,7 @@ function socketActionPartner(socketIO, socket) {
             let actionName = arguments.callee.name;
             let randomPSW = (data && data.newPassword) ? data.newPassword : chance.hash({length: constSystemParam.PASSWORD_LENGTH}); //random password will be generated if blank
             let isValidData = Boolean(data && data._id && randomPSW && randomPSW.length >= 6);
-            socketUtil.emitter(self.socket, dbPartner.resetPartnerPassword, [data._id, randomPSW, data.platform], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbPartner.resetPartnerPassword, [data._id, randomPSW, data.platform, data.creator], actionName, isValidData);
         },
 
         /**
