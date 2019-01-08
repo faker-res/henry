@@ -1184,10 +1184,9 @@ define(['js/app'], function (myApp) {
                                 }
                             });
 
-                            if (tempPartnerCommSettPreview && tempPartnerCommSettPreview.length > 0) {
-                                vm.allPartnerCommSettPreview = tempPartnerCommSettPreview;
-                            }
+                            vm.allPartnerCommSettPreview = tempPartnerCommSettPreview;
                         }
+                        $scope.$evalAsync();
                     }, function (error) {
                         console.log('error cancelPartnerCommissionPreview',error)
                     });
