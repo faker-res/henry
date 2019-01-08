@@ -7812,6 +7812,7 @@ define(['js/app'], function (myApp) {
                     _id: vm.selectedSinglePartner._id,
                     platform: vm.selectedPlatform.id,
                     newPassword: vm.customNewPassword,
+                    creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                 };
 
                 socketService.$socket($scope.AppSocket, 'resetPartnerPassword', sendData, function (data) {
