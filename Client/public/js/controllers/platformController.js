@@ -1468,7 +1468,7 @@ define(['js/app'], function (myApp) {
                         vm.initAuctionSystem();
                         break;
                 }
-
+                if(vm.refreshInterval){ clearInterval(vm.refreshInterval); }
                 commonService.updatePageTile($translate, "platform", tabName);
             };
 
@@ -36036,9 +36036,39 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'monitoringSystem':
                         vm.listAuctionMonitor();
+                        vm.monitoringLoop();
                         break;
                 }
             };
+
+            vm.monitoringLoop = function(){
+                    setTimeout(function () {
+                        let countDown = -1;
+                        clearInterval(vm.refreshInterval);
+                        vm.refreshInterval = setInterval(function () {
+                            var item = $('#autoRefreshProposalFlag');
+                            var isRefresh = item && item.length > 0 && item[0].checked;
+                            var mark = $('#timeLeftRefreshOperation')[0];
+                            $(mark).parent().toggleClass('hidden', countDown < 0);
+                            if (isRefresh) {
+                                if (countDown < 0) {
+                                    countDown = 11
+                                }
+                                if (countDown === 0) {
+                                    vm.listAuctionMonitor();
+                                    countDown = 11;
+                                }
+                                countDown--;
+                                $(mark).text(countDown);
+                            } else {
+                                countDown = -1;
+                            }
+                            if (window.location.pathname != '/platform') {
+                                clearInterval(vm.refreshInterval);
+                            }
+                        }, 1000);
+                    });
+            }
 
             vm.initAuctionSystemCreateProduct = function () {
                 // reset the param when create a new product
