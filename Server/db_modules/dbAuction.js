@@ -297,8 +297,9 @@ var dbAuction = {
                     createTime:{
                         '$gte':period.startTime,
                         '$lte':period.endTime
-                    }
-                },{ 'proposalId':1, 'status':1, 'data.playerName':1, 'createTime':1 }).limit(10).sort('-createTime')
+                    },
+                    'data.auction':item._id
+                },{ 'proposalId':1, 'status':1, 'data.playerName':1, 'createTime':1, 'data.currentBidPrice':1 }).limit(10).sort('-createTime')
                 .then(proposal=>{
                     item.proposal = proposal;
                     return item;
@@ -654,6 +655,7 @@ var dbAuction = {
                                 productName: productName,
                                 currentBidPrice: playerBidPrice,
                                 remark: remark,
+                                auction: auctionData._id ? auctionData._id : ''
                             },
                             creator: {
                                 name: playerName ? playerName : ''

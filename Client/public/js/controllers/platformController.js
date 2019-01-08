@@ -35905,7 +35905,7 @@ define(['js/app'], function (myApp) {
                             item.bidTimes = item.proposal.length;
                             item.lastProposal = item.proposal[0] ? item.proposal[0]:{};
                             item.timeLeft = utilService.getLeftTime(item.rewardEndTime).text;
-
+                            item.dealAt = '';
                             let beforeAuction = new Date(item.rewardStartTime).getTime() - (item.productStartTime*60*1000);
                             let afterAuction = new Date(item.rewardEndTime).getTime() + (item.productEndTime*60*1000);
 
@@ -36319,11 +36319,13 @@ define(['js/app'], function (myApp) {
                 let index = 0;
                 data = data || [];
                 vm.auctionItemBidList = data;
+                vm.AuctionTotalCount = data.length;
                 let tableOptions = {
                     data: data,
                     aoColumnDefs: [
-                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                        {bSortable: false, targets: '_all'}
                     ],
+                    "ordering": false,
                     columns: [
                         {title: $translate('Type'), data:"rewardData.rewardType",
                             render: function(data, type, row){
@@ -36347,7 +36349,12 @@ define(['js/app'], function (myApp) {
                                 return result;
                             }
                         },
-                        {title: $translate('Current Bid'), data: "lastProposal.amount"},
+                        {title: $translate('Current Bid'), data: "lastProposal.data.currentBidPrice",
+                            render: function(data, type, row){
+                                let result = data? data : 0;
+                                return result;
+                            }
+                        },
                         {title: $translate('Bid Times'), data: "bidTimes",
                             render: function(data, type, row){
                                 let result = '<div ng-click="vm.showAuctionModal(\''+row._id+'\')">' + data + '</div>';
@@ -36356,7 +36363,12 @@ define(['js/app'], function (myApp) {
                         },
                         {title: $translate('Time Left'), data: "timeLeft"},
                         {title: $translate('Deal at'), data: "dealAt"},
-                        {title: $translate('Leading Bidder'), data: "lastProposal.data.playerName"}
+                        {title: $translate('Leading Bidder'), data: "lastProposal.data.playerName",
+                            render: function(data, type, row){
+                                let result = data? data : '';
+                                return result;
+                            }
+                        }
                     ],
                     "paging": false,
                     "createdRow": function(row, data, dataIndex){
