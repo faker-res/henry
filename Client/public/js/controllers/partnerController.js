@@ -1174,7 +1174,22 @@ define(['js/app'], function (myApp) {
                     sendData.partnerCommLogId = partnerCommLogIdArr;
 
                     socketService.$socket($scope.AppSocket, 'cancelPartnerCommissionPreview', sendData, function (data) {
-                        getAllPartnerCommSettPreview();
+                        //getAllPartnerCommSettPreview();
+                        if (vm.allPartnerCommSettPreview && vm.allPartnerCommSettPreview.length > 0 && vm.selectedSettlePartnerCommPrev) {
+                            let tempPartnerCommSettPreview = [];
+                            vm.allPartnerCommSettPreview.forEach(preview => {
+                                if (preview && preview._id && vm.selectedSettlePartnerCommPrev && vm.selectedSettlePartnerCommPrev._id
+                                    && !(preview._id.toString() == vm.selectedSettlePartnerCommPrev._id.toString())) {
+                                    tempPartnerCommSettPreview.push(preview);
+                                }
+                            });
+
+                            if (tempPartnerCommSettPreview && tempPartnerCommSettPreview.length > 0) {
+                                vm.allPartnerCommSettPreview = tempPartnerCommSettPreview;
+                            }
+                        }
+                    }, function (error) {
+                        console.log('error cancelPartnerCommissionPreview',error)
                     });
                 }
             };
