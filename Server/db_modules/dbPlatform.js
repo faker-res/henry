@@ -3193,11 +3193,11 @@ var dbPlatform = {
         let url = 'https://www.jblshow.com/livestream/liveurl';
         var deferred = Q.defer();
 
-        try {
-            request.get(url, {strictSSL: false}, (err, res, body) => {
-                if (err) {
-                    deferred.reject(`Get JBL livestream url failed  ${err}`);
-                } else {
+        request.get(url, {strictSSL: false}, (err, res, body) => {
+            if (err) {
+                deferred.reject(`Get JBL livestream url failed  ${err}`);
+            } else {
+                try{
                     let streamInfo = JSON.parse(res.body);
                     let streamResult = {};
                     if (streamInfo.content) {
@@ -3206,12 +3206,12 @@ var dbPlatform = {
                     if (streamInfo.code) {
                         streamResult.code = streamInfo.code;
                     }
-                    deferred.resolve(streamResult);
                 }
-            });
-        } catch (err) {
-            deferred.reject(`Get JBL livestream url failed  ${err}`);
-        }
+                catch (error) {
+                    console.log(error);
+                }
+            }
+        });
 
         let streamInfoProm = deferred.promise;
         // return deferred.promise;
