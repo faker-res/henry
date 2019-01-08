@@ -6934,8 +6934,8 @@ let dbPartner = {
         return dbPartner.findPartnerCommissionLog({
             "platform": platformObjId,
             commissionType: commissionType,
-            startTime: startTime,
-            endTime: endTime
+            startTime: new Date(startTime),
+            endTime: new Date(endTime)
         });
     },
 

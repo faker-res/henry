@@ -959,6 +959,31 @@ let dbTeleSales = {
         return Promise.all(promArr);
     },
 
+    reclaimTsPhone:  (platformObjId, tsPhoneListObjId, assignee) => {
+        let query = {
+            platform: platformObjId,
+            tsPhoneList: tsPhoneListObjId,
+            assignee: assignee,
+            registered: false
+        }
+        return dbconfig.collection_tsDistributedPhone.find(query, {tsPhone: 1}).lean().then(
+            tsDistributedPhoneData => {
+                if (!(tsDistributedPhoneData && tsDistributedPhoneData.length)) {
+                    return Promise.reject({name: "DataError", message: "Cannot find tsDistributedPhone"});
+                }
+                let updateTsDistributedPhone = dbconfig.collection_tsDistributedPhone.update(query, {endTime: new Date()}, {multi: true}).catch(errorUtils.reportError);
+
+                let updateTsPhone = dbconfig.collection_tsPhone.update(
+                    {
+                        _id: {$in: tsDistributedPhoneData.map(item => item.tsPhone)}
+                    }, {distributedEndTime: new Date()}, {multi: true}
+                ).catch(errorUtils.reportError);
+
+                return Promise.all([updateTsDistributedPhone, updateTsPhone]);
+            }
+        )
+    },
+
     getDistributionDetails: (platformObjId, tsPhoneListObjId, adminNames) => {
         let returnData = {};
         let distributionDetails = [];
@@ -1011,8 +1036,8 @@ let dbTeleSales = {
                 assignees.forEach(assignee => {
                     currentHoldingCountProm.push(
                         dbconfig.collection_tsDistributedPhone.find({
-                            assignee:assignee._id,
-                            tsPhoneList:tsPhoneListObjId,
+                            assignee: assignee.admin,
+                            tsPhoneList: tsPhoneListObjId,
                             startTime: {$lt: new Date()},
                             endTime: {$gt: new Date()},
                             registered: {$ne: true}
@@ -1022,7 +1047,7 @@ let dbTeleSales = {
                         }).lean()
                     );
                     let assigneeDistributionDetail = {
-                        assigneeObjId: assignee._id,
+                        assigneeObjId: assignee.admin,
                         adminName: assignee.adminName,
                         distributedCount: assignee.assignedCount,
                         fulfilledCount: assignee.phoneUsedCount,
@@ -1050,7 +1075,7 @@ let dbTeleSales = {
             currentHoldingCount.forEach(currentHolding => {
                 if(currentHolding && currentHolding.length > 0) {
                     distributionDetails.forEach(detail => {
-                        if (currentHolding[0].assignee == detail.assigneeObjId) {
+                        if (currentHolding[0].assignee && detail.assigneeObjId && String(currentHolding[0].assignee) == String(detail.assigneeObjId)) {
                             detail.currentListSize = currentHolding.length;
                         }
                     })
@@ -1162,6 +1187,8 @@ let dbTeleSales = {
         }
 
         let platform;
+        let phoneTradeProposalId = String(new ObjectId());
+
         return dbconfig.collection_platform.findOne({_id: targetPlatform}).lean().then(
             platformData => {
                 if (!platformData) {
@@ -1171,12 +1198,21 @@ let dbTeleSales = {
 
                 // export to other platform, proposal required
 
+                return dbTeleSales.setTradeProposalId(phoneTradeObjIdArr, phoneTradeProposalId, exportCount);
+            }
+        ).then(
+            phoneTradeData => {
+                if (!phoneTradeData) {
+                    return Promise.reject({message: "Operation failed"});
+                }
+
                 let proposalData = {
                     exportTargetDepartmentId: platform.platformId,
                     exportTargetDepartmentName: platform.name,
                     exportWhiteListCount: exportCount,
                     sourceTsPhoneType: sourceTopicName,
                     exportTargetPlatformObjId: platform._id,
+                    phoneTradeProposalId: phoneTradeProposalId
                 };
 
                 let newProposal = {
@@ -1188,15 +1224,6 @@ let dbTeleSales = {
                 };
 
                 return dbProposal.createProposalWithTypeName(ObjectId(sourcePlatform), constProposalType.MANUAL_EXPORT_TS_PHONE, newProposal);
-            }
-        ).then(
-            proposalData => {
-                if (!proposalData || !proposalData.proposalId) {
-                    return Promise.reject({message: "Operation failed"});
-                }
-
-                let proposalId = proposalData.proposalId;
-                return dbTeleSales.setTradeProposalId(phoneTradeObjIdArr, proposalId, exportCount);
             }
         );
     },
@@ -1339,6 +1366,7 @@ let dbTeleSales = {
                 $gte: startTime,
                 $lte: endTime
             },
+            proposalId: null,
             targetPlatform: null
         };
         if(phoneLists && phoneLists.length > 0) {
@@ -1352,9 +1380,7 @@ let dbTeleSales = {
         } else if(topic && topic != 'noClassification') {
             query.lastSuccessfulFeedbackTopic = topic;
         }
-        console.log("query", query);
-        console.log("index", index);
-        console.log("limit", limit);
+
         let dataProm = dbconfig.collection_tsPhoneTrade.find(query).skip(index).limit(limit).sort({decomposeTime: -1}).lean();
         let sizeProm = dbconfig.collection_tsPhoneTrade.count(query).lean();
         return Promise.all([dataProm, sizeProm]).then(data => {
