@@ -542,7 +542,7 @@ define(['js/app'], function (myApp) {
 
             console.log('vm.queryAdminPhoneReminderList', vm.queryAdminPhoneReminderList);
 
-            var sendObj = {
+            let sendObj = {
                 platform: vm.selectedPlatform.id,
                 admin: authService.adminId,
                 index: newSearch ? 0 : (vm.queryAdminPhoneReminderList.index || 0),
@@ -661,6 +661,7 @@ define(['js/app'], function (myApp) {
                 tableId = "#adminPhoneReminderListTable";
                 searchFunc = "searchAdminPhoneReminderList";
             }
+            utilService.clearPopovers();
             var tableOptions = {
                 data: data,
                 "order": vm[objKey].aaSorting ,
@@ -776,7 +777,7 @@ define(['js/app'], function (myApp) {
                     $compile(nRow)($scope);
                 },
                 fnDrawCallback: function (oSettings) {
-                    var container = oSettings.nTable;
+                    let container = oSettings.nTable;
 
                     $(container).find('[title]').tooltip();
 
@@ -784,11 +785,11 @@ define(['js/app'], function (myApp) {
                         context: container,
                         elem: '.modalAdminPhoneListDetails',
                         onClickAsync: function (showPopover) {
-                            var that = this;
-                            var row = JSON.parse(this.dataset.row);
+                            let that = this;
+                            // let row = JSON.parse(this.dataset.row);
 
                             $scope.$evalAsync();
-                            showPopover(that, '#modalAdminPhoneListDetails', data);
+                            showPopover(that, '#modalAdminPhoneListDetails'/*, data*/);
 
                         }
                     });
@@ -797,8 +798,9 @@ define(['js/app'], function (myApp) {
             }
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.adminPhoneListTable = $('#adminPhoneListTable').DataTable(tableOptions);
-
-            utilService.createDatatableWithFooter(tableId, tableOptions, {});
+            if (vm.adminPhoneListDataTableObj) vm.adminPhoneListDataTableObj.destroy();
+            delete vm.adminPhoneListDataTableObj;
+            vm.adminPhoneListDataTableObj = utilService.createDatatableWithFooter(tableId, tableOptions, {});
             vm[objKey].pageObj.init({maxCount: size}, newSearch);
 
             $(tableId).off('order.dt');
@@ -6643,9 +6645,21 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.reclaimTsPhone = () => {
+           let sendData = {
+               platformObjId: vm.selectedPlatform.id,
+               tsPhoneListObjId: vm.currentPhoneListObjId,
+               assignee: vm.selectedReclaimAssignee,
+           }
+            socketService.$socket($scope.AppSocket, 'reclaimTsPhone', sendData, function (data) {
+                vm.searchDistributionDetails();
+            })
+        };
+
         vm.searchDistributionDetails = () => {
             let platformObjId = vm.selectedPlatform.id;
             let adminNames = vm.distributionDetailsQuery.adminNames;
+            vm.selectedReclaimAssignee = '';
 
             let sendData = {
                 platformObjId: platformObjId,
@@ -7634,7 +7648,10 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        let gcd = {}; // a variable holder so that getCtiData won't need to redeclare variable every loop
         vm.getCtiData = (newSearch) => {
+            // I need to not declare any variable inside the timeout loop function to prevent memory leak
+            // while I will also check other possibilities of this function memory leak after this
             clearTimeout(vm.ctiLoop);
             if (!(window.location.pathname == "/teleMarketing" && vm.selectedTab == "REMINDER_PHONE_LIST")) {
                 return;
@@ -7643,14 +7660,14 @@ define(['js/app'], function (myApp) {
             $('#adminPhoneListTableSpin').show();
             vm.isCallOutMissionMode = true;
 
-            let sendData = {
+            gcd.sendData = {
                 platformObjId: vm.selectedPlatform.id,
                 limit: vm.queryAdminPhoneList.limit || 10,
                 index: vm.queryAdminPhoneList.index || 0
             };
-            console.log('sendData', sendData);
+            console.log('sendData', gcd.sendData);
 
-            return $scope.$socketPromise("getTsUpdatedAdminMissionStatusFromCti", sendData).then(
+            return $scope.$socketPromise("getTsUpdatedAdminMissionStatusFromCti", gcd.sendData).then(
                 ctiDataOutput => {
                     console.log('ctiData', ctiDataOutput);
                     if (!(ctiDataOutput && ctiDataOutput.data && ctiDataOutput.data.hasOnGoingMission)) {
@@ -7660,7 +7677,7 @@ define(['js/app'], function (myApp) {
                     vm.ctiData = ctiDataOutput.data;
 
                     vm.callOutMissionStatusText = '';
-                    let completedAmount = 0;
+                    gcd.completedAmount = 0;
                     vm.bulkCalleeToAddFeedback = [];
 
                     vm.ctiData.callee.forEach(callee => {
@@ -7668,7 +7685,7 @@ define(['js/app'], function (myApp) {
                             callee.player.callOutMissionStatus = callee.status;
                         }
 
-                        let playerFeedbackDetail = vm.ctiData.feedbackPlayerDetail;
+                        let playerFeedbackDetail = vm.ctiData.feedbackPlayerDetail; // inside forEach is ok as the garbage collection will handle it after each loop
                         let playerTableData = playerFeedbackDetail.data || [];
 
                         for (let i = 0; i < playerTableData.length; i++) {
@@ -7683,7 +7700,7 @@ define(['js/app'], function (myApp) {
                         }
 
                         if (callee.status != 0) {
-                            completedAmount++;
+                            gcd.completedAmount++;
                         }
 
                         if (callee.status == 2) {
@@ -7701,7 +7718,7 @@ define(['js/app'], function (myApp) {
                         vm.callOutMissionStatusText = $translate("Gave Up");
                     }
 
-                    vm.callOutMissionProgressText = completedAmount + '/' + vm.ctiData.callee.length;
+                    vm.callOutMissionProgressText = gcd.completedAmount + '/' + vm.ctiData.callee.length;
 
                     vm.showFinishCalloutMissionButton = Boolean(vm.ctiData.status == $scope.constCallOutMissionStatus.FINISHED || vm.ctiData.status == $scope.constCallOutMissionStatus.CANCELLED);
 
@@ -8125,6 +8142,7 @@ define(['js/app'], function (myApp) {
                 socketService.$socket($scope.AppSocket, 'exportDecomposedPhone', sendData, function (data) {
                     console.log('exportDecomposedPhone ret', data);
                     $scope.$evalAsync(() => {
+                        vm.getTrashClassificationList();
                     });
                 });
             });

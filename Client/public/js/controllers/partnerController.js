@@ -1032,16 +1032,17 @@ define(['js/app'], function (myApp) {
 
                 vm.selectedSettlePartnerCommPrev = prev;
 
-                $scope.$socketPromise("initSettlePartnerComm", {
-                    platformObjId: vm.selectedPlatform.id,
-                    settMode: prev.settMode,
-                    startTime: prev.startTime,
-                    endTime: prev.endTime
-                }).then(
-                    res => {
-                        console.log('res', res);
-                    }
-                );
+                // I have no idea what is it for, but it caused bug, so I comment it - Huat
+                // $scope.$socketPromise("initSettlePartnerComm", {
+                //     platformObjId: vm.selectedPlatform.id,
+                //     settMode: prev.settMode,
+                //     startTime: prev.startTime,
+                //     endTime: prev.endTime
+                // }).then(
+                //     res => {
+                //         console.log('res', res);
+                //     }
+                // );
 
                 $scope.$socketPromise("getPartnerCommissionLog", {
                     platformObjId: vm.selectedPlatform.id,
@@ -7812,6 +7813,7 @@ define(['js/app'], function (myApp) {
                     _id: vm.selectedSinglePartner._id,
                     platform: vm.selectedPlatform.id,
                     newPassword: vm.customNewPassword,
+                    creator: {type: "admin", name: authService.adminName, id: authService.adminId},
                 };
 
                 socketService.$socket($scope.AppSocket, 'resetPartnerPassword', sendData, function (data) {

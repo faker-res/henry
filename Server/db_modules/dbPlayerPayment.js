@@ -419,6 +419,13 @@ const dbPlayerPayment = {
                 if (ret) {
                     ret = JSON.parse(ret);
 
+                    if (ret.code && Number(ret.code) === 1) {
+                        return Promise.reject({
+                            status: constServerCode.PAYMENT_NOT_AVAILABLE,
+                            message: "Payment is not available",
+                        });
+                    }
+
                     return {
                         minDepositAmount: Number(ret.min) || 0,
                         maxDepositAmount: Number(ret.max) || 0
@@ -489,7 +496,7 @@ const dbPlayerPayment = {
                         let bonusCodeCheckProm;
                         let isOpenPromoCode = topupRequest.bonusCode.toString().trim().length === 3;
                         if (isOpenPromoCode) {
-                            bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount, lastLoginIp);
+                            bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount, ipAddress);
                         }
                         else {
                             bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount);

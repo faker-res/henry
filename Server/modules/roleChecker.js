@@ -897,7 +897,7 @@ var roleChecker = {
             }
         },
         TeleMarketing: {
-            "TeleMarketing": {
+            "DXMission": {
                 Read: [],
                 Create: [],
                 Update: [],

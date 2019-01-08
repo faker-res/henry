@@ -6,14 +6,15 @@
 
 define([], function () {
 
-    var utilService = function () {
+    let utilService = function () {
+        let allPopoverElems = [];
 
-        var util = this;
+        let util = this;
         this.$get = function () {
             return this;
         };
 
-        var $trans = null;
+        let $trans = null;
 
         /////// some common functions //////
         this.initTranslate = function (func) {
@@ -41,19 +42,19 @@ define([], function () {
 
         this.getLeftTime = function(date){
             // convert the timestamp to actual time left
-            var endTime = new Date(date);
-            var now = new Date();
-            var sec_num = (endTime - now) / 1000;
-            var days    = Math.floor(sec_num / (3600 * 24));
-            var hours   = Math.floor((sec_num - (days * (3600 * 24)))/3600);
-            var minutes = Math.floor((sec_num - (days * (3600 * 24)) - (hours * 3600)) / 60);
-            var seconds = Math.floor(sec_num - (days * (3600 * 24)) - (hours * 3600) - (minutes * 60));
+            let endTime = new Date(date);
+            let now = new Date();
+            let sec_num = (endTime - now) / 1000;
+            let days    = Math.floor(sec_num / (3600 * 24));
+            let hours   = Math.floor((sec_num - (days * (3600 * 24)))/3600);
+            let minutes = Math.floor((sec_num - (days * (3600 * 24)) - (hours * 3600)) / 60);
+            let seconds = Math.floor(sec_num - (days * (3600 * 24)) - (hours * 3600) - (minutes * 60));
 
             if (hours   < 10) {hours   = "0"+hours;}
             if (minutes < 10) {minutes = "0"+minutes;}
             if (seconds < 10) {seconds = "0"+seconds;}
 
-            var result =  {
+            let result =  {
                 text:days+'天 '+ hours+':'+minutes+':'+seconds,
                 days: days,
                 hours: hours,
@@ -64,8 +65,8 @@ define([], function () {
         }
 
         this.$createArray = function (min, max) {
-            var newArrayObj = {};
-            var upper = 0, lower = 0;
+            let newArrayObj = {};
+            let upper = 0, lower = 0;
             if (!min) return [];
             if (!max) {
                 upper = min;
@@ -73,14 +74,14 @@ define([], function () {
                 upper = max;
                 lower = min;
             }
-            for (var ii = lower; ii < upper; ii++) {
+            for (let ii = lower; ii < upper; ii++) {
                 newArrayObj[ii] = ii;
             }
             return newArrayObj;
         }
         this.$getTimeFromStdTimeFormat = function (time) {
             if (!time) {
-                var nowDate = new Date();
+                let nowDate = new Date();
                 return nowDate.toLocaleString();
             }
             return util.getFormatTime(time);
@@ -88,14 +89,14 @@ define([], function () {
         };
         this.$getDateFromStdTimeFormat = function (time) {
             if (!time) {
-                var nowDate = new Date();
+                let nowDate = new Date();
                 return nowDate.toLocaleString();
             }
             return time.substring(0, 10);
         };
 
         this.$getPopoverID = function (a) {
-            var ID = $(a).attr('aria-describedby');
+            let ID = $(a).attr('aria-describedby');
             return '#' + ID;
         }
 
@@ -104,11 +105,13 @@ define([], function () {
         this.setupPopover = function (opts) {
 
             // Since we are manually selecting which elements to create popovers for, we never really needed data-toggle="popup".
-            var elems = $(opts.elem, opts.context); //.filter('[data-toggle=popover]');
+            let elems = $(opts.elem, opts.context); //.filter('[data-toggle=popover]');
             //console.log("setupPopover doing setup for " + elems.length + " elements.");
 
+            allPopoverElems = allPopoverElems || [];
             elems.each(function () {
-                var elem = $(this);
+                let elem = $(this);
+                allPopoverElems.push(elem);
 
                 // Do not setup a second time, if we are called twice
                 // This was happening because we were selecting elements by classname, but we use the same classname in different tables.
@@ -118,9 +121,9 @@ define([], function () {
                 }
                 elem.data('has-popup', true);
 
-                var contentHTML;
+                let contentHTML;
 
-                var content = opts.content;
+                let content = opts.content;
                 if (opts.onClickAsync) {
                     content = function () {
                         // console.log("content was called: returning contentHTML", contentHTML);
@@ -165,7 +168,7 @@ define([], function () {
                     // The only disadvantage here is if the user triggers a slow popover, then quickly triggers and
                     // dismisses a fast popover, the slow one may arrive afterwards and display itself unexpectedly.
 
-                    var aPopoverIsShowing = false;
+                    let aPopoverIsShowing = false;
                     $('[data-original-title]').each(function () {
                         if ($(this).data('popoverShowing')) {
                             aPopoverIsShowing = true;
@@ -181,7 +184,7 @@ define([], function () {
                 elem.on('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    var shouldShow = !$(this).data('popoverShowing');
+                    let shouldShow = !$(this).data('popoverShowing');
                     console.log(shouldShow ? "Showing" : "Hiding");
                     if (shouldShow && opts.onClick) {
                         opts.onClick.call(this, e);
@@ -197,15 +200,18 @@ define([], function () {
                     }
                     // Do not show if using onClickAsync - he will will do the show himself.
                     // But if hiding, then we will do the hide for him.
-                    var callerWillHandleShow = opts.onClickAsync && shouldShow;
+                    let callerWillHandleShow = opts.onClickAsync && shouldShow;
                     if (!callerWillHandleShow) {
                         $(this).popover(shouldShow ? 'show' : 'hide');
                     }
                     // No need for this here.  It should now be detected by event listeners above.
                     //$(this).data('popoverShowing', show);
                 });
+                
+                elem = null;
             });
 
+            elems = null;
         }
 
         // This function should be called once each time a fresh page is loaded.
@@ -214,7 +220,7 @@ define([], function () {
             // This performs behaviour like Bootstrap's data-trigger="focus" even if we haven't set it.
 
             $('html').on('click', function (e) {
-                var clickedTarget = $(e.target);
+                let clickedTarget = $(e.target);
                 if (clickedTarget.closest('.popover').length) {
                     // We clicked inside a popover, do nothing
                 } else {
@@ -234,10 +240,25 @@ define([], function () {
             });
         };
 
+        // clear all pop overs when it isn't needed anymore to prevent memory leak
+        this.clearPopovers = function () {
+            allPopoverElems = allPopoverElems || [];
+            for (let i = 0; i < allPopoverElems.length; i++) {
+                if (!allPopoverElems[i]) {
+                    continue;
+                }
+
+                allPopoverElems[i].off();
+                allPopoverElems[i].remove();
+            }
+            allPopoverElems = [];
+            $(".ui-helper-hidden-accessible").remove();
+        }
+
         //////// end Popover handling ///////
 
         this.getFormatTime = function (data) {
-            var option = {
+            let option = {
                 hour12: false,
                 year: 'numeric',
                 month: '2-digit',
@@ -251,7 +272,7 @@ define([], function () {
         }
 
         this.getFormatDate = function (data) {
-            var option = {
+            let option = {
                 year: 'numeric',
                 month: '2-digit',
                 day: '2-digit'
@@ -299,35 +320,35 @@ define([], function () {
             return new Date(date.setHours(0, 0, 0, 0));
         }
         this.getTodayStartTime = function () {
-            var todayDate = new Date();
+            let todayDate = new Date();
             return new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 0, 0, 0);
         }
         this.getTodayEndTime = function () {
-            // var todayDate = new Date();
+            // let todayDate = new Date();
             // return new Date(todayDate.getFullYear(), todayDate.getMonth(), todayDate.getDate(), 23, 59, 59);
             return new Date(util.getTodayStartTime().getTime() + 24 * 3600 * 1000);
         }
         this.getThisMonthStartTime = function () {
-            var todayDate = new Date();
+            let todayDate = new Date();
             return new Date(todayDate.getFullYear(), todayDate.getMonth(), 1, 0, 0, 0);
         }
         this.getThisMonthEndTime = function () {
-            var todayDate = new Date();
+            let todayDate = new Date();
             return new Date(todayDate.getFullYear(), todayDate.getMonth()+1, 1, 0, 0, 0);
         }
         this.getYesterdayStartTime = function () {
             return new Date(util.getTodayStartTime().getTime() - 24 * 60 * 60 * 1000);
         }
         this.getNdayagoStartTime = function (n) {
-            var n = $.isNumeric(n) ? parseInt(n) : 0;
+            n = $.isNumeric(n) ? parseInt(n) : 0;
             return new Date(util.getTodayStartTime().getTime() - 24 * 60 * 60 * 1000 * n);
         }
         this.getNdaylaterStartTime = function (n) {
-            var n = $.isNumeric(n) ? parseInt(n) : 0;
+            n = $.isNumeric(n) ? parseInt(n) : 0;
             return new Date(util.getTodayStartTime().getTime() + 24 * 60 * 60 * 1000 * n);
         }
         this.getNumberOfDayThisMonth = function () {
-            var todayDate = new Date();
+            let todayDate = new Date();
             let startDate = new Date(todayDate.getFullYear(), todayDate.getMonth(), 1, 0, 0, 0);
             let endDate = new Date(todayDate.getFullYear(), todayDate.getMonth()+1, 1, 0, 0, 0);
 
@@ -369,8 +390,8 @@ define([], function () {
         }
         this.actionAfterLoadedDateTimePickers = function (id, func, times) {
             let count = times || 0;
-            var datetimePickerStartTimeId = id + "From";
-            var datetimePickerEndTimeId = id + "To";
+            let datetimePickerStartTimeId = id + "From";
+            let datetimePickerEndTimeId = id + "To";
 
             if ($(datetimePickerStartTimeId) && $(datetimePickerStartTimeId)[0] &&
                 $(datetimePickerEndTimeId) && $(datetimePickerEndTimeId)[0] && func) {
@@ -403,13 +424,13 @@ define([], function () {
             }
         }
         this.setDataTablePageInput = function (id, tableVar, $translate) {
-            var lengthId = '#' + id + '_length';
-            var pInput = $('<input>', {
+            let lengthId = '#' + id + '_length';
+            let pInput = $('<input>', {
                 type: 'number',
                 class: id + 'Length',
                 width: '60px',
             }).val(10);
-            var page = $('<div>').append('<label></label>').append(pInput);
+            let page = $('<div>').append('<label></label>').append(pInput);
             $(lengthId).html(page);
 
             $('#' + id + '_previous a').text($translate('PREVIOUS_PAGE'));
@@ -419,7 +440,7 @@ define([], function () {
 
             $(lengthId + ' .' + id + 'Length').on('change', function (a) {
                 console.log('change');
-                var size = $(this).val();
+                let size = $(this).val();
                 if (size < -1) {
                     size = -1;
                     $(this).val(-1)
@@ -436,21 +457,21 @@ define([], function () {
             //  input(style='width:87%',data-format="MM/dd/yyyy HH:mm:ss PP", type='text') 
             //  span.add-on 
             //      i.fa.fa-calendar(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar') 
-            var result;
+            let result;
             option = option || {language: 'en', format: 'yyyy/MM/dd hh:mm:ss', endDate: new Date()}
-            var $id = $(id);
-            var comp_i = $('<i>', {
+            let $id = $(id);
+            let comp_i = $('<i>', {
                 class: "fa fa-calendar",
                 "data-time-icon": "fa fa-clock-o",
                 "data-date-icon": "fa fa-calendar"
             })
-            var comp_span = $('<span>', {class: "add-on"}).append(comp_i);
-            var comp_input = $('<input>', {
+            let comp_span = $('<span>', {class: "add-on"}).append(comp_i);
+            let comp_input = $('<input>', {
                 style: 'width:calc(100% - 15px)',
                 "data-format": "yyyy/MM/dd HH:mm:ss PP",
                 type: 'text'
             })
-            var comp = $('<div>', {class: "input-append form-control"}).append(comp_input).append(comp_span);
+            let comp = $('<div>', {class: "input-append form-control"}).append(comp_input).append(comp_span);
             if ($id) {
                 if ($id.data("datetimepicker")) {
                     $id.data("datetimepicker").destroy()
@@ -465,7 +486,7 @@ define([], function () {
             return $(result);
         }
         this.clearDatePickerDate = function (id) {
-            var $id = $(id);
+            let $id = $(id);
             $id.find('.input-append input').val('');
             if ($id.data("datetimepicker")) {
                 $id.data("datetimepicker").setValue()
@@ -473,8 +494,8 @@ define([], function () {
         }
 
         this.assignObjKeys = function (srcObj, keys) {
-            var newObj = {};
-            for (var i in keys) {
+            let newObj = {};
+            for (let i in keys) {
                 if (srcObj[keys[i]]) {
                     newObj[keys[i]] = srcObj[keys[i]];
                 }
@@ -484,15 +505,15 @@ define([], function () {
         this.getDatatableSummary = function (api, keys, prop) {
             //keys are array of class names to calculate per gage summary
             //prop are array of attributes name of original data to calculate total summary.
-            var result = {};
-            var srcData = api.settings().data();
-            var tdVal = function (i) {
-                var a = parseFloat(i);
+            let result = {};
+            let srcData = api.settings().data();
+            let tdVal = function (i) {
+                let a = parseFloat(i);
                 return $.isNumeric(a) ? a : 0;
             };
             if (api && api.cells() && keys && keys.length > 0) {
-                for (var i in keys) {
-                    var className = keys[i];
+                for (let i in keys) {
+                    let className = keys[i];
                     result[className] = {};
                     result[className].page = api.cells('.' + className, {page: 'current'}).data()
                         .reduce(function (a, b) {
@@ -501,8 +522,8 @@ define([], function () {
                 }
             }
             if (api && api.cells() && prop && prop.length > 0) {
-                for (var i in prop) {
-                    var propName = prop[i];
+                for (let i in prop) {
+                    let propName = prop[i];
                     result[propName] = result[propName] || {};
                     result[propName].total = 0;
                     $.each(srcData, function (i, v) {
@@ -526,19 +547,19 @@ define([], function () {
         };
         this.createDatatableWithFooter = function (tableId, option, sumData, showPageOnly) {
             function getFloat(i) {
-                var a = parseFloat(i);
+                let a = parseFloat(i);
                 return $.isNumeric(a) ? a : 0;
             }
 
             function getInt(i) {
-                var a = parseInt(i);
+                let a = parseInt(i);
                 return $.isNumeric(a) ? a : 0;
             }
 
             function gethtmlStr(a, b, extraLinesArr, hasExtraLines) {
                 a = a || 0, b = b || 0;
-                var line1 = $('<label>', {class: 'margin-bottom-5 label-value alignRight'}).text(a);
-                var line2 = $('<label>', {class: 'margin-bottom-5 label-value alignRight'}).text(b);
+                let line1 = $('<label>', {class: 'margin-bottom-5 label-value alignRight'}).text(a);
+                let line2 = $('<label>', {class: 'margin-bottom-5 label-value alignRight'}).text(b);
                 let sumLines = showPageOnly ? line1 : line1.append(line2);
                 if(hasExtraLines) {
                     extraLinesArr.forEach(data=>{
@@ -548,14 +569,14 @@ define([], function () {
                 return sumLines;
             }
 
-            var finalStr = $('<tr>');
+            let finalStr = $('<tr>');
             $.each(option.columns, function (i, v) {
                 finalStr.append($('<td>'));
             });
-            var $tfoot = $('<tfoot>').append(finalStr);
+            let $tfoot = $('<tfoot>').append(finalStr);
             $(tableId).append($tfoot);
             option.footerCallback = function (row, data, start, end, display) {
-                var api = this.api();
+                let api = this.api();
 
                 // Special variable for dxNewPlayerReport
                 let totalWinLoss = 0;
@@ -573,9 +594,9 @@ define([], function () {
                 let selectedBetTypeCount = 0;
 
                 api.columns().every(function (i, v) {
-                    var classes = (this.nodes() && this.nodes()[0]) ? this.nodes()[0].className : '';
-                    var htmlStr = null;
-                    var totalValue = null, pageValue = null;
+                    let classes = (this.nodes() && this.nodes()[0]) ? this.nodes()[0].className : '';
+                    let htmlStr = null;
+                    let totalValue = null, pageValue = null;
                     if (classes.indexOf('sumFloat') > -1) {
                         if (sumData && sumData[i]) {
                             totalValue = sumData[i]
@@ -748,14 +769,14 @@ define([], function () {
                     // });
                 })
             }
-            var newD = $(tableId).DataTable(option);
+            let newD = $(tableId).DataTable(option);
             return newD;
         }
         this.createPageForPagingTable = function (id, tblObj, trans, funcName, removePageSize) {
             $(id).html('');
-            var newPage = $('#pagingTableFooter').clone().removeAttr('id').removeClass("collapse");
+            let newPage = $('#pagingTableFooter').clone().removeAttr('id').removeClass("collapse");
             //para curPage, maxPage
-            var retObj = {
+            let retObj = {
                 curPage: 1,
                 maxPage: 0,
                 pageSize: (tblObj && tblObj.pageSize) ? tblObj.pageSize : 10
@@ -835,7 +856,7 @@ define([], function () {
                 // });
             };
             retObj.updateCurPage = function (event) {
-                var className = event.target.className;
+                let className = event.target.className;
                 if (className.indexOf('jumpPage') > -1) return;
                 console.log('event', event);
                 if (className.indexOf("first_page") > -1) {
@@ -874,18 +895,18 @@ define([], function () {
             } else return number;
         };
         this.fitText = function (ele) {
-            var $ele = $(ele) ? $($(ele).first()[0]) : null;
+            let $ele = $(ele) ? $($(ele).first()[0]) : null;
             if (!$ele) {
                 return
             }
-            var e = $ele.parent();
-            var maxWidth = e.width();
-            var maxHeight = e.height();
-            var sizeX = $ele.width();
-            var sizeY = $ele.height();
+            let e = $ele.parent();
+            let maxWidth = e.width();
+            let maxHeight = e.height();
+            let sizeX = $ele.width();
+            let sizeY = $ele.height();
             if (sizeY <= maxHeight && sizeX <= maxWidth)
                 return;
-            var fontSize = parseInt($ele.css("font-size"), 10);
+            let fontSize = parseInt($ele.css("font-size"), 10);
             while ((sizeX > maxWidth || sizeY > maxHeight) && fontSize > 4) {
                 fontSize -= .5;
                 sizeX = $ele.width();
@@ -1124,6 +1145,6 @@ define([], function () {
     };
 
 
-    var servicesApp = angular.module('utilService', []);
+    let servicesApp = angular.module('utilService', []);
     servicesApp.provider('utilService', utilService);
 });

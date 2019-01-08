@@ -193,6 +193,12 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.decomposeTsPhoneList, [data.sourceTsPhoneListName, data.tsPhones], actionName, isValidData);
         },
 
+        reclaimTsPhone: function reclaimTsPhone(data){
+        var actionName = arguments.callee.name;
+        var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.assignee);
+        socketUtil.emitter(self.socket, dbTeleSales.reclaimTsPhone, [data.platformObjId, data.tsPhoneListObjId, data.assignee], actionName, isValidData);
+    },
+
         getDistributionDetails: function getDistributionDetails(data){
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.adminNames && data.adminNames.length > 0);
