@@ -433,6 +433,19 @@ define(['js/app'], function (myApp) {
                             all: 'date',
                         }
                         vm.initSearchParameter('manualApproval', 'day', 3, function () {});
+                        vm.allBankTypeList = {};
+                        vm.allGameTypesList = [];
+                        vm.allGameTypes = {};
+                        Promise.all([
+                            commonService.getBankTypeList($scope).catch(err => Promise.resolve({})),
+                            commonService.getAllGameTypes($scope).catch(err => Promise.resolve([[], []]))])
+                            .then(data => {
+                                if (data){
+                                    vm.allBankTypeList = data[0] ? data[0] : {};
+                                    vm.allGameTypesList = data[1] && data[1][0] ? data[1][0] : [];
+                                    vm.allGameTypes = data[1] && data[1][1] ? data[1][1] : {};
+                                }
+                            });
                         // vm.drawManualApprovalRate();
                         break;
                     case "FRONT_END_REGISTRATION_ATTRITION_RATE":
