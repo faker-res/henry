@@ -35915,9 +35915,7 @@ define(['js/app'], function (myApp) {
                             let rewardStartTime = new Date(item.rewardStartTime).getTime();
                             let rewardEndTime =  new Date(item.rewardEndTime).getTime();
 
-                            if((currentTime < rewardStartTime) && (currentTime > rewardEndTime)){
-                                item.auctionStatus = 1;//gray-非刊登时间
-                            }else if( beforeAuction && (currentTime > beforeAuction) && (currentTime < rewardStartTime)){
+                            if( beforeAuction && (currentTime > beforeAuction) && (currentTime < rewardStartTime)){
                                 item.auctionStatus = 2;//white-刊登时间前
                             }else if( afterAuction && (currentTime > rewardEndTime) && (currentTime < afterAuction)){
                                 item.auctionStatus = 2;//white-刊登时间后
@@ -35925,6 +35923,8 @@ define(['js/app'], function (myApp) {
                                 item.auctionStatus = 3;//yellow-竞标中
                             }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && item.lastProposal && (item.lastProposal.status == vm.constProposalStatus.APPROVED || item.lastProposal.status == vm.constProposalStatus.SUCCESS) ){
                                 item.auctionStatus = 4;//red-場次結束
+                            }else if((currentTime < rewardStartTime) || (currentTime > rewardEndTime)){
+                                item.auctionStatus = 1;//gray-非刊登时间
                             }else{
                                 item.auctionStatus = 5;//none;
                             }
@@ -36042,32 +36042,33 @@ define(['js/app'], function (myApp) {
             };
 
             vm.monitoringLoop = function(){
-                    setTimeout(function () {
-                        let countDown = -1;
-                        clearInterval(vm.refreshInterval);
-                        vm.refreshInterval = setInterval(function () {
-                            var item = $('#autoRefreshProposalFlag');
-                            var isRefresh = item && item.length > 0 && item[0].checked;
-                            var mark = $('#timeLeftRefreshOperation')[0];
-                            $(mark).parent().toggleClass('hidden', countDown < 0);
-                            if (isRefresh) {
-                                if (countDown < 0) {
-                                    countDown = 11
-                                }
-                                if (countDown === 0) {
-                                    vm.listAuctionMonitor();
-                                    countDown = 11;
-                                }
-                                countDown--;
-                                $(mark).text(countDown);
-                            } else {
-                                countDown = -1;
+                setTimeout(function () {
+                    let countDown = -1;
+                    clearInterval(vm.refreshInterval);
+                    vm.refreshInterval = setInterval(function () {
+                        vm.lastTopUpRefresh = utilService.$getTimeFromStdTimeFormat();
+                        var item = $('#autoRefreshProposalFlag');
+                        var isRefresh = item && item.length > 0 && item[0].checked;
+                        var mark = $('#timeLeftRefreshOperation')[0];
+                        $(mark).parent().toggleClass('hidden', countDown < 0);
+                        if (isRefresh) {
+                            if (countDown < 0) {
+                                countDown = 11
                             }
-                            if (window.location.pathname != '/platform') {
-                                clearInterval(vm.refreshInterval);
+                            if (countDown === 0) {
+                                vm.listAuctionMonitor();
+                                countDown = 11;
                             }
-                        }, 1000);
-                    });
+                            countDown--;
+                            $(mark).text(countDown);
+                        } else {
+                            countDown = -1;
+                        }
+                        if (window.location.pathname != '/platform') {
+                            clearInterval(vm.refreshInterval);
+                        }
+                    }, 1000);
+                });
             }
 
             vm.initAuctionSystemCreateProduct = function () {
