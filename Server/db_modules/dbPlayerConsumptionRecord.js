@@ -834,13 +834,21 @@ var dbPlayerConsumptionRecord = {
         return dbconfig.collection_playerConsumptionRecord.findOne({orderNo: recordData.orderNo, createTime: {$gte: createTime}}).lean().then(
             data => {
                 if (data) {
-                      if (data.validAmount != recordData.validAmount) {
-                          //var amountDiff = recordData.validAmount - data.validAmount;
-                          return dbPlayerConsumptionRecord.updatePlayerConsumptionRecordAmount(data, recordData, resolveError);
-                      }
-                      else {
-                          return dbPlayerConsumptionRecord.updateExternalPlayerConsumptionRecordData(data, recordData, resolveError);
-                      }
+                    if (data.validAmount != recordData.validAmount) {
+                      //var amountDiff = recordData.validAmount - data.validAmount;
+                      return dbPlayerConsumptionRecord.updatePlayerConsumptionRecordAmount(data, recordData, resolveError);
+                    }
+                    else {
+                      return dbPlayerConsumptionRecord.updateExternalPlayerConsumptionRecordData(data, recordData, resolveError);
+                    }
+                } else {
+                    let code = constServerCode.CONSUMPTION_ORDERNO_NOT_FOUND;
+                    return resolveError ? Q.resolve(false) : Q.reject({
+                        code: code,
+                        name: "DataError",
+                        message: "Consumption update not found: ",
+                        data: recordData
+                    });
                 }
             }
         ).catch(
