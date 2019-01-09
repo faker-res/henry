@@ -798,8 +798,6 @@ define(['js/app'], function (myApp) {
             }
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.adminPhoneListTable = $('#adminPhoneListTable').DataTable(tableOptions);
-            if (vm.adminPhoneListDataTableObj) vm.adminPhoneListDataTableObj.destroy();
-            delete vm.adminPhoneListDataTableObj;
             vm.adminPhoneListDataTableObj = utilService.createDatatableWithFooter(tableId, tableOptions, {});
             vm[objKey].pageObj.init({maxCount: size}, newSearch);
 
