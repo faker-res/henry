@@ -413,6 +413,7 @@ const dbPlayerMail = {
         }
         let isSpam = false;
         let blacklistIPDetected = false;
+        let smsLimitDetected = false;
         let timeNow = new Date();
         let minuteNow = dbUtility.getSGTimeCurrentMinuteInterval(timeNow);
         let hourNow = dbUtility.getSGTimeCurrentHourInterval(timeNow);
@@ -610,6 +611,7 @@ const dbPlayerMail = {
 
                     if (checkPhoneByMinute && checkPhoneByMinute._id) {
                         if (!checkPhoneByMinute.countLtLimit) {
+                            smsLimitDetected = true;
                             return Promise.reject({
                                 name: "DataError",
                                 message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
@@ -618,6 +620,7 @@ const dbPlayerMail = {
                     }
                     if (checkPhoneByHour && checkPhoneByHour._id) {
                         if (!checkPhoneByHour.countLtLimit) {
+                            smsLimitDetected = true;
                             return Promise.reject({
                                 name: "DataError",
                                 message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
@@ -626,6 +629,7 @@ const dbPlayerMail = {
                     }
                     if (checkPhoneByDay && checkPhoneByDay._id) {
                         if (!checkPhoneByDay.countLtLimit) {
+                            smsLimitDetected = true;
                             return Promise.reject({
                                 name: "DataError",
                                 message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
@@ -634,6 +638,7 @@ const dbPlayerMail = {
                     }
                     if (checkIpByMinute && checkIpByMinute._id) {
                         if (!checkIpByMinute.countLtLimit) {
+                            smsLimitDetected = true;
                             return Promise.reject({
                                 name: "DataError",
                                 message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
@@ -642,6 +647,7 @@ const dbPlayerMail = {
                     }
                     if (checkIpByHour && checkIpByHour._id) {
                         if (!checkIpByHour.countLtLimit) {
+                            smsLimitDetected = true;
                             return Promise.reject({
                                 name: "DataError",
                                 message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
@@ -650,6 +656,7 @@ const dbPlayerMail = {
                     }
                     if (checkIpByDay && checkIpByDay._id) {
                         if (!checkIpByDay.countLtLimit) {
+                            smsLimitDetected = true;
                             return Promise.reject({
                                 name: "DataError",
                                 message: localization.localization.translate("Send failed, sending SMS frequency is too high, please try again later")
@@ -999,7 +1006,7 @@ const dbPlayerMail = {
                                     status: constProposalStatus.PENDING
                                 };
 
-                                if (!blacklistIPDetected) {
+                                if (!blacklistIPDetected && !smsLimitDetected) {
                                     dbPlayerRegistrationIntentRecord.createPlayerRegistrationIntentionProposal(platformObjId, newProposal, constProposalStatus.PENDING);
                                 }
                             }
