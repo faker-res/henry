@@ -4,7 +4,7 @@ form(name='form_playerPaymentInfo' style="margin-bottom: 1em;")
             label.control-label {{'BANK_ACCOUNT_NAME' | translate}}
             input.form-control(ng-model='playerPayment.bankAccountName', ng-disabled='!isEditingPlayerPayment')
         .form-group-col-md-6
-            label.control-label(style='width:100%') *{{'BANK_NAME' | translate}}
+            label.control-label *{{'BANK_NAME' | translate}}
             select.form-control(ng-model='playerPayment.bankName', ng-show='!isEditingPlayerPayment', disabled)
                 option(ng-repeat="(i,v) in allBankTypeList", value='{{i}}') {{v}}
             .col-md-6(style='padding-left:0', ng-show='isEditingPlayerPayment')

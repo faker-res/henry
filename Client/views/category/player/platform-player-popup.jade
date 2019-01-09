@@ -25,61 +25,61 @@
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"PLAYER_NAME" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.name}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"PLAYER_ID" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.playerId}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"REMARK" | translate}}
                                                     .col-sm-8
-                                                        text(style='height:inherit') {{vm.selectedSinglePlayer.remark || 'NONE' | translate}}
+                                                        text {{vm.selectedSinglePlayer.remark || 'NONE' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"realName" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.realName || 'NONE' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"partner" | translate}}
                                                     .col-sm-8
-                                                        text(style='height:inherit') {{vm.selectedSinglePlayer.partnerName || 'NONE' | translate}}
+                                                        text {{vm.selectedSinglePlayer.partnerName || 'NONE' | translate}}
 
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"GENDER" | translate}}
                                                     .col-sm-8
                                                         text {{vm.getGenderFromBool(vm.selectedSinglePlayer.gender) || 'NONE' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"NICK_NAME" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.nickName || 'NONE' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"REFERRAL" | translate}}
                                                     .col-sm-8
-                                                        text(style='height:inherit') {{vm.showReferralName || 'NONE' | translate}}
+                                                        text {{vm.showReferralName || 'NONE' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"DOB" | translate}}
                                                     .col-sm-8
-                                                        text(style='height:inherit') {{vm.convertDOBFormat(vm.selectedSinglePlayer.DOB) || 'NONE' | translate}}
+                                                        text {{vm.convertDOBFormat(vm.selectedSinglePlayer.DOB) || 'NONE' | translate}}
                                     td.text-left
                                         button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPlayerDialog('basicInfo');", ng-if="checkViewPermission('Player', 'Player', 'Edit')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
                                         br
@@ -95,32 +95,34 @@
                                         div {{'CONTACT_INFO' | translate}}
                                     td
                                         .row
-                                            div(style='min-width:max-content;display:inline-block;width:11.11111112%;padding-left:15px;padding-right:15px;white-space: nowrap;')
-                                                label {{"TELEPHONE" | translate}}
-                                            div(style='display:inline-block;min-width:max-content;width:60%;padding-left:15px;padding-right:15px;white-space: nowrap;')
-                                                text.
-                                                    {{vm.getEncPhoneNumber(vm.selectedSinglePlayer) || 'Unknown' | translate}}&nbsp;
-                                                    ({{vm.selectedSinglePlayer.phoneCity || 'Unknown' | translate}},&nbsp;
-                                                    {{vm.selectedSinglePlayer.phoneProvince || 'Unknown' | translate}}/
-                                                    {{vm.selectedSinglePlayer.phoneType || 'Unknown' | translate}})
+                                            .col-md-8
+                                                .row
+                                                    .col-sm-2
+                                                        label {{"TELEPHONE" | translate}}
+                                                    .col-sm-8
+                                                        text.
+                                                            {{vm.getEncPhoneNumber(vm.selectedSinglePlayer) || 'Unknown' | translate}}&nbsp;
+                                                            ({{vm.selectedSinglePlayer.phoneCity || 'Unknown' | translate}},&nbsp;
+                                                            {{vm.selectedSinglePlayer.phoneProvince || 'Unknown' | translate}}/
+                                                            {{vm.selectedSinglePlayer.phoneType || 'Unknown' | translate}})
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"WECHAT" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.wechat || 'Unknown' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"QQ" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.qq || 'Unknown' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"EMAIL" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.email || vm.qqAddress || 'Unknown' | translate}}
@@ -140,13 +142,13 @@
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BANK_NAME" | translate}}
                                                     .col-sm-8
                                                         text {{vm.allBankTypeList[vm.selectedSinglePlayer.bankName] || vm.selectedSinglePlayer.bankName || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BANK_ACCOUNT_NAME" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.bankAccountName || 'Unknown' | translate}}
@@ -164,34 +166,34 @@
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BANK_ACCOUNT" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.encodedBankAccount || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BANK_ACCOUNT_PROVINCE" | translate}}
                                                     .col-sm-8
                                                         text {{vm.showProvinceStr ? vm.showProvinceStr : (vm.selectedSinglePlayer.bankAccountProvince || 'Unknown') | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BANK_ACCOUNT_CITY" | translate}}
                                                     .col-sm-8
                                                         text {{vm.showCityStr ? vm.showCityStr : (vm.selectedSinglePlayer.bankAccountCity || 'Unknown') | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BANK_ACCOUNT_DISTRICT" | translate}}
                                                     .col-sm-8
                                                         text {{vm.showDistrictStr ? vm.showDistrictStr : 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"Bank Address" | translate}}
-                                                    .col-sm-8(style='min-width:max-content;')
+                                                    .col-sm-8
                                                         text {{vm.selectedSinglePlayer.bankAddress || 'Unknown' | translate}}
 
                                         //.inlineBlk
@@ -211,33 +213,32 @@
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BankCardGroup" | translate}}
                                                     .col-sm-8
                                                         text {{vm.platformBankCardGroupListCheck[vm.selectedSinglePlayer.bankCardGroup] | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"ONLINE_TOP_UP_GROUP" | translate}}
                                                     .col-sm-8
                                                         text {{vm.platformMerchantGroupListCheck[vm.selectedSinglePlayer.merchantGroup] | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='min-width:max-content;white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"PERSONAL_ALIPAY_GROUP" | translate}}
-                                                    .col-sm-8(style='max-width:max-content;')
+                                                    .col-sm-8
                                                         text {{vm.platformAlipayGroupListCheck[vm.selectedSinglePlayer.alipayGroup] | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"PERSONAL_WECHAT_GROUP" | translate}}
                                                     .col-sm-8
                                                         text {{vm.platformWechatPayGroupListCheck[vm.selectedSinglePlayer.wechatPayGroup] | translate}}
                                     td.text-left
                                         button.btn.btn-primary.common-button-sm(ng-click='vm.openEditPlayerDialog("topUpInfo");', ng-if="checkViewPermission('Player', 'Player', 'Edit')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
                                         br
-                                        //button.btn.btn-primary.common-button-sm(ng-click='') {{"EDIT_HISTORY" | translate}}
                                 tr
                                     td
                                         div {{'REGISTRATION_INFO' | translate}}
@@ -245,7 +246,7 @@
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"REGISTRATION_IP" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.loginIps && vm.selectedSinglePlayer.loginIps[0] || 'Unknown' | translate}}
@@ -257,40 +258,40 @@
                                                         text {{vm.selectedSinglePlayer.country || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{'PROVINCE' | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.province || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"CITY" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.city || 'Unknown' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{'Registration Domain' | translate}}
-                                                    .col-sm-8(style='word-wrap:break-word;')
+                                                    .col-sm-8
                                                         a(href='{{vm.selectedSinglePlayer.domain}}', title='{{vm.selectedSinglePlayer.domain}}', target='_blank') {{vm.selectedSinglePlayer.$displayDomain || 'Unknown' | translate}}
                                                         //text {{vm.selectedSinglePlayer.domain || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{'SOURCE_URL' | translate}}
-                                                    .col-sm-8(style='word-wrap:break-word;')
+                                                    .col-sm-8
                                                         text
                                                             a(href='{{vm.selectedSinglePlayer.sourceUrl}}', title='{{vm.selectedSinglePlayer.sourceUrl}}', target='_blank') {{vm.selectedSinglePlayer.$displaySourceUrl || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"REGISTRATION_ADMIN" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.csOfficer.adminName || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"PROMOTE_WAY" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.promoteWay || 'Unknown' | translate}}
@@ -323,7 +324,7 @@
                                     label {{"Total" | translate}} {{vm.similarPhoneForPlayer.totalCount}} {{"records" | translate}}
                                         .inlineBlk.margin-left-5(ng-if='vm.similarPhoneForPlayer.loading')
                                             i.fa.fa-spin.fa-spinner
-                                    table#similarPhoneForPlayerTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                                    table#similarPhoneForPlayerTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
                                     #similarPhoneForPlayerTablePage
 
                                 div(ng-show="vm.selectedSimilarPlayerTab === 'similar-ip'")
@@ -331,7 +332,7 @@
                                     label {{"Total" | translate}} {{vm.similarIpForPlayer.totalCount}} {{"records" | translate}}
                                         .inlineBlk.margin-left-5(ng-if='vm.similarIpForPlayer.loading')
                                             i.fa.fa-spin.fa-spinner
-                                    table#similarIpForPlayerTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                                    table#similarIpForPlayerTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
                                     #similarIpForPlayerTablePage
 
                     //

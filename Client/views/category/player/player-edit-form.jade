@@ -13,17 +13,17 @@ form(name="form_editing_player", novalidate)
             input.form-control(type="text", placeholder='{{"REAL_NAME" | translate}}', ng-model="playerBeingEdited.realName")
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
-            label.control-label {{"GENDER" | translate}}
+            label.control-label {{"GENDERS" | translate}}
             div
                 label.radio-inline {{"Male" | translate}}
-                    input.pull-left.relative(style="margin-right:8px;" type="radio", name="gender",ng-value="true", ng-model="playerBeingEdited.gender")
+                    input.pull-left.relative(type="radio", name="gender",ng-value="true", ng-model="playerBeingEdited.gender")
                 label.radio-inline {{"Female" | translate}}
-                    input.pull-left.relative(style="margin-right:8px;" type="radio", name="gender",ng-value="false", ng-model="playerBeingEdited.gender")
+                    input.pull-left.relative(type="radio", name="gender",ng-value="false", ng-model="playerBeingEdited.gender")
 
         .form-group.col-md-6
             label.control-label {{"DOB" | translate}}
-            input.form-control(style='width:calc(100% - 20px);display: inline-block', type="date",name="DOBInput", ng-model="playerBeingEdited.DOB", max="{{today}}")
-            i.margin-left-5.fa.fa-times.text-danger(style='width:10px;', ng-show="form_editing_player.DOBInput.$invalid")
+            i.margin-left-5.fa.fa-times.text-danger(ng-show="form_editing_player.DOBInput.$invalid")
+            input.form-control(type="date",name="DOBInput", ng-model="playerBeingEdited.DOB", max="{{today}}")
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
             label.control-label {{"PLAYER_LEVEL" | translate}}
@@ -31,9 +31,10 @@ form(name="form_editing_player", novalidate)
                 option(ng-repeat='(i,v) in allPlayerLevel', value='{{v._id}}', ng-selected='v._id == playerBeingEdited.playerLevel') {{v.name}}
         .form-group.col-md-6
             label.control-label {{"PARTNER" | translate}}
-            input.partnerValue.form-control(style='width:calc(100% - 20px);display: inline-block', ng-model='playerBeingEdited.partnerName', ng-change="changePartner()")
-            i.partnerValidFalse.margin-left-5.fa.fa-times.text-danger(style='width:10px;display:none')
-            i.partnerValidTrue.margin-left-5.fa.fa-check.text-success(style='width:10px;display:none')
+            i.partnerValidFalse.margin-left-5.fa.fa-times.text-danger(style='display:none;')
+            i.partnerValidTrue.margin-left-5.fa.fa-check.text-success(style='display:none;')
+            input.partnerValue.form-control(ng-model='playerBeingEdited.partnerName', ng-change="changePartner()")
+
         //.form-group.col-md-6
             label.control-label {{"PARTNER" | translate}}
             label#partnerInEditPlayer.form-control(ng-click='showPartnerTable()') {{partnerObjs[playerBeingEdited.partner].partnerName}}
@@ -43,21 +44,6 @@ form(name="form_editing_player", novalidate)
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
             label.control-label {{"REFERRAL" | translate}}
-            input.referralValue.form-control(style='width:calc(100% - 20px);display: inline-block', ng-model='playerBeingEdited.referralName', ng-change="changeReferral()")
-            i.referralValidFalse.margin-left-5.fa.fa-times.text-danger(style='width:10px;display:none;')
-            i.referralValidTrue.margin-left-5.fa.fa-check.text-success(style='width:10px;display:none;')
-    //.row.margin-left-5.margin-right-5
-    //    .form-group.col-md-12
-    //        label.control-label {{"ICON" | translate}}
-    //        img.margin-left-5(ng-if='playerBeingEdited.photoUrl', src="{{playerBeingEdited.photoUrl}}", style='width:40px;height:40px;')
-    //        br
-    //        input.form-control(type="text", placeholder='{{"URL" | translate}}', ng-model="playerBeingEdited.photoUrl", style='width:100%;display:inline-block')
-
-
-//.form-group.col-md-6
-    //   label.control-label {{"TELEPHONE" | translate}}
-    //   span.pull-right
-    //      label Change Phone number
-    //         input.pull-left(style='margin-right:5px' type='checkbox' ng-model='vm.changeMobile')
-    //   input.form-control(ng-if='!vm.changeMobile' type="text", placeholder="{{'MOBILE' | translate}}", ng-model="vm.editPlayer.phoneNumber", disabled)
-    //   input.form-control(ng-if='vm.changeMobile' type="text", placeholder="{{'MOBILE' | translate}}",ng-pattern="vm.phonePattern", ng-model="vm.newPhoneNumber")
+            i.referralValidFalse.margin-left-5.fa.fa-times.text-danger(style='display:none;')
+            i.referralValidTrue.margin-left-5.fa.fa-check.text-success(style='display:none;')
+            input.referralValue.form-control(ng-model='playerBeingEdited.referralName', ng-change="changeReferral()")
