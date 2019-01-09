@@ -2792,6 +2792,11 @@
   "REGISTRATION_ROLE": "开户组别",
   "REGISTRATION_ADMIN": "开户客服",
 
+  "Currently available financial (settlement) system":"目前可选财务（结算）系统",
+  "Currently points":"目前点数馀额",
+  "The warning value of Currently points is too low (points check, eMAIL reminder, no fill, close)":"点数馀额过低警告值（整点检查、eMAIL提醒、不填则关闭）",
+  "email recipient settings":"e-mail 收件人设置",
+
   "totalTopUpAmount": "下线玩家总充值额",
   "totalBonusAmount": "下线玩家总提款额",
   "Payment Info History": "支付资料历史",
