@@ -6298,6 +6298,7 @@ define(['js/app'], function (myApp) {
             } else {
                 vm.uploadPhoneFileXLS('', true, null, true)
             }
+            vm.checkFilterIsDisable = true;
         };
 
         vm.filterRecycleBinPhoneList = (newSearch) => {
