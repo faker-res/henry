@@ -3420,11 +3420,14 @@ let dbPlayerInfo = {
 
                 // If user modified their own, no proposal needed
                 if (!skipProposal) {
-                    dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {
-                        creator: {type: "player", name: playerObj.name, id: playerObj._id},
-                        data: updateData,
-                        inputDevice: inputDeviceData
-                    }, smsLogData);
+                    dbProposal.rejectPendingProposalIfAvailable(platformObjId, playerObj.name, constProposalType.UPDATE_PLAYER_BANK_INFO).then(
+                        () => {
+                            dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {
+                                creator: {type: "player", name: playerObj.name, id: playerObj._id},
+                                data: updateData,
+                                inputDevice: inputDeviceData
+                            }, smsLogData);
+                        }).catch(errorUtils.reportError);
                 }
 
                 return updatedData;
@@ -4027,6 +4030,7 @@ let dbPlayerInfo = {
 
             return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: player._id}).then(
                 rtgData => {
+                    console.log("checking rtgData when player top up-2", rtgData)
                     if (rtgData && rtgData.length) {
                         let calCreditArr = [];
 
@@ -8493,6 +8497,7 @@ let dbPlayerInfo = {
 
             return dbconfig.collection_rewardTaskGroup.findOne(query).then(
                 (rewardTaskGroup) => {
+                    console.log("checking rewardTaskGroup when player top up-3", rewardTaskGroup)
                     if (rewardTaskGroup) {
                         return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                             {_id: rewardTaskGroup._id},
@@ -8520,7 +8525,12 @@ let dbPlayerInfo = {
                         };
 
                         // create new reward group
-                        return new dbconfig.collection_rewardTaskGroup(saveObj).save();
+                        return new dbconfig.collection_rewardTaskGroup(saveObj).save().then(
+                            newRecord => {
+                                console.log("checking create new RTG when player top up-4", newRecord)
+                                return newRecord
+                            }
+                        );
                     }
                 }, (error) => {
                     return Q.reject({name: "DataError", message: "Cannot find reward task group"});

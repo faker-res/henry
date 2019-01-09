@@ -446,7 +446,7 @@
                                 td {{event.name}}
                                 td {{event.settlementStartTime}} -> {{event.settlementEndTime}}
                                 td
-                                  button.btn.btn-primary(ng-click="vm.getCurrentPeriodConsumptionReturn(event);vm.showCurrentPeriodConsumptionReturn=true;") {{"CURRENT_PERIOD" | translate}}
+                                  button.btn.btn-primary(ng-click="vm.getCurrentPeriodConsumptionReturn(event);") {{"CURRENT_PERIOD" | translate}}
                                 td
                                   button.btn.btn-primary(ng-click="vm.compareAllConsumptionReturn(event.settlementStartTime, event.settlementEndTime);") {{"Refresh" | translate}}
 
@@ -461,7 +461,7 @@
                             th {{'CPMS Qty' | translate}}
                             th {{'FPMS Qty' | translate}}
                             th {{'Subtract (CPMS-FPMS)' | translate}}
-                            th(ng-hide="vm.showCurrentPeriodConsumptionReturn") {{'ACTION_BUTTON' | translate}}
+                            th {{'ACTION_BUTTON' | translate}}
 
 
                         tbody(ng-repeat='providerId in vm.providerLists')
@@ -500,7 +500,7 @@
                                     div(ng-if="vm.providerDiffConsumption[providerId].consumptionDiff !== null && vm.providerDiffConsumption[providerId].status=='3'") {{vm.providerDiffConsumption[providerId].consumptionDiff}}
                                         span(style="color:red") ↓
 
-                                td(ng-hide="vm.showCurrentPeriodConsumptionReturn")
+                                td
                                     div(ng-if="vm.providerDiffConsumption[providerId].status==1")
                                         div(class="btn btn-primary disabled") {{'Recover Bets' | translate}}
                                     div(ng-if="vm.providerDiffConsumption[providerId].status==2")

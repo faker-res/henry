@@ -22706,6 +22706,7 @@ define(['js/app'], function (myApp) {
                 vm.selectedConfigTab = choice;
                 vm.configTableEdit = false;
                 vm.blacklistIpConfigTableEdit = false;
+                vm.FinancialSettlementSystemTableEdit = false;
                 vm.newBlacklistIpConfig = [];
                 vm.delayDurationGroupProviderEdit = false;
                 switch (choice) {
@@ -22791,6 +22792,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'financialSettlementConfig':
                         vm.getFinancialSettlementConfig();
+                        vm.getFinancialSettlementSystem();
                         break;
                     case 'largeWithdrawalSetting':
                         vm.getLargeWithdrawalSetting();
@@ -27906,6 +27908,11 @@ define(['js/app'], function (myApp) {
                 vm.financialSettlementConfig.financialPointsNotification = vm.selectedPlatform.data.financialSettlement.financialPointsNotification? "1": "0";
                 vm.financialSettlementConfig.minFinancialPointsDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.minFinancialPointsDisableWithdrawal;
                 vm.financialSettlementConfig.financialPointsDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.financialPointsDisableWithdrawal? "1": "0";
+            }
+
+            vm.getFinancialSettlementSystem = function () {
+                vm.financialSettlementSystem = vm.financialSettlementSystem || {};
+
             }
 
             vm.getPlatformFeeEstimateSetting = function () {

@@ -11,7 +11,7 @@
                 span {{"WORKLOAD REPORT" | translate}}
             button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'RECYCLE_BIN', 'Read')" ng-class='{active: vm.selectedTab === "RECYCLE_BIN"}', ng-click='vm.loadTab("RECYCLE_BIN")', title='名单皆被使用过后，没开户成功将近入此回收桶')
                 span {{"RECYCLE_BIN" | translate}}
-            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'Task', 'Read')" ng-class='{active: vm.selectedTab === "PHONE_MISSION"}', ng-click='vm.loadTab("PHONE_MISSION")', title='通过短信让客户触击即可开户')
+            button.btn.btn-primary.common-button(ng-if="checkViewPermission('TeleMarketing', 'SMSMission', 'Read')" ng-class='{active: vm.selectedTab === "PHONE_MISSION"}', ng-click='vm.loadTab("PHONE_MISSION")', title='通过短信让客户触击即可开户')
                 span {{"PHONE_MISSION" | translate}}
         .col-md-12
             .panel.panel-primary
@@ -684,7 +684,7 @@
                     div(style='display:inline-block')
                       button.common-button.btn.btn-primary(style="float:none !important",data-dismiss='modal') {{'CANCEL' | translate}}
                     div(style='display:inline-block')
-                      button.common-button.btn.btn-primary(style="float:none !important", ng-if="checkViewPermission('TeleMarketing', 'Task', 'Update')",
+                      button.common-button.btn.btn-primary(style="float:none !important", ng-if="checkViewPermission('TeleMarketing', 'DXMission', 'Update')",
                     ng-click="vm.updateTeleMarketingTask()", ng-disabled="form_edit_telemarketing_task.$invalid") {{'EDIT' | translate}}
 
 
