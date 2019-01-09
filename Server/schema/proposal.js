@@ -87,6 +87,8 @@ proposalSchema.index({"data.promoCode": 1});
 proposalSchema.index({"data.providerGroup": 1});
 proposalSchema.index({"data.deviceId": 1});
 proposalSchema.index({"data.depositMethod": 1});
+proposalSchema.index({"data.platformId": 1});
+
 /*
  // Ensure that the caller does not accidentally save an ObjectId in proposal.data.playerId
  proposalSchema.pre('validate', function (next) {

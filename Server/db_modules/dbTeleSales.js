@@ -1448,19 +1448,9 @@ let dbTeleSales = {
         return dbconfig.collection_tsPhoneTrade.find({
             targetPlatform: ObjectId(platformObjId),
             tradeTime: {$exists: true},
-            $and: [
-                {
-                    $or: [
-                        {targetTsPhone: {$exists: false}},
-                        {targetTsPhone: {$exists: true, $eq: null}}
-                    ]
-                },
-                {
-                    $or: [
-                        {proposalId: {$exists: false}},
-                        {proposalId: {$exists: true, $eq: null}}
-                    ]
-                }
+            $or: [
+                {targetTsPhone: {$exists: false}},
+                {targetTsPhone: {$exists: true, $eq: null}}
             ]
         }).count();
     },
@@ -1474,21 +1464,10 @@ let dbTeleSales = {
         let query = {
             tradeTime: {$gte: new Date(startTime), $lte: new Date(endTime)},
             targetPlatform: ObjectId(platformObjId),
-            $and: [
-                {
-                    $or: [
-                        {targetTsPhone: {$exists: false}},
-                        {targetTsPhone: {$exists: true, $eq: null}}
-                    ]
-                },
-                {
-                    $or: [
-                        {proposalId: {$exists: false}},
-                        {proposalId: {$exists: true, $eq: null}}
-                    ]
-                }
+            $or: [
+                {targetTsPhone: {$exists: false}},
+                {targetTsPhone: {$exists: true, $eq: null}}
             ]
-
         };
 
         let countProm = dbconfig.collection_tsPhoneTrade.find(query).count();
