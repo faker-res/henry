@@ -35914,27 +35914,28 @@ define(['js/app'], function (myApp) {
                             }
                             let rewardStartTime = new Date(item.rewardStartTime).getTime();
                             let rewardEndTime =  new Date(item.rewardEndTime).getTime();
-
-                            if( beforeAuction && (currentTime > beforeAuction) && (currentTime < rewardStartTime)){
-                                item.auctionStatus = 2;//white-刊登时间前
-                            }else if( afterAuction && (currentTime > rewardEndTime) && (currentTime < afterAuction)){
-                                item.auctionStatus = 2;//white-刊登时间后
-                            }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && item.lastProposal && (item.lastProposal.status != vm.constProposalStatus.APPROVED && item.lastProposal.status != vm.constProposalStatus.SUCCESS) ){
-                                item.auctionStatus = 3;//yellow-竞标中
-                            }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && item.lastProposal && (item.lastProposal.status == vm.constProposalStatus.APPROVED || item.lastProposal.status == vm.constProposalStatus.SUCCESS) ){
-                                item.auctionStatus = 4;//red-場次結束
-                            }else if((currentTime < rewardStartTime) || (currentTime > rewardEndTime)){
-                                item.auctionStatus = 1;//gray-非刊登时间
-                            }else{
-                                item.auctionStatus = 5;//none;
-                            }
+                            item.auctionStatus = vm.getAuctionStatus(item, beforeAuction, afterAuction, currentTime, rewardStartTime, rewardEndTime)
                             return item;
                         })
                     }
                     vm.drawAuctionMonitorTable(data.data);
                 });
             }
-
+            vm.getAuctionStatus = function(item, beforeAuction, afterAuction, currentTime, rewardStartTime, rewardEndTime){
+                let auctionStatus = 5; //
+                if( beforeAuction && (currentTime > beforeAuction) && (currentTime < rewardStartTime)){
+                    auctionStatus = 2;//white-刊登时间前
+                }else if( afterAuction && (currentTime > rewardEndTime) && (currentTime < afterAuction)){
+                    auctionStatus = 2;//white-刊登时间后
+                }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && item.lastProposal && (item.lastProposal.status != vm.constProposalStatus.APPROVED && item.lastProposal.status != vm.constProposalStatus.SUCCESS) ){
+                    auctionStatus = 3;//yellow-竞标中
+                }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && item.lastProposal && (item.lastProposal.status == vm.constProposalStatus.APPROVED || item.lastProposal.status == vm.constProposalStatus.SUCCESS) ){
+                    auctionStatus = 4;//red-場次結束
+                }else if((currentTime < rewardStartTime) || (currentTime > rewardEndTime)){
+                    auctionStatus = 1;//gray-非刊登时间
+                }
+                return auctionStatus
+            }
             vm.loadAuctionItem = function(id){
                 let sendData = { _id: id };
                 socketService.$socket($scope.AppSocket, 'loadAuctionItem', sendData, function (data) {
