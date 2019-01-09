@@ -1913,14 +1913,14 @@
                                 td {{'Definition of Answered Phone Call(Choose from feedback status/ multi selection)' | translate}}
                                 td
                                     select.form-control.spicker#configSelectFeedBackTopic(ng-model="vm.bulkCallBasic.definitionOfAnsweredPhone" ng-options="a.key as a.value for (i,a) in vm.playerAllFeedBackResult" ng-disabled="!vm.configTableEdit" multiple)
-                            tr
+                            tr(ng-if="checkViewPermission('Platform', 'Config', 'DecomposeAfterNDays')")
                                 td {{'Decompose after N days(Start to deal with other departments)' | translate}}
                                 td
-                                    input(ng-model='vm.bulkCallBasic.decomposeAfterNDays' ng-disabled='!vm.configTableEdit' type="number" step="1" min="0")
-                            tr
+                                    input(ng-model='vm.bulkCallBasic.decomposeAfterNDays' ng-disabled='!vm.configTableEdit && checkViewPermission("Platform", "Config", "DecomposeAfterNDays")' type="number" step="1" min="0")
+                            tr(ng-if="checkViewPermission('Platform', 'Config', 'AutoExportListOrMaxNumOfTxnEveryday')")
                                 td {{'Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday' | translate}}
                                 td
-                                    input(ng-model='vm.bulkCallBasic.phoneWhiteListExportMaxNumber' ng-disabled='!vm.configTableEdit' type="number" step="1" min="0")
+                                    input(ng-model='vm.bulkCallBasic.phoneWhiteListExportMaxNumber' ng-disabled='!vm.configTableEdit && checkViewPermission("Platform", "Config", "AutoExportListOrMaxNumOfTxnEveryday")' type="number" step="1" min="0")
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'BulkCall')", ng-click='vm.configTableEdit=!vm.configTableEdit; vm.debounceRefreshSPicker()')
                         text {{'EDIT' | translate}}
                         img.img-edit
