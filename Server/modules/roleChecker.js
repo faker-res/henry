@@ -897,13 +897,13 @@ var roleChecker = {
             }
         },
         TeleMarketing: {
-            "DXMission": {
+            "SMSMission": {
                 Read: [],
                 Create: [],
                 Update: [],
                 Delete: [],
             },
-            "Task": {
+            "DXMission": {
                 Read: [],
                 Create: [],
                 Update: [],
