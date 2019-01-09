@@ -5117,6 +5117,8 @@
   "Definition of Answered Phone Call(Choose from feedback status/ multi selection)": "定义何谓成功接听（选择回访结果/复选）",
   "Decompose after N days(Start to deal with other departments)": "进入回收桶 X 天后自动分解（开始与其他部门交易）",
   "Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday": "每日 4AM 白名单电话自动出口/交易上限数量",
+  "DecomposeAfterNDays": "进入回收桶 X 天后自动分解（开始与其他部门交易）",
+  "AutoExportListOrMaxNumOfTxnEveryday": "每日 4AM 白名单电话自动出口/交易上限数量",
   "FINANCIAL_REPORT": "财务报表（存、取、平台费）",
   "Search Date (Start)": "查询日期（开始）",
   "Search Date (End)": "查询日期（结束）",
