@@ -1571,10 +1571,12 @@ define(['js/app'], function (myApp) {
                     return item._id === selectedMerchantGroupId;
                 }
                 if (selectedMerchantGroupName) { // PMS
-                    if (item && item.merchants.length > 0) {
-                        return item.merchants.filter(data => {
-                            return data.name.toString() === selectedMerchantGroupName.toString();
-                        });
+                    if (vm.SelectedMerchantGroupNode.name && item.name && vm.SelectedMerchantGroupNode.name === item.name) {
+                        if (item && item.merchants.length > 0) {
+                            return item.merchants.filter(data => {
+                                return data.name.toString() === selectedMerchantGroupName.toString();
+                            });
+                        }
                     }
                 }
             });
