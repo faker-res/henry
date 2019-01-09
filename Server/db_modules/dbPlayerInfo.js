@@ -11692,7 +11692,7 @@ let dbPlayerInfo = {
                                             console.log('newPlayerData.validCredit===', newPlayerData.validCredit);
                                             console.log('parseInt(newPlayerData.validCredit)===', parseInt(newPlayerData.validCredit));
                                             //check if player's credit is correct after update
-                                            if (parseInt(amountAfterUpdate) != parseInt(newPlayerData.validCredit)) {
+                                            if (Math.floor(amountAfterUpdate) != Math.floor(newPlayerData.validCredit)) {
                                                 console.log("PlayerBonus: Update player credit failed", amountAfterUpdate, newPlayerData.validCredit);
                                                 return Q.reject({
                                                     status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
