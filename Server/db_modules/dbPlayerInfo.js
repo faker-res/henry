@@ -3420,11 +3420,14 @@ let dbPlayerInfo = {
 
                 // If user modified their own, no proposal needed
                 if (!skipProposal) {
-                    dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {
-                        creator: {type: "player", name: playerObj.name, id: playerObj._id},
-                        data: updateData,
-                        inputDevice: inputDeviceData
-                    }, smsLogData);
+                    dbProposal.rejectPendingProposalIfAvailable(platformObjId, playerObj.name, constProposalType.UPDATE_PLAYER_BANK_INFO).then(
+                        () => {
+                            dbProposal.createProposalWithTypeNameWithProcessInfo(platformObjId, constProposalType.UPDATE_PLAYER_BANK_INFO, {
+                                creator: {type: "player", name: playerObj.name, id: playerObj._id},
+                                data: updateData,
+                                inputDevice: inputDeviceData
+                            }, smsLogData);
+                        }).catch(errorUtils.reportError);
                 }
 
                 return updatedData;
