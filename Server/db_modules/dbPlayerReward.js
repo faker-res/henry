@@ -7451,6 +7451,7 @@ let dbPlayerReward = {
                             proposalData.data.intervalMaxRewardAmount = selectedRewardParam.maxApply;
                             if (baccaratConsumptionRecord && Object.keys(baccaratConsumptionRecord).length > 0) {
                                 proposalData.data.betTime = baccaratConsumptionRecord.createTime;
+                                proposalData.data.betType = baccaratConsumptionRecord.betType;
                                 proposalData.data.betAmount = baccaratConsumptionRecord.validAmount;
                                 proposalData.data.winAmount = baccaratConsumptionRecord.bonusAmount;
                                 proposalData.data.winResult = [baccaratConsumptionRecord.hostResult, baccaratConsumptionRecord.playerResult];
@@ -8508,9 +8509,16 @@ let dbPlayerReward = {
 
             let betType;
             let betAmount = 0;
+            let allBetType = "";
 
             for (let i = 0; i < bConsumption.betDetails.length; i++) {
                 let detail = bConsumption.betDetails[i];
+
+                if (i > 0) {
+                    allBetType += '、';
+                }
+                allBetType += detail.separatedBetType;
+
                 if (!detail) {
                     continue;
                 }
@@ -8549,6 +8557,7 @@ let dbPlayerReward = {
             else {
                 applicableBConsumption.push(String(bConsumption._id));
             }
+            bConsumption.betType = allBetType;
 
             outputList.push(applyDetail);
         }
