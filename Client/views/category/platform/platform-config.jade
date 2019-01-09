@@ -2068,6 +2068,48 @@
                     .pull-right
                         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Config', 'financialSettlementConfig')", ng-click = 'vm.showFinancialPointsChange()') {{"add/deduct financial points" | translate}}
 
+                    br
+                    br
+                    table.common-table.playerLvlTable.margin-top-10
+                        thead
+                            tr
+                                th {{'Currently available financial (settlement) system' | translate}}
+                                th {{'DEPOSIT_TOPUP' | translate}}
+                                th {{'DEPOSIT_BONUS' | translate}}
+                                th {{'DEFINITION' | translate}}
+                                th {{'Currently points' | translate}}
+                                th {{'The warning value of Currently points is too low (points check, eMAIL reminder, no fill, close)' | translate}}
+
+                        tbody
+                            tr
+                                td
+                                td
+                                    input(type="radio" name="Topup")
+                                td
+                                    input(type="radio" name="Bonus")
+                                td
+                                    | 不通过其他第三方财务系统,
+                                    br
+                                    |（银行卡、个人支付宝、个人微信、提款将可自行在本系统操作）
+                                td(ng-if)
+                                    | (预设）与本公司创立合作至今的财务公司，
+                                    br
+                                    | 提供银行卡、N 种第三方、支付宝、微信等市面上所有充值。
+                                td
+
+                                td
+
+
+                    div.margin-top-10
+                        button.btn.btn-primary.common-button
+                            text {{'email recipient settings' | translate}}
+                        button.btn.btn-primary.common-button(ng-if="!vm.FinancialSettlementSystemTableEdit ", ng-click='vm.FinancialSettlementSystemTableEdit=!vm.FinancialSettlementSystemTableEdit')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.FinancialSettlementSystemTableEdit', ng-click='vm.FinancialSettlementSystemTableEdit=!vm.FinancialSettlementSystemTableEdit;') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.FinancialSettlementSystemTableEdit', ng-click='vm.FinancialSettlementSystemTableEdit=!vm.FinancialSettlementSystemTableEdit;') {{"CONFIRM" | translate}}
+
+               
                 div(ng-if='vm.selectedConfigTab=="platformFeeEstimateSetting"')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
                         thead
