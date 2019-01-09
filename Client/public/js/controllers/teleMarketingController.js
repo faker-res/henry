@@ -6298,6 +6298,7 @@ define(['js/app'], function (myApp) {
             } else {
                 vm.uploadPhoneFileXLS('', true, null, true)
             }
+            vm.checkFilterIsDisable = true;
         };
 
         vm.filterRecycleBinPhoneList = (newSearch) => {
@@ -8355,6 +8356,7 @@ define(['js/app'], function (myApp) {
                 $(".dataTables_scrollHead thead .decomposedNewPhoneSelected").prop("checked",isChecked);
             }
             console.log(vm.multiDecomposedNewPhoneSelected);
+            $scope.$evalAsync();
         };
 
         vm.setPanel = function (isSet) {

@@ -1334,7 +1334,7 @@ var dbClientQnA = {
                 }
                 clientQnAData = clientQnA;
 
-                return rejectPendingProposalIfAvailable(platformObjId, clientQnAData.QnAData.name, constProposalType.UPDATE_PLAYER_PHONE);
+                return dbProposal.rejectPendingProposalIfAvailable(platformObjId, clientQnAData.QnAData.name, constProposalType.UPDATE_PLAYER_PHONE, "; QnA系统取消提案");
             }
         ).then(
             () => {
@@ -1778,7 +1778,7 @@ var dbClientQnA = {
                     return Promise.reject({message: "The same bank account has been registered, please change a new bank card or contact our cs, thank you!"});
                 }
 
-                return rejectPendingProposalIfAvailable(platformObjId, clientQnA.QnAData.name, constProposalType.UPDATE_PLAYER_BANK_INFO);
+                return dbProposal.rejectPendingProposalIfAvailable(platformObjId, clientQnA.QnAData.name, constProposalType.UPDATE_PLAYER_BANK_INFO, "; QnA系统取消提案");
             }
         ).then(
             () => {
@@ -2529,7 +2529,7 @@ var dbClientQnA = {
                 player = data[0];
                 platform = data[1];
 
-                return rejectPendingProposalIfAvailable(platformObjId, clientQnA.QnAData.name, constProposalType.UPDATE_PLAYER_BANK_INFO);
+                return dbProposal.rejectPendingProposalIfAvailable(platformObjId, clientQnA.QnAData.name, constProposalType.UPDATE_PLAYER_BANK_INFO, "; QnA系统取消提案");
             }
         ).then(
             ()=> {
@@ -2725,68 +2725,6 @@ function isExceedSameBankAccount(bankAccount, platformData, playerObjId) {
             return Boolean(bankAccountCount && bankAccountCount >= platformData.sameBankAccountCount);
         }
     )
-}
-
-function rejectPendingProposalIfAvailable (platformObjId, playerName, proposalType) {
-    let proposalTypeObjId, proposalData;
-    return dbconfig.collection_proposalType.findOne({name: proposalType, platformId: platformObjId}, {_id:1}).lean().then(
-        proposalTypeData => {
-            if (proposalTypeData && proposalTypeData._id) {
-                proposalTypeObjId = proposalTypeData._id;
-            }
-            else {
-                return Promise.reject({message: "Proposal type not found."});
-            }
-
-            let query = {
-                status: {
-                    $in: [
-                        constProposalStatus.PENDING,
-                        constProposalStatus.CSPENDING
-                    ]
-                },
-                "data.playerName": playerName,
-                type: proposalTypeObjId,
-            };
-
-            return dbconfig.collection_proposal.findOne(query)
-            .populate({path: "process", model: dbconfig.collection_proposalProcess})
-            .populate({path: "type", model: dbconfig.collection_proposalType}).lean();
-        }
-    ).then(
-        proposal => {
-            if (!proposal) {
-                return Promise.resolve();
-            }
-            proposalData = proposal;
-
-            return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true);
-        }
-    ).then(
-        () => {
-            let remark = (proposalData.data && proposalData.data.remark || "") + "; QnA系统取消提案";
-
-            let updateData = {
-                "data.lastSettleTime": Date.now(),
-                settleTime: Date.now(),
-                noSteps: true,
-                process: null,
-                status: constProposalStatus.CANCEL,
-                "data.cancelBy": "QnA系统",
-                "data.remark": remark
-            };
-
-            return dbconfig.collection_proposal.findOneAndUpdate(
-                {_id: proposalData._id, createTime: proposalData.createTime},
-                updateData,
-                {new: true}
-            );
-        }
-    ).catch(
-        err => {
-            console.log("rejectPendingProposalIfAvailable error", err);
-        }
-    );
 }
 
 var proto = dbClientQnAFunc.prototype;

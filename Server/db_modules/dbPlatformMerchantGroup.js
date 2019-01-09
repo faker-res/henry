@@ -504,7 +504,8 @@ var dbPlatformMerchantGroup = {
                         },
                         {
                             customizeRate: customizeRate
-                        }
+                        },
+                        {new: true}
                     );
                 } else {
                     return Promise.reject({name: "DataError", message: "Cannot find platform"});
