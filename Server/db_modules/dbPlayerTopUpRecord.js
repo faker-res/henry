@@ -3087,22 +3087,19 @@ var dbPlayerTopUpRecord = {
                             updateData.status = constProposalStatus.APPROVED;
                         }
 
-                        if (pmsData.result.line && pmsData.result.line == 2) {
+                        if (pmsData.result.line && pmsData.result.line) {
                             updateData.data.line = pmsData.result.line;
-                            if (updateData && updateData.data && updateData.data.remark) {
-                                updateData.data.remark += ", 线路二：不匹配昵称、支付宝帐号";
-                            } else {
-                                updateData.data.remark = "线路二：不匹配昵称、支付宝帐号";
+                            let remarkMsg = {
+                                '2':[", 线路二：不匹配昵称、支付宝帐号", "线路二：不匹配昵称、支付宝帐号"],
+                                '3':[", 网赚", "网赚"]
                             }
-                        }else if (pmsData.result.line && pmsData.result.line == 3) {
-                            updateData.data.line = pmsData.result.line;
+                            let lineNo = pmsData.result.line;
                             if (updateData && updateData.data && updateData.data.remark) {
-                                updateData.data.remark += ", 网赚";
+                                updateData.data.remark += (remarkMsg[lineNo] && remarkMsg[lineNo][0]) ? remarkMsg[lineNo][0] : '';
                             } else {
-                                updateData.data.remark = "网赚";
+                                updateData.data.remark = (remarkMsg[lineNo] && remarkMsg[lineNo][1] && lineNo!= "1") ? remarkMsg[lineNo][1] : '';
                             }
                         }
-
                         let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
 
                         updateAliPayTopUpProposalDailyLimit(proposalQuery, request.result.alipayAccount, isFPMS, player.platform.platformId).catch(errorUtils.reportError);
