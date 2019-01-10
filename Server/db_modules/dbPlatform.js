@@ -6,6 +6,7 @@ module.exports = new dbPlatformFunc();
 
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
+const rp = require('request-promise');
 
 var env = require('../config/env').config();
 var dbconfig = require('./../modules/dbproperties');
@@ -3193,14 +3194,10 @@ var dbPlatform = {
 
     getLiveStream: function (playerObjId) {
         let url = 'https://www.jblshow.com/livestream/liveurl';
-        var deferred = Q.defer();
-
-        request.get(url, {strictSSL: false}, (err, res, body) => {
-            if (err) {
-                deferred.reject(`Get JBL livestream url failed  ${err}`);
-            } else {
-                try{
-                    let streamInfo = JSON.parse(res.body);
+        let streamInfoProm = rp(url).then(
+            res => {
+                try {
+                    let streamInfo = JSON.parse(res);
                     let streamResult = {};
                     if (streamInfo.content) {
                         streamResult = streamInfo.content;
@@ -3208,15 +3205,13 @@ var dbPlatform = {
                     if (streamInfo.code) {
                         streamResult.code = streamInfo.code;
                     }
-                }
-                catch (error) {
-                    console.log(error);
+
+                    return streamResult;
+                } catch (error) {
+                    console.log('getLiveStream error', error);
                 }
             }
-        });
-
-        let streamInfoProm = deferred.promise;
-        // return deferred.promise;
+        );
 
         let urlTokenProm = playerObjId ? dbPlayerInfo.loginJblShow(playerObjId) : Promise.resolve();
 
@@ -5765,6 +5760,10 @@ var dbPlatform = {
         return deferred.promise;
 
     },
+
+    getFinancialSettlementConfigByPlatform: function(platformId) {
+        return dbconfig.collection_financialSettlementConfig.find({platform: platformId}).lean();
+    }
 };
 
 function getPlatformStringForCallback(platformStringArray, playerId, lineId) {

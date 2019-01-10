@@ -892,6 +892,12 @@ function socketActionPlatform(socketIO, socket) {
             let isValidData = Boolean(data && data.platform && data.updateData);
             socketUtil.emitter(self.socket, dbPlatform.saveBlackWhiteListingConfig, [data.platform, data.updateData], actionName, isValidData);
         },
+
+        getFinancialSettlementConfigByPlatform: function getFinancialSettlementConfigByPlatform(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPlatform.getFinancialSettlementConfigByPlatform, [data.platform], actionName, isValidData);
+        }
     };
     socketActionPlatform.actions = this.actions;
 }

@@ -43,17 +43,16 @@ var dbPlayerTopUpDaySummary = {
         delete upsertData.playerId;
         delete upsertData.platformId;
         delete upsertData.date;
-        delete upsertData.topUpType;
+
         return dbutility.upsertForShard(
-            dbconfig.collection_playerTopUpDaySummaryByTopUpType,
+            dbconfig.collection_playerReportDataDaySummary,
             {
                 playerId: data.playerId,
                 platformId: data.platformId,
                 date: data.date,
-                topUpType: data.topUpType
             },
             upsertData,
-            constShardKeys.collection_playerTopUpDaySummaryByTopUpType
+            constShardKeys.collection_playerReportDataDaySummary
         );
     },
 
@@ -123,7 +122,11 @@ var dbPlayerTopUpDaySummary = {
         ).then(
             function (data) {
                 //update playerTopUpDaySummayByTopUpType
-                return dbPlayerTopUpRecord.getPlayersTotalTopUpByTopUpTypeForTimeFrame(startTime, endTime, platformId, playerObjIds);
+                let twoDaysAgoStartTime = new Date(startTime);
+                let twoDaysAgoEndTime = new Date(endTime);
+                twoDaysAgoStartTime.setDate(twoDaysAgoStartTime.getDate() - 1);
+                twoDaysAgoEndTime.setDate(twoDaysAgoEndTime.getDate() - 1);
+                return dbPlayerTopUpRecord.getPlayerReportDataForTimeFrame(twoDaysAgoStartTime, twoDaysAgoEndTime, platformId, playerObjIds);
             },
             function (error) {
                 deferred.reject({name: "DBError", message: "Update player top up day summary failed!", error: error});
@@ -133,15 +136,8 @@ var dbPlayerTopUpDaySummary = {
                 if (data) {
                     var proms = data.map(
                         sum => {
-                            var summary = {
-                                playerId: sum._id.playerId,
-                                platformId: sum._id.platformId,
-                                date: startTime,
-                                amount: sum.amount,
-                                times: sum.times,
-                                topUpType: sum._id.topUpType
-                            };
-                            return dbPlayerTopUpDaySummary.upsertByTopUpType(summary);
+                            sum.date = startTime;
+                            return dbPlayerTopUpDaySummary.upsertByTopUpType(sum);
                         }
                     );
                     return Q.all(proms);

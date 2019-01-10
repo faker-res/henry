@@ -2569,9 +2569,10 @@ let dbPlayerReward = {
         });
     },
     getPromoCode: (playerId, platformId, status, emptyBonusList) => {
+        console.log('getPromoCode', playerId);
         let platformData = null;
-        var playerData = null;
-        var promoListData = null;
+        let playerData = null;
+        let promoListData = null;
 
         return expirePromoCode()
             .then(() => dbConfig.collection_platform.findOne({platformId: platformId}).lean())
@@ -7451,6 +7452,7 @@ let dbPlayerReward = {
                             proposalData.data.intervalMaxRewardAmount = selectedRewardParam.maxApply;
                             if (baccaratConsumptionRecord && Object.keys(baccaratConsumptionRecord).length > 0) {
                                 proposalData.data.betTime = baccaratConsumptionRecord.createTime;
+                                proposalData.data.betType = baccaratConsumptionRecord.betType;
                                 proposalData.data.betAmount = baccaratConsumptionRecord.validAmount;
                                 proposalData.data.winAmount = baccaratConsumptionRecord.bonusAmount;
                                 proposalData.data.winResult = [baccaratConsumptionRecord.hostResult, baccaratConsumptionRecord.playerResult];
@@ -7791,7 +7793,7 @@ let dbPlayerReward = {
             if (applyAmount) {
                 if (eventData.condition.isDynamicRewardAmount) {
                     if (selectedRewardParam[selectedIndex] && selectedRewardParam[selectedIndex].hasOwnProperty('rewardPercentage')) {
-                        rewardAmount = applyAmount * selectedRewardParam[selectedIndex].rewardPercentage;
+                        rewardAmount = Number(applyAmount) * Number(selectedRewardParam[selectedIndex].rewardPercentage);
 
                         if (selectedRewardParam[selectedIndex] && selectedRewardParam[selectedIndex].maxRewardAmountInSingleReward && selectedRewardParam[selectedIndex].maxRewardAmountInSingleReward > 0) {
                             rewardAmount = Math.min(rewardAmount, Number(selectedRewardParam[selectedIndex].maxRewardAmountInSingleReward));
@@ -7800,11 +7802,11 @@ let dbPlayerReward = {
                 }
                 else {
                     if (selectedRewardParam[selectedIndex] && selectedRewardParam[selectedIndex].hasOwnProperty('rewardAmount')) {
-                        rewardAmount = selectedRewardParam[selectedIndex].rewardAmount;
+                        rewardAmount = Number(selectedRewardParam[selectedIndex].rewardAmount);
                     }
                 }
                 selectedRewardParam[selectedIndex].spendingTimes = selectedRewardParam[selectedIndex].spendingTimes || 1;
-                spendingAmount = rewardAmount * selectedRewardParam[selectedIndex].spendingTimes;
+                spendingAmount = Number(rewardAmount) * Number(selectedRewardParam[selectedIndex].spendingTimes);
             }
 
             return {
@@ -8508,9 +8510,16 @@ let dbPlayerReward = {
 
             let betType;
             let betAmount = 0;
+            let allBetType = "";
 
             for (let i = 0; i < bConsumption.betDetails.length; i++) {
                 let detail = bConsumption.betDetails[i];
+
+                if (i > 0) {
+                    allBetType += '、';
+                }
+                allBetType += detail.separatedBetType;
+
                 if (!detail) {
                     continue;
                 }
@@ -8549,6 +8558,7 @@ let dbPlayerReward = {
             else {
                 applicableBConsumption.push(String(bConsumption._id));
             }
+            bConsumption.betType = allBetType;
 
             outputList.push(applyDetail);
         }

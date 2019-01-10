@@ -475,6 +475,12 @@ var PaymentServiceImplement = function () {
         WebSocketUtil.performAction(conn, wsFunc, data, dbOtherPayment.applyFKPBonus, [data.userAgent, conn.playerId, data, lastLoginIp], isValidData);
     };
 
+    this.getPlayerConsumptionSum.expectsData = '';
+    this.getPlayerConsumptionSum.onRequest = function (wsFunc, conn, data) {
+        var isValidData = Boolean(data && data.platformId && data.name);
+        WebSocketUtil.performAction(conn, wsFunc, data, dbPlayerInfo.getPlayerConsumptionSum, [data.platformId, data.name], isValidData);
+    };
+
 };
 var proto = PaymentServiceImplement.prototype = Object.create(PaymentService.prototype);
 proto.constructor = PaymentServiceImplement;

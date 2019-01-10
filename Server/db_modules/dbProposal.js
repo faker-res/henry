@@ -4993,6 +4993,13 @@ var proposal = {
         let consumptionResult = [];
         let playerResult = [];
         let playerInfoResult = [];
+        let resultSum = {
+            totalCount: 0,
+            totalRewardAmount: 0,
+            totalBonusAmount: 0,
+            totalDepositAmount: 0,
+            winLostAmount: 0,
+        };
 
         var proposalQuery = proposalTypeName ? {
             $and: [{
@@ -5262,6 +5269,7 @@ var proposal = {
                                             let index = bonusResult.findIndex( a => a._id.toString() == player._id.toString());
                                             if (index != -1){
                                                 player.totalBonusAmount = bonusResult[index].totalBonusAmount;
+                                                resultSum.totalBonusAmount += player.totalBonusAmount;
                                             }
                                             else{
                                                 player.totalBonusAmount = 0;
@@ -5272,6 +5280,7 @@ var proposal = {
                                             let index = depositResult.findIndex( a => a._id.toString() == player._id.toString());
                                             if (index != -1){
                                                 player.totalDepositAmount = depositResult[index].totalDepositAmount;
+                                                resultSum.totalDepositAmount += player.totalDepositAmount;
                                             }
                                             else{
                                                 player.totalDepositAmount = 0;
@@ -5283,6 +5292,7 @@ var proposal = {
                                             if (index != -1){
                                                 player.winLostAmount = consumptionResult[index].winLostAmount;
                                                 player.providerId = consumptionResult[index].providerId;
+                                                resultSum.winLostAmount += player.winLostAmount;
                                             }
                                             else{
                                                 player.winLostAmount = 0;
@@ -5297,11 +5307,18 @@ var proposal = {
                                                 player.registrationTime = playerInfoResult[index].registrationTime;
                                             }
                                         }
+
+                                        if (player && player.totalCount) {
+                                            resultSum.totalCount += player.totalCount;
+                                        }
+                                        if (player && player.totalRewardAmount) {
+                                            resultSum.totalRewardAmount += player.totalRewardAmount;
+                                        }
                                     })
 
                                 }
 
-                                return {data: playerResult, size: totalPlayerCount};
+                                return {data: playerResult, size: totalPlayerCount, total: resultSum};
                             }
                             else{
                                 Promise.reject({
@@ -7532,6 +7549,70 @@ var proposal = {
         }
 
         return dbconfig.collection_proposal.findOneAndUpdate({proposalId: proposalId},{'data.followUpContent': followUpContent, 'data.followUpCompletedTime': new Date()});
+    },
+
+    rejectPendingProposalIfAvailable: (platformObjId, playerName, proposalType, remark) => {
+        let proposalTypeObjId, proposalData;
+        return dbconfig.collection_proposalType.findOne({name: proposalType, platformId: platformObjId}, {_id:1}).lean().then(
+            proposalTypeData => {
+                if (proposalTypeData && proposalTypeData._id) {
+                    proposalTypeObjId = proposalTypeData._id;
+                }
+                else {
+                    return Promise.reject({message: "Proposal type not found."});
+                }
+
+                let query = {
+                    status: {
+                        $in: [
+                            constProposalStatus.PENDING,
+                            constProposalStatus.CSPENDING
+                        ]
+                    },
+                    "data.playerName": playerName,
+                    type: proposalTypeObjId,
+                };
+
+                return dbconfig.collection_proposal.findOne(query)
+                    .populate({path: "process", model: dbconfig.collection_proposalProcess})
+                    .populate({path: "type", model: dbconfig.collection_proposalType}).lean();
+            }
+        ).then(
+            proposal => {
+                if (!proposal) {
+                    return Promise.resolve();
+                }
+                proposalData = proposal;
+
+                return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true);
+            }
+        ).then(
+            () => {
+
+                let updateData = {
+                    "data.lastSettleTime": Date.now(),
+                    settleTime: Date.now(),
+                    noSteps: true,
+                    process: null,
+                    status: constProposalStatus.CANCEL,
+                    "data.cancelBy": "QnA系统"
+                };
+
+                if (remark) {
+                    updateData["data.remark"] =  (proposalData.data && proposalData.data.remark || "") + remark;
+                }
+
+                return dbconfig.collection_proposal.findOneAndUpdate(
+                    {_id: proposalData._id, createTime: proposalData.createTime},
+                    updateData,
+                    {new: true}
+                );
+            }
+        ).catch(
+            err => {
+                console.log("rejectPendingProposalIfAvailable error", err);
+            }
+        );
     }
 
 };

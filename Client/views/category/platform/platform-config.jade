@@ -1913,14 +1913,14 @@
                                 td {{'Definition of Answered Phone Call(Choose from feedback status/ multi selection)' | translate}}
                                 td
                                     select.form-control.spicker#configSelectFeedBackTopic(ng-model="vm.bulkCallBasic.definitionOfAnsweredPhone" ng-options="a.key as a.value for (i,a) in vm.playerAllFeedBackResult" ng-disabled="!vm.configTableEdit" multiple)
-                            tr
+                            tr(ng-if="checkViewPermission('Platform', 'Config', 'DecomposeAfterNDays')")
                                 td {{'Decompose after N days(Start to deal with other departments)' | translate}}
                                 td
-                                    input(ng-model='vm.bulkCallBasic.decomposeAfterNDays' ng-disabled='!vm.configTableEdit' type="number" step="1" min="0")
-                            tr
+                                    input(ng-model='vm.bulkCallBasic.decomposeAfterNDays' ng-disabled='!vm.configTableEdit && checkViewPermission("Platform", "Config", "DecomposeAfterNDays")' type="number" step="1" min="0")
+                            tr(ng-if="checkViewPermission('Platform', 'Config', 'AutoExportListOrMaxNumOfTxnEveryday')")
                                 td {{'Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday' | translate}}
                                 td
-                                    input(ng-model='vm.bulkCallBasic.phoneWhiteListExportMaxNumber' ng-disabled='!vm.configTableEdit' type="number" step="1" min="0")
+                                    input(ng-model='vm.bulkCallBasic.phoneWhiteListExportMaxNumber' ng-disabled='!vm.configTableEdit && checkViewPermission("Platform", "Config", "AutoExportListOrMaxNumOfTxnEveryday")' type="number" step="1" min="0")
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'BulkCall')", ng-click='vm.configTableEdit=!vm.configTableEdit; vm.debounceRefreshSPicker()')
                         text {{'EDIT' | translate}}
                         img.img-edit
@@ -2067,6 +2067,50 @@
                     br
                     .pull-right
                         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Config', 'financialSettlementConfig')", ng-click = 'vm.showFinancialPointsChange()') {{"add/deduct financial points" | translate}}
+
+                    br
+                    br
+                    table.simple-table(style="margin-top:20px; display:block; white-space:pre-wrap; word-wrap:break-word;text-align:center")
+                        thead
+                            tr
+                                th {{'Currently available financial (settlement) system' | translate}}
+                                th {{'DEPOSIT_TOPUP_CHOOSE_ONE' | translate}}
+                                th {{'DEPOSIT_BONUS_CHOOSE_ONE' | translate}}
+                                th {{'DEFINITION' | translate}}
+                                th {{'Currently points' | translate}}
+                                th {{'The warning value of Currently points is too low (points check, eMAIL reminder, no fill, close)' | translate}}
+
+                        tbody
+                            tr(ng-if='vm.financialSettlementSystemConfig.length > 0' ng-repeat='(i, v) in vm.financialSettlementSystemConfig')
+                                td
+                                    input(type='text' ng-model='v.systemName' ng-disabled='!vm.financialSettlementSystemTableEdit' ng-if='vm.financialSettlementSystemTableEdit')
+                                    span(ng-if='!vm.financialSettlementSystemTableEdit') {{v.systemName}}
+                                td
+                                    input(type="radio" name="rdBtnTopup" ng-model='v.enableTopup' ng-value='true' ng-checked='v.enableTopup' ng-click='vm.enableFinancialSettlementRdBtnConfig(i, vm.financialSettlementSystemConfig, "topup")' ng-disabled='!vm.financialSettlementSystemTableEdit')
+                                td
+                                    input(type="radio" name="rdBtnBonus" ng-model='v.enableBonus' ng-value='true' ng-checked='v.enableBonus' ng-click='vm.enableFinancialSettlementRdBtnConfig(i, vm.financialSettlementSystemConfig, "bonus")' ng-disabled='!vm.financialSettlementSystemTableEdit')
+                                td(style='text-align:left; width:300px')
+                                    textarea(ng-model='v.description', ng-if='vm.financialSettlementSystemTableEdit' style='width:100%')
+                                    span(ng-if='!vm.financialSettlementSystemTableEdit') {{v.description}}
+                                td
+                                    input(type='number' ng-model='v.currentPoint' ng-disabled='!vm.financialSettlementSystemTableEdit' ng-if='vm.financialSettlementSystemTableEdit')
+                                    span(ng-if='!vm.financialSettlementSystemTableEdit') {{v.currentPoint}}
+                                    span(ng-if='!vm.financialSettlementSystemTableEdit && (v.currentPoint=="undefined" || v.currentPoint==null)') {{'Does not support' | translate}}
+                                td(style='width:150px')
+                                    input(type='number' ng-model='v.minPointNotification' ng-disabled='!vm.financialSettlementSystemTableEdit' ng-if='vm.financialSettlementSystemTableEdit')
+                                    span(ng-if='!vm.financialSettlementSystemTableEdit') {{v.minPointNotification}}
+                                    span(ng-if='!vm.financialSettlementSystemTableEdit && ((v.minPointNotification=="undefined" && v.currentPoint) || (v.minPointNotification==null && v.currentPoint))') {{'CLOSE' | translate}}
+                                    span(ng-if='!vm.financialSettlementSystemTableEdit && (v.currentPoint=="undefined" || v.currentPoint==null)') {{'Does not support' | translate}}
+
+                    div.margin-top-10
+                        button.btn.btn-primary.common-button
+                            text {{'email recipient settings' | translate}}
+                        button.btn.btn-primary.common-button(ng-if="!vm.financialSettlementSystemTableEdit ", ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.financialSettlementSystemTableEdit', ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit;vm.resetFinancialSettlementSystemConfig()') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.financialSettlementSystemTableEdit', ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit;') {{"CONFIRM" | translate}}
+
 
                 div(ng-if='vm.selectedConfigTab=="platformFeeEstimateSetting"')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')

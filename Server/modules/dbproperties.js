@@ -92,6 +92,7 @@ let depositGroupSchema = require('./../schema/depositGroup');
 let qualityInspectionSchema = require('./../schema/qualityInspection');
 let live800RecordDaySummarySchema = require('./../schema/live800RecordDaySummary');
 let wcDeviceSchema = require('./../schema/admindb/wcDevice');
+let financialSettlementConfigSchema = require('./../schema/admindb/financialSettlementConfig');
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
@@ -240,6 +241,7 @@ let promoCodeTemplateModel = db_admin.model('promoCodeTemplate', promoCodeTempla
 
 let depositGroupModel = db_admin.model('depositGroup', depositGroupSchema, 'depositGroup');
 let wcDeviceModel = db_admin.model('wcDevice', wcDeviceSchema, 'wcDevice');
+let financialSettlementConfigModel = db_admin.model('financialSettlementConfig', financialSettlementConfigSchema, 'financialSettlementConfig');
 
 let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
 let platformAutoFeedbackModel = db_admin.model('platformAutoFeedback', platformAutoFeedbackSchema, 'platformAutoFeedback');
@@ -467,8 +469,8 @@ let callBackToUserLogModel = dbLogs2.model('callBackToUserLog', callBackToUserLo
 let auctionSystemSchema = require('./../schema/auctionSystem');
 let auctionSystemModel = dbLogs2.model('auctionSystem', auctionSystemSchema, 'auctionSystem');
 
-let playerTopUpDaySummaryByTopUpTypeSchema = require('./../schema/playerTopUpDaySummaryByTopUpType');
-let playerTopUpDaySummaryByTopUpTypeModel = dbLogs2.model('playerTopUpDaySummaryByTopUpType', playerTopUpDaySummaryByTopUpTypeSchema, 'playerTopUpDaySummaryByTopUpType');
+let playerReportDataDaySummarySchema = require('../schema/playerReportDataDaySummary');
+let playerReportDataDaySummaryModel = dbLogs2.model('playerReportDataDaySummary', playerReportDataDaySummarySchema, 'playerReportDataDaySummary');
 
 var partnerCommissionRecordSchema = require('./../schema/partnerCommissionRecord');
 var partnerCommissionRecordModel = dbLogs.model('partnerCommissionRecord', partnerCommissionRecordSchema, 'partnerCommissionRecord');
@@ -649,9 +651,10 @@ var dbProperties = {
     collection_promoCodeTemplate: promoCodeTemplateModel,
     collection_depositGroup: depositGroupModel,
     collection_wcDevice: wcDeviceModel,
+    collection_financialSettlementConfig: financialSettlementConfigModel,
 
     collection_auctionSystem: auctionSystemModel,
-    collection_playerTopUpDaySummaryByTopUpType: playerTopUpDaySummaryByTopUpTypeModel,
+    collection_playerReportDataDaySummary: playerReportDataDaySummaryModel,
 
     //logs
     collection_playerMail: playerMailModel,
