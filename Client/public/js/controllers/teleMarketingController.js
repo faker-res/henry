@@ -7753,7 +7753,7 @@ define(['js/app'], function (myApp) {
                             if (vm.calleeCallOutStatus[callee._id] != 1 && callee.status == 1) {
                                 let tsDPhoneId = callee.tsDistributedPhone && callee.tsDistributedPhone._id;
                                 let url = window.location.origin + "/teleMarketing/tsPhone/" + tsDPhoneId;
-                                utilService.openInNewWindow(url);
+                                utilService.openInNewTab(url);
                             }
                             vm.calleeCallOutStatus[callee._id] = callee.status;
                         });
