@@ -91,7 +91,7 @@
                                             td(colspan=2)
                                                 .text-center
                                                     button.btn.btn-danger.margin-right-5(ng-click='vm.tsPhoneAddFeedback.content="";vm.tsPhoneAddFeedback.result="";vm.tsPhoneAddFeedback.topic="";') {{'Reset' | translate}}
-                                                    button.btn.btn-success(data-dismiss='modal' ng-disabled="!vm.tsPhoneAddFeedback.result || !vm.tsPhoneAddFeedback.topic || !vm.tsPhoneAddFeedback.content", ng-click='vm.addTsPhoneFeedback(vm.tsPhoneAddFeedback)') {{'CONFIRM' | translate}}
+                                                    button.btn.btn-success(data-dismiss='modal' ng-disabled="!vm.tsPhoneAddFeedback.result || !vm.tsPhoneAddFeedback.topic", ng-click='vm.addTsPhoneFeedback(vm.tsPhoneAddFeedback)') {{'CONFIRM' | translate}}
 
 #modalTsPhoneFeedbackHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:65%')
