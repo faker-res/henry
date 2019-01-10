@@ -1468,7 +1468,7 @@ define(['js/app'], function (myApp) {
                         vm.initAuctionSystem();
                         break;
                 }
-
+                if(vm.refreshInterval){ clearInterval(vm.refreshInterval); }
                 commonService.updatePageTile($translate, "platform", tabName);
             };
 
@@ -35912,7 +35912,7 @@ define(['js/app'], function (myApp) {
                             item.bidTimes = item.proposal.length;
                             item.lastProposal = item.proposal[0] ? item.proposal[0]:{};
                             item.timeLeft = utilService.getLeftTime(item.rewardEndTime).text;
-
+                            item.dealAt = '';
                             let beforeAuction = new Date(item.rewardStartTime).getTime() - (item.productStartTime*60*1000);
                             let afterAuction = new Date(item.rewardEndTime).getTime() + (item.productEndTime*60*1000);
 
@@ -35921,27 +35921,28 @@ define(['js/app'], function (myApp) {
                             }
                             let rewardStartTime = new Date(item.rewardStartTime).getTime();
                             let rewardEndTime =  new Date(item.rewardEndTime).getTime();
-
-                            if((currentTime < rewardStartTime) && (currentTime > rewardEndTime)){
-                                item.auctionStatus = 1;//gray-非刊登时间
-                            }else if( beforeAuction && (currentTime > beforeAuction) && (currentTime < rewardStartTime)){
-                                item.auctionStatus = 2;//white-刊登时间前
-                            }else if( afterAuction && (currentTime > rewardEndTime) && (currentTime < afterAuction)){
-                                item.auctionStatus = 2;//white-刊登时间后
-                            }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && item.lastProposal && (item.lastProposal.status != vm.constProposalStatus.APPROVED && item.lastProposal.status != vm.constProposalStatus.SUCCESS) ){
-                                item.auctionStatus = 3;//yellow-竞标中
-                            }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && item.lastProposal && (item.lastProposal.status == vm.constProposalStatus.APPROVED || item.lastProposal.status == vm.constProposalStatus.SUCCESS) ){
-                                item.auctionStatus = 4;//red-場次結束
-                            }else{
-                                item.auctionStatus = 5;//none;
-                            }
+                            item.auctionStatus = vm.getAuctionStatus(item, beforeAuction, afterAuction, currentTime, rewardStartTime, rewardEndTime)
                             return item;
                         })
                     }
                     vm.drawAuctionMonitorTable(data.data);
                 });
             }
-
+            vm.getAuctionStatus = function(item, beforeAuction, afterAuction, currentTime, rewardStartTime, rewardEndTime){
+                let auctionStatus = 5; //
+                if( beforeAuction && (currentTime > beforeAuction) && (currentTime < rewardStartTime)){
+                    auctionStatus = 2;//white-刊登时间前
+                }else if( afterAuction && (currentTime > rewardEndTime) && (currentTime < afterAuction)){
+                    auctionStatus = 2;//white-刊登时间后
+                }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && item.lastProposal && (item.lastProposal.status != vm.constProposalStatus.APPROVED && item.lastProposal.status != vm.constProposalStatus.SUCCESS) ){
+                    auctionStatus = 3;//yellow-竞标中
+                }else if( (currentTime > rewardStartTime) && (currentTime < rewardEndTime) && item.lastProposal && (item.lastProposal.status == vm.constProposalStatus.APPROVED || item.lastProposal.status == vm.constProposalStatus.SUCCESS) ){
+                    auctionStatus = 4;//red-場次結束
+                }else if((currentTime < rewardStartTime) || (currentTime > rewardEndTime)){
+                    auctionStatus = 1;//gray-非刊登时间
+                }
+                return auctionStatus
+            }
             vm.loadAuctionItem = function(id){
                 let sendData = { _id: id };
                 socketService.$socket($scope.AppSocket, 'loadAuctionItem', sendData, function (data) {
@@ -36043,9 +36044,40 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'monitoringSystem':
                         vm.listAuctionMonitor();
+                        vm.monitoringLoop();
                         break;
                 }
             };
+
+            vm.monitoringLoop = function(){
+                setTimeout(function () {
+                    let countDown = -1;
+                    clearInterval(vm.refreshInterval);
+                    vm.refreshInterval = setInterval(function () {
+                        vm.lastTopUpRefresh = utilService.$getTimeFromStdTimeFormat();
+                        var item = $('#autoRefreshProposalFlag');
+                        var isRefresh = item && item.length > 0 && item[0].checked;
+                        var mark = $('#timeLeftRefreshOperation')[0];
+                        $(mark).parent().toggleClass('hidden', countDown < 0);
+                        if (isRefresh) {
+                            if (countDown < 0) {
+                                countDown = 11
+                            }
+                            if (countDown === 0) {
+                                vm.listAuctionMonitor();
+                                countDown = 11;
+                            }
+                            countDown--;
+                            $(mark).text(countDown);
+                        } else {
+                            countDown = -1;
+                        }
+                        if (window.location.pathname != '/platform') {
+                            clearInterval(vm.refreshInterval);
+                        }
+                    }, 1000);
+                });
+            }
 
             vm.initAuctionSystemCreateProduct = function () {
                 // reset the param when create a new product
@@ -36204,7 +36236,12 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                        {title: $translate('Type'), data:"rewardData.rewardType"},
+                        {title: $translate('Type'), data:"rewardData.rewardType",
+                            render: function(data, type, row){
+                                let result = $translate(data);
+                                return result;
+                            }
+                        },
                         {title: $translate('Product Name'), data: "productName",
                             render: function(data, type, row){
                                 let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
@@ -36249,7 +36286,12 @@ define(['js/app'], function (myApp) {
                         {targets: '_all', defaultContent: ' ', bSortable: false}
                     ],
                     columns: [
-                        {title: $translate('Type'), data:"rewardData.rewardType"},
+                        {title: $translate('Type'), data:"rewardData.rewardType",
+                            render: function(data, type, row){
+                                let result = $translate(data);
+                                return result;
+                            }
+                        },
                         {title: $translate('Product Name'), data: "productName",
                             render: function(data, type, row){
                                 let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
@@ -36285,11 +36327,13 @@ define(['js/app'], function (myApp) {
                 let index = 0;
                 data = data || [];
                 vm.auctionItemBidList = data;
+                vm.AuctionTotalCount = data.length;
                 let tableOptions = {
                     data: data,
                     aoColumnDefs: [
-                        {targets: '_all', defaultContent: ' ', bSortable: false}
+                        {bSortable: false, targets: '_all'}
                     ],
+                    "ordering": false,
                     columns: [
                         {title: $translate('Type'), data:"rewardData.rewardType",
                             render: function(data, type, row){
@@ -36313,7 +36357,12 @@ define(['js/app'], function (myApp) {
                                 return result;
                             }
                         },
-                        {title: $translate('Current Bid'), data: "lastProposal.amount"},
+                        {title: $translate('Current Bid'), data: "lastProposal.data.currentBidPrice",
+                            render: function(data, type, row){
+                                let result = data? data : 0;
+                                return result;
+                            }
+                        },
                         {title: $translate('Bid Times'), data: "bidTimes",
                             render: function(data, type, row){
                                 let result = '<div ng-click="vm.showAuctionModal(\''+row._id+'\')">' + data + '</div>';
@@ -36322,7 +36371,12 @@ define(['js/app'], function (myApp) {
                         },
                         {title: $translate('Time Left'), data: "timeLeft"},
                         {title: $translate('Deal at'), data: "dealAt"},
-                        {title: $translate('Leading Bidder'), data: "lastProposal.data.playerName"}
+                        {title: $translate('Leading Bidder'), data: "lastProposal.data.playerName",
+                            render: function(data, type, row){
+                                let result = data? data : '';
+                                return result;
+                            }
+                        }
                     ],
                     "paging": false,
                     "createdRow": function(row, data, dataIndex){

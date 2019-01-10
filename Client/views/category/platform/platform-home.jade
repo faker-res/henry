@@ -428,7 +428,7 @@
                                     th {{'Offer At' | translate}}
                                 tr(ng-repeat="v in vm.selectedAuction.proposal")
                                     td {{v.data.playerName}}
-                                    td {{v.amount}}
+                                    td {{v.data.currentBidPrice}}
                                     td {{v.createTime | date : 'yyyy-MM-dd HH:mm:ss'}}
             .modal-footer
 

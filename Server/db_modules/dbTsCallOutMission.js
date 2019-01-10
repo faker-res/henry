@@ -170,6 +170,18 @@ let dbTsCallOutMission = {
         );
     },
 
+    checkTsCtiMissionMode: (platformObjId, adminObjId) => {
+        return dbconfig.collection_tsCallOutMission.findOne({
+            platform: platformObjId,
+            admin: adminObjId,
+            isUsing: true
+        }).lean().then(
+            tsCallOutMission => {
+                return {hasOnGoingMission: Boolean(tsCallOutMission)};
+            }
+        );
+    },
+
     getUpdatedAdminMissionStatusFromCti: (platformObjId, adminObjId, limit, index) => {
         let platform, admin;
 
@@ -310,7 +322,7 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
 
             let proms = [];
 
-            console.log('ctiOutput mission data', apiOutput);
+            // console.log('ctiOutput mission data', apiOutput);
             apiOutput.cust.map(calleeDetail => {
                 if (Number(calleeDetail.callCount) > 0) {
                     let status = 0;

@@ -23,37 +23,4 @@ form#formEditPlayer(name="form_edit_player", novalidate)
         .form-group.col-md-12
             label {{'REMARKS' | translate}}:
             div
-                textarea.form-control(style="overflow: auto; margin-bottom: 12px;", rows="3", ng-model="topUpGroupRemark", placeholder="{{'Topup Group' | translate}}{{'REMARKS' | translate}}")
-        //.form-group.col-md-12
-        //    label {{'TOPUP_GROUP_RECORD' | translate}}
-            //div(align="center").we`ll
-                table.paddingTbl(style='min-width:100%')
-                    thead
-                        tr
-                            th {{"OPERATOR_NAME" | translate}}
-                            th {{"Topup Group" | translate}}
-                            th {{"TIME" | translate}}
-                            th {{"OPERATOR_ACTION" | translate}}
-                            th {{"remark" | translate}}
-                    tbody
-                        tr(ng-repeat='(i, data) in playerTopUpGroupLog')
-
-                            td(style="text-align:center;border: 1px solid #0099CC")
-                                text {{data.admin.adminName}}
-                            td(style="text-align:left;border: 1px solid #0099CC")
-                                text {{data.topUpGroupNames$ | translate}}
-                            td(style= "border: 1px solid #0099CC")
-                                text {{data.createTime}}
-                            td(style= "border: 1px solid #0099CC")
-                                text {{data.topUpGroupChanges}}
-                            td(style = "background-color:white;border: 1px solid #0099CC")
-                                text {{data.remark}}
-            #topUpGroupRecordPage
-
-//.form-group.col-md-6
-    //   label.control-label {{"TELEPHONE" | translate}}
-    //   span.pull-right
-    //      label Change Phone number
-    //         input.pull-left(style='margin-right:5px' type='checkbox' ng-model='vm.changeMobile')
-    //   input.form-control(ng-if='!vm.changeMobile' type="text", placeholder="{{'MOBILE' | translate}}", ng-model="vm.editPlayer.phoneNumber", disabled)
-    //   input.form-control(ng-if='vm.changeMobile' type="text", placeholder="{{'MOBILE' | translate}}",ng-pattern="vm.phonePattern", ng-model="vm.newPhoneNumber")
+                textarea.form-control(rows="3", ng-model="topUpGroupRemark", placeholder="{{'Topup Group' | translate}}{{'REMARKS' | translate}}")

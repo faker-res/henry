@@ -92,6 +92,7 @@ let depositGroupSchema = require('./../schema/depositGroup');
 let qualityInspectionSchema = require('./../schema/qualityInspection');
 let live800RecordDaySummarySchema = require('./../schema/live800RecordDaySummary');
 let wcDeviceSchema = require('./../schema/admindb/wcDevice');
+let financialSettlementConfigSchema = require('./../schema/admindb/financialSettlementConfig');
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
@@ -240,6 +241,7 @@ let promoCodeTemplateModel = db_admin.model('promoCodeTemplate', promoCodeTempla
 
 let depositGroupModel = db_admin.model('depositGroup', depositGroupSchema, 'depositGroup');
 let wcDeviceModel = db_admin.model('wcDevice', wcDeviceSchema, 'wcDevice');
+let financialSettlementConfigModel = db_admin.model('financialSettlementConfig', financialSettlementConfigSchema, 'financialSettlementConfig');
 
 let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
 let platformAutoFeedbackModel = db_admin.model('platformAutoFeedback', platformAutoFeedbackSchema, 'platformAutoFeedback');
@@ -649,6 +651,7 @@ var dbProperties = {
     collection_promoCodeTemplate: promoCodeTemplateModel,
     collection_depositGroup: depositGroupModel,
     collection_wcDevice: wcDeviceModel,
+    collection_financialSettlementConfig: financialSettlementConfigModel,
 
     collection_auctionSystem: auctionSystemModel,
     collection_playerReportDataDaySummary: playerReportDataDaySummaryModel,

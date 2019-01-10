@@ -4640,6 +4640,9 @@
   "Recalculate": "重新计算",
   "Relevant provider group:": "相关锁大厅组：",
   "applyTargetDate": "周期判断时间",
+  "Checking...": "检查中...",
+  "Exporting...": "转出中...",
+  "Export Done.": "转出完成。",
 
   "Please insert bank account name.": "请填入银行户口姓名",
   "Please insert bank account.": "请填入银行帐号",
@@ -5032,6 +5035,7 @@
   "B: Follow Up Completed": "B区: 已跟进",
   "Service Charge Ratio": "手续费率",
   "MMM4-line2": "MMM-线路2",
+  "MMM4-line3": "网赚",
   "EditServiceChargeRatio": "编辑手续费",
   "Actual Amount": "实际到帐",
   "ActualReceivedAmount": "实际到帐金额",

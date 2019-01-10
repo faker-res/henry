@@ -7875,16 +7875,10 @@ let dbPlayerInfo = {
         ).then(
             function (rewardEvent) {
                 if (rewardEvent) {
-                    console.log('rewardEvent===', rewardEvent);
-                    console.log('rewardEvent.length===', rewardEvent.length);
                     var rewardEventArray = [];
                     for (var i = 0; i < rewardEvent.length; i++) {
                         var rewardEventItem = rewardEvent[i].toObject();
                         delete rewardEventItem.platform;
-                        console.log('rewardEventItem.name===', rewardEventItem.name);
-                        console.log('rewardEventItem.type.name===', rewardEventItem.type.name);
-                        console.log('rewardEventItem.validStartTime===', rewardEventItem.validStartTime);
-                        console.log('rewardEventItem.validEndTime===', rewardEventItem.validEndTime);
 
                         let providerGroup = null;
                         let providerGroupName = null;
@@ -11692,7 +11686,7 @@ let dbPlayerInfo = {
                                             console.log('newPlayerData.validCredit===', newPlayerData.validCredit);
                                             console.log('parseInt(newPlayerData.validCredit)===', parseInt(newPlayerData.validCredit));
                                             //check if player's credit is correct after update
-                                            if (parseInt(amountAfterUpdate) != parseInt(newPlayerData.validCredit)) {
+                                            if (Math.floor(amountAfterUpdate) != Math.floor(newPlayerData.validCredit)) {
                                                 console.log("PlayerBonus: Update player credit failed", amountAfterUpdate, newPlayerData.validCredit);
                                                 return Q.reject({
                                                     status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
@@ -19146,6 +19140,9 @@ let dbPlayerInfo = {
             filteredPhones => {
                 let promArr = [];
                 filteredPhones.forEach(phone => {
+                    if (!phone) {
+                        return;
+                    }
                     let encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
                     let phoneLocation = queryPhoneLocation(phone.phoneNumber);
                     let phoneProvince = phoneLocation && phoneLocation.province || "";
