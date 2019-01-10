@@ -4,6 +4,7 @@ const errorUtils = require('./../modules/errorUtils');
 const ObjectId = require('mongoose').Types.ObjectId;
 
 const env = require('../config/env').config();
+const extConfig = require('../config/externalPayment/paymentSystems');
 
 const pmsAPI = require("../externalAPI/pmsAPI.js");
 
@@ -404,8 +405,16 @@ const dbPlayerPayment = {
         }).lean().then(
             playerData => {
                 if (playerData) {
+                    let paymentUrl = env.paymentHTTPAPIUrl;
+
+                    // currently set to platformId 4 use on it first
+                    if (playerData && playerData.platform && playerData.platform.platformId && playerData.platform.platformId === '4' && playerData.platform.topUpSystemType
+                        && extConfig && extConfig[playerData.platform.topUpSystemType] && extConfig[playerData.platform.topUpSystemType].topUpAPIAddr) {
+                        paymentUrl = extConfig[playerData.platform.topUpSystemType].topUpAPIAddr;
+                    }
+
                     url =
-                        env.paymentHTTPAPIUrl
+                        paymentUrl
                         + "foundation/payMinAndMax.do?"
                         + "platformId=" + playerData.platform.platformId + "&"
                         + "username=" + playerData.name + "&"
@@ -594,9 +603,15 @@ const dbPlayerPayment = {
         ).then(
             proposal => {
                 if (proposal) {
-                    let pmsUrl = env.paymentHTTPAPIUrl;
+                    let paymentUrl = env.paymentHTTPAPIUrl;
 
-                    return generatePMSHTTPUrl(player, proposal, pmsUrl, topupRequest.clientType, ipAddress, topupRequest.amount);
+                    // currently set to platformId 4 use on it first
+                    if (player && player.platform && player.platform.platformId && player.platform.platformId === '4' && player.platform.topUpSystemType
+                        && extConfig && extConfig[player.platform.topUpSystemType] && extConfig[player.platform.topUpSystemType].topUpAPIAddr) {
+                        paymentUrl = extConfig[player.platform.topUpSystemType].topUpAPIAddr;
+                    }
+
+                    return generatePMSHTTPUrl(player, proposal, paymentUrl, topupRequest.clientType, ipAddress, topupRequest.amount);
                 }
             }
         )
@@ -639,6 +654,7 @@ function getBankTypeNameArr (bankCardFilterList, maxDeposit) {
 function generatePMSHTTPUrl (playerData, proposalData, domain, clientType, ipAddress, amount) {
     let delimiter = "**";
     let url = domain;
+    let paymentCallbackUrl = env.internalRESTUrl;
 
     if ([1].includes(Number(clientType))) {
         url += 'pc/';
@@ -646,11 +662,17 @@ function generatePMSHTTPUrl (playerData, proposalData, domain, clientType, ipAdd
         url += 'phone/';
     }
 
+    // currently set to platformId 4 use on it first
+    if (playerData && playerData.platform && playerData.platform.platformId && playerData.platform.platformId === '4' && playerData.platform.topUpSystemType
+        && extConfig && extConfig[playerData.platform.topUpSystemType] && extConfig[playerData.platform.topUpSystemType].topUpAPICallback) {
+        paymentCallbackUrl = extConfig[playerData.platform.topUpSystemType].topUpAPICallback;
+    }
+
     url += "?";
     url += playerData.platform.platformId + delimiter;
     url += playerData.name + delimiter;
     url += playerData.realName + delimiter;
-    url += env.internalRESTUrl + "/notifyPayment" + delimiter;
+    url += paymentCallbackUrl + "/notifyPayment" + delimiter;
     url += clientType + delimiter;
     url += ipAddress + delimiter;
     url += amount + delimiter;
