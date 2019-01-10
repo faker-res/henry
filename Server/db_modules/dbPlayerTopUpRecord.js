@@ -3088,12 +3088,12 @@ var dbPlayerTopUpRecord = {
                         }
 
                         if (pmsData.result.line && pmsData.result.line) {
-                            updateData.data.line = pmsData.result.line;
+                            let lineNo = pmsData.result.line;
+                            updateData.data.line = lineNo;
                             let remarkMsg = {
                                 '2':[", 线路二：不匹配昵称、支付宝帐号", "线路二：不匹配昵称、支付宝帐号"],
                                 '3':[", 网赚", "网赚"]
                             }
-                            let lineNo = pmsData.result.line;
                             if (updateData && updateData.data && updateData.data.remark) {
                                 updateData.data.remark += (remarkMsg[lineNo] && remarkMsg[lineNo][0]) ? remarkMsg[lineNo][0] : '';
                             } else {
