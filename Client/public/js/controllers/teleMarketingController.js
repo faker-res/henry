@@ -645,6 +645,7 @@ define(['js/app'], function (myApp) {
                     }), data.data.size, {}, newSearch
                 );
                 $scope.$evalAsync();
+                vm.recheckIfCtiRunningDebounced();
             }, function (err) {
                 $('#adminPhoneListTableSpin').hide();
                 console.log(err);
@@ -7772,6 +7773,18 @@ define(['js/app'], function (myApp) {
                 }
             );
         };
+
+        vm.recheckIfCtiRunning = () => {
+            $scope.$socketPromise('checkTsCtiMissionMode', {platformObjId:vm.selectedPlatform.id}).then(
+                data => {
+                    if (data && data.data && data.data.hasOnGoingMission) {
+                        vm.isCallOutMissionMode = true;
+                        vm.getCtiData(true);
+                    }
+                }
+            );
+        };
+        vm.recheckIfCtiRunningDebounced = $scope.debounce(vm.recheckIfCtiRunning, 8000, true);
 
         vm.stopCallOutMission = () => {
             $('#adminPhoneListTableSpin').show();

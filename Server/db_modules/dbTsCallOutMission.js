@@ -170,6 +170,18 @@ let dbTsCallOutMission = {
         );
     },
 
+    checkTsCtiMissionMode: (platformObjId, adminObjId) => {
+        return dbconfig.collection_tsCallOutMission.findOne({
+            platform: platformObjId,
+            admin: adminObjId,
+            isUsing: true
+        }).lean().then(
+            tsCallOutMission => {
+                return {hasOnGoingMission: Boolean(tsCallOutMission)};
+            }
+        );
+    },
+
     getUpdatedAdminMissionStatusFromCti: (platformObjId, adminObjId, limit, index) => {
         let platform, admin;
 
