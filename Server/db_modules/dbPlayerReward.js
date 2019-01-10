@@ -2569,9 +2569,10 @@ let dbPlayerReward = {
         });
     },
     getPromoCode: (playerId, platformId, status, emptyBonusList) => {
+        console.log('getPromoCode', playerId);
         let platformData = null;
-        var playerData = null;
-        var promoListData = null;
+        let playerData = null;
+        let promoListData = null;
 
         return expirePromoCode()
             .then(() => dbConfig.collection_platform.findOne({platformId: platformId}).lean())
