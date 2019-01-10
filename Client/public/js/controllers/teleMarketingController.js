@@ -1487,7 +1487,7 @@ define(['js/app'], function (myApp) {
                 tsPhoneList: data.tsPhone.tsPhoneList,
                 platform: vm.selectedPlatform.id,
                 adminId: authService.adminId,
-                content: data.content,
+                content: data.content || "",
                 result: data.result,
                 resultName: resultName,
                 topic: data.topic
