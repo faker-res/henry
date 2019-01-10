@@ -7764,7 +7764,7 @@ define(['js/app'], function (myApp) {
                     $('#adminPhoneListTableSpin').hide();
                     $scope.$evalAsync();
 
-                    vm.ctiLoop = setTimeout(vm.getCtiData, 7000);
+                    vm.ctiLoop = setTimeout(vm.getCtiData, 5200);
 
                 },
                 err => {
@@ -8160,7 +8160,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         vm.getTrashClassificationList();
                         vm.searchTrashClassificationTrade(true);
-                        socketService.showConfirmMessage($translate("Export Done."), 3000); // success
+                        socketService.showConfirmMessage($translate("Export Done."), 3000);
                     });
                 });
             });

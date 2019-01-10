@@ -102,11 +102,46 @@ var dbPlayerTopUpRecord = {
 
     getPlayerReportDataForTimeFrame: function (startTime, endTime, platformId, playerIds) {
         let consumptionReturnTypeId;
+        let onlineTopUpTypeId;
+        let playerReportSummary;
+        let merchantList;
 
-        return dbconfig.collection_proposalType.find({platformId: platformId, name: constProposalType.PLAYER_CONSUMPTION_RETURN}, {_id: 1}).lean().then(
+        return dbconfig.collection_platform.findOne({_id: platformId}).lean().then(
+            platformData => {
+                if (platformData && platformData.platformId) {
+                    return pmsAPI.merchant_getMerchantList(
+                        {
+                            platformId: platformData.platformId,
+                            queryId: serverInstance.getQueryId()
+                        }
+                    ).then(
+                        data => {
+                            console.log('getConsumptionDetailOfPlayers - 2');
+                            return data.merchants || [];
+                        }
+                    )
+                }
+
+                return;
+            }
+        ).then(
+            merchantData => {
+                merchantList = merchantData;
+
+                return dbconfig.collection_proposalType.find({platformId: platformId, name: {$in: [constProposalType.PLAYER_CONSUMPTION_RETURN, constProposalType.PLAYER_TOP_UP]}}, {_id: 1, name: 1}).lean();
+            }
+        ).then(
             proposalTypeData => {
                 if(proposalTypeData && proposalTypeData.length > 0){
-                    consumptionReturnTypeId = proposalTypeData[0]._id;
+                    proposalTypeData.forEach(
+                        proposalType => {
+                            if(proposalType && proposalType.name == constProposalType.PLAYER_CONSUMPTION_RETURN){
+                                consumptionReturnTypeId = proposalType._id;
+                            }else if(proposalType && proposalType.name == constProposalType.PLAYER_TOP_UP){
+                                onlineTopUpTypeId = proposalType._id;
+                            }
+                        }
+                    )
                 }
 
                 let stringPlayerId = [];
@@ -236,13 +271,48 @@ var dbPlayerTopUpRecord = {
                     }
                 ]).read("secondaryPreferred").allowDiskUse(true);
 
-                return Promise.all([topUpProm, consumptionProm, bonusProm, consumptionReturnProm, rewardProm]).then(
+                let onlineTopUpByMerchantProm = dbconfig.collection_proposal.aggregate([
+                    {
+                        "$match": {
+                            "type": ObjectId(onlineTopUpTypeId),
+                            "data.playerObjId": {$in: playerIds},
+                            "createTime": {
+                                "$gte": new Date(startTime),
+                                "$lte": new Date(endTime)
+                            },
+                            "mainType": "TopUp",
+                            "status": {"$in": [constProposalStatus.APPROVED, constProposalStatus.SUCCESS]}
+                        }
+                    },
+                    {
+                        "$group": {
+                            "_id": {
+                                "playerId": "$data.playerObjId",
+                                "merchantName": "$data.merchantName",
+                                "merchantNo": "$data.merchantNo"
+                            },
+                            "amount": {"$sum": "$data.amount"}
+                        }
+                    },
+                    {
+                        "$project": {
+                            _id: 0,
+                            playerId: "$_id.playerId",
+                            merchantName: "$_id.merchantName",
+                            merchantNo: "$_id.merchantNo",
+                            amount: 1
+                        }
+                    }
+                ]).read("secondaryPreferred").allowDiskUse(true);
+
+                return Promise.all([topUpProm, consumptionProm, bonusProm, consumptionReturnProm, rewardProm, onlineTopUpByMerchantProm]).then(
                     result => {
                         let topUpDetails = result[0];
                         let consumptionDetails = result[1];
                         let bonusDetails = result[2];
                         let consumptionReturnDetails = result[3];
                         let rewardDetails = result[4];
+                        let onlineTopUpByMerchantDetails = result[5];
                         let rewardList = [];
                         let playerReportDaySummary = [];
 
@@ -293,6 +363,24 @@ var dbPlayerTopUpRecord = {
                                 consumption => {
                                     if(consumption && consumption._id && consumption._id.playerId){
                                         let indexNo = playerReportDaySummary.findIndex(p => p.playerId.toString() == consumption._id.playerId.toString());
+                                        let providerDetail = {};
+                                        let providerId = consumption.providerId.toString();
+                                        consumption.bonusRatio = (consumption.bonusAmount / consumption.validAmount);
+
+                                        if (!providerDetail.hasOwnProperty(providerId)) {
+                                            providerDetail[providerId] = {
+                                                count: 0,
+                                                amount: 0,
+                                                validAmount: 0,
+                                                bonusAmount: 0
+                                            };
+                                        }
+
+                                        providerDetail[providerId].count += consumption.count;
+                                        providerDetail[providerId].amount += consumption.amount;
+                                        providerDetail[providerId].validAmount += consumption.validAmount;
+                                        providerDetail[providerId].bonusAmount += consumption.bonusAmount;
+                                        providerDetail[providerId].bonusRatio = (providerDetail[providerId].bonusAmount / providerDetail[providerId].validAmount);
 
                                         if(indexNo == -1){
                                             playerReportDaySummary.push({
@@ -301,13 +389,39 @@ var dbPlayerTopUpRecord = {
                                                 consumptionTimes: consumption.count,
                                                 consumptionAmount: consumption.amount,
                                                 consumptionValidAmount: consumption.validAmount,
-                                                consumptionBonusAmount: consumption.bonusAmount
+                                                consumptionBonusAmount: consumption.bonusAmount,
+                                                providerDetail: providerDetail
                                             });
                                         }else{
-                                            playerReportDaySummary[indexNo].consumptionTimes = consumption.count;
-                                            playerReportDaySummary[indexNo].consumptionAmount = consumption.amount;
-                                            playerReportDaySummary[indexNo].consumptionValidAmount = consumption.validAmount;
-                                            playerReportDaySummary[indexNo].consumptionBonusAmount = consumption.bonusAmount;
+                                            if(typeof playerReportDaySummary[indexNo].consumptionTimes != "undefined"){
+                                                playerReportDaySummary[indexNo].consumptionTimes += consumption.count;
+                                            }else{
+                                                playerReportDaySummary[indexNo].consumptionTimes = consumption.count;
+                                            }
+
+                                            if(typeof playerReportDaySummary[indexNo].consumptionAmount != "undefined"){
+                                                playerReportDaySummary[indexNo].consumptionAmount += consumption.amount;
+                                            }else{
+                                                playerReportDaySummary[indexNo].consumptionAmount = consumption.amount;
+                                            }
+
+                                            if(typeof playerReportDaySummary[indexNo].consumptionValidAmount != "undefined"){
+                                                playerReportDaySummary[indexNo].consumptionValidAmount += consumption.validAmount;
+                                            }else{
+                                                playerReportDaySummary[indexNo].consumptionValidAmount = consumption.validAmount;
+                                            }
+
+                                            if(typeof playerReportDaySummary[indexNo].consumptionBonusAmount != "undefined"){
+                                                playerReportDaySummary[indexNo].consumptionBonusAmount += consumption.bonusAmount;
+                                            }else{
+                                                playerReportDaySummary[indexNo].consumptionBonusAmount = consumption.bonusAmount;
+                                            }
+
+                                            if(typeof playerReportDaySummary[indexNo].providerDetail != "undefined"){
+                                                playerReportDaySummary[indexNo].providerDetail = Object.assign(playerReportDaySummary[indexNo].providerDetail, providerDetail);
+                                            }else{
+                                                playerReportDaySummary[indexNo].providerDetail = providerDetail;
+                                            }
                                         }
                                     }
                                 }
@@ -378,13 +492,147 @@ var dbPlayerTopUpRecord = {
                             )
                         }
 
+                        if(onlineTopUpByMerchantDetails && onlineTopUpByMerchantDetails.length > 0){
+                            onlineTopUpByMerchantDetails.forEach(
+                                onlineTopUpByMerchant => {
+                                    if(onlineTopUpByMerchant && onlineTopUpByMerchant.playerId){
+                                        let indexNo = playerReportDaySummary.findIndex(p => p.playerId.toString() == onlineTopUpByMerchant.playerId.toString());
+
+                                        if (onlineTopUpByMerchant && merchantList && merchantList.length > 0) {
+                                            let onlineTopUpDetail = onlineTopUpByMerchant;
+
+                                            if (onlineTopUpDetail && onlineTopUpDetail.hasOwnProperty('merchantNo') && onlineTopUpDetail.merchantNo
+                                                && onlineTopUpDetail.hasOwnProperty('merchantName') && onlineTopUpDetail.merchantName) {
+                                                let index = merchantList.findIndex(x => x && x.hasOwnProperty('merchantNo') && x.hasOwnProperty('name') && x.merchantNo && x.name && (x.merchantNo == onlineTopUpDetail.merchantNo) && (x.name == onlineTopUpDetail.merchantName));
+
+                                                let onlineTopUpAmount = onlineTopUpDetail && onlineTopUpDetail.amount ? onlineTopUpDetail.amount : 0;
+                                                let rate = 0;
+                                                let onlineTopUpFee = 0;
+
+                                                if (index != -1) {
+                                                    rate = merchantList[index] && merchantList[index].rate ? merchantList[index].rate : 0;
+                                                    onlineTopUpFee = onlineTopUpAmount * rate;
+
+                                                    onlineTopUpDetail.onlineTopUpFee = onlineTopUpFee;
+                                                    onlineTopUpDetail.onlineTopUpServiceChargeRate = rate;
+                                                } else {
+                                                    onlineTopUpFee = onlineTopUpAmount * rate;
+
+                                                    onlineTopUpDetail.onlineTopUpFee = onlineTopUpFee;
+                                                    onlineTopUpDetail.onlineTopUpServiceChargeRate = rate;
+                                                }
+                                            }
+                                        }
+
+                                        if(indexNo == -1){
+                                            playerReportDaySummary.push({
+                                                playerId: reward._id.playerId,
+                                                platformId: reward._id.platformId,
+                                                totalOnlineTopUpFee: parseFloat(onlineTopUpByMerchant.onlineTopUpFee) || 0,
+                                                onlineTopUpFeeDetail: [onlineTopUpByMerchant]
+                                            })
+                                        }else{
+                                            if(typeof playerReportDaySummary[indexNo].totalOnlineTopUpFee != "undefined"){
+                                                playerReportDaySummary[indexNo].totalOnlineTopUpFee += parseFloat(onlineTopUpByMerchant.onlineTopUpFee) || 0;
+                                            }else{
+                                                playerReportDaySummary[indexNo].totalOnlineTopUpFee = parseFloat(onlineTopUpByMerchant.onlineTopUpFee) || 0;
+                                            }
+
+                                            if(typeof playerReportDaySummary[indexNo].onlineTopUpFeeDetail != "undefined"){
+                                                playerReportDaySummary[indexNo].onlineTopUpFeeDetail = playerReportDaySummary[indexNo].onlineTopUpFeeDetail.concat(onlineTopUpByMerchant);
+                                            }else{
+                                                playerReportDaySummary[indexNo].onlineTopUpFeeDetail = [onlineTopUpByMerchant];
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+                        }
+
                         return playerReportDaySummary;
+                    }
+                ).then(
+                    playerReportDaySummary => {
+                        playerReportSummary = playerReportDaySummary;
+                        let platformFeeProm = [];
+                        if(playerReportDaySummary && playerReportDaySummary.length > 0){
+                            playerReportDaySummary.forEach(
+                                summary => {
+                                    if(summary){
+                                        platformFeeProm.push(dbPlayerTopUpRecord.countPlatformFeeByPlayer(platformId, summary.playerId, summary.providerDetail));
+                                    }
+                                }
+                            );
+                        }
+
+                        return Promise.all(platformFeeProm);
+                    }
+                ).then(
+                    playerPlatformFeeDetail => {
+                        if(playerPlatformFeeDetail && playerPlatformFeeDetail.length > 0){
+                            playerPlatformFeeDetail.forEach(
+                                platformFee => {
+                                    if(platformFee){
+                                        let indexNo = playerReportSummary.findIndex(p => p.playerId.toString() == platformFee.playerId.toString());
+
+                                        if(indexNo > -1){
+                                            playerReportSummary[indexNo].platformFeeEstimate = platformFee.platformFeeEstimate;
+                                            playerReportSummary[indexNo].totalPlatformFeeEstimate = platformFee.totalPlatformFeeEstimate;
+                                        }
+                                    }
+                                }
+                            )
+                        }
+
+                        return playerReportSummary;
+                    }
+                ).catch(
+                    error => {
+                        console.log("player report data summary error - ", error);
+                        return;
                     }
                 )
             }
         );
 
 
+    },
+
+    countPlatformFeeByPlayer: function(platformId, playerId, providerDetail){
+        if(!providerDetail){
+            return {
+                playerId: playerId,
+                platformFeeEstimate: {},
+                totalPlatformFeeEstimate: 0
+            };
+        }
+        let platformFeeEstimate = {};
+        let totalPlatformFeeEstimate = 0;
+
+        return dbconfig.collection_platformFeeEstimate.findOne({platform: platformId}).populate({
+            path: 'platformFee.gameProvider',
+            model: dbconfig.collection_gameProvider
+        }).then(
+            feeData => {
+                if (providerDetail && Object.keys(providerDetail).length && feeData && feeData.platformFee && feeData.platformFee.length) {
+                    feeData.platformFee.forEach(provider => {
+                        if (provider.gameProvider && provider.gameProvider._id && providerDetail.hasOwnProperty(String(provider.gameProvider._id))) {
+                            let gameProviderName = String(provider.gameProvider.name);
+                            platformFeeEstimate[gameProviderName] = (providerDetail[String(provider.gameProvider._id)].bonusAmount * -1) * provider.feeRate;
+                            if (platformFeeEstimate[gameProviderName] < 0) {
+                                platformFeeEstimate[gameProviderName] = 0;
+                            }
+                            totalPlatformFeeEstimate += platformFeeEstimate[gameProviderName];
+                        }
+                    })
+                }
+                return {
+                    playerId: playerId,
+                    platformFeeEstimate: platformFeeEstimate,
+                    totalPlatformFeeEstimate: totalPlatformFeeEstimate
+                };
+            }
+        );
     },
 
     assignTopUpRecordUsedEvent: function (platformObjId, playerObjId, eventObjId, spendingAmount, startTime, endTime, byPassedEvent, usedProposal, rewardType, isNoLimit) {

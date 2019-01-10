@@ -75,12 +75,12 @@
                                         tr
                                             td {{'FEEDBACK_RESULTS' | translate}}
                                             td
-                                                select(ng-model='vm.tsPhoneAddFeedback.result', ng-options='v.key as v.value for (i,v) in vm.allPlayerFeedbackResults')
+                                                select.form-control.inline-block(ng-model='vm.tsPhoneAddFeedback.result', ng-options='v.key as v.value for (i,v) in vm.allPlayerFeedbackResults', style="width:auto;")
                                                 button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
                                         tr
                                             td {{'FEEDBACK_TOPIC' | translate}}
                                             td
-                                                select(ng-model='vm.tsPhoneAddFeedback.topic', ng-options='v.key as v.value for (i,v) in vm.playerFeedbackTopic')
+                                                select.form-control.inline-block(ng-model='vm.tsPhoneAddFeedback.topic', ng-options='v.key as v.value for (i,v) in vm.playerFeedbackTopic', style="width:auto;margin-bottom:1em;margin-top:1em;")
                                                 button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
                                         tr
                                             td
