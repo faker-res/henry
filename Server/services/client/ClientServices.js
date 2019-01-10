@@ -218,7 +218,8 @@
                 "getMinMaxCommonTopupAmount",
                 "createCommonTopupProposal",
                 "createFKPTopupProposal",
-                "applyFKPWithdraw"
+                "applyFKPWithdraw",
+                "getPlayerConsumptionSum"
             ];
             addServiceFunctions(sinonet, this, functionNames);
         };
