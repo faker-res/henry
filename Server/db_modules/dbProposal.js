@@ -4993,6 +4993,13 @@ var proposal = {
         let consumptionResult = [];
         let playerResult = [];
         let playerInfoResult = [];
+        let resultSum = {
+            totalCount: 0,
+            totalRewardAmount: 0,
+            totalBonusAmount: 0,
+            totalDepositAmount: 0,
+            winLostAmount: 0,
+        };
 
         var proposalQuery = proposalTypeName ? {
             $and: [{
@@ -5262,6 +5269,7 @@ var proposal = {
                                             let index = bonusResult.findIndex( a => a._id.toString() == player._id.toString());
                                             if (index != -1){
                                                 player.totalBonusAmount = bonusResult[index].totalBonusAmount;
+                                                resultSum.totalBonusAmount += player.totalBonusAmount;
                                             }
                                             else{
                                                 player.totalBonusAmount = 0;
@@ -5272,6 +5280,7 @@ var proposal = {
                                             let index = depositResult.findIndex( a => a._id.toString() == player._id.toString());
                                             if (index != -1){
                                                 player.totalDepositAmount = depositResult[index].totalDepositAmount;
+                                                resultSum.totalDepositAmount += player.totalDepositAmount;
                                             }
                                             else{
                                                 player.totalDepositAmount = 0;
@@ -5283,6 +5292,7 @@ var proposal = {
                                             if (index != -1){
                                                 player.winLostAmount = consumptionResult[index].winLostAmount;
                                                 player.providerId = consumptionResult[index].providerId;
+                                                resultSum.winLostAmount += player.winLostAmount;
                                             }
                                             else{
                                                 player.winLostAmount = 0;
@@ -5297,11 +5307,18 @@ var proposal = {
                                                 player.registrationTime = playerInfoResult[index].registrationTime;
                                             }
                                         }
+
+                                        if (player && player.totalCount) {
+                                            resultSum.totalCount += player.totalCount;
+                                        }
+                                        if (player && player.totalRewardAmount) {
+                                            resultSum.totalRewardAmount += player.totalRewardAmount;
+                                        }
                                     })
 
                                 }
 
-                                return {data: playerResult, size: totalPlayerCount};
+                                return {data: playerResult, size: totalPlayerCount, total: resultSum};
                             }
                             else{
                                 Promise.reject({
