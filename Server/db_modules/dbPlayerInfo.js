@@ -19140,6 +19140,9 @@ let dbPlayerInfo = {
             filteredPhones => {
                 let promArr = [];
                 filteredPhones.forEach(phone => {
+                    if (!phone) {
+                        return;
+                    }
                     let encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
                     let phoneLocation = queryPhoneLocation(phone.phoneNumber);
                     let phoneProvince = phoneLocation && phoneLocation.province || "";
