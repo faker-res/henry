@@ -8133,6 +8133,7 @@ define(['js/app'], function (myApp) {
                 targetPlatformObjId: vm.exportTsPhoneTrade.targetPlatform,
                 phoneNumbers: phoneNumbers
             };
+            socketService.showConfirmMessage($translate("Checking..."), 3000);
             socketService.$socket($scope.AppSocket, 'filterExistingPhonesForDecomposedPhones', sendData, function (data) {
                 console.log("filterExistingPhonesForDecomposedPhones ret", data);
                 vm.exportTsPhoneTrade.phoneObjId = [];
@@ -8151,10 +8152,15 @@ define(['js/app'], function (myApp) {
                     targetPlatform: vm.exportTsPhoneTrade.targetPlatform,
                     phoneTradeObjIdArr: vm.exportTsPhoneTrade.phoneObjId
                 };
+
+                socketService.showConfirmMessage($translate("Exporting..."), 3000);
+
                 socketService.$socket($scope.AppSocket, 'exportDecomposedPhone', sendData, function (data) {
                     console.log('exportDecomposedPhone ret', data);
                     $scope.$evalAsync(() => {
                         vm.getTrashClassificationList();
+                        vm.searchTrashClassificationTrade(true);
+                        socketService.showConfirmMessage($translate("Export Done."), 3000); // success
                     });
                 });
             });
