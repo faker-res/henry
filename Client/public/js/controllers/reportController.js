@@ -1804,6 +1804,8 @@ define(['js/app'], function (myApp) {
                             let addititionalText = '';
                             if( row.data.line && row.data.line == '2'){
                                 addititionalText = '(MMM)';
+                            }else if(row.data.line && row.data.line == '3'){
+                                addititionalText = '('+$translate('MMM4-line3')+')';
                             }
                             return "<div>" + data + addititionalText + "</div>";
                         }
