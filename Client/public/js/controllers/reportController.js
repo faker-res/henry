@@ -7436,11 +7436,11 @@ define(['js/app'], function (myApp) {
                 columns: [
                     {title: $translate("PLAYER_NAME"), data: "name", bSortable: false},
                     {title: $translate("REGISTERED_TIME"), data: "registrationTime$"},
-                    {title: $translate('NUMBER_OF_APPLICATION'), data: "totalCount"},
-                    {title: $translate("TOTAL_REWARD_AMOUNT"), data: "totalRewardAmount"},
-                    {title: $translate("TOTAL_TOP_UP"), data: "totalDepositAmount"},
-                    {title: $translate("TOTAL_WITHDRAWAL_AMOUNT"), data: "totalBonusAmount"},
-                    {title: $translate("PLAYER PROFIT AMOUNT"), data: "winLostAmount"},
+                    {title: $translate('NUMBER_OF_APPLICATION'), data: "totalCount", sClass: "sumInt alignRight" },
+                    {title: $translate("TOTAL_REWARD_AMOUNT"), data: "totalRewardAmount", sClass: "sumFloat alignRight"},
+                    {title: $translate("TOTAL_TOP_UP"), data: "totalDepositAmount", sClass: "sumFloat alignRight"},
+                    {title: $translate("TOTAL_WITHDRAWAL_AMOUNT"), data: "totalBonusAmount", sClass: "sumFloat alignRight"},
+                    {title: $translate("PLAYER PROFIT AMOUNT"), data: "winLostAmount", sClass: "sumFloat alignRight"},
                     {title: $translate("GAME_LOBBY"), data: "gameProvider",
 
                         render: function (data, type, row) {
