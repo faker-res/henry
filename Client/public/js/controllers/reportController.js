@@ -7323,7 +7323,7 @@ define(['js/app'], function (myApp) {
                             item.winLostAmount = $roundToTwoDecimalPlacesString(item.winLostAmount || 0);
 
                             return item;
-                        }) : [], vm.generalRewardProposalQuery.totalCount, data.data.summary, newSearch);
+                        }) : [], vm.generalRewardProposalQuery.totalCount, data.data.total, newSearch);
                     })
                     }, function (err) {
                         $('#generalRewardProposalTableSpin').hide();
@@ -7422,7 +7422,7 @@ define(['js/app'], function (myApp) {
             }
         }
 
-        vm.drawSpecificRewardProposalTable = function (data, size, summary, newSearch) {
+        vm.drawSpecificRewardProposalTable = function (data, size, total, newSearch) {
             var tableOptions = $.extend(true, {}, vm.commonTableOption, {
                 data: data,
                 "order": vm.generalRewardProposalQuery.aaSorting,
@@ -7475,8 +7475,11 @@ define(['js/app'], function (myApp) {
                 }
             });
             vm.generalRewardProposalQuery.table = utilService.createDatatableWithFooter("#generalRewardProposalTable", tableOptions, {
-                // 2: summary.amount,
-                // 3: summary.applyAmount
+                2: total && total.totalCount ? total.totalCount : 0,
+                3: total && total.totalRewardAmount ? total.totalRewardAmount : 0,
+                4: total && total.totalDepositAmount ? total.totalDepositAmount : 0,
+                5: total && total.totalBonusAmount ? total.totalBonusAmount : 0,
+                6: total && total.winLostAmount ? total.winLostAmount : 0,
             });
             vm.generalRewardProposalQuery.pageObj.init({maxCount: size}, newSearch);
 
