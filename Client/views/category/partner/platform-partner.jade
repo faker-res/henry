@@ -26,38 +26,39 @@
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'CREDIT' | translate}}
             div
-                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.creditsOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                    option(value='>=') >=
-                    option(value='=') =
-                    option(value='<=') <=
-                    option(value='range') {{'range' | translate}}
-                div(style= "width:8px;display:inline-block")
-                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.creditsInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.creditsOperator === 'range'") ~
-                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.creditsInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.creditsOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.row.col-xs-6
+                    select.form-control(ng-model='vm.partnerAdvanceSearchQuery.creditsOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                        option(value='>=') >=
+                        option(value='=') =
+                        option(value='<=') <=
+                        option(value='range') {{'range' | translate}}
+                div.col-xs-6
+                    input.form-control(ng-model='vm.partnerAdvanceSearchQuery.creditsInput1', type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    div.text-center(ng-if="vm.partnerAdvanceSearchQuery.creditsOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.creditsInput2" ng-if="vm.partnerAdvanceSearchQuery.creditsOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
 
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'REGISTRATION_TIME' | translate}}
             #regDateTimePicker2.datetimepicker.form-control
-                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
                 span.add-on
                     i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'REGISTRATION_TIME_END' | translate}}
             #regEndDateTimePicker2.datetimepicker.form-control
-                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
                 span.add-on
                     i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'LAST_ACCESS_TIME' | translate}}
             #lastAccessDateTimePicker2.datetimepicker.form-control
-                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
                 span.add-on
                     i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'LAST_ACCESS_TIME_END' | translate}}
             #lastAccessEndDateTimePicker2.datetimepicker.form-control
-                input.input-append.playerDate(style='width:76%,border:0;', data-format="dd/MM/yyyy hh:mm:ss", type='text')
+                input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
                 span.add-on
                     i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
         .search-filter.col-xs-12.col-sm-6.col-md-3
@@ -66,99 +67,107 @@
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'DAILY_ACTIVE' | translate}}
             div
-                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                    option(value='>=') >=
-                    option(value='=') =
-                    option(value='<=') <=
-                    option(value='range') {{'range' | translate}}
-                div(style= "width:8px;display:inline-block")
-                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.dailyActivePlayerInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator === 'range'") ~
-                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.dailyActivePlayerInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.row.col-xs-6
+                    select.form-control(ng-model='vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                        option(value='>=') >=
+                        option(value='=') =
+                        option(value='<=') <=
+                        option(value='range') {{'range' | translate}}
+                div.col-xs-6
+                    input.form-control(ng-model='vm.partnerAdvanceSearchQuery.dailyActivePlayerInput1', type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    div.text-center(ng-if="vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.dailyActivePlayerInput2"  ng-if="vm.partnerAdvanceSearchQuery.dailyActivePlayerOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'WEEKLY_ACTIVE' | translate}}
             div
-                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                    option(value='>=') >=
-                    option(value='=') =
-                    option(value='<=') <=
-                    option(value='range') {{'range' | translate}}
-                div(style= "width:8px;display:inline-block")
-                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.weeklyActivePlayerInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator === 'range'") ~
-                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.weeklyActivePlayerInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.row.col-xs-6
+                    select.form-control(ng-model='vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                        option(value='>=') >=
+                        option(value='=') =
+                        option(value='<=') <=
+                        option(value='range') {{'range' | translate}}
+                div.col-xs-6
+                    input.form-control(ng-model='vm.partnerAdvanceSearchQuery.weeklyActivePlayerInput1', type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    div.text-center(ng-if="vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.weeklyActivePlayerInput2" ng-if="vm.partnerAdvanceSearchQuery.weeklyActivePlayerOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'MONTHLY_ACTIVE' | translate}}
             div
-                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                    option(value='>=') >=
-                    option(value='=') =
-                    option(value='<=') <=
-                    option(value='range') {{'range' | translate}}
-                div(style= "width:8px;display:inline-block")
-                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.monthlyActivePlayerInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator === 'range'") ~
-                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.monthlyActivePlayerInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.row.col-xs-6
+                    select.form-control(ng-model='vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                        option(value='>=') >=
+                        option(value='=') =
+                        option(value='<=') <=
+                        option(value='range') {{'range' | translate}}
+                div.col-xs-6
+                    input.form-control(ng-model='vm.partnerAdvanceSearchQuery.monthlyActivePlayerInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    div.text-center(ng-if="vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.monthlyActivePlayerInput2"  ng-if="vm.partnerAdvanceSearchQuery.monthlyActivePlayerOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'VALID_PLAYER' | translate}}
             div
-                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.validPlayersOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                    option(value='>=') >=
-                    option(value='=') =
-                    option(value='<=') <=
-                    option(value='range') {{'range' | translate}}
-                div(style= "width:8px;display:inline-block")
-                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.validPlayersInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.validPlayersOperator === 'range'") ~
-                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.validPlayersInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.validPlayersOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.row.col-xs-6
+                    select.form-control(ng-model='vm.partnerAdvanceSearchQuery.validPlayersOperator', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                        option(value='>=') >=
+                        option(value='=') =
+                        option(value='<=') <=
+                        option(value='range') {{'range' | translate}}
+                div.col-xs-6
+                    input.form-control(ng-model='vm.partnerAdvanceSearchQuery.validPlayersInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    div.text-center(ng-if="vm.partnerAdvanceSearchQuery.validPlayersOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.validPlayersInput2"  ng-if="vm.partnerAdvanceSearchQuery.validPlayersOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'TOTAL_CHILDREN_COUNT' | translate}}
             div
-                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                    option(value='>=') >=
-                    option(value='=') =
-                    option(value='<=') <=
-                    option(value='range') {{'range' | translate}}
-                div(style= "width:8px;display:inline-block")
-                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalPlayerDownlineInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator === 'range'") ~
-                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalPlayerDownlineInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.row.col-xs-6
+                    select.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                        option(value='>=') >=
+                        option(value='=') =
+                        option(value='<=') <=
+                        option(value='range') {{'range' | translate}}
+                div.col-xs-6
+                    input.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalPlayerDownlineInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    div.text-center( ng-if="vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalPlayerDownlineInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalPlayerDownlineOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'TOTAL_CHILDREN_DEPOSIT' | translate}}
             div
-                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                    option(value='>=') >=
-                    option(value='=') =
-                    option(value='<=') <=
-                    option(value='range') {{'range' | translate}}
-                div(style= "width:8px;display:inline-block")
-                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenDepositInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator === 'range'") ~
-                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalChildrenDepositInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.row.col-xs-6
+                    select.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator',  ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                        option(value='>=') >=
+                        option(value='=') =
+                        option(value='<=') <=
+                        option(value='range') {{'range' | translate}}
+                div.col-xs-6
+                    input.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenDepositInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    div.text-center(ng-if="vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalChildrenDepositInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalChildrenDepositOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'TOTAL_CHILDREN_BALANCE' | translate}}
             div
-                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                    option(value='>=') >=
-                    option(value='=') =
-                    option(value='<=') <=
-                    option(value='range') {{'range' | translate}}
-                div(style= "width:8px;display:inline-block")
-                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenBalanceInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator === 'range'") ~
-                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalChildrenBalanceInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.row.col-xs-6
+                    select.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                        option(value='>=') >=
+                        option(value='=') =
+                        option(value='<=') <=
+                        option(value='range') {{'range' | translate}}
+                div.col-xs-6
+                    input.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalChildrenBalanceInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    div.text-center(ng-if="vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalChildrenBalanceInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalChildrenBalanceOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
         .search-filter.col-xs-12.col-sm-6.col-md-3
             label.control-label {{'SETTLED_COMMISSION' | translate}}
             div
-                select.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator', style="width:75px;display:inline-block", ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                    option(value='>=') >=
-                    option(value='=') =
-                    option(value='<=') <=
-                    option(value='range') {{'range' | translate}}
-                div(style= "width:8px;display:inline-block")
-                input.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalSettledCommissionInput1', style="width:80px;display:inline-block", type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
-                div.text-center(style="width:15px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator === 'range'") ~
-                input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalSettledCommissionInput2" style="width:80px;display:inline-block" ng-if="vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                div.row.col-xs-6
+                    select.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                        option(value='>=') >=
+                        option(value='=') =
+                        option(value='<=') <=
+                        option(value='range') {{'range' | translate}}
+                div.col-xs-6
+                    input.form-control(ng-model='vm.partnerAdvanceSearchQuery.totalSettledCommissionInput1',  type = 'number', ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
+                    div.text-center(ng-if="vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator === 'range'") ~
+                    input.form-control(type="number" ng-model="vm.partnerAdvanceSearchQuery.totalSettledCommissionInput2"  ng-if="vm.partnerAdvanceSearchQuery.totalSettledCommissionOperator === 'range'" ng-change='vm.getPartnersByAdvanceQueryDebounced(vm.partnerAdvanceSearchQuery)')
         .search-filter.col-md-3
             label.control-label
             button#resetPartnerQuery.btn.btn-primary.common-button-sm(style="display:block;") {{'Reset' | translate}}
@@ -216,7 +225,7 @@ p
             img.img-edit
 
 #modalPartnerInfo.modal.fade(role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -242,60 +251,60 @@ p
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"PARTNER_NAME" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePartner.partnerName}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"PARTNER_ID" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePartner.partnerId}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"realName" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePartner.realName || 'NONE' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"GENDER" | translate}}
                                                     .col-sm-8
                                                         text {{vm.getGenderFromBool(vm.selectedSinglePartner.gender) || 'NONE' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"DOB" | translate}}
                                                     .col-sm-8
-                                                        text(style='height:inherit') {{vm.convertDOBFormat(vm.selectedSinglePartner.DOB) || 'NONE' | translate}}
+                                                        text {{vm.convertDOBFormat(vm.selectedSinglePartner.DOB) || 'NONE' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"Bind Player" | translate}}
                                                     .col-sm-8
-                                                        text(style='height:inherit') {{vm.selectedSinglePartner.player.name || 'NONE' | translate}}
+                                                        text {{vm.selectedSinglePartner.player.name || 'NONE' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"REGISTRATION_TIME" | translate}}
                                                     .col-sm-8
-                                                        text(style='height:inherit') {{vm.selectedSinglePartner.registrationTime || 'NONE' | translate}}
+                                                        text {{vm.selectedSinglePartner.registrationTime || 'NONE' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"own domain" | translate}}
                                                     .col-sm-8
-                                                        text(style='height:inherit') {{vm.selectedSinglePartner.ownDomain$ || 'NONE' | translate}}
+                                                        text {{vm.selectedSinglePartner.ownDomain$ || 'NONE' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"REMARK" | translate}}
                                                     .col-sm-8
-                                                        text(style='height:inherit') {{vm.selectedSinglePartner.remarks || 'NONE' | translate}}
+                                                        text {{vm.selectedSinglePartner.remarks || 'NONE' | translate}}
                                         td.text-left
                                             button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPartnerDialog('basicInfo');", ng-if="checkViewPermission('Partner', 'Partner', 'Edit')", ng-disabled="vm.selectedPartnerCount!=1 || !vm.selectedSinglePartner") {{"EDIT" | translate}}
                                             br
@@ -308,32 +317,34 @@ p
                                         div {{"CONTACT_INFO" | translate}}
                                     td
                                         .row
-                                            div(style='min-width:max-content;display:inline-block;width:11.11111112%;padding-left:15px;padding-right:15px;white-space: nowrap;')
-                                                label {{"TELEPHONE" | translate}}
-                                            div(style='display:inline-block;min-width:max-content;width:60%;padding-left:15px;padding-right:15px;white-space: nowrap;')
-                                                text.
-                                                    {{vm.selectedSinglePartner.phoneNumber || 'Unknown' | translate}}&nbsp;
-                                                    ({{vm.selectedSinglePartner.phoneCity || 'Unknown' | translate}},&nbsp;
-                                                    {{vm.selectedSinglePartner.phoneProvince || 'Unknown' | translate}}/
-                                                    {{vm.selectedSinglePartner.phoneType || 'Unknown' | translate}})
+                                            .col-md-8
+                                                .row
+                                                    .col-sm-2
+                                                        label {{"TELEPHONE" | translate}}
+                                                    .col-sm-8
+                                                        text.
+                                                            {{vm.selectedSinglePartner.phoneNumber || 'Unknown' | translate}}&nbsp;
+                                                            ({{vm.selectedSinglePartner.phoneCity || 'Unknown' | translate}},&nbsp;
+                                                            {{vm.selectedSinglePartner.phoneProvince || 'Unknown' | translate}}/
+                                                            {{vm.selectedSinglePartner.phoneType || 'Unknown' | translate}})
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"WECHAT" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePartner.wechat || 'Unknown' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"QQ" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePartner.qq || 'Unknown' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"EMAIL" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePartner.email || 'Unknown' | translate}}
@@ -350,19 +361,19 @@ p
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BANK_NAME" | translate}}
                                                     .col-sm-8
                                                         text {{vm.allBankTypeList[vm.selectedSinglePartner.bankName] || vm.selectedSinglePartner.bankName || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BANK_ACCOUNT_NAME" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePartner.bankAccountName || 'Unknown' | translate}}
                                             //.col-md-4
                                             //    .row
-                                            //        .col-sm-4(style='white-space: nowrap;')
+                                            //        .col-sm-4
                                             //            label {{"BANK_ACCOUNT_TYPE" | translate}}
                                             //        .col-sm-8
                                             //            text(ng-if='vm.selectedSinglePartner.bankAccountType==2 || vm.selectedSinglePartner.bankAccountType=="2"') {{'Debit Card '|translate}}
@@ -374,34 +385,34 @@ p
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BANK_ACCOUNT" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePartner.encodedBankAccount || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BANK_ACCOUNT_PROVINCE" | translate}}
                                                     .col-sm-8
                                                         text {{vm.showProvinceStr ? vm.showProvinceStr : 'Unknown' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BANK_ACCOUNT_CITY" | translate}}
                                                     .col-sm-8
                                                         text {{vm.showCityStr ? vm.showCityStr : 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BANK_ACCOUNT_DISTRICT" | translate}}
                                                     .col-sm-8
                                                         text {{vm.showDistrictStr ? vm.showDistrictStr : 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"Bank Address" | translate}}
-                                                    .col-sm-8(style='min-width:max-content;')
+                                                    .col-sm-8
                                                         text {{vm.selectedSinglePartner.bankAddress || 'Unknown' | translate}}
 
                                         td.text-left
@@ -416,28 +427,28 @@ p
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"IP" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePartner.lastLoginIp || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{'COUNTRY' | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePartner.country || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"CITY" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePartner.city || 'Unknown' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{'Registration Domain' | translate}}
-                                                    .col-sm-8(style='word-wrap:break-word;')
+                                                    .col-sm-8
                                                         a(href='{{vm.selectedSinglePartner.domain}}', title='{{vm.selectedSinglePartner.domain}}', target='_blank') {{vm.selectedSinglePartner.$displayDomain || 'Unknown' | translate}}
 
                                     td.text-left
@@ -519,7 +530,7 @@ p
                 button.btn.btn-warning.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalDeletePartner.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -537,81 +548,7 @@ p
                 button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal',ng-click="vm.deletePartners();") {{"CONFIRM" | translate}}
                 button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal') {{"CANCEL" | translate}}
 
-//#modalUpdatePartner.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog
-        .modal-content
-            .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"EDIT_PARTNER" | translate}}
-            .modal-body
-                .panel.panel-primary
-                    .panel-body
-                        .well
-                            .row
-                                include partner-edit-form
-            .modal-footer
-                button.common-button.margin-right-5.btn.btn-primary(ng-if='!vm.isEditingPartner', ng-click="vm.isEditingPartner=true") {{"EDIT" | translate}}
-                button.common-button.margin-right-5.btn.btn-primary(ng-if='vm.isEditingPartner', ng-click="vm.preUpdatePartner()") {{"CANCEL" | translate}}
-                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-if='vm.isEditingPartner', ng-disabled='form_edit_partner.$invalid || form_edit_partner.$pristine', ng-click="vm.updatePartner();") {{"UPDATE" | translate}}
-                button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CLOSE" | translate}}
 
-//#modalBankDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:50%;')
-        .modal-content
-            .modal-header
-                a.fa.fa-times.close(type='button', data-dismiss='modal')
-                h4.modal-title {{"BANK_DETAIL" | translate}} of {{vm.selectedSinglePartner.partnerName}}
-            .modal-body
-                .well
-                    .form-group-col-md-6
-                        label.control-label {{'BANK_ACCOUNT_NAME' | translate}}
-                        input.form-control(ng-model='vm.partnerBank.bankAccountName', disabled)
-                    .form-group-col-md-6
-                        label.control-label {{'BANK_NAME' | translate}}
-                        select.form-control(ng-model='vm.partnerBank.bankName', ng-disabled='!vm.isEditingPartnerPayment')
-                            option(ng-repeat="(i,v) in vm.allBankTypeList", value='{{i}}') {{v}}
-                    .form-group-col-md-6
-                        label.control-label {{'BANK_ACCOUNT' | translate}}
-                        div
-                            input.form-control.inlineBlk(ng-model='vm.partnerBank.bankAccount', style='width:calc(100% - 100px)', ng-disabled='!vm.isEditingPartnerPayment')
-                            button.btn.btn-info.pull-right(style='width:80px', ng-click='vm.isEditingPartnerPaymentShowVerify=!vm.isEditingPartnerPaymentShowVerify')
-                                text(ng-if='vm.isEditingPartnerPaymentShowVerify') {{::'CLOSE' | translate}}
-                                text(ng-if='!vm.isEditingPartnerPaymentShowVerify') {{::'VERIFY' | translate}}
-                    .panel.panel-default.margin-top-10(ng-if='vm.isEditingPartnerPaymentShowVerify')
-                        .panel-body
-                            label.control-label {{"VERIFY_BANK_ACCOUNT" | translate}}
-                            input.form-control(type="text", placeholder="{{'VERIFY_BANK_ACCOUNT' | translate}}", ng-model="vm.verifyBankAccount")
-                            p
-                            button.btn.btn-primary.common-button(ng-disabled='!vm.verifyBankAccount', ng-click="vm.verifyPlayerBankAccount()") {{"VERIFY" | translate}}
-                            label.fa.fa-check.colorGreen(ng-if='vm.correctVerifyBankAccount')
-                            label.fa.fa-times.colorRed(ng-if='(!vm.correctVerifyBankAccount && (vm.correctVerifyBankAccount !== undefined))')
-                    .form-group-col-md-6
-                        label.control-label {{'BANK_ACCOUNT_TYPE' | translate}}
-                        select.form-control(ng-model='vm.partnerBank.bankAccountType', ng-disabled='!vm.isEditingPartnerPayment')
-                            option(value='2') {{'Debit Card '|translate}}
-                            option(value='1') {{'Credit Card '|translate}}
-                            option(value='3') {{'储存卡'|translate}}
-                            option(value='4') {{'储蓄卡'|translate}}
-                            option(value='5') {{'商务理财卡'|translate}}
-                            option(value='6') {{'工商银行一卡通'|translate}}
-                    .form-group-col-md-6
-                        label.control-label {{'BANK_ACCOUNT_CITY' | translate}}
-                        input.form-control(ng-model='vm.partnerBank.bankAccountCity', ng-disabled='!vm.isEditingPartnerPayment')
-                    .form-group-col-md-6
-                        label.control-label {{'Bank Address' | translate}}
-                        input.form-control(ng-model='vm.partnerBank.bankAddress', ng-disabled='!vm.isEditingPartnerPayment')
-                    .form-group-col-md-6
-                        label.control-label {{'BANK_BRANCH' | translate}}
-                        input.form-control(ng-model='vm.partnerBank.bankBranch', ng-disabled='!vm.isEditingPartnerPayment')
-            .modal-footer
-                button.common-button.margin-right-5.btn.btn-primary(ng-if='!vm.isEditingPartnerPayment', ng-click="vm.isEditingPartnerPayment=true") {{"EDIT" | translate}}
-                button.common-button.margin-right-5.btn.btn-primary(ng-if='vm.isEditingPartnerPayment', ng-click="vm.prepareEditPartnerPayment()") {{"CANCEL" | translate}}
-                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal',ng-if='vm.isEditingPartnerPayment', ng-click="vm.updatePartnerBank();") {{"UPDATE" | translate}}
-                button.common-button.margin-right-5.btn.btn-primary(data-dismiss='modal') {{"CLOSE" | translate}}
-
-//#telPopover.hide(style="width: 600px")
-//    button.playerMessage.common-button.margin-right-5.btn.btn-success() {{'MESSAGE' | translate}}
-    button.playerTelephone.common-button.margin-right-5.btn.btn-success() {{'TELPHONE' | translate}}
 #totalReferralPopover.hide(style="width: 900px")
     label {{vm.referralPopoverTitle}} {{vm.partnerData.partnerName}}
     br(ng-show ='vm.referralPartner.length == 0')
@@ -768,7 +705,7 @@ p
                             .col-md-3.text-center {{v.remark}}
 
 #modalPartnerPasswordReset.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -820,7 +757,7 @@ p
 
 // add partner feedback - Modal
 #modalAddPartnerFeedback.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -882,7 +819,7 @@ p
 
 // Partner actions - Modal
 #modalPartnerBonus.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:50%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -914,7 +851,7 @@ p
     //- .well
     table.simple-table
         tr
-            td(style='text-align:left')
+            td.alignLeft
                 div(ng-repeat='(i,v) in vm.allPartnersStatusString')
                     label
                         input.partnerStatusChange.pull-left(data-row='{{vm.partnerStatusPopover}}' data-status='{{v}}' type='radio' name='partnerstatus' ng-checked='v==vm.partnerStatusPopover.status')
@@ -950,7 +887,7 @@ p
 
 // credit adjustment - Modal
 #modalPartnerCreditAdjustment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -982,7 +919,7 @@ p
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalPartnerApiLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1043,7 +980,7 @@ p
                                         include partner-edit-commission-type-form
 
 #modalPartnerInfoHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:90%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1055,7 +992,7 @@ p
                         table#partnerInfoHistoryTbl.common-table.display(style='min-width:100%;width:inherit')
 
 #modalPartnerContactHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:90%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1067,7 +1004,7 @@ p
                         table#partnerContactHistoryTbl.common-table.display(style='min-width:100%;width:inherit')
 
 #modalPartnerPaymentHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:90%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1103,7 +1040,7 @@ p
                 table#partnerIpHistoryTable.common-table.display(style="width:100%")
 
 #duplicatePhoneNumberLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:95%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1115,7 +1052,7 @@ p
                     #duplicatePhoneNumberLogTablePage.height30
 
 #modalPartnerCommPreview.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:100%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1446,7 +1383,7 @@ p
                                 td {{v.valueScore}}
 
 #modalEditChildPartner.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:85%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1520,7 +1457,7 @@ p
                 button.btn.btn-primary.common-button(data-dismiss="modal" ng-if="vm.isChildPartnerEditing && checkViewPermission('Partner', 'Partner', 'EditChildPartner')" ng-click="vm.submitChildPartner()" ng-disabled='vm.disableEditChildPartner') {{"CONFIRM" | translate}}
 
 #modalTransferPartnerCreditToPlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:85%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')

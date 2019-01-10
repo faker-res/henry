@@ -1,69 +1,70 @@
-form(name='form_partnerPaymentInfo').well
-    .row.margin-left-5.margin-right-5
-        .form-group-col-md-6
+form(name='form_partnerPaymentInfo')
+        div.col-sm-12
             label.control-label {{'BANK_ACCOUNT_NAME' | translate}}
             input.form-control(ng-model='partnerPayment.bankAccountName', ng-disabled='!isEditingPartnerPayment')
-        .form-group-col-md-6
-            label.control-label(style='width:100%') *{{'BANK_NAME' | translate}}
+        div.col-sm-12.margin-top-10
+            label.control-label *{{'BANK_NAME' | translate}}
             select.form-control(ng-model='partnerPayment.bankName', ng-show='!isEditingPartnerPayment', disabled)
                 option(ng-repeat="(i,v) in allBankTypeList", value='{{i}}') {{v}}
-            .col-md-6(style='padding-left:0', ng-show='isEditingPartnerPayment')
+        div.col-md-6(ng-show='isEditingPartnerPayment')
                 select.form-control(ng-model='partnerPayment.bankName', ng-options='i as v for (i,v) in filteredBankTypeList', required)
-            .col-md-6(style='padding-right:0', ng-show='isEditingPartnerPayment')
+        div.col-md-6(ng-show='isEditingPartnerPayment')
                 input.form-control(type='text', placeholder="{{'SEARCH' | translate}}", ng-model='filterBankName', ng-change='filterBankname("partnerPayment")')
-        .form-group-col-md-6
-            .control-label
+        div.control-label
+            div.col-sm-12.margin-top-10
                 label {{'BANK_ACCOUNT' | translate}}
                 text.margin-left-5.small ({{'Min length 16, all digits' | translate}})
-            div
-                input.form-control.inlineBlk(ng-model='partnerPayment.encodedBankAccount', style='width:calc(100% - 100px)', ng-if='!isEditingPartnerPayment', disabled)
-                input.form-control.inlineBlk(ng-model='partnerPayment.newBankAccount', ng-change='partnerPayment.showNewAccountNo=true; checkDuplicatedBankAccount(partnerPayment)', style='width:calc(100% - 100px)', ng-if='isEditingPartnerPayment && !partnerPayment.showNewAccountNo')
-                input.form-control.inlineBlk(focus-me="partnerPayment.showNewAccountNo" ng-model='partnerPayment.newBankAccount', style='width:calc(100% - 100px)', ng-if='isEditingPartnerPayment && partnerPayment.showNewAccountNo', ng-change="checkDuplicatedBankAccount(partnerPayment)")
-                button.btn.btn-info.pull-right(style='width:80px', ng-click='isEditingPartnerPaymentShowVerify=!isEditingPartnerPaymentShowVerify')
+            div.col-sm-11
+                input.form-control.inlineBlk(ng-model='partnerPayment.encodedBankAccount', ng-if='!isEditingPartnerPayment', disabled)
+                input.form-control.inlineBlk(ng-model='partnerPayment.newBankAccount', ng-change='partnerPayment.showNewAccountNo=true; checkDuplicatedBankAccount(partnerPayment)', ng-if='isEditingPartnerPayment && !partnerPayment.showNewAccountNo')
+                input.form-control.inlineBlk(focus-me="partnerPayment.showNewAccountNo" ng-model='partnerPayment.newBankAccount', ng-if='isEditingPartnerPayment && partnerPayment.showNewAccountNo', ng-change="checkDuplicatedBankAccount(partnerPayment)")
+            div.col-sm-1.pull-right
+                button.btn.btn-info.pull-right(ng-click='isEditingPartnerPaymentShowVerify=!isEditingPartnerPaymentShowVerify')
                     text(ng-if='isEditingPartnerPaymentShowVerify') {{::'CLOSE' | translate}}
                     text(ng-if='!isEditingPartnerPaymentShowVerify') {{::'VERIFY' | translate}}
-                label(ng-if="isEditingPartnerPayment && partnerPayment.showAlert" style="color: red;") {{ partnerPayment.alertMsg | translate}}
-        .panel.panel-default.margin-top-10(ng-if='isEditingPartnerPaymentShowVerify')
-            .panel-body
-                label.control-label {{"VERIFY_BANK_ACCOUNT" | translate}}
-                input.form-control(type="text", placeholder="{{'VERIFY_BANK_ACCOUNT' | translate}}", ng-model="partnerPayment.verifyBankAccount")
-                p
-                button.btn.btn-primary.common-button(ng-disabled='!partnerPayment.verifyBankAccount', ng-click="verifyPartnerBankAccount()") {{"VERIFY" | translate}}
-                label.fa.fa-check.colorGreen(ng-if='partnerPayment.correctVerifyBankAccount')
-                label.fa.fa-times.colorRed(ng-if='(!partnerPayment.correctVerifyBankAccount && (partnerPayment.correctVerifyBankAccount !== undefined))')
-        //.form-group-col-md-6
-        //    label.control-label {{'BANK_ACCOUNT_TYPE' | translate}}
-        //    select.form-control(ng-model='partnerPayment.bankAccountType', ng-disabled='!isEditingPartnerPayment')
-        //        option(value='2') {{'Debit Card '|translate}}
-        //        option(value='1') {{'Credit Card '|translate}}
-        //        option(value='3') {{'储存卡'|translate}}
-        //        option(value='4') {{'储蓄卡'|translate}}
-        //        option(value='5') {{'商务理财卡'|translate}}
-        //        option(value='6') {{'工商银行一卡通'|translate}}
-        .form-group-col-md-6
-            .col-md-4(style='padding-left:0')
-                label.control-label {{"PHONE_PROVINCE" | translate}}
-                //select.form-control(type='text', ng-model='currentProvince.province', ng-options='v.id as v.name for (i,v) in provinceList', ng-change='changeProvince(true)', ng-disabled='!isEditingPartnerPayment')
-                select.form-control(type='text', ng-model='currentProvince.province' ng-change='changeProvince(true)', ng-disabled='!isEditingPartnerPayment' ng-init="originalProvinceId = currentProvince.province")
-                    option(ng-repeat="(i,v) in provinceList" ng-value='v.id') {{v.name}}
-                    option(ng-value="originalProvinceId") {{originalProvinceId}}
-            .col-md-4(style='padding-right:0')
-                label.control-label {{"PHONE_CITY" | translate}}
-                //select.form-control(type='text', ng-model='currentCity.city', ng-options='v.id as v.name for (i,v) in cityList', ng-change='changeCity(true)', ng-disabled='!isEditingPartnerPayment')
-                select.form-control(type='text', ng-model='currentCity.city', ng-change='changeCity(true)', ng-disabled='!isEditingPartnerPayment' ng-init="originalCityId = currentCity.city")
-                    option(ng-repeat="(i,v) in cityList" ng-value='v.id') {{v.name}}
-                    option(ng-value="originalCityId") {{originalCityId}}
-            .col-md-4(style='padding-right:0')
-                label.control-label {{"districtId" | translate}}
-                //select.form-control(type='text', ng-model='currentDistrict.district', ng-options='v.id as v.name for (i,v) in districtList', ng-disabled='!isEditingPartnerPayment')
-                select.form-control(type='text', ng-model='currentDistrict.district', ng-disabled='!isEditingPartnerPayment' ng-init="originalDistrictId = currentDistrict.district")
-                    option(value='')
-                    option(ng-repeat="(i,v) in districtList" ng-value='v.id') {{v.name}}
-                    option(ng-value="originalDistrictId") {{originalDistrictId}}
-        .form-group-col-md-6
+                label.text-disabled(ng-if="isEditingPartnerPayment && partnerPayment.showAlert") {{ partnerPayment.alertMsg | translate}}
+        div.col-sm-12
+            .panel.panel-default.margin-top-10(ng-if='isEditingPartnerPaymentShowVerify')
+                .panel-body
+                    label.control-label {{"VERIFY_BANK_ACCOUNT" | translate}}
+                    input.form-control(type="text", placeholder="{{'VERIFY_BANK_ACCOUNT' | translate}}", ng-model="partnerPayment.verifyBankAccount")
+                    p
+                    button.btn.btn-primary.common-button(ng-disabled='!partnerPayment.verifyBankAccount', ng-click="verifyPartnerBankAccount()") {{"VERIFY" | translate}}
+                    label.fa.fa-check.colorGreen(ng-if='partnerPayment.correctVerifyBankAccount')
+                    label.fa.fa-times.colorRed(ng-if='(!partnerPayment.correctVerifyBankAccount && (partnerPayment.correctVerifyBankAccount !== undefined))')
+            //.form-group-col-md-6
+            //    label.control-label {{'BANK_ACCOUNT_TYPE' | translate}}
+            //    select.form-control(ng-model='partnerPayment.bankAccountType', ng-disabled='!isEditingPartnerPayment')
+            //        option(value='2') {{'Debit Card '|translate}}
+            //        option(value='1') {{'Credit Card '|translate}}
+            //        option(value='3') {{'储存卡'|translate}}
+            //        option(value='4') {{'储蓄卡'|translate}}
+            //        option(value='5') {{'商务理财卡'|translate}}
+            //        option(value='6') {{'工商银行一卡通'|translate}}
+        div.col-md-4
+            label.control-label {{"PHONE_PROVINCE" | translate}}
+            //select.form-control(type='text', ng-model='currentProvince.province', ng-options='v.id as v.name for (i,v) in provinceList', ng-change='changeProvince(true)', ng-disabled='!isEditingPartnerPayment')
+            select.form-control(type='text', ng-model='currentProvince.province' ng-change='changeProvince(true)', ng-disabled='!isEditingPartnerPayment' ng-init="originalProvinceId = currentProvince.province")
+                option(ng-repeat="(i,v) in provinceList" ng-value='v.id') {{v.name}}
+                option(ng-value="originalProvinceId") {{originalProvinceId}}
+        div.col-md-4
+            label.control-label {{"PHONE_CITY" | translate}}
+            //select.form-control(type='text', ng-model='currentCity.city', ng-options='v.id as v.name for (i,v) in cityList', ng-change='changeCity(true)', ng-disabled='!isEditingPartnerPayment')
+            select.form-control(type='text', ng-model='currentCity.city', ng-change='changeCity(true)', ng-disabled='!isEditingPartnerPayment' ng-init="originalCityId = currentCity.city")
+                option(ng-repeat="(i,v) in cityList" ng-value='v.id') {{v.name}}
+                option(ng-value="originalCityId") {{originalCityId}}
+        div.col-md-4
+            label.control-label {{"districtId" | translate}}
+            //select.form-control(type='text', ng-model='currentDistrict.district', ng-options='v.id as v.name for (i,v) in districtList', ng-disabled='!isEditingPartnerPayment')
+            select.form-control(type='text', ng-model='currentDistrict.district', ng-disabled='!isEditingPartnerPayment' ng-init="originalDistrictId = currentDistrict.district")
+                option(value='')
+                option(ng-repeat="(i,v) in districtList" ng-value='v.id') {{v.name}}
+                option(ng-value="originalDistrictId") {{originalDistrictId}}
+        div.col-sm-12.margin-top-10
             label.control-label {{'Account Branch' | translate}}
             input.form-control(ng-model='partnerPayment.bankAddress', ng-disabled='!isEditingPartnerPayment')
-button.common-button.margin-right-5.btn.btn-primary(ng-show='!isEditingPartnerPayment', ng-click="isEditingPartnerPayment=true") {{"EDIT" | translate}}
-button.common-button.margin-right-5.btn.btn-primary(ng-show='isEditingPartnerPayment', ng-click="prepareEditPartnerPayment()") {{"CANCEL" | translate}}
-button.common-button.margin-right-5.btn.btn-primary(data-dismiss='dialog',ng-show='isEditingPartnerPayment', ng-disabled='form_partnerPaymentInfo.$invalid || form_partnerPaymentInfo.$pristine || partnerPayment.invalid', ng-click="updatePartnerPayment();") {{"UPDATE" | translate}}
-button.common-button.margin-right-5.btn.btn-primary(data-dismiss='dialog') {{"CLOSE" | translate}}
+        div.col-sm-12.margin-top-10
+            button.common-button.margin-right-5.btn.btn-primary(ng-show='!isEditingPartnerPayment', ng-click="isEditingPartnerPayment=true") {{"EDIT" | translate}}
+            button.common-button.margin-right-5.btn.btn-primary(ng-show='isEditingPartnerPayment', ng-click="prepareEditPartnerPayment()") {{"CANCEL" | translate}}
+            button.common-button.margin-right-5.btn.btn-primary(data-dismiss='dialog',ng-show='isEditingPartnerPayment', ng-disabled='form_partnerPaymentInfo.$invalid || form_partnerPaymentInfo.$pristine || partnerPayment.invalid', ng-click="updatePartnerPayment();") {{"UPDATE" | translate}}
+            button.common-button.margin-right-5.btn.btn-primary(data-dismiss='dialog') {{"CLOSE" | translate}}

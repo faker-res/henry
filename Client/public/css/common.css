@@ -1813,7 +1813,7 @@ input[type='Number'] {
 }
 
 .radio-space{
-    margin: 0 .5em .5em;
+    margin: 0 .5em .5em !important;
 }
 
 .panel-heading {
