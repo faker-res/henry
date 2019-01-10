@@ -5760,6 +5760,10 @@ var dbPlatform = {
         return deferred.promise;
 
     },
+
+    getFinancialSettlementConfigByPlatform: function(platformId) {
+        return dbconfig.collection_financialSettlementConfig.find({platform: platformId}).lean();
+    }
 };
 
 function getPlatformStringForCallback(platformStringArray, playerId, lineId) {

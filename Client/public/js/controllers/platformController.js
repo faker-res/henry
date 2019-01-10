@@ -22706,7 +22706,7 @@ define(['js/app'], function (myApp) {
                 vm.selectedConfigTab = choice;
                 vm.configTableEdit = false;
                 vm.blacklistIpConfigTableEdit = false;
-                vm.FinancialSettlementSystemTableEdit = false;
+                vm.financialSettlementSystemTableEdit = false;
                 vm.newBlacklistIpConfig = [];
                 vm.delayDurationGroupProviderEdit = false;
                 switch (choice) {
@@ -22792,7 +22792,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'financialSettlementConfig':
                         vm.getFinancialSettlementConfig();
-                        vm.getFinancialSettlementSystem();
+                        vm.getFinancialSettlementSystemConfig();
                         break;
                     case 'largeWithdrawalSetting':
                         vm.getLargeWithdrawalSetting();
@@ -27910,10 +27910,49 @@ define(['js/app'], function (myApp) {
                 vm.financialSettlementConfig.financialPointsDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.financialPointsDisableWithdrawal? "1": "0";
             }
 
-            vm.getFinancialSettlementSystem = function () {
-                vm.financialSettlementSystem = vm.financialSettlementSystem || {};
+            // region Financial Settlement System Config
+            vm.getFinancialSettlementSystemConfig = function () {
+                vm.financialSettlementSystemConfig = vm.financialSettlementSystemConfig || [];
+                vm.cloneOriFinancialSettlementConfig = [];
 
-            }
+                let sendData = {
+                    platform: vm.selectedPlatform.id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getFinancialSettlementConfigByPlatform', sendData, function (data) {
+                    console.log('getFinancialSettlementConfigByPlatform', data);
+                    $scope.$evalAsync(() => {
+                        if (data && data.data) {
+                            vm.financialSettlementSystemConfig = data.data;
+                            vm.cloneOriFinancialSettlementConfig = JSON.parse(JSON.stringify(data.data));
+                        }
+                    });
+                }, function (err) {
+                    console.log("cannot getFinancialSettlementConfigByPlatform", err);
+                    vm.financialSettlementSystemConfig = [];
+                });
+            };
+
+            vm.resetFinancialSettlementSystemConfig = function () {
+                vm.financialSettlementSystemConfig = vm.cloneOriFinancialSettlementConfig ? JSON.parse(JSON.stringify(vm.cloneOriFinancialSettlementConfig)) : [];
+            };
+
+            vm.enableFinancialSettlementRdBtnConfig = function (idx, data, type) {
+                if (data && data.length > 0) {
+                    for (let i = 0; i < data.length; i++) {
+                        let setting = data[i];
+
+                        if (type == 'topup' && idx != i && setting && setting.enableTopup && setting.enableTopup.toString() == 'true') {
+                            setting.enableTopup = false;
+                            break;
+                        } else if (type == 'bonus' && idx != i && setting && setting.enableBonus && setting.enableBonus.toString() == 'true') {
+                            setting.enableBonus = false;
+                            break;
+                        }
+                    }
+                }
+            };
+            // end region
 
             vm.getPlatformFeeEstimateSetting = function () {
                 vm.platformFeeEstimateSetting = vm.platformFeeEstimateSetting || {};

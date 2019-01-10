@@ -365,6 +365,12 @@
         this._service.applyFKPWithdraw.once(callback);
     };
 
+    proto.getPlayerConsumptionSum = function (callback, requestData) {
+        let data = requestData || {};
+        this._service.getPlayerConsumptionSum.request(data);
+        this._service.getPlayerConsumptionSum.once(callback);
+    };
+
     if (isNode) {
         module.exports = ClientPaymentAPITest;
     } else {

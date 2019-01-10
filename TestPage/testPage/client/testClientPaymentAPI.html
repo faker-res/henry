@@ -963,6 +963,24 @@
     </div>
 </div>
 
+<h3>Get Player Consumption Sum(获取玩家『总』有效投注额)</h3>
+<div class="test-container">
+    <div>
+        <label>Platform Id
+            <input name="platformId">
+        </label>
+    </div>
+    <div>
+        <label>Username
+            <input name="name">
+        </label>
+    </div>
+    <button data-api-name="getPlayerConsumptionSum">Get</button>
+    <div>
+        <textarea></textarea>
+    </div>
+</div>
+
 <script>
     require(['services/client/ClientServices', 'common/WebSocketClient', 'common/TestHelper', 'testAPI/clientAPITest/ClientPaymentAPITest', 'testAPI/clientAPITest/ClientPlayerAPITest','testAPI/clientAPITest/ClientConnectionAPITest'],
             function (ClientServices, WebSocketClient, TestHelper, ClientPaymentAPITest, ClientPlayerAPITest, ClientConnectionAPITest) {

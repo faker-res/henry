@@ -2,9 +2,9 @@ const crypto = require('crypto');
 const req = require('request');
 const rsaCrypto = require('../modules/rsaCrypto');
 
-const extConfig = require('../config/externalPayment/config');
+const extConfig = require('../config/externalPayment/paymentSystems');
 
-const FKPWithdrawUrl = extConfig.fukuaipay.withdrawAPIAddr;
+const FKPWithdrawUrl = extConfig["1"].withdrawAPIAddr;
 
 const externalRESTAPI = {
     // FUKUAIPAY Services
