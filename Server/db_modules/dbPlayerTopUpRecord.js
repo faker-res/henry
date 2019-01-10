@@ -3094,6 +3094,13 @@ var dbPlayerTopUpRecord = {
                             } else {
                                 updateData.data.remark = "线路二：不匹配昵称、支付宝帐号";
                             }
+                        }else if (pmsData.result.line && pmsData.result.line == 3) {
+                            updateData.data.line = pmsData.result.line;
+                            if (updateData && updateData.data && updateData.data.remark) {
+                                updateData.data.remark += ", 网赚";
+                            } else {
+                                updateData.data.remark = "网赚";
+                            }
                         }
 
                         let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
