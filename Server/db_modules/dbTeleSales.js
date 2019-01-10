@@ -1500,7 +1500,7 @@ let dbTeleSales = {
                 return dbconfig.collection_platform.find({
                     _id: {$in: platformIds},
                     phoneWhiteListExportMaxNumber: {$gte: 1}
-                }, {phoneWhiteListExportMaxNumber: 1}).lean();
+                }, {phoneWhiteListExportMaxNumber: 1, name: 1}).lean();
             }
         ).then(
             platformData => {
@@ -1774,15 +1774,22 @@ function tradePhoneForEachPlatform (platformsArr, tsPhoneTradeArr) {
     });
 
     for (let key in platformTsPhoneTrade) {
+        let senderPlatformObj = platformsArr.find(platform => String(platform._id) == String(key));
+        if (!(senderPlatformObj && senderPlatformObj.phoneWhiteListExportMaxNumber)) {
+            continue; // double check only. senderPlatformObj supposed to have value
+        }
         for (let k = platformTsPhoneTrade[key].length - 1; k >=0; k--) {
             let tsPhoneTradeSender = platformTsPhoneTrade[key][k];
+            platformsArr = dbUtility.shuffleArray(platformsArr);
+            outer_loop:
             for (let j = platformsArr.length - 1; j >= 0; j--) {
+                // this platformsArr means receiver platform
                 if (String(platformsArr[j]._id) == String(key) || !platformTsPhoneTrade[platformsArr[j]._id] || !platformTsPhoneTrade[platformsArr[j]._id].length) {
                     // skip if own platform / no phoneTrade in the platform
                     continue;
                 }
 
-                if (tsPhoneTradeSender.tradeablePlatform.includes(String(platformsArr[j]._id)) && platformsArr[j].phoneWhiteListExportMaxNumber) {
+                if (tsPhoneTradeSender.tradeablePlatform.includes(String(platformsArr[j]._id)) && platformsArr[j].phoneWhiteListExportMaxNumber && senderPlatformObj.phoneWhiteListExportMaxNumber) {
                     for (let l = platformTsPhoneTrade[platformsArr[j]._id].length - 1; l >= 0; l--) {
                         let tsPhoneTradeReceiver = platformTsPhoneTrade[platformsArr[j]._id][l];
                         if (tsPhoneTradeReceiver.tradeablePlatform.includes(String(key))) {
@@ -1801,11 +1808,12 @@ function tradePhoneForEachPlatform (platformsArr, tsPhoneTradeArr) {
                             platformTsPhoneTrade[key].splice(k, 1);
                             platformTsPhoneTrade[platformsArr[j]._id].splice(l, 1);
                             platformsArr[j].phoneWhiteListExportMaxNumber--;
+                            senderPlatformObj.phoneWhiteListExportMaxNumber--;
 
                             if (platformsArr[j].phoneWhiteListExportMaxNumber <= 0) {
                                 platformsArr.splice(j, 1)
                             }
-                            break;
+                            break outer_loop;
                         }
                     }
                 } else if (j == 0) {

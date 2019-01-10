@@ -22,7 +22,7 @@ const constShardKeys = {
     collection_partnerChildWeekSummary: ["date", "_id"],
 
     collection_playerTopUpDaySummary: ["date", "_id"],
-    collection_playerTopUpDaySummaryByTopUpType: ["date", "_id"],
+    collection_playerReportDataDaySummary: ["date", "_id"],
     collection_playerTopUpWeekSummary: ["date", "_id"],
     collection_playerConsumptionDaySummary: ["date", "_id"],
     collection_playerConsumptionWeekSummary: ["date", "_id"],

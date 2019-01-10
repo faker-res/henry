@@ -1913,14 +1913,14 @@
                                 td {{'Definition of Answered Phone Call(Choose from feedback status/ multi selection)' | translate}}
                                 td
                                     select.form-control.spicker#configSelectFeedBackTopic(ng-model="vm.bulkCallBasic.definitionOfAnsweredPhone" ng-options="a.key as a.value for (i,a) in vm.playerAllFeedBackResult" ng-disabled="!vm.configTableEdit" multiple)
-                            tr
+                            tr(ng-if="checkViewPermission('Platform', 'Config', 'DecomposeAfterNDays')")
                                 td {{'Decompose after N days(Start to deal with other departments)' | translate}}
                                 td
-                                    input(ng-model='vm.bulkCallBasic.decomposeAfterNDays' ng-disabled='!vm.configTableEdit' type="number" step="1" min="0")
-                            tr
+                                    input(ng-model='vm.bulkCallBasic.decomposeAfterNDays' ng-disabled='!vm.configTableEdit && checkViewPermission("Platform", "Config", "DecomposeAfterNDays")' type="number" step="1" min="0")
+                            tr(ng-if="checkViewPermission('Platform', 'Config', 'AutoExportListOrMaxNumOfTxnEveryday')")
                                 td {{'Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday' | translate}}
                                 td
-                                    input(ng-model='vm.bulkCallBasic.phoneWhiteListExportMaxNumber' ng-disabled='!vm.configTableEdit' type="number" step="1" min="0")
+                                    input(ng-model='vm.bulkCallBasic.phoneWhiteListExportMaxNumber' ng-disabled='!vm.configTableEdit && checkViewPermission("Platform", "Config", "AutoExportListOrMaxNumOfTxnEveryday")' type="number" step="1" min="0")
                     button.btn.btn-primary.common-button(ng-if="!vm.configTableEdit && checkViewPermission('Platform', 'Config', 'BulkCall')", ng-click='vm.configTableEdit=!vm.configTableEdit; vm.debounceRefreshSPicker()')
                         text {{'EDIT' | translate}}
                         img.img-edit
@@ -2067,6 +2067,48 @@
                     br
                     .pull-right
                         button.btn.btn-primary.common-button(ng-if="checkViewPermission('Platform', 'Config', 'financialSettlementConfig')", ng-click = 'vm.showFinancialPointsChange()') {{"add/deduct financial points" | translate}}
+
+                    br
+                    br
+                    table.common-table.playerLvlTable.margin-top-10
+                        thead
+                            tr
+                                th {{'Currently available financial (settlement) system' | translate}}
+                                th {{'DEPOSIT_TOPUP' | translate}}
+                                th {{'DEPOSIT_BONUS' | translate}}
+                                th {{'DEFINITION' | translate}}
+                                th {{'Currently points' | translate}}
+                                th {{'The warning value of Currently points is too low (points check, eMAIL reminder, no fill, close)' | translate}}
+
+                        tbody
+                            tr
+                                td
+                                td
+                                    input(type="radio" name="Topup")
+                                td
+                                    input(type="radio" name="Bonus")
+                                td
+                                    | 不通过其他第三方财务系统,
+                                    br
+                                    |（银行卡、个人支付宝、个人微信、提款将可自行在本系统操作）
+                                td(ng-if)
+                                    | (预设）与本公司创立合作至今的财务公司，
+                                    br
+                                    | 提供银行卡、N 种第三方、支付宝、微信等市面上所有充值。
+                                td
+
+                                td
+
+
+                    div.margin-top-10
+                        button.btn.btn-primary.common-button
+                            text {{'email recipient settings' | translate}}
+                        button.btn.btn-primary.common-button(ng-if="!vm.FinancialSettlementSystemTableEdit ", ng-click='vm.FinancialSettlementSystemTableEdit=!vm.FinancialSettlementSystemTableEdit')
+                            text {{'EDIT' | translate}}
+                            img.img-edit
+                        button.btn.btn-danger.common-button(ng-if='vm.FinancialSettlementSystemTableEdit', ng-click='vm.FinancialSettlementSystemTableEdit=!vm.FinancialSettlementSystemTableEdit;') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.FinancialSettlementSystemTableEdit', ng-click='vm.FinancialSettlementSystemTableEdit=!vm.FinancialSettlementSystemTableEdit;') {{"CONFIRM" | translate}}
+
 
                 div(ng-if='vm.selectedConfigTab=="platformFeeEstimateSetting"')
                     table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')

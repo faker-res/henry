@@ -4030,6 +4030,7 @@ let dbPlayerInfo = {
 
             return dbRewardTaskGroup.getPlayerAllRewardTaskGroupDetailByPlayerObjId({_id: player._id}).then(
                 rtgData => {
+                    console.log("checking rtgData when player top up-2", rtgData)
                     if (rtgData && rtgData.length) {
                         let calCreditArr = [];
 
@@ -7874,16 +7875,10 @@ let dbPlayerInfo = {
         ).then(
             function (rewardEvent) {
                 if (rewardEvent) {
-                    console.log('rewardEvent===', rewardEvent);
-                    console.log('rewardEvent.length===', rewardEvent.length);
                     var rewardEventArray = [];
                     for (var i = 0; i < rewardEvent.length; i++) {
                         var rewardEventItem = rewardEvent[i].toObject();
                         delete rewardEventItem.platform;
-                        console.log('rewardEventItem.name===', rewardEventItem.name);
-                        console.log('rewardEventItem.type.name===', rewardEventItem.type.name);
-                        console.log('rewardEventItem.validStartTime===', rewardEventItem.validStartTime);
-                        console.log('rewardEventItem.validEndTime===', rewardEventItem.validEndTime);
 
                         let providerGroup = null;
                         let providerGroupName = null;
@@ -8496,6 +8491,7 @@ let dbPlayerInfo = {
 
             return dbconfig.collection_rewardTaskGroup.findOne(query).then(
                 (rewardTaskGroup) => {
+                    console.log("checking rewardTaskGroup when player top up-3", rewardTaskGroup)
                     if (rewardTaskGroup) {
                         return dbconfig.collection_rewardTaskGroup.findOneAndUpdate(
                             {_id: rewardTaskGroup._id},
@@ -8523,7 +8519,12 @@ let dbPlayerInfo = {
                         };
 
                         // create new reward group
-                        return new dbconfig.collection_rewardTaskGroup(saveObj).save();
+                        return new dbconfig.collection_rewardTaskGroup(saveObj).save().then(
+                            newRecord => {
+                                console.log("checking create new RTG when player top up-4", newRecord)
+                                return newRecord
+                            }
+                        );
                     }
                 }, (error) => {
                     return Q.reject({name: "DataError", message: "Cannot find reward task group"});
@@ -11685,7 +11686,7 @@ let dbPlayerInfo = {
                                             console.log('newPlayerData.validCredit===', newPlayerData.validCredit);
                                             console.log('parseInt(newPlayerData.validCredit)===', parseInt(newPlayerData.validCredit));
                                             //check if player's credit is correct after update
-                                            if (parseInt(amountAfterUpdate) != parseInt(newPlayerData.validCredit)) {
+                                            if (Math.floor(amountAfterUpdate) != Math.floor(newPlayerData.validCredit)) {
                                                 console.log("PlayerBonus: Update player credit failed", amountAfterUpdate, newPlayerData.validCredit);
                                                 return Q.reject({
                                                     status: constServerCode.PLAYER_NOT_ENOUGH_CREDIT,
@@ -19139,6 +19140,9 @@ let dbPlayerInfo = {
             filteredPhones => {
                 let promArr = [];
                 filteredPhones.forEach(phone => {
+                    if (!phone) {
+                        return;
+                    }
                     let encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
                     let phoneLocation = queryPhoneLocation(phone.phoneNumber);
                     let phoneProvince = phoneLocation && phoneLocation.province || "";

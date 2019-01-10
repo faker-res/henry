@@ -645,6 +645,7 @@ define(['js/app'], function (myApp) {
                     }), data.data.size, {}, newSearch
                 );
                 $scope.$evalAsync();
+                vm.recheckIfCtiRunningDebounced();
             }, function (err) {
                 $('#adminPhoneListTableSpin').hide();
                 console.log(err);
@@ -798,8 +799,6 @@ define(['js/app'], function (myApp) {
             }
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.adminPhoneListTable = $('#adminPhoneListTable').DataTable(tableOptions);
-            if (vm.adminPhoneListDataTableObj) vm.adminPhoneListDataTableObj.destroy();
-            delete vm.adminPhoneListDataTableObj;
             vm.adminPhoneListDataTableObj = utilService.createDatatableWithFooter(tableId, tableOptions, {});
             vm[objKey].pageObj.init({maxCount: size}, newSearch);
 
@@ -7755,7 +7754,7 @@ define(['js/app'], function (myApp) {
                             if (vm.calleeCallOutStatus[callee._id] != 1 && callee.status == 1) {
                                 let tsDPhoneId = callee.tsDistributedPhone && callee.tsDistributedPhone._id;
                                 let url = window.location.origin + "/teleMarketing/tsPhone/" + tsDPhoneId;
-                                utilService.openInNewWindow(url);
+                                utilService.openInNewTab(url);
                             }
                             vm.calleeCallOutStatus[callee._id] = callee.status;
                         });
@@ -7774,6 +7773,18 @@ define(['js/app'], function (myApp) {
                 }
             );
         };
+
+        vm.recheckIfCtiRunning = () => {
+            $scope.$socketPromise('checkTsCtiMissionMode', {platformObjId:vm.selectedPlatform.id}).then(
+                data => {
+                    if (data && data.data && data.data.hasOnGoingMission) {
+                        vm.isCallOutMissionMode = true;
+                        vm.getCtiData(true);
+                    }
+                }
+            );
+        };
+        vm.recheckIfCtiRunningDebounced = $scope.debounce(vm.recheckIfCtiRunning, 8000, true);
 
         vm.stopCallOutMission = () => {
             $('#adminPhoneListTableSpin').show();

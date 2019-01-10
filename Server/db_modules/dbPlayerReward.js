@@ -2569,9 +2569,10 @@ let dbPlayerReward = {
         });
     },
     getPromoCode: (playerId, platformId, status, emptyBonusList) => {
+        console.log('getPromoCode', playerId);
         let platformData = null;
-        var playerData = null;
-        var promoListData = null;
+        let playerData = null;
+        let promoListData = null;
 
         return expirePromoCode()
             .then(() => dbConfig.collection_platform.findOne({platformId: platformId}).lean())
@@ -7792,7 +7793,7 @@ let dbPlayerReward = {
             if (applyAmount) {
                 if (eventData.condition.isDynamicRewardAmount) {
                     if (selectedRewardParam[selectedIndex] && selectedRewardParam[selectedIndex].hasOwnProperty('rewardPercentage')) {
-                        rewardAmount = applyAmount * selectedRewardParam[selectedIndex].rewardPercentage;
+                        rewardAmount = Number(applyAmount) * Number(selectedRewardParam[selectedIndex].rewardPercentage);
 
                         if (selectedRewardParam[selectedIndex] && selectedRewardParam[selectedIndex].maxRewardAmountInSingleReward && selectedRewardParam[selectedIndex].maxRewardAmountInSingleReward > 0) {
                             rewardAmount = Math.min(rewardAmount, Number(selectedRewardParam[selectedIndex].maxRewardAmountInSingleReward));
@@ -7801,11 +7802,11 @@ let dbPlayerReward = {
                 }
                 else {
                     if (selectedRewardParam[selectedIndex] && selectedRewardParam[selectedIndex].hasOwnProperty('rewardAmount')) {
-                        rewardAmount = selectedRewardParam[selectedIndex].rewardAmount;
+                        rewardAmount = Number(selectedRewardParam[selectedIndex].rewardAmount);
                     }
                 }
                 selectedRewardParam[selectedIndex].spendingTimes = selectedRewardParam[selectedIndex].spendingTimes || 1;
-                spendingAmount = rewardAmount * selectedRewardParam[selectedIndex].spendingTimes;
+                spendingAmount = Number(rewardAmount) * Number(selectedRewardParam[selectedIndex].spendingTimes);
             }
 
             return {

@@ -518,7 +518,9 @@ var roleChecker = {
                 providerGroup: ['deletePlatformProviderGroup'],
                 smsGroup: [],
                 BulkCall: [],
-                DownloadTranslationCSV: ['downloadTranslationCSV']
+                DownloadTranslationCSV: ['downloadTranslationCSV'],
+                DecomposeAfterNDays: [],
+                AutoExportListOrMaxNumOfTxnEveryday: []
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
