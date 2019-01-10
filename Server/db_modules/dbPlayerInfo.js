@@ -21406,6 +21406,34 @@ let dbPlayerInfo = {
         });
     },
 
+    getPlayerConsumptionSum: function (platformId, playerName) {
+        return dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
+            platformData => {
+                if (platformData && platformData._id) {
+                    return dbconfig.collection_players.findOne({name: playerName, platform: platformData._id}, {_id: 0, consumptionSum: 1}).then(
+                        playerData => {
+                            if (playerData) {
+                                let totalConsumption = {
+                                    consumptionSum: 0
+                                };
+
+                                if (playerData.consumptionSum) {
+                                    totalConsumption.consumptionSum = playerData.consumptionSum;
+                                }
+
+                                return totalConsumption;
+                            } else {
+                                return Promise.reject({name: "DataError", message: "Can not find player"});
+                            }
+                        }
+                    );
+                } else {
+                    return Promise.reject({name: "DataError", message: "Can not find platform"});
+                }
+            }
+        )
+    },
+
     playerCreditClearOut: function (playerName, platformObjId, adminName, adminId) {
         let platform = null;
         let providers = [];

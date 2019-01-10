@@ -42,8 +42,8 @@ const thirdPartyAPIConfig = {
         minPointNotification: 150000
     },
     4: {
-        topUpAPIAddr: "http://pms-pay-cstest.neweb.me/test/",
-        topUpAPICallback: "http://localhost:7100",
+        topUpAPIAddr: "http://52.221.143.107:8182/",
+        topUpAPICallback: "http://devtest.wsweb.me:7100/notifyPayment",
 
         //financial settlement
         name: '其他财务4',
