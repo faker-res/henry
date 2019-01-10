@@ -273,15 +273,17 @@ var dbAuction = {
         let proms = [];
         let proposalType;
         let result = [];
-
-        return dbconfig.collection_proposalType.findOne({
+        let sendQuery = {
             platformId: query.platformObjId,
-            name: constProposalType.PLAYER_TOP_UP
-        }).lean()
+            name : {'$in': [constProposalType.AUCTION_PROMO_CODE, constProposalType.AUCTION_OPEN_PROMO_CODE, constProposalType.AUCTION_REWARD_PROMOTION, constProposalType.AUCTION_REAL_PRIZE, constProposalType.AUCTION_REWARD_POINT_CHANGE]}
+        };
+        return dbconfig.collection_proposalType.find(sendQuery).lean()
         .then(
             proposalTypeData => {
-                if (proposalTypeData) {
-                    proposalType = proposalTypeData;
+                if (proposalTypeData.length > 0) {
+                    proposalType = proposalTypeData.map(item=>{
+                        return item._id;
+                    })
                 }
                 return dbconfig.collection_auctionSystem.find(query).lean()
             }
@@ -291,13 +293,13 @@ var dbAuction = {
             auctionItems.forEach(item=>{
                 let period = dbAuction.getPeriodTime(item);
                 let prom = dbconfig.collection_proposal.find({
-                    type: proposalType._id,
-                    $or: [{status: constProposalStatus.APPROVED}, {status: constProposalStatus.SUCCESS}],
+                    type: {'$in': proposalType},
                     createTime:{
                         '$gte':period.startTime,
                         '$lte':period.endTime
-                    }
-                },{ 'proposalId':1, 'status':1, 'data.playerName':1, 'createTime':1 }).limit(10).sort('-createTime')
+                    },
+                    'data.auction':item._id
+                },{ 'proposalId':1, 'status':1, 'data.playerName':1, 'createTime':1, 'data.currentBidPrice':1 }).limit(10).sort('-createTime')
                 .then(proposal=>{
                     item.proposal = proposal;
                     return item;
@@ -653,6 +655,7 @@ var dbAuction = {
                                 productName: productName,
                                 currentBidPrice: playerBidPrice,
                                 remark: remark,
+                                auction: auctionData._id ? auctionData._id : ''
                             },
                             creator: {
                                 name: playerName ? playerName : ''
