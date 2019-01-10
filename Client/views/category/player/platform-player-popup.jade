@@ -1,5 +1,5 @@
 #modalPlayerInfo.modal.fade(role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -357,7 +357,7 @@
                                                 text(ng-if='!v.field == "phoneNumber" || v.content.length<=30') {{v.content || "NONE" | translate}}
 
 #modalPlayerInfoHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:90%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -402,7 +402,7 @@
                 button.common-button.margin-right-5.btn.btn-warning(ng-if='!vm.playerNewPassword', data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalModifyGamePassword.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -473,7 +473,7 @@
 
 
 #modalPlayerCredibilityRemarks.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -481,21 +481,17 @@
             .modal-body
                 .panel.panel-primary
                     .panel-body
-                        //button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated && vm.platformPageName !='batchPermit' ", ng-click="vm.submitRemarkUpdate()", ng-disabled="vm.somePlayerRemarksRemoved && !vm.credibilityRemarkComment") {{"CONFIRM" | translate}}
-                        button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated && vm.platformPageName !='batchPermit' ", ng-click="vm.submitRemarkUpdate()") {{"CONFIRM" | translate}}
-                        button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated && vm.platformPageName =='batchPermit' ", ng-click="vm.localRemarkUpdate()") {{"CONFIRM" | translate}}
-                        button.btn.btn-success.common-button(ng-if="vm.playerCredibilityRemarksUpdated", data-dismiss='modal') {{'OK' | translate}}
                         span {{vm.credibilityRemarkUpdateMessage | translate}}
-                        div.row
+                        div
                             div.col-md-4
-                                .well.row
+                                .well
                                     label {{"REDUCE_SCORE" | translate}}
-                                    table.paddingTbl(style='min-width:100%')
+                                    table.paddingTbl.paymentGroup-btn
                                         thead
                                             tr
-                                                th {{"remark" | translate}}
-                                                th {{"score" | translate}}
-                                                th {{"SELECT" | translate}}
+                                                th.alignLeft  {{"remark" | translate}}
+                                                th.alignLeft  {{"score" | translate}}
+                                                th.alignLeft  {{"SELECT" | translate}}
                                         tbody
                                             tr(ng-repeat='(i, data) in vm.negativeRemarks')
                                                 td
@@ -509,12 +505,12 @@
                             div.col-md-4
                                 .well
                                     label {{"ADD_SCORE" | translate}}
-                                    table.paddingTbl(style='min-width:100%')
+                                    table.paddingTbl.paymentGroup-btn
                                         thead
                                             tr
-                                                th {{"remark" | translate}}
-                                                th {{"score" | translate}}
-                                                th {{"SELECT" | translate}}
+                                                th.alignLeft  {{"remark" | translate}}
+                                                th.alignLeft  {{"score" | translate}}
+                                                th.alignLeft  {{"SELECT" | translate}}
                                         tbody
                                             tr(ng-repeat='(i, data) in vm.positiveRemarks')
                                                 td
@@ -528,12 +524,12 @@
                             div.col-md-4
                                 .well
                                     label {{"REMINDER" | translate}}
-                                    table.paddingTbl(style='min-width:100%')
+                                    table.paddingTbl.paymentGroup-btn
                                         thead
                                             tr
-                                                th {{"remark" | translate}}
-                                                th {{"score" | translate}}
-                                                th {{"SELECT" | translate}}
+                                                th.alignLeft  {{"remark" | translate}}
+                                                th.alignLeft  {{"score" | translate}}
+                                                th.alignLeft  {{"SELECT" | translate}}
                                         tbody
                                             tr(ng-repeat='(i, data) in vm.neutralRemarks')
                                                 td
@@ -546,35 +542,37 @@
                                                     span(id="{{'c-'+data._id}}")
                 .panel.panel-primary
                     .panel-body
-                        div.col-md-4(style='width:40%;')
+                        div.col-md-6
                             label {{'REMARKS' | translate}}:
                             div
-                                textarea.form-control(style="max-width: 90%; overflow: auto; margin-bottom: 12px;", rows="15", ng-model="vm.credibilityRemarkComment", placeholder="{{'Player Credibility' | translate}}{{'REMARKS' | translate}}")
-                        div.col-md-4(style='width:60%;', ng-if="vm.platformPageName != 'batchPermit'")
+                                textarea.form-control(rows="15", ng-model="vm.credibilityRemarkComment", placeholder="{{'Player Credibility' | translate}}{{'REMARKS' | translate}}")
+                        div.col-md-6(ng-if="vm.platformPageName != 'batchPermit'")
                             label {{'CREDIBILITY_RECORD' | translate}}
-                            .well
-                                div(align="center")
-                                    table.paddingTbl(style='min-width:100%')
-                                        thead
-                                            tr
-                                                th {{"OPERATOR_NAME" | translate}}
-                                                th {{"TIME" | translate}}
-                                                th {{"CREDIBILITY" | translate}}
-                                                th {{"remark" | translate}}
-                                        tbody
-                                            tr(ng-repeat='(i, data) in vm.playerCredibilityComment')
-                                                td(style="text-align:center;border: 1px solid #0099CC")
-                                                    text {{data.admin}}
-                                                td(style= "border: 1px solid #0099CC")
-                                                    text {{data.createTime}}
-                                                td(style="text-align:center;border: 1px solid #0099CC")
-                                                    text {{data.remarks$}}
-                                                td(style = "background-color:white;border: 1px solid #0099CC")
-                                                    text {{data.comment}}
+                                table(align="center", border="1").paddingTbl.paymentGroup-btn
+                                    thead
+                                        tr
+                                            th {{"OPERATOR_NAME" | translate}}
+                                            th {{"TIME" | translate}}
+                                            th {{"CREDIBILITY" | translate}}
+                                            th {{"remark" | translate}}
+                                    tbody
+                                        tr(ng-repeat='(i, data) in vm.playerCredibilityComment')
+                                            td
+                                                text {{data.admin}}
+                                            td
+                                                text {{data.createTime}}
+                                            td
+                                                text {{data.remarks$}}
+                                            td
+                                                text {{data.comment}}
 
+                //button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated && vm.platformPageName !='batchPermit' ", ng-click="vm.submitRemarkUpdate()", ng-disabled="vm.somePlayerRemarksRemoved && !vm.credibilityRemarkComment") {{"CONFIRM" | translate}}
+                button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated && vm.platformPageName !='batchPermit' ", ng-click="vm.submitRemarkUpdate()") {{"CONFIRM" | translate}}
+                button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated && vm.platformPageName =='batchPermit' ", ng-click="vm.localRemarkUpdate()") {{"CONFIRM" | translate}}
+                button.btn.btn-success.common-button(ng-if="vm.playerCredibilityRemarksUpdated", data-dismiss='modal') {{'OK' | translate}}
 
 #modalPlayerAccountingDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style="width:95%;")
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', ng-click='vm.closeCreditTransferLog("#modalPlayerAccountingDetail")')
@@ -610,7 +608,7 @@
                                         th {{'PROVIDER_ID' | translate}}
                                         th {{'CREDIT' | translate}}
                                         th {{'TRANSFER' | translate}}
-                                tbody(style='max-height:500px;overflow-y:auto')
+                                tbody
                                     tr(ng-repeat='(i,v) in vm.platformProviderList')
                                         td {{v.name}}
                                         td {{v.providerId}}
@@ -664,7 +662,7 @@
                                 .inlineBlk(ng-if='vm.playerProposal.loading')
                                     i.fa.fa-spin.fa-spinner
                             label {{"Total" | translate}} {{vm.playerProposal.totalCount}} {{"records" | translate}}
-                            table#playerProposalTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                            table#playerProposalTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
                             #playerProposalTablePage
                         div(ng-show="vm.selectedPlayerAccountingDetailTab == 'bet-log'")
                             #playerExpense.adminLogQueryDiv
@@ -708,7 +706,7 @@
                                         p
                                         label {{"Total" | translate}} {{vm.playerExpenseLog.totalCount}} {{"records" | translate}}
                                         i.fa.fa-spin.fa-spinner(ng-show='vm.playerExpenseLog.loading')
-                                        table#playerExpenseTable.common-table.display(style='width:100%')
+                                        table#playerExpenseTable.common-table.display.paymentGroup-btn
                                         #playerExpenseTablePage
                         div(ng-show="vm.selectedPlayerAccountingDetailTab == 'credit-log'")
                             #playerCreditChangeLog.adminLogQueryDiv
@@ -728,7 +726,7 @@
                                 .inlineBlk(ng-if='vm.playerCreditChangeLog.loading')
                                     i.fa.fa-spin.fa-spinner
                             label {{"Total" | translate}} {{vm.playerCreditChangeLog.totalCount}} {{"records" | translate}}
-                            table#playerCreditChangeLogTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                            table#playerCreditChangeLogTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
                             #playerCreditChangeLogTablePage
                         div(ng-show="vm.selectedPlayerAccountingDetailTab == 'platform-transfer-log'")
                             #platformCreditTransferLog.adminLogQueryDiv
@@ -762,7 +760,7 @@
                                     button.btn.btn-primary(ng-click='vm.getPagedPlatformCreditTransferLog(true)') {{'SEARCH' | translate}}
                                 .inlineBlk(ng-if='vm.platformCreditTransferLog.loading')
                                     i.fa.fa-spin.fa-spinner
-                            table#platformCreditTransferLogTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                            table#platformCreditTransferLogTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
                             #platformCreditTransferLogTablePage
 
                             .clearfix
@@ -802,7 +800,7 @@
                                 button.btn.btn-primary.common-button(ng-click='vm.getPlayerCreditLogData(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
                             div
                                 label {{"Total" | translate}} {{vm.playerCreditLog.totalCount}} {{"records" | translate}}
-                                table#playerCreditLogTbl.common-table.display(style='min-width:100%')
+                                table#playerCreditLogTbl.common-table.display.paymentGroup-btn
                                 #playerCreditLogTblPage.height30
                         div(ng-show="vm.selectedPlayerAccountingDetailTab == 'rewardTask-log'")
                             #playerRewardTaskLog.adminLogQueryDiv
@@ -822,7 +820,7 @@
                                 .inlineBlk(ng-if='vm.playerRewardTaskLog.loading')
                                     i.fa.fa-spin.fa-spinner
                             label {{"Total" | translate}} {{vm.playerRewardTaskLog.totalCount}} {{"records" | translate}}
-                            table#playerRewardTaskLogTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                            table#playerRewardTaskLogTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
                             #playerRewardTaskLogTablePage
             .modal-footer
                 div(ng-show="vm.selectedPlayerAccountingDetailTab == 'current-credit'")
@@ -836,7 +834,7 @@
 
 
 #modalPlayerApiLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -861,14 +859,14 @@
                     .inlineBlk(ng-if="vm.selectedSinglePlayer == null")
                         label {{"Player Name (Can be empty)" | translate}}
                         input.form-control(ng-model='vm.playerApiLog.playerName')
-                    button.btn.btn-primary.common-button(ng-click='vm.getPlayerApiLogData(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
+                    button.btn.btn-primary.common-button(ng-click='vm.getPlayerApiLogData(true)') {{"SEARCH" | translate}}
                 div
                     label {{"Total" | translate}} {{vm.playerApiLog.totalCount}} {{"records" | translate}}
-                    table#playerApiLogTbl.common-table.display(style='min-width:100%')
+                    table#playerApiLogTbl.common-table.display.paymentGroup-btn
                     #playerApiLogTblPage.height30
 
 #modalPlayerRewardPointsLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -876,13 +874,13 @@
             .modal-body
                 div
                     label {{"Total" | translate}} {{vm.playerRewardPointsLog.totalCount}} {{"records" | translate}}
-                    table#playerRewardPointsLogTbl.common-table.display(style='min-width:100%')
+                    table#playerRewardPointsLogTbl.common-table.display.paymentGroup-btn
                     #playerRewardPointsLogTblPage.height30
 
 
 
 #modalAddPlayerFeedback.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -946,7 +944,7 @@
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalPlayerTopUp.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:50%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1306,7 +1304,7 @@
                     label.inlineBlk.wordWrap(ng-if='vm.playerAssignTopUp.submitted && vm.playerAssignTopUp.responseMsg', style="width: calc(100% - 210px)") {{vm.playerAssignTopUp.responseMsg}}
 
 #modalPlayerBonus.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:50%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1332,7 +1330,7 @@
                 i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='!vm.playerBonus.showSubmit && !vm.playerBonus.resMsg')
 
 #modalPlayerAddRewardTask.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:90%')
+    .modal-dialog
         .modal-content(style='max-height: 90vh')
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1569,11 +1567,11 @@
                                             div(style='display:inline-block;padding-left:3px;') {{v.validCredit || '0'}}
 
                             div(ng-show="vm.selectedPlatform.data.useProviderGroup")
-                                table#rewardTaskGroupLogTbl.common-table.display(style='min-width:100%')
+                                table#rewardTaskGroupLogTbl.common-table.display.paymentGroup-btn
                                 #rewardTaskGroupLogTblPage.height30
 
                             div
-                                table#rewardTaskLogTbl.common-table.display(style='min-width:100%')
+                                table#rewardTaskLogTbl.common-table.display.paymentGroup-btn
                                 #rewardTaskLogTblPage.height30
 
             .modal-footer
@@ -1598,7 +1596,7 @@
                     label.inlineBlktext-danger.margin-right-5 {{vm.manualUnlockRewardTask.resMsg}}
 
 #modalReapplyLostOrder.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:90%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1677,7 +1675,7 @@
                     button.common-button.margin-right-5.btn.btn-success(data-dismiss='modal', ng-show='vm.submitRepairePayementStep==2') {{"Completed" | translate}} {{vm.repairProposalId}}
 
 #modalPlayerCreditAdjustment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1709,7 +1707,7 @@
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalPlayerRewardPointsAdjustment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1786,7 +1784,7 @@
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalPlayerPermissionChangeLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog.modal-medium
         #playerPermissionHistory.modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')

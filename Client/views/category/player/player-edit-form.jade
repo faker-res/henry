@@ -13,7 +13,7 @@ form(name="form_editing_player", novalidate)
             input.form-control(type="text", placeholder='{{"REAL_NAME" | translate}}', ng-model="playerBeingEdited.realName")
     .row.margin-left-5.margin-right-5
         .form-group.col-md-6
-            label.control-label {{"GENDERS" | translate}}
+            label.control-label {{"GENDER" | translate}}
             div
                 label.radio-inline {{"Male" | translate}}
                     input.pull-left.relative(type="radio", name="gender",ng-value="true", ng-model="playerBeingEdited.gender")
