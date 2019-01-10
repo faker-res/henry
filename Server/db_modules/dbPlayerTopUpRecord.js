@@ -830,7 +830,7 @@ var dbPlayerTopUpRecord = {
                     queryObj['data.bankTypeId'] = {$in: convertStringNumber(query.bankTypeId)};
                 }
                 if (query.userAgent && query.userAgent.length > 0) {
-                    queryObj['data.userAgent'] = {$in: convertStringNumber(query.userAgent)};
+                    queryObj['inputDevice'] = {$in: convertStringNumber(query.userAgent)};
                 }
                 if(query.line){
                     queryObj['data.line'] = query.line;
