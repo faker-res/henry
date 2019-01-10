@@ -1933,8 +1933,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                         return mer.status !== 'DISABLED';
                     });
 
-                    let line2Acc = commonService.getAlipayLine2Acc($trans);
-                    let line3Acc = commonService.getAlipayLine3Acc($trans);
+                    let line2Acc = commonService.getAlipayLineAcc($trans, "2");
+                    let line3Acc = commonService.getAlipayLineAcc($trans, "3");
                     $scope.merchantNoList.push(line2Acc);
                     $scope.merchantNoList.push(line3Acc);
                     $scope.merchantNoList.forEach(item => {

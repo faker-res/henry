@@ -335,37 +335,20 @@ define([], () => {
             return result;
         }
 
-        self.getAlipayLine2Acc = function ($translate) {
-            let line2Acc = {
-                accountNumber:"MMM4-line2",
+        self.getAlipayLineAcc = function ($translate, no) {
+            let lineAcc = {
+                accountNumber:"MMM4-line"+no,
                 bankTypeId:"170",
-                merchantNo:"MMM4-line2",
+                merchantNo:"MMM4-line"+no,
                 merchantTypeId:"9997",
                 merchantTypeName:"AliPayAcc",
                 minDepositAmount:1,
-                name: $translate("MMM4-line2"),
+                name: $translate("MMM4-line"+no),
                 singleLimit:0,
                 state:"NORMAL"
             }
-            return line2Acc;
+            return lineAcc;
         };
-
-        self.getAlipayLine3Acc = function ($translate) {
-            let line3Acc = {
-                accountNumber:"MMM4-line3",
-                bankTypeId:"170",
-                merchantNo:"MMM4-line3",
-                merchantTypeId:"9997",
-                merchantTypeName:"AliPayAcc",
-                minDepositAmount:1,
-                name: $translate("MMM4-line3"),
-                singleLimit:0,
-                state:"NORMAL"
-            }
-            return line3Acc;
-        };
-
-
         // endregion
 
 
