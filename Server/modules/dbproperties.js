@@ -92,7 +92,7 @@ let depositGroupSchema = require('./../schema/depositGroup');
 let qualityInspectionSchema = require('./../schema/qualityInspection');
 let live800RecordDaySummarySchema = require('./../schema/live800RecordDaySummary');
 let wcDeviceSchema = require('./../schema/admindb/wcDevice');
-let financialSettlementConfigSchema = require('./../schema/admindb/financialSettlementConfig');
+let financialSettlementConfigSchema = require('../schema/admindb/financialSettlementConfig');
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
