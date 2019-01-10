@@ -1630,6 +1630,12 @@ define(['js/app'], function (myApp) {
                 sendObj.merchantNo = vm.queryTopup.merchantNo.filter(merchantData=>{
                     return merchantData != 'MMM4-line2';
                 })
+            }else if(vm.queryTopup.merchantNo && vm.queryTopup.merchantNo.length == 1 && vm.queryTopup.merchantNo.indexOf('MMM4-line3') != -1){
+                sendObj.line = '3';
+                vm.queryTopup.line = '3';
+                sendObj.merchantNo = vm.queryTopup.merchantNo.filter(merchantData=>{
+                    return merchantData != 'MMM4-line3';
+                })
             }else{
                 vm.queryTopup.line = null;
             }
@@ -1674,7 +1680,7 @@ define(['js/app'], function (myApp) {
                         return item;
                     }), data.data.size, {amount: data.data.total}, newSearch, isExport
                 );
-                $scope.safeApply();
+                $scope.$evalAsync();
             }, function (err) {
                 console.log(err);
             }, true);
@@ -1823,11 +1829,11 @@ define(['js/app'], function (myApp) {
                     },
                 ],
                 "paging": false,
-                createdRow: function (row, data, dataIndex) {
-                    $compile(angular.element(row).contents())($scope);
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
                 },
                 fnDrawCallback: function () {
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 }
 
             }
