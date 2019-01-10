@@ -350,6 +350,22 @@ define([], () => {
             return line2Acc;
         };
 
+        self.getAlipayLine3Acc = function ($translate) {
+            let line3Acc = {
+                accountNumber:"MMM4-line3",
+                bankTypeId:"170",
+                merchantNo:"MMM4-line3",
+                merchantTypeId:"9997",
+                merchantTypeName:"AliPayAcc",
+                minDepositAmount:1,
+                name: $translate("MMM4-line3"),
+                singleLimit:0,
+                state:"NORMAL"
+            }
+            return line3Acc;
+        };
+
+
         // endregion
 
 
