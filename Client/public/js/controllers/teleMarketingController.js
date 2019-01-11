@@ -1252,11 +1252,14 @@ define(['js/app'], function (myApp) {
             }
 
             for (let i = 0; i < vm.allPlayerFeedbackResults.length; i++) {
-                if (vm.selectedPlatform.data.definitionOfAnsweredPhone.includes(vm.allPlayerFeedbackResults[i].value)) {
+                if (vm.selectedPlatform.data.definitionOfAnsweredPhone.includes(vm.allPlayerFeedbackResults[i].key)) {
                     vm.tsPhoneAddFeedback.result = vm.allPlayerFeedbackResults[i].key;
                     break;
                 }
             }
+
+            vm.preventDetailPageMultipleFeedback = true;
+            vm.isNotFirstRequestAfterInit = false;
         };
 
         vm.addTsPhonePlayerFeedback = function (playerObjId) {
@@ -1285,7 +1288,7 @@ define(['js/app'], function (myApp) {
             vm.tsPhoneReminder = {tsPhone: tsPhoneObjId && tsPhoneObjId.tsPhone && tsPhoneObjId.tsPhone._id || ""};
             utilService.actionAfterLoaded("#phoneListReminderTimePicker", function () {
                 let remindDate = tsPhoneObjId.remindTime || utilService.getNdaylaterStartTime(1)
-                commonService.commonInitTime(utilService, vm, 'tsPhoneReminder', 'startTime', '#phoneListReminderTimePicker', remindDate, true, {maxDate: null});
+                commonService.commonInitTime(utilService, vm, 'tsPhoneReminder', 'startTime', '#phoneListReminderTimePicker', remindDate, true, {maxDate: null, noInvert: true});
             })
         }
 
@@ -1493,6 +1496,13 @@ define(['js/app'], function (myApp) {
         }
 
         vm.addTsPhoneFeedback = function (data) {
+            // region phone detail page prevent multiple request send
+            if (vm.preventDetailPageMultipleFeedback && vm.isNotFirstRequestAfterInit) {
+                return;
+            }
+            vm.isNotFirstRequestAfterInit = true;
+            // endregion
+
             let resultName = vm.allPlayerFeedbackResults.filter(item => {
                 return item.key == data.result;
             });

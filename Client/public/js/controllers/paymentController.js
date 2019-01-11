@@ -2080,7 +2080,7 @@ define(['js/app'], function (myApp) {
                                     data.quota = alipay.dailyLimit;
                                     data.minDepositAmount = alipay.minDepositAmount;
                                     data.state = alipay.flag ? alipay.flag.split(" ")[0] : "DISABLED";
-
+                                    data.line = alipay.line;
                                     groupData.alipays.push(data);
                                 });
                             }
