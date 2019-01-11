@@ -19128,10 +19128,9 @@ let dbPlayerInfo = {
                     adminName: adminName,
                     admin: adminId
                 }).save().catch(errorUtils.reportError);
-
-                let filteredPhonesProm = Promise.resolve(phoneListDetail);
+                
                 // if (saveObj.isCheckWhiteListAndRecycleBin) {
-                filteredPhonesProm = filterPhoneWithOldTsPhone(saveObj.platform, phoneListDetail, tsList._id, saveObj.isCheckWhiteListAndRecycleBin);
+                let filteredPhonesProm = filterPhoneWithOldTsPhone(saveObj.platform, phoneListDetail, tsList._id, saveObj.isCheckWhiteListAndRecycleBin);
                 // }
 
                 return filteredPhonesProm;
