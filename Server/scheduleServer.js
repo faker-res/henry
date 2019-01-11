@@ -10,12 +10,8 @@ let scheduleSavePlayersCredit = require('./schedule/scheduleSavePlayersCredit');
 let scheduleAutoProposal = require('./schedule/scheduleAutoProposal');
 let scheduleConvertRewardPoints = require('./schedule/scheduleConvertRewardPoints');
 let scheduleCheckAndUpdateWCSessionStatus = require('./schedule/scheduleCheckAndUpdateWCSessionStatus');
+let scheduleAuction = require('./schedule/scheduleAuction');
 //let scheduleLive800DailySummarized = require('./schedule/scheduleLive800DailySummarized');
 //var scheduleProposalExpiration = require('./schedule/scheduleProposalExpiration');
 
 //var scheduleStatistics = require('./schedule/scheduleStatistics');
-
-
-
-
-

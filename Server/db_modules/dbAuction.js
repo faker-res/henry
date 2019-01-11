@@ -9,6 +9,8 @@ const constPromoCodeTemplateGenre = require("./../const/constPromoCodeTemplateGe
 const dbutility = require('./../modules/dbutility');
 const dbPlayerReward = require('./../db_modules/dbPlayerReward');
 const errorUtils = require("./../modules/errorUtils");
+const proposalExecutor = require('./../modules/proposalExecutor');
+const dbProposalUtility = require("./../db_common/dbProposalUtility");
 
 var dbAuction = {
     /**
@@ -269,7 +271,8 @@ var dbAuction = {
     applyAuction: (data) =>{
         return [];
     },
-    listAuctionMonitor: function(query){
+    listAuctionMonitor: function(query, limit){
+        console.log('**', limit)
         let proms = [];
         let proposalType;
         let result = [];
@@ -285,6 +288,7 @@ var dbAuction = {
                         return item._id;
                     })
                 }
+                console.log('query', query)
                 return dbconfig.collection_auctionSystem.find(query).lean()
             }
         ).then(auctionItems=>{
@@ -292,15 +296,9 @@ var dbAuction = {
             // if(auctionItems.length <= 0 ){ return }
             auctionItems.forEach(item=>{
                 let period = dbAuction.getPeriodTime(item);
-                let prom = dbconfig.collection_proposal.find({
-                    type: {'$in': proposalType},
-                    createTime:{
-                        '$gte':period.startTime,
-                        '$lte':period.endTime
-                    },
-                    'data.auction':item._id
-                },{ 'proposalId':1, 'status':1, 'data.playerName':1, 'createTime':1, 'data.currentBidPrice':1 }).limit(10).sort('-createTime')
+                let prom = dbAuction.getAuctionProposal(proposalType, period, item, limit)
                 .then(proposal=>{
+                    console.log('process 2-->')
                     item.proposal = proposal;
                     return item;
                 });
@@ -314,6 +312,25 @@ var dbAuction = {
             )
         })
     },
+    getAuctionProposal: function(proposalType, period, item, limit){
+        let sendQuery = {
+           type: {'$in': proposalType},
+           createTime:{
+               '$gte':period.startTime,
+               '$lte':period.endTime
+           },
+           'data.auction':item._id
+        }
+        let options ={ 'proposalId':1, 'status':1, 'data.playerName':1, 'createTime':1, 'data.currentBidPrice':1 };
+
+        if(limit){
+            options ={ 'type':1, 'proposalId':1, 'status':1, 'data.playerName':1, 'createTime':1, 'data.currentBidPrice':1 };
+            return dbconfig.collection_proposal.find(sendQuery, options).populate({path: "type", model: dbconfig.collection_proposalType}).limit(limit).sort('-createTime');
+        }else{
+            return dbconfig.collection_proposal.find(sendQuery, options).sort('-createTime');
+        }
+    },
+
     getPeriodTime: function(auctionItem){
         let period;
         if(auctionItem.rewardInterval){
@@ -453,6 +470,69 @@ var dbAuction = {
             let record = new dbconfig.collection_promoCodeTemplate(obj);
             return record.save();
         }
+    },
+    auctionExecute: function(){
+        let endDate = new Date();
+        let proms = [];
+        let status = constProposalStatus.APPROVED;
+        let sendQuery = {
+            'rewardEndTime': {
+                '$lte':endDate
+            },
+            status:1,
+            publish:true
+        }
+        return dbconfig.collection_auctionSystem.find(sendQuery).then(data=>{
+            if(data && data.length > 0){
+                data.forEach(item=>{
+                    let sendQuery = {
+                        '_id': item._id,
+                        'platformObjId': item.platformObjId,
+                    };
+                    let prom = dbAuction.listAuctionMonitor(sendQuery, 2);
+                    proms.push(prom);
+                })
+            }
+            return Promise.all(proms);
+        }).then(data=>{
+            if( data && data.length > 0 ){
+                data.forEach(item=>{
+                    if(item[0] && item[0].proposal && item[0].proposal.length > 0){
+                        console.log('target shows up')
+                        console.log(item[0].proposal[0])
+                        let proposal;
+                        let lastProposalData = item[0].proposal[0];
+
+                        return dbconfig.collection_proposal.findOneAndUpdate({
+                            _id: lastProposalData._id,
+                            status: lastProposalData.status,
+                            createTime: lastProposalData.createTime
+                        }, {
+                            status: status,
+                        }, {
+                            new: true
+                        }).populate({path: "type", model: dbconfig.collection_proposalType})
+                        .then(
+                            proposalData => {
+                                if (!proposalData) {
+                                    // someone changed the status in between these processes
+                                    return Promise.reject({message: "Proposal had been used"});
+                                }
+                                proposal = proposalData;
+                                let memo = '';
+                                return dbProposalUtility.createProposalProcessStep(proposal, null, status, memo).catch(errorUtils.reportError);
+                            }
+                        ).then(
+                            () => {
+                                return proposalExecutor.approveOrRejectProposal(proposal.type.executionType, proposal.type.rejectionType, true, proposal);
+                            }
+                        ).then(res=>{
+                            console.log(res);
+                        })
+                    }
+                })
+            }
+        })
     },
 
     bidAuctionItem: function (inputData, platformId, productName, rewardType, playerId, inputDevice) {
