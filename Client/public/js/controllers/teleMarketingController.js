@@ -1244,6 +1244,21 @@ define(['js/app'], function (myApp) {
             return result
         }
 
+        vm.initPhoneDetailFeedback = function () {
+            vm.tsPhoneAddFeedback = vm.tsPhoneAddFeedback || {};
+
+            if (!vm.selectedPlatform || !vm.selectedPlatform.data || !vm.selectedPlatform.data.definitionOfAnsweredPhone || !vm.selectedPlatform.data.definitionOfAnsweredPhone.length || !vm.allPlayerFeedbackResults || !vm.allPlayerFeedbackResults.length) {
+                return;
+            }
+
+            for (let i = 0; i < vm.allPlayerFeedbackResults.length; i++) {
+                if (vm.selectedPlatform.data.definitionOfAnsweredPhone.includes(vm.allPlayerFeedbackResults[i].value)) {
+                    vm.tsPhoneAddFeedback.result = vm.allPlayerFeedbackResults[i].key;
+                    break;
+                }
+            }
+        };
+
         vm.addTsPhonePlayerFeedback = function (playerObjId) {
             let resultName = vm.allPlayerFeedbackResults.filter(item => {
                 return item.key == vm.tsPhoneAddFeedback.result;
