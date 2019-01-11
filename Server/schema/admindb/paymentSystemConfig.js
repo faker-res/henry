@@ -1,21 +1,19 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
-var financialSettlementConfigSchema = new Schema({
+var paymentSystemConfigSchema = new Schema({
     //platform
     platform: {type: Schema.ObjectId, ref: 'platform', required: true, index: true},
     // currently available financial settlement system
-    systemName: {type: String},
+    systemType: {type: Number, index: true},
     // topup
     enableTopup: {type: Boolean, default: false},
     // bonus
     enableBonus: {type: Boolean, default: false},
-    // description
-    description: {type: String},
     // current financial points
-    currentPoint: {type: Number},
+    curFinancialSettlementPoint: {type: Number},
     // point less than min setup point will trigger alert
     minPointNotification: {type: Number}
 });
 
-module.exports = financialSettlementConfigSchema;
+module.exports = paymentSystemConfigSchema;

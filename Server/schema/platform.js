@@ -502,9 +502,9 @@ var platformSchema = new Schema({
     decomposeAfterNDays: {type: Number},
     // Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday
     phoneWhiteListExportMaxNumber: {type: Number},
-    // Financial Settlement System
+    // Switch Payment System - topup
     topUpSystemType: {type: Number},
-    // Financial Settlement System
+    // Switch Payment System - bonus
     bonusSystemType: {type: Number}
 });
 
