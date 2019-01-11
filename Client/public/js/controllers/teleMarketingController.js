@@ -1257,6 +1257,9 @@ define(['js/app'], function (myApp) {
                     break;
                 }
             }
+
+            vm.preventDetailPageMultipleFeedback = true;
+            vm.isNotFirstRequestAfterInit = false;
         };
 
         vm.addTsPhonePlayerFeedback = function (playerObjId) {
@@ -1493,6 +1496,13 @@ define(['js/app'], function (myApp) {
         }
 
         vm.addTsPhoneFeedback = function (data) {
+            // region phone detail page prevent multiple request send
+            if (vm.preventDetailPageMultipleFeedback && vm.isNotFirstRequestAfterInit) {
+                return;
+            }
+            vm.isNotFirstRequestAfterInit = true;
+            // endregion
+
             let resultName = vm.allPlayerFeedbackResults.filter(item => {
                 return item.key == data.result;
             });
