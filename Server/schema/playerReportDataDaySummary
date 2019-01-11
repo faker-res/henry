@@ -1,0 +1,53 @@
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
+
+var playerReportDataDaySummarySchema = new Schema({
+    //player id
+    playerId: {type: Schema.ObjectId, required: true, index: true},
+    // platform ID
+    platformId: {type: Schema.ObjectId, required: true, index: true},
+    // payment time
+    date: {type: Date, required: true, index: true},
+    //numerical value of the amount top-upped by manual
+    manualTopUpAmount: {type: Number, required: true, default: 0},
+    //numerical value of the amount top-upped by online
+    onlineTopUpAmount: {type: Number, required: true, default: 0},
+    //numerical value of the amount top-upped by alipay
+    alipayTopUpAmount: {type: Number, required: true, default: 0},
+    //numerical value of the amount top-upped by wechatpay
+    wechatpayTopUpAmount: {type: Number, required: true, default: 0},
+    //top up times
+    topUpTimes: {type: Number, default: 0},
+    //consumption times
+    consumptionTimes: {type: Number, required: true, default: 0},
+    //consumption amount
+    consumptionAmount: {type: Number, required: true, default: 0},
+    //consumption valid amount
+    consumptionValidAmount: {type: Number, required: true, default: 0},
+    //consumption bonus amount
+    consumptionBonusAmount: {type: Number, required: true, default: 0},
+    //provider Detail
+    providerDetail: {type: JSON, default: {}},
+    //bonus times
+    bonusTimes:{type: Number, required: true, default: 0},
+    //bonus amount
+    bonusAmount:{type: Number, required: true, default: 0},
+    //consumption return reward amount
+    consumptionReturnAmount: {type: Number, required: true, default: 0},
+    //reward amount
+    rewardAmount: {type: Number, required: true, default: 0},
+    //total online top up fee in %
+    totalOnlineTopUpFee: {type: Number, required: true, default: 0},
+    //online top up fee detail
+    onlineTopUpFeeDetail: [
+        {
+            amount: {type: Number, default: 0},
+            merchantName: {type: String},
+            merchantNo: {type: String},
+            onlineTopUpFee: {type: Number, default: 0},
+            onlineTopUpServiceChargeRate: {type: Number, default: 0}
+        }
+    ]
+});
+
+module.exports = playerReportDataDaySummarySchema;

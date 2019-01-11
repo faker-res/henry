@@ -502,6 +502,10 @@ var platformSchema = new Schema({
     decomposeAfterNDays: {type: Number},
     // Phone White List Auto Export/Maximum Number of Transactions at 4AM Everyday
     phoneWhiteListExportMaxNumber: {type: Number},
+    // Financial Settlement System
+    topUpSystemType: {type: Number},
+    // Financial Settlement System
+    bonusSystemType: {type: Number}
 });
 
 //add platform id before save

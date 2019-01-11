@@ -3,4 +3,4 @@ form#formEditPlayerAdmin(name="form_edit_player_admin", novalidate)
         .form-group.col-md-6
             label.control-label {{"AdminName" | translate}}
             input.form-control(type="text", placeholder='{{"AdminName" | translate}}', ng-model="playerBeingEdited.accAdmin", ng-change="checkAdminNameValidity(playerBeingEdited.accAdmin,form_edit_player_admin);")
-            div(ng-if="checkAdminNameValidity();", style='color:red') {{"Admin name is invalid, please try again" | translate}}
+            div.text-disabled(ng-if="checkAdminNameValidity();") {{"Admin name is invalid, please try again" | translate}}
