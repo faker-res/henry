@@ -850,7 +850,7 @@ var dbPlayerTopUpRecord = {
                         _id: null,
                         totalAmount: {$sum: "$data.amount"}
                     }
-                });
+                }).read("secondaryPreferred").allowDiskUse(true);
 
 
                 let prom = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
@@ -867,7 +867,7 @@ var dbPlayerTopUpRecord = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: constSystemParam.BATCH_SIZE,
+                                batchSize: 50,
                                 makeRequest: function (proposals, request) {
                                     request("player", "topupRecordInsertRepeatCount", {
                                         proposals: proposals,
