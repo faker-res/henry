@@ -5852,7 +5852,9 @@ var dbPlatform = {
 
                         if (config.enableTopup && config.enableTopup.toString() === 'true') {
                             updateSelectedConfig.topUpSystemType = config.systemType;
-                        } else if (config.enableBonus && config.enableBonus.toString() === 'true') {
+                        }
+
+                        if (config.enableBonus && config.enableBonus.toString() === 'true') {
                             updateSelectedConfig.bonusSystemType = config.systemType;
                         }
                     }
