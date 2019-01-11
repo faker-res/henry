@@ -1850,6 +1850,10 @@ let dbPlayerInfo = {
                 if (data) {
                     playerData = data;
 
+                    if (playerData.phoneNumber) {
+                        checkTelesalesPhone(playerData.phoneNumber);
+                    }
+
                     if (playerData.tsPhone) {
                         dbconfig.collection_tsPhone.findOneAndUpdate({_id: playerData.tsPhone}, {registered: true}).lean().then(
                             tsPhoneData => {
@@ -23475,6 +23479,56 @@ function recalculateTsPhoneListPhoneNumber (platformObjId, tsPhoneListObjId) {
             return dbconfig.collection_tsPhoneList.findOneAndUpdate({_id: tsPhoneListObjId}, {totalPhone: totalPhone}).lean();
         }
     );
+}
+
+function checkTelesalesPhone(encryptedPhoneNumber) {
+    dbconfig.collection_tsPhone.find({phoneNumber: encryptedPhoneNumber, registered: false}).lean().then(
+        tsPhoneData => {
+            if (tsPhoneData && tsPhoneData.length) {
+                tsPhoneData.forEach(
+                    tsPhone => {
+                        dbconfig.collection_tsPhone.remove({_id: tsPhone._id}).catch(errorUtils.reportError);
+                        let tsPhoneListUpdate = {
+                            totalPhone: -1
+                        }
+                        if (tsPhone.isUsed) {
+                            tsPhoneListUpdate.totalUsed = -1;
+                        }
+                        if (tsPhone.isSucceedBefore) {
+                            tsPhoneListUpdate.totalSuccess = -1;
+                        }
+                        dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: tsPhoneListUpdate}).catch(errorUtils.reportError);
+                        dbconfig.collection_tsDistributedPhone.findOneAndRemove({
+                            tsPhone: tsPhone._id,
+                            tsPhoneList: tsPhone.tsPhoneList,
+                            endTime: {$gte: new Date()},
+                            registered: false
+                        }).lean().then(
+                            removedTsDistributedPhone => {
+                                if (removedTsDistributedPhone) {
+                                    dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: {totalDistributed: -1}}).catch(errorUtils.reportError);
+                                    if (removedTsDistributedPhone.tsDistributedPhoneList) {
+                                        let distributedPhoneListUpdate = {
+                                            phoneCount: -1
+                                        }
+
+                                        if (removedTsDistributedPhone.isUsed) {
+                                            distributedPhoneListUpdate.phoneUsed = -1;
+                                        }
+                                        if (removedTsDistributedPhone.isSucceedBefore) {
+                                            distributedPhoneListUpdate.successfulCount = -1;
+                                        }
+
+                                        dbconfig.collection_tsDistributedPhoneList.update({_id: removedTsDistributedPhone.tsDistributedPhoneList}, {$inc: distributedPhoneListUpdate}).catch(errorUtils.reportError);
+                                    }
+                                }
+                            }
+                        )
+                    }
+                )
+            }
+        }
+    ).catch(errorUtils.reportError);
 }
 
 function filterPhoneWithOldTsPhone (platformObjId, phones, tsPhoneList, isCheckWhiteListAndRecycleBin) {
