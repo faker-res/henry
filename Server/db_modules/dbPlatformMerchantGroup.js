@@ -433,6 +433,8 @@ var dbPlatformMerchantGroup = {
                 })
             }
             if (data[3] && data[3].data.length > 0) {
+                data[3].data.sort((a,b)=>{ return a.line - b.line})
+                data[3].data = dbPlatformMerchantGroup.addLineCategory(data[3]);
                 data[3].data.map(bcard => {
                     bcard.merchantNo = bcard.accountNumber;
                     bcard.name = bcard.accountNumber + '(' + bcard.name + ')';
@@ -441,7 +443,6 @@ var dbPlatformMerchantGroup = {
                 })
             }
 
-
           let result = {}
           if(!data[0].merchants){
             data[0].merchants = []
@@ -449,6 +450,51 @@ var dbPlatformMerchantGroup = {
             result.merchants = data[0].merchants.concat(data[1].data).concat(data[2].data).concat(data[3].data);
           return result
         })
+    },
+    addLineCategory: function(data){
+        let result = [];
+        let uniqueLine = [];
+        let uniqueObj = {};
+        if(data && data.data.length > 0){
+            data.data.forEach(item=>{
+                if(item.line && (uniqueLine.indexOf(item.line)== -1)){
+                    uniqueObj[item.line] = [];
+                }
+                if(item && item.line){
+                    uniqueObj[item.line].push(item);
+                }else{
+                    uniqueObj['none'].push(item);
+                }
+            });
+        }
+        Object.keys(uniqueObj).forEach(key=>{
+            let category = dbPlatformMerchantGroup.getAlipayLineAcc(key)
+            result.push(category);
+            if(uniqueObj[key] && uniqueObj[key].length > 0){
+                uniqueObj[key].forEach(item=>{
+                    result.push(item);
+                })
+            }
+        })
+        console.log(result);
+        return result;
+    },
+    getAlipayLineAcc: function (no) {
+        let name = "MMM4-line"+no;
+        let lineAcc = {
+            accountNumber:"MMM4-line"+no,
+            bankTypeId:"170",
+            merchantNo:"MMM4-line"+no,
+            merchantTypeId:"9997",
+            merchantTypeName:"AliPayAcc",
+            minDepositAmount:1,
+            name: name,
+            singleLimit:0,
+            state:"NORMAL",
+            line: no,
+            category:true
+        }
+        return lineAcc;
     },
     syncMerchantNoScript:function(platformObjId){
         var allMerchants = [];
