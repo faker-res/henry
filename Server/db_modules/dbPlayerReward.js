@@ -7879,7 +7879,7 @@ let dbPlayerReward = {
     },
 
     checkConsumptionSlipRewardGroup: function (playerData, consumptionRecord) {
-        // check zor the consumptionSlipRewardEvent
+        // check the consumptionSlipRewardEvent
         return dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP}).then(
             rewardType => {
                 if (!rewardType){
@@ -7903,13 +7903,6 @@ let dbPlayerReward = {
                         }
                     )
                 }
-                else{
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "reward event is not found"
-                    })
-                }
-
             }
         )
 
