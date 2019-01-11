@@ -19130,9 +19130,9 @@ let dbPlayerInfo = {
                 }).save().catch(errorUtils.reportError);
 
                 let filteredPhonesProm = Promise.resolve(phoneListDetail);
-                if (saveObj.isCheckWhiteListAndRecycleBin) {
-                    filteredPhonesProm = filterPhoneWithOldTsPhone(saveObj.platform, phoneListDetail);
-                }
+                // if (saveObj.isCheckWhiteListAndRecycleBin) {
+                filteredPhonesProm = filterPhoneWithOldTsPhone(saveObj.platform, phoneListDetail, tsList._id, saveObj.isCheckWhiteListAndRecycleBin);
+                // }
 
                 return filteredPhonesProm;
             }
@@ -23478,14 +23478,23 @@ function recalculateTsPhoneListPhoneNumber (platformObjId, tsPhoneListObjId) {
     );
 }
 
-function filterPhoneWithOldTsPhone (platformObjId, phones) {
+function filterPhoneWithOldTsPhone (platformObjId, phones, tsPhoneList, isCheckWhiteListAndRecycleBin) {
     phones.forEach(phone => {
         phone.encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
     });
 
     let proms = []
     phones.map(phone => {
-        let prom = dbconfig.collection_tsPhone.findOne({platform: platformObjId, phoneNumber: phone.encryptedNumber}, {_id:1}).lean().then(
+        let tsPhoneQuery = {
+            platform: platformObjId,
+            phoneNumber: phone.encryptedNumber
+        }
+
+        if (!isCheckWhiteListAndRecycleBin && tsPhoneList) {
+            tsPhoneQuery.tsPhoneList = tsPhoneList;
+        }
+
+        let prom = dbconfig.collection_tsPhone.findOne(tsPhoneQuery, {_id:1}).lean().then(
             isExist => {
                 return isExist ? false : phone;
             }
