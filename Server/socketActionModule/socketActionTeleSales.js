@@ -87,7 +87,7 @@ function socketActionTeleSales(socketIO, socket) {
 
         createTsPhoneFeedback: function createTsPhoneFeedback(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.tsPhone && data.tsPhoneList && data.platform && data.adminId && data.content && data.result && data.resultName && data.topic);
+            var isValidData = Boolean(data && data.tsPhone && data.tsPhoneList && data.platform && data.adminId && data.result && data.resultName && data.topic);
             socketUtil.emitter(self.socket, dbTeleSales.createTsPhoneFeedback, [data], actionName, isValidData);
         },
 

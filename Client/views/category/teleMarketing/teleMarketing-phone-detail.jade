@@ -37,7 +37,7 @@
                     td {{ vm.targetedTsDistributedPhoneDetail.tsPhone.province || "" }} {{ vm.targetedTsDistributedPhoneDetail.tsPhone.city || "" }}
 
             div(style="margin-top: 5px")
-                button.btn.btn-primary(data-toggle='modal' data-target='#modalTsPhoneFeedback' style="margin: 5px") {{"ADD_FEEDBACK" | translate}}
+                button.btn.btn-primary(data-toggle='modal' data-target='#modalTsPhoneFeedback' style="margin: 5px" ng-click='vm.initPhoneDetailFeedback()') {{"ADD_FEEDBACK" | translate}}
                 button.btn.btn-warning(data-toggle='modal' data-target="#modalAdminPhoneListReminder" ng-click="vm.initTsDistrubutedPhoneReminder(vm.targetedTsDistributedPhoneDetail)" style="margin: 5px") {{"REMINDER" | translate}}
                 button.btn.btn-success(data-toggle='modal' data-target="#modalCreateTsPlayer" ng-click="vm.prepareCreateTsPlayer(vm.targetedTsDistributedPhoneDetail)" style="margin: 5px") {{"CREATE_NEW_PLAYER" | translate}}
 
