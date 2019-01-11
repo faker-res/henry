@@ -665,7 +665,7 @@ p
             button#permissionRecordButtonByPartnerTab.btn.btn-primary(style="right:0px;position:absolute",ng-if="checkViewPermission('Partner', 'Partner', 'PermissionHistory')", data-toggle="modal", ng-click='vm.getPartnerPermissionChangeByPartnerTab("new")', data-target='#modalPartnerPermissionChangeLog') {{"Permission History" | translate}}
 
 #modalPartnerPermissionChangeLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog.modal-medium
         #partnerPermissionHistory.modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -782,13 +782,13 @@ p
                             label.form-control {{vm.isOneSelectedPartner().partnerName}}
                         .form-group
                             label.control-label {{'FEEDBACK_RESULTS' | translate}}
-                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPartnerFeedbackResultData={}; vm.deletePartnerFeedbackResultData={};", ng-show="checkViewPermission('Partner', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPartnerFeedbackResult") {{"ADD" | translate}}
-                            select.form-control(style='margin-top:5px;', ng-model='vm.partnerFeedback.result', required)
+                            button.btn.btn-primary.left-col(ng-click="vm.addPartnerFeedbackResultData={}; vm.deletePartnerFeedbackResultData={};", ng-show="checkViewPermission('Partner', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPartnerFeedbackResult") {{"ADD" | translate}}
+                            select.form-control.margin-top-5(ng-model='vm.partnerFeedback.result', required)
                                 option(ng-repeat='(i,v) in vm.allPartnerFeedbackResults', value='{{v.key}}') {{v.value}}
                         .form-group
                             label.control-label {{'FEEDBACK_TOPIC' | translate}}
-                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPartnerFeedbackTopicData={}; vm.deletePartnerFeedbackTopicData={};", ng-show="checkViewPermission('Partner', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPartnerFeedbackTopic") {{"ADD" | translate}}
-                            select.form-control(style='margin-top:5px;', ng-model='vm.partnerFeedback.topic', required)
+                            button.btn.btn-primary.left-col(ng-click="vm.addPartnerFeedbackTopicData={}; vm.deletePartnerFeedbackTopicData={};", ng-show="checkViewPermission('Partner', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPartnerFeedbackTopic") {{"ADD" | translate}}
+                            select.form-control.margin-top-5(ng-model='vm.partnerFeedback.topic', required)
                                 option(ng-repeat='(i,v) in vm.partnerFeedbackTopic', value='{{v.key}}') {{v.value}}
                         .form-group
                             label.control-label {{'FEEDBACK_CONTENT' | translate}}
@@ -810,7 +810,7 @@ p
                         label {{"Total" | translate}} {{vm.partnerFeedbackRecord.totalCount}} {{"records" | translate}}
                             .inlineBlk.margin-left-5(ng-if='vm.partnerFeedbackRecord.searching')
                                 i.fa.fa-spin.fa-spinner
-                    table#partnerFeedbackRecordTable.common-table.wordWrap.tbodyNoWrap.display(style='width:100%')
+                    table#partnerFeedbackRecordTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
                     #partnerFeedbackRecordTablePage
 
             .modal-footer(ng-if="vm.feedbackModalTabPartner === 'addPartnerFeedbackPanel'")
@@ -937,7 +937,7 @@ p
                         i.fa.fa-spin.fa-spinner
                 div
                     label {{"Total" | translate}} {{vm.partnerApiLog.totalCount}} {{"records" | translate}}
-                    table#partnerApiLogTbl.common-table.display(style='min-width:100%')
+                    table#partnerApiLogTbl.common-table.display.paymentGroup-btn
                     #partnerApiLogTblPage.height30
 
 #dialogEditPartner.dialog-dialog.hidden(ng-non-bindable style='width:100%; top:0;')
@@ -989,7 +989,7 @@ p
                 .row
                     .col-md-12
                         label {{"Total" | translate}} {{vm.partnerInfoHistoryCount}} {{"records" | translate}}
-                        table#partnerInfoHistoryTbl.common-table.display(style='min-width:100%;width:inherit')
+                        table#partnerInfoHistoryTbl.common-table.display.paymentGroup-btn
 
 #modalPartnerContactHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
@@ -1001,7 +1001,7 @@ p
                 .row
                     .col-md-12
                         label {{"Total" | translate}} {{vm.partnerContactHistoryCount}} {{"records" | translate}}
-                        table#partnerContactHistoryTbl.common-table.display(style='min-width:100%;width:inherit')
+                        table#partnerContactHistoryTbl.common-table.display.paymentGroup-btn
 
 #modalPartnerPaymentHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
@@ -1013,7 +1013,7 @@ p
                 .row
                     .col-md-12
                         label {{"Total" | translate}} {{vm.paymetHistoryCount}} {{"records" | translate}}
-                        table#partnerPaymentHistoryTbl.common-table.display(style='min-width:100%;width:inherit')
+                        table#partnerPaymentHistoryTbl.common-table.display.paymentGroup-btn
 
 #partnerIpHistory.collapse
     .panel.panel-info
@@ -1037,7 +1037,7 @@ p
             .panel-title {{'LAST_LOGIN_IP' | translate}}
         .panel-body
             .col-md-12(style='max-height:300px')
-                table#partnerIpHistoryTable.common-table.display(style="width:100%")
+                table#partnerIpHistoryTable.common-table.display.paymentGroup-btn
 
 #duplicatePhoneNumberLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog
@@ -1048,7 +1048,7 @@ p
             .modal-body
                 div
                     label {{"Total" | translate}} {{vm.duplicatePhoneNumber.totalCount}} {{"records" | translate}}
-                    table#duplicatePhoneNumberLogTable.common-table.display(style='min-width:100%')
+                    table#duplicatePhoneNumberLogTable.common-table.display.paymentGroup-btn
                     #duplicatePhoneNumberLogTablePage.height30
 
 #modalPartnerCommPreview.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
@@ -1114,7 +1114,7 @@ p
                                     textarea.form-control(ng-if="v.editRemark", type="textarea", name="Remark", placeholder='{{"REMARKS" | translate}}', ng-model="v.remarks")
 
             .modal-footer
-                label.control-label.common-button(ng-if="vm.partnerCommVar.checkedRemark", style="color:red") {{vm.partnerCommVar.checkedRemark | translate}}
+                label.control-label.common-button.colorRed (ng-if="vm.partnerCommVar.checkedRemark") {{vm.partnerCommVar.checkedRemark | translate}}
                 button.btn.btn-primary.common-button(ng-click="vm.checkPartnerCommissionLogRemark()" ng-if="!vm.partnerSettlementSubmitted[vm.partnerCommVar.settMode]") {{"SUBMIT_COMMISSION" | translate}}
                 button.btn.btn-danger.common-button(data-dismiss="modal") {{"CLOSE" | translate}}
                 button.btn.btn-warning.common-button(data-dismiss="modal" ng-click="vm.cancelPreview()" ) {{"CANCEL PREVIEW" | translate}}
@@ -1151,7 +1151,7 @@ p
                                 td {{v.rewardDetail.pointConversion}}
                                 td {{v.rewardDetail.total}}
                             tr
-                                td(colspan="2", style="font-weight:bold") {{'Totalsum' | translate}}
+                                td.text-bold(colspan="2") {{'Totalsum' | translate}}
                                 td {{vm.partnerDLCommDetailTotal.systemReward ? vm.partnerDLCommDetailTotal.systemReward : "0"}}
                                 td {{vm.partnerDLCommDetailTotal.manualReward ? vm.partnerDLCommDetailTotal.manualReward : "0"}}
                                 td {{vm.partnerDLCommDetailTotal.consumptionReturn ? vm.partnerDLCommDetailTotal.consumptionReturn : "0"}}
@@ -1160,7 +1160,7 @@ p
                                 td {{vm.partnerDLCommDetailTotal.pointConversion ? vm.partnerDLCommDetailTotal.pointConversion : "0"}}
                                 td {{vm.partnerDLCommDetailTotal.total ? vm.partnerDLCommDetailTotal.total : "0"}}
                             tr
-                                td(colspan="8", style="font-weight:bold") {{'Reward Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
+                                td.text-bold(colspan="8") {{'Reward Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
                                     text.span(ng-style='vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebatePromoIsCustom ? {color:"red"} : {}') {{vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebatePromo}} {{"%)"}}
                                 td(ng-style='vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebatePromoIsCustom ? {color:"red"} : {}') {{vm.partnerCommissionLog[vm.partnerCommVar.partner].totalRewardFee}}
 
@@ -1192,14 +1192,14 @@ p
                                 td {{v.topUpDetail.weChatTopUpAmount}}
                                 td {{v.topUpDetail.topUpAmount}}
                             tr
-                                td(colspan="2", style="font-weight:bold") {{'Totalsum' | translate}}
+                                td.text-bold(colspan="2") {{'Totalsum' | translate}}
                                 td {{vm.partnerDLCommDetailTotal.manualTopUpAmount ? vm.partnerDLCommDetailTotal.manualTopUpAmount : "0"}}
                                 td {{vm.partnerDLCommDetailTotal.onlineTopUpAmount ? vm.partnerDLCommDetailTotal.onlineTopUpAmount : "0"}}
                                 td {{vm.partnerDLCommDetailTotal.aliPayTopUpAmount ? vm.partnerDLCommDetailTotal.aliPayTopUpAmount : "0"}}
                                 td {{vm.partnerDLCommDetailTotal.weChatTopUpAmount ? vm.partnerDLCommDetailTotal.weChatTopUpAmount : "0"}}
                                 td {{vm.partnerDLCommDetailTotal.topUpAmount ? vm.partnerDLCommDetailTotal.topUpAmount: "0"}}
                             tr
-                                td(colspan="6", style="font-weight:bold") {{'TopUp Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
+                                td.text-bold(colspan="6") {{'TopUp Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
                                     text.span(ng-style='vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalDepositIsCustom ? {color:"red"} : {}') {{vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalDeposit}} {{"%)"}}
                                 td(ng-style='vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalDepositIsCustom ? {color:"red"} : {}') {{vm.partnerCommissionLog[vm.partnerCommVar.partner].totalTopUpFee}}
 
@@ -1223,10 +1223,10 @@ p
                                 td {{v.realName}}
                                 td {{v.withdrawalDetail.withdrawalAmount}}
                             tr
-                                td(colspan="2", style="font-weight:bold") {{'Totalsum' | translate}}
+                                td.text-bold(colspan="2") {{'Totalsum' | translate}}
                                 td {{vm.partnerDLCommDetailTotal.withdrawalAmount ? vm.partnerDLCommDetailTotal.withdrawalAmount : "0"}}
                             tr
-                                td(colspan="2", style="font-weight:bold") {{'Withdrawal Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
+                                td.text-bold(colspan="2") {{'Withdrawal Fee' | translate}} {{'('}} {{'RATIO'| translate}} {{': '}}
                                     text.span(ng-style='vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalWithdrawal}} {{"%)"}}
                                 td(ng-style='vm.partnerCommissionLog[vm.partnerCommVar.partner].partnerCommissionRateConfig.rateAfterRebateTotalWithdrawalIsCustom ? {color:"red"} : {}') {{vm.partnerCommissionLog[vm.partnerCommVar.partner].totalWithdrawalFee}}
 
@@ -1268,7 +1268,7 @@ p
                                 a.common-tab(data-toggle="tab", href="#", ng-click="vm.partnerCommVar.group = grp")
                                     text.span {{grp.groupName | translate}}
 
-                h4.modal-title(style='margin-top:10px') {{"totalCount" | translate}} {{": "}} {{vm.partnerCommissionLog[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length}}
+                h4.modal-title.margin-top-10 {{"totalCount" | translate}} {{": "}} {{vm.partnerCommissionLog[vm.partnerCommVar.partner].downLinesRawCommissionDetail.length}}
             .modal-body
                 div
                     table.simple-table
@@ -1283,14 +1283,14 @@ p
                                 td {{v.realName}}
                                 td {{v.consumptionDetail.consumptionProviderDetail[vm.partnerCommVar.group.groupName].bonusAmount}} {{"/"}} {{v.consumptionDetail.consumptionProviderDetail[vm.partnerCommVar.group.groupName].validAmount}}
                             tr
-                                td(colspan="2", style="font-weight:bold") {{'Total Consumption' | translate}}
+                                td.text-bold(colspan="2") {{'Total Consumption' | translate}}
                                 td {{vm.partnerDLCommDetailTotal[vm.partnerCommVar.group.groupName].bonusAmount}} {{'/'}} {{vm.partnerDLCommDetailTotal[vm.partnerCommVar.group.groupName].validAmount}}
                             tr
-                                td(colspan="2", style="font-weight:bold") {{'Commission' | translate}} {{' ('}} {{'ACTIVE_DOWNLINES'| translate}} {{': '}} {{vm.partnerCommissionLog[vm.partnerCommVar.partner].activeDownLines}} {{'/'}} {{'RATIO'| translate}} {{': '}}
+                                td.text-bold(colspan="2") {{'Commission' | translate}} {{' ('}} {{'ACTIVE_DOWNLINES'| translate}} {{': '}} {{vm.partnerCommissionLog[vm.partnerCommVar.partner].activeDownLines}} {{'/'}} {{'RATIO'| translate}} {{': '}}
                                     text.span(ng-style='vm.partnerCommVar.group.isCustomCommissionRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.commissionRate}} {{'%)'}}
                                 td(ng-style='vm.partnerCommVar.group.isCustomCommissionRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.amount}}
                             tr
-                                td(colspan="2", style="font-weight:bold") {{'Platform Fee' | translate}} {{' ('}} {{'RATIO'| translate}} {{': '}}
+                                td.text-bold(colspan="2") {{'Platform Fee' | translate}} {{' ('}} {{'RATIO'| translate}} {{': '}}
                                     text.span(ng-style='vm.partnerCommVar.group.isCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommVar.group.platformFeeRate ? vm.partnerCommVar.group.platformFeeRate : "0"}} {{'%)'}}
                                 td
                                     div(ng-if='!vm.partnerCommissionLog[vm.partnerCommVar.partner].isPlatformFeeForcedZero')
@@ -1298,12 +1298,12 @@ p
                                         text.span {{'/'}}
                                         text.span(ng-style='vm.partnerCommissionLog[vm.partnerCommVar.partner].isAnyCustomPlatformFeeRate ? {color:"red"} : {}') {{vm.partnerCommissionLog[vm.partnerCommVar.partner].totalPlatformFee}}
                                     div(ng-if='vm.partnerCommissionLog[vm.partnerCommVar.partner].isPlatformFeeForcedZero')
-                                        text.span(style='color: red') {{vm.partnerCommVar.group.platformFee}}
+                                        text.span.colorRed {{vm.partnerCommVar.group.platformFee}}
                                         br
-                                        text.span(style='color: red') ({{'Forced 0' | translate}}/{{vm.partnerCommVar.group.forcePlatformFeeToZeroBy.name}})
+                                        text.span.colorRed ({{'Forced 0' | translate}}/{{vm.partnerCommVar.group.forcePlatformFeeToZeroBy.name}})
 
                 br
-                div(style='text-align:right')
+                div.alignRight
                     button.btn.btn-danger.common-button(data-dismiss="modal", ng-disabled="vm.partnerCommissionLog[vm.partnerCommVar.partner] && vm.partnerCommissionLog[vm.partnerCommVar.partner].totalPlatformFee == 0", ng-click="vm.forceTotalPlatformFeeToZero(vm.partnerCommissionLog[vm.partnerCommVar.partner])") {{"Force Total Platform Fee To 0" | translate}}
 
 #modalPlayerDetailsSummaryTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
@@ -1403,7 +1403,7 @@ p
                                 td(colspan=2) {{'Parent Partner(Unique)' | translate}}
                                 td {{vm.selectedSinglePartner.parent.partnerName || 'NONE' | translate}}
                                 td(rowspan=5, colspan=2)
-                                td(style='text-align:left') {{'CANNOT_EDIT' | translate}}
+                                td.alignLeft {{'CANNOT_EDIT' | translate}}
                             tr
                                 td(colspan=2)
                                 td ↓
@@ -1411,7 +1411,7 @@ p
                             tr
                                 td(colspan=2) {{"Partner(Self)" | translate}}
                                 td {{vm.selectedSinglePartner.partnerName}}
-                                td(style='text-align:left') {{'CANNOT_EDIT' | translate}}
+                                td.alignLeft {{'CANNOT_EDIT' | translate}}
                             tr
                                 td(colspan=2)
                                 td ↓
@@ -1424,7 +1424,7 @@ p
                                         span ( {{'Total Child Partner' | translate}} {{vm.totalChildPartner || 0}} )
                                 td ↓
                                 td
-                                    div(style='text-align:left')
+                                    div.alignLeft
                                         span {{'EDIT_CHILD_PARTNER_INFO_TITLE' | translate}}
                                         br
                                         span {{'EDIT_CHILD_PARTNER_INFO_DESCRIPTION_A' | translate}}
@@ -1445,11 +1445,11 @@ p
                                         label(ng-show='vm.isChildPartnerEditing') )
                                 td  {{idx + 1}}
                                 td
-                                    input(type='text' style='text-align:center' ng-model='val.partnerName' ng-change='vm.checkChildPartnerNameValidity(vm.childPartnerList[idx].partnerName, idx)' ng-disabled='!vm.isChildPartnerEditing')
+                                    input.text-center(type='text' ng-model='val.partnerName' ng-change='vm.checkChildPartnerNameValidity(vm.childPartnerList[idx].partnerName, idx)' ng-disabled='!vm.isChildPartnerEditing')
                                 td  {{val.createTime ? timeReformat(val.createTime) : ''}}
                                 td  {{val.proposalId}}
                                 td
-                                    span(style='color:red') {{val.errorMessage}}
+                                    span.colorRed {{val.errorMessage}}
 
             .modal-footer
                 button.btn.btn-danger.common-button(data-dismiss="modal") {{"CLOSE/CANCEL" | translate}}
@@ -1457,31 +1457,32 @@ p
                 button.btn.btn-primary.common-button(data-dismiss="modal" ng-if="vm.isChildPartnerEditing && checkViewPermission('Partner', 'Partner', 'EditChildPartner')" ng-click="vm.submitChildPartner()" ng-disabled='vm.disableEditChildPartner') {{"CONFIRM" | translate}}
 
 #modalTransferPartnerCreditToPlayer.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title {{"Transfer Partner Credit To Player" | translate}}: {{vm.selectedSinglePartner.partnerName}}
 
             .modal-body
-                div
+                div.col-sm-12
                     table.simple-table
                         tbody
                             tr
-                                td(style="width:280px")
-                                td(style="width:280px") {{'Before Transfer' | translate}}
-                                td(style="width:280px") {{'After Transfer' | translate}}
-                                th(rowspan=3 style="vertical-align:bottom;")
-                                    button.btn.btn-primary.common-button(ng-click='vm.loadDownlinePlayersRecord();' style="margin-left:5px") {{'SEARCH' | translate}}
+                                td
+                                td {{'Before Transfer' | translate}}
+                                td {{'After Transfer' | translate}}
+
                             tr
                                 td {{'PARTNER_ACCOUNT_BALANCE' | translate}} :
                                 td {{vm.selectedSinglePartner.credits || 0}}
-                                td(style='color:red') {{vm.sumTotalTransferAmount > 0 ? vm.selectedSinglePartner.credits - vm.sumTotalTransferAmount : 0 || 0 | noRoundTwoDecimalPlaces}}
+                                td.colorRed {{vm.sumTotalTransferAmount > 0 ? vm.selectedSinglePartner.credits - vm.sumTotalTransferAmount : 0 || 0 | noRoundTwoDecimalPlaces}}
 
                             tr
                                 td {{'Search by Downline Player Name' | translate}} :
                                 td(colspan=2)
                                     input.form-control(style="text" placeholder="{{'Empty: Default(ALL)' | translate}}" ng-model="vm.downlinePlayerName")
+                div.col-sm-12.margin-top-10
+                    button.pull-right.btn.btn-primary.common-button(ng-click='vm.loadDownlinePlayersRecord();') {{'SEARCH' | translate}}
                 br
                 div(style='min-height:500px')
                     label {{"Total" | translate}} {{vm.downlinePlayers.totalCount}} {{"COUNT1" | translate}}
@@ -1499,7 +1500,7 @@ p
                                 td {{val.orderNo}}
                                 td {{val.name}}
                                 td
-                                    input.form-control(type='number', ng-model='val.amount', ng-change='vm.getSumTotalTransferAmount(vm.downlinePlayersData);vm.disableTransferPartnerCreditToPlayer(val.amount);' ng-disabled='!vm.isEditingTransferPartnerCredit', style='color:red')
+                                    input.form-control.colorRed(type='number', ng-model='val.amount', ng-change='vm.getSumTotalTransferAmount(vm.downlinePlayersData);vm.disableTransferPartnerCreditToPlayer(val.amount);' ng-disabled='!vm.isEditingTransferPartnerCredit')
                                 td
                                     select.form-control(ng-model='val.providerGroup', ng-change='vm.checkIsDisableTransferPartnerCreditToPlayer(val.providerGroup, val.withdrawConsumption)' ng-disabled='!vm.isEditingTransferPartnerCredit')
                                         option(value='') {{'LOCAL_CREDIT' | translate}}
@@ -1508,7 +1509,7 @@ p
                                     input.form-control(type='number', ng-model='val.withdrawConsumption', ng-change='vm.checkIsDisableTransferPartnerCreditToPlayer(val.providerGroup, val.withdrawConsumption)' ng-disabled='!vm.isEditingTransferPartnerCredit')
                             tr(ng-if='vm.downlinePlayersData.length > 0')
                                 td(colspan=2) {{'All Pages' | translate}}
-                                td(style='color:red') {{vm.sumTotalTransferAmount || 0}}
+                                td.colorRed {{vm.sumTotalTransferAmount || 0}}
                                 td(colspan=2)
                             tr(ng-if='vm.downlinePlayersData.length == 0')
                                 td(colspan=5) {{'No data available in table' | translate}}
@@ -1516,17 +1517,17 @@ p
                         tfoot
                             tr
                                 th
-                                    div(style='display:inline-block;font-weight:normal')
-                                        text.margin-right-5(style='display:inline-block') {{'EachPage' | translate}}
-                                        input.form-control(style='max-width:60px;display:inline-block;',type='number',ng-init=50,ng-model='vm.downlinePlayers.limit' ,ng-blur='vm.loadDownlinePlayersRecord()')
-                                        text.margin-left-5(style="display:inline-block") {{'COUNT1' | translate}}
-                                th(colspan=4 style="text-align:right")
-                                    div(style='display:inline-block;font-weight:normal')
-                                        text.margin-right-5(style='display:inline-block') {{'Jump to' | translate}}
-                                        input.form-control.margin-right-5(style='max-width:60px;display:inline-block', type='number',ng-model='vm.downlinePlayers.currentPage',ng-init=1 ,ng-blur="vm.gotoDownlinePlayerPage((vm.downlinePlayers.currentPage),null)")
-                                        text(style="display:inline-block") / {{ vm.downlinePlayers.totalPage }} {{'Page' | translate}}
-                                    div(style='display:inline-block')
-                                        button.btn.btnPage.next_page.margin-left-5(style='border: 1px solid #878787;margin-top:2px' ng-click='vm.nextDownlinePlayerPage()', ng-disabled='vm.downlinePlayers.currentPage == vm.downlinePlayers.totalPage') {{'NEXT_PAGE' | translate}}
+                                    div(style='font-weight:normal')
+                                        text.margin-right-5 {{'EachPage' | translate}}
+                                        input.form-control.inline-block(style='max-width:60px;',type='number',ng-init=50,ng-model='vm.downlinePlayers.limit' ,ng-blur='vm.loadDownlinePlayersRecord()')
+                                        text.margin-left-5 {{'COUNT1' | translate}}
+                                th.alignRight(colspan=4)
+                                    div.inline-block(style='font-weight:normal')
+                                        text.margin-right-5 {{'Jump to' | translate}}
+                                        input.form-control.margin-right-5.inline-block(style='max-width:60px;', type='number',ng-model='vm.downlinePlayers.currentPage',ng-init=1 ,ng-blur="vm.gotoDownlinePlayerPage((vm.downlinePlayers.currentPage),null)")
+                                        text / {{ vm.downlinePlayers.totalPage }} {{'Page' | translate}}
+                                    div.inline-block
+                                        button.btn.btnPage.next_page.margin-left-5.margin-top-5(style='border: 1px solid #878787;' ng-click='vm.nextDownlinePlayerPage()', ng-disabled='vm.downlinePlayers.currentPage == vm.downlinePlayers.totalPage') {{'NEXT_PAGE' | translate}}
 
             .modal-footer
                 button.btn.btn-danger.common-button(data-dismiss='modal') {{"CANCEL" | translate}}

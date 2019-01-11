@@ -2651,7 +2651,7 @@ td.alignLeft, .alignLeft  {
 }
 
 tfoot td > label.alignRight,
-td.alignRight {
+td.alignRight, .alignRight {
     text-align: right;
 }
 
