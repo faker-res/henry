@@ -1252,7 +1252,7 @@ define(['js/app'], function (myApp) {
             }
 
             for (let i = 0; i < vm.allPlayerFeedbackResults.length; i++) {
-                if (vm.selectedPlatform.data.definitionOfAnsweredPhone.includes(vm.allPlayerFeedbackResults[i].value)) {
+                if (vm.selectedPlatform.data.definitionOfAnsweredPhone.includes(vm.allPlayerFeedbackResults[i].key)) {
                     vm.tsPhoneAddFeedback.result = vm.allPlayerFeedbackResults[i].key;
                     break;
                 }
