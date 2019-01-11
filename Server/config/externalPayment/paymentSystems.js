@@ -43,7 +43,7 @@ const thirdPartyAPIConfig = {
     },
     4: {
         topUpAPIAddr: "http://52.221.143.107:8182/",
-        topUpAPICallback: "http://devtest.wsweb.me:7100/notifyPayment",
+        topUpAPICallback: "http://devtest.wsweb.me:7100",
 
         //financial settlement
         name: '其他财务4',
