@@ -3324,7 +3324,9 @@ let dbPlayerReward = {
     generateOpenPromoCode: (platformObjId, newPromoCodeEntry, adminObjId, adminName) => {
 
         newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(100, 999);
-        newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
+        if (!newPromoCodeEntry.status){
+            newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
+        }
         newPromoCodeEntry.adminId = adminObjId;
         newPromoCodeEntry.adminName = adminName;
 

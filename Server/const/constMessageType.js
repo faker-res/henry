@@ -31,6 +31,9 @@ const constMessageType = {
     PLAYER_LEVEL_UP_SUCCESS: "PlayerLevelUpSuccess",
     PROMO_CODE_SEND: "PromoCodeSend",
 
+    // Auction
+    AUCTION_OPEN_PROMO_CODE_SUCCESS: "AuctionOpenPromoCodeSuccess",
+
     // TOP UP
     COMMON_TOPUP_SUCCESS: "CommonTopupSuccess",
 

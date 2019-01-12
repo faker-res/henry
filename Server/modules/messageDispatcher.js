@@ -208,6 +208,13 @@ const messageDispatcher = {
             if(metaData.proposalData.data.lastSettleTime)
                 // the time when the withdrawal request is approved
                 messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.lastSettleTime}}', moment(metaData.proposalData.data.lastSettleTime).format("YYYY/MM/DD HH:mm:ss"));
+            if(metaData.proposalData.data.promoCode)
+                messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.promoCode}}', metaData.proposalData.data.promoCode);
+            if(metaData.proposalData.data.productName)
+                messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.productName}}', metaData.proposalData.data.productName);
+            if(metaData.proposalData.data.expirationTime)
+            // the time when the promoCode is expired
+                messageTemplate.content = messageTemplate.content.replace('{{proposalData.data.expirationTime}}', moment(metaData.proposalData.data.expirationTime).format("YYYY/MM/DD HH:mm:ss"));
         }
         const renderedContent = renderTemplate(messageTemplate.content, metaData);
         console.log("checking sendMessage")
