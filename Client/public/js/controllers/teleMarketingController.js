@@ -1288,7 +1288,7 @@ define(['js/app'], function (myApp) {
             vm.tsPhoneReminder = {tsPhone: tsPhoneObjId && tsPhoneObjId.tsPhone && tsPhoneObjId.tsPhone._id || ""};
             utilService.actionAfterLoaded("#phoneListReminderTimePicker", function () {
                 let remindDate = tsPhoneObjId.remindTime || utilService.getNdaylaterStartTime(1)
-                commonService.commonInitTime(utilService, vm, 'tsPhoneReminder', 'startTime', '#phoneListReminderTimePicker', remindDate, true, {maxDate: null});
+                commonService.commonInitTime(utilService, vm, 'tsPhoneReminder', 'startTime', '#phoneListReminderTimePicker', remindDate, true, {maxDate: null, noInvert: true});
             })
         }
 
