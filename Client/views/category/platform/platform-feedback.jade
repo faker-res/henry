@@ -1,6 +1,6 @@
 .row
     .col-md-12
-        .well.feedbackQueryDiv.col-xs-12
+        .well.col-xs-12
             .search-filters-item
                 label {{"USER_TYPE"|translate}}
                 select.form-control(ng-model="vm.playerFeedbackQuery.playerType")
@@ -14,10 +14,10 @@
                     option(value='all') {{'ALL' | translate}}
                     option(ng-repeat='(i,v) in vm.allPlayerLvl', value='{{v._id}}') {{v.name | translate}}
             .search-filters-item
-                label.control-label {{'CREDIBILITY' | translate}}
+                label {{'CREDIBILITY' | translate}}
                 select.form-control#selectCredibilityRemarkFeedback(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.playerFeedbackQuery.credibilityRemarks')
             .search-filters-item
-                label.control-label {{'CREDIBILITY_FILTER' | translate}}
+                label {{'CREDIBILITY_FILTER' | translate}}
                 select.form-control#selectCredibilityRemarkFeedbackFilter(multiple="multiple", ng-options='remark._id as remark.name | translate for remark in vm.filterCredibilityRemarks', ng-model='vm.playerFeedbackQuery.credibilityRemarksFilter')
             .search-filters-item(ng-class='{"search-filters-threeBoxes": (vm.playerFeedbackQuery.lastAccess === "range")}')
                 //上次登入（距今）
@@ -33,7 +33,7 @@
                     div.symbol(ng-show="vm.playerFeedbackQuery.lastAccess === 'range'") -
                     input.threeBoxes.form-control(type="number" ng-model="vm.playerFeedbackQuery.lastAccessLatter" ng-show="vm.playerFeedbackQuery.lastAccess === 'range'")
             .search-filters-item
-                label.control-label {{'FILTER_FEEDBACK_TOPIC' | translate}}
+                label {{'FILTER_FEEDBACK_TOPIC' | translate}}
                 select.form-control#selectFeedbackTopicFilter(multiple="multiple", ng-options='topic.key as topic.value for topic in vm.playerFeedbackTopic', ng-model='vm.playerFeedbackQuery.filterFeedbackTopic')
             .search-filters-twoBoxes
                 //过滤回访（天）
@@ -116,13 +116,13 @@
                     option(value='new') {{'NEW_SYSTEM'|translate}}
                     option(value='old') {{'OLD_SYSTEM'|translate}}
             .search-filters-item
-                label.control-label {{'REGISTRATION_TIME_START' | translate}}
+                label {{'REGISTRATION_TIME_START' | translate}}
                 #registerStartTimePicker.datetimepicker.form-control
                     input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
                     span.add-on
                         i.fa-calendar.fa(data-time-icon='fa fa-clock-o', data-date-icon='fa fa-calendar')
             .search-filters-item
-                label.control-label {{'REGISTRATION_TIME_END' | translate}}
+                label {{'REGISTRATION_TIME_END' | translate}}
                 #registerEndTimePicker.datetimepicker.form-control
                     input.input-append.playerDate(data-format="dd/MM/yyyy hh:mm:ss", type='text')
                     span.add-on
@@ -164,7 +164,7 @@ div
     label.inlineBlk(ng-show='vm.feedbackPlayersPara.total!=null') {{"Search Result" | translate}} : {{vm.feedbackPlayersPara.total}}
     label.inlineBlk(ng-show='vm.ctiData.hasOnGoingMission') {{vm.callOutMissionStatus}}
     label.inlineBlk(ng-show='vm.ctiData.hasOnGoingMission') {{vm.ctiData.adminName}} : {{vm.callOutMissionStatusText}}  /  {{"Completed" | translate}} : ({{vm.callOutMissionProgressText}})
-    .btn.btn-primary.btn-space(ng-click="vm.selectedCallOutMission()" ng-if="checkViewPermission('Platform','Feedback','BulkCall') && !vm.ctiData.hasOnGoingMission") {{"SELECTED_CALL" | translate}}
+    .btn.btn-primary(ng-click="vm.selectedCallOutMission()" ng-if="checkViewPermission('Platform','Feedback','BulkCall') && !vm.ctiData.hasOnGoingMission") {{"SELECTED_CALL" | translate}}
     .btn.btn-primary.btn-space(ng-click="vm.createCallOutMission()" ng-if="checkViewPermission('Platform','Feedback','BulkCall') && !vm.ctiData.hasOnGoingMission") {{"BULK_CALL" | translate}}
     .pull-right
         a.fa.fa-refresh.margin-top-5(ng-click='vm.submitPlayerFeedbackQuery(null, true)')
@@ -265,7 +265,7 @@ div
 .row(ng-show='vm.selectedPlatform')
     .col-md-12
         .pull-left
-            button.btn.btn-danger.btn-xs(ng-click='vm.forceStopFPMSCallOutMissions()') {{"Force Stop Mission" | translate}}
+            button.btn.btn-danger(ng-click='vm.forceStopFPMSCallOutMissions()') {{"Force Stop Mission" | translate}}
 
 #modalExportSetting.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

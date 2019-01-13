@@ -44,6 +44,7 @@ const localization = require("../modules/localization");
 const proposalExecutor = require('./../modules/proposalExecutor');
 
 const rsaCrypto = require('./../modules/rsaCrypto');
+const extConfig = require('./../config/externalPayment/paymentSystems');
 
 const dbPlayerUtil = require("../db_common/dbPlayerUtility");
 
@@ -1644,6 +1645,7 @@ var dbPlayerTopUpRecord = {
         let rewardEvent;
         let newProposal;
         let serviceChargeRate = 0;
+        let topUpSystemConfig;
 
         if (topupRequest.bonusCode && topUpReturnCode) {
             return Q.reject({
@@ -1662,6 +1664,8 @@ var dbPlayerTopUpRecord = {
             ).then(
             playerData => {
                 player = playerData;
+                topUpSystemConfig = extConfig && player.platform.topUpSystemType && extConfig[player.platform.topUpSystemType];
+
                 if (player && player.platform && player.platform.merchantGroupIsPMS) {
                     bPMSGroup = true
                 } else {
@@ -1832,6 +1836,19 @@ var dbPlayerTopUpRecord = {
                 // if (rewardEvent && rewardEvent._id) {
                 //     proposalData.topUpReturnCode = rewardEvent.code;
                 // }
+
+                if (player.platform.topUpSystemType && topUpSystemConfig) {
+                    proposalData.topUpSystemType = player.platform.topUpSystemType;
+                    proposalData.topUpSystemName = topUpSystemConfig.name;
+                } else if (!player.platform.topUpSystemType && extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                    Object.keys(extConfig).forEach(key => {
+                        if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS') {
+                            proposalData.topUpSystemType = Number(key);
+                            proposalData.topUpSystemName = extConfig[key].name;
+                        }
+                    });
+                }
+
                 if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){
                     if (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN_GROUP || rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN){
                         proposalData.topUpReturnCode = rewardEvent.code;
@@ -2087,6 +2104,7 @@ var dbPlayerTopUpRecord = {
         let isFPMS = false; // true - use FPMS to manage payment
         let newProposal;
         let proposalType;
+        let topUpSystemConfig;
 
         if(isPlayerAssign){
             proposalType = constProposalType.PLAYER_ASSIGN_TOP_UP;
@@ -2120,6 +2138,8 @@ var dbPlayerTopUpRecord = {
         ).then(
             playerData => {
                 player = playerData;
+                topUpSystemConfig = extConfig && player.platform.topUpSystemType && extConfig[player.platform.topUpSystemType];
+
                 if (player && player.platform && player.platform.bankCardGroupIsPMS) {
                     bPMSGroup = true
                 } else {
@@ -2128,7 +2148,10 @@ var dbPlayerTopUpRecord = {
                 if (player && player._id) {
                     if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
                         isFPMS = true;
+                    } else if (topUpSystemConfig && topUpSystemConfig.name === 'FPMS') {
+                        isFPMS = true;
                     }
+
                     if (!topUpReturnCode) {
                         return Promise.resolve();
                     }
@@ -2246,6 +2269,18 @@ var dbPlayerTopUpRecord = {
                     name: player.name,
                     id: playerId
                 };
+
+                if (player.platform.topUpSystemType && topUpSystemConfig) {
+                    proposalData.topUpSystemType = player.platform.topUpSystemType;
+                    proposalData.topUpSystemName = topUpSystemConfig.name;
+                } else if (!player.platform.topUpSystemType && extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                    Object.keys(extConfig).forEach(key => {
+                        if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS') {
+                            proposalData.topUpSystemType = Number(key);
+                            proposalData.topUpSystemName = extConfig[key].name;
+                        }
+                    });
+                }
 
                 if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){
                     if (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN_GROUP || rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN){
@@ -3287,6 +3322,7 @@ var dbPlayerTopUpRecord = {
         let rewardEvent;
         let isFPMS = false; // true - use FPMS to manage payment
         let newProposal;
+        let topUpSystemConfig;
 
         if (bonusCode && topUpReturnCode) {
             return Q.reject({
@@ -3301,6 +3337,8 @@ var dbPlayerTopUpRecord = {
             .populate({path: "alipayGroup", model: dbconfig.collection_platformAlipayGroup}).then(
                 playerData => {
                     player = playerData;
+                    topUpSystemConfig = extConfig && player.platform.topUpSystemType && extConfig[player.platform.topUpSystemType];
+
                     if (fromFPMS) {
                         bPMSGroup = false
                     } else {
@@ -3313,7 +3351,10 @@ var dbPlayerTopUpRecord = {
                     if (player && player._id) {
                         if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
                             isFPMS = true;
+                        } else if (topUpSystemConfig && topUpSystemConfig.name === 'FPMS') {
+                            isFPMS = true;
                         }
+
                         if (!topUpReturnCode) {
                             return Promise.resolve();
                         }
@@ -3447,6 +3488,19 @@ var dbPlayerTopUpRecord = {
                     // if (rewardEvent && rewardEvent._id) {
                     //     proposalData.topUpReturnCode = rewardEvent.code;
                     // }
+
+                    if (player.platform.topUpSystemType && topUpSystemConfig) {
+                        proposalData.topUpSystemType = player.platform.topUpSystemType;
+                        proposalData.topUpSystemName = topUpSystemConfig.name;
+                    } else if (!player.platform.topUpSystemType && extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                        Object.keys(extConfig).forEach(key => {
+                            if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS') {
+                                proposalData.topUpSystemType = Number(key);
+                                proposalData.topUpSystemName = extConfig[key].name;
+                            }
+                        });
+                    }
+
                     if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){
                         if (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN_GROUP || rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN){
                             proposalData.topUpReturnCode = rewardEvent.code;
@@ -3920,6 +3974,7 @@ var dbPlayerTopUpRecord = {
         let rewardEvent;
         let isFPMS = false; // true - use FPMS to manage payment
         let newProposal;
+        let topUpSystemConfig;
 
         if (bonusCode && topUpReturnCode) {
             return Q.reject({
@@ -3936,6 +3991,8 @@ var dbPlayerTopUpRecord = {
             ).lean().then(
                 playerData => {
                     player = playerData;
+                    topUpSystemConfig = extConfig && player.platform.topUpSystemType && extConfig[player.platform.topUpSystemType];
+
                     if (fromFPMS) {
                         bPMSGroup = false
                     } else {
@@ -3948,7 +4005,10 @@ var dbPlayerTopUpRecord = {
                     if (player && player._id) {
                         if (player.platform && player.platform.financialSettlement && player.platform.financialSettlement.financialSettlementToggle) {
                             isFPMS = true;
+                        } else if (topUpSystemConfig && topUpSystemConfig.name === 'FPMS') {
+                            isFPMS = true;
                         }
+
                         if (!topUpReturnCode) {
                             return Promise.resolve();
                         }
@@ -4060,6 +4120,18 @@ var dbPlayerTopUpRecord = {
                             name: player.name,
                             id: playerId
                         };
+
+                        if (player.platform.topUpSystemType && topUpSystemConfig) {
+                            proposalData.topUpSystemType = player.platform.topUpSystemType;
+                            proposalData.topUpSystemName = topUpSystemConfig.name;
+                        } else if (!player.platform.topUpSystemType && extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                            Object.keys(extConfig).forEach(key => {
+                                if (key && extConfig[key] && extConfig[key].name && extConfig[key].name === 'PMS') {
+                                    proposalData.topUpSystemType = Number(key);
+                                    proposalData.topUpSystemName = extConfig[key].name;
+                                }
+                            });
+                        }
 
                         if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){
                             if (rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN_GROUP || rewardEvent.type.name == constRewardType.PLAYER_TOP_UP_RETURN){

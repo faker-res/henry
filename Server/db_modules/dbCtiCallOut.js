@@ -350,7 +350,7 @@ let dbCtiCallOut = {
                 let mostRelevantError, errorObj;
                 for (let i = 0; i < output.length; i++) {
                     if (output[i].result == 1) {
-                        return output;
+                        return output[i];
                     }
 
                     if (output[i].result) {
@@ -381,7 +381,7 @@ let dbCtiCallOut = {
                 try {
                     request.post(link, {form: param, timeout: 5000}, (err, resp, body) => {
                         if (err || (resp && body && Number(JSON.parse(body).result) != 1)) {
-                            console.log("CTI try no.", link, body, err);
+                            console.log("CTI try", link, body, err);
 
                             if (body) {
                                 resolve({result: JSON.parse(body).result});
