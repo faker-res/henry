@@ -451,7 +451,7 @@ define(['js/app'], function (myApp) {
                         commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'startTime', '#adminPhoneListDistributeStart', utilService.getNdayagoStartTime(30));
                         commonService.commonInitTime(utilService, vm, 'queryAdminPhoneList', 'endTime', '#adminPhoneListDistributeEnd', utilService.getTodayEndTime());
                         vm.queryAdminPhoneList.pageObj = utilService.createPageForPagingTable("#adminPhoneListTablePage", {}, $translate, function (curP, pageSize) {
-                            vm.commonPageChangeHandler(curP, pageSize, "queryAdminPhoneList", vm.searchAdminPhoneList)
+                            vm.commonPageChangeHandler(curP, pageSize > 100 ? 100 : pageSize, "queryAdminPhoneList", vm.searchAdminPhoneList)
                         });
                         $('.spicker').selectpicker('refresh');
                     })
@@ -628,7 +628,7 @@ define(['js/app'], function (myApp) {
                 assignTimesTwo: vm.queryAdminPhoneList.assignTimesTwo,
                 isFilterDangerZone: vm.queryAdminPhoneList.isFilterDangerZone,
                 index: newSearch ? 0 : (vm.queryAdminPhoneList.index || 0),
-                limit: vm.queryAdminPhoneList.limit || 10,
+                limit: (vm.queryAdminPhoneList.limit > 100 ? 100 : vm.queryAdminPhoneList.limit) || 10,
                 sortCol: vm.queryAdminPhoneList.sortCol || {assignTimes: 1, endTime: 1}
             };
         };
@@ -8462,6 +8462,18 @@ define(['js/app'], function (myApp) {
         vm.dailyTradeTsPhone = function () {
             socketService.$socket($scope.AppSocket, 'dailyTradeTsPhone', {}, function (data) {
                 console.log("dailyTradeTsPhone", data)
+            })
+        }
+
+        vm.debugTsPhoneList = function (tsPhoneListObjId) { // for debug use only
+            socketService.$socket($scope.AppSocket, 'debugTsPhoneList', {tsPhoneList: tsPhoneListObjId}, function (data) {
+                console.log("all tsPhone in tsPhoneList", data)
+            })
+        }
+
+        vm.debugTsPhone = function (tsPhoneObjId) { // for debug use only
+            socketService.$socket($scope.AppSocket, 'debugTsPhone', {tsPhone: tsPhoneObjId}, function (data) {
+                console.log("tsPhone and all tsDistributedPhone", data)
             })
         }
 

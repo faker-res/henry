@@ -1,5 +1,5 @@
 #modalYesNo.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -12,5 +12,5 @@
                                 .well
                                     text {{vm.modalYesNo.modalText}}
             .modal-footer
-                button.btn-sm.margin-right-5.btn.btn-primary.col-md-2(data-dismiss='modal' ng-click="vm.modalYesNo.actionYes()") {{"CONFIRM" | translate}}
-                button.btn-sm.margin-right-5.btn.btn-warning.col-md-2(data-dismiss='modal' ng-click="vm.modalYesNo.actionNo()") {{"CANCEL" | translate}}
+                button.btn.btn-primary.btn-space(data-dismiss='modal' ng-click="vm.modalYesNo.actionYes()") {{"CONFIRM" | translate}}
+                button.btn.btn-warning.btn-space(data-dismiss='modal' ng-click="vm.modalYesNo.actionNo()") {{"CANCEL" | translate}}
