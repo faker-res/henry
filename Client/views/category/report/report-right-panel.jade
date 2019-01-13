@@ -2101,10 +2101,28 @@
                 button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
                 //button.btn.btn-primary.common-button(ng-if='vm.selectedProposal.status==="AutoAudit" && !vm.changeStatusToPendingFromAutoAuditMessage && !vm.selectedProposal.cancelling && !vm.selectedProposal.cancelled', ng-click='vm.changeStatusToPendingFromAutoAudit()') {{"Manual" | translate}}
                 button.btn.btn-success.common-button(ng-if="vm.showCopyProposal()" ng-click="vm.copyTopUpProposal()") {{"COPY_TO_CLIPBOARD" | translate}}
+                button.btn.btn-danger.common-button(ng-if='checkViewPermission("Report", "Proposal", "Force Pairing") && vm.selectedProposal.status=="Pending" ' +
+                '&& (vm.selectedProposal.type.name == "ManualPlayerTopUp" || vm.selectedProposal.type.name == "PlayerAlipayTopUp" || vm.selectedProposal.type.name == "PlayerWechatTopUp")'
+                data-toggle="modal", data-target="#modalProposalTopUpForcePairing") {{"Force Pairing" | translate}}
                 label.inlineBlk.wordWrap(ng-if='vm.changeStatusToPendingFromAutoAuditMessage') {{vm.changeStatusToPendingFromAutoAuditMessage}}
                 .inlineBlk.pull-left(ng-show='vm.rightPanelTitle == "APPROVAL_PROPOSAL"')
                     label.inlineBlk {{'remark' | translate}}
                     input#proposalRemark.inlineBlk.proposalRemark.form-control(style='width:400px;')
+
+#modalProposalTopUpForcePairing.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false aria-hidden='true' style="z-index:1052;")
+    .modal-dialog(style='width:50%;top:20%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                span(style="font-weight:bold;font-size:24px;") {{"Force Pairing" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        h4 {{"Force Pairing, Please enter reference number." | translate}}
+                        input(type="text" ng-model="vm.forcePairingReferenceNumber")
+                div(style='text-align:right')
+                    button.btn.btn-danger.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(data-dismiss='modal' ng-click="vm.forcePairingWithReferenceNumber()") {{"CONFIRMATION" | translate}}
 
 #modalCommissionTable.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:100%;')

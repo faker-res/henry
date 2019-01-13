@@ -2647,7 +2647,7 @@ tr.sn-selected, td.sn-selected {
 }
 
 td.alignLeft, .alignLeft  {
-    text-align: left;
+    text-align: left !important;
 }
 
 tfoot td > label.alignRight,

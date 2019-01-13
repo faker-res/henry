@@ -27914,6 +27914,7 @@ define(['js/app'], function (myApp) {
             vm.getPaymentSystemConfigByPlatform = function () {
                 vm.paymentSystemConfig = vm.paymentSystemConfig || [];
                 vm.cloneOriPaymentSystemConfig = [];
+                vm.refreshPaymentSystem();
 
                 let sendData = {
                     platform: vm.selectedPlatform.id
@@ -27932,6 +27933,13 @@ define(['js/app'], function (myApp) {
                     vm.paymentSystemConfig = [];
                 });
             };
+
+            vm.refreshPaymentSystem = function (isNewRefresh) {
+
+                $('#paymentSystemRecordSpinRecordSpin').show();
+                vm.lastPaymentSystemRefresh = utilService.$getTimeFromStdTimeFormat();
+                vm.getProviderLatestTimeRecord();
+            }
 
             vm.updatePaymentSystemConfigByPlatform = function () {
                 let updateDate = {
