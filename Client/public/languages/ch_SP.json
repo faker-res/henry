@@ -1018,6 +1018,7 @@
   "unlockedBonusAmount": "已解锁奖励额度",
   "targetProviders": "提供商",
   "LAST_REFRESH_TIME": "上次刷新时间",
+  "The update time of this point":"本次点数馀额更新时间",
   "PROPERTY": "属性",
   "VALUE": "值",
   "SELECT_TEST_PLATFORM": "选择测试平台",
