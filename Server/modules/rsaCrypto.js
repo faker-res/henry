@@ -1,31 +1,34 @@
 'use strict';
 let http = require('http');
 let env = require('./../config/sslEnv').config();
+let constants = require('constants');
 let crypto = require('crypto');
 let jwt = require('jsonwebtoken');
 let constSystemParam = require('./../const/constSystemParam');
 
-let fs = require('fs')
+var fs = require('fs')
+    , ursa = require('ursa')
     , crt
     , key
     , replKey
     , replCrt
+    , msg
     ;
 
 // SSL preparation - comment after SSL online
-key = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
-crt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
+key = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
+crt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
 
 let oldKey, oldCert;
 
 // Legacy key and cert - fallback plan
-oldKey = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
-oldCert = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
+oldKey = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
+oldCert = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
 
 // 3rd party payment system key
 let fkpKey, fkpCert;
-fkpKey = fs.readFileSync(__dirname + '/../ssl/fukuaipay/fkp.key.pem');
-fkpCert = fs.readFileSync(__dirname + '/../ssl/fukuaipay/fkp.pub');
+fkpKey = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/fukuaipay/fkp.key.pem'));
+fkpCert = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/fukuaipay/fkp.pub'));
 
 let token = jwt.sign('Fr0m_FPM$!', constSystemParam.API_AUTH_SECRET_KEY);
 let host = "http://" + env.redisUrl;
@@ -65,7 +68,7 @@ if (!key) {
     getKey(options, "/playerPhone.key.pem", "/../ssl/playerPhone.key.pem").then(
         data => {
             if (data) {
-                key = data;
+                key = ursa.createPrivateKey(data);
             } else {
                 console.log('getPrivateKey no data', host);
             }
@@ -77,7 +80,7 @@ if (!crt) {
     getKey(options, "/playerPhone.pub", "/../ssl/playerPhone.pub").then(
         data => {
             if (data) {
-                crt = data;
+                crt = ursa.createPublicKey(data);
             } else {
                 console.log('getPublicKey key server unreachable ', host);
             }
@@ -89,9 +92,9 @@ if (!replKey) {
     getKey(options, "/playerPhone.key.pem.bak", "/../ssl/playerPhone.key.pem").then(
         data => {
             if (data) {
-                replKey = data;
+                replKey = ursa.createPrivateKey(data);
             } else {
-                replKey = fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem');
+                replKey = ursa.createPrivateKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.key.pem'));
             }
         }
     );
@@ -101,11 +104,11 @@ if (!replCrt) {
     getKey(options, "/playerPhone.pub.bak", "/../ssl/playerPhone.pub").then(
         data => {
             if (data) {
-                replCrt = data;
+                replCrt = ursa.createPublicKey(data);
             } else {
                 // Empty key, use fallback key
                 console.log('getPublicReplKey no data', host);
-                replCrt = fs.readFileSync(__dirname + '/../ssl/playerPhone.pub');
+                replCrt = ursa.createPublicKey(fs.readFileSync(__dirname + '/../ssl/playerPhone.pub'));
             }
         }
     );
@@ -116,7 +119,7 @@ module.exports = {
         let encrypted = msg;
 
         try {
-            encrypted = crypto.privateEncrypt(key, msg);
+            encrypted = key.privateEncrypt(msg, 'utf8', 'base64');
         } catch (e) {
             encrypted = msg;
         }
@@ -127,21 +130,18 @@ module.exports = {
         let decrypted = msg;
 
         try {
-            decrypted = crypto.publicDecrypt(crt, Buffer.from(msg, 'base64'))
+            decrypted = crt.publicDecrypt(msg, 'base64', 'utf8')
         } catch (e) {
-            console.log('crt error', crt);
             try {
-                decrypted = crypto.publicDecrypt(replCrt, Buffer.from(msg, 'base64'))
+                decrypted = replCrt.publicDecrypt(msg, 'base64', 'utf8')
             } catch (e) {
                 try {
-                    decrypted = crypto.publicDecrypt(oldCert, Buffer.from(msg, 'base64'))
+                    decrypted = oldCert.publicDecrypt(msg, 'base64', 'utf8');
                 } catch (e) {
                     decrypted = msg;
                 }
             }
         }
-
-        decrypted = Buffer.isBuffer(decrypted) ? decrypted.toString() : decrypted;
 
         return decrypted;
     },
@@ -149,7 +149,7 @@ module.exports = {
         let encrypted = msg;
 
         try {
-            encrypted = crypto.privateEncrypt(replKey, Buffer.from(msg, 'base64'));
+            encrypted = replKey.privateEncrypt(msg, 'utf8', 'base64');
         } catch (e) {
             encrypted = msg;
         }
@@ -160,7 +160,7 @@ module.exports = {
         let decrypted = msg;
 
         try {
-            decrypted = crypto.publicDecrypt(replCrt, Buffer.from(msg, 'base64'))
+            decrypted = replCrt.publicDecrypt(msg, 'base64', 'utf8')
         } catch (e) {
             decrypted = msg;
         }
@@ -173,11 +173,13 @@ module.exports = {
         let encrypted = msg;
 
         try {
-            encrypted = crypto.privateEncrypt(fkpKey, Buffer.from(msg, 'base64'));
+            encrypted = fkpKey.privateEncrypt(msg, 'utf8', 'base64');
         } catch (e) {
             console.log('error', e);
             encrypted = msg;
         }
+
+        console.log('msg encrypted', msg, encrypted);
 
         return encrypted;
     },
