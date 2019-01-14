@@ -1423,6 +1423,18 @@ define([], () => {
             // end region
 
             return proposalDetail;
+        };
+
+        this.forcePairingWithReferenceNumber = ($scope, platformId, proposalObjId, proposalId, referenceNumber) => {
+            if(platformId && proposalObjId && proposalId && referenceNumber) {
+                console.log("forcePairingWithReferenceNumber ", platformId, proposalObjId, proposalId, referenceNumber);
+                return $scope.$socketPromise("forcePairingWithReferenceNumber", {
+                    platformId: platformId,
+                    proposalObjId: proposalObjId,
+                    proposalId: proposalId,
+                    referenceNumber: referenceNumber
+                }).then(data=>{console.log("data",data)},err=>{console.log("err",err)});
+            }
         }
     };
 

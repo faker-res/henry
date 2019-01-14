@@ -909,12 +909,13 @@
                         .form-group
                             label.control-label {{'FEEDBACK_RESULTS' | translate}}
                             button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
-                            select.form-control(style='margin-top:5px;', ng-model='vm.playerFeedback.result', required)
+                            select.form-control.margin-top-5 (ng-model='vm.playerFeedback.result', required)
                                 option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
                         .form-group
+
                             label.control-label {{'FEEDBACK_TOPIC' | translate}}
-                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
-                            select.form-control(style='margin-top:5px;', ng-model='vm.playerFeedback.topic', required)
+                            button.btn.btn-primary(style='margin-left:20px;',ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
+                            select.form-control.margin-top-5 (ng-model='vm.playerFeedback.topic', required)
                                 option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
                         .form-group
                             label.control-label {{'FEEDBACK_CONTENT' | translate}}
@@ -936,7 +937,7 @@
                         label {{"Total" | translate}} {{vm.playerFeedbackRecord.totalCount}} {{"records" | translate}}
                             .inlineBlk.margin-left-5(ng-if='vm.playerFeedbackRecord.searching')
                                 i.fa.fa-spin.fa-spinner
-                    table#playerFeedbackRecordTable.common-table.wordWrap.tbodyNoWrap.display(style='width:100%')
+                    table#playerFeedbackRecordTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
                     #playerFeedbackRecordTablePage
 
             .modal-footer(ng-if="vm.feedbackModalTab === 'addFeedbackPanel'")
@@ -984,7 +985,7 @@
                                 //text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}} {{'minFirstTimeTopUpAmount1' | translate}})
                                 input.form-control(type='number', min=0, ng-model='vm.playerManualTopUp.amount', required)
                             .form-group-col-md-6
-                                label.control-label(style='width:100%') {{'Bankcard' | translate}}
+                                label.control-label {{'Bankcard' | translate}}
                                 select.form-control.spicker(ng-options='a.displayText for a in vm.bankCards', ng-model='vm.chosenBankAcc', ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)', bsp, data-live-search="true")
                                     option(value='')
                             .form-group-col-md-6
@@ -1054,9 +1055,7 @@
                                 .control-label
                                 label {{'alipayName' | translate}}
                                 input.form-control(ng-model='vm.playerAlipayTopUp.alipayName', required)
-                            .form-group.col-md-6
-                                .control-label
-                            .form-group.col-md-6
+                            .form-group.col-md-12
                                 .control-label
                                 label {{'alipayAccount' | translate}}
                                 input.form-control(ng-model='vm.playerAlipayTopUp.alipayAccount', required)
@@ -1461,7 +1460,7 @@
                                         </br>
                                         label {{"The total top-up amount of the interval time" | translate}} :  {{vm.playerApplyRewardShow.returnData.topUpAmountInterval}}
                                         i.fa.fa-spin.fa-spinner(ng-show='vm.consumptionSlipReward.loading')
-                                        table#playerConsumptionSlipRewardTable.common-table.display(style='width:100%')
+                                        table#playerConsumptionSlipRewardTable.common-table.display.paymentGroup-btn
                                         #playerConsumptionSlipRewardTablePage
 
                             .form-group(ng-if='vm.playerApplyRewardShow.showConsumptionReturn')
@@ -1640,7 +1639,7 @@
 
                         .well(ng-show="vm.selectedReapplyLostOrderTab == 'payment'")
                             label {{'Select a payment request' | translate}}
-                            table#playerRepairPaymentTbl.noWrap.text-center.display(style='width:100%')
+                            table#playerRepairPaymentTbl.noWrap.text-center.display.paymentGroup-btn
                                 thead
                                     tr
                                         th {{'TIME' | translate}}
@@ -1756,16 +1755,16 @@
                                         td.col-md-3 {{'BEFORE_REWARD_POINTS_CONVERT' | translate}}
                                         td.col-md-3 {{'REWARD_POINTS_CONVERT_AMOUNT' | translate}}
                                             span(ng-if="vm.playerRewardPointsConversionRate") &nbsp;({{vm.playerRewardPointsConversionRate}} : 1)
-                                        td.col-md-3.strong(style='color:red') {{'REWARD_POINTS_CONVERT_DAILY_LIMIT' | translate}}
+                                        td.col-md-3.strong.text-disabled {{'REWARD_POINTS_CONVERT_DAILY_LIMIT' | translate}}
                                         td.col-md-3 {{'AFTER_REWARD_POINTS_CONVERT' | translate}}
                                     tr
                                         td {{vm.isOneSelectedPlayer().rewardPointsObjId.points}}
                                         td
                                             input.text-success(type='number', ng-model='vm.rewardPointsConvert.updateAmount', ng-change="vm.rewardPointsConvert.finalValidAmount=vm.isOneSelectedPlayer().rewardPointsObjId.points - vm.rewardPointsConvert.updateAmount")
                                         td
-                                            label(style='color:red;') {{vm.playerRewardPointsDailyConvertedPoints}}
-                                            label(style='color:red;') &nbsp;
-                                            label(style='color:red;') / {{vm.playerRewardPointsDailyLimit}}
+                                            label.text-disabled {{vm.playerRewardPointsDailyConvertedPoints}}
+                                            label.text-disabled &nbsp;
+                                            label.text-disabled / {{vm.playerRewardPointsDailyLimit}}
                                             .text-danger(ng-show='vm.rewardPointsConvert.updateAmount + vm.playerRewardPointsDailyConvertedPoints > vm.playerRewardPointsDailyLimit') {{'Player convert amount reach daily reward points convert limit' | translate}}
                                         td
                                             label.text-danger {{vm.rewardPointsConvert.finalValidAmount || 0}}
@@ -1944,10 +1943,29 @@
                 button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
                 button.btn.btn-primary.common-button(ng-if='vm.selectedProposal.status==="AutoAudit" && !vm.changeStatusToPendingFromAutoAuditMessage && !vm.selectedProposal.cancelling && !vm.selectedProposal.cancelled', ng-click='vm.changeStatusToPendingFromAutoAudit()') {{"Manual" | translate}}
                 button.btn.btn-success.common-button(ng-if="vm.showCopyProposal()" ng-click="vm.copyTopUpProposal()") {{"COPY_TO_CLIPBOARD" | translate}}
+                button.btn.btn-danger.common-button(ng-if='checkViewPermission("Player", "Proposal", "Force Pairing") ' +
+                '&& (vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") ' +
+                '&& (vm.selectedProposal.type.name == "ManualPlayerTopUp" || vm.selectedProposal.type.name == "PlayerAlipayTopUp" || vm.selectedProposal.type.name == "PlayerWechatTopUp")'
+                data-toggle="modal", data-target="#modalProposalTopUpForcePairing") {{"Force Pairing" | translate}}
                 label.inlineBlk.wordWrap(ng-if='vm.changeStatusToPendingFromAutoAuditMessage') {{vm.changeStatusToPendingFromAutoAuditMessage}}
                 .inlineBlk.pull-left(ng-show='vm.rightPanelTitle == "APPROVAL_PROPOSAL"')
                     label.inlineBlk {{'remark' | translate}}
                     input#proposalRemark.inlineBlk.proposalRemark.form-control(style='width:400px;')
+
+#modalProposalTopUpForcePairing.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false aria-hidden='true' style="z-index:1052;")
+    .modal-dialog(style='width:50%;top:20%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                span(style="font-weight:bold;font-size:24px;") {{"Force Pairing" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        h4 {{"Force Pairing, Please enter reference number." | translate}}
+                        input(type="text" ng-model="vm.forcePairingReferenceNumber")
+                div(style='text-align:right')
+                    button.btn.btn-danger.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(data-dismiss='modal' ng-click="vm.forcePairingWithReferenceNumber()") {{"CONFIRMATION" | translate}}
 
 #newPlayerModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

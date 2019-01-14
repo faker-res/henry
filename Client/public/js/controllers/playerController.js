@@ -22858,6 +22858,10 @@ define(['js/app'], function (myApp) {
                 console.log(targetArr);
             }
         };
+        vm.forcePairingWithReferenceNumber = function() {
+            commonService.forcePairingWithReferenceNumber($scope, vm.selectedPlatform.data.platformId, vm.selectedProposal._id, vm.selectedProposal.proposalId, vm.forcePairingReferenceNumber);
+            vm.forcePairingReferenceNumber = '';
+        };
 
         $('body').on('click', '#permissionRecordButtonByPlayerTab', function () {
             vm.getPlayerPermissionChangeByPlayerTab("new")

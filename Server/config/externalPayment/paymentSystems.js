@@ -15,18 +15,18 @@ const thirdPartyAPIConfig = {
 
         //financial settlement
         name: '快付收银台',
-        enableTopp: false,
+        isPMS: false,
+        enableTopup: false,
         enableBonus: false,
-        description: '提供网银、银联等支付方式。',
-        curFinancialSettlementPoint: 200000
+        description: '提供网银、银联等支付方式。'
     },
     2: {
         //financial settlement
         name: 'FPMS',
+        isPMS: false,
         enableTopup: false,
         enableBonus: false,
         description: '不通过其他第三方财务系统，（银行卡、个人支付宝、个人微信、提款将可自行在本系统操作）',
-        curFinancialSettlementPoint: 203.55,
         minPointNotification: 200000
     },
     3: {
@@ -35,10 +35,10 @@ const thirdPartyAPIConfig = {
 
         //financial settlement
         name: 'PMS',
+        isPMS: true,
         enableTopup: true,
         enableBonus: true,
         description: '（预设）与本公司创立合作至今的财务公司，提供银行卡、N 种第三方、支付宝、微信等市面上所有充值。',
-        curFinancialSettlementPoint: 1000000,
         minPointNotification: 150000
     },
     4: {
@@ -47,6 +47,7 @@ const thirdPartyAPIConfig = {
 
         //financial settlement
         name: '其他财务4',
+        isPMS: false,
         enableTopup: false,
         enableBonus: false,
         description: '我是说明4',

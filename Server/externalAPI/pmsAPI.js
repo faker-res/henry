@@ -5,6 +5,7 @@ const constServerCode = require("../const/constServerCode");
 const clientAPIInstance = require("../modules/clientApiInstances");
 
 function callPMSAPI(service, functionName, data) {
+    console.log("PMS API data ", data);
     if (!data) {
         return Q.reject(new Error("Invalid data!"));
     }
@@ -102,6 +103,10 @@ const pmsAPI = {
 
     foundation_requestAlipayByUsername: function (data) {
         return callPMSAPI("foundation", "requestAlipayByUsername", data);
+    },
+
+    foundation_mandatoryMatch: function (data) {
+        return callPMSAPI("foundation", "mandatoryMatch", data);
     },
 
     //platform service

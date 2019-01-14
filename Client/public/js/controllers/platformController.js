@@ -22792,7 +22792,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'financialSettlementConfig':
                         vm.getFinancialSettlementConfig();
-                        vm.getFinancialSettlementSystemConfig();
+                        vm.getPaymentSystemConfigByPlatform();
                         break;
                     case 'largeWithdrawalSetting':
                         vm.getLargeWithdrawalSetting();
@@ -27910,34 +27910,68 @@ define(['js/app'], function (myApp) {
                 vm.financialSettlementConfig.financialPointsDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.financialPointsDisableWithdrawal? "1": "0";
             }
 
-            // region Financial Settlement System Config
-            vm.getFinancialSettlementSystemConfig = function () {
-                vm.financialSettlementSystemConfig = vm.financialSettlementSystemConfig || [];
-                vm.cloneOriFinancialSettlementConfig = [];
+            // region Payment System Config
+            vm.getPaymentSystemConfigByPlatform = function () {
+                vm.paymentSystemConfig = vm.paymentSystemConfig || [];
+                vm.cloneOriPaymentSystemConfig = [];
+                vm.refreshPaymentSystem();
 
                 let sendData = {
                     platform: vm.selectedPlatform.id
                 };
 
-                socketService.$socket($scope.AppSocket, 'getFinancialSettlementConfigByPlatform', sendData, function (data) {
-                    console.log('getFinancialSettlementConfigByPlatform', data);
+                socketService.$socket($scope.AppSocket, 'getPaymentSystemConfigByPlatform', sendData, function (data) {
+                    console.log('getPaymentSystemConfigByPlatform', data);
                     $scope.$evalAsync(() => {
                         if (data && data.data) {
-                            vm.financialSettlementSystemConfig = data.data;
-                            vm.cloneOriFinancialSettlementConfig = JSON.parse(JSON.stringify(data.data));
+                            vm.paymentSystemConfig = data.data;
+                            vm.cloneOriPaymentSystemConfig = JSON.parse(JSON.stringify(data.data))
                         }
                     });
                 }, function (err) {
-                    console.log("cannot getFinancialSettlementConfigByPlatform", err);
-                    vm.financialSettlementSystemConfig = [];
+                    console.log("cannot getPaymentSystemConfigByPlatform", err);
+                    vm.paymentSystemConfig = [];
                 });
             };
 
-            vm.resetFinancialSettlementSystemConfig = function () {
-                vm.financialSettlementSystemConfig = vm.cloneOriFinancialSettlementConfig ? JSON.parse(JSON.stringify(vm.cloneOriFinancialSettlementConfig)) : [];
+            vm.refreshPaymentSystem = function (isNewRefresh) {
+
+                $('#paymentSystemRecordSpinRecordSpin').show();
+                vm.lastPaymentSystemRefresh = utilService.$getTimeFromStdTimeFormat();
+                vm.getProviderLatestTimeRecord();
+            }
+
+            vm.updatePaymentSystemConfigByPlatform = function () {
+                let updateDate = {
+                    paymentSystemConfig: vm.paymentSystemConfig
+                }
+
+                let sendData = {
+                    query: {
+                        platform: vm.selectedPlatform.id
+                    },
+                    updateData: updateDate
+                }
+                socketService.$socket($scope.AppSocket, 'updatePaymentSystemConfigByPlatform', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('updatePaymentSystemConfigByPlatform success ',data);
+                        if (data && data.length > 0) {
+                            vm.paymentSystemConfig = data;
+                        }
+                    })
+                }, function (err) {
+                    $scope.$evalAsync(() => {
+                        console.log('updatePaymentSystemConfigByPlatform fail ', err);
+                        vm.resetPaymentSystemConfig();
+                    })
+                });
             };
 
-            vm.enableFinancialSettlementRdBtnConfig = function (idx, data, type) {
+            vm.resetPaymentSystemConfig = function () {
+                vm.paymentSystemConfig = vm.cloneOriPaymentSystemConfig ? JSON.parse(JSON.stringify(vm.cloneOriPaymentSystemConfig)) : [];
+            };
+
+            vm.enablePaymentSystemRdBtnConfig = function (idx, data, type) {
                 if (data && data.length > 0) {
                     for (let i = 0; i < data.length; i++) {
                         let setting = data[i];

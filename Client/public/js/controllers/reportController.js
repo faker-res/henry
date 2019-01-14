@@ -14,6 +14,7 @@ define(['js/app'], function (myApp) {
             return $filter('noRoundTwoDecimalPlaces')(value).toFixed(2);
         };
         var vm = this;
+        $scope.showDisabledPaymentMethod = true;
 
         // For debugging:
         window.VM = vm;
@@ -3994,6 +3995,10 @@ define(['js/app'], function (myApp) {
                     return item;
                 }), data.data.total, data.data.size, newSearch, isExport);
                 $scope.safeApply();
+            });
+
+            socketService.$socket($scope.AppSocket, 'getPlayerReportFromSummary', sendquery, function (data) {
+                console.log('test player report summary data', data);
             });
         };
 
@@ -10092,6 +10097,11 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTimeEnd = new Date().getTime();
             vm.reportSearchTime = (vm.reportSearchTimeEnd - vm.reportSearchTimeStart) / 1000;
         }
+
+        vm.forcePairingWithReferenceNumber = function() {
+            commonService.forcePairingWithReferenceNumber($scope, vm.selectedPlatform.platformId, vm.selectedProposal._id, vm.selectedProposal.proposalId, vm.forcePairingReferenceNumber);
+            vm.forcePairingReferenceNumber = '';
+        };
 
         // $scope.$on('$viewContentLoaded', function () {
         var eventName = "$viewContentLoaded";

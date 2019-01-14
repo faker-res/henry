@@ -893,11 +893,17 @@ function socketActionPlatform(socketIO, socket) {
             socketUtil.emitter(self.socket, dbPlatform.saveBlackWhiteListingConfig, [data.platform, data.updateData], actionName, isValidData);
         },
 
-        getFinancialSettlementConfigByPlatform: function getFinancialSettlementConfigByPlatform(data) {
+        getPaymentSystemConfigByPlatform: function getPaymentSystemConfigByPlatform(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.platform);
-            socketUtil.emitter(self.socket, dbPlatform.getFinancialSettlementConfigByPlatform, [data.platform], actionName, isValidData);
-        }
+            socketUtil.emitter(self.socket, dbPlatform.getPaymentSystemConfigByPlatform, [data.platform], actionName, isValidData);
+        },
+
+        updatePaymentSystemConfigByPlatform: function updatePaymentSystemConfigByPlatform(data) {
+            var actionName = arguments.callee.name;
+            var isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPlatform.updatePaymentSystemConfigByPlatform, [data.query, data.updateData], actionName, isValidData);
+        },
     };
     socketActionPlatform.actions = this.actions;
 }

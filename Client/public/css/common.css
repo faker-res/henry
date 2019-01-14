@@ -1813,7 +1813,7 @@ input[type='Number'] {
 }
 
 .radio-space{
-    margin: 0 .5em .5em;
+    margin: 0 .5em .5em !important;
 }
 
 .panel-heading {
@@ -2647,11 +2647,11 @@ tr.sn-selected, td.sn-selected {
 }
 
 td.alignLeft, .alignLeft  {
-    text-align: left;
+    text-align: left !important;
 }
 
 tfoot td > label.alignRight,
-td.alignRight {
+td.alignRight, .alignRight {
     text-align: right;
 }
 
