@@ -5224,6 +5224,8 @@
   "MAX_REWARD": "周期内优惠上限",
   "isSharedWithXIMA": "优惠产生流水可同时享受洗码",
   "ORDER_NO_REWARD_AMOUNT": "申请局号及优惠金额",
+  "Force Pairing": "强制匹配",
+  "Force Pairing, Please enter reference number.": "强制匹配，请输入结算已到帐的流水号码。",
   "BET_AMOUNT": "下注",
   "Does not support": "不支援",
   "DEPOSIT_TOPUP_CHOOSE_ONE": "存款（下列则一）",
