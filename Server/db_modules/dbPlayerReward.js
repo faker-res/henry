@@ -6281,7 +6281,7 @@ let dbPlayerReward = {
                     return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
-                        message: "Player has applied for max reward times in event period"
+                        message: localization.localization.translate("Player has applied for max reward times in event period")
                     });
                 }
 
@@ -6758,14 +6758,6 @@ let dbPlayerReward = {
 
                     // type 4 投注额优惠（组）
                     case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
-                        if (eventInPeriodCount && eventInPeriodCount > 0) {
-                            return Promise.reject({
-                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                name: "DataError",
-                                message: localization.localization.translate("This player has applied for max reward times in event period")
-                            });
-                        }
-
                         let consumptions = rewardSpecificData[0];
                         let totalConsumption = 0;
                         for (let x in consumptions) {
@@ -6774,13 +6766,19 @@ let dbPlayerReward = {
 
                         // Set reward param step to use
                         if (eventData.param.isMultiStepReward) {
-                            selectedRewardParam = selectedRewardParam.filter(e => e.minConsumptionAmount <= totalConsumption).sort((a, b) => b.minConsumptionAmount - a.minConsumptionAmount);
-                            selectedRewardParam = selectedRewardParam[0];
+                            if (eventData.param.isSteppingReward) {
+                                let eventStep = eventInPeriodCount >= selectedRewardParam.length ? selectedRewardParam.length - 1 : eventInPeriodCount;
+                                selectedRewardParam = selectedRewardParam[eventStep];
+                            } else {
+                                let firstRewardParam = selectedRewardParam[0];
+                                selectedRewardParam = selectedRewardParam.filter(e => Math.trunc(totalConsumption) >= Math.trunc(e.totalConsumptionInInterval)).sort((a, b) => b.totalConsumptionInInterval - a.totalConsumptionInInterval);
+                                selectedRewardParam = selectedRewardParam[0] || firstRewardParam || {};
+                            }
                         } else {
                             selectedRewardParam = selectedRewardParam[0];
                         }
 
-                        if (!selectedRewardParam || totalConsumption < selectedRewardParam.minConsumptionAmount) {
+                        if (!selectedRewardParam || totalConsumption < selectedRewardParam.totalConsumptionInInterval) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
