@@ -5,6 +5,7 @@ define(['js/app'], function (myApp) {
         var $translate = $filter('translate');
         var vm = this;
         let $noRoundTwoDecimalToFix = $filter('noRoundTwoDecimalToFix');
+        $scope.fixModalScrollIssue();
 
         // For debugging:
         window.VM = vm;
