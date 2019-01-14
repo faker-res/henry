@@ -6303,10 +6303,19 @@ define(['js/app'], function (myApp) {
                     let sendQuery = {
                         query: {
                             _id: {$in: tsPhoneIds}
-                        }
+                        },
+                        isTSNewList: vm.tsNewList && vm.tsNewList.isCheckWhiteListAndRecycleBin,
+                        platformObjId: vm.selectedPlatform.id
                     }
                     socketService.$socket($scope.AppSocket, 'getTsPhone', sendQuery, function (data) {
-                        vm.importTSNewList(data.data, vm.tsNewList, null, true, true);
+                        if (data && data.data && data.data.length) {
+                            vm.multiDecomposedNewPhoneSelected = [];
+                            vm.importTSNewList(data.data, vm.tsNewList, null, true, true);
+                        } else {
+                            $scope.$evalAsync(() => {
+                                vm.importPhoneResult = 'THERE_IS_NO_DIFFERENT_NUMBER_IN_LIST';
+                            });
+                        }
                     })
                 } else {
                     let targetTsPhoneListId = vm.selectedTsPhoneList._id;
