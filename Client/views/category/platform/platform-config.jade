@@ -2070,44 +2070,43 @@
 
                     br
                     br
-                    table.common-table.playerLvlTable.margin-top-10
+                    table.simple-table(style="margin-top:20px; display:block; white-space:pre-wrap; word-wrap:break-word;text-align:center")
                         thead
                             tr
                                 th {{'Currently available financial (settlement) system' | translate}}
-                                th {{'DEPOSIT_TOPUP' | translate}}
-                                th {{'DEPOSIT_BONUS' | translate}}
+                                th {{'DEPOSIT_TOPUP_CHOOSE_ONE' | translate}}
+                                th {{'DEPOSIT_BONUS_CHOOSE_ONE' | translate}}
                                 th {{'DEFINITION' | translate}}
                                 th {{'Currently points' | translate}}
                                 th {{'The warning value of Currently points is too low (points check, eMAIL reminder, no fill, close)' | translate}}
 
                         tbody
-                            tr
+                            tr(ng-if='vm.paymentSystemConfig.length > 0' ng-repeat='(i, v) in vm.paymentSystemConfig')
                                 td
+                                    span {{v.name}}
                                 td
-                                    input(type="radio" name="Topup")
+                                    input(type="radio" name="rdBtnTopup" ng-model='v.enableTopup' ng-value='true' ng-checked='v.enableTopup' ng-click='vm.enablePaymentSystemRdBtnConfig(i, vm.paymentSystemConfig, "topup")' ng-disabled='!vm.financialSettlementSystemTableEdit')
                                 td
-                                    input(type="radio" name="Bonus")
+                                    input(type="radio" name="rdBtnBonus" ng-model='v.enableBonus' ng-value='true' ng-checked='v.enableBonus' ng-click='vm.enablePaymentSystemRdBtnConfig(i, vm.paymentSystemConfig, "bonus")' ng-disabled='!vm.financialSettlementSystemTableEdit')
+                                td(style='text-align:left; width:300px')
+                                    span {{v.description}}
                                 td
-                                    | 不通过其他第三方财务系统,
-                                    br
-                                    |（银行卡、个人支付宝、个人微信、提款将可自行在本系统操作）
-                                td(ng-if)
-                                    | (预设）与本公司创立合作至今的财务公司，
-                                    br
-                                    | 提供银行卡、N 种第三方、支付宝、微信等市面上所有充值。
-                                td
-
-                                td
-
+                                    span {{v.curFinancialSettlementPoint}}
+                                    span(ng-if='!vm.financialSettlementSystemTableEdit && (v.curFinancialSettlementPoint=="undefined" || v.curFinancialSettlementPoint==null)') {{'Does not support' | translate}}
+                                td(style='width:150px')
+                                    input(type='number' ng-model='v.minPointNotification' ng-disabled='!vm.financialSettlementSystemTableEdit' ng-if='vm.financialSettlementSystemTableEdit')
+                                    span(ng-if='!vm.financialSettlementSystemTableEdit && v.curFinancialSettlementPoint != "undefined" && v.curFinancialSettlementPoint != null') {{v.minPointNotification}}
+                                    span(ng-if='!vm.financialSettlementSystemTableEdit && ((v.minPointNotification=="undefined" && v.curFinancialSettlementPoint) || (v.minPointNotification==null && v.curFinancialSettlementPoint))') {{'CLOSE' | translate}}
+                                    span(ng-if='!vm.financialSettlementSystemTableEdit && (v.curFinancialSettlementPoint=="undefined" || v.curFinancialSettlementPoint==null)') {{'Does not support' | translate}}
 
                     div.margin-top-10
                         button.btn.btn-primary.common-button
                             text {{'email recipient settings' | translate}}
-                        button.btn.btn-primary.common-button(ng-if="!vm.FinancialSettlementSystemTableEdit ", ng-click='vm.FinancialSettlementSystemTableEdit=!vm.FinancialSettlementSystemTableEdit')
+                        button.btn.btn-primary.common-button(ng-if="!vm.financialSettlementSystemTableEdit ", ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit')
                             text {{'EDIT' | translate}}
                             img.img-edit
-                        button.btn.btn-danger.common-button(ng-if='vm.FinancialSettlementSystemTableEdit', ng-click='vm.FinancialSettlementSystemTableEdit=!vm.FinancialSettlementSystemTableEdit;') {{"CANCEL" | translate}}
-                        button.btn.btn-primary.common-button(ng-if='vm.FinancialSettlementSystemTableEdit', ng-click='vm.FinancialSettlementSystemTableEdit=!vm.FinancialSettlementSystemTableEdit;') {{"CONFIRM" | translate}}
+                        button.btn.btn-danger.common-button(ng-if='vm.financialSettlementSystemTableEdit', ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit;vm.resetPaymentSystemConfig()') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.financialSettlementSystemTableEdit', ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit;vm.updatePaymentSystemConfigByPlatform()') {{"CONFIRM" | translate}}
 
 
                 div(ng-if='vm.selectedConfigTab=="platformFeeEstimateSetting"')

@@ -22706,7 +22706,7 @@ define(['js/app'], function (myApp) {
                 vm.selectedConfigTab = choice;
                 vm.configTableEdit = false;
                 vm.blacklistIpConfigTableEdit = false;
-                vm.FinancialSettlementSystemTableEdit = false;
+                vm.financialSettlementSystemTableEdit = false;
                 vm.newBlacklistIpConfig = [];
                 vm.delayDurationGroupProviderEdit = false;
                 switch (choice) {
@@ -22792,7 +22792,7 @@ define(['js/app'], function (myApp) {
                         break;
                     case 'financialSettlementConfig':
                         vm.getFinancialSettlementConfig();
-                        vm.getFinancialSettlementSystem();
+                        vm.getPaymentSystemConfigByPlatform();
                         break;
                     case 'largeWithdrawalSetting':
                         vm.getLargeWithdrawalSetting();
@@ -27910,10 +27910,75 @@ define(['js/app'], function (myApp) {
                 vm.financialSettlementConfig.financialPointsDisableWithdrawal = vm.selectedPlatform.data.financialSettlement.financialPointsDisableWithdrawal? "1": "0";
             }
 
-            vm.getFinancialSettlementSystem = function () {
-                vm.financialSettlementSystem = vm.financialSettlementSystem || {};
+            // region Payment System Config
+            vm.getPaymentSystemConfigByPlatform = function () {
+                vm.paymentSystemConfig = vm.paymentSystemConfig || [];
+                vm.cloneOriPaymentSystemConfig = [];
 
-            }
+                let sendData = {
+                    platform: vm.selectedPlatform.id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getPaymentSystemConfigByPlatform', sendData, function (data) {
+                    console.log('getPaymentSystemConfigByPlatform', data);
+                    $scope.$evalAsync(() => {
+                        if (data && data.data) {
+                            vm.paymentSystemConfig = data.data;
+                            vm.cloneOriPaymentSystemConfig = JSON.parse(JSON.stringify(data.data))
+                        }
+                    });
+                }, function (err) {
+                    console.log("cannot getPaymentSystemConfigByPlatform", err);
+                    vm.paymentSystemConfig = [];
+                });
+            };
+
+            vm.updatePaymentSystemConfigByPlatform = function () {
+                let updateDate = {
+                    paymentSystemConfig: vm.paymentSystemConfig
+                }
+
+                let sendData = {
+                    query: {
+                        platform: vm.selectedPlatform.id
+                    },
+                    updateData: updateDate
+                }
+                socketService.$socket($scope.AppSocket, 'updatePaymentSystemConfigByPlatform', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('updatePaymentSystemConfigByPlatform success ',data);
+                        if (data && data.length > 0) {
+                            vm.paymentSystemConfig = data;
+                        }
+                    })
+                }, function (err) {
+                    $scope.$evalAsync(() => {
+                        console.log('updatePaymentSystemConfigByPlatform fail ', err);
+                        vm.resetPaymentSystemConfig();
+                    })
+                });
+            };
+
+            vm.resetPaymentSystemConfig = function () {
+                vm.paymentSystemConfig = vm.cloneOriPaymentSystemConfig ? JSON.parse(JSON.stringify(vm.cloneOriPaymentSystemConfig)) : [];
+            };
+
+            vm.enablePaymentSystemRdBtnConfig = function (idx, data, type) {
+                if (data && data.length > 0) {
+                    for (let i = 0; i < data.length; i++) {
+                        let setting = data[i];
+
+                        if (type == 'topup' && idx != i && setting && setting.enableTopup && setting.enableTopup.toString() == 'true') {
+                            setting.enableTopup = false;
+                            break;
+                        } else if (type == 'bonus' && idx != i && setting && setting.enableBonus && setting.enableBonus.toString() == 'true') {
+                            setting.enableBonus = false;
+                            break;
+                        }
+                    }
+                }
+            };
+            // end region
 
             vm.getPlatformFeeEstimateSetting = function () {
                 vm.platformFeeEstimateSetting = vm.platformFeeEstimateSetting || {};

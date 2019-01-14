@@ -1244,6 +1244,24 @@ define(['js/app'], function (myApp) {
             return result
         }
 
+        vm.initPhoneDetailFeedback = function () {
+            vm.tsPhoneAddFeedback = vm.tsPhoneAddFeedback || {};
+
+            if (!vm.selectedPlatform || !vm.selectedPlatform.data || !vm.selectedPlatform.data.definitionOfAnsweredPhone || !vm.selectedPlatform.data.definitionOfAnsweredPhone.length || !vm.allPlayerFeedbackResults || !vm.allPlayerFeedbackResults.length) {
+                return;
+            }
+
+            for (let i = 0; i < vm.allPlayerFeedbackResults.length; i++) {
+                if (vm.selectedPlatform.data.definitionOfAnsweredPhone.includes(vm.allPlayerFeedbackResults[i].key)) {
+                    vm.tsPhoneAddFeedback.result = vm.allPlayerFeedbackResults[i].key;
+                    break;
+                }
+            }
+
+            vm.preventDetailPageMultipleFeedback = true;
+            vm.isNotFirstRequestAfterInit = false;
+        };
+
         vm.addTsPhonePlayerFeedback = function (playerObjId) {
             let resultName = vm.allPlayerFeedbackResults.filter(item => {
                 return item.key == vm.tsPhoneAddFeedback.result;
@@ -1270,7 +1288,7 @@ define(['js/app'], function (myApp) {
             vm.tsPhoneReminder = {tsPhone: tsPhoneObjId && tsPhoneObjId.tsPhone && tsPhoneObjId.tsPhone._id || ""};
             utilService.actionAfterLoaded("#phoneListReminderTimePicker", function () {
                 let remindDate = tsPhoneObjId.remindTime || utilService.getNdaylaterStartTime(1)
-                commonService.commonInitTime(utilService, vm, 'tsPhoneReminder', 'startTime', '#phoneListReminderTimePicker', remindDate, true, {maxDate: null});
+                commonService.commonInitTime(utilService, vm, 'tsPhoneReminder', 'startTime', '#phoneListReminderTimePicker', remindDate, true, {maxDate: null, noInvert: true});
             })
         }
 
@@ -1478,6 +1496,13 @@ define(['js/app'], function (myApp) {
         }
 
         vm.addTsPhoneFeedback = function (data) {
+            // region phone detail page prevent multiple request send
+            if (vm.preventDetailPageMultipleFeedback && vm.isNotFirstRequestAfterInit) {
+                return;
+            }
+            vm.isNotFirstRequestAfterInit = true;
+            // endregion
+
             let resultName = vm.allPlayerFeedbackResults.filter(item => {
                 return item.key == data.result;
             });
@@ -1487,7 +1512,7 @@ define(['js/app'], function (myApp) {
                 tsPhoneList: data.tsPhone.tsPhoneList,
                 platform: vm.selectedPlatform.id,
                 adminId: authService.adminId,
-                content: data.content,
+                content: data.content || "",
                 result: data.result,
                 resultName: resultName,
                 topic: data.topic
@@ -7764,7 +7789,7 @@ define(['js/app'], function (myApp) {
                     $('#adminPhoneListTableSpin').hide();
                     $scope.$evalAsync();
 
-                    vm.ctiLoop = setTimeout(vm.getCtiData, 7000);
+                    vm.ctiLoop = setTimeout(vm.getCtiData, 5200);
 
                 },
                 err => {
@@ -8160,7 +8185,7 @@ define(['js/app'], function (myApp) {
                     $scope.$evalAsync(() => {
                         vm.getTrashClassificationList();
                         vm.searchTrashClassificationTrade(true);
-                        socketService.showConfirmMessage($translate("Export Done."), 3000); // success
+                        socketService.showConfirmMessage($translate("Export Done."), 3000);
                     });
                 });
             });

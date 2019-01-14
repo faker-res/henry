@@ -26,6 +26,8 @@ var playerReportDataDaySummarySchema = new Schema({
     consumptionValidAmount: {type: Number, required: true, default: 0},
     //consumption bonus amount
     consumptionBonusAmount: {type: Number, required: true, default: 0},
+    //provider Detail
+    providerDetail: {type: JSON, default: {}},
     //bonus times
     bonusTimes:{type: Number, required: true, default: 0},
     //bonus amount
@@ -33,7 +35,21 @@ var playerReportDataDaySummarySchema = new Schema({
     //consumption return reward amount
     consumptionReturnAmount: {type: Number, required: true, default: 0},
     //reward amount
-    rewardAmount: {type: Number, required: true, default: 0}
+    rewardAmount: {type: Number, required: true, default: 0},
+    //total online top up fee in %
+    totalOnlineTopUpFee: {type: Number, required: true, default: 0},
+    //online top up fee detail
+    onlineTopUpFeeDetail: [
+        {
+            amount: {type: Number, default: 0},
+            merchantName: {type: String},
+            merchantNo: {type: String},
+            onlineTopUpFee: {type: Number, default: 0},
+            onlineTopUpServiceChargeRate: {type: Number, default: 0}
+        }
+    ],
+    platformFeeEstimate: {type: JSON, default: {}},
+    totalPlatformFeeEstimate: {type: Number, required: true, default: 0}
 });
 
 module.exports = playerReportDataDaySummarySchema;

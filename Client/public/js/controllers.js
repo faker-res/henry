@@ -7,13 +7,14 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     // if(CONFIG.NODE_ENV != "local"){
     //     window.console = { log: function(){}, warn: function(){}, error: function(){}, info: function(){} };
     // }
-
+    let $trans = $filter('translate');
     let $noRoundTwoDecimalPlaces = $filter('noRoundTwoDecimalPlaces');
     let $roundToTwoDecimalPlacesString = $filter('roundToTwoDecimalPlacesString');
     let noDecimalPlacesString = $filter('noDecimalPlacesString');
     //set up socket service
     socketService.authService = authService;
     socketService.curScope = $scope;
+    $scope.showDisabledPaymentMethod = false;
 
     // Simulate latency by delaying all calls to socketService.$socket
     // Useful for testing purposes
@@ -456,7 +457,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             return;
         }
         loadProfitDetail();
-        loadPlatformInfo();
+        let showDisabledPaymentMethod = Boolean($scope.showDisabledPaymentMethod);
+        loadPlatformInfo(showDisabledPaymentMethod);
         $scope.$broadcast('switchPlatform');
         $scope.fontSizeAdaptive(document.getElementById('selectedPlatformNodeTitle'));
     };
@@ -1900,7 +1902,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         }
     }
 
-    function loadPlatformInfo() {
+    function loadPlatformInfo(showDisabledPaymentMethod) {
         // Clear some variable before load
         $scope.merchantNoNameObj = {};
         $scope.merchantGroupObj = [];
@@ -1930,10 +1932,17 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     $scope.merchantLists = data.data.merchants;
                     $scope.merchantNoList = data.data.merchants.filter(mer => {
                         $scope.merchantNoNameObj[mer.merchantNo] = mer.name;
-                        return mer.status !== 'DISABLED';
+                        if (showDisabledPaymentMethod) {
+                            return true;
+                        } else {
+                            return mer.status !== 'DISABLED';
+                        }
                     });
-                    let line2Acc = commonService.getAlipayLine2Acc($translate);
+
+                    let line2Acc = commonService.getAlipayLineAcc($trans, "2");
+                    let line3Acc = commonService.getAlipayLineAcc($trans, "3");
                     $scope.merchantNoList.push(line2Acc);
+                    $scope.merchantNoList.push(line3Acc);
                     $scope.merchantNoList.forEach(item => {
                         merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
                         merGroupList[item.merchantTypeId].list.push(item.merchantNo);
@@ -1942,11 +1951,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     Object.keys($scope.merchantNoList).forEach(item => {
                         let merchantTypeId = $scope.merchantNoList[item].merchantTypeId;
                         if (String(merchantTypeId) === "9999") {
-                            $scope.merchantNoList[item].merchantTypeName = $translate('BankCardNo');
+                            $scope.merchantNoList[item].merchantTypeName = $trans('BankCardNo');
                         } else if (String(merchantTypeId) === "9998") {
-                            $scope.merchantNoList[item].merchantTypeName = $translate('PERSONAL_WECHAT_GROUP');
+                            $scope.merchantNoList[item].merchantTypeName = $trans('PERSONAL_WECHAT_GROUP');
                         } else if (String(merchantTypeId) === "9997") {
-                            $scope.merchantNoList[item].merchantTypeName = $translate('PERSONAL_ALIPAY_GROUP');
+                            $scope.merchantNoList[item].merchantTypeName = $trans('PERSONAL_ALIPAY_GROUP');
                         } else if (String(merchantTypeId) !== "9997" && String(merchantTypeId) !== "9998" && String(merchantTypeId) !== "9999") {
                             let merchantInfo = $scope.merchantTypes.filter(mitem => String(mitem.merchantTypeId) === String(merchantTypeId));
                             $scope.merchantNoList[item].merchantTypeName = merchantInfo[0] ? merchantInfo[0].name : "";

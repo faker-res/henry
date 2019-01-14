@@ -14,6 +14,7 @@ define(['js/app'], function (myApp) {
             return $filter('noRoundTwoDecimalPlaces')(value).toFixed(2);
         };
         var vm = this;
+        $scope.showDisabledPaymentMethod = true;
 
         // For debugging:
         window.VM = vm;
@@ -1630,6 +1631,12 @@ define(['js/app'], function (myApp) {
                 sendObj.merchantNo = vm.queryTopup.merchantNo.filter(merchantData=>{
                     return merchantData != 'MMM4-line2';
                 })
+            }else if(vm.queryTopup.merchantNo && vm.queryTopup.merchantNo.length == 1 && vm.queryTopup.merchantNo.indexOf('MMM4-line3') != -1){
+                sendObj.line = '3';
+                vm.queryTopup.line = '3';
+                sendObj.merchantNo = vm.queryTopup.merchantNo.filter(merchantData=>{
+                    return merchantData != 'MMM4-line3';
+                })
             }else{
                 vm.queryTopup.line = null;
             }
@@ -1674,7 +1681,7 @@ define(['js/app'], function (myApp) {
                         return item;
                     }), data.data.size, {amount: data.data.total}, newSearch, isExport
                 );
-                $scope.safeApply();
+                $scope.$evalAsync();
             }, function (err) {
                 console.log(err);
             }, true);
@@ -1798,6 +1805,8 @@ define(['js/app'], function (myApp) {
                             let addititionalText = '';
                             if( row.data.line && row.data.line == '2'){
                                 addititionalText = '(MMM)';
+                            }else if(row.data.line && row.data.line == '3'){
+                                addititionalText = '('+$translate('MMM4-line3')+')';
                             }
                             return "<div>" + data + addititionalText + "</div>";
                         }
@@ -1823,11 +1832,11 @@ define(['js/app'], function (myApp) {
                     },
                 ],
                 "paging": false,
-                createdRow: function (row, data, dataIndex) {
-                    $compile(angular.element(row).contents())($scope);
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
                 },
                 fnDrawCallback: function () {
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 }
 
             }
@@ -3986,6 +3995,10 @@ define(['js/app'], function (myApp) {
                     return item;
                 }), data.data.total, data.data.size, newSearch, isExport);
                 $scope.safeApply();
+            });
+
+            socketService.$socket($scope.AppSocket, 'getPlayerReportFromSummary', sendquery, function (data) {
+                console.log('test player report summary data', data);
             });
         };
 

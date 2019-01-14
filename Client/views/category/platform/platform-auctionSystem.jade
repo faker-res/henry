@@ -247,9 +247,9 @@ form(name='form_auctionSystem').row
                         div(style="display:inline-block;")
                             input.form-control(type="checkbox", ng-model="vm.auctionProductReward.isSharedWithXima")
                     .full-width-input-block
-                        label {{"Due Date (In Day)" | translate}}
+                        label *{{"Due Date (In Day)" | translate}}
                         div(style="display:inline-block;")
-                            input.form-control(type="number", ng-model="vm.auctionProductReward.dueDateInDay")
+                            input.form-control(type="number", ng-model="vm.auctionProductReward.dueDateInDay" required)
                     .full-width-input-block
                         label {{"Forbid withdraw after apply reward" | translate}}
                         div(style="display:inline-block;")
@@ -312,9 +312,9 @@ form(name='form_auctionSystem').row
                         div(style="display:inline-block;")
                             input.form-control(type="checkbox", ng-model="vm.auctionProductReward.isSharedWithXima")
                     .full-width-input-block
-                        label {{"Due Date (In Day)" | translate}}
+                        label *{{"Due Date (In Day)" | translate}}
                         div(style="display:inline-block;")
-                            input.form-control(type="number", ng-model="vm.auctionProductReward.dueDateInDay")
+                            input.form-control(type="number", ng-model="vm.auctionProductReward.dueDateInDay" required)
                     .full-width-input-block
                         label {{"Forbid withdraw after apply reward" | translate}}
                         div(style="display:inline-block;")
@@ -341,7 +341,7 @@ form(name='form_auctionSystem').row
                     .full-width-input-block
                         label {{"LIMIT_FOR_THE_SAME_IP" | translate}}
                         div(style="display:inline-block;")
-                            input.form-control(type="number" ng-model="vm.auctionProductReward.LimitPerSameIp" )
+                            input.form-control(type="number" ng-model="vm.auctionProductReward.limitPerSameIp" )
                     .full-width-input-block
                         label {{"RECEIVED_QUANTITY" | translate}}
                         div(style="display:inline-block;")
@@ -416,10 +416,10 @@ form(name='form_auctionSystem').row
 
                 div(ng-if="vm.selectedAuctionRewardType === 'rewardPointsChange'")
                     .full-width-input-block
-                        label {{"Reward Point Variable" | translate}}
+                        label *{{"Reward Point Variable" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'REWARD_POINTS_CHANGE_DESCRIPTION' | translate}}")
                         div(style="display:inline-block;")
-                            input.form-control(type="number", min=0, ng-model="vm.auctionProductReward.rewardPointsVariable")
+                            input.form-control(type="number", min=0, ng-model="vm.auctionProductReward.rewardPointsVariable" required)
                     .full-width-input-block
                         label {{"Product Image URL" | translate}}
                             i.fa.fa-question-circle.questionTooltip(ng-attr-title="{{'PRODUCT_DESCRIPTION' | translate}}")

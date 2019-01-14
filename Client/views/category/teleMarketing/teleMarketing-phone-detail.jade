@@ -37,7 +37,7 @@
                     td {{ vm.targetedTsDistributedPhoneDetail.tsPhone.province || "" }} {{ vm.targetedTsDistributedPhoneDetail.tsPhone.city || "" }}
 
             div(style="margin-top: 5px")
-                button.btn.btn-primary(data-toggle='modal' data-target='#modalTsPhoneFeedback' style="margin: 5px") {{"ADD_FEEDBACK" | translate}}
+                button.btn.btn-primary(data-toggle='modal' data-target='#modalTsPhoneFeedback' style="margin: 5px" ng-click='vm.initPhoneDetailFeedback()') {{"ADD_FEEDBACK" | translate}}
                 button.btn.btn-warning(data-toggle='modal' data-target="#modalAdminPhoneListReminder" ng-click="vm.initTsDistrubutedPhoneReminder(vm.targetedTsDistributedPhoneDetail)" style="margin: 5px") {{"REMINDER" | translate}}
                 button.btn.btn-success(data-toggle='modal' data-target="#modalCreateTsPlayer" ng-click="vm.prepareCreateTsPlayer(vm.targetedTsDistributedPhoneDetail)" style="margin: 5px") {{"CREATE_NEW_PLAYER" | translate}}
 
@@ -75,12 +75,12 @@
                                         tr
                                             td {{'FEEDBACK_RESULTS' | translate}}
                                             td
-                                                select(ng-model='vm.tsPhoneAddFeedback.result', ng-options='v.key as v.value for (i,v) in vm.allPlayerFeedbackResults')
+                                                select.form-control.inline-block(ng-model='vm.tsPhoneAddFeedback.result', ng-options='v.key as v.value for (i,v) in vm.allPlayerFeedbackResults', style="width:auto;")
                                                 button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
                                         tr
                                             td {{'FEEDBACK_TOPIC' | translate}}
                                             td
-                                                select(ng-model='vm.tsPhoneAddFeedback.topic', ng-options='v.key as v.value for (i,v) in vm.playerFeedbackTopic')
+                                                select.form-control.inline-block(ng-model='vm.tsPhoneAddFeedback.topic', ng-options='v.key as v.value for (i,v) in vm.playerFeedbackTopic', style="width:auto;margin-bottom:1em;margin-top:1em;")
                                                 button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
                                         tr
                                             td
@@ -91,7 +91,7 @@
                                             td(colspan=2)
                                                 .text-center
                                                     button.btn.btn-danger.margin-right-5(ng-click='vm.tsPhoneAddFeedback.content="";vm.tsPhoneAddFeedback.result="";vm.tsPhoneAddFeedback.topic="";') {{'Reset' | translate}}
-                                                    button.btn.btn-success(data-dismiss='modal' ng-disabled="!vm.tsPhoneAddFeedback.result || !vm.tsPhoneAddFeedback.topic || !vm.tsPhoneAddFeedback.content", ng-click='vm.addTsPhoneFeedback(vm.tsPhoneAddFeedback)') {{'CONFIRM' | translate}}
+                                                    button.btn.btn-success(data-dismiss='modal' ng-disabled="!vm.tsPhoneAddFeedback.result || !vm.tsPhoneAddFeedback.topic", ng-click='vm.addTsPhoneFeedback(vm.tsPhoneAddFeedback)') {{'CONFIRM' | translate}}
 
 #modalTsPhoneFeedbackHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style='width:65%')
