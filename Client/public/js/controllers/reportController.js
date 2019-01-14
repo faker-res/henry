@@ -3995,6 +3995,10 @@ define(['js/app'], function (myApp) {
                 }), data.data.total, data.data.size, newSearch, isExport);
                 $scope.safeApply();
             });
+
+            socketService.$socket($scope.AppSocket, 'getPlayerReportFromSummary', sendquery, function (data) {
+                console.log('test player report summary data', data);
+            });
         };
 
         vm.drawPlayerReport = function (data, total, size, newSearch, isExport) {
