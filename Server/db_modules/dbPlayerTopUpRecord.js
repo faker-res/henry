@@ -830,7 +830,7 @@ var dbPlayerTopUpRecord = {
                     queryObj['data.bankTypeId'] = {$in: convertStringNumber(query.bankTypeId)};
                 }
                 if (query.userAgent && query.userAgent.length > 0) {
-                    queryObj['data.userAgent'] = {$in: convertStringNumber(query.userAgent)};
+                    queryObj['inputDevice'] = {$in: convertStringNumber(query.userAgent)};
                 }
                 if(query.line){
                     queryObj['data.line'] = query.line;
@@ -850,7 +850,7 @@ var dbPlayerTopUpRecord = {
                         _id: null,
                         totalAmount: {$sum: "$data.amount"}
                     }
-                });
+                }).read("secondaryPreferred").allowDiskUse(true);
 
 
                 let prom = dbconfig.collection_proposal.find(queryObj).sort(sortObj).skip(index).limit(limit)
@@ -867,7 +867,7 @@ var dbPlayerTopUpRecord = {
                         balancer.processStream(
                             {
                                 stream: stream,
-                                batchSize: constSystemParam.BATCH_SIZE,
+                                batchSize: 50,
                                 makeRequest: function (proposals, request) {
                                     request("player", "topupRecordInsertRepeatCount", {
                                         proposals: proposals,
@@ -3598,15 +3598,19 @@ var dbPlayerTopUpRecord = {
                             updateData.status = constProposalStatus.APPROVED;
                         }
 
-                        if (pmsData.result.line && pmsData.result.line == 2) {
-                            updateData.data.line = pmsData.result.line;
+                        if (pmsData.result.line && pmsData.result.line) {
+                            let lineNo = pmsData.result.line;
+                            updateData.data.line = lineNo;
+                            let remarkMsg = {
+                                '2':[", 线路二：不匹配昵称、支付宝帐号", "线路二：不匹配昵称、支付宝帐号"],
+                                '3':[", 网赚", "网赚"]
+                            }
                             if (updateData && updateData.data && updateData.data.remark) {
-                                updateData.data.remark += ", 线路二：不匹配昵称、支付宝帐号";
+                                updateData.data.remark += (remarkMsg[lineNo] && remarkMsg[lineNo][0]) ? remarkMsg[lineNo][0] : '';
                             } else {
-                                updateData.data.remark = "线路二：不匹配昵称、支付宝帐号";
+                                updateData.data.remark = (remarkMsg[lineNo] && remarkMsg[lineNo][1] && lineNo!= "1") ? remarkMsg[lineNo][1] : '';
                             }
                         }
-
                         let proposalQuery = {_id: proposal._id, createTime: proposal.createTime};
 
                         updateAliPayTopUpProposalDailyLimit(proposalQuery, request.result.alipayAccount, isFPMS, player.platform.platformId).catch(errorUtils.reportError);

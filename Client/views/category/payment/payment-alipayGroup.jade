@@ -85,6 +85,7 @@
                     thead
                         th(ng-if="vm.alipayGroupUsed != 'PMS'") {{ 'select' | translate }}
                         th(data-toggle="modal", data-target="#modalFilterAlipayStatus", style="cursor: pointer") {{ 'STATUS' | translate }}
+                        th {{ 'Alipay Line' | translate }}
                         th {{ 'alipayAccount' | translate }}
                         th {{ 'alipayName' | translate }}
                         th {{ 'SINGLE_MINIMUM' | translate }}
@@ -95,6 +96,7 @@
                             td(ng-if="vm.alipayGroupUsed != 'PMS'")
                                 input(type="checkbox" ng-model="val.isCheck" ng-change="vm.alipayListUncheckDifferentGroup(val.isCheck, val.isInGroup);")
                             td {{ val.state === 'DISABLED' ? 'DISABLE' : val.state | translate}}
+                            td {{ val.line }}
                             td {{ val.accountNumber | translate}}
                             td {{ val.name | translate}}
                             td {{ val.minDepositAmount | translate}}

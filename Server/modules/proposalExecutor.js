@@ -14,6 +14,7 @@ var constRewardTaskStatus = require("./../const/constRewardTaskStatus");
 var constShardKeys = require("./../const/constShardKeys");
 var constPlayerCreditChangeType = require("../const/constPlayerCreditChangeType");
 var constProposalStatus = require("../const/constProposalStatus");
+const constPromoCodeStatus = require('../const/constPromoCodeStatus');
 var Q = require("q");
 var mongoose = require('mongoose');
 var messageDispatcher = require("./messageDispatcher.js");
@@ -107,6 +108,9 @@ var proposalExecutor = {
             || executionType === 'executePlayerRetentionRewardGroup'
             || executionType === 'executePlayerBonusDoubledRewardGroup'
             || executionType === 'executeBaccaratRewardGroup'
+
+            // Auction reward
+            || executionType === 'executeAuctionOpenPromoCode'
 
         if (isNewFunc) {
             return proposalExecutor.approveOrRejectProposal2(executionType, rejectionType, bApprove, proposalData, rejectIfMissing);
@@ -3690,10 +3694,59 @@ var proposalExecutor = {
                 }
             },
 
-            executeAuctionOpenPromoCode: function (proposalData, deferred) {
-                if (proposalData && proposalData.data) {
-                    // do nothing
-                    deferred.resolve(proposalData);
+            executeAuctionOpenPromoCode: function (proposalData) {
+                console.log("checking proposal data", proposalData)
+                console.log("checking proposal data.status", proposalData.status)
+
+                if (proposalData && proposalData.data && proposalData.data.templateObjId && (proposalData.status == constProposalStatus.SUCCESS ||
+                    proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
+                    let code = null;
+                    let expirationDate = null;
+                    let isProvidderGroup = null;
+                    // find the open promo code template to update its expiration time and the status
+                    return dbconfig.collection_openPromoCodeTemplate.findOne({_id: ObjectId(proposalData.data.templateObjId)}).lean().then(
+                        openPromoCodeTemplate => {
+                            if (openPromoCodeTemplate && openPromoCodeTemplate.hasOwnProperty("expiredInDay")){
+                                let todayEndTime = dbUtil.getTodaySGTime().endTime;
+                                expirationDate = dbUtil.getNdaylaterFromSpecificStartTime(openPromoCodeTemplate.expiredInDay, todayEndTime);
+                                code = openPromoCodeTemplate.code;
+                                isProvidderGroup = openPromoCodeTemplate.isProviderGroup;
+                                let updateObj = {
+                                    expirationTime: expirationDate,
+                                    status: constPromoCodeStatus.AVAILABLE
+                                };
+
+                                return dbconfig.collection_openPromoCodeTemplate.findOneAndUpdate({_id: openPromoCodeTemplate._id}, updateObj, {new:true}).lean();
+                            }
+                            return Promise.resolve();
+                        }
+                    ).then(
+                        () => {
+                            let updateData = {
+                                'data.promoCode': code || null,
+                                'data.expirationTime': expirationDate || null,
+                                'data.isProviderGroup': isProvidderGroup || false,
+                            };
+
+                            return dbconfig.collection_proposal.findOneAndUpdate({_id: ObjectId(proposalData._id)}, updateData, {new: true}).lean();
+                        }
+                    ).then(
+                        updatedProposalData => {
+                            if (updatedProposalData){
+                                sendMessageToPlayer(updatedProposalData, constMessageType.AUCTION_OPEN_PROMO_CODE_SUCCESS, {});
+                                return updatedProposalData
+                            }
+                        }
+
+                    ).catch(
+                        err => {
+                            console.log("error when execute the auction openPromoCode", err);
+                        }
+
+                    )
+                }
+                else {
+                    return Promise.resolve();
                 }
             },
 

@@ -890,7 +890,7 @@ include modalGameCreditLog
 
 
 #modalNewPlayerList.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:95%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -935,7 +935,7 @@ include modalGameCreditLog
                                     p
                                     label {{"Total" | translate}} {{vm.newPlayerRecords.totalCount}} {{"records" | translate}}
                                     i.fa.fa-spin.fa-spinner(ng-show='vm.playerDailyExpenseLog.loading')
-                                    table#newPlayerListTable.common-table.display(style='width:100%')
+                                    table#newPlayerListTable.common-table.display.paymentGroup-btn
                                     #newPlayerListTablePage
 
                     #attemptNumberListPanel.panel-body(ng-if="vm.playerModalTab === 'attemptNumberListPanel'")
@@ -952,13 +952,13 @@ include modalGameCreditLog
                             .row
                                 .col-md-12
                                     p
-                                    table#selfRegistrationSuccessRateTable.common-table.display(style='width:100%')
+                                    table#selfRegistrationSuccessRateTable.common-table.display.paymentGroup-btn
                                     #selfRegistrationSuccessRateTablePage
-                                    table#registrationDistributionRecordsTable.common-table.display(style='width:100%')
+                                    table#registrationDistributionRecordsTable.common-table.display.paymentGroup-btn
                                     #registrationDistributionRecordsTablePage
                                     label {{"Total" | translate}} {{vm.playerRegistrationRecords.totalCount}} {{"records" | translate}}
                                     i.fa.fa-spin.fa-spinner(ng-show='vm.playerRegistrationRecords.loading')
-                                    table#playerRegistrationIntentRecordsTable.common-table.display(style='width:100%')
+                                    table#playerRegistrationIntentRecordsTable.common-table.display.paymentGroup-btn
                                     #playerRegistrationIntentRecordsTablePage
 
 
@@ -1101,7 +1101,7 @@ include modalGameCreditLog
                                     textarea.form-control(type = "textarea",name = "Remarks", rows = '5', placeholder="{{'REMARKS' | translate}}", ng-model="vm.creditChange.remark")
                             button.common-button.margin-right-5.btn.btn-success(ng-disabled='!vm.linkedPlayerTransferId || (vm.linkedPlayerTransfer.status == 1)', ng-click="vm.submitRepairTransfer()") {{'SUBMIT' | translate}}
 #modalProviderExpenses.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1136,11 +1136,11 @@ include modalGameCreditLog
                         div(ng-if="checkViewPermission('Player', 'Player', 'Read')")
                             i.fa.fa-spinner.fa-spin(ng-show='vm.providerExpenseTableLoading')
                             label {{"Total" | translate}} {{vm.expenseQuery.totalCount}} {{"records" | translate}} 
-                            table#providerExpenseTable.common-table.display(style='min-width:100%')
+                            table#providerExpenseTable.common-table.display.paymentGroup-btn
                             #providerExpenseTablePage
 
 #duplicatePhoneNumberLog.modal.fade(style='z-index:1052;', tabindex='-1', role='dialog', data-backdrop='static', keyboard=false, aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:95%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1148,7 +1148,7 @@ include modalGameCreditLog
             .modal-body
                 div
                     label {{"Total" | translate}} {{vm.duplicatePhoneNumber.totalCount}} {{"records" | translate}}
-                    table#duplicatePhoneNumberLogTable.common-table.display(style='min-width:100%')
+                    table#duplicatePhoneNumberLogTable.common-table.display.paymentGroup-btn
                     #duplicatePhoneNumberLogTablePage.height30
 
 include platform-player-popup

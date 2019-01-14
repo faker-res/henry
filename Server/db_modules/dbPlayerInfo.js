@@ -1850,6 +1850,10 @@ let dbPlayerInfo = {
                 if (data) {
                     playerData = data;
 
+                    if (playerData.phoneNumber) {
+                        checkTelesalesPhone(playerData.phoneNumber);
+                    }
+
                     if (playerData.tsPhone) {
                         dbconfig.collection_tsPhone.findOneAndUpdate({_id: playerData.tsPhone}, {registered: true}).lean().then(
                             tsPhoneData => {
@@ -19542,11 +19546,10 @@ let dbPlayerInfo = {
                     adminName: adminName,
                     admin: adminId
                 }).save().catch(errorUtils.reportError);
-
-                let filteredPhonesProm = Promise.resolve(phoneListDetail);
-                if (saveObj.isCheckWhiteListAndRecycleBin) {
-                    filteredPhonesProm = filterPhoneWithOldTsPhone(saveObj.platform, phoneListDetail);
-                }
+                
+                // if (saveObj.isCheckWhiteListAndRecycleBin) {
+                let filteredPhonesProm = filterPhoneWithOldTsPhone(saveObj.platform, phoneListDetail, tsList._id, saveObj.isCheckWhiteListAndRecycleBin);
+                // }
 
                 return filteredPhonesProm;
             }
@@ -21820,6 +21823,34 @@ let dbPlayerInfo = {
         });
     },
 
+    getPlayerConsumptionSum: function (platformId, playerName) {
+        return dbconfig.collection_platform.findOne({platformId: platformId}, {_id: 1}).lean().then(
+            platformData => {
+                if (platformData && platformData._id) {
+                    return dbconfig.collection_players.findOne({name: playerName, platform: platformData._id}, {_id: 0, consumptionSum: 1}).then(
+                        playerData => {
+                            if (playerData) {
+                                let totalConsumption = {
+                                    consumptionSum: 0
+                                };
+
+                                if (playerData.consumptionSum) {
+                                    totalConsumption.consumptionSum = playerData.consumptionSum;
+                                }
+
+                                return totalConsumption;
+                            } else {
+                                return Promise.reject({name: "DataError", message: "Can not find player"});
+                            }
+                        }
+                    );
+                } else {
+                    return Promise.reject({name: "DataError", message: "Can not find platform"});
+                }
+            }
+        )
+    },
+
     playerCreditClearOut: function (playerName, platformObjId, adminName, adminId) {
         let platform = null;
         let providers = [];
@@ -23864,14 +23895,73 @@ function recalculateTsPhoneListPhoneNumber (platformObjId, tsPhoneListObjId) {
     );
 }
 
-function filterPhoneWithOldTsPhone (platformObjId, phones) {
+function checkTelesalesPhone(encryptedPhoneNumber) {
+    dbconfig.collection_tsPhone.find({phoneNumber: encryptedPhoneNumber, registered: false}).lean().then(
+        tsPhoneData => {
+            if (tsPhoneData && tsPhoneData.length) {
+                tsPhoneData.forEach(
+                    tsPhone => {
+                        dbconfig.collection_tsPhone.remove({_id: tsPhone._id}).catch(errorUtils.reportError);
+                        let tsPhoneListUpdate = {
+                            totalPhone: -1
+                        }
+                        if (tsPhone.isUsed) {
+                            tsPhoneListUpdate.totalUsed = -1;
+                        }
+                        if (tsPhone.isSucceedBefore) {
+                            tsPhoneListUpdate.totalSuccess = -1;
+                        }
+                        dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: tsPhoneListUpdate}).catch(errorUtils.reportError);
+                        dbconfig.collection_tsDistributedPhone.findOneAndRemove({
+                            tsPhone: tsPhone._id,
+                            tsPhoneList: tsPhone.tsPhoneList,
+                            endTime: {$gte: new Date()},
+                            registered: false
+                        }).lean().then(
+                            removedTsDistributedPhone => {
+                                if (removedTsDistributedPhone) {
+                                    dbconfig.collection_tsPhoneList.update({_id: tsPhone.tsPhoneList}, {$inc: {totalDistributed: -1}}).catch(errorUtils.reportError);
+                                    if (removedTsDistributedPhone.tsDistributedPhoneList) {
+                                        let distributedPhoneListUpdate = {
+                                            phoneCount: -1
+                                        }
+
+                                        if (removedTsDistributedPhone.isUsed) {
+                                            distributedPhoneListUpdate.phoneUsed = -1;
+                                        }
+                                        if (removedTsDistributedPhone.isSucceedBefore) {
+                                            distributedPhoneListUpdate.successfulCount = -1;
+                                        }
+
+                                        dbconfig.collection_tsDistributedPhoneList.update({_id: removedTsDistributedPhone.tsDistributedPhoneList}, {$inc: distributedPhoneListUpdate}).catch(errorUtils.reportError);
+                                    }
+                                }
+                            }
+                        )
+                    }
+                )
+            }
+        }
+    ).catch(errorUtils.reportError);
+}
+
+function filterPhoneWithOldTsPhone (platformObjId, phones, tsPhoneList, isCheckWhiteListAndRecycleBin) {
     phones.forEach(phone => {
         phone.encryptedNumber = rsaCrypto.encrypt(phone.phoneNumber);
     });
 
     let proms = []
     phones.map(phone => {
-        let prom = dbconfig.collection_tsPhone.findOne({platform: platformObjId, phoneNumber: phone.encryptedNumber}, {_id:1}).lean().then(
+        let tsPhoneQuery = {
+            platform: platformObjId,
+            phoneNumber: phone.encryptedNumber
+        }
+
+        if (!isCheckWhiteListAndRecycleBin && tsPhoneList) {
+            tsPhoneQuery.tsPhoneList = tsPhoneList;
+        }
+
+        let prom = dbconfig.collection_tsPhone.findOne(tsPhoneQuery, {_id:1}).lean().then(
             isExist => {
                 return isExist ? false : phone;
             }
