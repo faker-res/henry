@@ -14,6 +14,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     //set up socket service
     socketService.authService = authService;
     socketService.curScope = $scope;
+    $scope.showDisabledPaymentMethod = false;
 
     // Simulate latency by delaying all calls to socketService.$socket
     // Useful for testing purposes
@@ -456,7 +457,8 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             return;
         }
         loadProfitDetail();
-        loadPlatformInfo();
+        let showDisabledPaymentMethod = Boolean($scope.showDisabledPaymentMethod);
+        loadPlatformInfo(showDisabledPaymentMethod);
         $scope.$broadcast('switchPlatform');
         $scope.fontSizeAdaptive(document.getElementById('selectedPlatformNodeTitle'));
     };
@@ -1907,7 +1909,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         }
     }
 
-    function loadPlatformInfo() {
+    function loadPlatformInfo(showDisabledPaymentMethod) {
         // Clear some variable before load
         $scope.merchantNoNameObj = {};
         $scope.merchantGroupObj = [];
@@ -1937,7 +1939,11 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     $scope.merchantLists = data.data.merchants;
                     $scope.merchantNoList = data.data.merchants.filter(mer => {
                         $scope.merchantNoNameObj[mer.merchantNo] = mer.name;
-                        return mer.status !== 'DISABLED';
+                        if (showDisabledPaymentMethod) {
+                            return true;
+                        } else {
+                            return mer.status !== 'DISABLED';
+                        }
                     });
 
                     let line2Acc = commonService.getAlipayLineAcc($trans, "2");

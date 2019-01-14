@@ -2070,7 +2070,14 @@
 
                     br
                     br
-                    table.simple-table(style="margin-top:20px; display:block; white-space:pre-wrap; word-wrap:break-word;text-align:center")
+
+                    div
+                        button.btn.btn-success(ng-click='vm.getPaymentSystemConfigByPlatform()') {{'Refresh' | translate}}
+                        span#paymentSystemRecordSpin.collapse
+                            i.fa.fa-spinner.fa-spin
+                    div.proposalMessage
+                            text {{'The update time of this point' | translate}}  : {{vm.lastPaymentSystemRefresh}}
+                    table.simple-table(style="display:block; white-space:pre-wrap; word-wrap:break-word;text-align:center")
                         thead
                             tr
                                 th {{'Currently available financial (settlement) system' | translate}}
@@ -2081,35 +2088,33 @@
                                 th {{'The warning value of Currently points is too low (points check, eMAIL reminder, no fill, close)' | translate}}
 
                         tbody
-                            tr(ng-if='vm.financialSettlementSystemConfig.length > 0' ng-repeat='(i, v) in vm.financialSettlementSystemConfig')
+                            tr(ng-if='vm.paymentSystemConfig.length > 0' ng-repeat='(i, v) in vm.paymentSystemConfig')
                                 td
-                                    input(type='text' ng-model='v.systemName' ng-disabled='!vm.financialSettlementSystemTableEdit' ng-if='vm.financialSettlementSystemTableEdit')
-                                    span(ng-if='!vm.financialSettlementSystemTableEdit') {{v.systemName}}
+                                    span {{v.name}}
                                 td
-                                    input(type="radio" name="rdBtnTopup" ng-model='v.enableTopup' ng-value='true' ng-checked='v.enableTopup' ng-click='vm.enableFinancialSettlementRdBtnConfig(i, vm.financialSettlementSystemConfig, "topup")' ng-disabled='!vm.financialSettlementSystemTableEdit')
+                                    input(type="radio" name="rdBtnTopup" ng-model='v.enableTopup' ng-value='true' ng-checked='v.enableTopup' ng-click='vm.enablePaymentSystemRdBtnConfig(i, vm.paymentSystemConfig, "topup")' ng-disabled='!vm.financialSettlementSystemTableEdit')
                                 td
-                                    input(type="radio" name="rdBtnBonus" ng-model='v.enableBonus' ng-value='true' ng-checked='v.enableBonus' ng-click='vm.enableFinancialSettlementRdBtnConfig(i, vm.financialSettlementSystemConfig, "bonus")' ng-disabled='!vm.financialSettlementSystemTableEdit')
-                                td(style='text-align:left; width:300px')
-                                    textarea(ng-model='v.description', ng-if='vm.financialSettlementSystemTableEdit' style='width:100%')
-                                    span(ng-if='!vm.financialSettlementSystemTableEdit') {{v.description}}
-                                td
-                                    input(type='number' ng-model='v.currentPoint' ng-disabled='!vm.financialSettlementSystemTableEdit' ng-if='vm.financialSettlementSystemTableEdit')
-                                    span(ng-if='!vm.financialSettlementSystemTableEdit') {{v.currentPoint}}
-                                    span(ng-if='!vm.financialSettlementSystemTableEdit && (v.currentPoint=="undefined" || v.currentPoint==null)') {{'Does not support' | translate}}
-                                td(style='width:150px')
+                                    input(type="radio" name="rdBtnBonus" ng-model='v.enableBonus' ng-value='true' ng-checked='v.enableBonus' ng-click='vm.enablePaymentSystemRdBtnConfig(i, vm.paymentSystemConfig, "bonus")' ng-disabled='!vm.financialSettlementSystemTableEdit')
+                                td.alignLeft(style='width:300px')
+                                    span {{v.description}}
+                                td(ng-class = '{"callOutFailed" : (!vm.financialSettlementSystemTableEdit && (v.curFinancialSettlementPoint == "undefined" || v.curFinancialSettlementPoint == null))}' )
+                                    span {{v.curFinancialSettlementPoint}}
+                                    span(ng-if='!vm.financialSettlementSystemTableEdit && (v.curFinancialSettlementPoint=="undefined" || v.curFinancialSettlementPoint==null)') {{'Does not support' | translate}}
+                                td(style='width:150px', ng-class = '{"callOutFailed" : (!vm.financialSettlementSystemTableEdit && (v.curFinancialSettlementPoint == "undefined" || v.curFinancialSettlementPoint == null)), "grayRow" : (!vm.financialSettlementSystemTableEdit &&((v.minPointNotification == "undefined" && v.curFinancialSettlementPoint)) || (!vm.financialSettlementSystemTableEdit && (v.minPointNotification == null && v.curFinancialSettlementPoint)))}' )
                                     input(type='number' ng-model='v.minPointNotification' ng-disabled='!vm.financialSettlementSystemTableEdit' ng-if='vm.financialSettlementSystemTableEdit')
-                                    span(ng-if='!vm.financialSettlementSystemTableEdit') {{v.minPointNotification}}
-                                    span(ng-if='!vm.financialSettlementSystemTableEdit && ((v.minPointNotification=="undefined" && v.currentPoint) || (v.minPointNotification==null && v.currentPoint))') {{'CLOSE' | translate}}
-                                    span(ng-if='!vm.financialSettlementSystemTableEdit && (v.currentPoint=="undefined" || v.currentPoint==null)') {{'Does not support' | translate}}
+                                    span(ng-if='!vm.financialSettlementSystemTableEdit && v.curFinancialSettlementPoint != "undefined" && v.curFinancialSettlementPoint != null') {{v.minPointNotification}}
+                                    span(ng-if='!vm.financialSettlementSystemTableEdit && ((v.minPointNotification=="undefined" && v.curFinancialSettlementPoint) || (v.minPointNotification==null && v.curFinancialSettlementPoint))') {{'CLOSE' | translate}}
+                                    span(ng-if='!vm.financialSettlementSystemTableEdit && (v.curFinancialSettlementPoint=="undefined" || v.curFinancialSettlementPoint==null)') {{'Does not support' | translate}}
 
                     div.margin-top-10
                         button.btn.btn-primary.common-button
                             text {{'email recipient settings' | translate}}
+
                         button.btn.btn-primary.common-button(ng-if="!vm.financialSettlementSystemTableEdit ", ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit')
                             text {{'EDIT' | translate}}
                             img.img-edit
-                        button.btn.btn-danger.common-button(ng-if='vm.financialSettlementSystemTableEdit', ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit;vm.resetFinancialSettlementSystemConfig()') {{"CANCEL" | translate}}
-                        button.btn.btn-primary.common-button(ng-if='vm.financialSettlementSystemTableEdit', ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit;') {{"CONFIRM" | translate}}
+                        button.btn.btn-danger.common-button(ng-if='vm.financialSettlementSystemTableEdit', ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit;vm.resetPaymentSystemConfig()') {{"CANCEL" | translate}}
+                        button.btn.btn-primary.common-button(ng-if='vm.financialSettlementSystemTableEdit', ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit;vm.updatePaymentSystemConfigByPlatform()') {{"CONFIRM" | translate}}
 
 
                 div(ng-if='vm.selectedConfigTab=="platformFeeEstimateSetting"')
