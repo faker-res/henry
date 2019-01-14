@@ -72,6 +72,12 @@ let dbRewardPoints = {
                     })
                 }
             }
+        ).then(
+            data => {
+                // Reset BState
+                dbPlayerUtil.setPlayerBState(playerInfo._id, "deductRewardPoint", false).catch(errorUtils.reportError);
+                return data;
+            }
         ).catch(
             err => {
                 if (err.status === constServerCode.CONCURRENT_DETECTED) {
