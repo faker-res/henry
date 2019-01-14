@@ -5779,12 +5779,16 @@ var dbPlatform = {
                                 tempConfig._id = customConfig[indexNo]._id;
                                 tempConfig.enableTopup = customConfig[indexNo].enableTopup;
                                 tempConfig.enableBonus = customConfig[indexNo].enableBonus;
+                                // region TO-DO: wait for PMS / 3rd party payment system's API to get current financial point
                                 tempConfig.curFinancialSettlementPoint = customConfig[indexNo].curFinancialSettlementPoint;
+                                // end region
                                 tempConfig.minPointNotification = customConfig[indexNo].minPointNotification;
                             } else {
                                 tempConfig.enableTopup = extConfig[key].enableTopup;
                                 tempConfig.enableBonus = extConfig[key].enableBonus;
+                                // region TO-DO: wait for PMS / 3rd party payment system's API to get current financial point
                                 tempConfig.curFinancialSettlementPoint = extConfig[key].curFinancialSettlementPoint;
+                                // end region
                                 tempConfig.minPointNotification = extConfig[key].minPointNotification;
                             }
 
@@ -5869,6 +5873,48 @@ var dbPlatform = {
             }
         }).then(platformData => {
                 return newConfig;
+            }
+        );
+    },
+
+    getMinPointNotiRecipientSettingByPlatform: function(platformObjId) {
+        return dbconfig.collection_minPointNotiRecipient.find({platform: platformObjId}).lean();
+    },
+
+    updateMinPointNotiRecipientSetting: function (query, updateData, deleteData) {
+        let proms = [];
+
+        return dbconfig.collection_minPointNotiRecipient.remove({_id: {$in: deleteData.recipients}}).exec().then(
+            () => {
+                if (updateData && updateData.recipients && updateData.recipients.length > 0) {
+                    for (let i = 0; i < updateData.recipients.length; i++) {
+                        let recipient = updateData.recipients[i];
+
+                        if (recipient && recipient._id) {
+                            let updateData = {
+                                email: recipient.email
+                            };
+
+                            let prom = dbconfig.collection_minPointNotiRecipient.findOneAndUpdate(
+                                {_id: recipient._id, platform: query.platform},
+                                updateData,
+                                {new: true});
+
+                            proms.push(prom);
+                        } else {
+                            let newData = {
+                                platform: query.platform,
+                                email: recipient.email
+                            };
+
+                            if (recipient.email) {
+                                proms.push(new dbconfig.collection_minPointNotiRecipient(newData).save());
+                            }
+                        }
+                    }
+                }
+
+                return Promise.all(proms);
             }
         );
     }
