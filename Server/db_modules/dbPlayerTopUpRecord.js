@@ -4616,6 +4616,37 @@ var dbPlayerTopUpRecord = {
             }
         );
     },
+
+    forcePairingWithReferenceNumber: function(platformId, proposalObjId, proposalId, referenceNumber, adminId, adminObjId) {    //this ends up at PMS
+        return pmsAPI.foundation_mandatoryMatch({
+            platformId: platformId,
+            queryId: serverInstance.getQueryId(),
+            proposalId: proposalId,
+            depositId: referenceNumber
+        }).then(data => {
+            if(data && data.status == 200) {
+                // execute TopUp
+                let remarks = "强制匹配：成功。";
+                return dbProposal.updateProposalProcessStep(proposalObjId, adminId, remarks, true);
+            } else if(data && data.status == 401) {
+                // cancel top up
+                let remarks = data.errorMsg || "强制匹配：失败并取消。";
+                return dbProposal.cancelProposal(proposalObjId, adminId, remarks, adminObjId).then(() => {
+                    return Promise.reject({message: remarks});
+                })
+            }
+        }, err => {
+            if(err && err.status == 401) {
+                // cancel top up
+                let remarks = err.errorMsg || "强制匹配：失败并取消。";
+                return dbProposal.cancelProposal(proposalObjId, adminId, remarks, adminObjId).then(() => {
+                    return Promise.reject({message: remarks});
+                })
+            } else {
+                return Promise.reject(err);
+            }
+        });
+    },
 };
 //
 // get account count / merchant count

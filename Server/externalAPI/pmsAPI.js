@@ -104,6 +104,10 @@ const pmsAPI = {
         return callPMSAPI("foundation", "requestAlipayByUsername", data);
     },
 
+    foundation_mandatoryMatch: function (data) {
+        return callPMSAPI("foundation", "mandatoryMatch", data);
+    },
+
     //platform service
     platform_add: function (data) {
         return callPMSAPI("platform", "add", data);
