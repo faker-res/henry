@@ -50,15 +50,41 @@ let dbRewardPoints = {
     },
 
     deductPointManually: (playerObjId, updateAmount, remark, userDevice) => {
+        let playerInfo;
         return dbConfig.collection_players.findOne({_id: ObjectId(playerObjId)}).lean().then(
             playerData => {
                 if (playerData) {
-                    return dbPlayerInfo.updatePlayerRewardPointsRecord(playerObjId, playerData.platform, updateAmount, remark, null, null, playerData.name, userDevice);
+                    playerInfo = playerData;
+                    return dbPlayerUtil.setPlayerBState(playerInfo._id, "deductRewardPoint", true);
                 } else {
                     return Promise.reject({name: "DataError", message: "Cannot find player"});
                 }
             }
-        )
+        ).then(
+            playerBState => {
+                if (playerBState) {
+                    return dbPlayerInfo.updatePlayerRewardPointsRecord(playerObjId, playerInfo.platform, updateAmount, remark, null, null, playerInfo.name, userDevice);
+                } else {
+                    return Promise.reject({
+                        name: "DBError",
+                        status: constServerCode.CONCURRENT_DETECTED,
+                        message: "Deduct rewardPoints Fail, please try again later"
+                    })
+                }
+            }
+        ).catch(
+            err => {
+                if (err.status === constServerCode.CONCURRENT_DETECTED) {
+                    // Ignore concurrent request for now
+                } else {
+                    // Set BState back to false
+                    dbPlayerUtil.setPlayerBState(playerInfo._id, "deductRewardPoint", false).catch(errorUtils.reportError);
+                }
+
+                console.log('Deduct rewardPoint error', playerInfo.playerId, err);
+                throw err;
+            }
+        );
     },
 
     createRewardPoints: (playerObjId, playerData) => {
