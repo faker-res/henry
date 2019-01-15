@@ -445,8 +445,10 @@ form(name='form_auctionSystem').row
                         input.form-control(type="text" ng-model="vm.auctionSystemProduct.productImage")
                 .full-width-input-block
                     label *{{"Product Name" | translate}}
-                    div(style="display:inline-block;")
+                    div(style="display:inline-block;" ng-if="!vm.auctionSystemEditStatus")
                         input.form-control(type="text" ng-model="vm.auctionSystemProduct.productName" required)
+                    div(style="display:inline-block;" ng-if="vm.auctionSystemEditStatus")
+                        input.form-control(type="text" ng-model="vm.auctionSystemProduct.productName" ng-disabled="true")
                 .full-width-input-block
                     label {{"Seller" | translate}}
                     div(style="display:inline-block;")
