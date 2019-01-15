@@ -272,7 +272,6 @@ var dbAuction = {
         return [];
     },
     listAuctionMonitor: function(query, limit){
-        console.log('**', limit)
         let proms = [];
         let proposalType;
         let result = [];
@@ -288,7 +287,7 @@ var dbAuction = {
                         return item._id;
                     })
                 }
-                console.log('query', query)
+                console.log('query', query);
                 return dbconfig.collection_auctionSystem.find(query).lean()
             }
         ).then(auctionItems=>{
@@ -298,7 +297,6 @@ var dbAuction = {
                 let period = dbAuction.getPeriodTime(item);
                 let prom = dbAuction.getAuctionProposal(proposalType, period, item, limit)
                 .then(proposal=>{
-                    console.log('process 2-->')
                     item.proposal = proposal;
                     return item;
                 });
@@ -489,7 +487,7 @@ var dbAuction = {
                         '_id': item._id,
                         'platformObjId': item.platformObjId,
                     };
-                    let prom = dbAuction.listAuctionMonitor(sendQuery, 2);
+                    let prom = dbAuction.listAuctionMonitor(sendQuery, 1);
                     proms.push(prom);
                 })
             }
@@ -498,14 +496,12 @@ var dbAuction = {
             if( data && data.length > 0 ){
                 data.forEach(item=>{
                     if(item[0] && item[0].proposal && item[0].proposal.length > 0){
-                        console.log('target shows up')
-                        console.log(item[0].proposal[0])
                         let proposal;
                         let lastProposalData = item[0].proposal[0];
 
                         return dbconfig.collection_proposal.findOneAndUpdate({
                             _id: lastProposalData._id,
-                            status: lastProposalData.status,
+                            status: constProposalStatus.PENDING,
                             createTime: lastProposalData.createTime
                         }, {
                             status: status,
