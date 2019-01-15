@@ -1455,8 +1455,12 @@ let dbTeleSales = {
         }).count();
     },
 
-    getTsPhone: function (query) {
-       return dbconfig.collection_tsPhone.find(query).lean()
+    getTsPhone: function (query, isTSNewList, platformObjId) {
+       return dbconfig.collection_tsPhone.find(query).lean().then(
+            tsPhoneData => {
+                return getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId);
+            }
+       )
     },
 
     getDecomposedNewPhoneRecord: function (platformObjId, startTime, endTime, index, limit, sortCol) {
@@ -1889,6 +1893,45 @@ function addOptionalTimeLimitsToQuery(data, query, fieldName) {
     if (createTimeQuery) {
         query[fieldName] = createTimeQuery;
     }
+}
+
+function getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId) {
+    let proms = [];
+    if (tsPhoneData && tsPhoneData.length && isTSNewList && platformObjId) {
+        tsPhoneData.forEach(
+            tsPhone => {
+                if(tsPhone && tsPhone.phoneNumber) {
+                    let prom = dbconfig.collection_tsPhone.findOne({phoneNumber: tsPhone.phoneNumber}, {phoneNumber: 1}).lean().then(
+                        isExist => {
+                            if (isExist) {
+                                return false;
+                            } else {
+                                // tsPhone.phoneNumber = rsaCrypto.decrypt(tsPhone.phoneNumber);
+                                return tsPhone;
+                            }
+                        }
+                    );
+
+                    proms.push(prom);
+                }
+            });
+    } else {
+        proms = tsPhoneData && tsPhoneData.length? tsPhoneData: [];
+    }
+
+    return Promise.all(proms).then(
+        phones => {
+            let output = [];
+            phones.map(phone => {
+                if (phone) {
+                    phone.phoneNumber = rsaCrypto.decrypt(phone.phoneNumber);
+                    output.push(phone);
+                }
+            });
+
+            return output;
+        }
+    );
 }
 
 function excludeTelNum(data){
