@@ -1200,6 +1200,7 @@ var proposal = {
             }
         ).then(
             function (data) {
+                console.log("updateProposalProcessStep data", data);
                 //todo::add proposal or process status check here
                 // if (data && remark) {
                 //     dbconfig.collection_proposal.findOneAndUpdate({_id: proposalId, createTime: data.createTime}, {
@@ -1261,6 +1262,7 @@ var proposal = {
         ).then(
             //find proposal process and create finished step for process
             function (data) {
+                console.log("updateProposalProcessStep data2", data);
                 proposalProcessData = data;
                 if(proposalData.type.name !=  constProposalType.PLAYER_BONUS){
                     return Promise.resolve(true);
@@ -1273,6 +1275,7 @@ var proposal = {
             }
         ).then(
             function(data){
+                console.log("updateProposalProcessStep data3", data);
                 let bIsBankInfoMatched = typeof data != "undefined" ? data : true;
                 if(bIsBankInfoMatched == true){
                     if (proposalProcessData && proposalProcessData.currentStep && proposalProcessData.steps) {
@@ -1323,6 +1326,7 @@ var proposal = {
         ).then(
             //update process info
             function (data) {
+                console.log("updateProposalProcessStep data4", data);
                 if (data) {
                     var status = bApprove ? constProposalStatus.APPROVED : constProposalStatus.REJECTED;
                     if (nextStepId) {
@@ -1418,6 +1422,7 @@ var proposal = {
             }
         ).then(
             function (data) {
+                console.log("updateProposalProcessStep data5", data);
                 if (data) {
                     deferred.resolve(data);
                 }
