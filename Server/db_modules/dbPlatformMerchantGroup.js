@@ -435,12 +435,6 @@ var dbPlatformMerchantGroup = {
             if (data[3] && data[3].data.length > 0) {
                 data[3].data.sort((a,b)=>{ return a.line - b.line})
                 data[3].data = dbPlatformMerchantGroup.addLineCategory(data[3]);
-                data[3].data.map(bcard => {
-                    bcard.merchantNo = bcard.accountNumber;
-                    bcard.name = bcard.accountNumber + '(' + bcard.name + ')';
-                    bcard.merchantTypeId = '9997';
-                    bcard.merchantTypeName = "AliPayAcc";
-                })
             }
 
           let result = {}
@@ -457,26 +451,35 @@ var dbPlatformMerchantGroup = {
         let uniqueObj = {};
         if(data && data.data.length > 0){
             data.data.forEach(item=>{
+                // find how many of different "line"
                 if(item.line && (uniqueLine.indexOf(item.line)== -1)){
                     uniqueObj[item.line] = [];
                 }
+            });
+            //divide all the "line" by "line" category
+            data.data.forEach(item=>{
                 if(item && item.line){
                     uniqueObj[item.line].push(item);
                 }else{
-                    uniqueObj['none'].push(item);
+                    uniqueObj['other'].push(item);
                 }
             });
         }
         Object.keys(uniqueObj).forEach(key=>{
+            //insert a "select all (same) line" object, ex: 支付宝线路1(全部)
             let category = dbPlatformMerchantGroup.getAlipayLineAcc(key)
             result.push(category);
+            //dump all same "line" data after it.
             if(uniqueObj[key] && uniqueObj[key].length > 0){
-                uniqueObj[key].forEach(item=>{
-                    result.push(item);
+                uniqueObj[key].forEach(bcard=>{
+                    bcard.merchantNo = bcard.accountNumber;
+                    bcard.name = bcard.accountNumber + '(' + bcard.name + ')';
+                    bcard.merchantTypeId = '9997';
+                    bcard.merchantTypeName = "AliPayAcc";
+                    result.push(bcard);
                 })
             }
         })
-        console.log(result);
         return result;
     },
     getAlipayLineAcc: function (no) {

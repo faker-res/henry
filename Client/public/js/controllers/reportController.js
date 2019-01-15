@@ -528,6 +528,45 @@ define(['js/app'], function (myApp) {
             //   $('.merchantNoList').selectpicker('refresh');
             // });
         }
+
+        vm.groupByIfAliPayLine = function () {
+            let selectByGroup = [];
+            // vm.queryTopup.merchantNoData
+            let prom = new Promise((resolve, reject)=>{
+                if(vm.queryTopup.merchantNoData && vm.queryTopup.merchantNoData.length > 0){
+                    vm.queryTopup.merchantNoData.forEach(merchantNo=>{
+                        vm.merchantCloneList.forEach(item=>{
+                            if(item.merchantNo == merchantNo.merchantNo){
+                                // if that is a alipay category flag, tick all same "line".
+                                if(item.category){
+                                    vm.merchantCloneList.map(merchant=>{
+                                        if(merchant.merchantTypeId == '9997' && merchant.line == item.line){
+                                            selectByGroup.push(merchant);
+                                        }
+                                    })
+                                    if(selectByGroup && selectByGroup.length > 0){
+                                        selectByGroup.forEach(groupItem=>{
+                                            if(vm.queryTopup.merchantNoData.indexOf(groupItem) == -1){
+                                                vm.queryTopup.merchantNoData.push(groupItem);
+                                            }
+                                        })
+                                    }
+                                }
+                            }
+                        })
+                    })
+                    resolve(vm.queryTopup.merchantNoData);
+                }
+            })
+            prom.then(()=>{
+                vm.queryTopup.merchantNo = [];
+                vm.queryTopup.merchantNoData.forEach(item=>{
+                    if(vm.queryTopup.merchantNo && vm.queryTopup.merchantNo.indexOf(item)==-1){
+                        vm.queryTopup.merchantNo.push(item.merchantNo);
+                    }
+                })
+            })
+        }
         vm.filterMerchant = function () {
             vm.merchantCloneList = angular.copy(vm.merchantNoList);
             vm.merchantGroupCloneList = vm.merchantGroupObj;
@@ -1094,7 +1133,6 @@ define(['js/app'], function (myApp) {
                         vm.commonPageChangeHandler(curP, pageSize, "generalRewardProposalQuery", vm.generalRewardProposalSearch)
                     });
                 })
-                $scope.safeApply();
             }
             if (vm.currentRewardTaskName) {
                 vm.generalRewardTaskQuery = {};
@@ -1107,8 +1145,8 @@ define(['js/app'], function (myApp) {
                         vm.commonPageChangeHandler(curP, pageSize, "generalRewardTaskQuery", vm.searchGeneralRewardTask)
                     });
                 })
-                $scope.safeApply();
             }
+            $scope.$evalAsync();
         }
         vm.commonTableOption = {
             dom: 'Zrtlp',
@@ -1569,7 +1607,7 @@ define(['js/app'], function (myApp) {
             vm.queryTopup.proposalID = '';
             vm.queryTopup.mainTopupType = '';
             vm.queryTopup.topupType = '';
-            vm.queryTopup.merchantNo = '';
+            vm.queryTopup.merchantNo = [];
             vm.queryTopup.dingdanID = '';
             vm.queryTopup.type = 'all';
             vm.queryTopup.playerName = '';
@@ -1622,7 +1660,7 @@ define(['js/app'], function (myApp) {
             //     sendObj.status = {'$in': staArr}
             // }
 
-            vm.queryTopup.merchantNo ? sendObj.merchantNo = vm.queryTopup.merchantNo : '';
+            vm.queryTopup.merchantNo ? sendObj.merchantNo = vm.queryTopup.merchantNo : [];
             // showing data with auto-assign card at pms.
             if(vm.queryTopup.merchantNo && vm.queryTopup.merchantNo.length == 1 && vm.queryTopup.merchantNo.indexOf('MMM4-line2') != -1){
                 sendObj.line = '2';
@@ -8723,6 +8761,19 @@ define(['js/app'], function (myApp) {
             }, 0);
         };
 
+        function getAliPayGroup (data){
+            //rename the alipay-line category
+            let result = [];
+            if(data.length > 0 ){
+                result = data.map(item=>{
+                    if(item.category){
+                        item.name = $translate('Alipay-Line')+ item.line+ $translate('( All )');
+                    }
+                    return item;
+                })
+            }
+            return result;
+        }
         function drawReportQuery (choice) {
             vm.merchantNoNameObj = {};
             vm.merchantGroupObj = [];
@@ -8731,7 +8782,7 @@ define(['js/app'], function (myApp) {
             vm.merchantGroupObj = $scope.merchantGroupObj;
             vm.merchantLists = $scope.merchantLists;
             vm.merchantNoList = $scope.merchantNoList;
-            vm.merchantCloneList = $scope.merchantCloneList;
+            vm.merchantCloneList = $scope.merchantCloneList
             vm.merchantGroupObj = $scope.merchantGroupObj;
             vm.merchantGroupCloneList = $scope.merchantGroupCloneList;
 
@@ -8750,12 +8801,11 @@ define(['js/app'], function (myApp) {
 
             switch (choice) {
                 case "TOPUP_REPORT":
-                    vm.queryTopup = {};
+                    vm.queryTopup = {'merchantNo':[]};
                     vm.queryTopup.totalCount = 0;
                     vm.resetTopupRecord();
                     vm.reportSearchTime = 0;
-
-                    endLoadMultipleSelect('.merchantNoList');
+                    vm.merchantCloneList = getAliPayGroup(vm.merchantCloneList);
                     $('#topupTable').remove();
 
                     vm.initAccs();
@@ -8769,7 +8819,7 @@ define(['js/app'], function (myApp) {
                         vm.queryTopup.pageObj = utilService.createPageForPagingTable("#topupTablePage", {}, $translate, function (curP, pageSize) {
                             vm.commonPageChangeHandler(curP, pageSize, "queryTopup", vm.searchTopupRecord)
                         });
-                        $scope.safeApply();
+                        $scope.$evalAsync();
 
                     });
                     break;
