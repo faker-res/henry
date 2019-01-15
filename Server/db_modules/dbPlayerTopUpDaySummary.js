@@ -173,18 +173,16 @@ var dbPlayerTopUpDaySummary = {
     },
 
     playerReportDaySummary_calculatePlatformDaySummaryForPlayers: function (startTime, endTime, platformId, playerObjIds) {
-        var deferred = Q.defer();
-
-        dbPlayerTopUpRecord.getPlayerReportDataForTimeFrame(startTime, endTime, platformId, playerObjIds).then(
+        return dbPlayerTopUpRecord.getPlayerReportDataForTimeFrame(startTime, endTime, platformId, playerObjIds).then(
             function(data){
                 if(data && data.length > 0){
                     return data;
                 }else{
-                    deferred.resolve(false);
+                    return Promise.reject({name: "DBError", message: "Get player report day summary failed!", error: error});
                 }
             },
             function (error){
-                deferred.reject({name: "DBError", message: "Get player report day summary failed!", error: error});
+                return Promise.reject({name: "DBError", message: "Get player report day summary failed!", error: error});
             }
         ).then(
             function (data){
@@ -200,18 +198,16 @@ var dbPlayerTopUpDaySummary = {
                 }
             },
             function (error){
-                deferred.reject({name: "DBError", message: "Update player report data day summary failed!", error: error});
+                return Promise.reject({name: "DBError", message: "Update player report data day summary failed!", error: error});
             }
         ).then(
             function (data) {
-                deferred.resolve(data);
+                return data;
             },
             function (error) {
-                deferred.reject({name: "DBError", message: "Update player report data day summary failed!", error: error});
+                return Promise.reject({name: "DBError", message: "Update player report data day summary failed!", error: error});
             }
         );
-
-        return deferred.promise;
     },
 
     calculatePlatformActiveValidPlayerDaySummaryForTimeFrame: function (startTime, endTime, platformId) {
