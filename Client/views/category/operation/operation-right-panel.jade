@@ -253,8 +253,7 @@ style.
                 button.btn.btn-primary.common-button(data-dismiss='modal' ng-if='vm.selectedProposal.status==="CsPending" && checkViewPermission("Operation", "Proposal","CsApproveProposal")' ng-click='vm.approveCsPendingAndChangeStatus()') {{"cs approve proposal" | translate}}
                 button.btn.btn-primary.common-button(ng-if='vm.selectedProposal.status==="AutoAudit" && !vm.changeStatusToPendingFromAutoAuditMessage && !vm.selectedProposal.cancelling && !vm.selectedProposal.cancelled', ng-click='vm.changeStatusToPendingFromAutoAudit()') {{"Manual" | translate}}
                 button.btn.btn-success.common-button(ng-if="vm.showCopyProposal()" ng-click="vm.copyTopUpProposal()") {{"COPY_TO_CLIPBOARD" | translate}}
-                button.btn.btn-danger.common-button(ng-if='checkViewPermission("Operation", "Proposal", "Force Pairing") ' +
-                '&& (vm.selectedProposal.process.status=="Pending" || vm.selectedProposal.status=="Pending") ' +
+                button.btn.btn-danger.common-button(ng-if='checkViewPermission("Operation", "Proposal", "Force Pairing") && vm.selectedProposal.status=="Pending" ' +
                 '&& (vm.selectedProposal.type.name == "ManualPlayerTopUp" || vm.selectedProposal.type.name == "PlayerAlipayTopUp" || vm.selectedProposal.type.name == "PlayerWechatTopUp")'
                 data-toggle="modal", data-target="#modalProposalTopUpForcePairing") {{"Force Pairing" | translate}}
                 label.inlineBlk.wordWrap(ng-if='vm.changeStatusToPendingFromAutoAuditMessage') {{vm.changeStatusToPendingFromAutoAuditMessage}}
