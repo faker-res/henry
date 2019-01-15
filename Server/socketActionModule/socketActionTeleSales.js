@@ -87,7 +87,7 @@ function socketActionTeleSales(socketIO, socket) {
 
         createTsPhoneFeedback: function createTsPhoneFeedback(data) {
             var actionName = arguments.callee.name;
-            var isValidData = Boolean(data && data.tsPhone && data.tsPhoneList && data.platform && data.adminId && data.content && data.result && data.resultName && data.topic);
+            var isValidData = Boolean(data && data.tsPhone && data.tsPhoneList && data.platform && data.adminId && data.result && data.resultName && data.topic);
             socketUtil.emitter(self.socket, dbTeleSales.createTsPhoneFeedback, [data], actionName, isValidData);
         },
 
@@ -193,6 +193,12 @@ function socketActionTeleSales(socketIO, socket) {
             socketUtil.emitter(self.socket, dbTeleSales.decomposeTsPhoneList, [data.sourceTsPhoneListName, data.tsPhones], actionName, isValidData);
         },
 
+        reclaimTsPhone: function reclaimTsPhone(data){
+        var actionName = arguments.callee.name;
+        var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.assignee);
+        socketUtil.emitter(self.socket, dbTeleSales.reclaimTsPhone, [data.platformObjId, data.tsPhoneListObjId, data.assignee], actionName, isValidData);
+    },
+
         getDistributionDetails: function getDistributionDetails(data){
             var actionName = arguments.callee.name;
             var isValidData = Boolean(data && data.platformObjId && data.tsPhoneListObjId && data.adminNames && data.adminNames.length > 0);
@@ -259,7 +265,7 @@ function socketActionTeleSales(socketIO, socket) {
         getTsPhone: function getTsPhone(data) {
             let actionName = arguments.callee.name;
             let isValidData = Boolean(data && data.query);
-            socketUtil.emitter(self.socket, dbTeleSales.getTsPhone, [data.query], actionName, isValidData);
+            socketUtil.emitter(self.socket, dbTeleSales.getTsPhone, [data.query, data.isTSNewList, data.platformObjId], actionName, isValidData);
         },
 
         dailyTradeTsPhone: function dailyTradeTsPhone(data) {

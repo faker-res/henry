@@ -260,6 +260,9 @@ var roleChecker = {
                 CreditChangeLog: ['getPlayerCreditChangeLogsByQuery', 'getPagedPlayerCreditChangeLogs'],
                 playerDailyCreditLog :['playerCreditDailyLog'],
             },
+            Proposal: {
+                "Force Pairing": ['forcePairingWithReferenceNumber']
+            }
         },
         Partner: {
             "Partner": {
@@ -518,7 +521,9 @@ var roleChecker = {
                 providerGroup: ['deletePlatformProviderGroup'],
                 smsGroup: [],
                 BulkCall: [],
-                DownloadTranslationCSV: ['downloadTranslationCSV']
+                DownloadTranslationCSV: ['downloadTranslationCSV'],
+                DecomposeAfterNDays: [],
+                AutoExportListOrMaxNumOfTxnEveryday: []
             },
             "Announcement": {
                 PlatformAnnouncementCreate: ['createPlatformAnnouncement'],
@@ -647,6 +652,9 @@ var roleChecker = {
                 ONLINE_PAYMENT_MISMATCH_REPORT: ['getMismatchReport'],
                 LIMITED_OFFER_REPORT: ['getLimitedOfferReport'],
                 WECHAT_GROUP_REPORT:['getWechatControlSession']
+            },
+            Proposal: {
+                "Force Pairing": ['forcePairingWithReferenceNumber']
             }
         },
         Operation: {
@@ -670,7 +678,8 @@ var roleChecker = {
                 queryByProposalDate: [],
                 largeWithdrawal: [],
                 updatePlayerBonusStatus: ['setBonusProposalStatus'],
-                CsApproveProposal:["approveCsPendingAndChangeStatus"]
+                CsApproveProposal:["approveCsPendingAndChangeStatus"],
+                "Force Pairing": ['forcePairingWithReferenceNumber']
             },
             Player: {
                 Read: ['getCurrentActivePlayersCount', 'getActivePlayers'],
@@ -897,13 +906,13 @@ var roleChecker = {
             }
         },
         TeleMarketing: {
-            "TeleMarketing": {
+            "SMSMission": {
                 Read: [],
                 Create: [],
                 Update: [],
                 Delete: [],
             },
-            "Task": {
+            "DXMission": {
                 Read: [],
                 Create: [],
                 Update: [],

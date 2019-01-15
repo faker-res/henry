@@ -559,6 +559,11 @@ var proposal = {
                                 && data[0].name != constProposalType.PLAYER_LEVEL_UP
                                 && data[0].name != constProposalType.BULK_EXPORT_PLAYERS_DATA
                                 && data[0].name !== constProposalType.PLAYER_COMMON_TOP_UP
+                                && data[0].name !== constProposalType.AUCTION_PROMO_CODE // player can bid other product has the same proposal type
+                                && data[0].name !== constProposalType.AUCTION_OPEN_PROMO_CODE
+                                && data[0].name !== constProposalType.AUCTION_REWARD_PROMOTION
+                                && data[0].name !== constProposalType.AUCTION_REAL_PRIZE
+                                && data[0].name !== constProposalType.AUCTION_REWARD_POINT_CHANGE
                             ) {
                                 deferred.reject({
                                     name: "DBError",
@@ -1034,7 +1039,7 @@ var proposal = {
                     orderStatus: orderStatus,
                     depositId: requestId,
                     type: type,
-                    rate: topupRate,
+                    rate: (Number(proposalObj.data.amount) * Number(topupRate)).toFixed(2),
                     actualAmountReceived: topupActualAmt
                 };
 
@@ -1195,6 +1200,7 @@ var proposal = {
             }
         ).then(
             function (data) {
+                console.log("updateProposalProcessStep data", data);
                 //todo::add proposal or process status check here
                 // if (data && remark) {
                 //     dbconfig.collection_proposal.findOneAndUpdate({_id: proposalId, createTime: data.createTime}, {
@@ -1256,6 +1262,7 @@ var proposal = {
         ).then(
             //find proposal process and create finished step for process
             function (data) {
+                console.log("updateProposalProcessStep data2", data);
                 proposalProcessData = data;
                 if(proposalData.type.name !=  constProposalType.PLAYER_BONUS){
                     return Promise.resolve(true);
@@ -1268,6 +1275,7 @@ var proposal = {
             }
         ).then(
             function(data){
+                console.log("updateProposalProcessStep data3", data);
                 let bIsBankInfoMatched = typeof data != "undefined" ? data : true;
                 if(bIsBankInfoMatched == true){
                     if (proposalProcessData && proposalProcessData.currentStep && proposalProcessData.steps) {
@@ -1318,6 +1326,7 @@ var proposal = {
         ).then(
             //update process info
             function (data) {
+                console.log("updateProposalProcessStep data4", data);
                 if (data) {
                     var status = bApprove ? constProposalStatus.APPROVED : constProposalStatus.REJECTED;
                     if (nextStepId) {
@@ -1413,6 +1422,7 @@ var proposal = {
             }
         ).then(
             function (data) {
+                console.log("updateProposalProcessStep data5", data);
                 if (data) {
                     deferred.resolve(data);
                 }
@@ -1439,6 +1449,7 @@ var proposal = {
                 function (proposalData) {
                     if (proposalData) {
                         var proposalStatus = proposalData.status || proposalData.process.status;
+                        let proposalDataRemark = proposalData.data && proposalData.data.remark ? proposalData.data.remark + remark : remark;
 
                         if (((proposalData.type.name === constProposalType.PLAYER_BONUS
                                 && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT || proposalStatus === constProposalStatus.CSPENDING))
@@ -1452,7 +1463,8 @@ var proposal = {
                                         noSteps: true,
                                         process: null,
                                         status: constProposalStatus.CANCEL,
-                                        "data.cancelBy": "客服：" + adminId
+                                        "data.cancelBy": "客服：" + adminId,
+                                        'data.remark': proposalDataRemark
                                     };
                                     if (proposalData.type.name == constProposalType.PLAYER_BONUS || proposalData.type.name == constProposalType.PARTNER_BONUS) {
                                         dbProposalUtility.createProposalProcessStep(proposalData, adminObjId, constProposalStatus.CANCEL, remark).catch(errorUtils.reportError);
@@ -4993,6 +5005,13 @@ var proposal = {
         let consumptionResult = [];
         let playerResult = [];
         let playerInfoResult = [];
+        let resultSum = {
+            totalCount: 0,
+            totalRewardAmount: 0,
+            totalBonusAmount: 0,
+            totalDepositAmount: 0,
+            winLostAmount: 0,
+        };
 
         var proposalQuery = proposalTypeName ? {
             $and: [{
@@ -5262,6 +5281,7 @@ var proposal = {
                                             let index = bonusResult.findIndex( a => a._id.toString() == player._id.toString());
                                             if (index != -1){
                                                 player.totalBonusAmount = bonusResult[index].totalBonusAmount;
+                                                resultSum.totalBonusAmount += player.totalBonusAmount;
                                             }
                                             else{
                                                 player.totalBonusAmount = 0;
@@ -5272,6 +5292,7 @@ var proposal = {
                                             let index = depositResult.findIndex( a => a._id.toString() == player._id.toString());
                                             if (index != -1){
                                                 player.totalDepositAmount = depositResult[index].totalDepositAmount;
+                                                resultSum.totalDepositAmount += player.totalDepositAmount;
                                             }
                                             else{
                                                 player.totalDepositAmount = 0;
@@ -5283,6 +5304,7 @@ var proposal = {
                                             if (index != -1){
                                                 player.winLostAmount = consumptionResult[index].winLostAmount;
                                                 player.providerId = consumptionResult[index].providerId;
+                                                resultSum.winLostAmount += player.winLostAmount;
                                             }
                                             else{
                                                 player.winLostAmount = 0;
@@ -5297,11 +5319,18 @@ var proposal = {
                                                 player.registrationTime = playerInfoResult[index].registrationTime;
                                             }
                                         }
+
+                                        if (player && player.totalCount) {
+                                            resultSum.totalCount += player.totalCount;
+                                        }
+                                        if (player && player.totalRewardAmount) {
+                                            resultSum.totalRewardAmount += player.totalRewardAmount;
+                                        }
                                     })
 
                                 }
 
-                                return {data: playerResult, size: totalPlayerCount};
+                                return {data: playerResult, size: totalPlayerCount, total: resultSum};
                             }
                             else{
                                 Promise.reject({
@@ -7532,6 +7561,70 @@ var proposal = {
         }
 
         return dbconfig.collection_proposal.findOneAndUpdate({proposalId: proposalId},{'data.followUpContent': followUpContent, 'data.followUpCompletedTime': new Date()});
+    },
+
+    rejectPendingProposalIfAvailable: (platformObjId, playerName, proposalType, remark) => {
+        let proposalTypeObjId, proposalData;
+        return dbconfig.collection_proposalType.findOne({name: proposalType, platformId: platformObjId}, {_id:1}).lean().then(
+            proposalTypeData => {
+                if (proposalTypeData && proposalTypeData._id) {
+                    proposalTypeObjId = proposalTypeData._id;
+                }
+                else {
+                    return Promise.reject({message: "Proposal type not found."});
+                }
+
+                let query = {
+                    status: {
+                        $in: [
+                            constProposalStatus.PENDING,
+                            constProposalStatus.CSPENDING
+                        ]
+                    },
+                    "data.playerName": playerName,
+                    type: proposalTypeObjId,
+                };
+
+                return dbconfig.collection_proposal.findOne(query)
+                    .populate({path: "process", model: dbconfig.collection_proposalProcess})
+                    .populate({path: "type", model: dbconfig.collection_proposalType}).lean();
+            }
+        ).then(
+            proposal => {
+                if (!proposal) {
+                    return Promise.resolve();
+                }
+                proposalData = proposal;
+
+                return proposalExecutor.approveOrRejectProposal(proposalData.type.executionType, proposalData.type.rejectionType, false, proposalData, true);
+            }
+        ).then(
+            () => {
+
+                let updateData = {
+                    "data.lastSettleTime": Date.now(),
+                    settleTime: Date.now(),
+                    noSteps: true,
+                    process: null,
+                    status: constProposalStatus.CANCEL,
+                    "data.cancelBy": "QnA系统"
+                };
+
+                if (remark) {
+                    updateData["data.remark"] =  (proposalData.data && proposalData.data.remark || "") + remark;
+                }
+
+                return dbconfig.collection_proposal.findOneAndUpdate(
+                    {_id: proposalData._id, createTime: proposalData.createTime},
+                    updateData,
+                    {new: true}
+                );
+            }
+        ).catch(
+            err => {
+                console.log("rejectPendingProposalIfAvailable error", err);
+            }
+        );
     }
 
 };

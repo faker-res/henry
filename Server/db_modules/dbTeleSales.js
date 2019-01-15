@@ -959,6 +959,31 @@ let dbTeleSales = {
         return Promise.all(promArr);
     },
 
+    reclaimTsPhone:  (platformObjId, tsPhoneListObjId, assignee) => {
+        let query = {
+            platform: platformObjId,
+            tsPhoneList: tsPhoneListObjId,
+            assignee: assignee,
+            registered: false
+        }
+        return dbconfig.collection_tsDistributedPhone.find(query, {tsPhone: 1}).lean().then(
+            tsDistributedPhoneData => {
+                if (!(tsDistributedPhoneData && tsDistributedPhoneData.length)) {
+                    return Promise.reject({name: "DataError", message: "Cannot find tsDistributedPhone"});
+                }
+                let updateTsDistributedPhone = dbconfig.collection_tsDistributedPhone.update(query, {endTime: new Date()}, {multi: true}).catch(errorUtils.reportError);
+
+                let updateTsPhone = dbconfig.collection_tsPhone.update(
+                    {
+                        _id: {$in: tsDistributedPhoneData.map(item => item.tsPhone)}
+                    }, {distributedEndTime: new Date()}, {multi: true}
+                ).catch(errorUtils.reportError);
+
+                return Promise.all([updateTsDistributedPhone, updateTsPhone]);
+            }
+        )
+    },
+
     getDistributionDetails: (platformObjId, tsPhoneListObjId, adminNames) => {
         let returnData = {};
         let distributionDetails = [];
@@ -1011,8 +1036,8 @@ let dbTeleSales = {
                 assignees.forEach(assignee => {
                     currentHoldingCountProm.push(
                         dbconfig.collection_tsDistributedPhone.find({
-                            assignee:assignee._id,
-                            tsPhoneList:tsPhoneListObjId,
+                            assignee: assignee.admin,
+                            tsPhoneList: tsPhoneListObjId,
                             startTime: {$lt: new Date()},
                             endTime: {$gt: new Date()},
                             registered: {$ne: true}
@@ -1022,7 +1047,7 @@ let dbTeleSales = {
                         }).lean()
                     );
                     let assigneeDistributionDetail = {
-                        assigneeObjId: assignee._id,
+                        assigneeObjId: assignee.admin,
                         adminName: assignee.adminName,
                         distributedCount: assignee.assignedCount,
                         fulfilledCount: assignee.phoneUsedCount,
@@ -1050,7 +1075,7 @@ let dbTeleSales = {
             currentHoldingCount.forEach(currentHolding => {
                 if(currentHolding && currentHolding.length > 0) {
                     distributionDetails.forEach(detail => {
-                        if (currentHolding[0].assignee == detail.assigneeObjId) {
+                        if (currentHolding[0].assignee && detail.assigneeObjId && String(currentHolding[0].assignee) == String(detail.assigneeObjId)) {
                             detail.currentListSize = currentHolding.length;
                         }
                     })
@@ -1162,6 +1187,8 @@ let dbTeleSales = {
         }
 
         let platform;
+        let phoneTradeProposalId = String(new ObjectId());
+
         return dbconfig.collection_platform.findOne({_id: targetPlatform}).lean().then(
             platformData => {
                 if (!platformData) {
@@ -1171,12 +1198,21 @@ let dbTeleSales = {
 
                 // export to other platform, proposal required
 
+                return dbTeleSales.setTradeProposalId(phoneTradeObjIdArr, phoneTradeProposalId, exportCount);
+            }
+        ).then(
+            phoneTradeData => {
+                if (!phoneTradeData) {
+                    return Promise.reject({message: "Operation failed"});
+                }
+
                 let proposalData = {
                     exportTargetDepartmentId: platform.platformId,
                     exportTargetDepartmentName: platform.name,
                     exportWhiteListCount: exportCount,
                     sourceTsPhoneType: sourceTopicName,
                     exportTargetPlatformObjId: platform._id,
+                    phoneTradeProposalId: phoneTradeProposalId
                 };
 
                 let newProposal = {
@@ -1188,15 +1224,6 @@ let dbTeleSales = {
                 };
 
                 return dbProposal.createProposalWithTypeName(ObjectId(sourcePlatform), constProposalType.MANUAL_EXPORT_TS_PHONE, newProposal);
-            }
-        ).then(
-            proposalData => {
-                if (!proposalData || !proposalData.proposalId) {
-                    return Promise.reject({message: "Operation failed"});
-                }
-
-                let proposalId = proposalData.proposalId;
-                return dbTeleSales.setTradeProposalId(phoneTradeObjIdArr, proposalId, exportCount);
             }
         );
     },
@@ -1339,6 +1366,7 @@ let dbTeleSales = {
                 $gte: startTime,
                 $lte: endTime
             },
+            proposalId: null,
             targetPlatform: null
         };
         if(phoneLists && phoneLists.length > 0) {
@@ -1352,9 +1380,7 @@ let dbTeleSales = {
         } else if(topic && topic != 'noClassification') {
             query.lastSuccessfulFeedbackTopic = topic;
         }
-        console.log("query", query);
-        console.log("index", index);
-        console.log("limit", limit);
+
         let dataProm = dbconfig.collection_tsPhoneTrade.find(query).skip(index).limit(limit).sort({decomposeTime: -1}).lean();
         let sizeProm = dbconfig.collection_tsPhoneTrade.count(query).lean();
         return Promise.all([dataProm, sizeProm]).then(data => {
@@ -1422,25 +1448,19 @@ let dbTeleSales = {
         return dbconfig.collection_tsPhoneTrade.find({
             targetPlatform: ObjectId(platformObjId),
             tradeTime: {$exists: true},
-            $and: [
-                {
-                    $or: [
-                        {targetTsPhone: {$exists: false}},
-                        {targetTsPhone: {$exists: true, $eq: null}}
-                    ]
-                },
-                {
-                    $or: [
-                        {proposalId: {$exists: false}},
-                        {proposalId: {$exists: true, $eq: null}}
-                    ]
-                }
+            $or: [
+                {targetTsPhone: {$exists: false}},
+                {targetTsPhone: {$exists: true, $eq: null}}
             ]
         }).count();
     },
 
-    getTsPhone: function (query) {
-       return dbconfig.collection_tsPhone.find(query).lean()
+    getTsPhone: function (query, isTSNewList, platformObjId) {
+       return dbconfig.collection_tsPhone.find(query).lean().then(
+            tsPhoneData => {
+                return getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId);
+            }
+       )
     },
 
     getDecomposedNewPhoneRecord: function (platformObjId, startTime, endTime, index, limit, sortCol) {
@@ -1448,21 +1468,10 @@ let dbTeleSales = {
         let query = {
             tradeTime: {$gte: new Date(startTime), $lte: new Date(endTime)},
             targetPlatform: ObjectId(platformObjId),
-            $and: [
-                {
-                    $or: [
-                        {targetTsPhone: {$exists: false}},
-                        {targetTsPhone: {$exists: true, $eq: null}}
-                    ]
-                },
-                {
-                    $or: [
-                        {proposalId: {$exists: false}},
-                        {proposalId: {$exists: true, $eq: null}}
-                    ]
-                }
+            $or: [
+                {targetTsPhone: {$exists: false}},
+                {targetTsPhone: {$exists: true, $eq: null}}
             ]
-
         };
 
         let countProm = dbconfig.collection_tsPhoneTrade.find(query).count();
@@ -1495,7 +1504,7 @@ let dbTeleSales = {
                 return dbconfig.collection_platform.find({
                     _id: {$in: platformIds},
                     phoneWhiteListExportMaxNumber: {$gte: 1}
-                }, {phoneWhiteListExportMaxNumber: 1}).lean();
+                }, {phoneWhiteListExportMaxNumber: 1, name: 1}).lean();
             }
         ).then(
             platformData => {
@@ -1769,15 +1778,22 @@ function tradePhoneForEachPlatform (platformsArr, tsPhoneTradeArr) {
     });
 
     for (let key in platformTsPhoneTrade) {
+        let senderPlatformObj = platformsArr.find(platform => String(platform._id) == String(key));
+        if (!(senderPlatformObj && senderPlatformObj.phoneWhiteListExportMaxNumber)) {
+            continue; // double check only. senderPlatformObj supposed to have value
+        }
         for (let k = platformTsPhoneTrade[key].length - 1; k >=0; k--) {
             let tsPhoneTradeSender = platformTsPhoneTrade[key][k];
+            platformsArr = dbUtility.shuffleArray(platformsArr);
+            outer_loop:
             for (let j = platformsArr.length - 1; j >= 0; j--) {
+                // this platformsArr means receiver platform
                 if (String(platformsArr[j]._id) == String(key) || !platformTsPhoneTrade[platformsArr[j]._id] || !platformTsPhoneTrade[platformsArr[j]._id].length) {
                     // skip if own platform / no phoneTrade in the platform
                     continue;
                 }
 
-                if (tsPhoneTradeSender.tradeablePlatform.includes(String(platformsArr[j]._id)) && platformsArr[j].phoneWhiteListExportMaxNumber) {
+                if (tsPhoneTradeSender.tradeablePlatform.includes(String(platformsArr[j]._id)) && platformsArr[j].phoneWhiteListExportMaxNumber && senderPlatformObj.phoneWhiteListExportMaxNumber) {
                     for (let l = platformTsPhoneTrade[platformsArr[j]._id].length - 1; l >= 0; l--) {
                         let tsPhoneTradeReceiver = platformTsPhoneTrade[platformsArr[j]._id][l];
                         if (tsPhoneTradeReceiver.tradeablePlatform.includes(String(key))) {
@@ -1796,11 +1812,12 @@ function tradePhoneForEachPlatform (platformsArr, tsPhoneTradeArr) {
                             platformTsPhoneTrade[key].splice(k, 1);
                             platformTsPhoneTrade[platformsArr[j]._id].splice(l, 1);
                             platformsArr[j].phoneWhiteListExportMaxNumber--;
+                            senderPlatformObj.phoneWhiteListExportMaxNumber--;
 
                             if (platformsArr[j].phoneWhiteListExportMaxNumber <= 0) {
                                 platformsArr.splice(j, 1)
                             }
-                            break;
+                            break outer_loop;
                         }
                     }
                 } else if (j == 0) {
@@ -1876,6 +1893,45 @@ function addOptionalTimeLimitsToQuery(data, query, fieldName) {
     if (createTimeQuery) {
         query[fieldName] = createTimeQuery;
     }
+}
+
+function getNonDuplicateTsPhone(tsPhoneData, isTSNewList, platformObjId) {
+    let proms = [];
+    if (tsPhoneData && tsPhoneData.length && isTSNewList && platformObjId) {
+        tsPhoneData.forEach(
+            tsPhone => {
+                if(tsPhone && tsPhone.phoneNumber) {
+                    let prom = dbconfig.collection_tsPhone.findOne({phoneNumber: tsPhone.phoneNumber}, {phoneNumber: 1}).lean().then(
+                        isExist => {
+                            if (isExist) {
+                                return false;
+                            } else {
+                                // tsPhone.phoneNumber = rsaCrypto.decrypt(tsPhone.phoneNumber);
+                                return tsPhone;
+                            }
+                        }
+                    );
+
+                    proms.push(prom);
+                }
+            });
+    } else {
+        proms = tsPhoneData && tsPhoneData.length? tsPhoneData: [];
+    }
+
+    return Promise.all(proms).then(
+        phones => {
+            let output = [];
+            phones.map(phone => {
+                if (phone) {
+                    phone.phoneNumber = rsaCrypto.decrypt(phone.phoneNumber);
+                    output.push(phone);
+                }
+            });
+
+            return output;
+        }
+    );
 }
 
 function excludeTelNum(data){

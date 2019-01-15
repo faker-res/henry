@@ -14,6 +14,7 @@ define(['js/app'], function (myApp) {
             return $filter('noRoundTwoDecimalPlaces')(value).toFixed(2);
         };
         var vm = this;
+        $scope.showDisabledPaymentMethod = true;
 
         // For debugging:
         window.VM = vm;
@@ -1630,6 +1631,12 @@ define(['js/app'], function (myApp) {
                 sendObj.merchantNo = vm.queryTopup.merchantNo.filter(merchantData=>{
                     return merchantData != 'MMM4-line2';
                 })
+            }else if(vm.queryTopup.merchantNo && vm.queryTopup.merchantNo.length == 1 && vm.queryTopup.merchantNo.indexOf('MMM4-line3') != -1){
+                sendObj.line = '3';
+                vm.queryTopup.line = '3';
+                sendObj.merchantNo = vm.queryTopup.merchantNo.filter(merchantData=>{
+                    return merchantData != 'MMM4-line3';
+                })
             }else{
                 vm.queryTopup.line = null;
             }
@@ -1674,7 +1681,7 @@ define(['js/app'], function (myApp) {
                         return item;
                     }), data.data.size, {amount: data.data.total}, newSearch, isExport
                 );
-                $scope.safeApply();
+                $scope.$evalAsync();
             }, function (err) {
                 console.log(err);
             }, true);
@@ -1798,6 +1805,8 @@ define(['js/app'], function (myApp) {
                             let addititionalText = '';
                             if( row.data.line && row.data.line == '2'){
                                 addititionalText = '(MMM)';
+                            }else if(row.data.line && row.data.line == '3'){
+                                addititionalText = '('+$translate('MMM4-line3')+')';
                             }
                             return "<div>" + data + addititionalText + "</div>";
                         }
@@ -1823,11 +1832,11 @@ define(['js/app'], function (myApp) {
                     },
                 ],
                 "paging": false,
-                createdRow: function (row, data, dataIndex) {
-                    $compile(angular.element(row).contents())($scope);
+                fnInitComplete: function(settings){
+                    $compile(angular.element('#' + settings.sTableId).contents())($scope);
                 },
                 fnDrawCallback: function () {
-                    $scope.safeApply();
+                    $scope.$evalAsync();
                 }
 
             }
@@ -3891,102 +3900,204 @@ define(['js/app'], function (myApp) {
                 sortCol: vm.playerQuery.sortCol || {validConsumptionAmount: -1},
             };
             console.log('sendquery', sendquery);
-            socketService.$socket($scope.AppSocket, 'getPlayerReport', sendquery, function (data) {
-                findReportSearchTime();
-                console.log('retData', data);
-                vm.playerQuery.totalCount = data.data.size;
-                $('#loadingPlayerReportTableSpin').hide();
-                // get game data.then(
-                // map
-                vm.drawPlayerReport(data.data.data.map(item => {
-                    item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
-                    item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
-                    item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
-                    item.onlineTopUpAmount$ = parseFloat(item.onlineTopUpAmount).toFixed(2);
-                    item.weChatTopUpAmount$ = parseFloat(item.weChatTopUpAmount).toFixed(2);
-                    item.aliPayTopUpAmount$ = parseFloat(item.aliPayTopUpAmount).toFixed(2);
-                    item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
-                    item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
-                    item.rewardAmount$ = parseFloat(item.rewardAmount).toFixed(2);
-                    item.consumptionReturnAmount$ = parseFloat(item.consumptionReturnAmount).toFixed(2);
-                    item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
-                    item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
-                    item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
-                    item.registrationAgent$ = item.csOfficer || null;
+            if(!vm.playerQuery.searchBySummaryData){
+                socketService.$socket($scope.AppSocket, 'getPlayerReport', sendquery, function (data) {
+                    $scope.$evalAsync(() => {
+                        findReportSearchTime();
+                        console.log('retData', data);
+                        vm.playerQuery.totalCount = data.data.size;
+                        $('#loadingPlayerReportTableSpin').hide();
+                        // get game data.then(
+                        // map
+                        vm.drawPlayerReport(data.data.data.map(item => {
+                            item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
+                            item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
+                            item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
+                            item.onlineTopUpAmount$ = parseFloat(item.onlineTopUpAmount).toFixed(2);
+                            item.weChatTopUpAmount$ = parseFloat(item.weChatTopUpAmount).toFixed(2);
+                            item.aliPayTopUpAmount$ = parseFloat(item.aliPayTopUpAmount).toFixed(2);
+                            item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
+                            item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                            item.rewardAmount$ = parseFloat(item.rewardAmount).toFixed(2);
+                            item.consumptionReturnAmount$ = parseFloat(item.consumptionReturnAmount).toFixed(2);
+                            item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
+                            item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
+                            item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
+                            item.registrationAgent$ = item.csOfficer || null;
 
-                    item.playerLevel$ = "";
-                    if (vm.playerLvlData[item.playerLevel]) {
-                        item.playerLevel$ = vm.playerLvlData[item.playerLevel].name;
-                    }
-                    else {
-                        item.playerLevel$ = "";
-                    }
+                            item.playerLevel$ = "";
+                            if (vm.playerLvlData[item.playerLevel]) {
+                                item.playerLevel$ = vm.playerLvlData[item.playerLevel].name;
+                            }
+                            else {
+                                item.playerLevel$ = "";
+                            }
 
-                    item.credibility$ = "";
-                    if (item.credibilityRemarks) {
-                        for (let i = 0; i < item.credibilityRemarks.length; i++) {
-                            if (item.credibilityRemarks[i]) {
-                                for (let j = 0; j < vm.credibilityRemarks.length; j++) {
-                                    if (vm.credibilityRemarks[j] && vm.credibilityRemarks[j]._id && item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
-                                        item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                            item.credibility$ = "";
+                            if (item.credibilityRemarks) {
+                                for (let i = 0; i < item.credibilityRemarks.length; i++) {
+                                    if (item.credibilityRemarks[i]) {
+                                        for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                            if (vm.credibilityRemarks[j] && vm.credibilityRemarks[j]._id && item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                                item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                                            }
+                                        }
                                     }
                                 }
                             }
-                        }
-                    }
 
-                    item.providerArr = [];
-                    for (var key in item.providerDetail) {
-                        if (item.providerDetail.hasOwnProperty(key)) {
-                            item.providerDetail[key].providerId = key;
-                            item.providerArr.push(item.providerDetail[key]);
-                        }
-                    }
-
-                    item.provider$ = "";
-                    if (item.providerDetail) {
-                        for (let i = 0; i < item.providerArr.length; i++) {
-                            item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
-                            item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
-                            item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
-                            item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
-                            for (let j = 0; j < vm.allProviders.length; j++) {
-                                if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
-                                    item.providerArr[i].name = vm.allProviders[j].name;
-                                    item.provider$ += vm.allProviders[j].name + "<br>";
+                            item.providerArr = [];
+                            for (var key in item.providerDetail) {
+                                if (item.providerDetail.hasOwnProperty(key)) {
+                                    item.providerDetail[key].providerId = key;
+                                    item.providerArr.push(item.providerDetail[key]);
                                 }
                             }
-                        }
-                    }
 
-                    item.profit$ = 0;
-                    if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0) {
-                        item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
-                    }
-
-                    if (item.onlineTopUpFeeDetail && item.onlineTopUpFeeDetail.length > 0) {
-                        let detailArr = [];
-                        item.onlineTopUpFeeDetail.forEach((detail, index) => {
-                            if (detail && detail.merchantName && detail.hasOwnProperty('onlineToUpFee') && detail.hasOwnProperty('onlineTopUpServiceChargeRate')) {
-                                let orderNo = index ? index + 1 : 1;
-                                detailArr.push(orderNo + '. ' + detail.merchantName + ': ' + detail.amount + $translate("YEN") + ' * ' + parseFloat(detail.onlineTopUpServiceChargeRate * 100).toFixed(2) + '%');
+                            item.provider$ = "";
+                            if (item.providerDetail) {
+                                for (let i = 0; i < item.providerArr.length; i++) {
+                                    item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
+                                    item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
+                                    item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
+                                    item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                                    for (let j = 0; j < vm.allProviders.length; j++) {
+                                        if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                            item.providerArr[i].name = vm.allProviders[j].name;
+                                            item.provider$ += vm.allProviders[j].name + "<br>";
+                                        }
+                                    }
+                                }
                             }
-                        });
 
-                        item.onlineTopUpFeeDetail$ = detailArr && detailArr.length > 0 ? detailArr.join('\n') : '';
-                    } else {
-                        item.onlineTopUpFeeDetail$ = '';
-                    }
-                    item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
+                            item.profit$ = 0;
+                            if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0) {
+                                item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
+                            }
 
-                    if (item.hasOwnProperty("totalPlatformFeeEstimate")) {
-                        item.totalPlatformFeeEstimate$ = item.totalPlatformFeeEstimate.toFixed(2);
-                    }
+                            if (item.onlineTopUpFeeDetail && item.onlineTopUpFeeDetail.length > 0) {
+                                let detailArr = [];
+                                item.onlineTopUpFeeDetail.forEach((detail, index) => {
+                                    if (detail && detail.merchantName && detail.hasOwnProperty('onlineToUpFee') && detail.hasOwnProperty('onlineTopUpServiceChargeRate')) {
+                                        let orderNo = index ? index + 1 : 1;
+                                        detailArr.push(orderNo + '. ' + detail.merchantName + ': ' + detail.amount + $translate("YEN") + ' * ' + parseFloat(detail.onlineTopUpServiceChargeRate * 100).toFixed(2) + '%');
+                                    }
+                                });
 
-                    return item;
-                }), data.data.total, data.data.size, newSearch, isExport);
-                $scope.safeApply();
-            });
+                                item.onlineTopUpFeeDetail$ = detailArr && detailArr.length > 0 ? detailArr.join('\n') : '';
+                            } else {
+                                item.onlineTopUpFeeDetail$ = '';
+                            }
+                            item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
+
+                            if (item.hasOwnProperty("totalPlatformFeeEstimate")) {
+                                item.totalPlatformFeeEstimate$ = item.totalPlatformFeeEstimate.toFixed(2);
+                            }
+
+                            return item;
+                        }), data.data.total, data.data.size, newSearch, isExport);
+                    });
+                });
+
+            }else{
+                socketService.$socket($scope.AppSocket, 'getPlayerReportFromSummary', sendquery, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('test player report summary data', data);
+                        findReportSearchTime();
+                        vm.playerQuery.totalCount = data.data.size;
+                        $('#loadingPlayerReportTableSpin').hide();
+                        // get game data.then(
+                        // map
+                        vm.drawPlayerReport(data.data.data.map(item => {
+                            item.lastAccessTime$ = utilService.$getTimeFromStdTimeFormat(item.lastAccessTime);
+                            item.registrationTime$ = utilService.$getTimeFromStdTimeFormat(item.registrationTime);
+                            item.manualTopUpAmount$ = parseFloat(item.manualTopUpAmount).toFixed(2);
+                            item.onlineTopUpAmount$ = parseFloat(item.onlineTopUpAmount).toFixed(2);
+                            item.weChatTopUpAmount$ = parseFloat(item.weChatTopUpAmount).toFixed(2);
+                            item.aliPayTopUpAmount$ = parseFloat(item.aliPayTopUpAmount).toFixed(2);
+                            item.topUpAmount$ = parseFloat(item.topUpAmount).toFixed(2);
+                            item.bonusAmount$ = parseFloat(item.bonusAmount).toFixed(2);
+                            item.rewardAmount$ = parseFloat(item.rewardAmount).toFixed(2);
+                            item.consumptionReturnAmount$ = parseFloat(item.consumptionReturnAmount).toFixed(2);
+                            item.consumptionAmount$ = parseFloat(item.consumptionAmount).toFixed(2);
+                            item.validConsumptionAmount$ = parseFloat(item.validConsumptionAmount).toFixed(2);
+                            item.consumptionBonusAmount$ = parseFloat(item.consumptionBonusAmount).toFixed(2);
+                            item.registrationAgent$ = item.csOfficer || null;
+
+                            item.playerLevel$ = "";
+                            if (vm.playerLvlData[item.playerLevel]) {
+                                item.playerLevel$ = vm.playerLvlData[item.playerLevel].name;
+                            }
+                            else {
+                                item.playerLevel$ = "";
+                            }
+
+                            item.credibility$ = "";
+                            if (item.credibilityRemarks) {
+                                for (let i = 0; i < item.credibilityRemarks.length; i++) {
+                                    if (item.credibilityRemarks[i]) {
+                                        for (let j = 0; j < vm.credibilityRemarks.length; j++) {
+                                            if (vm.credibilityRemarks[j] && vm.credibilityRemarks[j]._id && item.credibilityRemarks[i].toString() === vm.credibilityRemarks[j]._id.toString()) {
+                                                item.credibility$ += vm.credibilityRemarks[j].name + "<br>";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            item.providerArr = [];
+                            for (var key in item.providerDetail) {
+                                if (item.providerDetail.hasOwnProperty(key)) {
+                                    item.providerDetail[key].providerId = key;
+                                    item.providerArr.push(item.providerDetail[key]);
+                                }
+                            }
+
+                            item.provider$ = "";
+                            if (item.providerDetail) {
+                                for (let i = 0; i < item.providerArr.length; i++) {
+                                    item.providerArr[i].amount = parseFloat(item.providerArr[i].amount).toFixed(2);
+                                    item.providerArr[i].bonusAmount = parseFloat(item.providerArr[i].bonusAmount).toFixed(2);
+                                    item.providerArr[i].validAmount = parseFloat(item.providerArr[i].validAmount).toFixed(2);
+                                    item.providerArr[i].profit = parseFloat(item.providerArr[i].bonusAmount / item.providerArr[i].validAmount * -100).toFixed(2) + "%";
+                                    for (let j = 0; j < vm.allProviders.length; j++) {
+                                        if (item.providerArr[i].providerId.toString() == vm.allProviders[j]._id.toString()) {
+                                            item.providerArr[i].name = vm.allProviders[j].name;
+                                            item.provider$ += vm.allProviders[j].name + "<br>";
+                                        }
+                                    }
+                                }
+                            }
+
+                            item.profit$ = 0;
+                            if (item.consumptionBonusAmount != 0 && item.validConsumptionAmount != 0) {
+                                item.profit$ = parseFloat((item.consumptionBonusAmount / item.validConsumptionAmount) * -100).toFixed(2) + "%";
+                            }
+
+                            if (item.onlineTopUpFeeDetail && item.onlineTopUpFeeDetail.length > 0) {
+                                let detailArr = [];
+                                item.onlineTopUpFeeDetail.forEach((detail, index) => {
+                                    if (detail && detail.merchantName && detail.hasOwnProperty('onlineToUpFee') && detail.hasOwnProperty('onlineTopUpServiceChargeRate')) {
+                                        let orderNo = index ? index + 1 : 1;
+                                        detailArr.push(orderNo + '. ' + detail.merchantName + ': ' + detail.amount + $translate("YEN") + ' * ' + parseFloat(detail.onlineTopUpServiceChargeRate * 100).toFixed(2) + '%');
+                                    }
+                                });
+
+                                item.onlineTopUpFeeDetail$ = detailArr && detailArr.length > 0 ? detailArr.join('\n') : '';
+                            } else {
+                                item.onlineTopUpFeeDetail$ = '';
+                            }
+                            item.totalOnlineTopUpFee$ = parseFloat(item.totalOnlineTopUpFee).toFixed(2);
+
+                            if (item.hasOwnProperty("totalPlatformFeeEstimate")) {
+                                item.totalPlatformFeeEstimate$ = item.totalPlatformFeeEstimate.toFixed(2);
+                            }
+
+                            return item;
+                        }), data.data.total, data.data.size, newSearch, isExport);
+                    });
+                });
+            }
         };
 
         vm.drawPlayerReport = function (data, total, size, newSearch, isExport) {
@@ -7323,7 +7434,7 @@ define(['js/app'], function (myApp) {
                             item.winLostAmount = $roundToTwoDecimalPlacesString(item.winLostAmount || 0);
 
                             return item;
-                        }) : [], vm.generalRewardProposalQuery.totalCount, data.data.summary, newSearch);
+                        }) : [], vm.generalRewardProposalQuery.totalCount, data.data.total, newSearch);
                     })
                     }, function (err) {
                         $('#generalRewardProposalTableSpin').hide();
@@ -7422,9 +7533,20 @@ define(['js/app'], function (myApp) {
             }
         }
 
-        vm.drawSpecificRewardProposalTable = function (data, size, summary, newSearch) {
-            var tableOptions = $.extend(true, {}, vm.commonTableOption, {
-                data: data,
+        vm.drawSpecificRewardProposalTable = function (data, size, total, newSearch) {
+            let tableData = data.map(
+                record => {
+                    record.totalCount = record.totalCount ? parseInt(record.totalCount) : 0;
+                    record.totalRewardAmount = record.totalRewardAmount ? $noRoundTwoDecimalPlaces(record.totalRewardAmount) : 0;
+                    record.totalDepositAmount = record.totalDepositAmount ? $noRoundTwoDecimalPlaces(record.totalDepositAmount) : 0;
+                    record.totalBonusAmount = record.totalBonusAmount ? $noRoundTwoDecimalPlaces(record.totalBonusAmount) : 0;
+                    record.winLostAmount = record.winLostAmount ? $noRoundTwoDecimalPlaces(record.winLostAmount) : 0;
+                    return record
+                }
+            );
+
+            let tableOptions = $.extend(true, {}, vm.commonTableOption, {
+                data: tableData,
                 "order": vm.generalRewardProposalQuery.aaSorting,
                 aoColumnDefs: [
                 // {'sortCol': 'adminName', 'aTargets': [0]},
@@ -7435,12 +7557,12 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {title: $translate("PLAYER_NAME"), data: "name", bSortable: false},
-                    {title: $translate("REGISTERED_TIME"), data: "registrationTime$"},
-                    {title: $translate('NUMBER_OF_APPLICATION'), data: "totalCount"},
-                    {title: $translate("TOTAL_REWARD_AMOUNT"), data: "totalRewardAmount"},
-                    {title: $translate("TOTAL_TOP_UP"), data: "totalDepositAmount"},
-                    {title: $translate("TOTAL_WITHDRAWAL_AMOUNT"), data: "totalBonusAmount"},
-                    {title: $translate("PLAYER PROFIT AMOUNT"), data: "winLostAmount"},
+                    {title: $translate("REGISTERED_TIME"), data: "registrationTime$", sClass:"sumText"},
+                    {title: $translate('NUMBER_OF_APPLICATION'), data: "totalCount", sClass: "sumInt alignRight" },
+                    {title: $translate("TOTAL_REWARD_AMOUNT"), data: "totalRewardAmount", sClass: "sumFloat alignRight"},
+                    {title: $translate("TOTAL_TOP_UP"), data: "totalDepositAmount", sClass: "sumFloat alignRight"},
+                    {title: $translate("TOTAL_WITHDRAWAL_AMOUNT"), data: "totalBonusAmount", sClass: "sumFloat alignRight"},
+                    {title: $translate("PLAYER PROFIT AMOUNT"), data: "winLostAmount", sClass: "sumFloat alignRight"},
                     {title: $translate("GAME_LOBBY"), data: "gameProvider",
 
                         render: function (data, type, row) {
@@ -7475,8 +7597,11 @@ define(['js/app'], function (myApp) {
                 }
             });
             vm.generalRewardProposalQuery.table = utilService.createDatatableWithFooter("#generalRewardProposalTable", tableOptions, {
-                // 2: summary.amount,
-                // 3: summary.applyAmount
+                2: total && total.totalCount ? total.totalCount : 0,
+                3: total && total.totalRewardAmount ? total.totalRewardAmount : 0,
+                4: total && total.totalDepositAmount ? total.totalDepositAmount : 0,
+                5: total && total.totalBonusAmount ? total.totalBonusAmount : 0,
+                6: total && total.winLostAmount ? total.winLostAmount : 0,
             });
             vm.generalRewardProposalQuery.pageObj.init({maxCount: size}, newSearch);
 
@@ -10081,6 +10206,11 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTimeEnd = new Date().getTime();
             vm.reportSearchTime = (vm.reportSearchTimeEnd - vm.reportSearchTimeStart) / 1000;
         }
+
+        vm.forcePairingWithReferenceNumber = function() {
+            commonService.forcePairingWithReferenceNumber($scope, vm.selectedPlatform.platformId, vm.selectedProposal._id, vm.selectedProposal.proposalId, vm.forcePairingReferenceNumber);
+            vm.forcePairingReferenceNumber = '';
+        };
 
         // $scope.$on('$viewContentLoaded', function () {
         var eventName = "$viewContentLoaded";

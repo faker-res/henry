@@ -5,6 +5,7 @@ define(['js/app'], function (myApp) {
         var $translate = $filter('translate');
         var vm = this;
         let $noRoundTwoDecimalToFix = $filter('noRoundTwoDecimalToFix');
+        $scope.fixModalScrollIssue();
 
         // For debugging:
         window.VM = vm;
@@ -542,7 +543,7 @@ define(['js/app'], function (myApp) {
 
             console.log('vm.queryAdminPhoneReminderList', vm.queryAdminPhoneReminderList);
 
-            var sendObj = {
+            let sendObj = {
                 platform: vm.selectedPlatform.id,
                 admin: authService.adminId,
                 index: newSearch ? 0 : (vm.queryAdminPhoneReminderList.index || 0),
@@ -645,6 +646,7 @@ define(['js/app'], function (myApp) {
                     }), data.data.size, {}, newSearch
                 );
                 $scope.$evalAsync();
+                vm.recheckIfCtiRunningDebounced();
             }, function (err) {
                 $('#adminPhoneListTableSpin').hide();
                 console.log(err);
@@ -661,6 +663,7 @@ define(['js/app'], function (myApp) {
                 tableId = "#adminPhoneReminderListTable";
                 searchFunc = "searchAdminPhoneReminderList";
             }
+            utilService.clearPopovers();
             var tableOptions = {
                 data: data,
                 "order": vm[objKey].aaSorting ,
@@ -776,7 +779,7 @@ define(['js/app'], function (myApp) {
                     $compile(nRow)($scope);
                 },
                 fnDrawCallback: function (oSettings) {
-                    var container = oSettings.nTable;
+                    let container = oSettings.nTable;
 
                     $(container).find('[title]').tooltip();
 
@@ -784,11 +787,11 @@ define(['js/app'], function (myApp) {
                         context: container,
                         elem: '.modalAdminPhoneListDetails',
                         onClickAsync: function (showPopover) {
-                            var that = this;
-                            var row = JSON.parse(this.dataset.row);
+                            let that = this;
+                            // let row = JSON.parse(this.dataset.row);
 
                             $scope.$evalAsync();
-                            showPopover(that, '#modalAdminPhoneListDetails', data);
+                            showPopover(that, '#modalAdminPhoneListDetails'/*, data*/);
 
                         }
                     });
@@ -797,8 +800,7 @@ define(['js/app'], function (myApp) {
             }
             tableOptions = $.extend(true, {}, vm.commonTableOption, tableOptions);
             // vm.adminPhoneListTable = $('#adminPhoneListTable').DataTable(tableOptions);
-
-            utilService.createDatatableWithFooter(tableId, tableOptions, {});
+            vm.adminPhoneListDataTableObj = utilService.createDatatableWithFooter(tableId, tableOptions, {});
             vm[objKey].pageObj.init({maxCount: size}, newSearch);
 
             $(tableId).off('order.dt');
@@ -1243,6 +1245,24 @@ define(['js/app'], function (myApp) {
             return result
         }
 
+        vm.initPhoneDetailFeedback = function () {
+            vm.tsPhoneAddFeedback = vm.tsPhoneAddFeedback || {};
+
+            if (!vm.selectedPlatform || !vm.selectedPlatform.data || !vm.selectedPlatform.data.definitionOfAnsweredPhone || !vm.selectedPlatform.data.definitionOfAnsweredPhone.length || !vm.allPlayerFeedbackResults || !vm.allPlayerFeedbackResults.length) {
+                return;
+            }
+
+            for (let i = 0; i < vm.allPlayerFeedbackResults.length; i++) {
+                if (vm.selectedPlatform.data.definitionOfAnsweredPhone.includes(vm.allPlayerFeedbackResults[i].key)) {
+                    vm.tsPhoneAddFeedback.result = vm.allPlayerFeedbackResults[i].key;
+                    break;
+                }
+            }
+
+            vm.preventDetailPageMultipleFeedback = true;
+            vm.isNotFirstRequestAfterInit = false;
+        };
+
         vm.addTsPhonePlayerFeedback = function (playerObjId) {
             let resultName = vm.allPlayerFeedbackResults.filter(item => {
                 return item.key == vm.tsPhoneAddFeedback.result;
@@ -1269,7 +1289,7 @@ define(['js/app'], function (myApp) {
             vm.tsPhoneReminder = {tsPhone: tsPhoneObjId && tsPhoneObjId.tsPhone && tsPhoneObjId.tsPhone._id || ""};
             utilService.actionAfterLoaded("#phoneListReminderTimePicker", function () {
                 let remindDate = tsPhoneObjId.remindTime || utilService.getNdaylaterStartTime(1)
-                commonService.commonInitTime(utilService, vm, 'tsPhoneReminder', 'startTime', '#phoneListReminderTimePicker', remindDate, true, {maxDate: null});
+                commonService.commonInitTime(utilService, vm, 'tsPhoneReminder', 'startTime', '#phoneListReminderTimePicker', remindDate, true, {maxDate: null, noInvert: true});
             })
         }
 
@@ -1477,6 +1497,13 @@ define(['js/app'], function (myApp) {
         }
 
         vm.addTsPhoneFeedback = function (data) {
+            // region phone detail page prevent multiple request send
+            if (vm.preventDetailPageMultipleFeedback && vm.isNotFirstRequestAfterInit) {
+                return;
+            }
+            vm.isNotFirstRequestAfterInit = true;
+            // endregion
+
             let resultName = vm.allPlayerFeedbackResults.filter(item => {
                 return item.key == data.result;
             });
@@ -1486,7 +1513,7 @@ define(['js/app'], function (myApp) {
                 tsPhoneList: data.tsPhone.tsPhoneList,
                 platform: vm.selectedPlatform.id,
                 adminId: authService.adminId,
-                content: data.content,
+                content: data.content || "",
                 result: data.result,
                 resultName: resultName,
                 topic: data.topic
@@ -6276,10 +6303,19 @@ define(['js/app'], function (myApp) {
                     let sendQuery = {
                         query: {
                             _id: {$in: tsPhoneIds}
-                        }
+                        },
+                        isTSNewList: vm.tsNewList && vm.tsNewList.isCheckWhiteListAndRecycleBin,
+                        platformObjId: vm.selectedPlatform.id
                     }
                     socketService.$socket($scope.AppSocket, 'getTsPhone', sendQuery, function (data) {
-                        vm.importTSNewList(data.data, vm.tsNewList, null, true, true);
+                        if (data && data.data && data.data.length) {
+                            vm.multiDecomposedNewPhoneSelected = [];
+                            vm.importTSNewList(data.data, vm.tsNewList, null, true, true);
+                        } else {
+                            $scope.$evalAsync(() => {
+                                vm.importPhoneResult = 'THERE_IS_NO_DIFFERENT_NUMBER_IN_LIST';
+                            });
+                        }
                     })
                 } else {
                     let targetTsPhoneListId = vm.selectedTsPhoneList._id;
@@ -6296,6 +6332,7 @@ define(['js/app'], function (myApp) {
             } else {
                 vm.uploadPhoneFileXLS('', true, null, true)
             }
+            vm.checkFilterIsDisable = true;
         };
 
         vm.filterRecycleBinPhoneList = (newSearch) => {
@@ -6643,9 +6680,21 @@ define(['js/app'], function (myApp) {
             }
         };
 
+        vm.reclaimTsPhone = () => {
+           let sendData = {
+               platformObjId: vm.selectedPlatform.id,
+               tsPhoneListObjId: vm.currentPhoneListObjId,
+               assignee: vm.selectedReclaimAssignee,
+           }
+            socketService.$socket($scope.AppSocket, 'reclaimTsPhone', sendData, function (data) {
+                vm.searchDistributionDetails();
+            })
+        };
+
         vm.searchDistributionDetails = () => {
             let platformObjId = vm.selectedPlatform.id;
             let adminNames = vm.distributionDetailsQuery.adminNames;
+            vm.selectedReclaimAssignee = '';
 
             let sendData = {
                 platformObjId: platformObjId,
@@ -7634,7 +7683,10 @@ define(['js/app'], function (myApp) {
             });
         };
 
+        let gcd = {}; // a variable holder so that getCtiData won't need to redeclare variable every loop
         vm.getCtiData = (newSearch) => {
+            // I need to not declare any variable inside the timeout loop function to prevent memory leak
+            // while I will also check other possibilities of this function memory leak after this
             clearTimeout(vm.ctiLoop);
             if (!(window.location.pathname == "/teleMarketing" && vm.selectedTab == "REMINDER_PHONE_LIST")) {
                 return;
@@ -7643,14 +7695,14 @@ define(['js/app'], function (myApp) {
             $('#adminPhoneListTableSpin').show();
             vm.isCallOutMissionMode = true;
 
-            let sendData = {
+            gcd.sendData = {
                 platformObjId: vm.selectedPlatform.id,
                 limit: vm.queryAdminPhoneList.limit || 10,
                 index: vm.queryAdminPhoneList.index || 0
             };
-            console.log('sendData', sendData);
+            console.log('sendData', gcd.sendData);
 
-            return $scope.$socketPromise("getTsUpdatedAdminMissionStatusFromCti", sendData).then(
+            return $scope.$socketPromise("getTsUpdatedAdminMissionStatusFromCti", gcd.sendData).then(
                 ctiDataOutput => {
                     console.log('ctiData', ctiDataOutput);
                     if (!(ctiDataOutput && ctiDataOutput.data && ctiDataOutput.data.hasOnGoingMission)) {
@@ -7660,7 +7712,7 @@ define(['js/app'], function (myApp) {
                     vm.ctiData = ctiDataOutput.data;
 
                     vm.callOutMissionStatusText = '';
-                    let completedAmount = 0;
+                    gcd.completedAmount = 0;
                     vm.bulkCalleeToAddFeedback = [];
 
                     vm.ctiData.callee.forEach(callee => {
@@ -7668,7 +7720,7 @@ define(['js/app'], function (myApp) {
                             callee.player.callOutMissionStatus = callee.status;
                         }
 
-                        let playerFeedbackDetail = vm.ctiData.feedbackPlayerDetail;
+                        let playerFeedbackDetail = vm.ctiData.feedbackPlayerDetail; // inside forEach is ok as the garbage collection will handle it after each loop
                         let playerTableData = playerFeedbackDetail.data || [];
 
                         for (let i = 0; i < playerTableData.length; i++) {
@@ -7683,7 +7735,7 @@ define(['js/app'], function (myApp) {
                         }
 
                         if (callee.status != 0) {
-                            completedAmount++;
+                            gcd.completedAmount++;
                         }
 
                         if (callee.status == 2) {
@@ -7701,7 +7753,7 @@ define(['js/app'], function (myApp) {
                         vm.callOutMissionStatusText = $translate("Gave Up");
                     }
 
-                    vm.callOutMissionProgressText = completedAmount + '/' + vm.ctiData.callee.length;
+                    vm.callOutMissionProgressText = gcd.completedAmount + '/' + vm.ctiData.callee.length;
 
                     vm.showFinishCalloutMissionButton = Boolean(vm.ctiData.status == $scope.constCallOutMissionStatus.FINISHED || vm.ctiData.status == $scope.constCallOutMissionStatus.CANCELLED);
 
@@ -7737,7 +7789,7 @@ define(['js/app'], function (myApp) {
                             if (vm.calleeCallOutStatus[callee._id] != 1 && callee.status == 1) {
                                 let tsDPhoneId = callee.tsDistributedPhone && callee.tsDistributedPhone._id;
                                 let url = window.location.origin + "/teleMarketing/tsPhone/" + tsDPhoneId;
-                                utilService.openInNewWindow(url);
+                                utilService.openInNewTab(url);
                             }
                             vm.calleeCallOutStatus[callee._id] = callee.status;
                         });
@@ -7747,7 +7799,7 @@ define(['js/app'], function (myApp) {
                     $('#adminPhoneListTableSpin').hide();
                     $scope.$evalAsync();
 
-                    vm.ctiLoop = setTimeout(vm.getCtiData, 7000);
+                    vm.ctiLoop = setTimeout(vm.getCtiData, 5200);
 
                 },
                 err => {
@@ -7756,6 +7808,18 @@ define(['js/app'], function (myApp) {
                 }
             );
         };
+
+        vm.recheckIfCtiRunning = () => {
+            $scope.$socketPromise('checkTsCtiMissionMode', {platformObjId:vm.selectedPlatform.id}).then(
+                data => {
+                    if (data && data.data && data.data.hasOnGoingMission) {
+                        vm.isCallOutMissionMode = true;
+                        vm.getCtiData(true);
+                    }
+                }
+            );
+        };
+        vm.recheckIfCtiRunningDebounced = $scope.debounce(vm.recheckIfCtiRunning, 8000, true);
 
         vm.stopCallOutMission = () => {
             $('#adminPhoneListTableSpin').show();
@@ -8104,6 +8168,7 @@ define(['js/app'], function (myApp) {
                 targetPlatformObjId: vm.exportTsPhoneTrade.targetPlatform,
                 phoneNumbers: phoneNumbers
             };
+            socketService.showConfirmMessage($translate("Checking..."), 3000);
             socketService.$socket($scope.AppSocket, 'filterExistingPhonesForDecomposedPhones', sendData, function (data) {
                 console.log("filterExistingPhonesForDecomposedPhones ret", data);
                 vm.exportTsPhoneTrade.phoneObjId = [];
@@ -8122,9 +8187,15 @@ define(['js/app'], function (myApp) {
                     targetPlatform: vm.exportTsPhoneTrade.targetPlatform,
                     phoneTradeObjIdArr: vm.exportTsPhoneTrade.phoneObjId
                 };
+
+                socketService.showConfirmMessage($translate("Exporting..."), 3000);
+
                 socketService.$socket($scope.AppSocket, 'exportDecomposedPhone', sendData, function (data) {
                     console.log('exportDecomposedPhone ret', data);
                     $scope.$evalAsync(() => {
+                        vm.getTrashClassificationList();
+                        vm.searchTrashClassificationTrade(true);
+                        socketService.showConfirmMessage($translate("Export Done."), 3000);
                     });
                 });
             });
@@ -8337,6 +8408,7 @@ define(['js/app'], function (myApp) {
                 $(".dataTables_scrollHead thead .decomposedNewPhoneSelected").prop("checked",isChecked);
             }
             console.log(vm.multiDecomposedNewPhoneSelected);
+            $scope.$evalAsync();
         };
 
         vm.setPanel = function (isSet) {

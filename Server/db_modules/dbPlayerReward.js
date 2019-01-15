@@ -2569,9 +2569,10 @@ let dbPlayerReward = {
         });
     },
     getPromoCode: (playerId, platformId, status, emptyBonusList) => {
+        console.log('getPromoCode', playerId);
         let platformData = null;
-        var playerData = null;
-        var promoListData = null;
+        let playerData = null;
+        let promoListData = null;
 
         return expirePromoCode()
             .then(() => dbConfig.collection_platform.findOne({platformId: platformId}).lean())
@@ -2594,9 +2595,9 @@ let dbPlayerReward = {
                 playerRecord => {
                     // get the  ExtraBonusInfor state of the player: enable or disable the msg showing
                     if (playerRecord && playerRecord._id) {
-                        if (playerRecord.permission && playerRecord.permission.banReward) {
-                            return Q.reject({name: "DataError", message: "Player does not have this permission"});
-                        }
+                        // if (playerRecord.permission && playerRecord.permission.banReward) {
+                        //     return Q.reject({name: "DataError", message: "Player does not have this permission"});
+                        // }
 
                         let showInfoState;
                         let oneMonthAgoDate = moment(new Date()).subtract(1, 'months').toDate();
@@ -3323,7 +3324,9 @@ let dbPlayerReward = {
     generateOpenPromoCode: (platformObjId, newPromoCodeEntry, adminObjId, adminName) => {
 
         newPromoCodeEntry.code = dbUtility.generateRandomPositiveNumber(100, 999);
-        newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
+        if (!newPromoCodeEntry.status){
+            newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
+        }
         newPromoCodeEntry.adminId = adminObjId;
         newPromoCodeEntry.adminName = adminName;
 
@@ -6280,7 +6283,7 @@ let dbPlayerReward = {
                     return Promise.reject({
                         status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                         name: "DataError",
-                        message: "Player has applied for max reward times in event period"
+                        message: localization.localization.translate("Player has applied for max reward times in event period")
                     });
                 }
 
@@ -6757,14 +6760,6 @@ let dbPlayerReward = {
 
                     // type 4 投注额优惠（组）
                     case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
-                        if (eventInPeriodCount && eventInPeriodCount > 0) {
-                            return Promise.reject({
-                                status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
-                                name: "DataError",
-                                message: localization.localization.translate("This player has applied for max reward times in event period")
-                            });
-                        }
-
                         let consumptions = rewardSpecificData[0];
                         let totalConsumption = 0;
                         for (let x in consumptions) {
@@ -6773,13 +6768,19 @@ let dbPlayerReward = {
 
                         // Set reward param step to use
                         if (eventData.param.isMultiStepReward) {
-                            selectedRewardParam = selectedRewardParam.filter(e => e.minConsumptionAmount <= totalConsumption).sort((a, b) => b.minConsumptionAmount - a.minConsumptionAmount);
-                            selectedRewardParam = selectedRewardParam[0];
+                            if (eventData.param.isSteppingReward) {
+                                let eventStep = eventInPeriodCount >= selectedRewardParam.length ? selectedRewardParam.length - 1 : eventInPeriodCount;
+                                selectedRewardParam = selectedRewardParam[eventStep];
+                            } else {
+                                let firstRewardParam = selectedRewardParam[0];
+                                selectedRewardParam = selectedRewardParam.filter(e => Math.trunc(totalConsumption) >= Math.trunc(e.totalConsumptionInInterval)).sort((a, b) => b.totalConsumptionInInterval - a.totalConsumptionInInterval);
+                                selectedRewardParam = selectedRewardParam[0] || firstRewardParam || {};
+                            }
                         } else {
                             selectedRewardParam = selectedRewardParam[0];
                         }
 
-                        if (!selectedRewardParam || totalConsumption < selectedRewardParam.minConsumptionAmount) {
+                        if (!selectedRewardParam || totalConsumption < selectedRewardParam.totalConsumptionInInterval) {
                             return Q.reject({
                                 status: constServerCode.PLAYER_APPLY_REWARD_FAIL,
                                 name: "DataError",
@@ -7184,6 +7185,7 @@ let dbPlayerReward = {
                     }
 
                     if (isMultiApplication) {
+                        let sumRewardAmount = 0;
                         let asyncProms = Promise.resolve();
                         for (let i = 0; i < applicationDetails.length; i++) {
                             let applyDetail = applicationDetails[i];
@@ -7303,13 +7305,27 @@ let dbPlayerReward = {
                                             proposalData.data.winAmount = data[2].bonusAmount;
                                             proposalData.data.winTimes = data[2].winRatio;
                                         }
-                                        return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData);
+                                        return dbProposal.createProposalWithTypeId(eventData.executeProposal, proposalData).then (
+                                            data => {
+                                                if (eventData.type.name == constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP){
+                                                    sumRewardAmount = sumRewardAmount + (data && data.data && data.data.hasOwnProperty("rewardAmount") ? data.data.rewardAmount : 0);
+                                                }
+                                                return data;
+                                            }
+                                        );
                                     }
                                 );
                             });
                         }
 
-                        return asyncProms;
+                        return asyncProms.then(
+                            result => {
+                                if (eventData.type.name == constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP && result){
+                                    result.totalRewardAmount = sumRewardAmount;
+                                }
+                                return result;
+                            }
+                        );
                     }
                     else {
                         // create reward proposal
@@ -7451,6 +7467,7 @@ let dbPlayerReward = {
                             proposalData.data.intervalMaxRewardAmount = selectedRewardParam.maxApply;
                             if (baccaratConsumptionRecord && Object.keys(baccaratConsumptionRecord).length > 0) {
                                 proposalData.data.betTime = baccaratConsumptionRecord.createTime;
+                                proposalData.data.betType = baccaratConsumptionRecord.betType;
                                 proposalData.data.betAmount = baccaratConsumptionRecord.validAmount;
                                 proposalData.data.winAmount = baccaratConsumptionRecord.bonusAmount;
                                 proposalData.data.winResult = [baccaratConsumptionRecord.hostResult, baccaratConsumptionRecord.playerResult];
@@ -7791,7 +7808,7 @@ let dbPlayerReward = {
             if (applyAmount) {
                 if (eventData.condition.isDynamicRewardAmount) {
                     if (selectedRewardParam[selectedIndex] && selectedRewardParam[selectedIndex].hasOwnProperty('rewardPercentage')) {
-                        rewardAmount = applyAmount * selectedRewardParam[selectedIndex].rewardPercentage;
+                        rewardAmount = Number(applyAmount) * Number(selectedRewardParam[selectedIndex].rewardPercentage);
 
                         if (selectedRewardParam[selectedIndex] && selectedRewardParam[selectedIndex].maxRewardAmountInSingleReward && selectedRewardParam[selectedIndex].maxRewardAmountInSingleReward > 0) {
                             rewardAmount = Math.min(rewardAmount, Number(selectedRewardParam[selectedIndex].maxRewardAmountInSingleReward));
@@ -7800,11 +7817,11 @@ let dbPlayerReward = {
                 }
                 else {
                     if (selectedRewardParam[selectedIndex] && selectedRewardParam[selectedIndex].hasOwnProperty('rewardAmount')) {
-                        rewardAmount = selectedRewardParam[selectedIndex].rewardAmount;
+                        rewardAmount = Number(selectedRewardParam[selectedIndex].rewardAmount);
                     }
                 }
                 selectedRewardParam[selectedIndex].spendingTimes = selectedRewardParam[selectedIndex].spendingTimes || 1;
-                spendingAmount = rewardAmount * selectedRewardParam[selectedIndex].spendingTimes;
+                spendingAmount = Number(rewardAmount) * Number(selectedRewardParam[selectedIndex].spendingTimes);
             }
 
             return {
@@ -7877,7 +7894,7 @@ let dbPlayerReward = {
     },
 
     checkConsumptionSlipRewardGroup: function (playerData, consumptionRecord) {
-        // check zor the consumptionSlipRewardEvent
+        // check the consumptionSlipRewardEvent
         return dbConfig.collection_rewardType.findOne({name: constRewardType.PLAYER_CONSUMPTION_SLIP_REWARD_GROUP}).then(
             rewardType => {
                 if (!rewardType){
@@ -7901,13 +7918,6 @@ let dbPlayerReward = {
                         }
                     )
                 }
-                else{
-                    return Promise.reject({
-                        name: "DataError",
-                        message: "reward event is not found"
-                    })
-                }
-
             }
         )
 
@@ -8508,9 +8518,16 @@ let dbPlayerReward = {
 
             let betType;
             let betAmount = 0;
+            let allBetType = "";
 
             for (let i = 0; i < bConsumption.betDetails.length; i++) {
                 let detail = bConsumption.betDetails[i];
+
+                if (i > 0) {
+                    allBetType += '、';
+                }
+                allBetType += detail.separatedBetType;
+
                 if (!detail) {
                     continue;
                 }
@@ -8549,6 +8566,7 @@ let dbPlayerReward = {
             else {
                 applicableBConsumption.push(String(bConsumption._id));
             }
+            bConsumption.betType = allBetType;
 
             outputList.push(applyDetail);
         }

@@ -4,6 +4,7 @@ const errorUtils = require('./../modules/errorUtils');
 const ObjectId = require('mongoose').Types.ObjectId;
 
 const env = require('../config/env').config();
+const extConfig = require('../config/externalPayment/paymentSystems');
 
 const pmsAPI = require("../externalAPI/pmsAPI.js");
 
@@ -404,8 +405,16 @@ const dbPlayerPayment = {
         }).lean().then(
             playerData => {
                 if (playerData) {
+                    let paymentUrl = env.paymentHTTPAPIUrl;
+
+                    // currently set to platformId 4 use on it first
+                    if (playerData && playerData.platform && playerData.platform.platformId && playerData.platform.platformId === '4' && playerData.platform.topUpSystemType
+                        && extConfig && extConfig[playerData.platform.topUpSystemType] && extConfig[playerData.platform.topUpSystemType].topUpAPIAddr) {
+                        paymentUrl = extConfig[playerData.platform.topUpSystemType].topUpAPIAddr;
+                    }
+
                     url =
-                        env.paymentHTTPAPIUrl
+                        paymentUrl
                         + "foundation/payMinAndMax.do?"
                         + "platformId=" + playerData.platform.platformId + "&"
                         + "username=" + playerData.name + "&"
@@ -436,7 +445,7 @@ const dbPlayerPayment = {
     },
 
     createCommonTopupProposal: (playerId, topupRequest, ipAddress, entryType, adminId, adminName) => {
-        let player, rewardEvent;
+        let player, rewardEvent, proposal;
 
         if (topupRequest.bonusCode && topupRequest.topUpReturnCode) {
             return Promise.reject({
@@ -465,6 +474,7 @@ const dbPlayerPayment = {
                 if (playerdata) {
                     player = playerdata;
 
+                    // Check player top up permission
                     if (player && player.permission && player.permission.allTopUp === false) {
                         return Promise.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
@@ -473,6 +483,7 @@ const dbPlayerPayment = {
                         });
                     }
 
+                    // Check top up return reward condition
                     if (player && player._id) {
                         if (!topupRequest.topUpReturnCode) {
                             return Promise.resolve();
@@ -489,6 +500,7 @@ const dbPlayerPayment = {
             eventData => {
                 rewardEvent = eventData;
 
+                // Check limited offer and promo code condition
                 if (player && player.platform) {
                     let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount, topupRequest.limitedOfferObjId);
                     let proms = [limitedOfferProm];
@@ -496,7 +508,7 @@ const dbPlayerPayment = {
                         let bonusCodeCheckProm;
                         let isOpenPromoCode = topupRequest.bonusCode.toString().trim().length === 3;
                         if (isOpenPromoCode) {
-                            bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount, lastLoginIp);
+                            bonusCodeCheckProm = dbPromoCode.isOpenPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount, ipAddress);
                         }
                         else {
                             bonusCodeCheckProm = dbPromoCode.isPromoCodeValid(playerId, topupRequest.bonusCode, topupRequest.amount);
@@ -522,6 +534,7 @@ const dbPlayerPayment = {
                     });
                 }
 
+                // Check minimum top up amount
                 if (topupRequest.amount < minTopUpAmount) {
                     return Promise.reject({
                         status: constServerCode.PLAYER_TOP_UP_FAIL,
@@ -530,9 +543,10 @@ const dbPlayerPayment = {
                     });
                 }
 
-                // if (topupRequest.userAgent) {
-                //     topupRequest.userAgent = dbUtil.retrieveAgent(topupRequest.userAgent);
-                // }
+                // Decide which payment system to use
+                if (player.platform.topUpSystemType) {
+
+                }
 
                 let proposalData = Object.assign({}, topupRequest);
                 proposalData.playerId = playerId;
@@ -592,11 +606,27 @@ const dbPlayerPayment = {
                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_COMMON_TOP_UP, newProposal);
             }
         ).then(
-            proposal => {
-                if (proposal) {
-                    let pmsUrl = env.paymentHTTPAPIUrl;
+            proposalObj => {
+                if (proposalObj) {
+                    proposal = proposalObj;
+                    let paymentUrl = env.paymentHTTPAPIUrl;
 
-                    return generatePMSHTTPUrl(player, proposal, pmsUrl, topupRequest.clientType, ipAddress, topupRequest.amount);
+                    // currently set to platformId 4 use on it first
+                    if (player && player.platform && player.platform.platformId && player.platform.platformId === '4' && player.platform.topUpSystemType
+                        && extConfig && extConfig[player.platform.topUpSystemType] && extConfig[player.platform.topUpSystemType].topUpAPIAddr) {
+                        paymentUrl = extConfig[player.platform.topUpSystemType].topUpAPIAddr;
+                    }
+
+                    return generatePMSHTTPUrl(player, proposal, paymentUrl, topupRequest.clientType, ipAddress, topupRequest.amount);
+                }
+            }
+        ).then(
+            url => {
+                return {
+                    url: url,
+                    proposalId: proposal.proposalId,
+                    amount: proposal.data.amount,
+                    createTime: proposal.createTime
                 }
             }
         )
@@ -639,6 +669,7 @@ function getBankTypeNameArr (bankCardFilterList, maxDeposit) {
 function generatePMSHTTPUrl (playerData, proposalData, domain, clientType, ipAddress, amount) {
     let delimiter = "**";
     let url = domain;
+    let paymentCallbackUrl = env.internalRESTUrl;
 
     if ([1].includes(Number(clientType))) {
         url += 'pc/';
@@ -646,11 +677,17 @@ function generatePMSHTTPUrl (playerData, proposalData, domain, clientType, ipAdd
         url += 'phone/';
     }
 
+    // currently set to platformId 4 use on it first
+    if (playerData && playerData.platform && playerData.platform.platformId && playerData.platform.platformId === '4' && playerData.platform.topUpSystemType
+        && extConfig && extConfig[playerData.platform.topUpSystemType] && extConfig[playerData.platform.topUpSystemType].topUpAPICallback) {
+        paymentCallbackUrl = extConfig[playerData.platform.topUpSystemType].topUpAPICallback;
+    }
+
     url += "?";
     url += playerData.platform.platformId + delimiter;
     url += playerData.name + delimiter;
     url += playerData.realName + delimiter;
-    url += env.internalRESTUrl + "/notifyPayment" + delimiter;
+    url += paymentCallbackUrl + "/notifyPayment" + delimiter;
     url += clientType + delimiter;
     url += ipAddress + delimiter;
     url += amount + delimiter;

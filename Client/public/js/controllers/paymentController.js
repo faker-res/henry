@@ -1465,7 +1465,7 @@ define(['js/app'], function (myApp) {
             })
         };
 
-        vm.loadMerchantGroupData = function (keepSelected, selectGroupId) {
+        vm.loadMerchantGroupData = function (keepSelected, selectGroupId, selectGroupName) {
             if (vm.merchantGroupUsed == "PMS") {
                 vm.pmsGroupPlayerName = "";
                 vm.platformMerchantList = [];
@@ -1533,6 +1533,10 @@ define(['js/app'], function (myApp) {
                         }
                     }
                     $scope.$evalAsync();
+
+                    if (selectGroupName) {
+                        vm.selectedMerchantGroup(null, selectGroupName);
+                    }
                 });
             }
             //init gametab start===============================
@@ -1553,22 +1557,33 @@ define(['js/app'], function (myApp) {
                 vm.platformMerchantGroupListCheck = {};
                 $.each(vm.platformMerchantGroupList, function (i, v) {
                     vm.platformMerchantGroupListCheck[v._id] = true;
-                })
+                });
                 if(selectGroupId){
                     vm.selectedMerchantGroup(selectGroupId);
                 }
                 $scope.$evalAsync()
             })
-        }
+        };
 
-        vm.selectedMerchantGroup = function(selectedMerchantGroupId){
+        vm.selectedMerchantGroup = function(selectedMerchantGroupId, selectedMerchantGroupName) {
             let selectedNode = vm.platformMerchantGroupList.filter(item => {
-                return item._id == selectedMerchantGroupId;
-            })
+                if (selectedMerchantGroupId) { // FPMS
+                    return item._id === selectedMerchantGroupId;
+                }
+                if (selectedMerchantGroupName) { // PMS
+                    if (vm.SelectedMerchantGroupNode.name && item.name && vm.SelectedMerchantGroupNode.name === item.name) {
+                        if (item && item.merchants.length > 0) {
+                            return item.merchants.filter(data => {
+                                return data.name.toString() === selectedMerchantGroupName.toString();
+                            });
+                        }
+                    }
+                }
+            });
             if (selectedNode.length > 0) {
                 vm.merchantGroupClicked(0, selectedNode[0]);
             }
-        }
+        };
 
         vm.merchantGroupClicked = function (i, merchantGroup) {
             vm.cloneAllMerchantList = [];
@@ -1981,8 +1996,14 @@ define(['js/app'], function (myApp) {
 
                     socketService.$socket($scope.AppSocket, 'updateCustomizeRatePlatformMerchantList', sendData, function (data) {
                         console.log(data.data);
-                        vm.SelectedMerchantGroupNode = null;
-                        vm.loadMerchantGroupData();
+
+                        if (vm.merchantGroupUsed === "PMS") {
+                            vm.loadMerchantGroupData(true, null, data.data.name);
+                        }
+                        if (vm.merchantGroupUsed === "FPMS") {
+                            let selectedMerchantGroupId = vm.SelectedMerchantGroupNode._id;
+                            vm.loadMerchantGroupData(true, selectedMerchantGroupId);
+                        }
                         $scope.$evalAsync();
                     })
                 } else {
@@ -2059,7 +2080,7 @@ define(['js/app'], function (myApp) {
                                     data.quota = alipay.dailyLimit;
                                     data.minDepositAmount = alipay.minDepositAmount;
                                     data.state = alipay.flag ? alipay.flag.split(" ")[0] : "DISABLED";
-
+                                    data.line = alipay.line;
                                     groupData.alipays.push(data);
                                 });
                             }

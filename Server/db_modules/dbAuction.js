@@ -9,8 +9,10 @@ const constPromoCodeTemplateGenre = require("./../const/constPromoCodeTemplateGe
 const dbutility = require('./../modules/dbutility');
 const dbPlayerReward = require('./../db_modules/dbPlayerReward');
 const errorUtils = require("./../modules/errorUtils");
+
 const proposalExecutor = require('./../modules/proposalExecutor');
 const dbProposalUtility = require("./../db_common/dbProposalUtility");
+const constPromoCodeStatus = require("./../const/constPromoCodeStatus");
 
 var dbAuction = {
     /**
@@ -26,8 +28,113 @@ var dbAuction = {
         return dbconfig.collection_auctionSystem.findOne({_id: ObjectId(id)}).exec();
     },
     updateAuctionProduct: (id, updateData) => {
+        let updateProm = Promise.resolve();
         let matchObj = { _id : id};
-        return dbconfig.collection_auctionSystem.findOneAndUpdate(matchObj, updateData,{ new : true}).exec();
+        return dbconfig.collection_auctionSystem.findOneAndUpdate(matchObj, updateData,{ new : true}).lean().then(
+            retData => {
+                if(!retData){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Failed to update auction product"
+                    })
+                }
+
+                if (retData && retData.rewardData && retData.rewardData.templateObjId && retData.rewardData.rewardType){
+                    if (retData.rewardData.rewardType == "promoCode"){
+                        updateProm = updatePromoCodeTemplate(retData.rewardData);
+                    }
+                    else if (retData.rewardData.rewardType == "openPromoCode"){
+                        updateProm = updateOpenPromoCodeTemplate(retData.rewardData);
+                    }
+                }
+                return updateProm;
+            },
+            error => {
+                return Promise.reject({name: "DBError", message: "Error updating auction product.", error: error});
+            }
+        )
+
+        // to update openPromoCodeTemplate for auction system
+        function updateOpenPromoCodeTemplate(rewardData){
+            let allowedProviderList = [];
+            if (rewardData.allowedProvider){
+                allowedProviderList.push(ObjectId(rewardData.allowedProvider));
+            }
+            let obj = {
+                allowedProviders: allowedProviderList,
+                isSharedWithXIMA: rewardData.isSharedWithXima,
+                isProviderGroup: true,
+                expiredInDay: rewardData.dueDateInDay,
+                disableWithdraw: rewardData.isForbidWithdrawal,
+                minTopUpAmount: rewardData.minimumTopUpAmount,
+                applyLimitPerPlayer: rewardData.upperLimitPerPlayer,
+                totalApplyLimit: rewardData.totalQuantityLimit,
+                ipLimit: rewardData.limitPerSameIp,
+                createTime: new Date ()
+            };
+
+            if (rewardData.isDynamicRewardAmount){
+                obj.amount = rewardData.rewardPercentage*100;
+                obj.maxRewardAmount = rewardData.maximumRewardAmount;
+                obj.requiredConsumption = rewardData.spendingTimes;
+                obj.type = 3; // dynamic case
+            }
+            else{
+                obj.amount = rewardData.rewardAmount;
+                obj.requiredConsumption = rewardData.spendingAmount;
+                obj.type = 1; // with top up requirement + fixed reward amount
+            }
+
+            return dbconfig.collection_openPromoCodeTemplate.findOneAndUpdate({_id: rewardData.templateObjId}, obj).lean().then(
+                retTemplate => {
+                    if (retTemplate && !retTemplate.isDynamicRewardAmount){
+                        if (retTemplate.hasOwnProperty("maxRewardAmount")){
+                            return dbconfig.collection_openPromoCodeTemplate.findOneAndUpdate({_id: ObjectId(retTemplate._id)}, {maxRewardAmount: null}, {new: true}).lean();
+                        }
+                    }
+                    return retTemplate;
+                }
+            );
+        }
+
+        // to update promoCodeTemplate for auction system
+        function updatePromoCodeTemplate(rewardData) {
+            let allowedProviderList = [];
+            if (rewardData.allowedProvider){
+                allowedProviderList.push(ObjectId(rewardData.allowedProvider));
+            }
+            let obj = {
+                allowedProviders: allowedProviderList,
+                isSharedWithXIMA: rewardData.isSharedWithXima,
+                expiredInDay: rewardData.dueDateInDay,
+                disableWithdraw: rewardData.isForbidWithdrawal,
+                minTopUpAmount: rewardData.minimumTopUpAmount,
+                createTime: new Date ()
+            }
+
+            if (rewardData.isDynamicRewardAmount){
+                obj.amount = rewardData.rewardPercentage*100;
+                obj.maxRewardAmount = rewardData.maximumRewardAmount;
+                obj.requiredConsumption = rewardData.spendingTimes;
+                obj.type = 3; // dynamic case
+            }
+            else{
+                obj.amount = rewardData.rewardAmount;
+                obj.requiredConsumption = rewardData.spendingAmount;
+                obj.type = 1; // with top up requirement + fixed reward amount
+            }
+
+            return dbconfig.collection_promoCodeTemplate.findOneAndUpdate({_id: templateObjId}, obj).lean().then(
+                retTemplate => {
+                    if (retTemplate && !retTemplate.isDynamicRewardAmount){
+                        if (retTemplate.hasOwnProperty("maxRewardAmount")){
+                            return dbconfig.collection_openPromoCodeTemplate.findOneAndUpdate({_id: ObjectId(retTemplate._id)}, {maxRewardAmount: null}, {new: true}).lean();
+                        }
+                    }
+                    return retTemplate;
+                }
+            );
+        }
     },
     moveTo: (data) => {
 
@@ -414,8 +521,8 @@ var dbAuction = {
                 minTopUpAmount: rewardData.minimumTopUpAmount,
                 applyLimitPerPlayer: rewardData.upperLimitPerPlayer,
                 totalApplyLimit: rewardData.totalQuantityLimit,
-                ipLimit: rewardData.LimitPerSameIp,
-                expiredInDay: rewardData.dueDateInDay,
+                ipLimit: rewardData.limitPerSameIp,
+                status: constPromoCodeStatus.DISABLE,
                 createTime: new Date ()
             }
 
@@ -632,6 +739,16 @@ var dbAuction = {
                         auctionData = data[1];
                         proposalData = data[2];
 
+                        // check if the same player bidding again (consecutively)
+                        if (proposalData && proposalData.data && proposalData.data.playerName && playerData && playerData.name){
+                            if (proposalData.data.playerName == playerData.name){
+                                return Promise.reject({
+                                    name: "DBError",
+                                    message: "You have just bid, the highest bidder is still you."
+                                })
+                            }
+                        }
+
                         playerObjId = playerData && playerData._id ? playerData._id : null;
                         playerName = playerData && playerData.name ? playerData.name : null;
                         let playerRewardPoints = playerData && playerData.rewardPointsObjId && playerData.rewardPointsObjId.points ? playerData.rewardPointsObjId.points : 0;
@@ -652,11 +769,9 @@ var dbAuction = {
                         if (!bidAmount) {
                             playerBidPrice = auctionProposalCurrentBidPrice && auctionProductPriceIncrement ? parseInt(auctionProposalCurrentBidPrice) + parseInt(auctionProductPriceIncrement) : null;
                         } else {
-                            playerBidPrice = bidAmount;
+                            playerBidPrice = parseInt(bidAmount);
                         }
-                        if (playerRewardPoints < auctionProductStartingPrice) {
-                            return Promise.reject({name: "DBError", message: "Player does not have enough reward points"});
-                        }
+
                         if (timeNow < auctionProductPublishStartTime) {
                             return Promise.reject({name: "DBError", message: "Auction bidding has not started"});
                         }
@@ -666,8 +781,41 @@ var dbAuction = {
                         if (!auctionProductIsPublish) {
                             return Promise.reject({name: "DBError", message: "This product has not been published yet"});
                         }
+
+                        if (playerBidPrice == null){
+                            return Promise.reject({
+                                name: "DBError",
+                                message: "The bid amount is not available"}
+                            )
+                        }
+                        if (playerRewardPoints < auctionProductStartingPrice) {
+                            return Promise.reject({name: "DBError", message: "Player does not have enough reward points"});
+                        }
+                        // check if the bid price is larger than the startingPrice
+                        if (playerBidPrice <= auctionProductStartingPrice) {
+                            return Promise.reject({name: "DBError", message: "Your bid price is lower or equal to the starting price, please bid higher"});
+                        }
                         if (playerBidPrice <= auctionProposalCurrentBidPrice) {
-                            return Promise.reject({name: "DBError", message: "Your bid price is equal or lower than current highest bid price, please bid higher"});
+                            let msg = "Your bid price is equal or lower than current highest bid price (" + auctionProposalCurrentBidPrice + "), please bid higher";
+                            return Promise.reject({name: "DBError", message: msg});
+                        }
+                        // check if the bid amount is smaller than the pre-set price increment
+                        if (auctionProductPriceIncrement){
+                            let priceDiff;
+                            if (auctionProposalCurrentBidPrice){
+                                // if there is current bid price, the price difference = new bid price - current bid price
+                                priceDiff = playerBidPrice - auctionProposalCurrentBidPrice
+                            }
+                            else{
+                                priceDiff = playerBidPrice - auctionProductStartingPrice
+                            }
+
+                            if (priceDiff < auctionProductPriceIncrement){
+                                return Promise.reject({
+                                    name: "DBError",
+                                    message: "The increment in bidding is lower than the pre-set amount"
+                                })
+                            }
                         }
 
                         // deduct reward points from current bidder, if not enough reward points, will return error
@@ -741,6 +889,21 @@ var dbAuction = {
                         };
                         if (inputDevice) {
                             newProposal.inputDevice = inputDevice;
+                        }
+                        if (auctionData && auctionData.rewardData && auctionData.rewardData.templateObjId){
+                            newProposal.data.templateObjId = auctionData.rewardData.templateObjId;
+                        }
+                        if (auctionData && auctionData.rewardData.hasOwnProperty("isSharedWithXima")){
+                            newProposal.data.isSharedWithXima = auctionData.rewardData.isSharedWithXima;
+                        }
+                        if (auctionData && auctionData.rewardData.hasOwnProperty("isForbidWithdrawal")){
+                            newProposal.data.isForbidWithdrawal = auctionData.rewardData.isForbidWithdrawal;
+                        }
+                        if (auctionData && auctionData.rewardData.hasOwnProperty("useConsumption")){
+                            newProposal.data.useConsumption = auctionData.rewardData.useConsumption;
+                        }
+                        if (auctionData && auctionData.rewardData.gameProviderGroup){
+                            newProposal.data.providerGroup = auctionData.rewardData.gameProviderGroup;
                         }
 
                         return dbProposal.createProposalWithTypeId(proposalTypeId, newProposal).then(

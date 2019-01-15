@@ -83,6 +83,12 @@ function socketActionBankCardGroup(socketIO, socket) {
             let isValidData = Boolean(data && data.platformObjId);
             socketUtil.emitter(self.socket, dbTsCallOutMission.forceStopFPMSMission, [data.platformObjId, getAdminId()], actionName, isValidData);
         },
+
+        checkTsCtiMissionMode: function checkTsCtiMissionMode(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformObjId);
+            socketUtil.emitter(self.socket, dbTsCallOutMission.checkTsCtiMissionMode, [data.platformObjId, getAdminId()], actionName, isValidData);
+        },
     };
     socketActionBankCardGroup.actions = this.actions;
 }

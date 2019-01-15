@@ -1,6 +1,6 @@
 form(name="form_edit_partner_commission_type", novalidate)
     div
-        table.simple-table(style='width:auto;min-width:99.9%')
+        table.simple-table
             thead
                 tr
                     th {{'PARTNER_NAME' | translate}}
@@ -35,7 +35,7 @@ form(name="form_edit_partner_commission_type", novalidate)
             .panel-body.common-right-panel-body
                 div.tab-content
                     h4 {{'Customize commission rate' | translate}}
-                    table.simple-table(ng-if="!partnerCommission.isGameProviderIncluded" style='width:auto;min-width:99.9%')
+                    table.simple-table(ng-if="!partnerCommission.isGameProviderIncluded")
                         thead
                             tr
                                 th(colspan=6) {{'Total'| translate}}{{'Commission'| translate}}:{{commissionSettingTab | translate}}
@@ -61,13 +61,13 @@ form(name="form_edit_partner_commission_type", novalidate)
                                     input.form-control(type='number', ng-model='val.activePlayerValueTo' ng-disabled='!val.isEditing')
                                 td
                                     span.percentage
-                                        input(type='number', percentage, style="display: inline-block", ng-model='val.commissionRate' ng-disabled='!val.isEditing')
+                                        input(type='number', percentage, ng-model='val.commissionRate' ng-disabled='!val.isEditing')
                                 td
-                                    a(href="" ng-if="!val.isEditing" ng-click="vm.commissionSettingEditRow(idx, vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'Edit' | translate}}
-                                    a(href="" ng-if="val.isEditing && !val.isCreateNew" ng-click="vm.commissionSettingCancelRow(idx, vm.partnerCommission.showConfig.commissionSetting)", style="cursor:pointer") {{'CANCEL' | translate}}
+                                    a(href="" ng-if="!val.isEditing" ng-click="vm.commissionSettingEditRow(idx, vm.partnerCommission.showConfig.commissionSetting)") {{'Edit' | translate}}
+                                    a(href="" ng-if="val.isEditing && !val.isCreateNew" ng-click="vm.commissionSettingCancelRow(idx, vm.partnerCommission.showConfig.commissionSetting)") {{'CANCEL' | translate}}
 
                     div(ng-repeat="gpg in partnerCommission.gameProviderGroup track by $index" ng-if="partnerCommission.isGameProviderIncluded")
-                        table.simple-table(style='width:auto;min-width:99.9%')
+                        table.simple-table
                             thead
                                 tr
                                     th(colspan=6) {{gpg.name | translate}}{{'Commission'| translate}}:{{commissionSettingTab | translate}}
@@ -93,13 +93,13 @@ form(name="form_edit_partner_commission_type", novalidate)
                                         input.form-control(type='number', ng-model='commissionSetting.activePlayerValueTo' disabled)
                                     td
                                         span.percentage(ng-style='commissionSetting.isCustomized ? {color: "red"} : {}')
-                                            input(type='number' step='0.01' style="display: inline-block", ng-model='commissionSetting.commissionRate', ng-change='isDetectChangeCustomizeCommissionRate(gpg.showConfig)', ng-disabled='!commissionSetting.isEditing')
+                                            input(type='number' step='0.01', ng-model='commissionSetting.commissionRate', ng-change='isDetectChangeCustomizeCommissionRate(gpg.showConfig)', ng-disabled='!commissionSetting.isEditing')
                                     td
-                                        a(href="" ng-if="!commissionSetting.isEditing" ng-click="commissionSettingEditRow($index, gpg.showConfig.commissionSetting)", style="cursor:pointer") {{'Edit' | translate}}
-                                        a(href="" ng-if="commissionSetting.isEditing && !commissionSetting.isCreateNew" ng-click="commissionSettingCancelRow($index, gpg.showConfig.commissionSetting, gpg.srcConfig.commissionSetting, true, true, gpg.srcCustomConfig.commissionSetting)", style="cursor:pointer") {{'CANCEL' | translate}}
+                                        a(href="" ng-if="!commissionSetting.isEditing" ng-click="commissionSettingEditRow($index, gpg.showConfig.commissionSetting)") {{'Edit' | translate}}
+                                        a(href="" ng-if="commissionSetting.isEditing && !commissionSetting.isCreateNew" ng-click="commissionSettingCancelRow($index, gpg.showConfig.commissionSetting, gpg.srcConfig.commissionSetting, true, true, gpg.srcCustomConfig.commissionSetting)") {{'CANCEL' | translate}}
                                         text(ng-if="!commissionSetting.isCreateNew") /
-                                        a(href="" ng-if="commissionSetting.isEditing" ng-click="customizeCommissionRate($index, gpg, gpg.showConfig, gpg.srcConfig)", style="cursor:pointer") {{'Customize' | translate}}
-                                        a(href="" ng-if="!commissionSetting.isEditing" ng-click="customizeCommissionRate($index, gpg, gpg.showConfig, gpg.srcConfig, true)", style="cursor:pointer") {{'Reset default' | translate}}
+                                        a(href="" ng-if="commissionSetting.isEditing" ng-click="customizeCommissionRate($index, gpg, gpg.showConfig, gpg.srcConfig)") {{'Customize' | translate}}
+                                        a(href="" ng-if="!commissionSetting.isEditing" ng-click="customizeCommissionRate($index, gpg, gpg.showConfig, gpg.srcConfig, true)") {{'Reset default' | translate}}
                             br
                     br
                     br
@@ -113,7 +113,7 @@ form(name="form_edit_partner_commission_type", novalidate)
         .col-md-12.panel.panel-body.panel-primary.common-right-panel-body(style="min-height: 450px;")
             div
                 h4 {{'Partner Rate Setting' | translate}}
-                table.common-table.playerLvlTable(style='width:auto;min-width:99.9%')
+                table.common-table.playerLvlTable
                     thead
                         tr
                             th {{'NAME' | translate}}
@@ -124,28 +124,28 @@ form(name="form_edit_partner_commission_type", novalidate)
                             td {{'Rate After Rebate Promo' | translate}}
                             td
                                 span.percentage(ng-style='commissionRateConfig.isCustomizedField.indexOf("rateAfterRebatePromo") >= 0 ? {color: "red"} : {}')
-                                    input(style="display: inline-block", ng-model='commissionRateConfig.rateAfterRebatePromo' ng-disabled='!commissionRateConfig.isEditing["rateAfterRebatePromo"]')
+                                    input(ng-model='commissionRateConfig.rateAfterRebatePromo' ng-disabled='!commissionRateConfig.isEditing["rateAfterRebatePromo"]')
                             td
-                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebatePromo"]' ng-click="commissionRateEditRow('rateAfterRebatePromo', true);" style="cursor:pointer") {{'Edit' | translate}}
-                                a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebatePromo"]' ng-click="commissionRateEditRow('rateAfterRebatePromo', false);" style="cursor:pointer") {{'CANCEL' | translate}}
+                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebatePromo"]' ng-click="commissionRateEditRow('rateAfterRebatePromo', true);") {{'Edit' | translate}}
+                                a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebatePromo"]' ng-click="commissionRateEditRow('rateAfterRebatePromo', false);") {{'CANCEL' | translate}}
                                 text /
-                                a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebatePromo"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebatePromo')", style="cursor:pointer") {{'Customize' | translate}}
-                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebatePromo"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebatePromo', true)", style="cursor:pointer") {{'Reset default' | translate}}
+                                a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebatePromo"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebatePromo')") {{'Customize' | translate}}
+                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebatePromo"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebatePromo', true)") {{'Reset default' | translate}}
                         tr
                             td {{'Rate After Rebate Platform' | translate}}
                             td
                                 div(ng-if="Boolean(commissionRateConfig.rateAfterRebateGameProviderGroup)")
                                     span.percentage(ng-style='commissionRateConfig.isCustomizedField.indexOf("rateAfterRebatePlatform") >= 0 ? {color: "red"} : {}')
-                                        input(style="display: inline-block", ng-model='commissionRateConfig.rateAfterRebatePlatform' ng-disabled='!commissionRateConfig.isEditing["rateAfterRebatePlatform"]')
+                                        input(ng-model='commissionRateConfig.rateAfterRebatePlatform' ng-disabled='!commissionRateConfig.isEditing["rateAfterRebatePlatform"]')
                                 div(ng-if="!Boolean(commissionRateConfig.rateAfterRebateGameProviderGroup)")
                                     text -
                             td
                                 div(ng-if="Boolean(commissionRateConfig.rateAfterRebateGameProviderGroup)")
-                                    a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebatePlatform"]' ng-click="commissionRateEditRow('rateAfterRebatePlatform', true);" style="cursor:pointer") {{'Edit' | translate}}
-                                    a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebatePlatform"]' ng-click="commissionRateEditRow('rateAfterRebatePlatform', false);" style="cursor:pointer") {{'CANCEL' | translate}}
+                                    a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebatePlatform"]' ng-click="commissionRateEditRow('rateAfterRebatePlatform', true);") {{'Edit' | translate}}
+                                    a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebatePlatform"]' ng-click="commissionRateEditRow('rateAfterRebatePlatform', false);") {{'CANCEL' | translate}}
                                     text /
-                                    a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebatePlatform"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebatePlatform')", style="cursor:pointer") {{'Customize' | translate}}
-                                    a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebatePlatform"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebatePlatform', true)", style="cursor:pointer") {{'Reset default' | translate}}
+                                    a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebatePlatform"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebatePlatform')") {{'Customize' | translate}}
+                                    a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebatePlatform"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebatePlatform', true)") {{'Reset default' | translate}}
                                 div(ng-if="!Boolean(commissionRateConfig.rateAfterRebateGameProviderGroup)")
                                     text -
 
@@ -153,36 +153,36 @@ form(name="form_edit_partner_commission_type", novalidate)
                             td {{val.name | translate}}
                             td
                                 span.percentage(ng-style='val.isCustomized ? {color: "red"} : {}')
-                                    //input(type='number', percentage, style="display: inline-block", ng-model='val.rate', ng-disabled='!vm.isCommissionRateEditing')
-                                    input(style="display: inline-block", ng-model='val.rate' ng-disabled='!commissionRateConfig.isEditing["rateAfterRebateGameProviderGroup"]')
+                                    //input(type='number', percentage, ng-model='val.rate', ng-disabled='!vm.isCommissionRateEditing')
+                                    input(ng-model='val.rate' ng-disabled='!commissionRateConfig.isEditing["rateAfterRebateGameProviderGroup"]')
                             td
-                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateGameProviderGroup"]' ng-click="commissionRateEditRow('rateAfterRebateGameProviderGroup', true);" style="cursor:pointer") {{'Edit' | translate}}
-                                a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebateGameProviderGroup"]' ng-click="commissionRateEditRow('rateAfterRebateGameProviderGroup', false);" style="cursor:pointer") {{'CANCEL' | translate}}
+                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateGameProviderGroup"]' ng-click="commissionRateEditRow('rateAfterRebateGameProviderGroup', true);") {{'Edit' | translate}}
+                                a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebateGameProviderGroup"]' ng-click="commissionRateEditRow('rateAfterRebateGameProviderGroup', false);") {{'CANCEL' | translate}}
                                 text /
-                                a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebateGameProviderGroup"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebateGameProviderGroup')", style="cursor:pointer") {{'Customize' | translate}}
-                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateGameProviderGroup"]' ng-click="val.isRevert = true; customizePartnerRate(commissionRateConfig, 'rateAfterRebateGameProviderGroup', true)", style="cursor:pointer") {{'Reset default' | translate}}
+                                a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebateGameProviderGroup"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebateGameProviderGroup')",) {{'Customize' | translate}}
+                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateGameProviderGroup"]' ng-click="val.isRevert = true; customizePartnerRate(commissionRateConfig, 'rateAfterRebateGameProviderGroup', true)",) {{'Reset default' | translate}}
                         tr
                             td {{'Rate After Rebate Total Deposit' | translate}}
                             td
                                 span.percentage(ng-style='commissionRateConfig.isCustomizedField.indexOf("rateAfterRebateTotalDeposit") >= 0 ? {color: "red"} : {}')
-                                    input(style="display: inline-block", ng-model='commissionRateConfig.rateAfterRebateTotalDeposit' ng-disabled='!commissionRateConfig.isEditing["rateAfterRebateTotalDeposit"]')
+                                    input(ng-model='commissionRateConfig.rateAfterRebateTotalDeposit' ng-disabled='!commissionRateConfig.isEditing["rateAfterRebateTotalDeposit"]')
                             td
-                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateTotalDeposit"]' ng-click="commissionRateEditRow('rateAfterRebateTotalDeposit', true);" style="cursor:pointer") {{'Edit' | translate}}
-                                a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebateTotalDeposit"]' ng-click="commissionRateEditRow('rateAfterRebateTotalDeposit', false);" style="cursor:pointer") {{'CANCEL' | translate}}
+                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateTotalDeposit"]' ng-click="commissionRateEditRow('rateAfterRebateTotalDeposit', true);") {{'Edit' | translate}}
+                                a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebateTotalDeposit"]' ng-click="commissionRateEditRow('rateAfterRebateTotalDeposit', false);") {{'CANCEL' | translate}}
                                 text /
-                                a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebateTotalDeposit"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebateTotalDeposit')", style="cursor:pointer") {{'Customize' | translate}}
-                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateTotalDeposit"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebateTotalDeposit', true)", style="cursor:pointer") {{'Reset default' | translate}}
+                                a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebateTotalDeposit"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebateTotalDeposit')") {{'Customize' | translate}}
+                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateTotalDeposit"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebateTotalDeposit', true)") {{'Reset default' | translate}}
                         tr
                             td {{'Rate After Rebate Total Withdrawal' | translate}}
                             td
                                 span.percentage(ng-style='commissionRateConfig.isCustomizedField.indexOf("rateAfterRebateTotalWithdrawal") >= 0 ? {color: "red"} : {}')
-                                    input(style="display: inline-block", ng-model='commissionRateConfig.rateAfterRebateTotalWithdrawal' ng-disabled='!commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"]')
+                                    input(ng-model='commissionRateConfig.rateAfterRebateTotalWithdrawal' ng-disabled='!commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"]')
                             td
-                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"]' ng-click="commissionRateEditRow('rateAfterRebateTotalWithdrawal', true);" style="cursor:pointer") {{'Edit' | translate}}
-                                a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"]' ng-click="commissionRateEditRow('rateAfterRebateTotalWithdrawal', false);" style="cursor:pointer") {{'CANCEL' | translate}}
+                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"]' ng-click="commissionRateEditRow('rateAfterRebateTotalWithdrawal', true);") {{'Edit' | translate}}
+                                a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"]' ng-click="commissionRateEditRow('rateAfterRebateTotalWithdrawal', false);") {{'CANCEL' | translate}}
                                 text /
-                                a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebateTotalWithdrawal')", style="cursor:pointer") {{'Customize' | translate}}
-                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebateTotalWithdrawal', true)", style="cursor:pointer") {{'Reset default' | translate}}
+                                a(href="" ng-if='commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebateTotalWithdrawal')") {{'Customize' | translate}}
+                                a(href="" ng-if='!commissionRateConfig.isEditing["rateAfterRebateTotalWithdrawal"]' ng-click="customizePartnerRate(commissionRateConfig, 'rateAfterRebateTotalWithdrawal', true)") {{'Reset default' | translate}}
     .pull-right
         button.btn.btn-danger.common-button(ng-if="partnerCommission.isCustomized && !commissionRateIsEditAll()" ng-click = "commissionRateEditAll(true)") {{"EDIT_ALL_FEE_RATE" | translate}}
         button.btn.btn-primary.common-button(ng-if="partnerCommission.isCustomized && commissionRateIsEditAll()" ng-click = "commissionRateEditAll(false); customizePartnerRate(commissionRateConfig)") {{"UPDATE" | translate}}

@@ -4,6 +4,7 @@ const dbUtil = require('./../../modules/dbutility');
 const errorUtils = require('./../../modules/errorUtils');
 const proposalExecutor = require('./../../modules/proposalExecutor');
 const rsaCrypto = require('./../../modules/rsaCrypto');
+const extConfig = require('./../../config/externalPayment/paymentSystems');
 
 const constGameStatus = require('./../../const/constGameStatus');
 const constPlayerTopUpType = require('./../../const/constPlayerTopUpType');
@@ -207,7 +208,7 @@ const dbOtherPayment = {
                         channel: 'BANK',
                         bankCode: bankCode,
                         remark: 'test remark',
-                        notifyUrl: "http://devtest.wsweb.me:3000/fkpNotify",
+                        notifyUrl: extConfig["1"].topUpAPICallback,
                         returnUrl: "",
                         extraReturnParam: ""
                     };
@@ -217,7 +218,7 @@ const dbOtherPayment = {
                     postData.signType = "RSA";
 
                     return {
-                        postUrl: 'https://api.fukuaipay.com/gateway/bank',
+                        postUrl: extConfig["1"].topUpAPIAddr,
                         postData: postData
                     }
                 }

@@ -23,7 +23,9 @@ let playerBStateSchema = new Schema({
     // update password
     updatePassword: {type: Boolean, default: false},
     // Apply reward points
-    applyRewardPoint: {type: Boolean, default: false}
+    applyRewardPoint: {type: Boolean, default: false},
+    // deduct reward points
+    deductRewardPoint: {type: Boolean, default: false},
 });
 
 module.exports = playerBStateSchema;

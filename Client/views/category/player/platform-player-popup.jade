@@ -1,5 +1,5 @@
 #modalPlayerInfo.modal.fade(role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -25,61 +25,61 @@
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"PLAYER_NAME" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.name}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"PLAYER_ID" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.playerId}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"REMARK" | translate}}
                                                     .col-sm-8
-                                                        text(style='height:inherit') {{vm.selectedSinglePlayer.remark || 'NONE' | translate}}
+                                                        text {{vm.selectedSinglePlayer.remark || 'NONE' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"realName" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.realName || 'NONE' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"partner" | translate}}
                                                     .col-sm-8
-                                                        text(style='height:inherit') {{vm.selectedSinglePlayer.partnerName || 'NONE' | translate}}
+                                                        text {{vm.selectedSinglePlayer.partnerName || 'NONE' | translate}}
 
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"GENDER" | translate}}
                                                     .col-sm-8
                                                         text {{vm.getGenderFromBool(vm.selectedSinglePlayer.gender) || 'NONE' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"NICK_NAME" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.nickName || 'NONE' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"REFERRAL" | translate}}
                                                     .col-sm-8
-                                                        text(style='height:inherit') {{vm.showReferralName || 'NONE' | translate}}
+                                                        text {{vm.showReferralName || 'NONE' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"DOB" | translate}}
                                                     .col-sm-8
-                                                        text(style='height:inherit') {{vm.convertDOBFormat(vm.selectedSinglePlayer.DOB) || 'NONE' | translate}}
+                                                        text {{vm.convertDOBFormat(vm.selectedSinglePlayer.DOB) || 'NONE' | translate}}
                                     td.text-left
                                         button.btn.btn-primary.common-button-sm(ng-click="vm.openEditPlayerDialog('basicInfo');", ng-if="checkViewPermission('Player', 'Player', 'Edit')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
                                         br
@@ -95,32 +95,34 @@
                                         div {{'CONTACT_INFO' | translate}}
                                     td
                                         .row
-                                            div(style='min-width:max-content;display:inline-block;width:11.11111112%;padding-left:15px;padding-right:15px;white-space: nowrap;')
-                                                label {{"TELEPHONE" | translate}}
-                                            div(style='display:inline-block;min-width:max-content;width:60%;padding-left:15px;padding-right:15px;white-space: nowrap;')
-                                                text.
-                                                    {{vm.getEncPhoneNumber(vm.selectedSinglePlayer) || 'Unknown' | translate}}&nbsp;
-                                                    ({{vm.selectedSinglePlayer.phoneCity || 'Unknown' | translate}},&nbsp;
-                                                    {{vm.selectedSinglePlayer.phoneProvince || 'Unknown' | translate}}/
-                                                    {{vm.selectedSinglePlayer.phoneType || 'Unknown' | translate}})
+                                            .col-md-8
+                                                .row
+                                                    .col-sm-2
+                                                        label {{"TELEPHONE" | translate}}
+                                                    .col-sm-8
+                                                        text.
+                                                            {{vm.getEncPhoneNumber(vm.selectedSinglePlayer) || 'Unknown' | translate}}&nbsp;
+                                                            ({{vm.selectedSinglePlayer.phoneCity || 'Unknown' | translate}},&nbsp;
+                                                            {{vm.selectedSinglePlayer.phoneProvince || 'Unknown' | translate}}/
+                                                            {{vm.selectedSinglePlayer.phoneType || 'Unknown' | translate}})
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"WECHAT" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.wechat || 'Unknown' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"QQ" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.qq || 'Unknown' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"EMAIL" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.email || vm.qqAddress || 'Unknown' | translate}}
@@ -140,13 +142,13 @@
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BANK_NAME" | translate}}
                                                     .col-sm-8
                                                         text {{vm.allBankTypeList[vm.selectedSinglePlayer.bankName] || vm.selectedSinglePlayer.bankName || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BANK_ACCOUNT_NAME" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.bankAccountName || 'Unknown' | translate}}
@@ -164,34 +166,34 @@
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BANK_ACCOUNT" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.encodedBankAccount || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BANK_ACCOUNT_PROVINCE" | translate}}
                                                     .col-sm-8
                                                         text {{vm.showProvinceStr ? vm.showProvinceStr : (vm.selectedSinglePlayer.bankAccountProvince || 'Unknown') | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BANK_ACCOUNT_CITY" | translate}}
                                                     .col-sm-8
                                                         text {{vm.showCityStr ? vm.showCityStr : (vm.selectedSinglePlayer.bankAccountCity || 'Unknown') | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BANK_ACCOUNT_DISTRICT" | translate}}
                                                     .col-sm-8
                                                         text {{vm.showDistrictStr ? vm.showDistrictStr : 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"Bank Address" | translate}}
-                                                    .col-sm-8(style='min-width:max-content;')
+                                                    .col-sm-8
                                                         text {{vm.selectedSinglePlayer.bankAddress || 'Unknown' | translate}}
 
                                         //.inlineBlk
@@ -211,33 +213,32 @@
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"BankCardGroup" | translate}}
                                                     .col-sm-8
                                                         text {{vm.platformBankCardGroupListCheck[vm.selectedSinglePlayer.bankCardGroup] | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"ONLINE_TOP_UP_GROUP" | translate}}
                                                     .col-sm-8
                                                         text {{vm.platformMerchantGroupListCheck[vm.selectedSinglePlayer.merchantGroup] | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='min-width:max-content;white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"PERSONAL_ALIPAY_GROUP" | translate}}
-                                                    .col-sm-8(style='max-width:max-content;')
+                                                    .col-sm-8
                                                         text {{vm.platformAlipayGroupListCheck[vm.selectedSinglePlayer.alipayGroup] | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"PERSONAL_WECHAT_GROUP" | translate}}
                                                     .col-sm-8
                                                         text {{vm.platformWechatPayGroupListCheck[vm.selectedSinglePlayer.wechatPayGroup] | translate}}
                                     td.text-left
                                         button.btn.btn-primary.common-button-sm(ng-click='vm.openEditPlayerDialog("topUpInfo");', ng-if="checkViewPermission('Player', 'Player', 'Edit')&&vm.selectedSinglePlayer.isRealPlayer", ng-disabled="!vm.canEditPlayer()|| vm.selectedPlayersCount!= 1") {{"EDIT" | translate}}
                                         br
-                                        //button.btn.btn-primary.common-button-sm(ng-click='') {{"EDIT_HISTORY" | translate}}
                                 tr
                                     td
                                         div {{'REGISTRATION_INFO' | translate}}
@@ -245,7 +246,7 @@
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"REGISTRATION_IP" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.loginIps && vm.selectedSinglePlayer.loginIps[0] || 'Unknown' | translate}}
@@ -257,40 +258,40 @@
                                                         text {{vm.selectedSinglePlayer.country || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{'PROVINCE' | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.province || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"CITY" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.city || 'Unknown' | translate}}
                                         .row
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{'Registration Domain' | translate}}
-                                                    .col-sm-8(style='word-wrap:break-word;')
+                                                    .col-sm-8
                                                         a(href='{{vm.selectedSinglePlayer.domain}}', title='{{vm.selectedSinglePlayer.domain}}', target='_blank') {{vm.selectedSinglePlayer.$displayDomain || 'Unknown' | translate}}
                                                         //text {{vm.selectedSinglePlayer.domain || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{'SOURCE_URL' | translate}}
-                                                    .col-sm-8(style='word-wrap:break-word;')
+                                                    .col-sm-8
                                                         text
                                                             a(href='{{vm.selectedSinglePlayer.sourceUrl}}', title='{{vm.selectedSinglePlayer.sourceUrl}}', target='_blank') {{vm.selectedSinglePlayer.$displaySourceUrl || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"REGISTRATION_ADMIN" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.csOfficer.adminName || 'Unknown' | translate}}
                                             .col-md-4
                                                 .row
-                                                    .col-sm-4(style='white-space: nowrap;')
+                                                    .col-sm-4
                                                         label {{"PROMOTE_WAY" | translate}}
                                                     .col-sm-8
                                                         text {{vm.selectedSinglePlayer.promoteWay || 'Unknown' | translate}}
@@ -323,7 +324,7 @@
                                     label {{"Total" | translate}} {{vm.similarPhoneForPlayer.totalCount}} {{"records" | translate}}
                                         .inlineBlk.margin-left-5(ng-if='vm.similarPhoneForPlayer.loading')
                                             i.fa.fa-spin.fa-spinner
-                                    table#similarPhoneForPlayerTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                                    table#similarPhoneForPlayerTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
                                     #similarPhoneForPlayerTablePage
 
                                 div(ng-show="vm.selectedSimilarPlayerTab === 'similar-ip'")
@@ -331,7 +332,7 @@
                                     label {{"Total" | translate}} {{vm.similarIpForPlayer.totalCount}} {{"records" | translate}}
                                         .inlineBlk.margin-left-5(ng-if='vm.similarIpForPlayer.loading')
                                             i.fa.fa-spin.fa-spinner
-                                    table#similarIpForPlayerTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                                    table#similarIpForPlayerTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
                                     #similarIpForPlayerTablePage
 
                     //
@@ -356,7 +357,7 @@
                                                 text(ng-if='!v.field == "phoneNumber" || v.content.length<=30') {{v.content || "NONE" | translate}}
 
 #modalPlayerInfoHistory.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:90%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -401,7 +402,7 @@
                 button.common-button.margin-right-5.btn.btn-warning(ng-if='!vm.playerNewPassword', data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalModifyGamePassword.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -472,7 +473,7 @@
 
 
 #modalPlayerCredibilityRemarks.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -480,21 +481,17 @@
             .modal-body
                 .panel.panel-primary
                     .panel-body
-                        //button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated && vm.platformPageName !='batchPermit' ", ng-click="vm.submitRemarkUpdate()", ng-disabled="vm.somePlayerRemarksRemoved && !vm.credibilityRemarkComment") {{"CONFIRM" | translate}}
-                        button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated && vm.platformPageName !='batchPermit' ", ng-click="vm.submitRemarkUpdate()") {{"CONFIRM" | translate}}
-                        button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated && vm.platformPageName =='batchPermit' ", ng-click="vm.localRemarkUpdate()") {{"CONFIRM" | translate}}
-                        button.btn.btn-success.common-button(ng-if="vm.playerCredibilityRemarksUpdated", data-dismiss='modal') {{'OK' | translate}}
                         span {{vm.credibilityRemarkUpdateMessage | translate}}
-                        div.row
+                        div
                             div.col-md-4
-                                .well.row
+                                .well
                                     label {{"REDUCE_SCORE" | translate}}
-                                    table.paddingTbl(style='min-width:100%')
+                                    table.paddingTbl.paymentGroup-btn
                                         thead
                                             tr
-                                                th {{"remark" | translate}}
-                                                th {{"score" | translate}}
-                                                th {{"SELECT" | translate}}
+                                                th.alignLeft  {{"remark" | translate}}
+                                                th.alignLeft  {{"score" | translate}}
+                                                th.alignLeft  {{"SELECT" | translate}}
                                         tbody
                                             tr(ng-repeat='(i, data) in vm.negativeRemarks')
                                                 td
@@ -508,12 +505,12 @@
                             div.col-md-4
                                 .well
                                     label {{"ADD_SCORE" | translate}}
-                                    table.paddingTbl(style='min-width:100%')
+                                    table.paddingTbl.paymentGroup-btn
                                         thead
                                             tr
-                                                th {{"remark" | translate}}
-                                                th {{"score" | translate}}
-                                                th {{"SELECT" | translate}}
+                                                th.alignLeft  {{"remark" | translate}}
+                                                th.alignLeft  {{"score" | translate}}
+                                                th.alignLeft  {{"SELECT" | translate}}
                                         tbody
                                             tr(ng-repeat='(i, data) in vm.positiveRemarks')
                                                 td
@@ -527,12 +524,12 @@
                             div.col-md-4
                                 .well
                                     label {{"REMINDER" | translate}}
-                                    table.paddingTbl(style='min-width:100%')
+                                    table.paddingTbl.paymentGroup-btn
                                         thead
                                             tr
-                                                th {{"remark" | translate}}
-                                                th {{"score" | translate}}
-                                                th {{"SELECT" | translate}}
+                                                th.alignLeft  {{"remark" | translate}}
+                                                th.alignLeft  {{"score" | translate}}
+                                                th.alignLeft  {{"SELECT" | translate}}
                                         tbody
                                             tr(ng-repeat='(i, data) in vm.neutralRemarks')
                                                 td
@@ -545,35 +542,37 @@
                                                     span(id="{{'c-'+data._id}}")
                 .panel.panel-primary
                     .panel-body
-                        div.col-md-4(style='width:40%;')
+                        div.col-md-6
                             label {{'REMARKS' | translate}}:
                             div
-                                textarea.form-control(style="max-width: 90%; overflow: auto; margin-bottom: 12px;", rows="15", ng-model="vm.credibilityRemarkComment", placeholder="{{'Player Credibility' | translate}}{{'REMARKS' | translate}}")
-                        div.col-md-4(style='width:60%;', ng-if="vm.platformPageName != 'batchPermit'")
+                                textarea.form-control(rows="15", ng-model="vm.credibilityRemarkComment", placeholder="{{'Player Credibility' | translate}}{{'REMARKS' | translate}}")
+                        div.col-md-6(ng-if="vm.platformPageName != 'batchPermit'")
                             label {{'CREDIBILITY_RECORD' | translate}}
-                            .well
-                                div(align="center")
-                                    table.paddingTbl(style='min-width:100%')
-                                        thead
-                                            tr
-                                                th {{"OPERATOR_NAME" | translate}}
-                                                th {{"TIME" | translate}}
-                                                th {{"CREDIBILITY" | translate}}
-                                                th {{"remark" | translate}}
-                                        tbody
-                                            tr(ng-repeat='(i, data) in vm.playerCredibilityComment')
-                                                td(style="text-align:center;border: 1px solid #0099CC")
-                                                    text {{data.admin}}
-                                                td(style= "border: 1px solid #0099CC")
-                                                    text {{data.createTime}}
-                                                td(style="text-align:center;border: 1px solid #0099CC")
-                                                    text {{data.remarks$}}
-                                                td(style = "background-color:white;border: 1px solid #0099CC")
-                                                    text {{data.comment}}
+                                table(align="center", border="1").paddingTbl.paymentGroup-btn
+                                    thead
+                                        tr
+                                            th {{"OPERATOR_NAME" | translate}}
+                                            th {{"TIME" | translate}}
+                                            th {{"CREDIBILITY" | translate}}
+                                            th {{"remark" | translate}}
+                                    tbody
+                                        tr(ng-repeat='(i, data) in vm.playerCredibilityComment')
+                                            td
+                                                text {{data.admin}}
+                                            td
+                                                text {{data.createTime}}
+                                            td
+                                                text {{data.remarks$}}
+                                            td
+                                                text {{data.comment}}
 
+                //button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated && vm.platformPageName !='batchPermit' ", ng-click="vm.submitRemarkUpdate()", ng-disabled="vm.somePlayerRemarksRemoved && !vm.credibilityRemarkComment") {{"CONFIRM" | translate}}
+                button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated && vm.platformPageName !='batchPermit' ", ng-click="vm.submitRemarkUpdate()") {{"CONFIRM" | translate}}
+                button.btn.btn-primary.common-button(ng-if="!vm.playerCredibilityRemarksUpdated && vm.platformPageName =='batchPermit' ", ng-click="vm.localRemarkUpdate()") {{"CONFIRM" | translate}}
+                button.btn.btn-success.common-button(ng-if="vm.playerCredibilityRemarksUpdated", data-dismiss='modal') {{'OK' | translate}}
 
 #modalPlayerAccountingDetail.modal.fade(tabindex='-1', role='dialog', data-backdrop=false, keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style="width:95%;")
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', ng-click='vm.closeCreditTransferLog("#modalPlayerAccountingDetail")')
@@ -609,7 +608,7 @@
                                         th {{'PROVIDER_ID' | translate}}
                                         th {{'CREDIT' | translate}}
                                         th {{'TRANSFER' | translate}}
-                                tbody(style='max-height:500px;overflow-y:auto')
+                                tbody
                                     tr(ng-repeat='(i,v) in vm.platformProviderList')
                                         td {{v.name}}
                                         td {{v.providerId}}
@@ -663,7 +662,7 @@
                                 .inlineBlk(ng-if='vm.playerProposal.loading')
                                     i.fa.fa-spin.fa-spinner
                             label {{"Total" | translate}} {{vm.playerProposal.totalCount}} {{"records" | translate}}
-                            table#playerProposalTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                            table#playerProposalTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
                             #playerProposalTablePage
                         div(ng-show="vm.selectedPlayerAccountingDetailTab == 'bet-log'")
                             #playerExpense.adminLogQueryDiv
@@ -707,7 +706,7 @@
                                         p
                                         label {{"Total" | translate}} {{vm.playerExpenseLog.totalCount}} {{"records" | translate}}
                                         i.fa.fa-spin.fa-spinner(ng-show='vm.playerExpenseLog.loading')
-                                        table#playerExpenseTable.common-table.display(style='width:100%')
+                                        table#playerExpenseTable.common-table.display.paymentGroup-btn
                                         #playerExpenseTablePage
                         div(ng-show="vm.selectedPlayerAccountingDetailTab == 'credit-log'")
                             #playerCreditChangeLog.adminLogQueryDiv
@@ -727,7 +726,7 @@
                                 .inlineBlk(ng-if='vm.playerCreditChangeLog.loading')
                                     i.fa.fa-spin.fa-spinner
                             label {{"Total" | translate}} {{vm.playerCreditChangeLog.totalCount}} {{"records" | translate}}
-                            table#playerCreditChangeLogTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                            table#playerCreditChangeLogTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
                             #playerCreditChangeLogTablePage
                         div(ng-show="vm.selectedPlayerAccountingDetailTab == 'platform-transfer-log'")
                             #platformCreditTransferLog.adminLogQueryDiv
@@ -761,7 +760,7 @@
                                     button.btn.btn-primary(ng-click='vm.getPagedPlatformCreditTransferLog(true)') {{'SEARCH' | translate}}
                                 .inlineBlk(ng-if='vm.platformCreditTransferLog.loading')
                                     i.fa.fa-spin.fa-spinner
-                            table#platformCreditTransferLogTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                            table#platformCreditTransferLogTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
                             #platformCreditTransferLogTablePage
 
                             .clearfix
@@ -801,7 +800,7 @@
                                 button.btn.btn-primary.common-button(ng-click='vm.getPlayerCreditLogData(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
                             div
                                 label {{"Total" | translate}} {{vm.playerCreditLog.totalCount}} {{"records" | translate}}
-                                table#playerCreditLogTbl.common-table.display(style='min-width:100%')
+                                table#playerCreditLogTbl.common-table.display.paymentGroup-btn
                                 #playerCreditLogTblPage.height30
                         div(ng-show="vm.selectedPlayerAccountingDetailTab == 'rewardTask-log'")
                             #playerRewardTaskLog.adminLogQueryDiv
@@ -821,7 +820,7 @@
                                 .inlineBlk(ng-if='vm.playerRewardTaskLog.loading')
                                     i.fa.fa-spin.fa-spinner
                             label {{"Total" | translate}} {{vm.playerRewardTaskLog.totalCount}} {{"records" | translate}}
-                            table#playerRewardTaskLogTable.common-table.wordWrap.tbodyNoWrap.display(style='min-width:100%')
+                            table#playerRewardTaskLogTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
                             #playerRewardTaskLogTablePage
             .modal-footer
                 div(ng-show="vm.selectedPlayerAccountingDetailTab == 'current-credit'")
@@ -835,7 +834,7 @@
 
 
 #modalPlayerApiLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -860,14 +859,14 @@
                     .inlineBlk(ng-if="vm.selectedSinglePlayer == null")
                         label {{"Player Name (Can be empty)" | translate}}
                         input.form-control(ng-model='vm.playerApiLog.playerName')
-                    button.btn.btn-primary.common-button(ng-click='vm.getPlayerApiLogData(true)', style='vertical-align: bottom') {{"SEARCH" | translate}}
+                    button.btn.btn-primary.common-button(ng-click='vm.getPlayerApiLogData(true)') {{"SEARCH" | translate}}
                 div
                     label {{"Total" | translate}} {{vm.playerApiLog.totalCount}} {{"records" | translate}}
-                    table#playerApiLogTbl.common-table.display(style='min-width:100%')
+                    table#playerApiLogTbl.common-table.display.paymentGroup-btn
                     #playerApiLogTblPage.height30
 
 #modalPlayerRewardPointsLog.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:80%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -875,13 +874,13 @@
             .modal-body
                 div
                     label {{"Total" | translate}} {{vm.playerRewardPointsLog.totalCount}} {{"records" | translate}}
-                    table#playerRewardPointsLogTbl.common-table.display(style='min-width:100%')
+                    table#playerRewardPointsLogTbl.common-table.display.paymentGroup-btn
                     #playerRewardPointsLogTblPage.height30
 
 
 
 #modalAddPlayerFeedback.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -910,12 +909,13 @@
                         .form-group
                             label.control-label {{'FEEDBACK_RESULTS' | translate}}
                             button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
-                            select.form-control(style='margin-top:5px;', ng-model='vm.playerFeedback.result', required)
+                            select.form-control.margin-top-5 (ng-model='vm.playerFeedback.result', required)
                                 option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
                         .form-group
+
                             label.control-label {{'FEEDBACK_TOPIC' | translate}}
-                            button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
-                            select.form-control(style='margin-top:5px;', ng-model='vm.playerFeedback.topic', required)
+                            button.btn.btn-primary(style='margin-left:20px;',ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
+                            select.form-control.margin-top-5 (ng-model='vm.playerFeedback.topic', required)
                                 option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
                         .form-group
                             label.control-label {{'FEEDBACK_CONTENT' | translate}}
@@ -937,7 +937,7 @@
                         label {{"Total" | translate}} {{vm.playerFeedbackRecord.totalCount}} {{"records" | translate}}
                             .inlineBlk.margin-left-5(ng-if='vm.playerFeedbackRecord.searching')
                                 i.fa.fa-spin.fa-spinner
-                    table#playerFeedbackRecordTable.common-table.wordWrap.tbodyNoWrap.display(style='width:100%')
+                    table#playerFeedbackRecordTable.common-table.wordWrap.tbodyNoWrap.display.paymentGroup-btn
                     #playerFeedbackRecordTablePage
 
             .modal-footer(ng-if="vm.feedbackModalTab === 'addFeedbackPanel'")
@@ -945,7 +945,7 @@
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalPlayerTopUp.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:50%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -985,7 +985,7 @@
                                 //text.small.margin-left-5 ({{'minTopUpAmount' | translate}} {{vm.selectedPlatform.data.minTopUpAmount}} {{'minFirstTimeTopUpAmount1' | translate}})
                                 input.form-control(type='number', min=0, ng-model='vm.playerManualTopUp.amount', required)
                             .form-group-col-md-6
-                                label.control-label(style='width:100%') {{'Bankcard' | translate}}
+                                label.control-label {{'Bankcard' | translate}}
                                 select.form-control.spicker(ng-options='a.displayText for a in vm.bankCards', ng-model='vm.chosenBankAcc', ng-change='vm.pickBankCardAcc(vm.chosenBankAcc)', bsp, data-live-search="true")
                                     option(value='')
                             .form-group-col-md-6
@@ -1055,9 +1055,7 @@
                                 .control-label
                                 label {{'alipayName' | translate}}
                                 input.form-control(ng-model='vm.playerAlipayTopUp.alipayName', required)
-                            .form-group.col-md-6
-                                .control-label
-                            .form-group.col-md-6
+                            .form-group.col-md-12
                                 .control-label
                                 label {{'alipayAccount' | translate}}
                                 input.form-control(ng-model='vm.playerAlipayTopUp.alipayAccount', required)
@@ -1305,7 +1303,7 @@
                     label.inlineBlk.wordWrap(ng-if='vm.playerAssignTopUp.submitted && vm.playerAssignTopUp.responseMsg', style="width: calc(100% - 210px)") {{vm.playerAssignTopUp.responseMsg}}
 
 #modalPlayerBonus.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:50%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1331,7 +1329,7 @@
                 i.fa.fa-spin.fa-spinner.margin-right-5(ng-if='!vm.playerBonus.showSubmit && !vm.playerBonus.resMsg')
 
 #modalPlayerAddRewardTask.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:90%')
+    .modal-dialog
         .modal-content(style='max-height: 90vh')
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1462,7 +1460,7 @@
                                         </br>
                                         label {{"The total top-up amount of the interval time" | translate}} :  {{vm.playerApplyRewardShow.returnData.topUpAmountInterval}}
                                         i.fa.fa-spin.fa-spinner(ng-show='vm.consumptionSlipReward.loading')
-                                        table#playerConsumptionSlipRewardTable.common-table.display(style='width:100%')
+                                        table#playerConsumptionSlipRewardTable.common-table.display.paymentGroup-btn
                                         #playerConsumptionSlipRewardTablePage
 
                             .form-group(ng-if='vm.playerApplyRewardShow.showConsumptionReturn')
@@ -1568,11 +1566,11 @@
                                             div(style='display:inline-block;padding-left:3px;') {{v.validCredit || '0'}}
 
                             div(ng-show="vm.selectedPlatform.data.useProviderGroup")
-                                table#rewardTaskGroupLogTbl.common-table.display(style='min-width:100%')
+                                table#rewardTaskGroupLogTbl.common-table.display.paymentGroup-btn
                                 #rewardTaskGroupLogTblPage.height30
 
                             div
-                                table#rewardTaskLogTbl.common-table.display(style='min-width:100%')
+                                table#rewardTaskLogTbl.common-table.display.paymentGroup-btn
                                 #rewardTaskLogTblPage.height30
 
             .modal-footer
@@ -1597,7 +1595,7 @@
                     label.inlineBlktext-danger.margin-right-5 {{vm.manualUnlockRewardTask.resMsg}}
 
 #modalReapplyLostOrder.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:90%;')
+    .modal-dialog
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1641,7 +1639,7 @@
 
                         .well(ng-show="vm.selectedReapplyLostOrderTab == 'payment'")
                             label {{'Select a payment request' | translate}}
-                            table#playerRepairPaymentTbl.noWrap.text-center.display(style='width:100%')
+                            table#playerRepairPaymentTbl.noWrap.text-center.display.paymentGroup-btn
                                 thead
                                     tr
                                         th {{'TIME' | translate}}
@@ -1676,7 +1674,7 @@
                     button.common-button.margin-right-5.btn.btn-success(data-dismiss='modal', ng-show='vm.submitRepairePayementStep==2') {{"Completed" | translate}} {{vm.repairProposalId}}
 
 #modalPlayerCreditAdjustment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1708,7 +1706,7 @@
                 button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalPlayerRewardPointsAdjustment.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog.modal-medium
         .modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1757,16 +1755,16 @@
                                         td.col-md-3 {{'BEFORE_REWARD_POINTS_CONVERT' | translate}}
                                         td.col-md-3 {{'REWARD_POINTS_CONVERT_AMOUNT' | translate}}
                                             span(ng-if="vm.playerRewardPointsConversionRate") &nbsp;({{vm.playerRewardPointsConversionRate}} : 1)
-                                        td.col-md-3.strong(style='color:red') {{'REWARD_POINTS_CONVERT_DAILY_LIMIT' | translate}}
+                                        td.col-md-3.strong.text-disabled {{'REWARD_POINTS_CONVERT_DAILY_LIMIT' | translate}}
                                         td.col-md-3 {{'AFTER_REWARD_POINTS_CONVERT' | translate}}
                                     tr
                                         td {{vm.isOneSelectedPlayer().rewardPointsObjId.points}}
                                         td
                                             input.text-success(type='number', ng-model='vm.rewardPointsConvert.updateAmount', ng-change="vm.rewardPointsConvert.finalValidAmount=vm.isOneSelectedPlayer().rewardPointsObjId.points - vm.rewardPointsConvert.updateAmount")
                                         td
-                                            label(style='color:red;') {{vm.playerRewardPointsDailyConvertedPoints}}
-                                            label(style='color:red;') &nbsp;
-                                            label(style='color:red;') / {{vm.playerRewardPointsDailyLimit}}
+                                            label.text-disabled {{vm.playerRewardPointsDailyConvertedPoints}}
+                                            label.text-disabled &nbsp;
+                                            label.text-disabled / {{vm.playerRewardPointsDailyLimit}}
                                             .text-danger(ng-show='vm.rewardPointsConvert.updateAmount + vm.playerRewardPointsDailyConvertedPoints > vm.playerRewardPointsDailyLimit') {{'Player convert amount reach daily reward points convert limit' | translate}}
                                         td
                                             label.text-danger {{vm.rewardPointsConvert.finalValidAmount || 0}}
@@ -1785,7 +1783,7 @@
                     button.common-button.margin-right-5.btn.btn-warning(data-dismiss='modal') {{"CANCEL" | translate}}
 
 #modalPlayerPermissionChangeLog.modal.fade(tabindex='-1', role='dialog', data-backdrop=true, keyboard=true,aria-labelledby='myModalLabel', aria-hidden='true')
-    .modal-dialog(style='width:60%;')
+    .modal-dialog.modal-medium
         #playerPermissionHistory.modal-content
             .modal-header
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
@@ -1945,10 +1943,28 @@
                 button.btn.btn-primary.common-button(data-dismiss='modal') {{"OK" | translate}}
                 button.btn.btn-primary.common-button(ng-if='vm.selectedProposal.status==="AutoAudit" && !vm.changeStatusToPendingFromAutoAuditMessage && !vm.selectedProposal.cancelling && !vm.selectedProposal.cancelled', ng-click='vm.changeStatusToPendingFromAutoAudit()') {{"Manual" | translate}}
                 button.btn.btn-success.common-button(ng-if="vm.showCopyProposal()" ng-click="vm.copyTopUpProposal()") {{"COPY_TO_CLIPBOARD" | translate}}
+                button.btn.btn-danger.common-button(ng-if='checkViewPermission("Player", "Proposal", "Force Pairing") && vm.selectedProposal.status=="Pending" ' +
+                '&& (vm.selectedProposal.type.name == "ManualPlayerTopUp" || vm.selectedProposal.type.name == "PlayerAlipayTopUp" || vm.selectedProposal.type.name == "PlayerWechatTopUp")'
+                data-toggle="modal", data-target="#modalProposalTopUpForcePairing") {{"Force Pairing" | translate}}
                 label.inlineBlk.wordWrap(ng-if='vm.changeStatusToPendingFromAutoAuditMessage') {{vm.changeStatusToPendingFromAutoAuditMessage}}
                 .inlineBlk.pull-left(ng-show='vm.rightPanelTitle == "APPROVAL_PROPOSAL"')
                     label.inlineBlk {{'remark' | translate}}
                     input#proposalRemark.inlineBlk.proposalRemark.form-control(style='width:400px;')
+
+#modalProposalTopUpForcePairing.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false aria-hidden='true' style="z-index:1052;")
+    .modal-dialog(style='width:50%;top:20%;')
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                span(style="font-weight:bold;font-size:24px;") {{"Force Pairing" | translate}}
+            .modal-body
+                .panel.panel-primary
+                    .panel-body
+                        h4 {{"Force Pairing, Please enter reference number." | translate}}
+                        input(type="text" ng-model="vm.forcePairingReferenceNumber")
+                div(style='text-align:right')
+                    button.btn.btn-danger.common-button(data-dismiss='modal') {{"CANCEL" | translate}}
+                    button.btn.btn-primary.common-button(data-dismiss='modal' ng-click="vm.forcePairingWithReferenceNumber()") {{"CONFIRMATION" | translate}}
 
 #newPlayerModal.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog

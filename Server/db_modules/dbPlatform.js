@@ -6,8 +6,10 @@ module.exports = new dbPlatformFunc();
 
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
+const rp = require('request-promise');
 
 var env = require('../config/env').config();
+const extConfig = require('../config/externalPayment/paymentSystems');
 var dbconfig = require('./../modules/dbproperties');
 var constPartnerLevel = require('./../const/constPartnerLevel');
 var constPlayerLevel = require('./../const/constPlayerLevel');
@@ -925,7 +927,7 @@ var dbPlatform = {
      * @param providerIds
      * @param sameLineProviders
      */
-    syncPlatformProvider: function (platformId, providerIds, sameLineProviders) {
+    syncPlatformProvider: function (platformId, providerIds, sameLineProviders, isRemoveProvider) {
         return dbconfig.collection_platform.findOne({platformId}).populate(
             {path: "gameProviders", model: dbconfig.collection_gameProvider}
         ).then(
@@ -946,14 +948,16 @@ var dbPlatform = {
                         }
                     );
 
-                    //find delete one
-                    curProviders.forEach(
-                        curProvider => {
-                            if (providerIds.indexOf(curProvider) < 0) {
-                                proms.push(dbPlatform.removeProviderFromPlatform(platformId, curProvider));
+                    if (isRemoveProvider) {
+                        //find delete one
+                        curProviders.forEach(
+                            curProvider => {
+                                if (providerIds.indexOf(curProvider) < 0) {
+                                    proms.push(dbPlatform.removeProviderFromPlatform(platformId, curProvider));
+                                }
                             }
-                        }
-                    );
+                        );
+                    }
 
                     // Update same line providers
                     if (sameLineProviders && sameLineProviders.length) {
@@ -990,12 +994,12 @@ var dbPlatform = {
      * Sync all platform providers data
      * @param platformProviders
      */
-    syncProviders: function (platformProviders) {
+    syncProviders: function (platformProviders, isRemoveProvider) {
         var proms = [];
         platformProviders.forEach(
             row => {
                 if (row.platformId && row.providers && Array.isArray(row.providers)) {
-                    proms.push(dbPlatform.syncPlatformProvider(row.platformId, row.providers, row.sameLineProviders));
+                    proms.push(dbPlatform.syncPlatformProvider(row.platformId, row.providers, row.sameLineProviders, isRemoveProvider));
                 }
             }
         );
@@ -3191,25 +3195,24 @@ var dbPlatform = {
 
     getLiveStream: function (playerObjId) {
         let url = 'https://www.jblshow.com/livestream/liveurl';
-        var deferred = Q.defer();
-        request.get(url, {strictSSL: false}, (err, res, body) => {
-            if (err) {
-                deferred.reject(`Get JBL livestream url failed  ${err}`);
-            } else {
-                let streamInfo = JSON.parse(res.body);
-                let streamResult = {};
-                if (streamInfo.content) {
-                    streamResult = streamInfo.content;
-                }
-                if (streamInfo.code) {
-                    streamResult.code = streamInfo.code;
-                }
-                deferred.resolve(streamResult);
-            }
-        });
+        let streamInfoProm = rp(url).then(
+            res => {
+                try {
+                    let streamInfo = JSON.parse(res);
+                    let streamResult = {};
+                    if (streamInfo.content) {
+                        streamResult = streamInfo.content;
+                    }
+                    if (streamInfo.code) {
+                        streamResult.code = streamInfo.code;
+                    }
 
-        let streamInfoProm = deferred.promise;
-        // return deferred.promise;
+                    return streamResult;
+                } catch (error) {
+                    console.log('getLiveStream error', error);
+                }
+            }
+        );
 
         let urlTokenProm = playerObjId ? dbPlayerInfo.loginJblShow(playerObjId) : Promise.resolve();
 
@@ -5758,6 +5761,163 @@ var dbPlatform = {
         return deferred.promise;
 
     },
+
+    getPaymentSystemConfigByPlatform: function(platformObjId) {
+        let paymentSystemConfig = [];
+
+        return dbconfig.collection_paymentSystemConfig.find({platform: platformObjId}).lean().then(
+            data => {
+                let customConfig = data && data.length > 0 ? data : [];
+
+                if (extConfig && Object.keys(extConfig) && Object.keys(extConfig).length > 0) {
+                    Object.keys(extConfig).forEach(key => {
+                        if (key && extConfig[key]) {
+                            let indexNo = customConfig.findIndex(x => x && x.systemType && x.systemType == Number(key));
+                            let tempConfig = {};
+
+                            if (indexNo != -1) {
+                                tempConfig._id = customConfig[indexNo]._id;
+                                tempConfig.enableTopup = customConfig[indexNo].enableTopup;
+                                tempConfig.enableBonus = customConfig[indexNo].enableBonus;
+                                // region TO-DO: wait for PMS / 3rd party payment system's API to get current financial point
+                                tempConfig.curFinancialSettlementPoint = customConfig[indexNo].curFinancialSettlementPoint;
+                                // end region
+                                tempConfig.minPointNotification = customConfig[indexNo].minPointNotification;
+                            } else {
+                                tempConfig.enableTopup = extConfig[key].enableTopup;
+                                tempConfig.enableBonus = extConfig[key].enableBonus;
+                                // region TO-DO: wait for PMS / 3rd party payment system's API to get current financial point
+                                tempConfig.curFinancialSettlementPoint = extConfig[key].curFinancialSettlementPoint;
+                                // end region
+                                tempConfig.minPointNotification = extConfig[key].minPointNotification;
+                            }
+
+                            tempConfig.platform = ObjectId(platformObjId);
+                            tempConfig.systemType = Number(key);
+                            tempConfig.name = extConfig[key].name;
+                            tempConfig.description = extConfig[key].description;
+
+                            paymentSystemConfig.push(tempConfig);
+                        }
+                    });
+                }
+
+                return paymentSystemConfig;
+            }
+        )
+    },
+
+    updatePaymentSystemConfigByPlatform: function (query, data) {
+        let proms = [];
+        let newConfig = [];
+        let updateConfig = data && data.paymentSystemConfig ? data.paymentSystemConfig : [];
+
+        if (updateConfig && updateConfig.length > 0) {
+            for (let i = 0; i < updateConfig.length; i++) {
+                let config = updateConfig[i];
+
+                if (config && config._id && config.systemType) {
+                    let updateData = {
+                        enableTopup: config.enableTopup,
+                        enableBonus: config.enableBonus
+                    };
+
+                    if (config.minPointNotification) {
+                        updateData.minPointNotification = config.minPointNotification
+                    }
+
+                    let prom = dbconfig.collection_paymentSystemConfig.findOneAndUpdate(
+                        {_id: config._id, platform: query.platform, systemType: config.systemType},
+                        updateData,
+                        {new: true});
+
+                    proms.push(prom);
+
+                } else {
+                    proms.push(new dbconfig.collection_paymentSystemConfig(config).save());
+                }
+            }
+        }
+
+        return Promise.all(proms).then(configData => {
+            let updateSelectedConfig = {};
+
+            if (configData && configData.length > 0) {
+                newConfig = JSON.parse(JSON.stringify(configData));
+
+                newConfig.forEach(config => {
+                    if (config) {
+                        let indexNo = updateConfig.findIndex(x => x && x.systemType == config.systemType);
+
+                        if (indexNo != -1) {
+                            config.name = updateConfig[indexNo].name;
+                            config.description = updateConfig[indexNo].description;
+                        }
+
+                        if (config.enableTopup && config.enableTopup.toString() === 'true') {
+                            updateSelectedConfig.topUpSystemType = config.systemType;
+                        }
+
+                        if (config.enableBonus && config.enableBonus.toString() === 'true') {
+                            updateSelectedConfig.bonusSystemType = config.systemType;
+                        }
+                    }
+                });
+
+                if (updateSelectedConfig && Object.keys(updateSelectedConfig).length > 0) {
+                    return dbconfig.collection_platform.findOneAndUpdate(
+                        {_id: query.platform},
+                        updateSelectedConfig,
+                        {new: true});
+                }
+            }
+        }).then(platformData => {
+                return newConfig;
+            }
+        );
+    },
+
+    getMinPointNotiRecipientSettingByPlatform: function(platformObjId) {
+        return dbconfig.collection_platformNotificationRecipient.find({platform: platformObjId}).lean();
+    },
+
+    updateMinPointNotiRecipientSetting: function (query, updateData, deleteData) {
+        let proms = [];
+
+        return dbconfig.collection_platformNotificationRecipient.remove({_id: {$in: deleteData.recipients}}).exec().then(
+            () => {
+                if (updateData && updateData.recipients && updateData.recipients.length > 0) {
+                    for (let i = 0; i < updateData.recipients.length; i++) {
+                        let recipient = updateData.recipients[i];
+
+                        if (recipient && recipient._id) {
+                            let updateData = {
+                                email: recipient.email
+                            };
+
+                            let prom = dbconfig.collection_platformNotificationRecipient.findOneAndUpdate(
+                                {_id: recipient._id, platform: query.platform},
+                                updateData,
+                                {new: true});
+
+                            proms.push(prom);
+                        } else {
+                            let newData = {
+                                platform: query.platform,
+                                email: recipient.email
+                            };
+
+                            if (recipient.email) {
+                                proms.push(new dbconfig.collection_platformNotificationRecipient(newData).save());
+                            }
+                        }
+                    }
+                }
+
+                return Promise.all(proms);
+            }
+        );
+    }
 };
 
 function getPlatformStringForCallback(platformStringArray, playerId, lineId) {

@@ -1497,14 +1497,18 @@ var dbQualityInspection = {
                                                         let startTime = new Date(l._id.date);
                                                         let endTime = new Date(l._id.date);
                                                         endTime.setHours(23, 59, 59, 999);
+                                                        let companyIdList = p.live800CompanyId.map(live800Id => parseFloat(live800Id));
+                                                        companyIdList = companyIdList.concat(p.live800CompanyId);
 
                                                         let queryToGetQIRecord = {
                                                             createTime: {
                                                                 $gte: new Date(startTime),
-                                                                $lt: new Date(endTime)
+                                                                $lte: new Date(endTime)
                                                             },
-                                                            companyId: {$in: p.live800CompanyId}
+                                                            companyId: {$in: companyIdList}
                                                         }
+
+                                                        console.log("LH check QI C -----------------", queryToGetQIRecord);
                                                         
                                                         let calculatedData = dbconfig.collection_qualityInspection.find(queryToGetQIRecord).count().then(
                                                             qualityInspectionCount => {
@@ -1877,6 +1881,8 @@ var dbQualityInspection = {
     },
     getAllProgressReportStatusByOperator: function (startTime,endTime){
 
+        console.log("LH check QI A ---------------", new Date(startTime));
+        console.log("LH check QI B ---------------", new Date(endTime));
         return dbconfig.collection_qualityInspection.aggregate([
             {
                 $match: {
@@ -2150,7 +2156,7 @@ var dbQualityInspection = {
     },
 
     summarizeLive800Record: function(startTime, endTime){
-        let startDate = new Date()
+        let startDate = new Date();
         let endDate = new Date();
         let queryString;
 
@@ -2193,17 +2199,12 @@ var dbQualityInspection = {
         let startDate = new Date(startTime);
         let endDate = new Date(endTime);
 
-        if(startTime && endTime){
-            startTime = new Date(startTime);
-            endTime = new Date(endTime);
-
-            endTime.setHours(23, 59, 59, 999);
-            endTime.setDate(endTime.getDate() - 1);
+        if(startDate && endDate){
 
             let query = {
                 createTime: {
-                    $gte: new Date(startTime),
-                    $lt: new Date(endTime)
+                    $gte: new Date(startDate),
+                    $lt: new Date(endDate)
                 }
             }
             return dbconfig.collection_live800RecordDaySummary.remove(query).then(

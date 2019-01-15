@@ -27,6 +27,7 @@ const localization = require("../modules/localization");
 const pmsAPI = require('../externalAPI/pmsAPI');
 const Q = require("q");
 const rsaCrypto = require("../modules/rsaCrypto");
+const proposalExecutor = require('../modules/proposalExecutor');
 
 var dbClientQnA = {
     //region common function
@@ -1008,6 +1009,7 @@ var dbClientQnA = {
             }
           })
     },
+
     updatePhoneNumber3: function (platformObjId, inputDataObj, qnaObjId, creator) {
         return dbconfig.collection_clientQnA.findOne({_id: ObjectId(qnaObjId)}).lean().then(
             clientQnAData => {
@@ -1049,6 +1051,7 @@ var dbClientQnA = {
                 )
             });
     },
+
     updatePhoneNumber3_1: function (platformObjId, inputDataObj, qnaObjId, creator) {
         let clientQnAData = null;
         if (!(inputDataObj && inputDataObj.smsCode)) {
@@ -1094,6 +1097,7 @@ var dbClientQnA = {
                     return QnATemplate;
             });
     },
+
     updatePhoneNumber3_2: function (platformObjId, inputDataObj, qnaObjId, creator) {
 
             if (!qnaObjId) {
@@ -1316,6 +1320,7 @@ var dbClientQnA = {
               }
             })
     },
+
     updatePhoneNumber5_1: function (platformObjId, inputDataObj, qnaObjId, creator) {
         let clientQnAData = null;
         if (!(inputDataObj && inputDataObj.smsCode)) {
@@ -1328,6 +1333,11 @@ var dbClientQnA = {
                     return Promise.reject({name: "DBError", message: "update QnA data failed"})
                 }
                 clientQnAData = clientQnA;
+
+                return dbProposal.rejectPendingProposalIfAvailable(platformObjId, clientQnAData.QnAData.name, constProposalType.UPDATE_PLAYER_PHONE, "; QnA系统取消提案");
+            }
+        ).then(
+            () => {
                 let code = inputDataObj.smsCode ? inputDataObj.smsCode : '';
                 return dbPlayerPartner.updatePhoneNumberWithSMS(null, clientQnAData.QnAData.platformId, clientQnAData.QnAData.playerId, clientQnAData.QnAData.phoneNumber ,code, 0)
 
@@ -1342,6 +1352,7 @@ var dbClientQnA = {
                 return Promise.reject({name: "DBError", message: localization.localization.translate(errorMessage)})
             });
     },
+
     getOldNumberSMS: function (platformObjId, inputDataObj, qnaObjId) {
         let purpose = constSMSPurpose.OLD_PHONE_NUMBER;
         let isGetSmsCode = false;
@@ -1349,6 +1360,7 @@ var dbClientQnA = {
         let endDes = 'Attention: this number is over the excess the limit of sent sms. Please contact cs or open a new account if necessary.';
         return dbClientQnA.getSMSVerificationCodeAgain(platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode, endTitle, endDes);
     },
+
     getNewNumberSMS: function (platformObjId, inputDataObj, qnaObjId) {
         let purpose = constSMSPurpose.NEW_PHONE_NUMBER;
         let isGetSmsCode = true;
@@ -1356,6 +1368,7 @@ var dbClientQnA = {
         let endDes = 'Attention: this number is over the excess the limit of sent sms. Please contact cs or open a new account if necessary.';
         return dbClientQnA.getSMSVerificationCodeAgain(platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode, endTitle, endDes, true);
     },
+
     getSMSVerificationCodeAgain: function (platformObjId, inputDataObj, qnaObjId, purpose, isGetSmsCode, endTitle, endDes, isNewPhoneNumber) {
         return dbconfig.collection_clientQnA.findById(qnaObjId).lean().then(
             qnaObj => {
@@ -1765,7 +1778,10 @@ var dbClientQnA = {
                     return Promise.reject({message: "The same bank account has been registered, please change a new bank card or contact our cs, thank you!"});
                 }
 
-                // APPROACH 3
+                return dbProposal.rejectPendingProposalIfAvailable(platformObjId, clientQnA.QnAData.name, constProposalType.UPDATE_PLAYER_BANK_INFO, "; QnA系统取消提案");
+            }
+        ).then(
+            () => {
                 let proposalData = {
                     creator: creator,
                     platformId: String(platform._id),
@@ -1776,7 +1792,6 @@ var dbClientQnA = {
                         bankAccountName: inputDataObj.bankAccountName,
                         bankAccount: inputDataObj.bankAccount,
                         bankName: String(inputDataObj.bankType),
-                        // bankAccountType: inputDataObj.bankAccountType,
                         bankAccountProvince: inputDataObj.bankCardProvince,
                         bankAccountCity: inputDataObj.bankAccountCity,
                         bankAddress: inputDataObj.bankAddress,
@@ -1784,26 +1799,6 @@ var dbClientQnA = {
                     }
                 };
                 return dbProposal.createProposalWithTypeNameWithProcessInfo(platform._id, constProposalType.UPDATE_PLAYER_BANK_INFO, proposalData);
-
-                // APPROACH 2
-                // return dbPlayerInfo.updatePlayerPayment(0, {playerId: player.playerId}, {
-                //     bankAccount: inputDataObj.bankAccount,
-                //     bankType: inputDataObj.bankType,
-                //     bankAccountType: inputDataObj.bankAccountType,
-                //     bankAccountProvince: inputDataObj.bankCardProvince,
-                //     bankAccountCity: inputDataObj.bankAccountCity,
-                //     bankAddress: inputDataObj.bankAddress,
-                // }, true);
-
-                // APPROACH 1
-                // return dbconfig.collection_players.findOneAndUpdate({_id: player._id, platform: player.platform}, {
-                //     bankAccount: inputDataObj.bankAccount,
-                //     bankType: inputDataObj.bankType,
-                //     bankAccountType: inputDataObj.bankAccountType,
-                //     bankAccountProvince: inputDataObj.bankCardProvince,
-                //     bankAccountCity: inputDataObj.bankAccountCity,
-                //     bankAddress: inputDataObj.bankAddress,
-                // }, {new: true}).lean();
             }
         ).then(
             () => {
@@ -2527,13 +2522,17 @@ var dbClientQnA = {
                     return Promise.reject({message: "Player not found."});
                 }
 
-                if (!data[1]){
+                if (!data[1]) {
                     return Promise.reject({message: "Platform not found."});
                 }
 
                 player = data[0];
                 platform = data[1];
 
+                return dbProposal.rejectPendingProposalIfAvailable(platformObjId, clientQnA.QnAData.name, constProposalType.UPDATE_PLAYER_BANK_INFO, "; QnA系统取消提案");
+            }
+        ).then(
+            ()=> {
                 let proposalData = {
                     creator: creator,
                     platformId: String(platform._id),

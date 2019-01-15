@@ -335,21 +335,20 @@ define([], () => {
             return result;
         }
 
-        self.getAlipayLine2Acc = function ($translate) {
-            let line2Acc = {
-                accountNumber:"MMM4-line2",
+        self.getAlipayLineAcc = function ($translate, no) {
+            let lineAcc = {
+                accountNumber:"MMM4-line"+no,
                 bankTypeId:"170",
-                merchantNo:"MMM4-line2",
+                merchantNo:"MMM4-line"+no,
                 merchantTypeId:"9997",
                 merchantTypeName:"AliPayAcc",
                 minDepositAmount:1,
-                name: $translate("MMM4-line2"),
+                name: $translate("MMM4-line"+no),
                 singleLimit:0,
                 state:"NORMAL"
             }
-            return line2Acc;
+            return lineAcc;
         };
-
         // endregion
 
 
@@ -593,7 +592,7 @@ define([], () => {
                 proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositTime)) : " ";
                 proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                proposalDetail["SUBMIT_DEVICE"] = $scope.constPlayerRegistrationInterface[vm.selectedProposal.data.clientType] || $translate("BACKSTAGE");
+                proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
                 proposalDetail["bankCardGroup"] = vm.selectedProposal.data.bankCardGroupName || " ";
                 proposalDetail["REQUEST_BANK_TYPE"] = vm.allBankTypeList[vm.selectedProposal.data.bankCardType] || (vm.selectedProposal.data.bankCardType + " ! " + $translate("not in bank type list"));
                 proposalDetail["USE_PMS_CARD_GROUP"] = vm.selectedProposal.data.bPMSGroup || false;
@@ -638,7 +637,7 @@ define([], () => {
                     proposalDetail["ActualReceivedAmount"] = vm.selectedProposal.data.actualAmountReceived;
                 }
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.data.clientType]) || $translate("BACKSTAGE");
+                proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice]) || $translate("BACKSTAGE");
                 proposalDetail["MerchantGroup"] = vm.selectedProposal.data.merchantGroupName || " ";
                 proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                 proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
@@ -675,7 +674,7 @@ define([], () => {
                 proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositeTime)) : " ";
                 proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                proposalDetail["SUBMIT_DEVICE"] = $scope.constPlayerRegistrationInterface[vm.selectedProposal.data.clientType] || $translate("BACKSTAGE");
+                proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
                 proposalDetail["PERSONAL_ALIPAY_GROUP"] = vm.selectedProposal.data.aliPayGroupName || " ";
                 proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                 proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
@@ -718,7 +717,7 @@ define([], () => {
                 proposalDetail["DEPOSIT_TIME"] = vm.selectedProposal.data.depositeTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.depositeTime)) : " ";
                 proposalDetail["EXPIRY_DATE"] = vm.selectedProposal.data.validTime ? $scope.timeReformat(new Date(vm.selectedProposal.data.validTime)) : " ";
                 proposalDetail["REMARKS"] = vm.selectedProposal.data.remark || " ";
-                proposalDetail["SUBMIT_DEVICE"] = $scope.constPlayerRegistrationInterface[vm.selectedProposal.data.clientType] || $translate("BACKSTAGE");
+                proposalDetail["SUBMIT_DEVICE"] = $translate($scope.constPlayerRegistrationInterface[vm.selectedProposal.inputDevice] || "BACKSTAGE");
                 proposalDetail["PERSONAL_WECHAT_GROUP"] = vm.selectedProposal.data.wechatPayGroupName || " ";
                 proposalDetail["requestId"] = vm.selectedProposal.data.requestId;
                 proposalDetail["REWARD_CODE"] = vm.selectedProposal.data.bonusCode || " ";
@@ -1218,6 +1217,9 @@ define([], () => {
                         proposalDetail["pmsOperator"] = pmsRemark.substring(indexOfDivider + 1, pmsRemark.length);
                     }
                 }
+                if(vm.selectedProposal.data.lastSettleTime) {
+                    proposalDetail["lastSettleTime"] = vm.selectedProposal.data.lastSettleTime;
+                }
             }
             //end region
 
@@ -1421,6 +1423,18 @@ define([], () => {
             // end region
 
             return proposalDetail;
+        };
+
+        this.forcePairingWithReferenceNumber = ($scope, platformId, proposalObjId, proposalId, referenceNumber) => {
+            if(platformId && proposalObjId && proposalId && referenceNumber) {
+                console.log("forcePairingWithReferenceNumber ", platformId, proposalObjId, proposalId, referenceNumber);
+                return $scope.$socketPromise("forcePairingWithReferenceNumber", {
+                    platformId: platformId,
+                    proposalObjId: proposalObjId,
+                    proposalId: proposalId,
+                    referenceNumber: referenceNumber
+                }).then(data=>{console.log("data",data)},err=>{console.log("err",err)});
+            }
         }
     };
 

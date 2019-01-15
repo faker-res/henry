@@ -74,6 +74,7 @@ playerConsumptionRecordSchema.index({platformId: 1, createTime: 1});
 playerConsumptionRecordSchema.index({playerId: 1, createTime: 1});
 playerConsumptionRecordSchema.index({platformId: 1, playerId: 1, createTime: 1});
 playerConsumptionRecordSchema.index({platformId: 1, providerId: 1});
+playerConsumptionRecordSchema.index({createTime: 1, platformId: 1, _id: 1});
 
 
 module.exports = playerConsumptionRecordSchema;
