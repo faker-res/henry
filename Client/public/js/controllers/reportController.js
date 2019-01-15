@@ -7436,8 +7436,19 @@ define(['js/app'], function (myApp) {
         }
 
         vm.drawSpecificRewardProposalTable = function (data, size, total, newSearch) {
-            var tableOptions = $.extend(true, {}, vm.commonTableOption, {
-                data: data,
+            let tableData = data.map(
+                record => {
+                    record.totalCount = record.totalCount ? parseInt(record.totalCount) : 0;
+                    record.totalRewardAmount = record.totalRewardAmount ? $noRoundTwoDecimalPlaces(record.totalRewardAmount) : 0;
+                    record.totalDepositAmount = record.totalDepositAmount ? $noRoundTwoDecimalPlaces(record.totalDepositAmount) : 0;
+                    record.totalBonusAmount = record.totalBonusAmount ? $noRoundTwoDecimalPlaces(record.totalBonusAmount) : 0;
+                    record.winLostAmount = record.winLostAmount ? $noRoundTwoDecimalPlaces(record.winLostAmount) : 0;
+                    return record
+                }
+            );
+
+            let tableOptions = $.extend(true, {}, vm.commonTableOption, {
+                data: tableData,
                 "order": vm.generalRewardProposalQuery.aaSorting,
                 aoColumnDefs: [
                 // {'sortCol': 'adminName', 'aTargets': [0]},
@@ -7448,7 +7459,7 @@ define(['js/app'], function (myApp) {
                 ],
                 columns: [
                     {title: $translate("PLAYER_NAME"), data: "name", bSortable: false},
-                    {title: $translate("REGISTERED_TIME"), data: "registrationTime$"},
+                    {title: $translate("REGISTERED_TIME"), data: "registrationTime$", sClass:"sumText"},
                     {title: $translate('NUMBER_OF_APPLICATION'), data: "totalCount", sClass: "sumInt alignRight" },
                     {title: $translate("TOTAL_REWARD_AMOUNT"), data: "totalRewardAmount", sClass: "sumFloat alignRight"},
                     {title: $translate("TOTAL_TOP_UP"), data: "totalDepositAmount", sClass: "sumFloat alignRight"},
