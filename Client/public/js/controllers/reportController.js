@@ -1662,21 +1662,7 @@ define(['js/app'], function (myApp) {
 
             vm.queryTopup.merchantNo ? sendObj.merchantNo = vm.queryTopup.merchantNo : [];
             // showing data with auto-assign card at pms.
-            if(vm.queryTopup.merchantNo && vm.queryTopup.merchantNo.length == 1 && vm.queryTopup.merchantNo.indexOf('MMM4-line2') != -1){
-                sendObj.line = '2';
-                vm.queryTopup.line = '2';
-                sendObj.merchantNo = vm.queryTopup.merchantNo.filter(merchantData=>{
-                    return merchantData != 'MMM4-line2';
-                })
-            }else if(vm.queryTopup.merchantNo && vm.queryTopup.merchantNo.length == 1 && vm.queryTopup.merchantNo.indexOf('MMM4-line3') != -1){
-                sendObj.line = '3';
-                vm.queryTopup.line = '3';
-                sendObj.merchantNo = vm.queryTopup.merchantNo.filter(merchantData=>{
-                    return merchantData != 'MMM4-line3';
-                })
-            }else{
-                vm.queryTopup.line = null;
-            }
+
             socketService.$socket($scope.AppSocket, 'topupReport', sendObj, function (data) {
                 findReportSearchTime();
                 $('#topupTableSpin').hide();
