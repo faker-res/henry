@@ -5878,13 +5878,13 @@ var dbPlatform = {
     },
 
     getMinPointNotiRecipientSettingByPlatform: function(platformObjId) {
-        return dbconfig.collection_minPointNotiRecipient.find({platform: platformObjId}).lean();
+        return dbconfig.collection_platformNotificationRecipient.find({platform: platformObjId}).lean();
     },
 
     updateMinPointNotiRecipientSetting: function (query, updateData, deleteData) {
         let proms = [];
 
-        return dbconfig.collection_minPointNotiRecipient.remove({_id: {$in: deleteData.recipients}}).exec().then(
+        return dbconfig.collection_platformNotificationRecipient.remove({_id: {$in: deleteData.recipients}}).exec().then(
             () => {
                 if (updateData && updateData.recipients && updateData.recipients.length > 0) {
                     for (let i = 0; i < updateData.recipients.length; i++) {
@@ -5895,7 +5895,7 @@ var dbPlatform = {
                                 email: recipient.email
                             };
 
-                            let prom = dbconfig.collection_minPointNotiRecipient.findOneAndUpdate(
+                            let prom = dbconfig.collection_platformNotificationRecipient.findOneAndUpdate(
                                 {_id: recipient._id, platform: query.platform},
                                 updateData,
                                 {new: true});
@@ -5908,7 +5908,7 @@ var dbPlatform = {
                             };
 
                             if (recipient.email) {
-                                proms.push(new dbconfig.collection_minPointNotiRecipient(newData).save());
+                                proms.push(new dbconfig.collection_platformNotificationRecipient(newData).save());
                             }
                         }
                     }

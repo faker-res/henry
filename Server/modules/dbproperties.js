@@ -93,7 +93,7 @@ let qualityInspectionSchema = require('./../schema/qualityInspection');
 let live800RecordDaySummarySchema = require('./../schema/live800RecordDaySummary');
 let wcDeviceSchema = require('./../schema/admindb/wcDevice');
 let paymentSystemConfigSchema = require('./../schema/admindb/paymentSystemConfig');
-let minPointNotiRecipientSchema = require('./../schema/admindb/minPointNotiRecipient');
+let platformNotificationRecipientSchema = require('./../schema/admindb/platformNotificationRecipient');
 /////////////////////////Schema models/////////////////////////////////////
 //----------------------------------------admin db properties-----------------------------------------------------------
 //var counterModel = db_admin.model('counter', counterSchema, 'counter');
@@ -243,7 +243,7 @@ let promoCodeTemplateModel = db_admin.model('promoCodeTemplate', promoCodeTempla
 let depositGroupModel = db_admin.model('depositGroup', depositGroupSchema, 'depositGroup');
 let wcDeviceModel = db_admin.model('wcDevice', wcDeviceSchema, 'wcDevice');
 let paymentSystemConfigModel = db_admin.model('paymentSystemConfig', paymentSystemConfigSchema, 'paymentSystemConfig');
-let minPointNotiRecipientModel = db_admin.model('minPointNotiRecipient', minPointNotiRecipientSchema, 'minPointNotiRecipient');
+let platformNotificationRecipientModel = db_admin.model('platformNotificationRecipient', platformNotificationRecipientSchema, 'platformNotificationRecipient');
 
 let platformAutoFeedbackSchema = require('./../schema/platformAutoFeedback');
 let platformAutoFeedbackModel = db_admin.model('platformAutoFeedback', platformAutoFeedbackSchema, 'platformAutoFeedback');
@@ -654,7 +654,7 @@ var dbProperties = {
     collection_depositGroup: depositGroupModel,
     collection_wcDevice: wcDeviceModel,
     collection_paymentSystemConfig: paymentSystemConfigModel,
-    collection_minPointNotiRecipient: minPointNotiRecipientModel,
+    collection_platformNotificationRecipient: platformNotificationRecipientModel,
 
     collection_auctionSystem: auctionSystemModel,
     collection_playerReportDataDaySummary: playerReportDataDaySummaryModel,
