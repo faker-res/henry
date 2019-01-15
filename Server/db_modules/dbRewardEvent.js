@@ -2069,10 +2069,6 @@ var dbRewardEvent = {
 
                     // type 4 投注额优惠（组）
                     case constRewardType.PLAYER_CONSUMPTION_REWARD_GROUP:
-                        if (eventInPeriodCount && eventInPeriodCount > 0) {
-                            returnData.status = 2;
-                        }
-
                         if (!returnData.condition.bet.status) {
                             returnData.condition.bet.status = 1;
                         }
@@ -2085,19 +2081,24 @@ var dbRewardEvent = {
 
                         // Set reward param step to use
                         if (eventData.param.isMultiStepReward) {
-                            let lowestRequirementParam = selectedRewardParam.sort((a, b) => a.minConsumptionAmount - b.minConsumptionAmount)[0];
-                            selectedRewardParam = selectedRewardParam.filter(e => e.minConsumptionAmount <= totalConsumption).sort((a, b) => b.minConsumptionAmount - a.minConsumptionAmount);
-                            selectedRewardParam = selectedRewardParam[0] || lowestRequirementParam;
+                            if (eventData.param.isSteppingReward) {
+                                let eventStep = eventInPeriodCount >= selectedRewardParam.length ? selectedRewardParam.length - 1 : eventInPeriodCount;
+                                selectedRewardParam = selectedRewardParam[eventStep];
+                            } else {
+                                let firstRewardParam = selectedRewardParam[0];
+                                selectedRewardParam = selectedRewardParam.filter(e => Math.trunc(totalConsumption) >= Math.trunc(e.totalConsumptionInInterval)).sort((a, b) => b.totalConsumptionInInterval - a.totalConsumptionInInterval);
+                                selectedRewardParam = selectedRewardParam[0] || firstRewardParam || {};
+                            }
                         } else {
                             selectedRewardParam = selectedRewardParam[0];
                         }
 
-                        if (!selectedRewardParam || totalConsumption < selectedRewardParam.minConsumptionAmount) {
+                        if (!selectedRewardParam || totalConsumption < selectedRewardParam.totalConsumptionInInterval) {
                             returnData.condition.bet.status = 2;
                         }
 
-                        if (selectedRewardParam && selectedRewardParam.minConsumptionAmount) {
-                            returnData.condition.bet.needBet = selectedRewardParam.minConsumptionAmount;
+                        if (selectedRewardParam && selectedRewardParam.totalConsumptionInInterval) {
+                            returnData.condition.bet.needBet = selectedRewardParam.totalConsumptionInInterval;
                             returnData.condition.bet.alreadyBet = totalConsumption;
                         }
 
@@ -2105,7 +2106,7 @@ var dbRewardEvent = {
                             rewardAmount = selectedRewardParam.rewardAmount;
                             spendingAmount = selectedRewardParam.rewardAmount * selectedRewardParam.spendingTimes;
                             returnData.result.rewardAmount = rewardAmount;
-                            returnData.result.betAmount = selectedRewardParam.minConsumptionAmount;
+                            returnData.result.betAmount = selectedRewardParam.totalConsumptionInInterval;
                             returnData.result.betTimes = selectedRewardParam.spendingTimes;
                         }
 
