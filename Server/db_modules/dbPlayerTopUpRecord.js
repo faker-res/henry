@@ -4624,6 +4624,7 @@ var dbPlayerTopUpRecord = {
             proposalId: proposalId,
             depositId: referenceNumber
         }).then(data => {
+            console.log("forcePairingWithReferenceNumber data", data);
             if(data && data.status == 200) {
                 // execute TopUp
                 let remarks = "强制匹配：成功。";

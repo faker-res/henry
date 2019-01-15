@@ -36140,6 +36140,32 @@ define(['js/app'], function (myApp) {
                 vm.auctionSystemProduct.registerEndTime = $('#auctionSystemProductRegisterEndTimePicker').data('datetimepicker').getLocalDate();
                 vm.auctionSystemProduct.rewardStartTime = $('#auctionSystemProductRewardStartTimePicker').data('datetimepicker').getLocalDate();
                 vm.auctionSystemProduct.rewardEndTime = $('#auctionSystemProductRewardEndTimePicker').data('datetimepicker').getLocalDate();
+
+                // special handling for auction product: promoCode and openPromoCode to remove unwanted params
+                if (vm.auctionSystemProduct && vm.auctionSystemProduct.rewardData && vm.auctionSystemProduct.rewardData.templateObjId){
+                    if(vm.auctionSystemProduct.rewardData.rewardType == "promoCode" || vm.auctionSystemProduct.rewardData.rewardType == "openPromoCode"){
+                        if (vm.auctionSystemProduct.rewardData.isDynamicRewardAmount){
+                            if (vm.auctionSystemProduct.rewardData.hasOwnProperty("rewardAmount")){
+                                delete vm.auctionSystemProduct.rewardData.rewardAmount;
+                            }
+                            if (vm.auctionSystemProduct.rewardData.hasOwnProperty("spendingAmount")){
+                                delete vm.auctionSystemProduct.rewardData.spendingAmount;
+                            }
+                        }
+                        else{
+                            if (vm.auctionSystemProduct.rewardData.hasOwnProperty("rewardPercentage")){
+                                delete vm.auctionSystemProduct.rewardData.rewardPercentage;
+                            }
+                            if (vm.auctionSystemProduct.rewardData.hasOwnProperty("maximumRewardAmount")){
+                                delete vm.auctionSystemProduct.rewardData.maximumRewardAmount;
+                            }
+                            if (vm.auctionSystemProduct.rewardData.hasOwnProperty("spendingTimes")){
+                                delete vm.auctionSystemProduct.rewardData.spendingTimes;
+                            }
+                        }
+                    }
+                }
+
                 let sendData = {
                      _id: vm.auctionSystemProduct._id ,
                      updateData: vm.auctionSystemProduct
@@ -36391,7 +36417,7 @@ define(['js/app'], function (myApp) {
                         },
                         {title: $translate('Product Name'), data: "productName",
                             render: function(data, type, row){
-                                let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
+                                let result = '<div ng-click="vm.auctionSystemEditStatus = true; vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
                                 return result;
                             }
                         },
