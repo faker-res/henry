@@ -1341,6 +1341,7 @@
   "Minimum top up amount": "最低充值额",
   "No of consumption days": "投注日数",
   "Minimum consumption amount": "最低投注额",
+  "Total consumption amount in interval": "周期内累积总投注额（已申请过不扣除）",
   "And or or condition for game provider check": "'和'或'或' 提供商的检查条件",
   "TRANSACTION_REPORT": "转账优惠报表",
   "REWARDAMOUNT": "优惠额度",
