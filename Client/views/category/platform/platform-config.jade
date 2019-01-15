@@ -2071,12 +2071,11 @@
                     br
                     br
 
-                    div
-                        button.btn.btn-success(ng-click='vm.getPaymentSystemConfigByPlatform()') {{'Refresh' | translate}}
+                    div.proposalMessage
+                        text {{'The update time of this point' | translate}}  : {{vm.lastPaymentSystemRefresh}}
+                        a(type='button' ng-click='vm.getPaymentSystemConfigByPlatform()') {{'Refresh' | translate}} &nbsp;
                         span#paymentSystemRecordSpin.collapse
                             i.fa.fa-spinner.fa-spin
-                    div.proposalMessage
-                            text {{'The update time of this point' | translate}}  : {{vm.lastPaymentSystemRefresh}}
                     table.simple-table(style="display:block; white-space:pre-wrap; word-wrap:break-word;text-align:center")
                         thead
                             tr
@@ -2107,7 +2106,7 @@
                                     span(ng-if='!vm.financialSettlementSystemTableEdit && (v.curFinancialSettlementPoint=="undefined" || v.curFinancialSettlementPoint==null)') {{'Does not support' | translate}}
 
                     div.margin-top-10
-                        button.btn.btn-primary.common-button
+                        button.btn.btn-primary.common-button(data-toggle="modal", data-target='#modalMinPointNotiRecipientSetting', ng-click='vm.initMinPointNotiRecipientSetting()')
                             text {{'email recipient settings' | translate}}
 
                         button.btn.btn-primary.common-button(ng-if="!vm.financialSettlementSystemTableEdit ", ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit')
@@ -2664,6 +2663,32 @@
                     label {{"PREVIEW" | translate}}
                     .well(style="margin-bottom: 0px; padding-top: 15px; padding-bottom: 15px", ng-non-bindable)
                         .announcementPreview.html(style="max-height: 185px; overflow: auto; background-color: white")
+
+#modalMinPointNotiRecipientSetting.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
+    .modal-dialog(style="width:80%")
+        .modal-content
+            .modal-header
+                a.fa.fa-times.close(type='button', data-dismiss='modal')
+                h4.modal-title {{'email recipient settings' | translate}}
+            .modal-body
+                table.simple-table(style='max-width:100%')
+                    thead
+                        tr
+                            th
+                            th {{'EMAIL' | translate}}
+                    tbody
+                        tr(ng-repeat='(i,v) in vm.recipients')
+                            td
+                                i.fa.fa-plus(ng-click='vm.minPointNotiRecipientNewRow(vm.recipients)', ng-show='vm.isEditRecipientSetting') &nbsp;
+                                i.fa.fa-minus(ng-click='vm.minPointNotiRecipientDeleteRow(i, vm.recipients)', ng-show='vm.isEditRecipientSetting')
+                            td
+                                input(type='text' ng-model='v.email' ng-if='vm.isEditRecipientSetting' style='width:100%')
+                                span(ng-if='!vm.isEditRecipientSetting') {{v.email}}
+
+            .modal-footer
+                button.btn.btn-danger.common-button(data-dismiss="modal") {{"CANCEL" | translate}}
+                    button.btn.btn-success.common-button(ng-click="vm.editMinPointNotiRecipientSetting()"  ng-if="!vm.isEditRecipientSetting") {{"EDIT" | translate}}
+                    button.btn.btn-primary.common-button(data-dismiss="modal" ng-if="vm.isEditRecipientSetting" ng-click="vm.submitMinPointNotiRecipientSetting()") {{"CONFIRM" | translate}}
 
 #modalLargeWithdrawalRecipient.modal.fade(tabindex='-1', role='dialog', data-backdrop='static', keyboard=false,aria-labelledby='myModalLabel', aria-hidden='true')
     .modal-dialog(style="width:80%")

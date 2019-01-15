@@ -1501,7 +1501,7 @@ var dbQualityInspection = {
                                                         let queryToGetQIRecord = {
                                                             createTime: {
                                                                 $gte: new Date(startTime),
-                                                                $lt: new Date(endTime)
+                                                                $lte: new Date(endTime)
                                                             },
                                                             companyId: {$in: p.live800CompanyId}
                                                         }

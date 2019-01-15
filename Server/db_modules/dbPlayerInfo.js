@@ -12112,18 +12112,21 @@ let dbPlayerInfo = {
                 }
             }
         ).then(
-            () => dbconfig.collection_proposal.findOneAndUpdate(
-                {_id: prop._id, createTime: prop.createTime},
-                {
-                    status: status,
-                    "data.lastSettleTime": lastSettleTime,
-                    "data.remark": remark,
-                    "data.alipayer": callbackData ? callbackData.payer : "",
-                    "data.alipayerAccount": callbackData ? callbackData.account : "",
-                    "data.alipayerNickName": callbackData ? callbackData.nickName : "",
-                    "data.alipayerRemark": callbackData ? callbackData.remark : "",
-                }
-            )
+            () => {
+                console.log("manual top up update status", status, proposalId);
+                return dbconfig.collection_proposal.findOneAndUpdate(
+                    {_id: prop._id, createTime: prop.createTime},
+                    {
+                        status: status,
+                        "data.lastSettleTime": lastSettleTime,
+                        "data.remark": remark,
+                        "data.alipayer": callbackData ? callbackData.payer : "",
+                        "data.alipayerAccount": callbackData ? callbackData.account : "",
+                        "data.alipayerNickName": callbackData ? callbackData.nickName : "",
+                        "data.alipayerRemark": callbackData ? callbackData.remark : "",
+                    }
+                )
+            }
         );
     },
 
@@ -16180,6 +16183,7 @@ let dbPlayerInfo = {
             totalPlatformFeeEstimate: 0,
             totalOnlineTopUpFee: 0,
         };
+        let returnedObj;
 
         if (query.name) {
             isSinglePlayer = true;
@@ -16380,7 +16384,7 @@ let dbPlayerInfo = {
                                     summaryData.consumptionTimes = summaryData.providerDetail[query.providerId].count;
                                     summaryData.validConsumptionAmount = summaryData.providerDetail[query.providerId].validAmount;
                                     summaryData.consumptionBonusAmount = summaryData.providerDetail[query.providerId].bonusAmount;
-                                    summaryData.consumptionAmount = summaryData.providerDetail[query.providerId].amount
+                                    summaryData.consumptionAmount = summaryData.providerDetail[query.providerId].amount;
                                     return summaryData;
                                 }
                             }
@@ -16559,10 +16563,97 @@ let dbPlayerInfo = {
                             totalOnlineTopUpFee: 0,
                             totalPlatformFeeEstimate: 0,
                             validConsumptionAmount: 0,
-                            weChatTopUpAmount: 0}
+                            weChatTopUpAmount: 0
+                        }
                     }
                 }
 
+            }
+        ).then(
+            returnedData => {
+                returnedObj = returnedData;
+                let twoDaysAgo = new Date();
+                twoDaysAgo.setDate(twoDaysAgo.getDate() - 1);
+
+                if(new Date(query.end) > twoDaysAgo ){
+                    query.start = twoDaysAgo;
+                    return dbPlayerInfo.getPlayerReport(platform, query, index, limit, sortCol);
+                }
+
+                return;
+            }
+        ).then(
+            twoDaysPlayerReportData => {
+                if(twoDaysPlayerReportData && twoDaysPlayerReportData.data && twoDaysPlayerReportData.data.length > 0){
+                    twoDaysPlayerReportData.data.forEach(
+                        twoDaysData => {
+                            if(twoDaysData && twoDaysData._id){
+                                let indexNo = returnedObj.data.findIndex(r => r._id == twoDaysData._id);
+
+                                if(indexNo == -1){
+                                    returnedObj.data.push(twoDaysData);
+                                }else{
+                                    returnedObj.data[indexNo].manualTopUpAmount += twoDaysData.manualTopUpAmount;
+                                    returnedObj.data[indexNo].onlineTopUpAmount += twoDaysData.onlineTopUpAmount;
+                                    returnedObj.data[indexNo].aliPayTopUpAmount += twoDaysData.aliPayTopUpAmount;
+                                    returnedObj.data[indexNo].weChatTopUpAmount += twoDaysData.weChatTopUpAmount;
+                                    returnedObj.data[indexNo].topUpTimes += twoDaysData.topUpTimes;
+                                    returnedObj.data[indexNo].bonusTimes += twoDaysData.bonusTimes;
+                                    returnedObj.data[indexNo].bonusAmount += twoDaysData.bonusAmount;
+                                    returnedObj.data[indexNo].rewardAmount += twoDaysData.rewardAmount;
+                                    returnedObj.data[indexNo].consumptionReturnAmount += twoDaysData.consumptionReturnAmount;
+                                    returnedObj.data[indexNo].consumptionTimes += twoDaysData.consumptionTimes;
+                                    returnedObj.data[indexNo].validConsumptionAmount += twoDaysData.validConsumptionAmount;
+                                    returnedObj.data[indexNo].consumptionBonusAmount += twoDaysData.consumptionBonusAmount;
+                                    returnedObj.data[indexNo].consumptionAmount += twoDaysData.consumptionAmount;
+                                    returnedObj.data[indexNo].totalPlatformFeeEstimate += twoDaysData.totalPlatformFeeEstimate;
+                                    returnedObj.data[indexNo].totalOnlineTopUpFee += twoDaysData.totalOnlineTopUpFee;
+
+                                    //combine providerDetail
+                                    if(Object.keys(twoDaysData.providerDetail).length > 0){
+
+                                        for(let i = 0; i < Object.keys(twoDaysData.providerDetail).length ; i ++){
+                                            let providerDetailKey = Object.keys(twoDaysData.providerDetail)[i];
+                                            if(returnedObj.data[indexNo].providerDetail[providerDetailKey]){
+                                                returnedObj.data[indexNo].providerDetail[providerDetailKey].count += twoDaysData.providerDetail[providerDetailKey].count;
+                                                returnedObj.data[indexNo].providerDetail[providerDetailKey].validAmount += twoDaysData.providerDetail[providerDetailKey].validAmount;
+                                                returnedObj.data[indexNo].providerDetail[providerDetailKey].bonusAmount += twoDaysData.providerDetail[providerDetailKey].bonusAmount;
+                                                returnedObj.data[indexNo].providerDetail[providerDetailKey].amount += twoDaysData.providerDetail[providerDetailKey].amount;
+                                                returnedObj.data[indexNo].providerDetail[providerDetailKey].bonusRatio = (twoDaysData.providerDetail[providerDetailKey].bonusAmount / twoDaysData.providerDetail[providerDetailKey].validAmount);
+                                            }
+                                        }
+
+                                        returnedObj.data[indexNo].gameDetail = returnedObj.data[indexNo].providerDetail
+                                    }
+                                }
+                            }
+                        }
+                    )
+                }
+
+                if(twoDaysPlayerReportData && twoDaysPlayerReportData.total){
+                    returnedObj.total.aliPayTopUpAmount += twoDaysPlayerReportData.total.aliPayTopUpAmount || 0;
+                    returnedObj.total.bonusAmount += twoDaysPlayerReportData.total.bonusAmount || 0;
+                    returnedObj.total.bonusTimes += twoDaysPlayerReportData.total.bonusTimes || 0;
+                    returnedObj.total.consumptionAmount += twoDaysPlayerReportData.total.consumptionAmount || 0;
+                    returnedObj.total.consumptionBonusAmount += twoDaysPlayerReportData.total.consumptionBonusAmount || 0;
+                    returnedObj.total.consumptionReturnAmount += twoDaysPlayerReportData.total.consumptionReturnAmount || 0;
+                    returnedObj.total.consumptionTimes += twoDaysPlayerReportData.total.consumptionTimes || 0;
+                    returnedObj.total.manualTopUpAmount += twoDaysPlayerReportData.total.manualTopUpAmount || 0;
+                    returnedObj.total.onlineTopUpAmount += twoDaysPlayerReportData.total.onlineTopUpAmount || 0;
+                    returnedObj.total.profit += twoDaysPlayerReportData.total.profit || 0;
+                    returnedObj.total.rewardAmount += twoDaysPlayerReportData.total.rewardAmount || 0;
+                    returnedObj.total.topUpAmount += twoDaysPlayerReportData.total.topUpAmount || 0;
+                    returnedObj.total.topUpTimes += twoDaysPlayerReportData.total.topUpTimes || 0;
+                    returnedObj.total.totalOnlineTopUpFee += twoDaysPlayerReportData.total.totalOnlineTopUpFee || 0;
+                    returnedObj.total.totalPlatformFeeEstimate += twoDaysPlayerReportData.total.totalPlatformFeeEstimate || 0;
+                    returnedObj.total.validConsumptionAmount += twoDaysPlayerReportData.total.validConsumptionAmount || 0;
+                    returnedObj.total.weChatTopUpAmount += twoDaysPlayerReportData.total.weChatTopUpAmount || 0;
+                }
+
+                returnedObj.size = returnedObj.data.length;
+
+                return returnedObj;
             }
         );
     },
