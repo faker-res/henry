@@ -10109,6 +10109,11 @@ define(['js/app'], function (myApp) {
             vm.reportSearchTime = (vm.reportSearchTimeEnd - vm.reportSearchTimeStart) / 1000;
         }
 
+        vm.forcePairingWithReferenceNumber = function() {
+            commonService.forcePairingWithReferenceNumber($scope, vm.selectedPlatform.platformId, vm.selectedProposal._id, vm.selectedProposal.proposalId, vm.forcePairingReferenceNumber);
+            vm.forcePairingReferenceNumber = '';
+        };
+
         // $scope.$on('$viewContentLoaded', function () {
         var eventName = "$viewContentLoaded";
         if (!$scope.AppSocket) {

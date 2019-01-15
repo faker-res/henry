@@ -4879,8 +4879,6 @@ define(['js/app'], function (myApp) {
             return new Promise(function (resolve) {
                 socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: vm.selectedPlatform.platformId}, function (data) {
                     if (data.data && data.data.merchants) {
-                        let line2Acc = commonService.getAlipayLine2Acc($translate);
-                        data.data.merchants.push(line2Acc);
                         resolve(data.data.merchants);
                     }
                 }, function (error) {

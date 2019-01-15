@@ -17,9 +17,9 @@ var express = require('express'),
 
 var app = module.exports = express();
 
-var gulp = require('gulp');
-require('./gulpfile');
-gulp.start('config');
+// var gulp = require('gulp');
+// require('./gulpfile');
+// gulp.start('config');
 
 /**
  * Configuration

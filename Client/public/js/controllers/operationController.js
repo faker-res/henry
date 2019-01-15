@@ -3082,6 +3082,11 @@ define(['js/app'], function (myApp) {
             return result;
         };
 
+        vm.forcePairingWithReferenceNumber = function() {
+            commonService.forcePairingWithReferenceNumber($scope, vm.selectedPlatform.platformId, vm.selectedProposal._id, vm.selectedProposal.proposalId, vm.forcePairingReferenceNumber);
+            vm.forcePairingReferenceNumber = '';
+        };
+
         function loadPlatform () {
             vm.blinkAllProposal = false;
             vm.blinkNewAccount = false;

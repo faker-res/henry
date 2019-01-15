@@ -690,6 +690,11 @@ function socketActionProposal(socketIO, socket) {
             socketUtil.emitter(self.socket, dbProposal.updateFollowUpContent, [data.proposalId, data.followUpContent], actionName, isValidData);
         },
 
+        forcePairingWithReferenceNumber: function forcePairingWithReferenceNumber(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platformId && data.proposalObjId && data.proposalId && data.referenceNumber);
+            socketUtil.emitter(self.socket, dbPlayerTopUpRecord.forcePairingWithReferenceNumber, [data.platformId, data.proposalObjId, data.proposalId, data.referenceNumber, getAdminName(), getAdminId()], actionName, isValidData);
+        },
 
     };
     socketActionProposal.actions = this.actions;

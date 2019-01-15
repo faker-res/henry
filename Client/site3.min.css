@@ -2881,16 +2881,12 @@ input[type='Number'] {
 }
 
 .radio-space{
-    margin: 0 .5em .5em;
+    margin: 0 .5em .5em !important;
 }
 
 .panel-heading {
     border-top-left-radius: 8px;
     border-top-right-radius: 8px;
-}
-.paymentGroup-btn{
-    width: 100%;
-    min-width: 100%;
 }
 
 .paymentGroup-btn text {
@@ -2995,7 +2991,7 @@ tfoot input {
     box-sizing: border-box;
 }
 
-table.simple-table {
+table.simple-table, .paymentGroup-btn {
     width: 100%;
     min-width: 100%;
 }
@@ -3718,12 +3714,12 @@ tr.sn-selected, td.sn-selected {
     font-style: oblique;
 }
 
-td.alignLeft {
-    text-align: left;
+td.alignLeft, .alignLeft  {
+    text-align: left !important;
 }
 
 tfoot td > label.alignRight,
-td.alignRight {
+td.alignRight, .alignRight {
     text-align: right;
 }
 
@@ -4294,11 +4290,11 @@ table.simple-table-single > thead > tr > th {
 }
 
 .beforeAuction{
-    background-color:#BDC0BA !important;
+    background-color:#787878 !important;
 }
 
 .startingAuction{
-    background-color:#FCFAF2 !important;
+    background-color:#FFFFFF !important;
 }
 
 .notInPublishAuction{

@@ -445,7 +445,7 @@ const dbPlayerPayment = {
     },
 
     createCommonTopupProposal: (playerId, topupRequest, ipAddress, entryType, adminId, adminName) => {
-        let player, rewardEvent;
+        let player, rewardEvent, proposal;
 
         if (topupRequest.bonusCode && topupRequest.topUpReturnCode) {
             return Promise.reject({
@@ -474,6 +474,7 @@ const dbPlayerPayment = {
                 if (playerdata) {
                     player = playerdata;
 
+                    // Check player top up permission
                     if (player && player.permission && player.permission.allTopUp === false) {
                         return Promise.reject({
                             status: constServerCode.PLAYER_NO_PERMISSION,
@@ -482,6 +483,7 @@ const dbPlayerPayment = {
                         });
                     }
 
+                    // Check top up return reward condition
                     if (player && player._id) {
                         if (!topupRequest.topUpReturnCode) {
                             return Promise.resolve();
@@ -498,6 +500,7 @@ const dbPlayerPayment = {
             eventData => {
                 rewardEvent = eventData;
 
+                // Check limited offer and promo code condition
                 if (player && player.platform) {
                     let limitedOfferProm = dbRewardUtil.checkLimitedOfferIntention(player.platform._id, player._id, topupRequest.amount, topupRequest.limitedOfferObjId);
                     let proms = [limitedOfferProm];
@@ -531,6 +534,7 @@ const dbPlayerPayment = {
                     });
                 }
 
+                // Check minimum top up amount
                 if (topupRequest.amount < minTopUpAmount) {
                     return Promise.reject({
                         status: constServerCode.PLAYER_TOP_UP_FAIL,
@@ -539,9 +543,10 @@ const dbPlayerPayment = {
                     });
                 }
 
-                // if (topupRequest.userAgent) {
-                //     topupRequest.userAgent = dbUtil.retrieveAgent(topupRequest.userAgent);
-                // }
+                // Decide which payment system to use
+                if (player.platform.topUpSystemType) {
+
+                }
 
                 let proposalData = Object.assign({}, topupRequest);
                 proposalData.playerId = playerId;
@@ -601,8 +606,9 @@ const dbPlayerPayment = {
                 return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_COMMON_TOP_UP, newProposal);
             }
         ).then(
-            proposal => {
-                if (proposal) {
+            proposalObj => {
+                if (proposalObj) {
+                    proposal = proposalObj;
                     let paymentUrl = env.paymentHTTPAPIUrl;
 
                     // currently set to platformId 4 use on it first
@@ -612,6 +618,15 @@ const dbPlayerPayment = {
                     }
 
                     return generatePMSHTTPUrl(player, proposal, paymentUrl, topupRequest.clientType, ipAddress, topupRequest.amount);
+                }
+            }
+        ).then(
+            url => {
+                return {
+                    url: url,
+                    proposalId: proposal.proposalId,
+                    amount: proposal.data.amount,
+                    createTime: proposal.createTime
                 }
             }
         )

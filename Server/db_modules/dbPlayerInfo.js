@@ -12112,18 +12112,21 @@ let dbPlayerInfo = {
                 }
             }
         ).then(
-            () => dbconfig.collection_proposal.findOneAndUpdate(
-                {_id: prop._id, createTime: prop.createTime},
-                {
-                    status: status,
-                    "data.lastSettleTime": lastSettleTime,
-                    "data.remark": remark,
-                    "data.alipayer": callbackData ? callbackData.payer : "",
-                    "data.alipayerAccount": callbackData ? callbackData.account : "",
-                    "data.alipayerNickName": callbackData ? callbackData.nickName : "",
-                    "data.alipayerRemark": callbackData ? callbackData.remark : "",
-                }
-            )
+            () => {
+                console.log("manual top up update status", status, proposalId);
+                return dbconfig.collection_proposal.findOneAndUpdate(
+                    {_id: prop._id, createTime: prop.createTime},
+                    {
+                        status: status,
+                        "data.lastSettleTime": lastSettleTime,
+                        "data.remark": remark,
+                        "data.alipayer": callbackData ? callbackData.payer : "",
+                        "data.alipayerAccount": callbackData ? callbackData.account : "",
+                        "data.alipayerNickName": callbackData ? callbackData.nickName : "",
+                        "data.alipayerRemark": callbackData ? callbackData.remark : "",
+                    }
+                )
+            }
         );
     },
 
@@ -21961,7 +21964,8 @@ let dbPlayerInfo = {
                 applyXIMAFrontEnd: false,
                 ApplyPromoCode: false,
                 updatePassword: false,
-                applyRewardPoint: false
+                applyRewardPoint: false,
+                deductRewardPoint: false,
             }
         })
     },
