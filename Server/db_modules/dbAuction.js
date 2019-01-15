@@ -25,8 +25,113 @@ var dbAuction = {
         return dbconfig.collection_auctionSystem.findOne({_id: ObjectId(id)}).exec();
     },
     updateAuctionProduct: (id, updateData) => {
+        let updateProm = Promise.resolve();
         let matchObj = { _id : id};
-        return dbconfig.collection_auctionSystem.findOneAndUpdate(matchObj, updateData,{ new : true}).exec();
+        return dbconfig.collection_auctionSystem.findOneAndUpdate(matchObj, updateData,{ new : true}).lean().then(
+            retData => {
+                if(!retData){
+                    return Promise.reject({
+                        name: "DataError",
+                        message: "Failed to update auction product"
+                    })
+                }
+
+                if (retData && retData.rewardData && retData.rewardData.templateObjId && retData.rewardData.rewardType){
+                    if (retData.rewardData.rewardType == "promoCode"){
+                        updateProm = updatePromoCodeTemplate(retData.rewardData);
+                    }
+                    else if (retData.rewardData.rewardType == "openPromoCode"){
+                        updateProm = updateOpenPromoCodeTemplate(retData.rewardData);
+                    }
+                }
+                return updateProm;
+            },
+            error => {
+                return Promise.reject({name: "DBError", message: "Error updating auction product.", error: error});
+            }
+        )
+
+        // to update openPromoCodeTemplate for auction system
+        function updateOpenPromoCodeTemplate(rewardData){
+            let allowedProviderList = [];
+            if (rewardData.allowedProvider){
+                allowedProviderList.push(ObjectId(rewardData.allowedProvider));
+            }
+            let obj = {
+                allowedProviders: allowedProviderList,
+                isSharedWithXIMA: rewardData.isSharedWithXima,
+                isProviderGroup: true,
+                expiredInDay: rewardData.dueDateInDay,
+                disableWithdraw: rewardData.isForbidWithdrawal,
+                minTopUpAmount: rewardData.minimumTopUpAmount,
+                applyLimitPerPlayer: rewardData.upperLimitPerPlayer,
+                totalApplyLimit: rewardData.totalQuantityLimit,
+                ipLimit: rewardData.limitPerSameIp,
+                createTime: new Date ()
+            };
+
+            if (rewardData.isDynamicRewardAmount){
+                obj.amount = rewardData.rewardPercentage*100;
+                obj.maxRewardAmount = rewardData.maximumRewardAmount;
+                obj.requiredConsumption = rewardData.spendingTimes;
+                obj.type = 3; // dynamic case
+            }
+            else{
+                obj.amount = rewardData.rewardAmount;
+                obj.requiredConsumption = rewardData.spendingAmount;
+                obj.type = 1; // with top up requirement + fixed reward amount
+            }
+
+            return dbconfig.collection_openPromoCodeTemplate.findOneAndUpdate({_id: rewardData.templateObjId}, obj).lean().then(
+                retTemplate => {
+                    if (retTemplate && !retTemplate.isDynamicRewardAmount){
+                        if (retTemplate.hasOwnProperty("maxRewardAmount")){
+                            return dbconfig.collection_openPromoCodeTemplate.findOneAndUpdate({_id: ObjectId(retTemplate._id)}, {maxRewardAmount: null}, {new: true}).lean();
+                        }
+                    }
+                    return retTemplate;
+                }
+            );
+        }
+
+        // to update promoCodeTemplate for auction system
+        function updatePromoCodeTemplate(rewardData) {
+            let allowedProviderList = [];
+            if (rewardData.allowedProvider){
+                allowedProviderList.push(ObjectId(rewardData.allowedProvider));
+            }
+            let obj = {
+                allowedProviders: allowedProviderList,
+                isSharedWithXIMA: rewardData.isSharedWithXima,
+                expiredInDay: rewardData.dueDateInDay,
+                disableWithdraw: rewardData.isForbidWithdrawal,
+                minTopUpAmount: rewardData.minimumTopUpAmount,
+                createTime: new Date ()
+            }
+
+            if (rewardData.isDynamicRewardAmount){
+                obj.amount = rewardData.rewardPercentage*100;
+                obj.maxRewardAmount = rewardData.maximumRewardAmount;
+                obj.requiredConsumption = rewardData.spendingTimes;
+                obj.type = 3; // dynamic case
+            }
+            else{
+                obj.amount = rewardData.rewardAmount;
+                obj.requiredConsumption = rewardData.spendingAmount;
+                obj.type = 1; // with top up requirement + fixed reward amount
+            }
+
+            return dbconfig.collection_promoCodeTemplate.findOneAndUpdate({_id: templateObjId}, obj).lean().then(
+                retTemplate => {
+                    if (retTemplate && !retTemplate.isDynamicRewardAmount){
+                        if (retTemplate.hasOwnProperty("maxRewardAmount")){
+                            return dbconfig.collection_openPromoCodeTemplate.findOneAndUpdate({_id: ObjectId(retTemplate._id)}, {maxRewardAmount: null}, {new: true}).lean();
+                        }
+                    }
+                    return retTemplate;
+                }
+            );
+        }
     },
     moveTo: (data) => {
 
@@ -401,7 +506,6 @@ var dbAuction = {
                 applyLimitPerPlayer: rewardData.upperLimitPerPlayer,
                 totalApplyLimit: rewardData.totalQuantityLimit,
                 ipLimit: rewardData.limitPerSameIp,
-                expiredInDay: rewardData.dueDateInDay,
                 status: constPromoCodeStatus.DISABLE,
                 createTime: new Date ()
             }
@@ -713,13 +817,10 @@ var dbAuction = {
                             newProposal.data.templateObjId = auctionData.rewardData.templateObjId;
                         }
                         if (auctionData && auctionData.rewardData.hasOwnProperty("isSharedWithXima")){
-                            newProposal.data.isSharedWithXima = auctionData.rewardData.templateObjId;
-                        }
-                        if (auctionData && auctionData.rewardData.hasOwnProperty("isSharedWithXima")){
-                            newProposal.data.isSharedWithXima = auctionData.rewardData.templateObjId;
+                            newProposal.data.isSharedWithXima = auctionData.rewardData.isSharedWithXima;
                         }
                         if (auctionData && auctionData.rewardData.hasOwnProperty("isForbidWithdrawal")){
-                            newProposal.data.isSharedWithXima = auctionData.rewardData.isForbidWithdrawal;
+                            newProposal.data.isForbidWithdrawal = auctionData.rewardData.isForbidWithdrawal;
                         }
                         if (auctionData && auctionData.rewardData.hasOwnProperty("useConsumption")){
                             newProposal.data.useConsumption = auctionData.rewardData.useConsumption;
