@@ -710,7 +710,7 @@ define(['js/app'], function (myApp) {
 
         vm.showProposalDetailField = function (obj, fieldName, val) {
             if (!obj) return '';
-            var result = val ? val.toString() : (val === 0) ? "0" : "";
+            var result = val || val === false ? val.toString() : (val === 0) ? "0" : "";
             if (obj.type.name === "UpdatePlayerPhone" && (fieldName === "updateData" || fieldName === "curData")) {
                 var str = val.phoneNumber
                 if (obj && obj.status && obj.status == 'Pending' && fieldName == 'updateData') {

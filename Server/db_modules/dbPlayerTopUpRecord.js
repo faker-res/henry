@@ -753,7 +753,7 @@ var dbPlayerTopUpRecord = {
                     str = constProposalType.PLAYER_WECHAT_TOP_UP
                 } else if (query && query.mainTopupType == constPlayerTopUpType.QUICKPAY) {
                     str = constProposalType.PLAYER_QUICKPAY_TOP_UP
-                } else if (query && query.mainTopupType === constPlayerTopUpType.COMMON) {
+                } else if (query && query.mainTopupType == constPlayerTopUpType.COMMON) {
                     str = constProposalType.PLAYER_COMMON_TOP_UP
                 } else {
                     str = {
