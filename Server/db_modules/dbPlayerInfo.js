@@ -19504,6 +19504,7 @@ let dbPlayerInfo = {
         let matchObj = {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}};
 
         for (let i = 0; i < arrayPhoneXLS.length; i++) {
+            arrayPhoneXLS[i] = arrayPhoneXLS[i].trim();
             oldNewPhone.$in.push(arrayPhoneXLS[i]);
             oldNewPhone.$in.push(rsaCrypto.encrypt(arrayPhoneXLS[i]));
             oldNewPhone.$in.push(rsaCrypto.oldEncrypt(arrayPhoneXLS[i]));
