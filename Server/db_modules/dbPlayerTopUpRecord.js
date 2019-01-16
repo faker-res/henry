@@ -1389,7 +1389,7 @@ var dbPlayerTopUpRecord = {
                             status: bCancel ? constProposalStatus.CANCEL : constProposalStatus.FAIL,
                         };
                         if(remarks) {
-                            updateData['data.remark'] = proposalObj.data && proposalObj.data.remark ? proposalObj.data.remark + remarks : remarks;
+                            updateData['data.remark'] = proposalObj.data && proposalObj.data.remark ? proposalObj.data.remark + "; " + remarks : remarks;
                         }
                         return dbProposal.updateProposal(
                             {_id: proposalObj._id, createTime: proposalObj.createTime},
@@ -4636,7 +4636,7 @@ var dbPlayerTopUpRecord = {
                 let remarks = "强制匹配：成功。";
                 return dbProposal.getProposal({_id: proposalObjId}).then(proposal => {
                     if(proposal && proposal.data) {
-                        let proposalRemark = proposal.data.remark ? proposal.data.remark + remarks : remarks;
+                        let proposalRemark = proposal.data.remark ? proposal.data.remark + "; " + remarks : remarks;
                         return updateProposalRemark(proposal, proposalRemark).then(() => {return Promise.resolve(true)});
                     }
                 });
