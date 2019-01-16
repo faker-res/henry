@@ -416,20 +416,20 @@ var dbPlatformMerchantGroup = {
         data=>{
             let bankcard = [];
             // bankcard
-            if(data[1] && data[1].data.length>0){
-              data[1].data.map(bcard=>{
-                  bcard.merchantNo = bcard.accountNumber;
-                  bcard.name = bcard.accountNumber + '('+ bcard.name + ')';
-                  bcard.merchantTypeId = '9999';
-                  bcard.merchantTypeName = "Bankcard";
-              })
+            if (data[1] && data[1].data.length > 0) {
+                data[1].data.map(card => {
+                  card.merchantNo = card.accountNumber;
+                  card.name = card.accountNumber + '('+ card.name + ')';
+                  card.merchantTypeId = '9999';
+                  card.merchantTypeName = "Bankcard";
+                })
             }
             if (data[2] && data[2].data.length > 0) {
-                data[2].data.map(bcard => {
-                    bcard.merchantNo = bcard.accountNumber;
-                    bcard.name = bcard.accountNumber + '(' + bcard.name + ')';
-                    bcard.merchantTypeId = '9998';
-                    bcard.merchantTypeName = "WechatCard";
+                data[2].data.map(card => {
+                    card.merchantNo = card.accountNumber;
+                    card.name = card.accountNumber + '(' + card.name + ')';
+                    card.merchantTypeId = '9998';
+                    card.merchantTypeName = "WechatCard";
                 })
             }
             if (data[3] && data[3].data.length > 0) {
@@ -464,12 +464,12 @@ var dbPlatformMerchantGroup = {
         })
 
         if(data && data.data && data.data.length > 0){
-            data.data.forEach(bcard=>{
-                bcard.merchantNo = bcard.accountNumber;
-                bcard.name = bcard.accountNumber + '(' + bcard.name + ')';
-                bcard.merchantTypeId = '9997';
-                bcard.merchantTypeName = "AliPayAcc";
-                result.push(bcard);
+            data.data.forEach(card => {
+                card.merchantNo = card.accountNumber;
+                card.name = card.accountNumber + '(' + card.name + ')';
+                card.merchantTypeId = '9997';
+                card.merchantTypeName = "AliPayAcc";
+                result.push(card);
             })
         }
         return result;
