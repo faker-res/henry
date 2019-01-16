@@ -14,7 +14,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     //set up socket service
     socketService.authService = authService;
     socketService.curScope = $scope;
-    $scope.showDisabledPaymentMethod = false;
 
     // Simulate latency by delaying all calls to socketService.$socket
     // Useful for testing purposes
@@ -457,8 +456,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
             return;
         }
         loadProfitDetail();
-        let showDisabledPaymentMethod = Boolean($scope.showDisabledPaymentMethod);
-        loadPlatformInfo(showDisabledPaymentMethod);
+        loadPlatformInfo();
         $scope.$broadcast('switchPlatform');
         $scope.fontSizeAdaptive(document.getElementById('selectedPlatformNodeTitle'));
     };
@@ -1775,11 +1773,13 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         }
         return $filter('noRoundTwoDecimalPlaces')(value).toFixed(2);
     };
-    
+
     $scope.fixModalScrollIssue = () => {
         $('.modal').off('hidden.bs.modal');
         $('.modal').on('hidden.bs.modal', function (e) {
-            $('body').addClass('modal-open');
+            if ($('.modal').filter(':visible').length) {
+                $('body').addClass('modal-open');
+            }
         });
     };
 
@@ -1909,23 +1909,23 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         }
     }
 
-    function loadPlatformInfo(showDisabledPaymentMethod) {
+    function loadPlatformInfo() {
         // Clear some variable before load
         $scope.merchantNoNameObj = {};
         $scope.merchantGroupObj = [];
+        $scope.merGroupName = {};
 
         // Load merchantTypes, merchantGroupObj
         socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
             $scope.$evalAsync(() => {
-                let merGroupName = {};
                 let merGroupList = {};
 
                 data.data.merchantTypes.forEach(mer => {
-                    merGroupName[mer.merchantTypeId] = mer.name;
+                    $scope.merGroupName[mer.merchantTypeId] = mer.name;
                 });
 
                 $scope.merchantTypes = data.data.merchantTypes;
-                $scope.merchantGroupObj = utilService.createMerGroupList(merGroupName, merGroupList);
+                $scope.merchantGroupObj = utilService.createMerGroupList($scope.merGroupName, merGroupList);
             })
         });
 
@@ -1933,17 +1933,12 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: $scope.curPlatformId}, function (data) {
             $scope.$evalAsync(() => {
                 if (data.data && data.data.merchants) {
-                    let merGroupName = {};
                     let merGroupList = {};
 
                     $scope.merchantLists = data.data.merchants;
                     $scope.merchantNoList = data.data.merchants.filter(mer => {
                         $scope.merchantNoNameObj[mer.merchantNo] = mer.name;
-                        if (showDisabledPaymentMethod) {
-                            return true;
-                        } else {
-                            return mer.status !== 'DISABLED';
-                        }
+                        return mer.status !== 'DISABLED';
                     });
 
                     $scope.merchantNoList.forEach(item => {
@@ -1967,7 +1962,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                         }
                     });
                     $scope.merchantCloneList = angular.copy($scope.merchantNoList);
-                    $scope.merchantGroupObj = utilService.createMerGroupList(merGroupName, merGroupList);
+                    $scope.merchantGroupObj = utilService.createMerGroupList($scope.merGroupName, merGroupList);
                     $scope.merchantGroupCloneList = $scope.merchantGroupObj;
                 }
             });

@@ -14,7 +14,6 @@ define(['js/app'], function (myApp) {
             return $filter('noRoundTwoDecimalPlaces')(value).toFixed(2);
         };
         var vm = this;
-        $scope.showDisabledPaymentMethod = true;
 
         // For debugging:
         window.VM = vm;
@@ -8862,6 +8861,8 @@ define(['js/app'], function (myApp) {
                 result = data.map(item=>{
                     if(item.category){
                         item.name = $translate('Alipay-Line')+ item.line+ $translate('( All )');
+                    }else if(item.merchantTypeId == '9997' && !item.category){
+                        item.name = item.name +' --- ' + item.line;
                     }
                     return item;
                 })
