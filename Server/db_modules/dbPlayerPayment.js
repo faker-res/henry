@@ -11,6 +11,7 @@ const pmsAPI = require("../externalAPI/pmsAPI.js");
 const dbconfig = require('./../modules/dbproperties');
 const dbUtil = require("../modules/dbutility");
 const serverInstance = require("../modules/serverInstance");
+const rsaCrypto = require('./../modules/rsaCrypto');
 
 const constDepositMethod = require('./../const/constDepositMethod');
 const constPlayerTopUpType = require("../const/constPlayerTopUpType.js");
@@ -445,7 +446,7 @@ const dbPlayerPayment = {
     },
 
     createCommonTopupProposal: (playerId, topupRequest, ipAddress, entryType, adminId, adminName) => {
-        let player, rewardEvent, proposal;
+        let player, rewardEvent, proposal, topUpSystemConfig;
 
         if (topupRequest.bonusCode && topupRequest.topUpReturnCode) {
             return Promise.reject({
@@ -473,6 +474,8 @@ const dbPlayerPayment = {
             playerdata => {
                 if (playerdata) {
                     player = playerdata;
+                    topUpSystemConfig =
+                        extConfig && player.platform.topUpSystemType && extConfig[player.platform.topUpSystemType];
 
                     // Check player top up permission
                     if (player && player.permission && player.permission.allTopUp === false) {
@@ -544,23 +547,18 @@ const dbPlayerPayment = {
                 }
 
                 // Decide which payment system to use
-                if (player.platform.topUpSystemType) {
-
-                }
-
+                let proposalType;
                 let proposalData = Object.assign({}, topupRequest);
                 proposalData.playerId = playerId;
                 proposalData.playerObjId = player._id;
                 proposalData.platformId = player.platform._id;
-                proposalData.playerLevel = player.playerLevel;
+                if( player.playerLevel ){
+                    proposalData.playerLevel = player.playerLevel._id;
+                }
                 proposalData.platform = player.platform.platformId;
                 proposalData.playerName = player.name;
                 proposalData.playerRealName = player.realName;
                 proposalData.amount = Number(topupRequest.amount);
-                proposalData.bankCardGroupName = player.bankCardGroup && player.bankCardGroup.name || "";
-                proposalData.merchantGroupName = player.merchantGroup && player.merchantGroup.name || "";
-                proposalData.wechatPayGroupName = player.wechatPayGroup && player.wechatPayGroup.name || "";
-                proposalData.aliPayGroupName = player.alipayGroup && player.alipayGroup.name || "";
                 proposalData.creator = entryType === "ADMIN" ? {
                     type: 'admin',
                     name: adminName,
@@ -570,6 +568,19 @@ const dbPlayerPayment = {
                     name: player.name,
                     id: playerId
                 };
+
+                if (topUpSystemConfig && topUpSystemConfig.name === '快付收银台') {
+                    proposalData.bankCode = topupRequest.bankCode || 'CASHIER';
+
+                    proposalType = constProposalType.PLAYER_FKP_TOP_UP;
+                } else {
+                    proposalData.bankCardGroupName = player.bankCardGroup && player.bankCardGroup.name || "";
+                    proposalData.merchantGroupName = player.merchantGroup && player.merchantGroup.name || "";
+                    proposalData.wechatPayGroupName = player.wechatPayGroup && player.wechatPayGroup.name || "";
+                    proposalData.aliPayGroupName = player.alipayGroup && player.alipayGroup.name || "";
+
+                    proposalType = constProposalType.PLAYER_COMMON_TOP_UP;
+                }
 
                 if (rewardEvent && rewardEvent.type && rewardEvent.type.name && rewardEvent.code){
                     if (rewardEvent.type.name === constRewardType.PLAYER_TOP_UP_RETURN_GROUP){
@@ -587,10 +598,12 @@ const dbPlayerPayment = {
                 // Check Limited Offer Intention
                 if (limitedOfferTopUp) {
                     proposalData.limitedOfferObjId = limitedOfferTopUp._id;
+                    proposalData.limitedOfferName = limitedOfferTopUp.data.limitedOfferName;
                     proposalData.expirationTime = limitedOfferTopUp.data.expirationTime;
+                    proposalData.remark = '优惠名称: ' + limitedOfferTopUp.data.limitedOfferName + ' (' + limitedOfferTopUp.proposalId + ')';
                 }
 
-                if(ipAddress){
+                if (ipAddress) {
                     proposalData.lastLoginIp = ipAddress;
                 }
 
@@ -598,38 +611,76 @@ const dbPlayerPayment = {
                     creator: proposalData.creator,
                     data: proposalData,
                     entryType: constProposalEntryType[entryType],
-                    //createTime: createTime ? new Date(createTime) : new Date(),
                     userType: player.isTestPlayer ? constProposalUserType.TEST_PLAYERS : constProposalUserType.PLAYERS,
                 };
 
                 newProposal.inputDevice = dbUtil.getInputDevice(topupRequest.userAgent, false);
-                return dbProposal.createProposalWithTypeName(player.platform._id, constProposalType.PLAYER_COMMON_TOP_UP, newProposal);
+                return dbProposal.createProposalWithTypeName(player.platform._id, proposalType, newProposal);
             }
         ).then(
             proposalObj => {
                 if (proposalObj) {
-                    proposal = proposalObj;
-                    let paymentUrl = env.paymentHTTPAPIUrl;
+                    if (topUpSystemConfig && topUpSystemConfig.name === '快付收银台') {
+                        proposal = proposalObj;
+                        let ip = player.lastLoginIp && player.lastLoginIp != 'undefined' ? player.lastLoginIp : "127.0.0.1";
+                        let postData = {
+                            charset: 'UTF-8',
+                            merchantCode: 'M310018',
+                            orderNo: proposal.proposalId,
+                            // FKP amount is in cent unit
+                            amount: topupRequest.amount * 100,
+                            channel: 'BANK',
+                            bankCode: topupRequest.bankCode || 'CASHIER',
+                            remark: 'test remark',
+                            notifyUrl: extConfig["1"].topUpAPICallback,
+                            returnUrl: "",
+                            extraReturnParam: ""
+                        };
 
-                    // currently set to platformId 4 use on it first
-                    if (player && player.platform && player.platform.platformId && player.platform.platformId === '4' && player.platform.topUpSystemType
-                        && extConfig && extConfig[player.platform.topUpSystemType] && extConfig[player.platform.topUpSystemType].topUpAPIAddr) {
-                        paymentUrl = extConfig[player.platform.topUpSystemType].topUpAPIAddr;
+                        let toEncrypt = processFKPData(postData);
+                        postData.sign = rsaCrypto.signFKP(toEncrypt);
+                        postData.signType = "RSA";
+
+                        return {
+                            postUrl: extConfig["1"].topUpAPIAddr,
+                            postData: postData
+                        }
+                    } else {
+                        proposal = proposalObj;
+                        let paymentUrl = env.paymentHTTPAPIUrl;
+
+                        // currently set to platformId 4 use on it first
+                        if (player && player.platform && player.platform.platformId && player.platform.platformId === '4' && player.platform.topUpSystemType
+                            && extConfig && extConfig[player.platform.topUpSystemType] && extConfig[player.platform.topUpSystemType].topUpAPIAddr) {
+                            paymentUrl = extConfig[player.platform.topUpSystemType].topUpAPIAddr;
+                        }
+
+                        return {
+                            url: generatePMSHTTPUrl(player, proposal, paymentUrl, topupRequest.clientType, ipAddress, topupRequest.amount),
+                            proposalId: proposal.proposalId,
+                            amount: proposal.data.amount,
+                            createTime: proposal.createTime
+                        };
                     }
+                }
+            }
+        );
 
-                    return generatePMSHTTPUrl(player, proposal, paymentUrl, topupRequest.clientType, ipAddress, topupRequest.amount);
-                }
-            }
-        ).then(
-            url => {
-                return {
-                    url: url,
-                    proposalId: proposal.proposalId,
-                    amount: proposal.data.amount,
-                    createTime: proposal.createTime
-                }
-            }
-        )
+        function processFKPData (data) {
+            let toEncrypt = '';
+
+            Object.keys(data).forEach(key => {
+                toEncrypt += key;
+                toEncrypt += '=';
+                toEncrypt += data[key] ? data[key].toString() : '';
+                toEncrypt += '&'
+            });
+
+            // remove the last & character
+            toEncrypt = toEncrypt.slice(0, -1);
+
+            return toEncrypt;
+        }
     }
 
     // endregion
