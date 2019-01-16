@@ -6028,6 +6028,25 @@ var dbPlatform = {
                                         && platform && platform.quota != 'undefined' && platform.quota != null && (platform.quota <= paymentSystemConfig[indexNo].minPointNotification)) {
 
                                         proms.push(getPlatformNotificationRecipient(paymentSystemConfig[indexNo], platform.quota));
+
+                                    } else {
+                                        if (extConfig && Object.keys(extConfig)) {
+                                            Object.keys(extConfig).forEach(key => {
+                                                if (key && extConfig[key] && extConfig[key].name === 'PMS' && platform && platform.quota != 'undefined' && platform.quota != null
+                                                    && extConfig[key].minPointNotification && (platform.quota <= extConfig[key].minPointNotification)) {
+                                                    let platformIndexNo = platfromRecord.findIndex(x => x && x.platformId && platform && platform.platformId && x.platformId == platform.platformId);
+
+                                                    if (platformIndexNo != -1) {
+                                                        let data = {
+                                                            platform: platfromRecord[platformIndexNo]._id,
+                                                            systemType: Number(key)
+                                                        }
+
+                                                        proms.push(getPlatformNotificationRecipient(data, platform.quota));
+                                                    }
+                                                }
+                                            });
+                                        }
                                     }
                                 });
 
@@ -6344,7 +6363,9 @@ function getPMSPlatfroms(platform, extConfig, platforms) {
 }
 
 function getPlatformNotificationRecipient(data, curFinancialSettlementPoint) {
-    return dbconfig.collection_platformNotificationRecipient.find({platform: data.platform._id}).lean().then(
+    let platformObjId = data && data.platform && data.platform._id ? data.platform._id : data.platform;
+
+    return dbconfig.collection_platformNotificationRecipient.find({platform: platformObjId}).lean().then(
         recipientData => {
             if (recipientData && recipientData.length > 0) {
                 let recipientEmails = recipientData.map(recipient => {
@@ -6353,7 +6374,7 @@ function getPlatformNotificationRecipient(data, curFinancialSettlementPoint) {
 
                 let recipientEmailsStr = recipientEmails.join();
 
-                return {platformObjId: data.platform._id, recipientEmails: recipientEmailsStr, systemType: data.systemType, curFinancialPoint: curFinancialSettlementPoint};
+                return {platformObjId: platformObjId, recipientEmails: recipientEmailsStr, systemType: data.systemType, curFinancialPoint: curFinancialSettlementPoint};
             }
         }
     )
