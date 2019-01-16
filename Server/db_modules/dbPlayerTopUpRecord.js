@@ -752,6 +752,8 @@ var dbPlayerTopUpRecord = {
                     str = constProposalType.PLAYER_WECHAT_TOP_UP
                 } else if (query && query.mainTopupType == constPlayerTopUpType.QUICKPAY) {
                     str = constProposalType.PLAYER_QUICKPAY_TOP_UP
+                } else if (query && query.mainTopupType === constPlayerTopUpType.COMMON) {
+                    str = constProposalType.PLAYER_COMMON_TOP_UP
                 } else {
                     str = {
                         $in: [
@@ -759,7 +761,8 @@ var dbPlayerTopUpRecord = {
                             constProposalType.PLAYER_ALIPAY_TOP_UP,
                             constProposalType.PLAYER_MANUAL_TOP_UP,
                             constProposalType.PLAYER_WECHAT_TOP_UP,
-                            constProposalType.PLAYER_QUICKPAY_TOP_UP
+                            constProposalType.PLAYER_QUICKPAY_TOP_UP,
+                            constProposalType.PLAYER_COMMON_TOP_UP,
                         ]
                     };
                 }
