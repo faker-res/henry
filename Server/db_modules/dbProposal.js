@@ -817,7 +817,7 @@ var proposal = {
             proposalData => {
                 if (proposalData && proposalData.data) {
                     proposalObj = proposalData;
-
+                    remark = proposalData.data.remark ? proposalData.data.remark + "; " + remark : remark;
                     // Check passed in amount vs proposal amount
                     if (callbackData && callbackData.amount && proposalData.data.amount && Math.floor(callbackData.amount) !== Math.floor(proposalData.data.amount)) {
                         console.log('callbackData.amount', callbackData.amount, Math.floor(callbackData.amount));
@@ -982,7 +982,7 @@ var proposal = {
                             }
 
                             // Some extra data
-                            addDetailToProp(updObj.data, 'remark', callbackData.remark);
+                            addDetailToProp(updObj.data, 'remark', remark);
                             addDetailToProp(updObj.data, 'merchantNo', callbackData.merchantNo);
                             addDetailToProp(updObj.data, 'merchantName', callbackData.merchantTypeName);
                             addDetailToProp(updObj.data, 'bankCardNo', callbackData.bankCardNo);
