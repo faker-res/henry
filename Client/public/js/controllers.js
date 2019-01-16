@@ -1773,7 +1773,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         }
         return $filter('noRoundTwoDecimalPlaces')(value).toFixed(2);
     };
-    
+
     $scope.fixModalScrollIssue = () => {
         $('.modal').off('hidden.bs.modal');
         $('.modal').on('hidden.bs.modal', function (e) {
@@ -1940,7 +1940,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     });
 
                     $scope.merchantNoList.forEach(item => {
-                        merGroupName[item.merchantTypeId] = item.name;
                         merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
                         merGroupList[item.merchantTypeId].list.push(item.merchantNo);
                     });
