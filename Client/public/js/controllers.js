@@ -1904,19 +1904,19 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         // Clear some variable before load
         $scope.merchantNoNameObj = {};
         $scope.merchantGroupObj = [];
+        $scope.merGroupName = {};
 
         // Load merchantTypes, merchantGroupObj
         socketService.$socket($scope.AppSocket, 'getMerchantTypeList', {}, function (data) {
             $scope.$evalAsync(() => {
-                let merGroupName = {};
                 let merGroupList = {};
 
                 data.data.merchantTypes.forEach(mer => {
-                    merGroupName[mer.merchantTypeId] = mer.name;
+                    $scope.merGroupName[mer.merchantTypeId] = mer.name;
                 });
 
                 $scope.merchantTypes = data.data.merchantTypes;
-                $scope.merchantGroupObj = utilService.createMerGroupList(merGroupName, merGroupList);
+                $scope.merchantGroupObj = utilService.createMerGroupList($scope.merGroupName, merGroupList);
             })
         });
 
@@ -1924,7 +1924,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
         socketService.$socket($scope.AppSocket, 'getMerchantNBankCard', {platformId: $scope.curPlatformId}, function (data) {
             $scope.$evalAsync(() => {
                 if (data.data && data.data.merchants) {
-                    let merGroupName = {};
                     let merGroupList = {};
 
                     $scope.merchantLists = data.data.merchants;
@@ -1954,7 +1953,7 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                         }
                     });
                     $scope.merchantCloneList = angular.copy($scope.merchantNoList);
-                    $scope.merchantGroupObj = utilService.createMerGroupList(merGroupName, merGroupList);
+                    $scope.merchantGroupObj = utilService.createMerGroupList($scope.merGroupName, merGroupList);
                     $scope.merchantGroupCloneList = $scope.merchantGroupObj;
                 }
             });
