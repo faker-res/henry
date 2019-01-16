@@ -12789,8 +12789,19 @@ let dbPlayerInfo = {
                                         );
                                     }
                                     //if it's ipm ,ky or some providers, don't use async here
-                                    if (providerData && (providerData.providerId == "51" || providerData.providerId == "57" || providerData.providerId == "41"
-                                        || providerData.providerId == "70" || providerData.providerId == "82" || providerData.providerId == "83" || isApplyBonusDoubledReward)) {
+                                    if (
+                                        providerData
+                                        && (
+                                            providerData.providerId == "51"
+                                            || providerData.providerId == "57"
+                                            || providerData.providerId == "41"
+                                            || providerData.providerId == "70"
+                                            || providerData.providerId == "82" // IG
+                                            || providerData.providerId == "83"
+                                            || providerData.providerId == "86" // SABA
+                                            || isApplyBonusDoubledReward
+                                        )
+                                    ) {
                                         return transferProm;
                                     }
                                     else {
