@@ -2072,8 +2072,8 @@
                     br
 
                     div.proposalMessage
-                        text {{'The update time of this point' | translate}}  : {{vm.lastPaymentSystemRefresh}}
-                        a(type='button' ng-click='vm.getPaymentSystemConfigByPlatform()') {{'Refresh' | translate}} &nbsp;
+                        text {{'The update time of this point' | translate}}  : {{vm.lastPaymentSystemRefresh}}&nbsp;&nbsp;
+                        a(type='button' ng-click='vm.getPaymentSystemConfigByPlatform()') {{'Refresh' | translate}}
                         span#paymentSystemRecordSpin.collapse
                             i.fa.fa-spinner.fa-spin
                     table.simple-table(style="white-space:pre-wrap; word-wrap:break-word;text-align:center")
