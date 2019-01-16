@@ -1946,10 +1946,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                         }
                     });
 
-                    let line2Acc = commonService.getAlipayLineAcc($trans, "2");
-                    let line3Acc = commonService.getAlipayLineAcc($trans, "3");
-                    $scope.merchantNoList.push(line2Acc);
-                    $scope.merchantNoList.push(line3Acc);
                     $scope.merchantNoList.forEach(item => {
                         merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
                         merGroupList[item.merchantTypeId].list.push(item.merchantNo);
