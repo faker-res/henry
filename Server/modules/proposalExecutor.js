@@ -3738,7 +3738,8 @@ var proposalExecutor = {
                                 newPromoCodeEntry.isDeleted = promoCodeTemplateData.isDeleted;
                                 newPromoCodeEntry.allowedProviders = promoCodeTemplateData.allowedProviders;
                                 newPromoCodeEntry.createTime = new Date();
-                                newPromoCodeEntry.expirationTime = dbUtil.getNdaylaterFromSpecificStartTime(promoCodeTemplateData.expiredInDay, new Date());
+                                let todayEndTime = dbUtil.getTodaySGTime().endTime;
+                                newPromoCodeEntry.expirationTime = dbUtil.getNdaylaterFromSpecificStartTime(promoCodeTemplateData.expiredInDay, todayEndTime);
                                 if (promoCodeTemplateData.maxRewardAmount) {
                                     newPromoCodeEntry.maxRewardAmount = promoCodeTemplateData.maxRewardAmount;
                                 }
