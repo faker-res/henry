@@ -5764,7 +5764,7 @@ var dbPlatform = {
 
     },
 
-    getPaymentSystemConfigByPlatform: function(platformObjId) {
+    getPaymentSystemConfigByPlatform: function(platformObjId, platformId) {
         let paymentSystemConfig = [];
 
         return dbconfig.collection_paymentSystemConfig.find({platform: platformObjId}).lean().then(
@@ -5781,16 +5781,10 @@ var dbPlatform = {
                                 tempConfig._id = customConfig[indexNo]._id;
                                 tempConfig.enableTopup = customConfig[indexNo].enableTopup;
                                 tempConfig.enableBonus = customConfig[indexNo].enableBonus;
-                                // region TO-DO: wait for PMS / 3rd party payment system's API to get current financial point
-                                tempConfig.curFinancialSettlementPoint = customConfig[indexNo].curFinancialSettlementPoint;
-                                // end region
                                 tempConfig.minPointNotification = customConfig[indexNo].minPointNotification;
                             } else {
                                 tempConfig.enableTopup = extConfig[key].enableTopup;
                                 tempConfig.enableBonus = extConfig[key].enableBonus;
-                                // region TO-DO: wait for PMS / 3rd party payment system's API to get current financial point
-                                tempConfig.curFinancialSettlementPoint = extConfig[key].curFinancialSettlementPoint;
-                                // end region
                                 tempConfig.minPointNotification = extConfig[key].minPointNotification;
                             }
 
@@ -5802,6 +5796,37 @@ var dbPlatform = {
                             paymentSystemConfig.push(tempConfig);
                         }
                     });
+                }
+
+                return paymentSystemConfig;
+            }
+        ).then(
+            paymentSystemConfig => {
+                if (paymentSystemConfig && paymentSystemConfig.length > 0) {
+                    let indexNo = paymentSystemConfig.findIndex(x => x && x.name && x.name === 'PMS');
+
+                    if (indexNo != -1) {
+                        let requestData = {
+                            platformIds: [platformId]
+                        };
+
+                        return pmsAPI.platform_queryNetworkPlatformAmount(requestData).then(
+                            data => {
+                                let curFinancialSettlementPoint;
+
+                                if (data && data.networkPlatforms && data.networkPlatforms.length > 0) {
+                                    let pointIndexNo = data.networkPlatforms.findIndex(y => y && y.platformId && y.platformId == platformId);
+
+                                    if (pointIndexNo != -1) {
+                                        curFinancialSettlementPoint = data.networkPlatforms[pointIndexNo].quota;
+                                        paymentSystemConfig[indexNo].curFinancialSettlementPoint = curFinancialSettlementPoint;
+                                    }
+
+                                    return paymentSystemConfig;
+                                }
+                            }
+                        );
+                    }
                 }
 
                 return paymentSystemConfig;
@@ -5991,8 +6016,8 @@ var dbPlatform = {
 
                     return pmsAPI.platform_queryNetworkPlatformAmount(requestData).then(
                        data => {
-                            if (data && data.data && data.data.networkPlatforms && data.data.networkPlatforms.length > 0) {
-                                let financialPointPlatforms = data.data.networkPlatforms;
+                            if (data && data.networkPlatforms && data.networkPlatforms.length > 0) {
+                                let financialPointPlatforms = data.networkPlatforms;
                                 let proms = [];
 
                                 financialPointPlatforms.forEach(platform => {

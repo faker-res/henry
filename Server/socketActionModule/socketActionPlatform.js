@@ -895,8 +895,8 @@ function socketActionPlatform(socketIO, socket) {
 
         getPaymentSystemConfigByPlatform: function getPaymentSystemConfigByPlatform(data) {
             let actionName = arguments.callee.name;
-            let isValidData = Boolean(data && data.platform);
-            socketUtil.emitter(self.socket, dbPlatform.getPaymentSystemConfigByPlatform, [data.platform], actionName, isValidData);
+            let isValidData = Boolean(data && data.platform && data.platformId);
+            socketUtil.emitter(self.socket, dbPlatform.getPaymentSystemConfigByPlatform, [data.platform, data.platformId], actionName, isValidData);
         },
 
         updatePaymentSystemConfigByPlatform: function updatePaymentSystemConfigByPlatform(data) {

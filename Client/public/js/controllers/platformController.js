@@ -27917,7 +27917,8 @@ define(['js/app'], function (myApp) {
                 vm.refreshPaymentSystem();
 
                 let sendData = {
-                    platform: vm.selectedPlatform.id
+                    platform: vm.selectedPlatform.id,
+                    platformId: vm.selectedPlatform.data.platformId
                 };
 
                 socketService.$socket($scope.AppSocket, 'getPaymentSystemConfigByPlatform', sendData, function (data) {
@@ -27938,7 +27939,6 @@ define(['js/app'], function (myApp) {
 
                 $('#paymentSystemRecordSpinRecordSpin').show();
                 vm.lastPaymentSystemRefresh = utilService.$getTimeFromStdTimeFormat();
-                vm.getProviderLatestTimeRecord();
             }
 
             vm.updatePaymentSystemConfigByPlatform = function () {
