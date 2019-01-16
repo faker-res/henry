@@ -14,7 +14,6 @@ define(['js/app'], function (myApp) {
             return $filter('noRoundTwoDecimalPlaces')(value).toFixed(2);
         };
         var vm = this;
-        $scope.showDisabledPaymentMethod = true;
 
         // For debugging:
         window.VM = vm;
