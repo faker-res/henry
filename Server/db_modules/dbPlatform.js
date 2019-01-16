@@ -5922,7 +5922,6 @@ var dbPlatform = {
     },
 
     checkMinPointNotification: function () {
-        console.log("Check Min Point Notification schedule start");
         let platfromRecord;
         let currentDate = new Date();
 
@@ -6355,10 +6354,7 @@ function sendMinFinancialPointNotification(platformRecipients, currentDate) {
             }
         });
     }
-    return Promise.all(proms).then(data => {
-        console.log("Check Min Point Notification schedule done");
-        return data;
-    });
+    return Promise.all(proms);
 }
 
 var proto = dbPlatformFunc.prototype;
