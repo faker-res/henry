@@ -1779,7 +1779,9 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
     $scope.fixModalScrollIssue = () => {
         $('.modal').off('hidden.bs.modal');
         $('.modal').on('hidden.bs.modal', function (e) {
-            $('body').addClass('modal-open');
+            if ($('.modal').filter(':visible').length) {
+                $('body').addClass('modal-open');
+            }
         });
     };
 
