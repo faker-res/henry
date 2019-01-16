@@ -110,6 +110,7 @@ var proposalExecutor = {
             || executionType === 'executeBaccaratRewardGroup'
 
             // Auction reward
+            || executionType === 'executeAuctionPromoCode'
             || executionType === 'executeAuctionOpenPromoCode'
 
         if (isNewFunc) {
@@ -3687,10 +3688,104 @@ var proposalExecutor = {
                 }
             },
 
-            executeAuctionPromoCode: function (proposalData, deferred) {
-                if (proposalData && proposalData.data) {
-                    // do nothing
-                    deferred.resolve(proposalData);
+            executeAuctionPromoCode: function (proposalData) {
+                if (proposalData && proposalData.data && proposalData.data.templateObjId && (proposalData.status == constProposalStatus.SUCCESS ||
+                    proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
+                    let code = null;
+                    let expirationDate = null;
+                    let isProviderGroup = null;
+                    let promoCodeTemplateData = null;
+                    let player;
+                    let newPromoCodeEntry = {};
+                    let platformObjId = proposalData && proposalData.data && proposalData.data.platformId ? proposalData.data.platformId : null;
+                    let playerName = proposalData && proposalData.data && proposalData.data.playerName ? proposalData.data.playerName : null;
+
+                    return dbconfig.collection_promoCodeTemplate.findOne({_id: ObjectId(proposalData.data.templateObjId)}).lean().then(
+                        promoCodeTemplate => {
+                            if (promoCodeTemplate && promoCodeTemplate._id) {
+                                promoCodeTemplateData = promoCodeTemplate;
+                                // Check if player exist
+                                return dbconfig.collection_players.findOne({
+                                    platform: platformObjId,
+                                    name: playerName
+                                }).lean();
+                            }
+                        }
+                    ).then(
+                        playerData => {
+                            if (playerData) {
+                                player = playerData;
+
+                                return dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", true);
+                            } else {
+                                return Promise.reject({name: "DataError", message: "Invalid player data"});
+                            }
+                        }
+                    ).then(
+                        playerState => {
+                            if (playerState) {
+                                newPromoCodeEntry.playerObjId = player._id;
+                                newPromoCodeEntry.code = dbUtil.generateRandomPositiveNumber(1000, 9999);
+                                newPromoCodeEntry.status = constPromoCodeStatus.AVAILABLE;
+                                newPromoCodeEntry.platformObjId = platformObjId;
+                                newPromoCodeEntry.promoCodeTemplateObjId = promoCodeTemplateData._id;
+                                newPromoCodeEntry.isSharedWithXIMA = promoCodeTemplateData.isSharedWithXIMA;
+                                newPromoCodeEntry.disableWithdraw = promoCodeTemplateData.disableWithdraw;
+                                newPromoCodeEntry.requiredConsumption = promoCodeTemplateData.requiredConsumption;
+                                newPromoCodeEntry.amount = promoCodeTemplateData.amount;
+                                newPromoCodeEntry.minTopUpAmount = promoCodeTemplateData.minTopUpAmount;
+                                newPromoCodeEntry.isProviderGroup = promoCodeTemplateData.isProviderGroup;
+                                newPromoCodeEntry.isDeleted = promoCodeTemplateData.isDeleted;
+                                newPromoCodeEntry.allowedProviders = promoCodeTemplateData.allowedProviders;
+                                newPromoCodeEntry.createTime = new Date();
+                                newPromoCodeEntry.expirationTime = dbUtil.getNdaylaterFromSpecificStartTime(promoCodeTemplateData.expiredInDay, new Date());
+                                if (promoCodeTemplateData.maxRewardAmount) {
+                                    newPromoCodeEntry.maxRewardAmount = promoCodeTemplateData.maxRewardAmount;
+                                }
+                                code =  newPromoCodeEntry.code;
+                                expirationDate =  newPromoCodeEntry.expirationTime;
+                                isProviderGroup = newPromoCodeEntry.isProviderGroup;
+
+                                return dbconfig.collection_promoCodeActiveTime.findOne({
+                                    platform: platformObjId,
+                                    startTime: {$lt: new Date()},
+                                    endTime: {$gt: new Date()}
+                                }).lean();
+                            }
+                        }
+                    ).then(
+                        activeTimeRes => {
+                            if (activeTimeRes) {
+                                newPromoCodeEntry.isActive = true;
+                            }
+
+                            let updateData = {
+                                'data.promoCode': code || null,
+                                'data.expirationTime': expirationDate || null,
+                                'data.isProviderGroup': isProviderGroup || false,
+                            };
+
+                            let promoCodeProm = new dbconfig.collection_promoCode(newPromoCodeEntry).save();
+                            let updateProposalProm = dbconfig.collection_proposal.findOneAndUpdate({_id: ObjectId(proposalData._id)}, updateData, {new: true}).lean();
+                            return Promise.all([promoCodeProm, updateProposalProm])
+                        }
+                    ).then(
+                        retData => {
+                            if (retData[1]){
+                                sendMessageToPlayer(retData[1], constMessageType.AUCTION_PROMO_CODE_SUCCESS, {});
+                                dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
+                                return retData[1]
+                            }
+                        }
+                    ).catch(
+                        err => {
+                            dbPlayerUtil.setPlayerBState(player._id, "generatePromoCode", false).catch(errorUtils.reportError);
+                            throw err;
+                        }
+                    )
+                }
+                else {
+                    return Promise.resolve();
                 }
             },
 
@@ -3702,7 +3797,7 @@ var proposalExecutor = {
                     proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
                     let code = null;
                     let expirationDate = null;
-                    let isProvidderGroup = null;
+                    let isProviderGroup = null;
                     // find the open promo code template to update its expiration time and the status
                     return dbconfig.collection_openPromoCodeTemplate.findOne({_id: ObjectId(proposalData.data.templateObjId)}).lean().then(
                         openPromoCodeTemplate => {
@@ -3725,7 +3820,7 @@ var proposalExecutor = {
                             let updateData = {
                                 'data.promoCode': code || null,
                                 'data.expirationTime': expirationDate || null,
-                                'data.isProviderGroup': isProvidderGroup || false,
+                                'data.isProviderGroup': isProviderGroup || false,
                             };
 
                             return dbconfig.collection_proposal.findOneAndUpdate({_id: ObjectId(proposalData._id)}, updateData, {new: true}).lean();
