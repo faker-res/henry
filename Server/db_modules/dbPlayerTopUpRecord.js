@@ -4625,21 +4625,22 @@ var dbPlayerTopUpRecord = {
             depositId: referenceNumber
         }).then(data => {
             console.log("forcePairingWithReferenceNumber data", data);
-            if(data && data.status == 200) {
+            if(data) {
                 // execute TopUp
                 let remarks = "强制匹配：成功。";
                 return dbProposal.updateProposalProcessStep(proposalObjId, adminId, remarks, true);
-            } else if(data && data.status == 401) {
-                // cancel top up
-                let remarks = data.errorMsg || "强制匹配：失败并取消。";
-                return dbProposal.cancelProposal(proposalObjId, adminId, remarks, adminObjId).then(() => {
-                    return Promise.reject({message: remarks});
-                })
             }
+            // else if(data && data.status == 401) {
+            //     // cancel top up
+            //     let remarks = data.errorMsg || "强制匹配：失败并取消。";
+            //     return dbProposal.cancelProposal(proposalObjId, adminId, remarks, adminObjId).then(() => {
+            //         return Promise.reject({message: remarks});
+            //     })
+            // }
         }, err => {
             if(err && err.status == 401) {
                 // cancel top up
-                let remarks = err.errorMsg || "强制匹配：失败并取消。";
+                let remarks = err.errorMessage || "强制匹配：失败并取消。";
                 return dbProposal.cancelProposal(proposalObjId, adminId, remarks, adminObjId).then(() => {
                     return Promise.reject({message: remarks});
                 })
