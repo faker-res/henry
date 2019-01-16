@@ -10238,7 +10238,7 @@ define(['js/app'], function (myApp) {
         }
 
         vm.forcePairingWithReferenceNumber = function() {
-            commonService.forcePairingWithReferenceNumber($scope, vm.selectedPlatform.platformId, vm.selectedProposal._id, vm.selectedProposal.proposalId, vm.forcePairingReferenceNumber);
+            commonService.forcePairingWithReferenceNumber($scope, $translate, socketService, vm.selectedPlatform.platformId, vm.selectedProposal._id, vm.selectedProposal.proposalId, vm.forcePairingReferenceNumber);
             vm.forcePairingReferenceNumber = '';
         };
 
