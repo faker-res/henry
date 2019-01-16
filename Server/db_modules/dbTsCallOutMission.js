@@ -349,6 +349,7 @@ function getUpdatedMissionDetail (platform, admin, mission, limit, index) {
         calleeList => {
             let proms = [];
             calleeList.map(callee => {
+                if (!callee) return;
                 let prom = dbconfig.collection_tsDistributedPhone.findOne({_id: callee.tsDistributedPhone})
                     .populate({path: "tsPhone", model: dbconfig.collection_tsPhone})
                     .populate({path: "tsPhoneList", model: dbconfig.collection_tsPhoneList, select: "name"})
