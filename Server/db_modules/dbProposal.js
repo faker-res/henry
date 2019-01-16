@@ -817,7 +817,7 @@ var proposal = {
             proposalData => {
                 if (proposalData && proposalData.data) {
                     proposalObj = proposalData;
-
+                    remark = proposalData.data.remark ? proposalData.data.remark + "; " + remark : remark;
                     // Check passed in amount vs proposal amount
                     if (callbackData && callbackData.amount && proposalData.data.amount && Math.floor(callbackData.amount) !== Math.floor(proposalData.data.amount)) {
                         console.log('callbackData.amount', callbackData.amount, Math.floor(callbackData.amount));
@@ -982,7 +982,7 @@ var proposal = {
                             }
 
                             // Some extra data
-                            addDetailToProp(updObj.data, 'remark', callbackData.remark);
+                            addDetailToProp(updObj.data, 'remark', remark);
                             addDetailToProp(updObj.data, 'merchantNo', callbackData.merchantNo);
                             addDetailToProp(updObj.data, 'merchantName', callbackData.merchantTypeName);
                             addDetailToProp(updObj.data, 'bankCardNo', callbackData.bankCardNo);
@@ -1449,7 +1449,6 @@ var proposal = {
                 function (proposalData) {
                     if (proposalData) {
                         var proposalStatus = proposalData.status || proposalData.process.status;
-                        let proposalDataRemark = proposalData.data && proposalData.data.remark ? proposalData.data.remark + remark : remark;
 
                         if (((proposalData.type.name === constProposalType.PLAYER_BONUS
                                 && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT || proposalStatus === constProposalStatus.CSPENDING))
@@ -1463,8 +1462,7 @@ var proposal = {
                                         noSteps: true,
                                         process: null,
                                         status: constProposalStatus.CANCEL,
-                                        "data.cancelBy": "客服：" + adminId,
-                                        'data.remark': proposalDataRemark
+                                        "data.cancelBy": "客服：" + adminId
                                     };
                                     if (proposalData.type.name == constProposalType.PLAYER_BONUS || proposalData.type.name == constProposalType.PARTNER_BONUS) {
                                         dbProposalUtility.createProposalProcessStep(proposalData, adminObjId, constProposalStatus.CANCEL, remark).catch(errorUtils.reportError);

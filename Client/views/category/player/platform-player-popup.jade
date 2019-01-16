@@ -909,13 +909,13 @@
                         .form-group
                             label.control-label {{'FEEDBACK_RESULTS' | translate}}
                             button.btn.btn-primary(style='margin-left:20px;', ng-click="vm.addPlayerFeedbackResultData={};vm.deletePlayerFeedbackResultData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackResult')", data-toggle="modal", data-target="#modalAddPlayerFeedbackResult") {{"ADD" | translate}}
-                            select.form-control.margin-top-5 (ng-model='vm.playerFeedback.result', required)
+                            select.form-control.margin-top-5(ng-model='vm.playerFeedback.result', required)
                                 option(ng-repeat='(i,v) in vm.allPlayerFeedbackResults', value='{{v.key}}') {{v.value}}
                         .form-group
 
                             label.control-label {{'FEEDBACK_TOPIC' | translate}}
                             button.btn.btn-primary(style='margin-left:20px;',ng-click="vm.addPlayerFeedbackTopicData={};vm.deletePlayerFeedbackTopicData={};", ng-show="checkViewPermission('Player', 'Feedback','ModifyFeedbackTopic')", data-toggle="modal", data-target="#modalAddPlayerFeedbackTopic") {{"ADD" | translate}}
-                            select.form-control.margin-top-5 (ng-model='vm.playerFeedback.topic', required)
+                            select.form-control.margin-top-5(ng-model='vm.playerFeedback.topic', required)
                                 option(ng-repeat='(i,v) in vm.playerFeedbackTopic', value='{{v.key}}') {{v.value}}
                         .form-group
                             label.control-label {{'FEEDBACK_CONTENT' | translate}}

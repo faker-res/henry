@@ -414,22 +414,22 @@ var dbPlatformMerchantGroup = {
         var aliPayList = pmsAPI.alipay_getAlipayList({platformId: platformId, queryId: serverInstance.getQueryId()});
         return Q.all([merchantsList, bankCardList, weChatList, aliPayList]).then(
         data=>{
-          let bankcard = [];
+            let bankcard = [];
             // bankcard
-          if(data[1] && data[1].data.length>0){
-              data[1].data.map(bcard=>{
-                  bcard.merchantNo = bcard.accountNumber;
-                  bcard.name = bcard.accountNumber + '('+ bcard.name + ')';
-                  bcard.merchantTypeId = '9999';
-                  bcard.merchantTypeName = "Bankcard";
-              })
-          }
+            if (data[1] && data[1].data.length > 0) {
+                data[1].data.map(card => {
+                  card.merchantNo = card.accountNumber;
+                  card.name = card.accountNumber + '('+ card.name + ')';
+                  card.merchantTypeId = '9999';
+                  card.merchantTypeName = "Bankcard";
+                })
+            }
             if (data[2] && data[2].data.length > 0) {
-                data[2].data.map(bcard => {
-                    bcard.merchantNo = bcard.accountNumber;
-                    bcard.name = bcard.accountNumber + '(' + bcard.name + ')';
-                    bcard.merchantTypeId = '9998';
-                    bcard.merchantTypeName = "WechatCard";
+                data[2].data.map(card => {
+                    card.merchantNo = card.accountNumber;
+                    card.name = card.accountNumber + '(' + card.name + ')';
+                    card.merchantTypeId = '9998';
+                    card.merchantTypeName = "WechatCard";
                 })
             }
             if (data[3] && data[3].data.length > 0) {
@@ -456,30 +456,22 @@ var dbPlatformMerchantGroup = {
                     uniqueObj[item.line] = [];
                 }
             });
-            //divide all the "line" by "line" category
-            data.data.forEach(item=>{
-                if(item && item.line){
-                    uniqueObj[item.line].push(item);
-                }else{
-                    uniqueObj['other'].push(item);
-                }
-            });
         }
         Object.keys(uniqueObj).forEach(key=>{
             //insert a "select all (same) line" object, ex: 支付宝线路1(全部)
             let category = dbPlatformMerchantGroup.getAlipayLineAcc(key)
             result.push(category);
-            //dump all same "line" data after it.
-            if(uniqueObj[key] && uniqueObj[key].length > 0){
-                uniqueObj[key].forEach(bcard=>{
-                    bcard.merchantNo = bcard.accountNumber;
-                    bcard.name = bcard.accountNumber + '(' + bcard.name + ')';
-                    bcard.merchantTypeId = '9997';
-                    bcard.merchantTypeName = "AliPayAcc";
-                    result.push(bcard);
-                })
-            }
         })
+
+        if(data && data.data && data.data.length > 0){
+            data.data.forEach(card => {
+                card.merchantNo = card.accountNumber;
+                card.name = card.accountNumber + '(' + card.name + ')';
+                card.merchantTypeId = '9997';
+                card.merchantTypeName = "AliPayAcc";
+                result.push(card);
+            })
+        }
         return result;
     },
     getAlipayLineAcc: function (no) {

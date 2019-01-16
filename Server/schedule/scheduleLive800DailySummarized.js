@@ -1,7 +1,7 @@
 let CronJob = require('cron').CronJob;
 
 let dbQualityInspection = require('../db_modules/dbQualityInspection');
-let dbUtility = require('../modules/dbUtility');
+let dbUtility = require('../modules/dbutility');
 
 let everyDayAtTwelveAMJob = new CronJob(
     // Every 5 minutes from 12:00AM to 12:30AM every day
