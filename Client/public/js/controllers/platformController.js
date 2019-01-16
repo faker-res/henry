@@ -27954,21 +27954,12 @@ define(['js/app'], function (myApp) {
                 }
                 socketService.$socket($scope.AppSocket, 'updatePaymentSystemConfigByPlatform', sendData, function (data) {
                     $scope.$evalAsync(() => {
-                        console.log('updatePaymentSystemConfigByPlatform success ',data);
-                        if (data && data.length > 0) {
-                            vm.paymentSystemConfig = data;
-                        }
-                    })
+                        console.log('updatePaymentSystemConfigByPlatform success ', data);
+                        vm.getPaymentSystemConfigByPlatform();
+                    });
                 }, function (err) {
-                    $scope.$evalAsync(() => {
-                        console.log('updatePaymentSystemConfigByPlatform fail ', err);
-                        vm.resetPaymentSystemConfig();
-                    })
+                    console.log('updatePaymentSystemConfigByPlatform fail ', err);
                 });
-            };
-
-            vm.resetPaymentSystemConfig = function () {
-                vm.paymentSystemConfig = vm.cloneOriPaymentSystemConfig ? JSON.parse(JSON.stringify(vm.cloneOriPaymentSystemConfig)) : [];
             };
 
             vm.enablePaymentSystemRdBtnConfig = function (idx, data, type) {

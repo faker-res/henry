@@ -2112,7 +2112,7 @@
                         button.btn.btn-primary.common-button(ng-if="!vm.financialSettlementSystemTableEdit ", ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit')
                             text {{'EDIT' | translate}}
                             img.img-edit
-                        button.btn.btn-danger.common-button(ng-if='vm.financialSettlementSystemTableEdit', ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit;vm.resetPaymentSystemConfig()') {{"CANCEL" | translate}}
+                        button.btn.btn-danger.common-button(ng-if='vm.financialSettlementSystemTableEdit', ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit;vm.getPaymentSystemConfigByPlatform()') {{"CANCEL" | translate}}
                         button.btn.btn-primary.common-button(ng-if='vm.financialSettlementSystemTableEdit', ng-click='vm.financialSettlementSystemTableEdit=!vm.financialSettlementSystemTableEdit;vm.updatePaymentSystemConfigByPlatform()') {{"CONFIRM" | translate}}
 
 
