@@ -5979,7 +5979,7 @@ var dbPlatform = {
                             let extConfigIndexNo = Object.keys(extConfig).findIndex(x => x && (Number(x) == platform.topUpSystemType));
 
                             if (extConfigIndexNo != -1) {
-                                let extConfigTemp = extConfig[extConfigIndexNo];
+                                let extConfigTemp = extConfig[extConfigIndexNo + 1];
 
                                 getPMSPlatfroms(platform, extConfigTemp, pmsPlatforms);
                             }
@@ -5989,7 +5989,7 @@ var dbPlatform = {
                             let extConfigIndexNo = Object.keys(extConfig).findIndex(x => x && (Number(x) == platform.bonusSystemType));
 
                             if (extConfigIndexNo != -1) {
-                                let extConfigTemp = extConfig[extConfigIndexNo];
+                                let extConfigTemp = extConfig[extConfigIndexNo + 1];
 
                                 getPMSPlatfroms(platform, extConfigTemp, pmsPlatforms);
                             }
