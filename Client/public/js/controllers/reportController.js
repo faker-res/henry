@@ -531,40 +531,34 @@ define(['js/app'], function (myApp) {
 
         vm.groupByIfAliPayLine = function () {
             let selectByGroup = [];
-            // vm.queryTopup.merchantNoData
-            let prom = new Promise((resolve, reject)=>{
-                if(vm.queryTopup.merchantNoData && vm.queryTopup.merchantNoData.length > 0){
-                    vm.queryTopup.merchantNoData.forEach(merchantNo=>{
-                        vm.merchantCloneList.forEach(item=>{
-                            if(item.merchantNo == merchantNo.merchantNo){
-                                // if that is a alipay category flag, tick all same "line".
-                                if(item.category){
-                                    vm.merchantCloneList.map(merchant=>{
-                                        if(merchant.merchantTypeId == '9997' && merchant.line == item.line){
-                                            selectByGroup.push(merchant);
+            if(vm.queryTopup.merchantNoData && vm.queryTopup.merchantNoData.length > 0){
+                vm.queryTopup.merchantNoData.forEach(merchantNo=>{
+                    vm.merchantCloneList.forEach(item=>{
+                        if(item.merchantNo == merchantNo.merchantNo){
+                            // if that is a alipay category flag, tick all same "line".
+                            if(item.category){
+                                vm.merchantCloneList.map(merchant=>{
+                                    if(merchant.merchantTypeId == '9997' && merchant.line == item.line){
+                                        selectByGroup.push(merchant);
+                                    }
+                                })
+                                if(selectByGroup && selectByGroup.length > 0){
+                                    selectByGroup.forEach(groupItem=>{
+                                        if(vm.queryTopup.merchantNoData.indexOf(groupItem) == -1){
+                                            vm.queryTopup.merchantNoData.push(groupItem);
                                         }
                                     })
-                                    if(selectByGroup && selectByGroup.length > 0){
-                                        selectByGroup.forEach(groupItem=>{
-                                            if(vm.queryTopup.merchantNoData.indexOf(groupItem) == -1){
-                                                vm.queryTopup.merchantNoData.push(groupItem);
-                                            }
-                                        })
-                                    }
                                 }
                             }
-                        })
+                        }
                     })
-                    resolve(vm.queryTopup.merchantNoData);
-                }
-            })
-            prom.then(()=>{
-                vm.queryTopup.merchantNo = [];
-                vm.queryTopup.merchantNoData.forEach(item=>{
-                    if(vm.queryTopup.merchantNo && vm.queryTopup.merchantNo.indexOf(item)==-1){
-                        vm.queryTopup.merchantNo.push(item.merchantNo);
-                    }
                 })
+            }
+            vm.queryTopup.merchantNo = [];
+            vm.queryTopup.merchantNoData.forEach(item=>{
+                if(vm.queryTopup.merchantNo && vm.queryTopup.merchantNo.indexOf(item)==-1){
+                    vm.queryTopup.merchantNo.push(item.merchantNo);
+                }
             })
         }
         vm.filterMerchant = function () {
@@ -8750,7 +8744,7 @@ define(['js/app'], function (myApp) {
         function getAliPayGroup (data){
             //rename the alipay-line category
             let result = [];
-            if(data.length > 0 ){
+            if(data && data.length > 0 ){
                 result = data.map(item=>{
                     if(item.category){
                         item.name = $translate('Alipay-Line')+ item.line+ $translate('( All )');
