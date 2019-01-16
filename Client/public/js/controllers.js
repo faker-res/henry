@@ -1940,7 +1940,6 @@ angular.module('myApp.controllers', ['ui.grid', 'ui.grid.edit', 'ui.grid.exporte
                     });
 
                     $scope.merchantNoList.forEach(item => {
-                        $scope.merGroupName[item.merchantTypeId] = item.name;
                         merGroupList[item.merchantTypeId] = merGroupList[item.merchantTypeId] || {list: []};
                         merGroupList[item.merchantTypeId].list.push(item.merchantNo);
                     });
