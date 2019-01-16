@@ -18,7 +18,7 @@ let rewardPointsLog = new Schema({
     // player level name
     playerLevelName: {type: String},
     // category of reward, base on constRewardPointsLogCategory
-    category: {type: Number},
+    category: {type: Number, index: true},
     // event title
     rewardTitle: {type: String},
     // event description
@@ -44,9 +44,9 @@ let rewardPointsLog = new Schema({
 
     remark: {type: String},
     //base on constRewardPointsLogStatus
-    status: {type: Number},
+    status: {type: Number, index: true},
 
-    createTime: {type: Date, default: Date.now},
+    createTime: {type: Date, default: Date.now, index: true},
     // platform
     platformId: {type: Schema.ObjectId, ref: 'platform', index: true}
 });
