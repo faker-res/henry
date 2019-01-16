@@ -12789,8 +12789,19 @@ let dbPlayerInfo = {
                                         );
                                     }
                                     //if it's ipm ,ky or some providers, don't use async here
-                                    if (providerData && (providerData.providerId == "51" || providerData.providerId == "57" || providerData.providerId == "41"
-                                        || providerData.providerId == "70" || providerData.providerId == "82" || providerData.providerId == "83" || isApplyBonusDoubledReward)) {
+                                    if (
+                                        providerData
+                                        && (
+                                            providerData.providerId == "51"
+                                            || providerData.providerId == "57"
+                                            || providerData.providerId == "41"
+                                            || providerData.providerId == "70"
+                                            || providerData.providerId == "82" // IG
+                                            || providerData.providerId == "83"
+                                            || providerData.providerId == "86" // SABA
+                                            || isApplyBonusDoubledReward
+                                        )
+                                    ) {
                                         return transferProm;
                                     }
                                     else {
@@ -16477,7 +16488,7 @@ let dbPlayerInfo = {
                                     playerReportSummaryData[indexNo].province = player.province || "";
                                     playerReportSummaryData[indexNo].consumptionBonusRatio  = player.consumptionBonusRatio || "";
                                     playerReportSummaryData[indexNo].credibilityRemarks  = player.credibilityRemarks || [];
-                                    playerReportSummaryData[indexNo].csOfficer = player.csOfficer.adminName || "";
+                                    playerReportSummaryData[indexNo].csOfficer = player.csOfficer && player.csOfficer.admin ? player.csOfficer.adminName : "";
                                     playerReportSummaryData[indexNo].onlineTopUpFeeDetail = player.onlineTopUpFeeDetail || [];
                                     playerReportSummaryData[indexNo].phoneCity = player.phoneCity || "";
                                     playerReportSummaryData[indexNo].phoneProvince = player.phoneProvince || "";
@@ -19504,6 +19515,7 @@ let dbPlayerInfo = {
         let matchObj = {$match: {"phoneNumber": oldNewPhone, "platform": ObjectId(platformObjId)}};
 
         for (let i = 0; i < arrayPhoneXLS.length; i++) {
+            arrayPhoneXLS[i] = arrayPhoneXLS[i].trim();
             oldNewPhone.$in.push(arrayPhoneXLS[i]);
             oldNewPhone.$in.push(rsaCrypto.encrypt(arrayPhoneXLS[i]));
             oldNewPhone.$in.push(rsaCrypto.oldEncrypt(arrayPhoneXLS[i]));

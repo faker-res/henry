@@ -1363,7 +1363,7 @@ var dbPlayerTopUpRecord = {
      * @param {Json} query
      * @param {Json} update
      */
-    playerTopUpFail: function (query, bCancel) {
+    playerTopUpFail: function (query, bCancel, remarks) {
         var deferred = Q.defer();
         var topupIntentionObj = {};
         var proposalObj = {};
@@ -1385,9 +1385,15 @@ var dbPlayerTopUpRecord = {
             .then(
                 function (data) {
                     if (data) {
+                        let updateData = {
+                            status: bCancel ? constProposalStatus.CANCEL : constProposalStatus.FAIL,
+                        };
+                        if(remarks) {
+                            updateData['data.remark'] = proposalObj.data && proposalObj.data.remark ? proposalObj.data.remark + "; " + remarks : remarks;
+                        }
                         return dbProposal.updateProposal(
                             {_id: proposalObj._id, createTime: proposalObj.createTime},
-                            {status: bCancel ? constProposalStatus.CANCEL : constProposalStatus.FAIL}
+                            updateData
                         );
                     }
                     else {
@@ -4625,22 +4631,21 @@ var dbPlayerTopUpRecord = {
             depositId: referenceNumber
         }).then(data => {
             console.log("forcePairingWithReferenceNumber data", data);
-            if(data && data.status == 200) {
+            if(data) {
                 // execute TopUp
                 let remarks = "强制匹配：成功。";
-                return dbProposal.updateProposalProcessStep(proposalObjId, adminId, remarks, true);
-            } else if(data && data.status == 401) {
-                // cancel top up
-                let remarks = data.errorMsg || "强制匹配：失败并取消。";
-                return dbProposal.cancelProposal(proposalObjId, adminId, remarks, adminObjId).then(() => {
-                    return Promise.reject({message: remarks});
-                })
+                return dbProposal.getProposal({_id: proposalObjId}).then(proposal => {
+                    if(proposal && proposal.data) {
+                        let proposalRemark = proposal.data.remark ? proposal.data.remark + "; " + remarks : remarks;
+                        return updateProposalRemark(proposal, proposalRemark).then(() => {return Promise.resolve(true)});
+                    }
+                });
             }
         }, err => {
             if(err && err.status == 401) {
                 // cancel top up
-                let remarks = err.errorMsg || "强制匹配：失败并取消。";
-                return dbProposal.cancelProposal(proposalObjId, adminId, remarks, adminObjId).then(() => {
+                let remarks = err.errorMessage || "强制匹配：失败并取消。";
+                return dbPlayerTopUpRecord.playerTopUpFail({proposalId: proposalId}, true, remarks).then(() => {
                     return Promise.reject({message: remarks});
                 })
             } else {

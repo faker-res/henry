@@ -285,6 +285,21 @@ angular.module('myApp.directives', [])
             }
         }
     })
+    .directive('alipayLineGroup', function ($timeout) {
+        return {
+            restrict: 'EA',
+            scope: true,
+            link: function (scope, element, attrs) {
+                if (attrs.ngModel) {
+                    scope.$watchCollection(attrs.ngModel, function(oldValue, newValue) {
+                        $timeout(() => {
+                            $(element).selectpicker('refresh')
+                        }, 50)
+                    }, true);
+                }
+            }
+        }
+    })
 
   .directive('rddl', function($timeout){
       return  {
