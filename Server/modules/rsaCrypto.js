@@ -116,12 +116,12 @@ module.exports = {
         let encrypted = msg;
 
         try {
-            encrypted = crypto.privateEncrypt(key, msg);
+            encrypted = crypto.privateEncrypt(key, Buffer.from(msg, 'utf8'));
         } catch (e) {
             encrypted = msg;
         }
 
-        return encrypted;
+        return Buffer.from(encrypted).toString('base64');
     },
     decrypt: (msg) => {
         let decrypted = msg;
@@ -129,7 +129,6 @@ module.exports = {
         try {
             decrypted = crypto.publicDecrypt(crt, Buffer.from(msg, 'base64'))
         } catch (e) {
-            console.log('crt error', crt);
             try {
                 decrypted = crypto.publicDecrypt(replCrt, Buffer.from(msg, 'base64'))
             } catch (e) {
@@ -154,7 +153,7 @@ module.exports = {
             encrypted = msg;
         }
 
-        return encrypted;
+        return Buffer.from(encrypted).toString('base64');
     },
     oldDecrypt: (msg) => {
         let decrypted = msg;

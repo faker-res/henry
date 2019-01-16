@@ -50,7 +50,7 @@
                     select.form-control.merchantNoList(ng-change='vm.filterMerchant()', ng-model='vm.queryTopup.bankTypeId', ng-options='i as v | translate for (i,v) in vm.allBankTypeList', multiple, bsp, data-actions-box='true')
                 div(style='max-width:125px')
                     label {{'Business Acc/ Bank Acc' | translate}}
-                    select.form-control.merchantNoList( ng-model='vm.queryTopup.merchantNo', ng-options='a.merchantNo as a.name group by a.merchantTypeName for a in vm.merchantCloneList' , multiple, bsp, data-actions-box='true')
+                    select.form-control.merchantNoList(ng-change='vm.groupByIfAliPayLine()', ng-model='vm.queryTopup.merchantNoData', ng-options='a as a.name group by a.merchantTypeName for a in vm.merchantCloneList' , multiple, bsp, alipay-line-group, data-actions-box='true')
                         //option(value='') {{'any' | translate}}
                         //option(ng-repeat='(i,v) in vm.merchantNoList' ,ng-init='$last && vm.initMultiSelect()', value='{{v.merchantNo}}') {{v.name}}
                         //option()
