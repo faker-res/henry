@@ -1449,7 +1449,6 @@ var proposal = {
                 function (proposalData) {
                     if (proposalData) {
                         var proposalStatus = proposalData.status || proposalData.process.status;
-                        let proposalDataRemark = proposalData.data && proposalData.data.remark ? proposalData.data.remark + remark : remark;
 
                         if (((proposalData.type.name === constProposalType.PLAYER_BONUS
                                 && (proposalStatus === constProposalStatus.PENDING || proposalStatus === constProposalStatus.AUTOAUDIT || proposalStatus === constProposalStatus.CSPENDING))
@@ -1463,8 +1462,7 @@ var proposal = {
                                         noSteps: true,
                                         process: null,
                                         status: constProposalStatus.CANCEL,
-                                        "data.cancelBy": "客服：" + adminId,
-                                        'data.remark': proposalDataRemark
+                                        "data.cancelBy": "客服：" + adminId
                                     };
                                     if (proposalData.type.name == constProposalType.PLAYER_BONUS || proposalData.type.name == constProposalType.PARTNER_BONUS) {
                                         dbProposalUtility.createProposalProcessStep(proposalData, adminObjId, constProposalStatus.CANCEL, remark).catch(errorUtils.reportError);
