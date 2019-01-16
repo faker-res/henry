@@ -10,8 +10,6 @@ var paymentSystemConfigSchema = new Schema({
     enableTopup: {type: Boolean, default: false},
     // bonus
     enableBonus: {type: Boolean, default: false},
-    // current financial points
-    curFinancialSettlementPoint: {type: Number},
     // point less than min setup point will trigger alert
     minPointNotification: {type: Number}
 });

@@ -2313,6 +2313,9 @@ define(['js/app'], function (myApp) {
 
             for (let z = 0; z < rows.length; z++) {
                 let rowObject = rows[z][vm.tsNewList.phoneIdx];
+                if (rowObject.value) {
+                    rowObject.value = rowObject.value.trim();
+                }
                 let rowObjectValue = Object.values(rowObject);
                 rowArray.push(rowObjectValue);
                 rowArrayMerge = [].concat.apply([], rowArray);

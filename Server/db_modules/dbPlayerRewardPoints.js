@@ -499,9 +499,7 @@ let dbPlayerRewardPoints = {
                                         makeRequest: function (rewardPoints, request) {
                                             request("player", "autoConvertPlayerRewardPoints", {
                                                 playerObjIds: rewardPoints.map(rewardPoint => {
-                                                    return {
-                                                        _id: rewardPoint.playerObjId
-                                                    }
+                                                    return rewardPoint.playerObjId;
                                                 })
                                             });
                                         }

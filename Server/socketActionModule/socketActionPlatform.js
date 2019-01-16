@@ -904,6 +904,18 @@ function socketActionPlatform(socketIO, socket) {
             var isValidData = Boolean(data && data.query && data.updateData);
             socketUtil.emitter(self.socket, dbPlatform.updatePaymentSystemConfigByPlatform, [data.query, data.updateData], actionName, isValidData);
         },
+
+        getMinPointNotiRecipientSettingByPlatform: function getMinPointNotiRecipientSettingByPlatform(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.platform);
+            socketUtil.emitter(self.socket, dbPlatform.getMinPointNotiRecipientSettingByPlatform, [data.platform], actionName, isValidData);
+        },
+
+        updateMinPointNotiRecipientSetting: function updateMinPointNotiRecipientSetting(data) {
+            let actionName = arguments.callee.name;
+            let isValidData = Boolean(data && data.query && data.updateData);
+            socketUtil.emitter(self.socket, dbPlatform.updateMinPointNotiRecipientSetting, [data.query, data.updateData, data.deleteData], actionName, isValidData);
+        },
     };
     socketActionPlatform.actions = this.actions;
 }

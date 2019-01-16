@@ -414,33 +414,28 @@ var dbPlatformMerchantGroup = {
         var aliPayList = pmsAPI.alipay_getAlipayList({platformId: platformId, queryId: serverInstance.getQueryId()});
         return Q.all([merchantsList, bankCardList, weChatList, aliPayList]).then(
         data=>{
-          let bankcard = [];
+            let bankcard = [];
             // bankcard
-          if(data[1] && data[1].data.length>0){
-              data[1].data.map(bcard=>{
-                  bcard.merchantNo = bcard.accountNumber;
-                  bcard.name = bcard.accountNumber + '('+ bcard.name + ')';
-                  bcard.merchantTypeId = '9999';
-                  bcard.merchantTypeName = "Bankcard";
-              })
-          }
+            if (data[1] && data[1].data.length > 0) {
+                data[1].data.map(card => {
+                  card.merchantNo = card.accountNumber;
+                  card.name = card.accountNumber + '('+ card.name + ')';
+                  card.merchantTypeId = '9999';
+                  card.merchantTypeName = "Bankcard";
+                })
+            }
             if (data[2] && data[2].data.length > 0) {
-                data[2].data.map(bcard => {
-                    bcard.merchantNo = bcard.accountNumber;
-                    bcard.name = bcard.accountNumber + '(' + bcard.name + ')';
-                    bcard.merchantTypeId = '9998';
-                    bcard.merchantTypeName = "WechatCard";
+                data[2].data.map(card => {
+                    card.merchantNo = card.accountNumber;
+                    card.name = card.accountNumber + '(' + card.name + ')';
+                    card.merchantTypeId = '9998';
+                    card.merchantTypeName = "WechatCard";
                 })
             }
             if (data[3] && data[3].data.length > 0) {
-                data[3].data.map(bcard => {
-                    bcard.merchantNo = bcard.accountNumber;
-                    bcard.name = bcard.accountNumber + '(' + bcard.name + ')';
-                    bcard.merchantTypeId = '9997';
-                    bcard.merchantTypeName = "AliPayAcc";
-                })
+                data[3].data.sort((a,b)=>{ return a.line - b.line})
+                data[3].data = dbPlatformMerchantGroup.addLineCategory(data[3]);
             }
-
 
           let result = {}
           if(!data[0].merchants){
@@ -449,6 +444,52 @@ var dbPlatformMerchantGroup = {
             result.merchants = data[0].merchants.concat(data[1].data).concat(data[2].data).concat(data[3].data);
           return result
         })
+    },
+    addLineCategory: function(data){
+        let result = [];
+        let uniqueLine = [];
+        let uniqueObj = {};
+        if(data && data.data.length > 0){
+            data.data.forEach(item=>{
+                // find how many of different "line"
+                if(item.line && (uniqueLine.indexOf(item.line)== -1)){
+                    uniqueObj[item.line] = [];
+                }
+            });
+        }
+        Object.keys(uniqueObj).forEach(key=>{
+            //insert a "select all (same) line" object, ex: 支付宝线路1(全部)
+            let category = dbPlatformMerchantGroup.getAlipayLineAcc(key)
+            result.push(category);
+        })
+
+        if(data && data.data && data.data.length > 0){
+            data.data.forEach(card => {
+                card.merchantNo = card.accountNumber;
+                card.name = card.accountNumber + '(' + card.name + ')';
+                card.merchantTypeId = '9997';
+                card.merchantTypeName = "AliPayAcc";
+                result.push(card);
+            })
+        }
+        return result;
+    },
+    getAlipayLineAcc: function (no) {
+        let name = "MMM4-line"+no;
+        let lineAcc = {
+            accountNumber:"MMM4-line"+no,
+            bankTypeId:"170",
+            merchantNo:"MMM4-line"+no,
+            merchantTypeId:"9997",
+            merchantTypeName:"AliPayAcc",
+            minDepositAmount:1,
+            name: name,
+            singleLimit:0,
+            state:"NORMAL",
+            line: no,
+            category:true
+        }
+        return lineAcc;
     },
     syncMerchantNoScript:function(platformObjId){
         var allMerchants = [];

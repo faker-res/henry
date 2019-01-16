@@ -27942,7 +27942,7 @@ define(['js/app'], function (myApp) {
             }
 
             vm.updatePaymentSystemConfigByPlatform = function () {
-                let updateDate = {
+                let updateData = {
                     paymentSystemConfig: vm.paymentSystemConfig
                 }
 
@@ -27950,7 +27950,7 @@ define(['js/app'], function (myApp) {
                     query: {
                         platform: vm.selectedPlatform.id
                     },
-                    updateData: updateDate
+                    updateData: updateData
                 }
                 socketService.$socket($scope.AppSocket, 'updatePaymentSystemConfigByPlatform', sendData, function (data) {
                     $scope.$evalAsync(() => {
@@ -27985,6 +27985,80 @@ define(['js/app'], function (myApp) {
                         }
                     }
                 }
+            };
+
+            vm.getMinPointNotiRecipientSettingByPlatform = function () {
+                vm.recipients = vm.recipients || [];
+
+                let sendData = {
+                    platform: vm.selectedPlatform.id
+                };
+
+                socketService.$socket($scope.AppSocket, 'getMinPointNotiRecipientSettingByPlatform', sendData, function (data) {
+                    console.log('recipient email', data);
+                    $scope.$evalAsync(() => {
+                        if (data && data.data && data.data.length > 0) {
+                            vm.recipients = data.data;
+                        } else {
+                            vm.recipients.push({email: ""});
+                        }
+                    });
+                }, function (err) {
+                    console.log("cannot get recipient email", err);
+                });
+            };
+
+            vm.minPointNotiRecipientNewRow = function (valueCollection) {
+                valueCollection.push({email: ""});
+            };
+
+            vm.minPointNotiRecipientDeleteRow = function (idx, valueCollection) {
+                if (valueCollection && valueCollection[idx] && valueCollection[idx]._id) {
+                    vm.deleteRecipients.push(valueCollection[idx]._id);
+                }
+
+                valueCollection.splice(idx, 1);
+
+                if (valueCollection.length == 0) {
+                    valueCollection.push({email: ""});
+                }
+            };
+
+            vm.initMinPointNotiRecipientSetting = function () {
+                vm.isEditRecipientSetting = false;
+                vm.deleteRecipients = [];
+                vm.getMinPointNotiRecipientSettingByPlatform();
+            };
+
+            vm.editMinPointNotiRecipientSetting = function () {
+                vm.isEditRecipientSetting = true;
+            };
+
+            vm.submitMinPointNotiRecipientSetting = function () {
+                let updateData = {
+                    recipients: vm.recipients
+                };
+
+                let deleteData = {
+                    recipients: vm.deleteRecipients
+                };
+
+                let sendData = {
+                    query: {
+                        platform: vm.selectedPlatform.id
+                    },
+                    updateData: updateData,
+                    deleteData: deleteData
+                }
+                socketService.$socket($scope.AppSocket, 'updateMinPointNotiRecipientSetting', sendData, function (data) {
+                    $scope.$evalAsync(() => {
+                        console.log('update Recipients success ',data);
+                    })
+                }, function (err) {
+                    $scope.$evalAsync(() => {
+                        console.log('update Recipients  fail ', err);
+                    })
+                });
             };
             // end region
 
@@ -36066,6 +36140,32 @@ define(['js/app'], function (myApp) {
                 vm.auctionSystemProduct.registerEndTime = $('#auctionSystemProductRegisterEndTimePicker').data('datetimepicker').getLocalDate();
                 vm.auctionSystemProduct.rewardStartTime = $('#auctionSystemProductRewardStartTimePicker').data('datetimepicker').getLocalDate();
                 vm.auctionSystemProduct.rewardEndTime = $('#auctionSystemProductRewardEndTimePicker').data('datetimepicker').getLocalDate();
+
+                // special handling for auction product: promoCode and openPromoCode to remove unwanted params
+                if (vm.auctionSystemProduct && vm.auctionSystemProduct.rewardData && vm.auctionSystemProduct.rewardData.templateObjId){
+                    if(vm.auctionSystemProduct.rewardData.rewardType == "promoCode" || vm.auctionSystemProduct.rewardData.rewardType == "openPromoCode"){
+                        if (vm.auctionSystemProduct.rewardData.isDynamicRewardAmount){
+                            if (vm.auctionSystemProduct.rewardData.hasOwnProperty("rewardAmount")){
+                                delete vm.auctionSystemProduct.rewardData.rewardAmount;
+                            }
+                            if (vm.auctionSystemProduct.rewardData.hasOwnProperty("spendingAmount")){
+                                delete vm.auctionSystemProduct.rewardData.spendingAmount;
+                            }
+                        }
+                        else{
+                            if (vm.auctionSystemProduct.rewardData.hasOwnProperty("rewardPercentage")){
+                                delete vm.auctionSystemProduct.rewardData.rewardPercentage;
+                            }
+                            if (vm.auctionSystemProduct.rewardData.hasOwnProperty("maximumRewardAmount")){
+                                delete vm.auctionSystemProduct.rewardData.maximumRewardAmount;
+                            }
+                            if (vm.auctionSystemProduct.rewardData.hasOwnProperty("spendingTimes")){
+                                delete vm.auctionSystemProduct.rewardData.spendingTimes;
+                            }
+                        }
+                    }
+                }
+
                 let sendData = {
                      _id: vm.auctionSystemProduct._id ,
                      updateData: vm.auctionSystemProduct
@@ -36317,7 +36417,7 @@ define(['js/app'], function (myApp) {
                         },
                         {title: $translate('Product Name'), data: "productName",
                             render: function(data, type, row){
-                                let result = '<div ng-click="vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
+                                let result = '<div ng-click="vm.auctionSystemEditStatus = true; vm.loadAuctionItem(\''+row._id+'\')">' + data + '</div>';
                                 return result;
                             }
                         },
