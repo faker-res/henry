@@ -1425,7 +1425,7 @@ define([], () => {
             return proposalDetail;
         };
 
-        this.forcePairingWithReferenceNumber = ($scope, platformId, proposalObjId, proposalId, referenceNumber) => {
+        this.forcePairingWithReferenceNumber = ($scope, $translate, socketService, platformId, proposalObjId, proposalId, referenceNumber) => {
             if(platformId && proposalObjId && proposalId && referenceNumber) {
                 console.log("forcePairingWithReferenceNumber ", platformId, proposalObjId, proposalId, referenceNumber);
                 return $scope.$socketPromise("forcePairingWithReferenceNumber", {
@@ -1433,7 +1433,15 @@ define([], () => {
                     proposalObjId: proposalObjId,
                     proposalId: proposalId,
                     referenceNumber: referenceNumber
-                }).then(data=>{console.log("data",data)},err=>{console.log("err",err)});
+                }).then(
+                    data=>{
+                        console.log("data",data);
+                        socketService.showConfirmMessage($translate("Force Pairing") + $translate("Success"),5000);
+                    },
+                    err=>{
+                        console.log("err",err);
+                    }
+                );
             }
         }
     };
