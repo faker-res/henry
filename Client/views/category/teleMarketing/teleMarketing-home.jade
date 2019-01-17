@@ -360,6 +360,7 @@
                 a.fa.fa-times.close(type='button', data-dismiss='modal')
                 h4.modal-title {{"Set reminder/ clear reminder"|translate}}
             .modal-body
+                text(style='color:red') {{"CURRENT_REMIND_TIME"| translate}} : {{vm.tsPhoneReminderDateShow}}
                 #phoneListReminderTimePicker
             .modal-footer
                 button.btn.btn-primary.common-button(ng-click="vm.updateTsPhoneDistributedPhone()", data-dismiss='modal') {{"CONFIRM" | translate}}

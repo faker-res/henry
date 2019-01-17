@@ -112,6 +112,7 @@ var proposalExecutor = {
             // Auction reward
             || executionType === 'executeAuctionPromoCode'
             || executionType === 'executeAuctionOpenPromoCode'
+            || executionType === 'executeAuctionRealPrize'
 
         if (isNewFunc) {
             return proposalExecutor.approveOrRejectProposal2(executionType, rejectionType, bApprove, proposalData, rejectIfMissing);
@@ -3853,10 +3854,14 @@ var proposalExecutor = {
                 }
             },
 
-            executeAuctionRealPrize: function (proposalData, deferred) {
-                if (proposalData && proposalData.data) {
-                    // do nothing
-                    deferred.resolve(proposalData);
+            executeAuctionRealPrize: function (proposalData) {
+                if (proposalData && proposalData.data && (proposalData.status == constProposalStatus.SUCCESS ||
+                    proposalData.status == constProposalStatus.APPROVED || proposalData.status == constProposalStatus.APPROVE)) {
+                    sendMessageToPlayer(proposalData, constMessageType.AUCTION_REAL_PRIZE_SUCCESS, {});
+                    return Promise.resolve(proposalData);
+                }
+                else {
+                    return Promise.resolve();
                 }
             },
 
